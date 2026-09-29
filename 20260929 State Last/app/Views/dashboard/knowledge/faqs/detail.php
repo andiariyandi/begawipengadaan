@@ -1,0 +1,6 @@
+<?= $this->extend('dashboard/layouts/dashboard') ?>
+
+<?= $this->section('content') ?>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Detail FAQ</h6><p class="text-secondary-light mb-0">ID FAQ: <?= esc($faqId ?? '-') ?></p></div><a href="<?= site_url('dashboard/bunga-rampai/faq') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a></div>
+<div class="card"><div class="card-body p-24"><p class="text-secondary-light mb-4">Pertanyaan</p><h5 class="mb-20">Bagaimana cara mengikuti kelas di Arena Belajar?</h5><div class="row gy-20"><div class="col-md-4"><p class="text-secondary-light mb-4">Kategori</p><h6 class="mb-0">Pembelajaran</h6></div><div class="col-md-4"><p class="text-secondary-light mb-4">Urutan</p><h6 class="mb-0">1</h6></div><div class="col-md-4"><p class="text-secondary-light mb-4">Status</p><?= view('dashboard/components/status_badge', ['status' => 'active']) ?></div></div><hr class="my-24"><p class="text-secondary-light mb-8">Jawaban</p><p class="mb-0">Pengguna dapat membuka katalog Arena Belajar, memilih course atau kelas yang tersedia, lalu mengikuti proses enrollment sesuai ketentuan kelas.</p></div></div>
+<?= $this->endSection() ?>
