@@ -1,0 +1,6 @@
+<?= $this->extend('dashboard/layouts/dashboard') ?>
+
+<?= $this->section('content') ?>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Item Media</h6><p class="text-secondary-light mb-0">Kelola item pada koleksi media dan galeri.</p></div><a href="#" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Item Media</a></div>
+<div class="card"><div class="card-body p-24"><div class="table-responsive scroll-sm"><table class="table bordered-table sm-table mb-0"><thead><tr><th>Item</th><th>Koleksi Media</th><th>Tipe</th><th>Urutan</th><th class="text-center">Status</th></tr></thead><tbody><tr><td>Dokumentasi Kegiatan 01</td><td>Sosialisasi Regulasi PBJ</td><td>Gambar</td><td>1</td><td class="text-center"><?= view('dashboard/components/status_badge', ['status' => 'active']) ?></td></tr><tr><td>Dokumentasi Kegiatan 02</td><td>Sosialisasi Regulasi PBJ</td><td>Gambar</td><td>2</td><td class="text-center"><?= view('dashboard/components/status_badge', ['status' => 'active']) ?></td></tr></tbody></table></div></div></div>
+<?= $this->endSection() ?>

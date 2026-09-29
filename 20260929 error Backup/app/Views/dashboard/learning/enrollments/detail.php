@@ -1,0 +1,39 @@
+<?= $this->extend('dashboard/layouts/dashboard') ?>
+
+<?= $this->section('content') ?>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+        <h6 class="fw-semibold mb-1">Detail Enrollment</h6>
+        <p class="text-secondary-light mb-0">ID Enrollment: <?= esc($enrollmentId ?? '-') ?></p>
+    </div><a href="<?= site_url('dashboard/pembelajaran/enrollment') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
+</div>
+<div class="card">
+    <div class="card-body p-24">
+        <div class="row gy-20">
+            <div class="col-md-6">
+                <p class="text-secondary-light mb-4">Peserta</p>
+                <h6 class="mb-0">Rina Oktaviani</h6>
+            </div>
+            <div class="col-md-6">
+                <p class="text-secondary-light mb-4">Kelas</p>
+                <h6 class="mb-0">PBJ Dasar Batch 1</h6>
+            </div>
+            <div class="col-md-6">
+                <p class="text-secondary-light mb-4">Course</p>
+                <h6 class="mb-0">Dasar-Dasar Pengadaan Barang/Jasa</h6>
+            </div>
+            <div class="col-md-6">
+                <p class="text-secondary-light mb-4">Status</p><?= view('dashboard/components/status_badge', ['status' => 'approved']) ?>
+            </div>
+            <div class="col-md-6">
+                <p class="text-secondary-light mb-4">Tanggal Pendaftaran</p>
+                <h6 class="mb-0">02 September 2026</h6>
+            </div>
+            <div class="col-md-6">
+                <p class="text-secondary-light mb-4">Progres</p>
+                <h6 class="mb-0">72%</h6>
+            </div>
+        </div>
+    </div>
+</div>
+<?= $this->endSection() ?>

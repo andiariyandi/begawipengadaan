@@ -1,0 +1,6 @@
+<?= $this->extend('dashboard/layouts/dashboard') ?>
+
+<?= $this->section('content') ?>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Detail Kategori Regulasi</h6><p class="text-secondary-light mb-0">ID Kategori: <?= esc($categoryId ?? '-') ?></p></div><a href="<?= site_url('dashboard/regulasi/kategori') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a></div>
+<div class="card"><div class="card-body p-24"><div class="row gy-20"><div class="col-md-6"><p class="text-secondary-light mb-4">Nama Kategori</p><h6 class="mb-0">Peraturan Presiden</h6></div><div class="col-md-6"><p class="text-secondary-light mb-4">Kode</p><h6 class="mb-0 text-primary-600">PERPRES</h6></div><div class="col-md-6"><p class="text-secondary-light mb-4">Jumlah Regulasi</p><h6 class="mb-0">8</h6></div><div class="col-md-6"><p class="text-secondary-light mb-4">Status</p><?= view('dashboard/components/status_badge', ['status' => 'active']) ?></div><div class="col-12"><p class="text-secondary-light mb-4">Deskripsi</p><p class="mb-0">Klasifikasi regulasi tingkat Presiden yang relevan dengan Pengadaan Barang/Jasa Pemerintah.</p></div></div></div></div>
+<?= $this->endSection() ?>

@@ -1,0 +1,38 @@
+<?= $this->extend('dashboard/layouts/dashboard') ?>
+
+<?= $this->section('content') ?>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+        <h6 class="fw-semibold mb-1">Materi dan Modul</h6>
+        <p class="text-secondary-light mb-0">Kelola struktur pembelajaran dan materi.</p>
+    </div><a href="<?= site_url('dashboard/pembelajaran/materi-modul/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Materi atau Modul</a>
+</div>
+<div class="card">
+    <div class="card-body p-24">
+        <div class="table-responsive scroll-sm">
+            <table class="table bordered-table sm-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Modul</th>
+                        <th>Course</th>
+                        <th>Urutan</th>
+                        <th>Jumlah Lesson</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody><?php foreach ([['id' => 'MOD-001', 'name' => 'Pengantar PBJ Pemerintah', 'course' => 'Dasar-Dasar PBJ', 'order' => '1', 'lessons' => '4 Lesson', 'status' => 'active'], ['id' => 'MOD-002', 'name' => 'Perencanaan Pengadaan', 'course' => 'Dasar-Dasar PBJ', 'order' => '2', 'lessons' => '5 Lesson', 'status' => 'active'], ['id' => 'MOD-003', 'name' => 'Pelaksanaan Kontrak', 'course' => 'Manajemen Kontrak', 'order' => '1', 'lessons' => '3 Lesson', 'status' => 'draft']] as $module): ?><tr>
+                            <td>
+                                <h6 class="text-md mb-0 fw-medium"><?= esc($module['name']) ?></h6>
+                            </td>
+                            <td><?= esc($module['course']) ?></td>
+                            <td><?= esc($module['order']) ?></td>
+                            <td><?= esc($module['lessons']) ?></td>
+                            <td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $module['status']]) ?></td>
+                            <td class="text-center"><a href="<?= site_url('dashboard/pembelajaran/materi-modul/' . $module['id']) ?>" class="text-primary-600">Detail</a></td>
+                        </tr><?php endforeach; ?></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<?= $this->endSection() ?>

@@ -1,0 +1,250 @@
+                                        <div class="banner-one__udemy-review-img">
+                                            <img src="assets/images/resources/banner-one-udemy-review-img.jpg" alt="">
+                                        </div>
+                                        <div class="banner-one__udemy-review-logo">
+                                            <img src="assets/images/resources/banner-one-udemy-review-logo.png" alt="">
+                                        </div>
+                                        <div class="banner-one__udemy-review-client-info">
+                                            <p class="banner-one__udemy-review-client-name">Alisa Olivia/</p>
+                                            <div class="banner-one__udemy-review-star">
+                                                <span class="icon-star"></span>
+                                                <span class="icon-star"></span>
+                                                <span class="icon-star"></span>
+                                                <span class="icon-star"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="banner-one__student-trained">
+                                        <div class="banner-one__student-trained-shape-1 rotate-me">
+                                            <img src="assets/images/shapes/banner-one-student-trained-shape-1.png"
+                                                alt="">
+                                        </div>
+                                        <ul class="list-unstyled banner-one__student-trained-list">
+                                            <li>
+                                                <div class="banner-one__student-trained-img">
+                                                    <img src="assets/images/resources/banner-one-student-trained-img-1-1.jpg"
+                                                        alt="">
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="banner-one__student-trained-img">
+                                                    <img src="assets/images/resources/banner-one-student-trained-img-1-2.jpg"
+                                                        alt="">
+                                                </div>
+                                            </li>
+                                        </ul>
+                                        <div class="banner-one__student-trained-count-box">
+                                            <div class="banner-one__student-trained-count-box-inner count-box">
+                                                <p class="count-text" data-stop="2000" data-speed="3000">00</p>
+                                                <span>+</span>
+                                            </div>
+                                            <p class="banner-one__student-trained-text">Success Student</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-12">
+                        <div class="banner-one__category-search-box">
+                            <div class="banner-one__category-search-inner">
+                                <div class="banner-one__category-select-box">
+                                    <div class="select-box">
+                                        <select class="wide">
+                                            <option data-display="All Categories">All Categories</option>
+                                            <option value="1">All Categories</option>
+                                            <option value="2">Accounting</option>
+                                            <option value="3">Business</option>
+                                            <option value="4">Dance</option>
+                                            <option value="5">Design & Art</option>
+                                            <option value="6">Development</option>
+                                            <option value="7">Marketing</option>
+                                            <option value="8">Meditation</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <form class="banner-one__category-form">
+                                    <div class="banner-one__category-input">
+                                        <input type="search" placeholder="Find Your Course">
+                                    </div>
+                                    <button type="submit" class="banner-one__category-btn">Search</button>
+                                </form>
+                            </div>
+                            <div class="banner-one__tags">
+                                <a href="#">Accounting</a>
+                                <a href="#">Business</a>
+                                <a href="#">Development</a>
+                                <a href="#">Marketing</a>
+                                <a href="#">Meditation</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!--Banner One End -->
+
+        <!-- Sliding Text One Start-->
+        <section class="sliding-text-one">
+            <div class="sliding-text-one__wrap">
+                <ul class="sliding-text__list list-unstyled marquee_mode">
+                    <li>
+                        <h2 data-hover="20+ Instructor" class="sliding-text__title">
+                            <span class="odometer" data-count="20">00</span>+ Instructor
+                            <img src="assets/images/shapes/sliding-text-shape-1.png" alt="">
+                        </h2>
+                    </li>
+                    <li>
+                        <h2 data-hover="500+ Online Courses" class="sliding-text__title">
+                            <span class="odometer" data-count="500">00</span>+ Online Courses
+                            <img src="assets/images/shapes/sliding-text-shape-1.png" alt="">
+                        </h2>
+                    </li>
+                    <li>
+                        <h2 data-hover="24 Hors Support" class="sliding-text__title">24 Hors Support
+                            <img src="assets/images/shapes/sliding-text-shape-1.png" alt="">
+                        </h2>
+                    </li>
+                    <li>
+                        <h2 data-hover="Courses Certificate" class="sliding-text__title">Courses Certificate
+                            <img src="assets/images/shapes/sliding-text-shape-1.png" alt="">
+                        </h2>
+                    </li>
+                </ul>
+            </div>
+        </section>
+        <!-- Sliding Text One End -->
+
+        <!-- Category One Start -->
+        <section class="category-one">
+            <div class="category-one__bg-shape"
+                style="background-image: url(assets/images/shapes/category-one-bg-shape.png);"></div>
+            <div class="category-one__shape-1">
+                <img src="assets/images/shapes/category-one-shape-1.png" alt="">
+            </div>
+            <div class="category-one__shape-2">
+                <img src="assets/images/shapes/category-one-shape-2.png" alt="">
+            </div>
+            <div class="category-one__shape-3">
+                <img src="assets/images/shapes/category-one-shape-3.png" alt="">
+            </div>
+            <div class="category-one__social-media">
+                <ul class="category-one__social-media-list list-unstyled">
+                    <li>
+                        <h3>Art & design</h3>
+                    </li>
+                    <li>
+                        <img src="assets/images/shapes/category-one-social-media-shape-1.png" alt="">
+                    </li>
+                    <li>
+                        <h3>Marketing</h3>
+                    </li>
+                    <li>
+                        <img src="assets/images/shapes/category-one-social-media-shape-1.png" alt="">
+                    </li>
+                    <li>
+                        <h3>Programming</h3>
+                    </li>
+                </ul>
+            </div>
+            <div class="category-one__brand-box">
+                <ul class="category-one__brand-list list-unstyled">
+                    <li>
+                        <div class="category-one__brand">
+                            <img src="assets/images/brand/category-one-brand-1-1.png" alt="">
+                        </div>
+                    </li>
+                    <li>
+                        <div class="category-one__brand">
+                            <img src="assets/images/brand/category-one-brand-1-2.png" alt="">
+                        </div>
+                    </li>
+                    <li>
+                        <div class="category-one__brand">
+                            <img src="assets/images/brand/category-one-brand-1-3.png" alt="">
+                        </div>
+                    </li>
+                    <li>
+                        <div class="category-one__brand">
+                            <img src="assets/images/brand/category-one-brand-1-4.png" alt="">
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-6 col-lg-7">
+                        <div class="category-one__left">
+                            <div class="section-title text-left sec-title-animation animation-style2">
+                                <div class="section-title__tagline-box">
+                                    <div class="section-title__tagline-shape"></div>
+                                    <span class="section-title__tagline">Category</span>
+                                </div>
+                                <h2 class="section-title__title title-animation">Browse Our Categories To<br> Find
+                                    Exactly <span>Courses <img src="assets/images/shapes/section-title-shape-2.png"
+                                            alt=""></span></h2>
+                            </div>
+                            <ul class="category-one__category-list list-unstyled">
+                                <li>
+                                    <div class="category-one__count-and-arrow">
+                                        <div class="category-one__count-box">
+                                            <div class="category-one__count"></div>
+                                            <div class="category-one__count-content">
+                                                <h3><a href="course-details.html">tech & Programing</a></h3>
+                                                <p>10 Course</p>
+                                            </div>
+                                        </div>
+                                        <div class="category-one__count-arrow">
+                                            <a href="course-details.html"><span
+                                                    class="icon-arrow-up-right-2"></span></a>
+                                        </div>
+                                    </div>
+                                    <div class="category-one__hover-icon-and-arrow">
+                                        <div class="category-one__hover-icon-box">
+                                            <div class="category-one__hover-icon">
+                                                <img src="assets/images/icon/category-one-hover-icon-1-1.png" alt="">
+                                            </div>
+                                            <div class="category-one__hover-content">
+                                                <h3><a href="course-details.html">tech & Programing</a></h3>
+                                                <p>10 Course</p>
+                                            </div>
+                                        </div>
+                                        <div class="category-one__hover-arrow">
+                                            <a href="course-details.html"><span
+                                                    class="icon-arrow-up-right-2"></span></a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="category-one__count-and-arrow">
+                                        <div class="category-one__count-box">
+                                            <div class="category-one__count"></div>
+                                            <div class="category-one__count-content">
+                                                <h3><a href="course-details.html">Art & design</a></h3>
+                                                <p>50 Course</p>
+                                            </div>
+                                        </div>
+                                        <div class="category-one__count-arrow">
+                                            <a href="course-details.html"><span
+                                                    class="icon-arrow-up-right-2"></span></a>
+                                        </div>
+                                    </div>
+                                    <div class="category-one__hover-icon-and-arrow">
+                                        <div class="category-one__hover-icon-box">
+                                            <div class="category-one__hover-icon">
+                                                <img src="assets/images/icon/category-one-hover-icon-1-1.png" alt="">
+                                            </div>
+                                            <div class="category-one__hover-content">
+                                                <h3><a href="course-details.html">Art & design</a></h3>
+                                                <p>50 Course</p>
+                                            </div>
+                                        </div>
+                                        <div class="category-one__hover-arrow">
+                                            <a href="course-details.html"><span
+                                                    class="icon-arrow-up-right-2"></span></a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>

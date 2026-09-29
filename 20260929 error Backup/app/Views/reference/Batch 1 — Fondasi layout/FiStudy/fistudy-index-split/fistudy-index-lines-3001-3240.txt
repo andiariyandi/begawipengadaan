@@ -1,0 +1,240 @@
+                                                        Springfield, IL <br> 62704</p>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                        <ul
+                                            class="list-unstyled site-footer__contact-info-list site-footer__contact-info-list--two">
+                                            <li>
+                                                <div class="site-footer__contact-info-icon-box">
+                                                    <div class="site-footer__contact-info-icon">
+                                                        <span class="icon-phone"></span>
+                                                        <p class="site-footer__contact-info-icon-text">Phone Number:
+                                                        </p>
+                                                    </div>
+                                                    <p class="site-footer__contact-info-text"><a
+                                                            href="tel:1212345678900">+12 (123) 4567 8900</a></p>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="site-footer__contact-info-icon-box">
+                                                    <div class="site-footer__contact-info-icon">
+                                                        <span class="icon-clock"></span>
+                                                        <p class="site-footer__contact-info-icon-text">Working Hour:
+                                                        </p>
+                                                    </div>
+                                                    <p class="site-footer__contact-info-text">Saturday - Friday <br>
+                                                        10:00 - 18:00 </p>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="site-footer__app-and-social-box">
+                                        <div class="site-footer__app-download">
+                                            <h4 class="site-footer__app-and-social-title">Download Apps</h4>
+                                            <div class="site-footer__app-download-inner">
+                                                <a href="#" class="site-footer__app-box">
+                                                    <div class="site-footer__app-icon">
+                                                        <img src="assets/images/icon/google-play-icon.png" alt="">
+                                                    </div>
+                                                </a>
+                                                <a href="#" class="site-footer__app-box">
+                                                    <div class="site-footer__app-icon">
+                                                        <img src="assets/images/icon/apple-icon.png" alt="">
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="site-footer__social-box">
+                                            <h4 class="site-footer__app-and-social-title">Follow Us:</h4>
+                                            <div class="site-footer__social-box-inner">
+                                                <a href="#"><span class="fab fa-linkedin-in"></span></a>
+                                                <a href="#"><span class="fab fa-pinterest-p"></span></a>
+                                                <a href="#"><span class="fab fa-facebook-f"></span></a>
+                                                <a href="#"><span class="fab fa-instagram"></span></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-6 col-lg-6 wow fadeInUp" data-wow-delay="300ms">
+                                <div class="site-footer__top-right">
+                                    <div class="row">
+                                        <div class="col-xl-6 col-lg-6 col-md-6">
+                                            <div class="site-footer__links">
+                                                <h4 class="site-footer__title">Quick Link</h4>
+                                                <ul class="site-footer__links-list list-unstyled">
+                                                    <li><a href="index.html"> <span class="icon-plus"></span> Home</a>
+                                                    </li>
+                                                    <li><a href="about.html"> <span class="icon-plus"></span> About
+                                                            Us</a></li>
+                                                    <li><a href="course.html"> <span class="icon-plus"></span>
+                                                            Courses</a></li>
+                                                    <li><a href="faq.html"> <span class="icon-plus"></span> FAQs</a>
+                                                    </li>
+                                                    <li><a href="contact.html"> <span class="icon-plus"></span>
+                                                            Contact</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-6 col-lg-6 col-md-6">
+                                            <div class="site-footer__useful-links">
+                                                <h4 class="site-footer__title">Useful Links</h4>
+                                                <ul class="site-footer__links-list list-unstyled">
+                                                    <li><a href="become-a-teacher.html"> <span class="icon-plus"></span>
+                                                            Became
+                                                            Partners</a>
+                                                    </li>
+                                                    <li><a href="about.html"> <span class="icon-plus"></span> Privacy &
+                                                            Policy</a></li>
+                                                    <li><a href="about.html"> <span class="icon-plus"></span>
+                                                            Tearm & Condition</a></li>
+                                                    <li><a href="about.html"> <span class="icon-plus"></span> Refund
+                                                            Policy</a>
+                                                    </li>
+                                                    <li><a href="course-details.html"> <span class="icon-plus"></span>
+                                                            Live Workshop</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="site-footer__newsletter-box">
+                                        <h4 class="site-footer__title">Newsletter</h4>
+                                        <form class="site-footer__newsletter-form">
+                                            <div class="site-footer__newsletter-input">
+                                                <input type="email" placeholder="Enter Your Email">
+                                            </div>
+                                            <button type="submit" class="thm-btn"> <span
+                                                    class="icon-angles-right"></span> Subscribe</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="site-footer__bottom">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <div class="site-footer__bottom-inner">
+                                <div class="site-footer__copyright">
+                                    <p class="site-footer__copyright-text">Copyright © 2025 <a href="#">FiStudy</a>. All
+                                        Rights Reserved</p>
+                                </div>
+                                <div class="site-footer__bottom-card-box">
+                                    <ul class="list-unstyled site-footer__card-menu">
+                                        <li><a href="contact.html"><img src="assets/images/icon/card-icon-1.png"
+                                                    alt=""></a></li>
+                                        <li><a href="contact.html"><img src="assets/images/icon/card-icon-2.png"
+                                                    alt=""></a></li>
+                                        <li><a href="contact.html"><img src="assets/images/icon/card-icon-3.png"
+                                                    alt=""></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!--Site Footer End-->
+
+
+
+
+    </div><!-- /.page-wrapper -->
+
+
+    <div class="mobile-nav__wrapper">
+        <div class="mobile-nav__overlay mobile-nav__toggler"></div>
+        <!-- /.mobile-nav__overlay -->
+        <div class="mobile-nav__content">
+            <span class="mobile-nav__close mobile-nav__toggler"><i class="fa fa-times"></i></span>
+
+            <div class="logo-box">
+                <a href="index.html" aria-label="logo image"><img src="assets/images/resources/logo-4.png" width="105"
+                        alt="" /></a>
+            </div>
+            <!-- /.logo-box -->
+            <div class="mobile-nav__container"></div>
+            <!-- /.mobile-nav__container -->
+
+            <ul class="mobile-nav__contact list-unstyled">
+                <li>
+                    <i class="fa fa-envelope"></i>
+                    <a href="mailto:needhelp@packageName__.com">needhelp@fistudy.com</a>
+                </li>
+                <li>
+                    <i class="fas fa-phone"></i>
+                    <a href="tel:666-888-0000">666 888 0000</a>
+                </li>
+            </ul><!-- /.mobile-nav__contact -->
+            <div class="mobile-nav__top">
+                <div class="mobile-nav__social">
+                    <a href="#" class="fab fa-twitter"></a>
+                    <a href="#" class="fab fa-facebook-square"></a>
+                    <a href="#" class="fab fa-pinterest-p"></a>
+                    <a href="#" class="fab fa-instagram"></a>
+                </div><!-- /.mobile-nav__social -->
+            </div><!-- /.mobile-nav__top -->
+
+
+
+        </div>
+        <!-- /.mobile-nav__content -->
+    </div>
+    <!-- /.mobile-nav__wrapper -->
+
+    <!-- Search Popup -->
+    <div class="search-popup">
+        <div class="color-layer"></div>
+        <button class="close-search"><span class="far fa-times fa-fw"></span></button>
+        <form method="post" action="blog.html">
+            <div class="form-group">
+                <input type="search" name="search-field" value="" placeholder="Search Here" required="">
+                <button type="submit"><i class="fas fa-search"></i></button>
+            </div>
+        </form>
+    </div>
+    <!-- End Search Popup -->
+
+    <a href="#" data-target="html" class="scroll-to-target scroll-to-top">
+        <span class="scroll-to-top__wrapper"><span class="scroll-to-top__inner"></span></span>
+        <span class="scroll-to-top__text"> Go Back Top</span>
+    </a>
+
+
+    <script src="assets/js/jquery-3.6.0.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/jarallax.min.js"></script>
+    <script src="assets/js/jquery.ajaxchimp.min.js"></script>
+    <script src="assets/js/jquery.appear.min.js"></script>
+    <script src="assets/js/swiper.min.js"></script>
+    <script src="assets/js/jquery.magnific-popup.min.js"></script>
+    <script src="assets/js/jquery.validate.min.js"></script>
+    <script src="assets/js/odometer.min.js"></script>
+    <script src="assets/js/wNumb.min.js"></script>
+    <script src="assets/js/wow.js"></script>
+    <script src="assets/js/isotope.js"></script>
+    <script src="assets/js/owl.carousel.min.js"></script>
+    <script src="assets/js/jquery-ui.js"></script>
+    <script src="assets/js/jquery.nice-select.min.js"></script>
+    <script src="assets/js/marquee.min.js"></script>
+    <script src="assets/js/aos.js"></script>
+
+
+
+
+    <script src="assets/js/gsap/gsap.js"></script>
+    <script src="assets/js/gsap/ScrollTrigger.js"></script>
+    <script src="assets/js/gsap/SplitText.js"></script>
+
+
+
+
+    <!-- template js -->
+    <script src="assets/js/script.js"></script>
+</body>
+
+</html>

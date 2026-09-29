@@ -1,0 +1,10 @@
+<?= $this->extend('dashboard/layouts/dashboard') ?>
+
+<?= $this->section('content') ?>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div><h6 class="fw-semibold mb-1">Berita</h6><p class="text-secondary-light mb-0">Kelola berita dan publikasi BegawiPBJ.</p></div>
+    <a href="<?= site_url('dashboard/komunikasi/berita/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Berita</a>
+</div>
+<?= $this->include('dashboard/components/filter_bar') ?>
+<div class="card"><div class="card-body p-24"><div class="table-responsive scroll-sm"><table class="table bordered-table sm-table mb-0"><thead><tr><th>Berita</th><th>Kategori</th><th>Penulis</th><th>Tanggal Publikasi</th><th class="text-center">Status</th><th class="text-center">Aksi</th></tr></thead><tbody><?php foreach ([['id' => 'NEWS-001', 'title' => 'BegawiPBJ Resmi Hadir sebagai Ekosistem Digital PBJ Lampung', 'category' => 'Pengumuman', 'author' => 'Admin Komunikasi', 'date' => '28 Sep 2026', 'status' => 'active'], ['id' => 'NEWS-002', 'title' => 'Pembukaan Kelas Pengadaan Barang/Jasa Tingkat Dasar', 'category' => 'Pembelajaran', 'author' => 'Tim Arena Belajar', 'date' => '25 Sep 2026', 'status' => 'active'], ['id' => 'NEWS-003', 'title' => 'Sosialisasi Regulasi Terbaru Pengadaan Pemerintah', 'category' => 'Regulasi', 'author' => 'Tim Regulasi', 'date' => '23 Sep 2026', 'status' => 'review']] as $news): ?><tr><td><h6 class="text-md mb-0 fw-medium"><?= esc($news['title']) ?></h6><span class="text-sm text-secondary-light"><?= esc($news['id']) ?></span></td><td><?= esc($news['category']) ?></td><td><?= esc($news['author']) ?></td><td><?= esc($news['date']) ?></td><td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $news['status']]) ?></td><td class="text-center"><a href="<?= site_url('dashboard/komunikasi/berita/' . $news['id']) ?>" class="text-primary-600 me-12">Detail</a><a href="<?= site_url('dashboard/komunikasi/berita/' . $news['id'] . '/ubah') ?>" class="text-warning-main">Ubah</a></td></tr><?php endforeach; ?></tbody></table></div></div></div>
+<?= $this->endSection() ?>

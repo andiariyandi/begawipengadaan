@@ -1,0 +1,250 @@
+                                        </li>
+                                    </ul>
+                                </div>
+                                <h3 class="courses-one__title"><a href="course-details.html">Modern Web Design Aesthetic
+                                        and Functional Websites</a></h3>
+                                <div class="courses-one__ratting-and-heart-box">
+                                    <div class="courses-one__ratting-box">
+                                        <ul class="courses-one__ratting list-unstyled">
+                                            <li>
+                                                <span class="icon-star"></span>
+                                            </li>
+                                            <li>
+                                                <span class="icon-star"></span>
+                                            </li>
+                                            <li>
+                                                <span class="icon-star"></span>
+                                            </li>
+                                            <li>
+                                                <span class="icon-star"></span>
+                                            </li>
+                                            <li>
+                                                <span class="icon-star"></span>
+                                            </li>
+                                        </ul>
+                                        <p class="courses-one__ratting-text">32 Reviews</p>
+                                    </div>
+                                    <div class="courses-one__heart">
+                                        <a href="course-details.html"><span class="icon-heart"></span></a>
+                                    </div>
+                                </div>
+                                <div class="courses-one__btn-and-doller-box">
+                                    <div class="courses-one__btn-box">
+                                        <a href="course-details.html" class="courses-one__btn thm-btn"><span
+                                                class="icon-angles-right"></span>Enroll Now</a>
+                                    </div>
+                                    <span>$240.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--Courses One Single End-->
+                </div>
+            </div>
+        </section>
+        <!-- Courses One End -->
+
+        <!-- Why Choose One Start -->
+        <section class="why-choose-one">
+            <div class="why-choose-one__shape-6 float-bob-x">
+                <img src="assets/images/shapes/why-choose-one-shape-6.png" alt="">
+            </div>
+            <div class="why-choose-one__shape-7 float-bob-y">
+                <img src="assets/images/shapes/why-choose-one-shape-7.png" alt="">
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-6">
+                        <div class="why-choose-one__left wow slideInLeft" data-wow-delay="100ms"
+                            data-wow-duration="2500ms">
+                            <div class="why-choose-one__img-box">
+                                <div class="why-choose-one__img">
+                                    <img src="assets/images/resources/why-choose-one-img-1.jpg" alt="">
+                                </div>
+                                <div class="why-choose-one__img-2">
+                                    <img src="assets/images/resources/why-choose-one-img-2.jpg" alt="">
+                                </div>
+                                <div class="why-choose-one__shape-1 float-bob-y">
+                                    <img src="assets/images/shapes/why-choose-one-shape-1.png" alt="">
+                                </div>
+                                <div class="why-choose-one__shape-2 float-bob-x">
+                                    <img src="assets/images/shapes/why-choose-one-shape-2.png" alt="">
+                                </div>
+                                <div class="why-choose-one__shape-3 float-bob-y">
+                                    <img src="assets/images/shapes/why-choose-one-shape-3.png" alt="">
+                                </div>
+                                <div class="why-choose-one__shape-4">
+                                    <img src="assets/images/shapes/why-choose-one-shape-4.png" alt="">
+                                </div>
+                                <div class="why-choose-one__shape-5 img-bounce">
+                                    <img src="assets/images/shapes/why-choose-one-shape-5.png" alt="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-6">
+                        <div class="why-choose-one__right">
+                            <div class="section-title text-left sec-title-animation animation-style2">
+                                <div class="section-title__tagline-box">
+                                    <div class="section-title__tagline-shape"></div>
+                                    <span class="section-title__tagline">Why Choose Us</span>
+                                </div>
+                                <h2 class="section-title__title title-animation">Built on Trust: Discover Why Our
+                                    Customers
+                                    <span>Choose us <img src="assets/images/shapes/section-title-shape-1.png"
+                                            alt=""></span></h2>
+                            </div>
+                            <p class="why-choose-one__text">Explore a diverse selection of courses all in one platform,
+                                designed to cater to various learning needs and interests, making education more
+                                accessible and convenient.</p>
+                            <div class="why-choose-one__points-box">
+                                <div class="row">
+                                    <div class="col-xl-6 col-lg-6 col-md-6">
+                                        <ul class="why-choose-one__points-list list-unstyled">
+                                            <li>
+                                                <div class="why-choose-one__points-icon-inner">
+                                                    <div class="why-choose-one__points-icon">
+                                                        <img src="assets/images/icon/why-choose-one-icon-1.png" alt="">
+                                                    </div>
+                                                </div>
+                                                <div class="why-choose-one__points-content">
+                                                    <h3>Flexible Schedule</h3>
+                                                    <p>That allows employees to choose their working hours within
+                                                        certain
+                                                        limits
+                                                    </p>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="why-choose-one__points-icon-inner">
+                                                    <div class="why-choose-one__points-icon">
+                                                        <img src="assets/images/icon/why-choose-one-icon-2.png" alt="">
+                                                    </div>
+                                                </div>
+                                                <div class="why-choose-one__points-content">
+                                                    <h3>Job Grantee</h3>
+                                                    <p>This guarantee ensures that anyone who wants to work can find a
+                                                        job,
+                                                        usually provided</p>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-xl-6 col-lg-6 col-md-6">
+                                        <ul class="why-choose-one__points-list list-unstyled">
+                                            <li>
+                                                <div class="why-choose-one__points-icon-inner">
+                                                    <div class="why-choose-one__points-icon">
+                                                        <img src="assets/images/icon/why-choose-one-icon-3.png" alt="">
+                                                    </div>
+                                                </div>
+                                                <div class="why-choose-one__points-content">
+                                                    <h3>24 Hours Support</h3>
+                                                    <p>Our assistance is available to give support our students for 24
+                                                        hours
+                                                        7days in week.</p>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="why-choose-one__points-icon-inner">
+                                                    <div class="why-choose-one__points-icon">
+                                                        <img src="assets/images/icon/why-choose-one-icon-4.png" alt="">
+                                                    </div>
+                                                </div>
+                                                <div class="why-choose-one__points-content">
+                                                    <h3>Provide Certificate</h3>
+                                                    <p>This phrase refers to the action of giving or issuing an official
+                                                        document </p>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="why-choose-one__btn-and-client-box">
+                                <div class="why-choose-one__btn-box">
+                                    <a href="about.html" class="why-choose-one__btn thm-btn"><span
+                                            class="icon-angles-right"></span>Know More</a>
+                                </div>
+                                <div class="why-choose-one__client-box">
+                                    <ul class="why-choose-one__client-img-list list-unstyled">
+                                        <li>
+                                            <img src="assets/images/resources/why-choose-one-client-img-1.jpg" alt="">
+                                        </li>
+                                        <li>
+                                            <img src="assets/images/resources/why-choose-one-client-img-2.jpg" alt="">
+                                        </li>
+                                        <li>
+                                            <img src="assets/images/resources/why-choose-one-client-img-3.jpg" alt="">
+                                        </li>
+                                    </ul>
+                                    <div class="why-choose-one__client-content">
+                                        <div class="why-choose-one__count-box">
+                                            <h3 class="odometer" data-count="100">00</h3>
+                                            <span>+</span>
+                                        </div>
+                                        <p>Professional Instructor</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Why Choose One End -->
+
+        <!-- Counter One Start -->
+        <section class="counter-one">
+            <div class="counter-one__bg" style="background-image: url(assets/images/backgrounds/counter-one-bg.jpg);">
+                <div class="counter-one__video-link">
+                    <div class="counter-one__video-shape-1">
+                        <img src="assets/images/shapes/counter-one-video-shape-1.png" alt="">
+                    </div>
+                    <a href="https://www.youtube.com/watch?v=Get7rqXYrbQ" class="video-popup">
+                        <div class="counter-one__video-icon">
+                            <span class="icon-play"></span>
+                            <i class="ripple"></i>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="counter-one__shape-1"
+                style="background-image: url(assets/images/shapes/counter-one-shape-1.png);"></div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-8">
+                        <div class="counter-one__left">
+                            <ul class="counter-one__list list-unstyled">
+                                <li>
+                                    <div class="counter-one__count-hover-img"
+                                        style="background-image: url(assets/images/resources/counter-one-single-hover-img.jpg);">
+                                    </div>
+                                    <div class="counter-one__count count-box">
+                                        <h3 class="count-text" data-stop="10" data-speed="1500">00</h3>
+                                        <span>k</span>
+                                    </div>
+                                    <p>Student Trained</p>
+                                </li>
+                                <li>
+                                    <div class="counter-one__count-hover-img"
+                                        style="background-image: url(assets/images/resources/counter-one-single-hover-img.jpg);">
+                                    </div>
+                                    <div class="counter-one__count count-box">
+                                        <h3 class="count-text" data-stop="50" data-speed="1500">00</h3>
+                                        <span>+</span>
+                                    </div>
+                                    <p>Recorded Courses</p>
+                                </li>
+                                <li>
+                                    <div class="counter-one__count-hover-img"
+                                        style="background-image: url(assets/images/resources/counter-one-single-hover-img.jpg);">
+                                    </div>
+                                    <div class="counter-one__count count-box">
+                                        <h3 class="count-text" data-stop="15" data-speed="1500">00</h3>
+                                        <span>M</span>
+                                    </div>
+                                    <p>Satisfaction Rate</p>
+                                </li>
+                            </ul>
+                        </div>

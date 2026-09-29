@@ -1,0 +1,33 @@
+<?= $this->extend('dashboard/layouts/dashboard') ?>
+
+<?= $this->section('content') ?>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+        <h6 class="fw-semibold mb-1">Detail Permohonan Perubahan Profil</h6>
+        <p class="text-secondary-light mb-0">ID Permohonan: <?= esc($requestId ?? '-') ?></p>
+    </div><a href="<?= site_url('dashboard/akses/permohonan-perubahan-profil') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
+</div>
+<div class="card">
+    <div class="card-body p-24">
+        <div class="row gy-20">
+            <div class="col-md-6">
+                <p class="text-secondary-light mb-4">Pemohon</p>
+                <h6 class="mb-0">Rina Oktaviani</h6>
+            </div>
+            <div class="col-md-6">
+                <p class="text-secondary-light mb-4">Jenis Perubahan</p>
+                <h6 class="mb-0">Unit Organisasi</h6>
+            </div>
+            <div class="col-md-6">
+                <p class="text-secondary-light mb-4">Data Lama</p>
+                <h6 class="mb-0">Badan Kepegawaian Daerah</h6>
+            </div>
+            <div class="col-md-6">
+                <p class="text-secondary-light mb-4">Data Baru</p>
+                <h6 class="mb-0">Biro Pengadaan Barang dan Jasa</h6>
+            </div>
+            <div class="col-12 d-flex gap-12 justify-content-end"><button type="button" class="btn btn-danger-600 radius-8 px-20 py-11">Tolak</button><button type="button" class="btn btn-success-600 radius-8 px-20 py-11">Setujui</button></div>
+        </div>
+    </div>
+</div>
+<?= $this->endSection() ?>
