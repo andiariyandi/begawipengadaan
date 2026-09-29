@@ -1,19 +1,13 @@
-<!doctype html>
-<html lang="id">
-
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
 <head>
     <?= $this->include('dashboard/components/head') ?>
 </head>
-
 <body>
-    <main class="min-h-100vh d-flex align-items-center justify-content-center p-24">
-        <?= $this->renderSection('content') ?>
-    </main>
+    <?= $this->include('dashboard/components/theme_customization') ?>
 
-    <script src="<?= base_url('assets/dashboard/js/lib/jquery-3.7.1.min.js') ?>"></script>
-    <script src="<?= base_url('assets/dashboard/js/lib/bootstrap.bundle.min.js') ?>"></script>
-    <script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
-    <script src="<?= base_url('assets/dashboard/js/app.js') ?>"></script>
+    <?= $this->renderSection('content') ?>
+
+    <?= $this->include('dashboard/components/scripts') ?>
 </body>
-
 </html>

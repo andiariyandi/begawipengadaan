@@ -6,7 +6,6 @@
                 <button type="button" class="sidebar-mobile-toggle"><iconify-icon icon="heroicons:bars-3-solid" class="icon"></iconify-icon></button>
             </div>
         </div>
-
         <div class="col-auto">
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <button type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifikasi" class="btn btn-light d-flex justify-content-center align-items-center rounded-circle"><iconify-icon icon="iconoir:bell" class="text-xl"></iconify-icon></button>
@@ -18,12 +17,8 @@
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="<?= site_url('dashboard/profil') ?>">Profil</a></li>
                         <li><a class="dropdown-item" href="<?= site_url('dashboard/pengaturan') ?>">Pengaturan</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <form action="<?= site_url('dashboard/keluar') ?>" method="post"><button class="dropdown-item text-danger" type="submit">Keluar</button></form>
-                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><form action="<?= site_url('dashboard/keluar') ?>" method="post"><?= csrf_field() ?><button class="dropdown-item text-danger" type="submit">Keluar</button></form></li>
                     </ul>
                 </div>
             </div>

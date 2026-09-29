@@ -1,5 +1,5 @@
 <?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success alert-dismissible fade show mb-30" role="alert">
+    <div class="alert alert-success alert-dismissible fade show mb-30" role="status">
         <?= esc(session()->getFlashdata('success')) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
     </div>

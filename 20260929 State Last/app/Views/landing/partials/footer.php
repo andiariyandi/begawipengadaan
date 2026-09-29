@@ -6,20 +6,24 @@
                 <div class="col-xl-6 col-lg-6 wow fadeInUp" data-wow-delay="100ms">
                     <div class="site-footer__top-left">
                         <div class="site-footer__logo">
-                            <a href="<?= site_url('/') ?>"><img src="<?= base_url('assets/main/images/resources/site-footer-logo-1.png') ?>" alt="BegawiPBJ"></a>
+                            <a href="<?= site_url('/') ?>"><img src="<?= base_url('assets/main/images/resources/site-footer-logo-2.png') ?>" alt="BegawiPBJ"></a>
                         </div>
                         <p class="site-footer__top-left-text">Platform informasi, pembelajaran, dan ekosistem Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.</p>
                         <div class="site-footer__contact-info">
                             <ul class="list-unstyled site-footer__contact-info-list">
                                 <li>
                                     <div class="site-footer__contact-info-icon-box">
-                                        <div class="site-footer__contact-info-icon"><span class="icon-email"></span><p class="site-footer__contact-info-icon-text">Email:</p></div>
+                                        <div class="site-footer__contact-info-icon"><span class="icon-email"></span>
+                                            <p class="site-footer__contact-info-icon-text">Email:</p>
+                                        </div>
                                         <p class="site-footer__contact-info-text"><a href="mailto:pbj@lampungprov.go.id">pbj@lampungprov.go.id</a></p>
                                     </div>
                                 </li>
                                 <li>
                                     <div class="site-footer__contact-info-icon-box">
-                                        <div class="site-footer__contact-info-icon"><span class="icon-location"></span><p class="site-footer__contact-info-icon-text">Alamat:</p></div>
+                                        <div class="site-footer__contact-info-icon"><span class="icon-location"></span>
+                                            <p class="site-footer__contact-info-icon-text">Alamat:</p>
+                                        </div>
                                         <p class="site-footer__contact-info-text">Biro PBJ Pemerintah Provinsi Lampung<br>Bandar Lampung</p>
                                     </div>
                                 </li>
@@ -27,13 +31,17 @@
                             <ul class="list-unstyled site-footer__contact-info-list site-footer__contact-info-list--two">
                                 <li>
                                     <div class="site-footer__contact-info-icon-box">
-                                        <div class="site-footer__contact-info-icon"><span class="icon-phone"></span><p class="site-footer__contact-info-icon-text">Telepon:</p></div>
+                                        <div class="site-footer__contact-info-icon"><span class="icon-phone"></span>
+                                            <p class="site-footer__contact-info-icon-text">Telepon:</p>
+                                        </div>
                                         <p class="site-footer__contact-info-text"><a href="tel:+62721123456">(0721) 123456</a></p>
                                     </div>
                                 </li>
                                 <li>
                                     <div class="site-footer__contact-info-icon-box">
-                                        <div class="site-footer__contact-info-icon"><span class="icon-clock"></span><p class="site-footer__contact-info-icon-text">Jam Layanan:</p></div>
+                                        <div class="site-footer__contact-info-icon"><span class="icon-clock"></span>
+                                            <p class="site-footer__contact-info-icon-text">Jam Layanan:</p>
+                                        </div>
                                         <p class="site-footer__contact-info-text">Senin - Jumat<br>08.00 - 16.00 WIB</p>
                                     </div>
                                 </li>
@@ -93,5 +101,20 @@
             </div>
         </div>
     </div>
-    <div class="site-footer__bottom"><div class="container"><div class="row"><div class="col-xl-12"><div class="site-footer__bottom-inner"><div class="site-footer__copyright"><p class="site-footer__copyright-text">Copyright © <?= date('Y') ?> <a href="<?= site_url('/') ?>">BegawiPBJ</a>. Pemerintah Provinsi Lampung.</p></div><div class="site-footer__bottom-card-box"><p class="site-footer__copyright-text">Pengadaan kompeten, transparan, dan berdampak.</p></div></div></div></div></div></div>
+    <div class="site-footer__bottom">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="site-footer__bottom-inner">
+                        <div class="site-footer__copyright">
+                            <p class="site-footer__copyright-text">Copyright © <?= date('Y') ?> <a href="<?= site_url('/') ?>">BegawiPBJ</a>. Pemerintah Provinsi Lampung.</p>
+                        </div>
+                        <div class="site-footer__bottom-card-box">
+                            <p class="site-footer__copyright-text">Pengadaan kompeten, transparan, dan berdampak.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </footer>

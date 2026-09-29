@@ -1,75 +1,28 @@
-<?= $this->extend('landing/layouts/public') ?>
+<?= $this->extend('landing/layouts/main') ?>
 
 <?= $this->section('content') ?>
-<section class="page__title-area pt-120 pb-90" data-background="<?= base_url('assets/main/img/page-title/page-title.jpg') ?>">
-    <div class="page__title-shape"><img class="page-title-shape-5" src="<?= base_url('assets/main/img/page-title/page-title-shape-1.png') ?>" alt=""></div>
-    <div class="container">
-        <div class="row">
-            <div class="col-xxl-12">
-                <div class="page__title-content text-center">
-                    <h1 class="page__title">Kontak</h1><?= view('landing/components/breadcrumb', ['breadcrumbs' => [['label' => 'Kontak']]]) ?>
-                </div>
-            </div>
-        </div>
-    </div>
+<section class="page-header">
+    <div class="page-header__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/page-header-bg.jpg') ?>);"></div>
+    <div class="container"><div class="page-header__inner"><h2>Kontak</h2><ul class="thm-breadcrumb list-unstyled"><li><a href="<?= route_to('landing.home') ?>">Beranda</a></li><li><span class="icon-angle-right"></span></li><li>Kontak</li></ul></div></div>
 </section>
 
-<section class="contact__area pt-115 pb-120">
+<section class="contact-page">
     <div class="container">
         <div class="row">
-            <div class="col-xxl-4 col-xl-4 col-lg-4">
-                <div class="contact__info mr-70">
-                    <h3>Hubungi Kami</h3>
-                    <p>Gunakan formulir ini untuk pertanyaan umum mengenai layanan BegawiPBJ.</p>
-                    <ul>
-                        <li>
-                            <div class="contact__info-icon"><span><i class="fal fa-envelope"></i></span></div>
-                            <div class="contact__info-content">
-                                <h4>Email</h4><a href="mailto:info@begawipbj.go.id">info@begawipbj.go.id</a>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="contact__info-icon"><span><i class="fal fa-phone-alt"></i></span></div>
-                            <div class="contact__info-content">
-                                <h4>Telepon</h4><a href="tel:+620000000000">(000) 0000 0000</a>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="contact__info-icon"><span><i class="fal fa-map-marker-alt"></i></span></div>
-                            <div class="contact__info-content">
-                                <h4>Alamat</h4>
-                                <p>Alamat instansi akan ditampilkan pada konfigurasi produksi.</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="col-xxl-8 col-xl-8 col-lg-8">
-                <div class="contact__form">
-                    <h3>Kirim Pesan</h3>
-                    <?= $this->include('landing/components/flash_message') ?>
-                    <form action="<?= site_url('kontak') ?>" method="post">
-                        <?= csrf_field() ?>
-                        <div class="row">
-                            <div class="col-xxl-6 col-xl-6 col-lg-6">
-                                <div class="contact__input"><input type="text" name="name" placeholder="Nama lengkap" autocomplete="name"></div>
-                            </div>
-                            <div class="col-xxl-6 col-xl-6 col-lg-6">
-                                <div class="contact__input"><input type="email" name="email" placeholder="Alamat email" autocomplete="email"></div>
-                            </div>
-                            <div class="col-xxl-12">
-                                <div class="contact__input"><input type="text" name="subject" placeholder="Subjek pesan"></div>
-                            </div>
-                            <div class="col-xxl-12">
-                                <div class="contact__input"><textarea name="message" placeholder="Tulis pesan Anda"></textarea></div>
-                            </div>
-                            <div class="col-xxl-12">
-                                <div class="contact__btn"><button type="submit" class="e-btn">Kirim Pesan</button></div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            <div class="col-xl-4 col-lg-5"><div class="contact-page__left"><div class="section-title text-left"><div class="section-title__tagline-box"><span class="section-title__tagline">Hubungi Kami</span></div><h2 class="section-title__title">Kami siap menerima masukan Anda</h2></div><p class="contact-page__text">Gunakan formulir ini untuk menyampaikan pertanyaan, saran, atau informasi terkait layanan BegawiPBJ.</p><ul class="contact-page__contact-list list-unstyled"><li><div class="icon"><span class="icon-email"></span></div><div class="content"><h4>Email</h4><p><a href="mailto:info@begawipbj.lampungprov.go.id">info@begawipbj.lampungprov.go.id</a></p></div></li><li><div class="icon"><span class="icon-contact"></span></div><div class="content"><h4>Telepon</h4><p><a href="tel:+62721481107">(0721) 481107</a></p></div></li><li><div class="icon"><span class="icon-location"></span></div><div class="content"><h4>Lokasi</h4><p>Provinsi Lampung, Indonesia</p></div></li></ul></div></div>
+            <div class="col-xl-8 col-lg-7"><div class="contact-page__right">
+                <?php if (session('success')): ?><div class="alert alert-success" role="alert"><?= esc(session('success')) ?></div><?php endif; ?>
+                <?php if (session('errors')): ?><div class="alert alert-danger" role="alert"><ul class="mb-0"><?php foreach ((array) session('errors') as $error): ?><li><?= esc($error) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
+                <form action="<?= route_to('landing.pages.contact.send') ?>" method="post" class="contact-page__form contact-form-validated">
+                    <?= csrf_field() ?>
+                    <div class="row">
+                        <div class="col-xl-6"><div class="contact-page__input-box"><input type="text" name="name" value="<?= esc(old('name')) ?>" placeholder="Nama lengkap" required><div class="contact-page__input-icon"><span class="icon-user"></span></div></div></div>
+                        <div class="col-xl-6"><div class="contact-page__input-box"><input type="email" name="email" value="<?= esc(old('email')) ?>" placeholder="Alamat email" required><div class="contact-page__input-icon"><span class="icon-email"></span></div></div></div>
+                        <div class="col-xl-12"><div class="contact-page__input-box"><input type="text" name="subject" value="<?= esc(old('subject')) ?>" placeholder="Subjek" required><div class="contact-page__input-icon"><span class="icon-book"></span></div></div></div>
+                        <div class="col-xl-12"><div class="contact-page__input-box text-message-box"><textarea name="message" placeholder="Tuliskan pesan Anda" required><?= esc(old('message')) ?></textarea></div><div class="contact-page__btn-box"><button type="submit" class="thm-btn">Kirim Pesan <span class="icon-angles-right"></span></button></div></div>
+                    </div>
+                </form>
+            </div></div>
         </div>
     </div>
 </section>

@@ -1,18 +1,20 @@
-<!doctype html>
-<html class="no-js" lang="id">
-
+<!DOCTYPE html>
+<html lang="id">
 <head>
     <?= $this->include('landing/components/head') ?>
 </head>
+<body class="custom-cursor">
+    <div class="custom-cursor__cursor"></div>
+    <div class="custom-cursor__cursor-two"></div>
 
-<body>
-    <main>
-        <?= $this->renderSection('content') ?>
-    </main>
+    <div class="loader js-preloader">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
 
-    <script src="<?= base_url('assets/main/js/vendor/jquery-3.5.1.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/bootstrap.bundle.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/main.js') ?>"></script>
+    <?= $this->renderSection('content') ?>
+
+    <?= $this->include('landing/components/scripts') ?>
 </body>
-
 </html>

@@ -1,46 +1,21 @@
-<!doctype html>
-<html class="no-js" lang="id">
-
+<!DOCTYPE html>
+<html lang="id">
 <head>
     <?= $this->include('main/components/head') ?>
 </head>
+<body class="custom-cursor">
+    <div class="custom-cursor__cursor"></div>
+    <div class="custom-cursor__cursor-two"></div>
+    <div class="loader js-preloader"><div></div><div></div><div></div></div>
 
-<body>
-    <div id="loading">
-        <div id="loading-center">
-            <div id="loading-center-absolute">
-                <div class="object" id="object_one"></div>
-                <div class="object" id="object_two"></div>
-                <div class="object" id="object_three"></div>
-                <div class="object" id="object_four"></div>
-            </div>
-        </div>
+    <div class="page-wrapper">
+        <?= $this->include('main/components/workspace_header') ?>
+
+        <?= $this->renderSection('content') ?>
+
+        <?= $this->include('main/components/workspace_footer') ?>
     </div>
 
-    <?= $this->include('main/components/workspace_header') ?>
-
-    <main>
-        <?= $this->renderSection('content') ?>
-    </main>
-
-    <?= $this->include('main/components/workspace_footer') ?>
-
-    <script src="<?= base_url('assets/main/js/vendor/jquery-3.5.1.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/vendor/waypoints.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/bootstrap.bundle.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/jquery.meanmenu.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/owl.carousel.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/swiper-bundle.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/jquery.fancybox.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/isotope.pkgd.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/parallax.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/backToTop.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/jquery.counterup.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/slick.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/ajax-form.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/wow.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/imagesloaded.pkgd.min.js') ?>"></script>
-    <script src="<?= base_url('assets/main/js/main.js') ?>"></script>
+    <?= view('landing/components/scripts', ['pageScripts' => $pageScripts ?? []]) ?>
 </body>
-
 </html>

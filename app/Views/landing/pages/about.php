@@ -1,84 +1,99 @@
-<?= $this->extend('landing/layouts/public') ?>
+<?= $this->extend('landing/layouts/main') ?>
 
 <?= $this->section('content') ?>
-<section class="page__title-area pt-120 pb-90" data-background="<?= base_url('assets/main/img/page-title/page-title.jpg') ?>">
-    <div class="page__title-shape"><img class="page-title-shape-5" src="<?= base_url('assets/main/img/page-title/page-title-shape-1.png') ?>" alt=""></div>
+<section class="page-header">
+    <div class="page-header__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/page-header-bg.jpg') ?>);"></div>
+    <div class="container">
+        <div class="page-header__inner">
+            <h2>Tentang BegawiPBJ</h2>
+            <ul class="thm-breadcrumb list-unstyled">
+                <li><a href="<?= route_to('landing.home') ?>">Beranda</a></li>
+                <li><span class="icon-angle-right"></span></li>
+                <li>Tentang</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="about-one about-page">
     <div class="container">
         <div class="row">
-            <div class="col-xxl-12">
-                <div class="page__title-content text-center">
-                    <h1 class="page__title">Tentang BegawiPBJ</h1><?= view('landing/components/breadcrumb', ['breadcrumbs' => [['label' => 'Tentang BegawiPBJ']]]) ?>
+            <div class="col-xl-6">
+                <div class="about-one__left">
+                    <div class="about-one__img-box">
+                        <div class="about-one__img"><img src="<?= base_url('assets/main/images/resources/abou-one-img-1.jpg') ?>" alt="BegawiPBJ"></div>
+                        <div class="about-one__img-2"><img src="<?= base_url('assets/main/images/resources/abou-one-img-2.jpg') ?>" alt="Kolaborasi PBJ"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="about-one__right">
+                    <div class="section-title text-left">
+                        <div class="section-title__tagline-box"><span class="section-title__tagline">Tentang Kami</span></div>
+                        <h2 class="section-title__title">Ekosistem Digital PBJ Pemerintah Provinsi Lampung</h2>
+                    </div>
+                    <p class="about-one__text">BegawiPBJ adalah platform digital terpadu untuk mendukung ekosistem Pengadaan Barang/Jasa Pemerintah di lingkungan Pemerintah Provinsi Lampung.</p>
+                    <p class="about-one__text">Platform ini menyatukan pembelajaran digital, pusat pengetahuan PBJ, repository regulasi, berita dan event, sertifikat digital, statistik publik, serta layanan pendukung dalam satu aplikasi yang aman, terstruktur, dapat diaudit, dan berbasis peran.</p>
+                    <ul class="list-unstyled about-one__points">
+                        <li>
+                            <div class="icon"><span class="icon-check"></span></div>
+                            <div class="text">
+                                <p>Meningkatkan kompetensi SDM dan pemangku kepentingan PBJ</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon"><span class="icon-check"></span></div>
+                            <div class="text">
+                                <p>Menyediakan pengetahuan, regulasi, dan informasi kegiatan yang mudah diakses</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon"><span class="icon-check"></span></div>
+                            <div class="text">
+                                <p>Mendukung tata kelola digital yang aman dan akuntabel</p>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="about__area pt-115 pb-120">
+<section class="why-choose-one">
+    <div class="why-choose-one__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/why-choose-one-bg.jpg') ?>);"></div>
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-xxl-6 col-xl-6 col-lg-6">
-                <div class="about__thumb-wrapper p-relative">
-                    <div class="about__thumb ml-100"><img src="<?= base_url('assets/main/img/about/about.jpg') ?>" alt="BegawiPBJ"></div>
-                    <div class="about__banner mt--70"><img src="<?= base_url('assets/main/img/about/about-banner.jpg') ?>" alt="Kolaborasi"></div>
-                </div>
-            </div>
-            <div class="col-xxl-6 col-xl-6 col-lg-6">
-                <div class="about__content pl-70 pr-60 pt-25">
-                    <div class="section__title-wrapper mb-25">
-                        <span class="section__sub-title">BegawiPBJ</span>
-                        <h2 class="section__title">Menghubungkan <span class="yellow-bg">pembelajaran</span>, pengetahuan, dan layanan PBJ.</h2>
-                        <p>BegawiPBJ dirancang sebagai portal terpadu untuk mendukung ekosistem Pengadaan Barang/Jasa melalui pengalaman belajar, akses referensi, informasi regulasi, agenda, dan layanan sertifikat digital.</p>
-                    </div>
-                    <div class="about__list mb-40">
-                        <ul>
-                            <li>Arena Belajar untuk program, course, kelas, dan evaluasi</li>
-                            <li>Bunga Rampai untuk artikel, FAQ, studi kasus, template, serta media</li>
-                            <li>Repository Regulasi PBJ dengan informasi versi dan relasi dokumen</li>
-                            <li>Informasi berita, event, dan sertifikat digital</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="why__area grey-bg pt-115 pb-85">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xxl-7 col-xl-7 col-lg-8">
-                <div class="section__title-wrapper text-center mb-60"><span class="section__sub-title">Nilai Utama</span>
-                    <h2 class="section__title">Dibangun untuk ekosistem PBJ yang saling terhubung.</h2>
-                </div>
-            </div>
-        </div>
         <div class="row">
-            <div class="col-xxl-4 col-xl-4 col-lg-4 col-md-6">
-                <div class="why__item text-center mb-30">
-                    <div class="why__icon"><span><i class="flaticon-team"></i></span></div>
-                    <div class="why__content">
-                        <h3>Kolaboratif</h3>
-                        <p>Menghubungkan peserta, trainer, evaluator, operator, dan pengelola layanan.</p>
+            <div class="col-xl-6">
+                <div class="why-choose-one__left">
+                    <div class="section-title text-left">
+                        <div class="section-title__tagline-box"><span class="section-title__tagline">Nilai Utama</span></div>
+                        <h2 class="section-title__title">Dirancang untuk pembelajaran dan tata kelola PBJ</h2>
                     </div>
-                </div>
-            </div>
-            <div class="col-xxl-4 col-xl-4 col-lg-4 col-md-6">
-                <div class="why__item text-center mb-30">
-                    <div class="why__icon"><span><i class="flaticon-puzzle"></i></span></div>
-                    <div class="why__content">
-                        <h3>Terstruktur</h3>
-                        <p>Informasi dan pembelajaran dikelola dalam domain yang konsisten serta mudah dijelajahi.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xxl-4 col-xl-4 col-lg-4 col-md-6">
-                <div class="why__item text-center mb-30">
-                    <div class="why__icon"><span><i class="flaticon-certificate"></i></span></div>
-                    <div class="why__content">
-                        <h3>Terukur</h3>
-                        <p>Mendukung progres pembelajaran, sertifikasi, dan statistik publik secara teragregasi.</p>
-                    </div>
+                    <p class="why-choose-one__text">BegawiPBJ memisahkan layanan publik, workspace berbasis peran, dan dashboard back-office untuk menjaga pengalaman pengguna sekaligus keamanan akses data.</p>
+                    <ul class="list-unstyled why-choose-one__points">
+                        <li>
+                            <div class="icon"><span class="icon-check"></span></div>
+                            <div class="text">
+                                <h4>Terstruktur</h4>
+                                <p>Konten, regulasi, dan layanan dikelola dalam domain yang jelas.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon"><span class="icon-check"></span></div>
+                            <div class="text">
+                                <h4>Aman</h4>
+                                <p>Akses ditentukan oleh autentikasi, status akun, role, permission, dan konteks sumber daya.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon"><span class="icon-check"></span></div>
+                            <div class="text">
+                                <h4>Akuntabel</h4>
+                                <p>Aktivitas penting dapat ditelusuri melalui workflow dan audit trail.</p>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
