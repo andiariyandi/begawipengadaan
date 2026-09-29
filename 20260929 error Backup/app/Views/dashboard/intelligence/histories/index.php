@@ -1,7 +1,0 @@
-<?= $this->extend('dashboard/layouts/dashboard') ?>
-
-<?= $this->section('content') ?>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Riwayat JF PPBJ</h6><p class="text-secondary-light mb-0">Pratinjau riwayat jabatan fungsional SDM PPBJ.</p></div></div>
-<?= $this->include('dashboard/components/filter_bar') ?>
-<div class="card"><div class="card-body p-24"><div class="table-responsive scroll-sm"><table class="table bordered-table sm-table mb-0"><thead><tr><th>Personel</th><th>Jenjang</th><th>Unit</th><th>TMT</th><th>Keterangan</th></tr></thead><tbody><?php foreach ([['name' => 'Rina Oktaviani', 'level' => 'JF PPBJ Muda', 'unit' => 'Biro PBJ', 'date' => '01 Jan 2023', 'note' => 'Kenaikan jenjang'], ['name' => 'Hendra Wijaya', 'level' => 'JF PPBJ Madya', 'unit' => 'Dinas PU', 'date' => '01 Jul 2022', 'note' => 'Penyesuaian jabatan'], ['name' => 'Maya Sari', 'level' => 'JF PPBJ Muda', 'unit' => 'Dinas Kesehatan', 'date' => '01 Mar 2024', 'note' => 'Pengangkatan pertama']] as $history): ?><tr><td><h6 class="text-md mb-0 fw-medium"><?= esc($history['name']) ?></h6></td><td><?= esc($history['level']) ?></td><td><?= esc($history['unit']) ?></td><td><?= esc($history['date']) ?></td><td><?= esc($history['note']) ?></td></tr><?php endforeach; ?></tbody></table></div></div></div>
-<?= $this->endSection() ?>

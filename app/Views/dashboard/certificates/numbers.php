@@ -1,6 +1,0 @@
-<?= $this->extend('dashboard/layouts/dashboard') ?>
-
-<?= $this->section('content') ?>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Nomor Sertifikat</h6><p class="text-secondary-light mb-0">Pratinjau konfigurasi urutan nomor sertifikat.</p></div><button type="button" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Sequence</button></div>
-<div class="card"><div class="card-body p-24"><div class="table-responsive scroll-sm"><table class="table bordered-table sm-table mb-0"><thead><tr><th>Prefix</th><th>Tahun</th><th>Nomor Terakhir</th><th>Format</th><th class="text-center">Status</th></tr></thead><tbody><?php foreach ([['prefix' => 'BGPBJ', 'year' => '2026', 'last' => '000587', 'format' => 'BGPBJ/{YEAR}/{SEQUENCE}', 'status' => 'active'], ['prefix' => 'BGPBJ', 'year' => '2025', 'last' => '000412', 'format' => 'BGPBJ/{YEAR}/{SEQUENCE}', 'status' => 'inactive']] as $sequence): ?><tr><td><span class="text-primary-600 fw-semibold"><?= esc($sequence['prefix']) ?></span></td><td><?= esc($sequence['year']) ?></td><td><?= esc($sequence['last']) ?></td><td><?= esc($sequence['format']) ?></td><td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $sequence['status']]) ?></td></tr><?php endforeach; ?></tbody></table></div></div></div>
-<?= $this->endSection() ?>

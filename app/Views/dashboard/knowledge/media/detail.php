@@ -1,6 +1,0 @@
-<?= $this->extend('dashboard/layouts/dashboard') ?>
-
-<?= $this->section('content') ?>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Detail Media</h6><p class="text-secondary-light mb-0">ID Media: <?= esc($mediaId ?? '-') ?></p></div><a href="<?= site_url('dashboard/bunga-rampai/media-galeri') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a></div>
-<div class="row gy-4"><div class="col-xl-8"><div class="card"><div class="card-body p-0"><div class="h-320-px bg-primary-50 d-flex align-items-center justify-content-center"><iconify-icon icon="solar:gallery-wide-outline" class="text-primary-600 text-6xl"></iconify-icon></div><div class="p-24"><h5 class="mb-16">Sosialisasi Regulasi PBJ</h5><p class="text-secondary-light mb-0">Dokumentasi kegiatan sosialisasi regulasi pengadaan barang/jasa di lingkungan Provinsi Lampung.</p></div></div></div></div><div class="col-xl-4"><div class="card"><div class="card-body p-24"><p class="text-secondary-light mb-4">Tipe Media</p><h6 class="mb-20">Galeri Foto</h6><p class="text-secondary-light mb-4">Tanggal Publikasi</p><h6 class="mb-20">27 September 2026</h6><p class="text-secondary-light mb-4">Status</p><?= view('dashboard/components/status_badge', ['status' => 'active']) ?></div></div></div></div>
-<?= $this->endSection() ?>
