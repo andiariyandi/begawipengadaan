@@ -1,11 +1,11 @@
 <?= $this->extend('landing/layouts/public') ?>
 
 <?= $this->section('content') ?>
-<section class="hero__area hero__height hero__height-2 d-flex align-items-center p-relative" data-background="<?= base_url('assets/main/assets/img/hero/home-2/hero-bg.jpg') ?>">
+<section class="hero__area hero__height hero__height-2 d-flex align-items-center p-relative" data-background="<?= base_url('assets/main/img/hero/home-2/hero-bg.jpg') ?>">
     <div class="hero__shape">
-        <img class="hero-2-dot" src="<?= base_url('assets/main/assets/img/hero/home-2/hero-dot.png') ?>" alt="">
-        <img class="hero-2-dot-2" src="<?= base_url('assets/main/assets/img/hero/home-2/hero-dot-2.png') ?>" alt="">
-        <img class="hero-2-dot-3" src="<?= base_url('assets/main/assets/img/hero/home-2/hero-dot-3.png') ?>" alt="">
+        <img class="hero-2-dot" src="<?= base_url('assets/main/img/hero/home-2/hero-dot.png') ?>" alt="">
+        <img class="hero-2-dot-2" src="<?= base_url('assets/main/img/hero/home-2/hero-dot-2.png') ?>" alt="">
+        <img class="hero-2-dot-3" src="<?= base_url('assets/main/img/hero/home-2/hero-dot-3.png') ?>" alt="">
     </div>
     <div class="container">
         <div class="row align-items-center">
@@ -23,7 +23,7 @@
             <div class="col-xxl-5 col-xl-5 col-lg-5">
                 <div class="hero__thumb-wrapper p-relative">
                     <div class="hero__thumb-2 scene">
-                        <img class="hero-2-thumb" src="<?= base_url('assets/main/assets/img/hero/home-2/hero-thumb.png') ?>" alt="Ilustrasi pembelajaran BegawiPBJ">
+                        <img class="hero-2-thumb" src="<?= base_url('assets/main/img/hero/home-2/hero-thumb.png') ?>" alt="Ilustrasi pembelajaran BegawiPBJ">
                     </div>
                 </div>
             </div>
@@ -36,8 +36,8 @@
         <div class="row align-items-center">
             <div class="col-xxl-6 col-xl-6 col-lg-6">
                 <div class="about__thumb-wrapper p-relative">
-                    <div class="about__thumb ml-100"><img src="<?= base_url('assets/main/assets/img/about/about.jpg') ?>" alt="Kegiatan pembelajaran PBJ"></div>
-                    <div class="about__banner mt--70"><img src="<?= base_url('assets/main/assets/img/about/about-banner.jpg') ?>" alt="Kolaborasi PBJ"></div>
+                    <div class="about__thumb ml-100"><img src="<?= base_url('assets/main/img/about/about.jpg') ?>" alt="Kegiatan pembelajaran PBJ"></div>
+                    <div class="about__banner mt--70"><img src="<?= base_url('assets/main/img/about/about-banner.jpg') ?>" alt="Kolaborasi PBJ"></div>
                 </div>
             </div>
             <div class="col-xxl-6 col-xl-6 col-lg-6">
@@ -124,7 +124,7 @@
     </div>
 </section>
 
-<section class="counter__area counter__area-2 pt-100 pb-100" data-background="<?= base_url('assets/main/assets/img/counter/counter-bg.jpg') ?>">
+<section class="counter__area counter__area-2 pt-100 pb-100" data-background="<?= base_url('assets/main/img/counter/counter-bg.jpg') ?>">
     <div class="container">
         <div class="row">
             <?php foreach ($statistics as $statistic): ?>
@@ -142,7 +142,7 @@
 <section class="cta__area pt-115 pb-120">
     <div class="container">
         <div class="cta__inner blue-bg fix p-relative">
-            <div class="cta__shape"><img src="<?= base_url('assets/main/assets/img/cta/cta-shape.png') ?>" alt=""></div>
+            <div class="cta__shape"><img src="<?= base_url('assets/main/img/cta/cta-shape.png') ?>" alt=""></div>
             <div class="row align-items-center">
                 <div class="col-xxl-8 col-xl-8 col-lg-8">
                     <div class="cta__content">

@@ -16,19 +16,19 @@ class HomeController extends BaseController
                 [
                     'title' => 'Dasar-Dasar Pengadaan Barang/Jasa',
                     'category' => 'Arena Belajar',
-                    'image' => 'assets/main/assets/img/course/home-3/course-1.jpg',
+                    'image' => 'assets/main/img/course/home-3/course-1.jpg',
                     'url' => site_url('arena-belajar/course/dasar-pengadaan-barang-jasa'),
                 ],
                 [
                     'title' => 'Manajemen Kontrak PBJ',
                     'category' => 'Arena Belajar',
-                    'image' => 'assets/main/assets/img/course/home-3/course-2.jpg',
+                    'image' => 'assets/main/img/course/home-3/course-2.jpg',
                     'url' => site_url('arena-belajar/course/manajemen-kontrak-pbj'),
                 ],
                 [
                     'title' => 'Perencanaan Pengadaan',
                     'category' => 'Arena Belajar',
-                    'image' => 'assets/main/assets/img/course/home-3/course-3.jpg',
+                    'image' => 'assets/main/img/course/home-3/course-3.jpg',
                     'url' => site_url('arena-belajar/course/perencanaan-pengadaan'),
                 ],
             ],
