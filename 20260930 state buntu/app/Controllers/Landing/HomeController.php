@@ -10,7 +10,7 @@ class HomeController extends BaseController
 {
     public function index(): string
     {
-        return view('landing/home', [
+        return view('landing/home/index', [
             'title' => 'BegawiPBJ | Ekosistem Digital PBJ Provinsi Lampung',
             'activeMenu' => 'home',
         ]);
