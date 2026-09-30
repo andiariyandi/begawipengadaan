@@ -8,11 +8,20 @@ class RoleController extends BaseController
 {
     public function index(): string
     {
+        $builder = db_connect()->table('roles r')
+            ->select('r.*,COUNT(DISTINCT rp.permission_id) permission_count')
+            ->join('role_permissions rp', 'rp.role_id = r.id', 'left')
+            ->groupBy('r.id')->orderBy('r.name');
+        $page = max(1, (int) ($this->request->getGet('page_roles') ?: 1)); $perPage = 15;
+        $pager = service('pager'); $pager->store('roles', $page, $perPage, (clone $builder)->countAllResults(), 0);
+        $roles = $builder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
         return view('dashboard/access/roles', [
             'title' => 'Role dan Permission | Dashboard BegawiPBJ',
             'pageTitle' => 'Role dan Permission',
             'activeMenu' => 'access',
             'activeSubmenu' => 'roles',
+            'roles' => $roles,
+            'pager' => $pager,
         ]);
     }
 
@@ -29,12 +38,16 @@ class RoleController extends BaseController
 
     public function detail(string $id): string
     {
+        $role = db_connect()->table('roles')->where('id', ctype_digit($id) ? (int) $id : 0)->get()->getRowArray();
+        $permissions = db_connect()->table('permissions p')->select('p.code')->join('role_permissions rp', 'rp.permission_id=p.id')->where('rp.role_id', $role['id'] ?? 0)->orderBy('p.code')->get()->getResultArray();
         return view('dashboard/access/role_detail', [
             'title' => 'Detail Role | Dashboard BegawiPBJ',
             'pageTitle' => 'Detail Role',
             'roleId' => $id,
             'activeMenu' => 'access',
             'activeSubmenu' => 'roles',
+            'role' => $role,
+            'permissions' => array_column($permissions, 'code'),
         ]);
     }
 

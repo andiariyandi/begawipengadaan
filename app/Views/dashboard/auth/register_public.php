@@ -9,7 +9,7 @@
 
 <?= view('dashboard/auth/components/register_steps', ['currentStep' => $currentStep ?? 3, 'currentKey' => $currentKey ?? 'profil']) ?>
 
-<form action="#" method="post">
+<form action="<?= site_url('dashboard/daftar/profil/masyarakat') ?>" method="post">
     <div class="icon-field mb-16"><span class="icon top-50 translate-middle-y"><iconify-icon icon="solar:card-linear"></iconify-icon></span><input type="text" class="form-control h-56-px bg-neutral-50 radius-12" name="nik" placeholder="NIK (16 digit)"></div>
 
     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Pekerjaan/Status Saat Ini</label>
@@ -47,7 +47,8 @@
         <option value="lainnya">Lainnya</option>
     </select>
 
-    <div class="d-flex gap-12 mt-32"><a href="<?= site_url('dashboard/daftar/wilayah') ?>" class="btn btn-outline-neutral-300 text-sm px-12 py-16 w-50 radius-12 text-center">Kembali</a><a href="<?= site_url('dashboard/daftar/tinjau') ?>" class="btn btn-primary text-sm px-12 py-16 w-50 radius-12 text-center">Tinjau Data</a></div>
+    <div class="d-flex gap-12 mt-32"><a href="<?= site_url('dashboard/daftar/wilayah') ?>" class="btn btn-outline-neutral-300 text-sm px-12 py-16 w-50 radius-12 text-center">Kembali</a><button type="submit" class="btn btn-primary text-sm px-12 py-16 w-50 radius-12 text-center">Tinjau Data</button></div>
     <p class="text-secondary-light text-xs mt-20 mb-0">Tidak ada upload dokumen wajib pada registrasi awal.</p>
 </form>
+<?= view('dashboard/auth/components/restore_registration_profile', ['registrationProfile' => $registrationProfile ?? []]) ?>
 <?= $this->endSection() ?>

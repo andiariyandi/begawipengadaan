@@ -11,7 +11,9 @@
     <p class="mb-32 text-secondary-light text-lg"><?= esc($pageDescription ?? 'Masukkan email akun Anda untuk menerima instruksi pengaturan ulang.') ?></p>
 </div>
 
-<form action="#" method="post">
+<?php if ($error = session()->getFlashdata('error')): ?><div class="alert alert-danger mb-20"><?= esc($error) ?></div><?php endif; ?>
+<?php if ($message = session()->getFlashdata('message')): ?><div class="alert alert-success mb-20"><?= esc($message) ?></div><?php endif; ?>
+<form action="<?= site_url('dashboard/lupa-kata-sandi') ?>" method="post">
     <div class="icon-field">
         <span class="icon top-50 translate-middle-y">
             <iconify-icon icon="mage:email"></iconify-icon>
@@ -24,7 +26,7 @@
             autocomplete="email">
     </div>
 
-    <button type="button" class="btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-32">
+    <button type="submit" class="btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-32">
         Kirim Instruksi
     </button>
 
@@ -32,6 +34,5 @@
         <a href="<?= site_url('dashboard/masuk') ?>" class="text-primary-600 fw-bold mt-24 d-inline-block">Kembali ke Masuk</a>
     </div>
 
-    <p class="text-center text-secondary-light text-xs mt-32 mb-0">Form lupa kata sandi masih UI-only dan belum mengirim email reset.</p>
 </form>
 <?= $this->endSection() ?>

@@ -11,7 +11,17 @@
     <p class="mb-32 text-secondary-light text-lg"><?= esc($pageDescription ?? 'Silakan masukkan email dan kata sandi Anda.') ?></p>
 </div>
 
-<form action="#" method="post">
+<?php if ($message = session()->getFlashdata('message')): ?>
+    <div class="alert alert-success mb-20"><?= esc($message) ?></div>
+<?php endif; ?>
+<?php if ($error = session()->getFlashdata('error')): ?>
+    <div class="alert alert-danger mb-20"><?= esc($error) ?></div>
+<?php endif; ?>
+<?php if ($errors = session()->getFlashdata('errors')): ?>
+    <div class="alert alert-danger mb-20"><?= esc(implode(' ', $errors)) ?></div>
+<?php endif; ?>
+
+<form action="<?= site_url('dashboard/masuk') ?>" method="post">
     <div class="icon-field mb-16">
         <span class="icon top-50 translate-middle-y">
             <iconify-icon icon="mage:email"></iconify-icon>
@@ -50,7 +60,7 @@
         <a href="<?= site_url('dashboard/lupa-kata-sandi') ?>" class="text-primary-600 fw-medium">Lupa kata sandi?</a>
     </div>
 
-    <button type="button" class="btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-32">
+    <button type="submit" class="btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-32">
         Masuk
     </button>
 
@@ -65,6 +75,5 @@
         <a href="<?= site_url('/') ?>" class="text-secondary-light">Kembali ke Beranda</a>
     </div>
 
-    <p class="text-center text-secondary-light text-xs mt-24 mb-0">Form login masih UI-only dan belum melakukan autentikasi.</p>
 </form>
 <?= $this->endSection() ?>

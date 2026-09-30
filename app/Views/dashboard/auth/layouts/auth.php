@@ -53,6 +53,11 @@
             max-width: 100%;
             object-fit: contain;
         }
+
+        .auth-right {
+            min-height: 100vh;
+            overflow-y: auto;
+        }
     </style>
 
     <?= $this->renderSection('pageStyles') ?>

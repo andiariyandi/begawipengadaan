@@ -2,6 +2,7 @@
 
 namespace Config;
 
+use App\Filters\AuthenticationFilter;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
@@ -34,6 +35,7 @@ class Filters extends BaseFilters
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
+        'auth'           => AuthenticationFilter::class,
     ];
 
     /**
@@ -106,5 +108,9 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    public array $filters = [
+        'auth' => [
+            'before' => ['dashboard', 'dashboard/*'],
+        ],
+    ];
 }

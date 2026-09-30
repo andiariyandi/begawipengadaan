@@ -16,14 +16,14 @@ class AuditService
     public function log(?int $userId, string $action, ?string $module = null, ?string $targetType = null, ?int $targetId = null, array $metadata = []): void
     {
         $this->auditLogModel->insert([
-            'user_id'     => $userId,
-            'action'      => $action,
-            'module'      => $module,
-            'target_type' => $targetType,
-            'target_id'   => $targetId,
-            'ip_address'  => service('request')->getIPAddress(),
-            'metadata'    => $metadata ? json_encode($metadata) : null,
-            'created_at'  => date('Y-m-d H:i:s'),
+            'actor_user_id' => $userId,
+            'action'        => $action,
+            'subject_type'  => $targetType,
+            'subject_id'    => $targetId,
+            'route_name'    => service('router')->getMatchedRoute()[0] ?? null,
+            'ip_address'    => service('request')->getIPAddress(),
+            'user_agent'    => (string) service('request')->getUserAgent(),
+            'context_data'  => $metadata ? json_encode($metadata, JSON_THROW_ON_ERROR) : null,
         ]);
     }
 }

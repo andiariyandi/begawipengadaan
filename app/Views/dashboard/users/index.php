@@ -14,7 +14,7 @@
             <table class="table bordered-table sm-table mb-0">
                 <thead><tr><th>Pengguna</th><th>Tipe Profil</th><th>Role</th><th>Terdaftar</th><th class="text-center">Status</th><th class="text-center">Aksi</th></tr></thead>
                 <tbody>
-                    <?php $users = [
+                    <?php $users = $users ?? [
                         ['id' => 'USR-001', 'name' => 'Rina Oktaviani', 'email' => 'rina.oktaviani@lampungprov.go.id', 'profile' => 'ASN', 'role' => 'Peserta', 'date' => '28 Sep 2026', 'status' => 'active'],
                         ['id' => 'USR-002', 'name' => 'Andi Pratama', 'email' => 'andi.pratama@example.id', 'profile' => 'Penyedia Barang/Jasa', 'role' => 'Trainer', 'date' => '27 Sep 2026', 'status' => 'pending'],
                         ['id' => 'USR-003', 'name' => 'Dr. Maya Sari', 'email' => 'maya.sari@kampus.ac.id', 'profile' => 'Akademisi', 'role' => 'Evaluator', 'date' => '25 Sep 2026', 'status' => 'active'],
@@ -22,15 +22,16 @@
                     ]; ?>
                     <?php foreach ($users as $user): ?>
                         <tr>
-                            <td><div class="d-flex align-items-center"><span class="w-40-px h-40-px bg-primary-50 text-primary-600 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0 me-12 fw-semibold"><?= esc(substr($user['name'], 0, 1)) ?></span><div><h6 class="text-md mb-0 fw-medium"><?= esc($user['name']) ?></h6><span class="text-sm text-secondary-light fw-medium"><?= esc($user['email']) ?></span></div></div></td>
-                            <td><?= esc($user['profile']) ?></td><td><?= esc($user['role']) ?></td><td><?= esc($user['date']) ?></td>
-                            <td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $user['status']]) ?></td>
+                            <td><div class="d-flex align-items-center"><span class="w-40-px h-40-px bg-primary-50 text-primary-600 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0 me-12 fw-semibold"><?= esc(substr($user['name'] ?? $user['full_name'] ?? $user['username'], 0, 1)) ?></span><div><h6 class="text-md mb-0 fw-medium"><?= esc($user['name'] ?? $user['full_name'] ?? $user['username']) ?></h6><span class="text-sm text-secondary-light fw-medium"><?= esc($user['email']) ?></span></div></div></td>
+                            <td><?= esc($user['profile'] ?? $user['profile_category'] ?? '-') ?></td><td><?= esc($user['role'] ?? $user['roles'] ?? '-') ?></td><td><?= esc(date('d M Y', strtotime($user['created_at'] ?? $user['date'] ?? 'now'))) ?></td>
+                            <td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $user['status'] ?? $user['account_status'] ?? 'active']) ?></td>
                             <td class="text-center"><a href="<?= site_url('dashboard/akses/pengguna/' . $user['id']) ?>" class="w-32-px h-32-px bg-primary-50 text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center"><iconify-icon icon="solar:eye-outline"></iconify-icon></a><a href="<?= site_url('dashboard/akses/pengguna/' . $user['id'] . '/ubah') ?>" class="w-32-px h-32-px bg-warning-focus text-warning-main rounded-circle d-inline-flex align-items-center justify-content-center ms-6"><iconify-icon icon="solar:pen-new-square-outline"></iconify-icon></a></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
+        <?php if (($pager ?? null) && $pager->getPageCount('users') > 1): ?><div class="card-footer"><?= $pager->links('users', 'default_full') ?></div><?php endif; ?>
     </div>
 </div>
 <?= $this->endSection() ?>

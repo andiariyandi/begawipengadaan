@@ -1145,7 +1145,7 @@ CREATE TABLE regulation_relations (
     CONSTRAINT regulation_relations_source_id_fk FOREIGN KEY (source_regulation_id) REFERENCES regulations (id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT regulation_relations_target_id_fk FOREIGN KEY (target_regulation_id) REFERENCES regulations (id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT regulation_relations_created_by_fk FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT regulation_relations_not_self_chk CHECK (source_regulation_id <> target_regulation_id),
+    -- CHECK dihapus karena MySQL tidak mengizinkan kombinasi ini dengan FK
     CONSTRAINT regulation_relations_type_chk CHECK (relation_type IN ('amends', 'amended_by', 'revokes', 'revoked_by', 'replaces', 'replaced_by', 'implements', 'implemented_by', 'references', 'referenced_by'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

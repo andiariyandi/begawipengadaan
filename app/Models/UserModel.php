@@ -14,8 +14,8 @@ class UserModel extends Model
     protected $useTimestamps    = true;
 
     protected $allowedFields = [
-        'username', 'email', 'password_hash', 'user_type', 'profile_type',
-        'nip', 'instansi', 'status', 'email_verified_at',
+        'username', 'email', 'password_hash', 'account_status',
+        'email_verified_at', 'last_login_at',
     ];
 
     protected $validationRules = [
@@ -26,8 +26,8 @@ class UserModel extends Model
     public function getRoles(int $userId): array
     {
         return $this->db->table('user_roles')
-            ->select('roles.id, roles.name, roles.slug')
-            ->join('roles', 'roles.id = user_roles.role_id')
+            ->select('roles.id, roles.name, roles.code')
+            ->join('roles', 'roles.id = user_roles.role_id', 'inner')
             ->where('user_roles.user_id', $userId)
             ->get()
             ->getResultArray();
@@ -46,6 +46,6 @@ class UserModel extends Model
 
     public function findByEmail(string $email): ?array
     {
-        return $this->where('email', $email)->first();
+        return $this->where('email', strtolower(trim($email)))->first();
     }
 }

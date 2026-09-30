@@ -10,7 +10,19 @@ class AuditLogModel extends Model
     protected $primaryKey    = 'id';
     protected $returnType    = 'array';
     protected $useTimestamps = false;
-    protected $allowedFields = ['user_id', 'action', 'module', 'target_type', 'target_id', 'ip_address', 'metadata'];
+    protected $allowedFields = [
+        'actor_user_id',
+        'action',
+        'subject_type',
+        'subject_id',
+        'route_name',
+        'request_id',
+        'ip_address',
+        'user_agent',
+        'before_data',
+        'after_data',
+        'context_data',
+    ];
 
     public function browse(?string $module = null, ?int $userId = null, ?string $from = null, ?string $to = null)
     {

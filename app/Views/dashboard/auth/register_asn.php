@@ -9,7 +9,7 @@
 
 <?= view('dashboard/auth/components/register_steps', ['currentStep' => $currentStep ?? 3, 'currentKey' => $currentKey ?? 'profil']) ?>
 
-<form action="#" method="post" id="asn-register-form">
+<form action="<?= site_url('dashboard/daftar/profil/asn') ?>" method="post" id="asn-register-form">
     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Asal Instansi ASN</label>
     <select class="form-select h-56-px bg-neutral-50 radius-12 mb-20" name="asn_origin" id="asn-origin">
         <option value="">Pilih asal instansi</option>
@@ -115,11 +115,12 @@
 
     <div class="d-flex gap-12 mt-32">
         <a href="<?= site_url('dashboard/daftar/wilayah') ?>" class="btn btn-outline-neutral-300 text-sm px-12 py-16 w-50 radius-12 text-center">Kembali</a>
-        <a href="<?= site_url('dashboard/daftar/tinjau') ?>" class="btn btn-primary text-sm px-12 py-16 w-50 radius-12 text-center">Tinjau Data</a>
+        <button type="submit" class="btn btn-primary text-sm px-12 py-16 w-50 radius-12 text-center">Tinjau Data</button>
     </div>
 
     <p class="text-secondary-light text-xs mt-20 mb-0">NIP/NIPPK dan data kepegawaian adalah data restricted. Tidak ada upload SK atau bukti penugasan pada registrasi awal.</p>
 </form>
+<?= view('dashboard/auth/components/restore_registration_profile', ['registrationProfile' => $registrationProfile ?? []]) ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
