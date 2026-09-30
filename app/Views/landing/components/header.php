@@ -116,8 +116,8 @@ $isPrefixActive = static function (string $prefix) use ($currentPath): bool {
                             <div class="main-menu__search-box"><a href="#" class="main-menu__search searcher-toggler-box icon-search" aria-label="Cari"></a></div>
                         </div>
                         <div class="main-menu__btn-boxes">
-                            <div class="main-menu__btn-box-1"><a href="<?= site_url('masuk') ?>" class="thm-btn">Masuk</a></div>
-                            <div class="main-menu__btn-box-2"><a href="<?= site_url('daftar') ?>" class="thm-btn">Daftar</a></div>
+                            <div class="main-menu__btn-box-1"><a href="<?= site_url('dashboard/masuk') ?>" class="thm-btn">Masuk</a></div>
+                            <div class="main-menu__btn-box-2"><a href="<?= site_url('dashboard/daftar') ?>" class="thm-btn">Daftar</a></div>
                         </div>
                     </div>
                 </div>

@@ -1,12 +1,12 @@
 <!--Page Header Start-->
 <section class="page-header">
-    <div class="page-header__bg" style="background-image: url(<?= base_url('assets/landing/') ?>images/shapes/page-header-bg-shape.png);">
+    <div class="page-header__bg" style="background-image: url(<?= base_url('assets/main/') ?>images/shapes/page-header-bg-shape.png);">
     </div>
     <div class="page-header__shape-4">
-        <img src="<?= base_url('assets/landing/') ?>images/shapes/page-header-shape-4.png" alt="">
+        <img src="<?= base_url('assets/main/') ?>images/shapes/page-header-shape-4.png" alt="">
     </div>
     <div class="page-header__shape-5">
-        <img src="<?= base_url('assets/landing/') ?>images/shapes/page-header-shape-5.png" alt="">
+        <img src="<?= base_url('assets/main/') ?>images/shapes/page-header-shape-5.png" alt="">
     </div>
     <div class="page-header__social">
         <a href="#">Facebook</a>
@@ -20,15 +20,15 @@
     <div class="container">
         <div class="page-header__inner">
             <div class="page-header__img">
-                <img src="<?= base_url('assets/landing/') ?>images/resources/page-header-img-1.png" alt="">
+                <img src="<?= base_url('assets/main/') ?>images/resources/page-header-img-1.png" alt="">
                 <div class="page-header__shape-1">
-                    <img src="<?= base_url('assets/landing/') ?>images/shapes/page-header-shape-1.png" alt="">
+                    <img src="<?= base_url('assets/main/') ?>images/shapes/page-header-shape-1.png" alt="">
                 </div>
                 <div class="page-header__shape-2">
-                    <img src="<?= base_url('assets/landing/') ?>images/shapes/page-header-shape-2.png" alt="">
+                    <img src="<?= base_url('assets/main/') ?>images/shapes/page-header-shape-2.png" alt="">
                 </div>
                 <div class="page-header__shape-3">
-                    <img src="<?= base_url('assets/landing/') ?>images/shapes/page-header-shape-3.png" alt="">
+                    <img src="<?= base_url('assets/main/') ?>images/shapes/page-header-shape-3.png" alt="">
                 </div>
             </div>
             <h2><?php if (isset($page_title) && !empty($page_title)) {

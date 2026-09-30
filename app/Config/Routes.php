@@ -30,6 +30,7 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
         $routes->get('studi-kasus/(:segment)', 'BungaRampaiController::caseStudyDetail/$1', ['as' => 'public.knowledge.case-study.detail']);
         $routes->get('template-dokumen', 'BungaRampaiController::templates', ['as' => 'public.knowledge.templates']);
         $routes->get('template-dokumen/(:segment)', 'BungaRampaiController::templateDetail/$1', ['as' => 'public.knowledge.templates.detail']);
+        $routes->get('template-dokumen/(:segment)/unduh', 'BungaRampaiController::templateDownload/$1', ['as' => 'public.knowledge.templates.download']);
         $routes->get('media', 'BungaRampaiController::media', ['as' => 'public.knowledge.media']);
         $routes->get('video', 'BungaRampaiController::videos', ['as' => 'public.knowledge.videos']);
         $routes->get('galeri', 'BungaRampaiController::gallery', ['as' => 'public.knowledge.gallery']);
@@ -41,6 +42,7 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
         $routes->get('(:segment)/versi', 'RegulationPublicController::versions/$1', ['as' => 'public.regulations.versions']);
         $routes->get('(:segment)/relasi', 'RegulationPublicController::relations/$1', ['as' => 'public.regulations.relations']);
         $routes->get('(:segment)/preview', 'RegulationPublicController::preview/$1', ['as' => 'public.regulations.preview']);
+        $routes->get('(:segment)/unduh', 'RegulationPublicController::download/$1', ['as' => 'public.regulations.download']);
         $routes->get('(:segment)', 'RegulationPublicController::detail/$1', ['as' => 'public.regulations.detail']);
     });
 

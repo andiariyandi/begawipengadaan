@@ -10,6 +10,7 @@ class HomeController extends BaseController
     {
         return view('landing/home/index', [
             'title' => 'BegawiPBJ | Platform Pengadaan Barang/Jasa Provinsi Lampung',
+            'pageTitle' => 'BegawiPBJ | Platform Pengadaan Barang/Jasa Provinsi Lampung',
             'metaDescription' => 'Platform informasi, pembelajaran, regulasi, dan ekosistem Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.',
             'metaKeywords' => 'BegawiPBJ, pengadaan barang jasa, PBJ, Provinsi Lampung, pembelajaran PBJ',
         ]);
@@ -17,7 +18,7 @@ class HomeController extends BaseController
 
     public function about(): string
     {
-        return view('landing/home/about', [
+        return view('landing/pages/about', [
             'title' => 'Tentang BegawiPBJ | Provinsi Lampung',
             'metaDescription' => 'Tentang visi, misi, nilai, dan ekosistem layanan BegawiPBJ.',
             'metaKeywords' => 'tentang BegawiPBJ, Biro PBJ Lampung, pengadaan barang jasa Lampung',
