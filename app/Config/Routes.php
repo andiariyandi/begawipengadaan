@@ -1,426 +1,434 @@
 <?php
 
+declare(strict_types=1);
+
+namespace Config;
+
 use CodeIgniter\Router\RouteCollection;
 
-/** @var RouteCollection $routes */
+/**
+ * @var RouteCollection $routes
+ */
+$routes = Services::routes();
 
-$routes->group('', ['namespace' => 'App\Controllers\Landing'], static function ($routes) {
-    $routes->get('/', 'HomeController::index', ['as' => 'public.home']);
-    $routes->get('tentang', 'HomeController::about', ['as' => 'public.about']);
-    $routes->get('kontak', 'HomeController::contact', ['as' => 'public.contact']);
+$routes->setDefaultNamespace('App\\Controllers');
+$routes->setDefaultController('Landing\\HomeController');
+$routes->setDefaultMethod('index');
+$routes->setTranslateURIDashes(false);
+$routes->setAutoRoute(false);
+$routes->set404Override(static function () {
+    return view('error/404');
+});
 
-    $routes->group('arena-belajar', static function ($routes) {
-        $routes->get('/', 'ArenaBelajarController::index', ['as' => 'public.learning.index']);
-        $routes->get('program', 'ArenaBelajarController::programs', ['as' => 'public.learning.programs']);
-        $routes->get('program/(:segment)', 'ArenaBelajarController::programDetail/$1', ['as' => 'public.learning.program.detail']);
-        $routes->get('course', 'ArenaBelajarController::courses', ['as' => 'public.learning.courses']);
-        $routes->get('course/(:segment)', 'ArenaBelajarController::courseDetail/$1', ['as' => 'public.learning.course.detail']);
-        $routes->get('kelas', 'ArenaBelajarController::classes', ['as' => 'public.learning.classes']);
-        $routes->get('kelas/(:segment)', 'ArenaBelajarController::classDetail/$1', ['as' => 'public.learning.class.detail']);
-        $routes->get('pengajar', 'ArenaBelajarController::trainers', ['as' => 'public.learning.trainers']);
-        $routes->get('pengajar/(:segment)', 'ArenaBelajarController::trainerDetail/$1', ['as' => 'public.learning.trainer.detail']);
+/*
+|--------------------------------------------------------------------------
+| Landing dan Public Area — FiStudy
+|--------------------------------------------------------------------------
+*/
+$routes->group('', ['namespace' => 'App\\Controllers\\Landing'], static function (RouteCollection $routes): void {
+    $routes->get('/', 'HomeController::index', ['as' => 'landing.home']);
+    $routes->get('tentang', 'PublicPageController::about', ['as' => 'landing.pages.about']);
+    $routes->get('kontak', 'PublicPageController::contact', ['as' => 'landing.pages.contact']);
+    $routes->post('kontak', 'PublicPageController::sendContact', ['as' => 'landing.pages.contact.send', 'filter' => 'rateLimit:contact']);
+    $routes->get('privasi', 'PublicPageController::privacy', ['as' => 'landing.pages.privacy']);
+    $routes->get('syarat-ketentuan', 'PublicPageController::terms', ['as' => 'landing.pages.terms']);
+    $routes->get('aksesibilitas', 'PublicPageController::accessibility', ['as' => 'landing.pages.accessibility']);
+
+    $routes->group('arena-belajar', static function (RouteCollection $routes): void {
+        $routes->get('/', 'ArenaBelajarController::index', ['as' => 'landing.learning.index']);
+        $routes->get('program', 'ArenaBelajarController::programs', ['as' => 'landing.learning.programs.index']);
+        $routes->get('program/(:segment)', 'ArenaBelajarController::program/$1', ['as' => 'landing.learning.program.show']);
+        $routes->get('course', 'ArenaBelajarController::courses', ['as' => 'landing.learning.courses.index']);
+        $routes->get('course/(:segment)', 'ArenaBelajarController::course/$1', ['as' => 'landing.learning.courses.show']);
+        $routes->get('kelas', 'ArenaBelajarController::classes', ['as' => 'landing.learning.classes.index']);
+        $routes->get('kelas/(:segment)', 'ArenaBelajarController::classDetail/$1', ['as' => 'landing.learning.classes.show']);
+        $routes->get('instruktur', 'ArenaBelajarController::instructors', ['as' => 'landing.learning.instructors.index']);
+        $routes->get('instruktur/(:segment)', 'ArenaBelajarController::instructor/$1', ['as' => 'landing.learning.instructors.show']);
     });
 
-    $routes->group('bunga-rampai', static function ($routes) {
-        $routes->get('/', 'BungaRampaiController::index', ['as' => 'public.knowledge.index']);
-        $routes->get('artikel', 'BungaRampaiController::articles', ['as' => 'public.knowledge.articles']);
-        $routes->get('artikel/(:segment)', 'BungaRampaiController::articleDetail/$1', ['as' => 'public.knowledge.article.detail']);
-        $routes->get('faq', 'BungaRampaiController::faqs', ['as' => 'public.knowledge.faqs']);
-        $routes->get('studi-kasus', 'BungaRampaiController::caseStudies', ['as' => 'public.knowledge.case-studies']);
-        $routes->get('studi-kasus/(:segment)', 'BungaRampaiController::caseStudyDetail/$1', ['as' => 'public.knowledge.case-study.detail']);
-        $routes->get('template-dokumen', 'BungaRampaiController::templates', ['as' => 'public.knowledge.templates']);
-        $routes->get('template-dokumen/(:segment)', 'BungaRampaiController::templateDetail/$1', ['as' => 'public.knowledge.templates.detail']);
-        $routes->get('template-dokumen/(:segment)/unduh', 'BungaRampaiController::templateDownload/$1', ['as' => 'public.knowledge.templates.download']);
-        $routes->get('media', 'BungaRampaiController::media', ['as' => 'public.knowledge.media']);
-        $routes->get('video', 'BungaRampaiController::videos', ['as' => 'public.knowledge.videos']);
-        $routes->get('galeri', 'BungaRampaiController::gallery', ['as' => 'public.knowledge.gallery']);
+    $routes->group('bunga-rampai', static function (RouteCollection $routes): void {
+        $routes->get('/', 'BungaRampaiController::index', ['as' => 'landing.knowledge.index']);
+        $routes->get('cari', 'BungaRampaiController::search', ['as' => 'landing.knowledge.search', 'filter' => 'rateLimit:public-search']);
+        $routes->get('artikel', 'BungaRampaiController::articles', ['as' => 'landing.knowledge.articles.index']);
+        $routes->get('artikel/(:segment)', 'BungaRampaiController::article/$1', ['as' => 'landing.knowledge.articles.show']);
+        $routes->get('faq', 'BungaRampaiController::faq', ['as' => 'landing.knowledge.faq']);
+        $routes->get('studi-kasus', 'BungaRampaiController::caseStudies', ['as' => 'landing.knowledge.case-studies.index']);
+        $routes->get('studi-kasus/(:segment)', 'BungaRampaiController::caseStudy/$1', ['as' => 'landing.knowledge.case-studies.show']);
+        $routes->get('template', 'BungaRampaiController::templates', ['as' => 'landing.knowledge.templates.index']);
+        $routes->get('template/(:segment)', 'BungaRampaiController::templateDetail/$1', ['as' => 'landing.knowledge.templates.show']);
+        $routes->get('media', 'BungaRampaiController::media', ['as' => 'landing.knowledge.media.index']);
+        $routes->get('video', 'BungaRampaiController::videos', ['as' => 'landing.knowledge.videos.index']);
+        $routes->get('galeri', 'BungaRampaiController::gallery', ['as' => 'landing.knowledge.gallery.index']);
     });
 
-    $routes->group('regulasi', static function ($routes) {
-        $routes->get('/', 'RegulationPublicController::index', ['as' => 'public.regulations.index']);
-        $routes->get('kategori/(:segment)', 'RegulationPublicController::category/$1', ['as' => 'public.regulations.category']);
-        $routes->get('(:segment)/versi', 'RegulationPublicController::versions/$1', ['as' => 'public.regulations.versions']);
-        $routes->get('(:segment)/relasi', 'RegulationPublicController::relations/$1', ['as' => 'public.regulations.relations']);
-        $routes->get('(:segment)/preview', 'RegulationPublicController::preview/$1', ['as' => 'public.regulations.preview']);
-        $routes->get('(:segment)/unduh', 'RegulationPublicController::download/$1', ['as' => 'public.regulations.download']);
-        $routes->get('(:segment)', 'RegulationPublicController::detail/$1', ['as' => 'public.regulations.detail']);
+    $routes->group('regulasi', static function (RouteCollection $routes): void {
+        $routes->get('/', 'RegulationPublicController::index', ['as' => 'landing.regulations.index']);
+        $routes->get('cari', 'RegulationPublicController::search', ['as' => 'landing.regulations.search', 'filter' => 'rateLimit:public-search']);
+        $routes->get('kategori/(:segment)', 'RegulationPublicController::category/$1', ['as' => 'landing.regulations.category']);
+        $routes->get('(:segment)/versi', 'RegulationPublicController::versions/$1', ['as' => 'landing.regulations.versions']);
+        $routes->get('(:segment)/relasi', 'RegulationPublicController::relations/$1', ['as' => 'landing.regulations.relations']);
+        $routes->get('(:segment)/preview', 'RegulationPublicController::preview/$1', ['as' => 'landing.regulations.preview']);
+        $routes->get('(:segment)', 'RegulationPublicController::show/$1', ['as' => 'landing.regulations.show']);
     });
 
-    $routes->group('berita', static function ($routes) {
-        $routes->get('/', 'NewsPublicController::index', ['as' => 'public.news.index']);
-        $routes->get('kategori/(:segment)', 'NewsPublicController::category/$1', ['as' => 'public.news.category']);
-        $routes->get('(:segment)', 'NewsPublicController::detail/$1', ['as' => 'public.news.detail']);
+    $routes->group('berita', static function (RouteCollection $routes): void {
+        $routes->get('/', 'NewsPublicController::index', ['as' => 'landing.news.index']);
+        $routes->get('kategori/(:segment)', 'NewsPublicController::category/$1', ['as' => 'landing.news.category']);
+        $routes->get('(:segment)', 'NewsPublicController::show/$1', ['as' => 'landing.news.show']);
     });
 
-    $routes->group('event', static function ($routes) {
-        $routes->get('/', 'EventPublicController::index', ['as' => 'public.events.index']);
-        $routes->get('agenda', 'EventPublicController::agenda', ['as' => 'public.events.agenda']);
-        $routes->get('kalender', 'EventPublicController::calendar', ['as' => 'public.events.calendar']);
-        $routes->get('(:segment)', 'EventPublicController::detail/$1', ['as' => 'public.events.detail']);
+    $routes->group('event', static function (RouteCollection $routes): void {
+        $routes->get('/', 'EventPublicController::index', ['as' => 'landing.events.index']);
+        $routes->get('agenda', 'EventPublicController::agenda', ['as' => 'landing.events.agenda']);
+        $routes->get('kalender', 'EventPublicController::calendar', ['as' => 'landing.events.calendar']);
+        $routes->get('(:segment)', 'EventPublicController::show/$1', ['as' => 'landing.events.show']);
     });
 
-    $routes->group('statistik', static function ($routes) {
-        $routes->get('/', 'StatisticPublicController::index', ['as' => 'public.statistics.index']);
-        $routes->get('pembelajaran', 'StatisticPublicController::learning', ['as' => 'public.statistics.learning']);
-        $routes->get('event', 'StatisticPublicController::events', ['as' => 'public.statistics.events']);
-        $routes->get('kompetensi', 'StatisticPublicController::competency', ['as' => 'public.statistics.competency']);
+    $routes->group('statistik', static function (RouteCollection $routes): void {
+        $routes->get('/', 'StatisticPublicController::index', ['as' => 'landing.statistics.index']);
+        $routes->get('data', 'StatisticPublicController::data', ['as' => 'landing.statistics.data', 'filter' => 'rateLimit:public-statistics']);
+        $routes->get('pembelajaran', 'StatisticPublicController::learning', ['as' => 'landing.statistics.learning', 'filter' => 'rateLimit:public-statistics']);
+        $routes->get('event', 'StatisticPublicController::events', ['as' => 'landing.statistics.events', 'filter' => 'rateLimit:public-statistics']);
+        $routes->get('kompetensi', 'StatisticPublicController::competency', ['as' => 'landing.statistics.competency', 'filter' => 'rateLimit:public-statistics']);
     });
 
-    $routes->group('verifikasi-sertifikat', static function ($routes) {
-        $routes->get('/', 'CertificateVerificationController::index', ['as' => 'public.certificate.verify']);
-        $routes->get('hasil', 'CertificateVerificationController::result', ['as' => 'public.certificate.verify.result']);
-        $routes->get('(:segment)', 'CertificateVerificationController::detail/$1', ['as' => 'public.certificate.verify.detail']);
+    $routes->group('sertifikat/verifikasi', static function (RouteCollection $routes): void {
+        $routes->get('/', 'CertificateVerificationController::form', ['as' => 'landing.certificates.verify.form']);
+        $routes->post('/', 'CertificateVerificationController::verify', ['as' => 'landing.certificates.verify.submit', 'filter' => 'rateLimit:certificate-verify']);
+        $routes->get('(:segment)', 'CertificateVerificationController::verifyToken/$1', ['as' => 'landing.certificates.verify.token', 'filter' => 'rateLimit:certificate-verify']);
     });
 });
 
-$routes->group('', ['namespace' => 'App\Controllers\Auth'], static function ($routes) {
-    // $routes->get('masuk', 'LoginController::index', ['as' => 'auth.login']);
-    // $routes->get('keluar', 'LoginController::logoutPreview', ['as' => 'auth.logout.preview']);
+/*
+|--------------------------------------------------------------------------
+| Auth Terpadu — WowDash
+|--------------------------------------------------------------------------
+*/
+$routes->group('dashboard', ['namespace' => 'App\\Controllers\\Dashboard\\Auth'], static function (RouteCollection $routes): void {
+    $routes->get('daftar/wilayah/options/(:segment)', '\\App\\Controllers\\Reference\\WilayahController::children/$1', ['as' => 'dashboard.auth.register.region.options']);
+    $routes->get('masuk', 'LoginController::index', ['as' => 'dashboard.auth.login', 'filter' => 'guest']);
+    $routes->post('masuk', 'LoginController::attempt', ['as' => 'dashboard.auth.login.attempt', 'filter' => ['guest', 'rateLimit:auth']]);
+    $routes->post('keluar', 'LogoutController::logout', ['as' => 'dashboard.auth.logout', 'filter' => ['auth', 'auditContext']]);
 
-    $routes->group('daftar', static function ($routes) {
-        $routes->get('/', 'RegisterController::index', ['as' => 'auth.register.account']);
-        $routes->get('tipe-profil', 'RegisterProfileController::type', ['as' => 'auth.register.profile-type']);
-        $routes->get('profil/asn', 'RegisterProfileController::asn', ['as' => 'auth.register.profile.asn']);
-        $routes->get('profil/penyedia', 'RegisterProfileController::provider', ['as' => 'auth.register.profile.provider']);
-        $routes->get('profil/akademisi', 'RegisterProfileController::academic', ['as' => 'auth.register.profile.academic']);
-        $routes->get('profil/masyarakat', 'RegisterProfileController::public', ['as' => 'auth.register.profile.public']);
-        $routes->get('tinjau', 'RegisterController::review', ['as' => 'auth.register.review']);
-        $routes->get('berhasil', 'RegisterController::success', ['as' => 'auth.register.success']);
-    });
+    $routes->get('daftar', 'RegisterController::account', ['as' => 'dashboard.auth.register.account', 'filter' => 'guest']);
+    $routes->post('daftar', 'RegisterController::storeAccount', ['as' => 'dashboard.auth.register.account.store', 'filter' => ['guest', 'rateLimit:registration']]);
+    $routes->get('daftar/wilayah', 'RegisterController::region', ['as' => 'dashboard.auth.register.region', 'filter' => 'guest']);
+    $routes->post('daftar/wilayah', 'RegisterController::storeRegion', ['as' => 'dashboard.auth.register.region.store', 'filter' => ['guest', 'rateLimit:registration']]);
+    $routes->get('daftar/profil/(:alpha)', 'RegisterProfileController::form/$1', ['as' => 'dashboard.auth.register.profile', 'filter' => 'guest']);
+    $routes->post('daftar/profil/(:alpha)', 'RegisterProfileController::store/$1', ['as' => 'dashboard.auth.register.profile.store', 'filter' => ['guest', 'rateLimit:registration']]);
+    $routes->get('daftar/tinjau', 'RegisterController::review', ['as' => 'dashboard.auth.register.review', 'filter' => 'guest']);
+    $routes->post('daftar/tinjau', 'RegisterController::submit', ['as' => 'dashboard.auth.register.submit', 'filter' => ['guest', 'rateLimit:registration']]);
+    $routes->get('daftar/berhasil', 'RegisterController::success', ['as' => 'dashboard.auth.register.success', 'filter' => 'guest']);
 
-    $routes->group('verifikasi-email', static function ($routes) {
-        $routes->get('/', 'EmailVerificationController::index', ['as' => 'auth.email-verification']);
-        $routes->get('terkirim', 'EmailVerificationController::sent', ['as' => 'auth.email-verification.sent']);
-        $routes->get('berhasil', 'EmailVerificationController::success', ['as' => 'auth.email-verification.success']);
-    });
+    $routes->get('verifikasi/(:segment)', 'EmailVerificationController::verify/$1', ['as' => 'dashboard.auth.verify-email', 'filter' => 'rateLimit:email-verify']);
+    $routes->post('verifikasi/kirim-ulang', 'EmailVerificationController::resend', ['as' => 'dashboard.auth.verify-email.resend', 'filter' => 'rateLimit:email-verify']);
+    $routes->get('status-akun', 'AccountStatusController::show', ['as' => 'dashboard.auth.account-status', 'filter' => 'auth']);
 
-    $routes->get('menunggu-verifikasi', 'RegisterController::pendingVerification', ['as' => 'auth.pending-verification']);
-    $routes->get('perlu-revisi', 'RegisterController::revisionRequired', ['as' => 'auth.revision-required']);
-
-    $routes->group('kata-sandi', static function ($routes) {
-        $routes->get('lupa', 'PasswordController::forgot', ['as' => 'auth.password.forgot']);
-        $routes->get('reset', 'PasswordController::reset', ['as' => 'auth.password.reset']);
-        $routes->get('ubah', 'PasswordController::change', ['as' => 'auth.password.change']);
-        $routes->get('berhasil', 'PasswordController::success', ['as' => 'auth.password.success']);
-    });
+    $routes->get('lupa-kata-sandi', 'PasswordController::forgotForm', ['as' => 'dashboard.auth.password.forgot', 'filter' => 'guest']);
+    $routes->post('lupa-kata-sandi', 'PasswordController::sendReset', ['as' => 'dashboard.auth.password.send-reset', 'filter' => ['guest', 'rateLimit:password-reset']]);
+    $routes->get('reset-kata-sandi/(:segment)', 'PasswordController::resetForm/$1', ['as' => 'dashboard.auth.password.reset', 'filter' => 'guest']);
+    $routes->post('reset-kata-sandi/(:segment)', 'PasswordController::updatePassword/$1', ['as' => 'dashboard.auth.password.update', 'filter' => ['guest', 'rateLimit:password-reset']]);
 });
 
-$routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static function ($routes) {
+/*
+|--------------------------------------------------------------------------
+| Workspace — FiStudy
+|--------------------------------------------------------------------------
+*/
+$workspaceFilters = ['auth', 'verifiedEmail', 'accountStatus:active', 'workspaceAccess'];
+$workspaceWriteFilters = ['auth', 'verifiedEmail', 'accountStatus:active', 'workspaceAccess', 'auditContext'];
+
+$routes->group('workspace', ['namespace' => 'App\\Controllers\\Workspace', 'filter' => $workspaceFilters], static function (RouteCollection $routes) use ($workspaceWriteFilters): void {
     $routes->get('/', 'WorkspaceHomeController::index', ['as' => 'workspace.home']);
-    $routes->get('notifikasi', 'NotificationController::index', ['as' => 'workspace.notifications']);
-    $routes->get('notifikasi/(:segment)', 'NotificationController::detail/$1', ['as' => 'workspace.notifications.detail']);
 
-    $routes->group('bookmark', static function ($routes) {
+    $routes->group('profil', static function (RouteCollection $routes) use ($workspaceWriteFilters): void {
+        $routes->get('/', 'ProfileController::index', ['as' => 'workspace.profile.index']);
+        $routes->get('akun', 'ProfileController::account', ['as' => 'workspace.profile.account']);
+        $routes->patch('akun', 'ProfileController::updateAccount', ['as' => 'workspace.profile.account.update', 'filter' => $workspaceWriteFilters]);
+        $routes->get('asn', 'ProfileController::asn', ['as' => 'workspace.profile.asn']);
+        $routes->get('penyedia', 'ProfileController::provider', ['as' => 'workspace.profile.provider']);
+        $routes->get('akademik', 'ProfileController::academic', ['as' => 'workspace.profile.academic']);
+        $routes->get('masyarakat', 'ProfileController::public', ['as' => 'workspace.profile.public']);
+        $routes->get('peran-pengadaan', 'ProfileController::procurementRoles', ['as' => 'workspace.profile.procurement-roles']);
+        $routes->get('perubahan', 'ProfileChangeRequestController::index', ['as' => 'workspace.profile.change-requests']);
+        $routes->post('perubahan', 'ProfileChangeRequestController::store', ['as' => 'workspace.profile.change-requests.store', 'filter' => $workspaceWriteFilters]);
+        $routes->get('pengajuan-role', 'RoleRequestController::index', ['as' => 'workspace.profile.role-requests']);
+        $routes->post('pengajuan-role', 'RoleRequestController::store', ['as' => 'workspace.profile.role-requests.store', 'filter' => $workspaceWriteFilters]);
+    });
+
+    $routes->group('bookmark', static function (RouteCollection $routes) use ($workspaceWriteFilters): void {
         $routes->get('/', 'BookmarkController::index', ['as' => 'workspace.bookmarks.index']);
         $routes->get('pembelajaran', 'BookmarkController::learning', ['as' => 'workspace.bookmarks.learning']);
         $routes->get('bunga-rampai', 'BookmarkController::knowledge', ['as' => 'workspace.bookmarks.knowledge']);
         $routes->get('regulasi', 'BookmarkController::regulations', ['as' => 'workspace.bookmarks.regulations']);
         $routes->get('komunikasi', 'BookmarkController::communication', ['as' => 'workspace.bookmarks.communication']);
         $routes->get('sertifikat', 'BookmarkController::certificates', ['as' => 'workspace.bookmarks.certificates']);
+        $routes->post('(:segment)/(:num)', 'BookmarkController::store/$1/$2', ['as' => 'workspace.bookmarks.store', 'filter' => $workspaceWriteFilters]);
+        $routes->delete('(:segment)/(:num)', 'BookmarkController::delete/$1/$2', ['as' => 'workspace.bookmarks.delete', 'filter' => $workspaceWriteFilters]);
     });
 
-    $routes->group('peserta', static function ($routes) {
-        $routes->get('/', 'ParticipantController::index', ['as' => 'workspace.participant.home']);
-        $routes->get('kelas-saya', 'ParticipantController::myClasses', ['as' => 'workspace.participant.classes']);
-        $routes->get('kelas/(:segment)', 'ParticipantController::classDetail/$1', ['as' => 'workspace.participant.class.detail']);
-        $routes->get('kelas/(:segment)/belajar', 'ParticipantController::study/$1', ['as' => 'workspace.participant.study']);
-        $routes->get('kelas/(:segment)/progres', 'ParticipantController::progress/$1', ['as' => 'workspace.participant.progress']);
-        $routes->get('kelas/(:segment)/pre-test', 'ParticipantController::preTest/$1', ['as' => 'workspace.participant.pre-test']);
-        $routes->get('kelas/(:segment)/pre-test/hasil', 'ParticipantController::preTestResult/$1', ['as' => 'workspace.participant.pre-test.result']);
-        $routes->get('kelas/(:segment)/quiz', 'ParticipantController::quiz/$1', ['as' => 'workspace.participant.quiz']);
-        $routes->get('kelas/(:segment)/quiz/hasil', 'ParticipantController::quizResult/$1', ['as' => 'workspace.participant.quiz.result']);
-        $routes->get('kelas/(:segment)/tugas', 'ParticipantController::assignments/$1', ['as' => 'workspace.participant.assignments']);
-        $routes->get('kelas/(:segment)/tugas/kirim', 'ParticipantController::assignmentSubmission/$1', ['as' => 'workspace.participant.assignment.submission']);
-        $routes->get('kelas/(:segment)/tugas/revisi', 'ParticipantController::assignmentRevision/$1', ['as' => 'workspace.participant.assignment.revision']);
-        $routes->get('kelas/(:segment)/post-test', 'ParticipantController::postTest/$1', ['as' => 'workspace.participant.post-test']);
-        $routes->get('kelas/(:segment)/post-test/hasil', 'ParticipantController::postTestResult/$1', ['as' => 'workspace.participant.post-test.result']);
-        $routes->get('kelas/(:segment)/feedback', 'ParticipantController::feedback/$1', ['as' => 'workspace.participant.feedback']);
+    $routes->group('notifikasi', static function (RouteCollection $routes) use ($workspaceWriteFilters): void {
+        $routes->get('/', 'NotificationController::index', ['as' => 'workspace.notifications.index']);
+        $routes->get('(:num)', 'NotificationController::detail/$1', ['as' => 'workspace.notifications.detail']);
+        $routes->patch('(:num)/dibaca', 'NotificationController::markRead/$1', ['as' => 'workspace.notifications.read', 'filter' => $workspaceWriteFilters]);
+        $routes->post('baca-semua', 'NotificationController::markAllRead', ['as' => 'workspace.notifications.read-all', 'filter' => $workspaceWriteFilters]);
+    });
+
+    $routes->group('peserta', ['filter' => 'role:participant'], static function (RouteCollection $routes) use ($workspaceWriteFilters): void {
+        $routes->get('/', 'ParticipantController::dashboard', ['as' => 'workspace.participant.dashboard']);
+        $routes->get('enrollment', 'ParticipantController::enrollments', ['as' => 'workspace.participant.enrollments']);
+        $routes->get('pembelajaran/(:num)', 'ParticipantController::learningDetail/$1', ['as' => 'workspace.participant.learning.show']);
+        $routes->get('belajar/(:num)', 'ParticipantController::study/$1', ['as' => 'workspace.participant.study']);
+        $routes->patch('belajar/(:num)/progres', '\\App\\Controllers\\Learning\\LearningProgressController::update/$1', ['as' => 'workspace.participant.progress.update', 'filter' => $workspaceWriteFilters]);
+        $routes->get('pre-test/(:num)', '\\App\\Controllers\\Learning\\PreTestController::form/$1', ['as' => 'workspace.participant.pre-test']);
+        $routes->post('pre-test/(:num)', '\\App\\Controllers\\Learning\\PreTestController::submit/$1', ['as' => 'workspace.participant.pre-test.submit', 'filter' => $workspaceWriteFilters]);
+        $routes->get('pre-test/(:num)/hasil', '\\App\\Controllers\\Learning\\PreTestController::result/$1', ['as' => 'workspace.participant.pre-test.result']);
+        $routes->get('quiz/(:num)', '\\App\\Controllers\\Learning\\QuizController::form/$1', ['as' => 'workspace.participant.quiz']);
+        $routes->post('quiz/(:num)', '\\App\\Controllers\\Learning\\QuizController::submit/$1', ['as' => 'workspace.participant.quiz.submit', 'filter' => $workspaceWriteFilters]);
+        $routes->get('quiz/(:num)/hasil', '\\App\\Controllers\\Learning\\QuizController::result/$1', ['as' => 'workspace.participant.quiz.result']);
+        $routes->get('tugas/(:num)', '\\App\\Controllers\\Learning\\AssignmentController::show/$1', ['as' => 'workspace.participant.assignments.show']);
+        $routes->post('tugas/(:num)', '\\App\\Controllers\\Learning\\AssignmentController::submit/$1', ['as' => 'workspace.participant.assignments.submit', 'filter' => $workspaceWriteFilters]);
+        $routes->get('tugas/(:num)/pengumpulan', '\\App\\Controllers\\Learning\\AssignmentController::submission/$1', ['as' => 'workspace.participant.assignments.submission']);
+        $routes->get('feedback/(:num)', '\\App\\Controllers\\Learning\\FeedbackController::form/$1', ['as' => 'workspace.participant.feedback']);
+        $routes->post('feedback/(:num)', '\\App\\Controllers\\Learning\\FeedbackController::submit/$1', ['as' => 'workspace.participant.feedback.submit', 'filter' => $workspaceWriteFilters]);
         $routes->get('sertifikat', 'ParticipantController::certificates', ['as' => 'workspace.participant.certificates']);
-        $routes->get('sertifikat/(:segment)', 'ParticipantController::certificateDetail/$1', ['as' => 'workspace.participant.certificate.detail']);
+        $routes->get('sertifikat/(:num)', 'ParticipantController::certificateDetail/$1', ['as' => 'workspace.participant.certificates.show']);
     });
 
-    $routes->group('trainer', static function ($routes) {
-        $routes->get('/', 'TrainerController::index', ['as' => 'workspace.trainer.home']);
-        $routes->get('kelas-saya', 'TrainerController::myClasses', ['as' => 'workspace.trainer.classes']);
-        $routes->get('kelas/(:segment)', 'TrainerController::classDetail/$1', ['as' => 'workspace.trainer.class.detail']);
-        $routes->get('kelas/(:segment)/peserta', 'TrainerController::participants/$1', ['as' => 'workspace.trainer.participants']);
-        $routes->get('kelas/(:segment)/materi', 'TrainerController::materials/$1', ['as' => 'workspace.trainer.materials']);
-        $routes->get('kelas/(:segment)/modul', 'TrainerController::modules/$1', ['as' => 'workspace.trainer.modules']);
-        $routes->get('kelas/(:segment)/quiz', 'TrainerController::quizzes/$1', ['as' => 'workspace.trainer.quizzes']);
-        $routes->get('kelas/(:segment)/tugas', 'TrainerController::assignments/$1', ['as' => 'workspace.trainer.assignments']);
-        $routes->get('kelas/(:segment)/progres', 'TrainerController::progress/$1', ['as' => 'workspace.trainer.progress']);
+    $routes->group('pelatih', ['filter' => 'role:trainer'], static function (RouteCollection $routes) use ($workspaceWriteFilters): void {
+        $routes->get('/', 'TrainerController::dashboard', ['as' => 'workspace.trainer.dashboard']);
+        $routes->get('kelas', 'TrainerController::classes', ['as' => 'workspace.trainer.classes.index']);
+        $routes->get('kelas/(:num)', 'TrainerController::classDetail/$1', ['as' => 'workspace.trainer.classes.show']);
+        $routes->get('kelas/(:num)/materi/baru', '\\App\\Controllers\\Learning\\LessonController::create/$1', ['as' => 'workspace.trainer.lessons.create', 'filter' => 'permission:learning.lesson.manage']);
+        $routes->post('kelas/(:num)/materi', '\\App\\Controllers\\Learning\\LessonController::store/$1', ['as' => 'workspace.trainer.lessons.store', 'filter' => array_merge(['permission:learning.lesson.manage'], $workspaceWriteFilters)]);
+        $routes->get('kelas/(:num)/quiz/baru', '\\App\\Controllers\\Learning\\QuizController::create/$1', ['as' => 'workspace.trainer.quizzes.create', 'filter' => 'permission:learning.quiz.manage']);
+        $routes->post('kelas/(:num)/quiz', '\\App\\Controllers\\Learning\\QuizController::store/$1', ['as' => 'workspace.trainer.quizzes.store', 'filter' => array_merge(['permission:learning.quiz.manage'], $workspaceWriteFilters)]);
+        $routes->get('kelas/(:num)/tugas/baru', '\\App\\Controllers\\Learning\\AssignmentController::create/$1', ['as' => 'workspace.trainer.assignments.create', 'filter' => 'permission:learning.assignment.manage']);
+        $routes->post('kelas/(:num)/tugas', '\\App\\Controllers\\Learning\\AssignmentController::store/$1', ['as' => 'workspace.trainer.assignments.store', 'filter' => array_merge(['permission:learning.assignment.manage'], $workspaceWriteFilters)]);
+        $routes->get('kelas/(:num)/progres-peserta', 'TrainerController::participantProgress/$1', ['as' => 'workspace.trainer.participants.progress']);
     });
 
-    $routes->group('evaluator', static function ($routes) {
-        $routes->get('/', 'EvaluatorController::index', ['as' => 'workspace.evaluator.home']);
-        $routes->get('penugasan', 'EvaluatorController::assignments', ['as' => 'workspace.evaluator.assignments']);
-        $routes->get('kelas/(:segment)', 'EvaluatorController::classDetail/$1', ['as' => 'workspace.evaluator.class.detail']);
-        $routes->get('kelas/(:segment)/submission', 'EvaluatorController::submissions/$1', ['as' => 'workspace.evaluator.submissions']);
-        $routes->get('kelas/(:segment)/submission/(:segment)', 'EvaluatorController::submissionDetail/$1/$2', ['as' => 'workspace.evaluator.submission.detail']);
-        $routes->get('kelas/(:segment)/penilaian', 'EvaluatorController::grading/$1', ['as' => 'workspace.evaluator.grading']);
-        $routes->get('kelas/(:segment)/feedback', 'EvaluatorController::feedback/$1', ['as' => 'workspace.evaluator.feedback']);
+    $routes->group('evaluator', ['filter' => 'role:evaluator'], static function (RouteCollection $routes) use ($workspaceWriteFilters): void {
+        $routes->get('/', 'EvaluatorController::dashboard', ['as' => 'workspace.evaluator.dashboard']);
+        $routes->get('antrian-penilaian', 'EvaluatorController::assignmentQueue', ['as' => 'workspace.evaluator.assignments.queue']);
+        $routes->get('pengumpulan/(:num)', '\\App\\Controllers\\Learning\\GradeController::form/$1', ['as' => 'workspace.evaluator.assignments.grade']);
+        $routes->post('pengumpulan/(:num)/nilai', '\\App\\Controllers\\Learning\\GradeController::store/$1', ['as' => 'workspace.evaluator.assignments.grade.store', 'filter' => array_merge(['permission:learning.assignment.grade'], $workspaceWriteFilters)]);
+        $routes->get('riwayat-penilaian', 'EvaluatorController::assessmentHistory', ['as' => 'workspace.evaluator.assessments.history']);
     });
 
-    $routes->group('operator', static function ($routes) {
-        $routes->get('/', 'OperatorController::index', ['as' => 'workspace.operator.home']);
-        $routes->get('verifikasi-profil', 'OperatorController::profileVerifications', ['as' => 'workspace.operator.profile-verifications']);
-        $routes->get('enrollment', 'OperatorController::enrollments', ['as' => 'workspace.operator.enrollments']);
-        $routes->get('event', 'OperatorController::events', ['as' => 'workspace.operator.events']);
-        $routes->get('kehadiran', 'OperatorController::attendance', ['as' => 'workspace.operator.attendance']);
-        $routes->get('approval', 'OperatorController::approvals', ['as' => 'workspace.operator.approvals']);
+    $routes->group('operator', ['filter' => 'role:operator'], static function (RouteCollection $routes) use ($workspaceWriteFilters): void {
+        $routes->get('/', 'OperatorController::dashboard', ['as' => 'workspace.operator.dashboard']);
+        $routes->get('antrian-verifikasi', 'OperatorController::verificationQueue', ['as' => 'workspace.operator.verification.queue', 'filter' => 'permission:profile.verify']);
+        $routes->post('verifikasi/(:num)', 'OperatorController::decideVerification/$1', ['as' => 'workspace.operator.verification.decide', 'filter' => array_merge(['permission:profile.verify'], $workspaceWriteFilters)]);
+        $routes->get('enrollment', 'OperatorController::enrollmentManagement', ['as' => 'workspace.operator.enrollments', 'filter' => 'permission:learning.enrollment.manage']);
+        $routes->get('absensi', 'OperatorController::attendanceManagement', ['as' => 'workspace.operator.attendance', 'filter' => 'permission:event.attendance.manage']);
+        $routes->get('approval-terdelegasi', 'OperatorController::delegatedApprovals', ['as' => 'workspace.operator.approvals']);
     });
 });
 
-$routes->group('profil', ['namespace' => 'App\Controllers\Auth'], static function ($routes) {
-    $routes->get('/', 'ProfileController::index', ['as' => 'profile.index']);
-    $routes->get('akun', 'ProfileController::account', ['as' => 'profile.account']);
-    $routes->get('asn', 'ProfileController::asn', ['as' => 'profile.asn']);
-    $routes->get('penyedia', 'ProfileController::provider', ['as' => 'profile.provider']);
-    $routes->get('akademisi', 'ProfileController::academic', ['as' => 'profile.academic']);
-    $routes->get('masyarakat', 'ProfileController::public', ['as' => 'profile.public']);
-    $routes->get('peran-pengadaan', 'ProfileController::procurementRoles', ['as' => 'profile.procurement-roles']);
-    $routes->get('permohonan-perubahan', 'ProfileChangeRequestController::index', ['as' => 'profile.change-requests']);
-    $routes->get('permohonan-perubahan/buat', 'ProfileChangeRequestController::create', ['as' => 'profile.change-requests.create']);
-    $routes->get('permohonan-role', 'RoleRequestController::index', ['as' => 'profile.role-requests']);
-    $routes->get('permohonan-role/buat', 'RoleRequestController::create', ['as' => 'profile.role-requests.create']);
-});
+/*
+|--------------------------------------------------------------------------
+| Dashboard Back-office — WowDash
+|--------------------------------------------------------------------------
+*/
+$dashboardFilters = ['auth', 'verifiedEmail', 'accountStatus:active', 'dashboardAccess'];
+$dashboardWriteFilters = ['auth', 'verifiedEmail', 'accountStatus:active', 'dashboardAccess', 'auditContext'];
 
-$routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static function ($routes) {
-    $routes->get('masuk', '\App\Controllers\Dashboard\Auth\LoginController::index', ['as' => 'dashboard.auth.login']);
-    $routes->post('masuk', '\App\Controllers\Dashboard\Auth\LoginController::attemptLogin', ['as' => 'dashboard.auth.login.attempt']);
-    $routes->get('lupa-kata-sandi', 'AdminAuthController::forgotPassword', ['as' => 'dashboard.auth.password.forgot']);
-    $routes->post('lupa-kata-sandi', 'AdminAuthController::forgotPasswordAttempt', ['as' => 'dashboard.auth.password.forgot.attempt']);
-    $routes->get('reset-kata-sandi/(:segment)', 'AdminAuthController::resetPassword/$1', ['as' => 'dashboard.auth.password.reset']);
-    $routes->post('reset-kata-sandi/(:segment)', 'AdminAuthController::resetPassword/$1', ['as' => 'dashboard.auth.password.reset.attempt']);
-    $routes->get('verifikasi/(:segment)', 'AdminAuthController::verifyEmail/$1', ['as' => 'dashboard.auth.email.verify']);
-    $routes->get('status-akun', 'AdminAuthController::accountStatus', ['as' => 'dashboard.auth.account.status']);
-    $routes->get('keluar', '\App\Controllers\Dashboard\Auth\LoginController::logoutPreview', ['as' => 'dashboard.auth.logout.preview']);
-    $routes->post('keluar', '\App\Controllers\Dashboard\Auth\LoginController::logout', ['as' => 'dashboard.auth.logout']);
+$routes->group('dashboard', ['namespace' => 'App\\Controllers\\Dashboard', 'filter' => $dashboardFilters], static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+    $routes->get('/', 'DashboardController::index', ['as' => 'dashboard.home', 'filter' => 'permission:dashboard.view']);
+    $routes->get('kpi-internal', 'DashboardController::internalKpi', ['as' => 'dashboard.summary.kpi', 'filter' => 'permission:dashboard.view']);
+    $routes->get('antrean-persetujuan', 'DashboardController::approvalQueue', ['as' => 'dashboard.summary.approval-queue', 'filter' => 'permission:approval.view']);
+    $routes->get('aktivitas-terbaru', 'DashboardController::recentActivity', ['as' => 'dashboard.summary.recent-activity', 'filter' => 'permission:dashboard.view']);
+    $routes->get('indikator-sistem', 'DashboardController::systemIndicators', ['as' => 'dashboard.summary.system-indicators', 'filter' => 'permission:system.health.view']);
 
-    $routes->group('daftar', static function ($routes) {
-        // Langkah 1: Akun dasar + tipe profil
-        $routes->get('/', 'AdminAuthController::register', ['as' => 'dashboard.auth.register',]);
-        $routes->post('/', 'AdminAuthController::registerAttempt', ['as' => 'dashboard.auth.register.attempt',]);
-
-        // Langkah 2: Wilayah dan alamat ringkas
-        $routes->get('wilayah', 'AdminAuthController::registerAddress', ['as' => 'dashboard.auth.register.address',]);
-        $routes->post('wilayah', 'AdminAuthController::registerAddressAttempt', ['as' => 'dashboard.auth.register.address.attempt',]);
-        $routes->get('wilayah/options', 'AdminAuthController::wilayahOptions', ['as' => 'dashboard.auth.register.address.options.root',]);
-        $routes->get('wilayah/options/(:segment)', 'AdminAuthController::wilayahOptions/$1', ['as' => 'dashboard.auth.register.address.options',]);
-
-        // Langkah 3: Profil khusus berdasarkan tipe profil
-        $routes->get('profil/asn', 'AdminAuthController::registerAsn', ['as' => 'dashboard.auth.register.profile.asn',]);
-
-        $routes->get('profil/penyedia', 'AdminAuthController::registerProvider', ['as' => 'dashboard.auth.register.profile.provider',]);
-
-        $routes->get('profil/akademisi', 'AdminAuthController::registerAcademic', ['as' => 'dashboard.auth.register.profile.academic',]);
-
-        $routes->get('profil/masyarakat', 'AdminAuthController::registerPublic', ['as' => 'dashboard.auth.register.profile.public',]);
-        $routes->post('profil/(:segment)', 'AdminAuthController::registerProfileAttempt/$1', ['as' => 'dashboard.auth.register.profile.attempt',]);
-
-        // Langkah 4: Tinjau data dan persetujuan
-        $routes->get('tinjau', 'AdminAuthController::registerReview', ['as' => 'dashboard.auth.register.review',]);
-        $routes->post('tinjau', 'AdminAuthController::registerReviewAttempt', ['as' => 'dashboard.auth.register.review.attempt',]);
-
-        // Hasil submit UI-only
-        $routes->get('berhasil', 'AdminAuthController::registerSuccess', ['as' => 'dashboard.auth.register.success',]);
-    });
-
-    $routes->get('/', 'DashboardController::index', ['as' => 'dashboard.home']);
-    $routes->get('kpi-internal', 'DashboardController::internalKpi', ['as' => 'dashboard.summary.kpi']);
-    $routes->get('antrean-persetujuan', 'DashboardController::approvalQueue', ['as' => 'dashboard.summary.approval-queue']);
-    $routes->get('aktivitas-terbaru', 'DashboardController::recentActivity', ['as' => 'dashboard.summary.recent-activity']);
-    $routes->get('indikator-sistem', 'DashboardController::systemIndicators', ['as' => 'dashboard.summary.system-indicators']);
-
-    $routes->group('profile', static function ($routes) {
+    $routes->group('profil', static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
         $routes->get('/', 'ProfileController::index', ['as' => 'dashboard.profile.index']);
-        $routes->get('edit', 'ProfileController::edit', ['as' => 'dashboard.profile.edit']);
-        $routes->get('password', 'ProfileController::password', ['as' => 'dashboard.profile.password']);
-        $routes->get('preferences', 'ProfileController::preferences', ['as' => 'dashboard.profile.preferences']);
+        $routes->get('ubah', 'ProfileController::edit', ['as' => 'dashboard.profile.edit']);
+        $routes->patch('/', 'ProfileController::update', ['as' => 'dashboard.profile.update', 'filter' => $dashboardWriteFilters]);
+        $routes->get('kata-sandi', 'ProfileController::password', ['as' => 'dashboard.profile.password']);
+        $routes->patch('kata-sandi', 'ProfileController::updatePassword', ['as' => 'dashboard.profile.password.update', 'filter' => $dashboardWriteFilters]);
+        $routes->get('preferensi', 'ProfileController::preferences', ['as' => 'dashboard.profile.preferences']);
+        $routes->patch('preferensi', 'ProfileController::updatePreferences', ['as' => 'dashboard.profile.preferences.update', 'filter' => $dashboardWriteFilters]);
     });
 
-    $routes->group('akses', static function ($routes) {
-        $routes->get('pengguna', 'UserController::index', ['as' => 'dashboard.access.users']);
-        $routes->get('pengguna/tambah', 'UserController::create', ['as' => 'dashboard.access.users.create']);
-        $routes->post('pengguna/tambah', 'UserController::store', ['as' => 'dashboard.access.users.store']);
-        $routes->post('pengguna', 'UserController::store', ['as' => 'dashboard.access.users.store']);
-        $routes->get('pengguna/(:segment)/ubah', 'UserController::edit/$1', ['as' => 'dashboard.access.users.edit']);
-        $routes->post('pengguna/(:segment)/ubah', 'UserController::update/$1', ['as' => 'dashboard.access.users.update']);
-        $routes->get('pengguna/(:segment)', 'UserController::detail/$1', ['as' => 'dashboard.access.users.detail']);
-        $routes->get('verifikasi-profil', 'UserProfileVerificationController::index', ['as' => 'dashboard.access.profile-verifications']);
-        $routes->get('verifikasi-profil/(:segment)', 'UserProfileVerificationController::detail/$1', ['as' => 'dashboard.access.profile-verifications.detail']);
-        $routes->get('permohonan-perubahan-profil', 'UserProfileVerificationController::changeRequests', ['as' => 'dashboard.access.profile-change-requests']);
-        $routes->get('permohonan-perubahan-profil/(:segment)', 'UserProfileVerificationController::changeRequestDetail/$1', ['as' => 'dashboard.access.profile-change-requests.detail']);
-        $routes->get('role', 'RoleController::index', ['as' => 'dashboard.access.roles']);
-        $routes->get('role/tambah', 'RoleController::create', ['as' => 'dashboard.access.roles.create']);
-        $routes->get('role/(:segment)/ubah', 'RoleController::edit/$1', ['as' => 'dashboard.access.roles.edit']);
-        $routes->get('role/(:segment)', 'RoleController::detail/$1', ['as' => 'dashboard.access.roles.detail']);
-        $routes->get('permission', 'PermissionController::index', ['as' => 'dashboard.access.permissions']);
-        $routes->get('permission/tambah', 'PermissionController::create', ['as' => 'dashboard.access.permissions.create']);
-        $routes->get('permission/(:segment)', 'PermissionController::detail/$1', ['as' => 'dashboard.access.permissions.detail']);
-        $routes->get('permohonan-role', 'RoleRequestReviewController::index', ['as' => 'dashboard.access.role-requests']);
-        $routes->get('permohonan-role/(:segment)', 'RoleRequestReviewController::detail/$1', ['as' => 'dashboard.access.role-requests.detail']);
-        $routes->get('unit-organisasi', 'OrganizationController::index', ['as' => 'dashboard.access.organization-units']);
-        $routes->get('unit-organisasi/tambah', 'OrganizationController::create', ['as' => 'dashboard.access.organization-units.create']);
-        $routes->get('unit-organisasi/(:segment)', 'OrganizationController::detail/$1', ['as' => 'dashboard.access.organization-units.detail']);
-        $routes->get('peran-pengadaan', 'ProcurementRoleController::index', ['as' => 'dashboard.access.procurement-roles']);
-        $routes->get('peran-pengadaan/tambah', 'ProcurementRoleController::create', ['as' => 'dashboard.access.procurement-roles.create']);
-        $routes->get('peran-pengadaan/(:segment)', 'ProcurementRoleController::detail/$1', ['as' => 'dashboard.access.procurement-roles.detail']);
+    $routes->group('pengguna', static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('/', 'UserController::index', ['as' => 'dashboard.users.index', 'filter' => 'permission:user.view']);
+        $routes->get('baru', 'UserController::create', ['as' => 'dashboard.users.create', 'filter' => 'permission:user.create']);
+        $routes->post('/', 'UserController::store', ['as' => 'dashboard.users.store', 'filter' => array_merge(['permission:user.create'], $dashboardWriteFilters)]);
+        $routes->get('verifikasi-profil', 'UserProfileVerificationController::index', ['as' => 'dashboard.users.profile-verification-queue', 'filter' => 'permission:profile.verify']);
+        $routes->post('(:num)/verifikasi-profil', 'UserProfileVerificationController::decide/$1', ['as' => 'dashboard.users.profile-verification.decide', 'filter' => array_merge(['permission:profile.verify'], $dashboardWriteFilters)]);
+        $routes->get('perubahan-profil', 'ProfileChangeRequestReviewController::index', ['as' => 'dashboard.users.profile-change-requests.index', 'filter' => 'permission:profile.verify']);
+        $routes->get('perubahan-profil/(:num)', 'ProfileChangeRequestReviewController::show/$1', ['as' => 'dashboard.users.profile-change-requests.show', 'filter' => 'permission:profile.verify']);
+        $routes->post('perubahan-profil/(:num)', 'ProfileChangeRequestReviewController::decide/$1', ['as' => 'dashboard.users.profile-change-requests.decide', 'filter' => array_merge(['permission:profile.verify'], $dashboardWriteFilters)]);
+        $routes->get('pengajuan-role', 'RoleRequestReviewController::index', ['as' => 'dashboard.role-requests.index', 'filter' => 'permission:role.request.review']);
+        $routes->get('pengajuan-role/(:num)', 'RoleRequestReviewController::show/$1', ['as' => 'dashboard.role-requests.show', 'filter' => 'permission:role.request.review']);
+        $routes->post('pengajuan-role/(:num)', 'RoleRequestReviewController::decide/$1', ['as' => 'dashboard.role-requests.decide', 'filter' => array_merge(['permission:role.request.review'], $dashboardWriteFilters)]);
+        $routes->get('(:num)', 'UserController::show/$1', ['as' => 'dashboard.users.show', 'filter' => 'permission:user.view']);
+        $routes->get('(:num)/ubah', 'UserController::edit/$1', ['as' => 'dashboard.users.edit', 'filter' => 'permission:user.update']);
+        $routes->patch('(:num)', 'UserController::update/$1', ['as' => 'dashboard.users.update', 'filter' => array_merge(['permission:user.update'], $dashboardWriteFilters)]);
     });
 
-    $routes->group('pembelajaran', ['namespace' => 'App\Controllers\Learning'], static function ($routes) {
-        $routes->get('program', 'ProgramController::index', ['as' => 'dashboard.learning.programs']);
-        $routes->get('program/tambah', 'ProgramController::create', ['as' => 'dashboard.learning.programs.create']);
-        $routes->get('program/(:segment)/ubah', 'ProgramController::edit/$1', ['as' => 'dashboard.learning.programs.edit']);
-        $routes->get('program/(:segment)', 'ProgramController::detail/$1', ['as' => 'dashboard.learning.programs.detail']);
-        $routes->get('course', 'CourseController::index', ['as' => 'dashboard.learning.courses']);
-        $routes->get('course/tambah', 'CourseController::create', ['as' => 'dashboard.learning.courses.create']);
-        $routes->get('course/(:segment)/ubah', 'CourseController::edit/$1', ['as' => 'dashboard.learning.courses.edit']);
-        $routes->get('course/(:segment)', 'CourseController::detail/$1', ['as' => 'dashboard.learning.courses.detail']);
-        $routes->get('kelas', 'LearningClassController::index', ['as' => 'dashboard.learning.classes']);
-        $routes->get('kelas/tambah', 'LearningClassController::create', ['as' => 'dashboard.learning.classes.create']);
-        $routes->get('kelas/(:segment)/ubah', 'LearningClassController::edit/$1', ['as' => 'dashboard.learning.classes.edit']);
-        $routes->get('kelas/(:segment)', 'LearningClassController::detail/$1', ['as' => 'dashboard.learning.classes.detail']);
-        $routes->get('materi-modul', 'ModuleController::index', ['as' => 'dashboard.learning.modules']);
-        $routes->get('materi-modul/tambah', 'ModuleController::create', ['as' => 'dashboard.learning.modules.create']);
-        $routes->get('materi-modul/(:segment)', 'ModuleController::detail/$1', ['as' => 'dashboard.learning.modules.detail']);
-        $routes->get('lesson', 'LessonController::index', ['as' => 'dashboard.learning.lessons']);
-        $routes->get('lesson/tambah', 'LessonController::create', ['as' => 'dashboard.learning.lessons.create']);
-        $routes->get('lesson/(:segment)', 'LessonController::detail/$1', ['as' => 'dashboard.learning.lessons.detail']);
-        $routes->get('assessment', 'QuizController::index', ['as' => 'dashboard.learning.assessments']);
-        $routes->get('assessment/pre-test', 'PreTestController::index', ['as' => 'dashboard.learning.pre-tests']);
-        $routes->get('assessment/quiz', 'QuizController::index', ['as' => 'dashboard.learning.quizzes']);
-        $routes->get('assessment/post-test', 'PostTestController::index', ['as' => 'dashboard.learning.post-tests']);
-        $routes->get('assessment/bank-soal', 'QuizController::questionBank', ['as' => 'dashboard.learning.question-bank']);
-        $routes->get('enrollment', 'EnrollmentController::index', ['as' => 'dashboard.learning.enrollments']);
-        $routes->get('enrollment/(:segment)', 'EnrollmentController::detail/$1', ['as' => 'dashboard.learning.enrollments.detail']);
-        $routes->get('penilaian', 'GradingController::index', ['as' => 'dashboard.learning.gradings']);
-        $routes->get('penilaian/(:segment)', 'GradingController::detail/$1', ['as' => 'dashboard.learning.gradings.detail']);
-        $routes->get('progres-kelulusan', 'StudyController::progress', ['as' => 'dashboard.learning.progress-completion']);
-        $routes->get('feedback-peserta', 'StudyController::feedback', ['as' => 'dashboard.learning.participant-feedback']);
+    $routes->group('rbac', static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('role', 'RoleController::index', ['as' => 'dashboard.roles.index', 'filter' => 'permission:role.view']);
+        $routes->get('role/baru', 'RoleController::create', ['as' => 'dashboard.roles.create', 'filter' => 'permission:role.create']);
+        $routes->post('role', 'RoleController::store', ['as' => 'dashboard.roles.store', 'filter' => array_merge(['permission:role.create'], $dashboardWriteFilters)]);
+        $routes->get('role/(:num)/ubah', 'RoleController::edit/$1', ['as' => 'dashboard.roles.edit', 'filter' => 'permission:role.update']);
+        $routes->patch('role/(:num)', 'RoleController::update/$1', ['as' => 'dashboard.roles.update', 'filter' => array_merge(['permission:role.update'], $dashboardWriteFilters)]);
+        $routes->get('permission', 'PermissionController::index', ['as' => 'dashboard.permissions.index', 'filter' => 'permission:permission.view']);
+        $routes->get('permission/baru', 'PermissionController::create', ['as' => 'dashboard.permissions.create', 'filter' => 'permission:permission.create']);
+        $routes->post('permission', 'PermissionController::store', ['as' => 'dashboard.permissions.store', 'filter' => array_merge(['permission:permission.create'], $dashboardWriteFilters)]);
+        $routes->get('permission/(:num)/ubah', 'PermissionController::edit/$1', ['as' => 'dashboard.permissions.edit', 'filter' => 'permission:permission.update']);
+        $routes->patch('permission/(:num)', 'PermissionController::update/$1', ['as' => 'dashboard.permissions.update', 'filter' => array_merge(['permission:permission.update'], $dashboardWriteFilters)]);
+        $routes->get('matrix', 'RoleController::permissionMatrix', ['as' => 'dashboard.roles.permission-matrix', 'filter' => 'permission:permission.assign']);
+        $routes->patch('matrix', 'RoleController::syncPermissionMatrix', ['as' => 'dashboard.roles.permission-matrix.sync', 'filter' => array_merge(['permission:permission.assign'], $dashboardWriteFilters)]);
     });
 
-    $routes->group('bunga-rampai', ['namespace' => 'App\Controllers\Knowledge'], static function ($routes) {
-        $routes->get('artikel', 'ArticleController::index', ['as' => 'dashboard.knowledge.articles']);
-        $routes->get('artikel/tambah', 'ArticleController::create', ['as' => 'dashboard.knowledge.articles.create']);
-        $routes->get('artikel/(:segment)/ubah', 'ArticleController::edit/$1', ['as' => 'dashboard.knowledge.articles.edit']);
-        $routes->get('artikel/(:segment)', 'ArticleController::detail/$1', ['as' => 'dashboard.knowledge.articles.detail']);
-        $routes->get('faq', 'FaqController::index', ['as' => 'dashboard.knowledge.faqs']);
-        $routes->get('faq/tambah', 'FaqController::create', ['as' => 'dashboard.knowledge.faqs.create']);
-        $routes->get('faq/(:segment)', 'FaqController::detail/$1', ['as' => 'dashboard.knowledge.faqs.detail']);
-        $routes->get('studi-kasus', 'CaseStudyController::index', ['as' => 'dashboard.knowledge.case-studies']);
-        $routes->get('studi-kasus/tambah', 'CaseStudyController::create', ['as' => 'dashboard.knowledge.case-studies.create']);
-        $routes->get('studi-kasus/(:segment)', 'CaseStudyController::detail/$1', ['as' => 'dashboard.knowledge.case-studies.detail']);
-        $routes->get('template-dokumen', 'DocumentTemplateController::index', ['as' => 'dashboard.knowledge.document-templates']);
-        $routes->get('template-dokumen/tambah', 'DocumentTemplateController::create', ['as' => 'dashboard.knowledge.document-templates.create']);
-        $routes->get('template-dokumen/(:segment)', 'DocumentTemplateController::detail/$1', ['as' => 'dashboard.knowledge.document-templates.detail']);
-        $routes->get('media-galeri', 'KnowledgeMediaController::index', ['as' => 'dashboard.knowledge.media-gallery']);
-        $routes->get('media-galeri/tambah', 'KnowledgeMediaController::create', ['as' => 'dashboard.knowledge.media-gallery.create']);
-        $routes->get('media-galeri/(:segment)', 'KnowledgeMediaController::detail/$1', ['as' => 'dashboard.knowledge.media-gallery.detail']);
-        $routes->get('carousel-konten-unggulan', 'KnowledgeCarouselController::index', ['as' => 'dashboard.knowledge.carousel']);
-        $routes->get('carousel-konten-unggulan/tambah', 'KnowledgeCarouselController::create', ['as' => 'dashboard.knowledge.carousel.create']);
-        $routes->get('kategori', 'ArticleController::categories', ['as' => 'dashboard.knowledge.categories']);
-        $routes->get('tag', 'ArticleController::tags', ['as' => 'dashboard.knowledge.tags']);
+    $routes->group('organisasi', static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('/', 'OrganizationController::index', ['as' => 'dashboard.organizations.index', 'filter' => 'permission:organization.view']);
+        $routes->get('baru', 'OrganizationController::create', ['as' => 'dashboard.organizations.create', 'filter' => 'permission:organization.create']);
+        $routes->post('/', 'OrganizationController::store', ['as' => 'dashboard.organizations.store', 'filter' => array_merge(['permission:organization.create'], $dashboardWriteFilters)]);
+        $routes->get('(:num)/ubah', 'OrganizationController::edit/$1', ['as' => 'dashboard.organizations.edit', 'filter' => 'permission:organization.update']);
+        $routes->patch('(:num)', 'OrganizationController::update/$1', ['as' => 'dashboard.organizations.update', 'filter' => array_merge(['permission:organization.update'], $dashboardWriteFilters)]);
     });
 
-    $routes->group('regulasi', ['namespace' => 'App\Controllers\Regulation'], static function ($routes) {
-        $routes->get('dokumen', 'RegulationController::index', ['as' => 'dashboard.regulations.index']);
-        $routes->get('dokumen/tambah', 'RegulationController::create', ['as' => 'dashboard.regulations.create']);
-        $routes->get('dokumen/(:segment)/ubah', 'RegulationController::edit/$1', ['as' => 'dashboard.regulations.edit']);
-        $routes->get('dokumen/(:segment)', 'RegulationController::detail/$1', ['as' => 'dashboard.regulations.detail']);
-        $routes->get('kategori', 'RegulationCategoryController::index', ['as' => 'dashboard.regulations.categories']);
-        $routes->get('kategori/tambah', 'RegulationCategoryController::create', ['as' => 'dashboard.regulations.categories.create']);
-        $routes->get('kategori/(:segment)', 'RegulationCategoryController::detail/$1', ['as' => 'dashboard.regulations.categories.detail']);
-        $routes->get('versi', 'RegulationVersionController::index', ['as' => 'dashboard.regulations.versions']);
-        $routes->get('versi/(:segment)', 'RegulationVersionController::detail/$1', ['as' => 'dashboard.regulations.versions.detail']);
-        $routes->get('relasi', 'RegulationRelationController::index', ['as' => 'dashboard.regulations.relations']);
-        $routes->get('relasi/(:segment)', 'RegulationRelationController::detail/$1', ['as' => 'dashboard.regulations.relations.detail']);
-        $routes->get('tahapan-pbj', 'RegulationController::procurementStages', ['as' => 'dashboard.regulations.procurement-stages']);
-        $routes->get('kompetensi-terkait', 'RegulationController::competencies', ['as' => 'dashboard.regulations.competencies']);
-        $routes->get('log-download', 'RegulationDownloadController::index', ['as' => 'dashboard.regulations.download-logs']);
+    $routes->group('peran-pengadaan', static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('/', 'ProcurementRoleController::index', ['as' => 'dashboard.procurement-roles.index', 'filter' => 'permission:organization.view']);
+        $routes->get('baru', 'ProcurementRoleController::create', ['as' => 'dashboard.procurement-roles.create', 'filter' => 'permission:organization.create']);
+        $routes->post('/', 'ProcurementRoleController::store', ['as' => 'dashboard.procurement-roles.store', 'filter' => array_merge(['permission:organization.create'], $dashboardWriteFilters)]);
+        $routes->get('(:num)/ubah', 'ProcurementRoleController::edit/$1', ['as' => 'dashboard.procurement-roles.edit', 'filter' => 'permission:organization.update']);
+        $routes->patch('(:num)', 'ProcurementRoleController::update/$1', ['as' => 'dashboard.procurement-roles.update', 'filter' => array_merge(['permission:organization.update'], $dashboardWriteFilters)]);
     });
 
-    $routes->group('komunikasi', ['namespace' => 'App\Controllers\Communication'], static function ($routes) {
-        $routes->get('berita', 'NewsController::index', ['as' => 'dashboard.communication.news']);
-        $routes->get('berita/tambah', 'NewsController::create', ['as' => 'dashboard.communication.news.create']);
-        $routes->get('berita/(:segment)/ubah', 'NewsController::edit/$1', ['as' => 'dashboard.communication.news.edit']);
-        $routes->get('berita/(:segment)', 'NewsController::detail/$1', ['as' => 'dashboard.communication.news.detail']);
-        $routes->get('kategori-berita', 'NewsController::categories', ['as' => 'dashboard.communication.news-categories']);
-        $routes->get('event-agenda', 'EventController::index', ['as' => 'dashboard.communication.events']);
-        $routes->get('event-agenda/tambah', 'EventController::create', ['as' => 'dashboard.communication.events.create']);
-        $routes->get('event-agenda/(:segment)/ubah', 'EventController::edit/$1', ['as' => 'dashboard.communication.events.edit']);
-        $routes->get('event-agenda/(:segment)', 'EventController::detail/$1', ['as' => 'dashboard.communication.events.detail']);
-        $routes->get('registrasi-event', 'EventRegistrationController::index', ['as' => 'dashboard.communication.event-registrations']);
-        $routes->get('registrasi-event/(:segment)', 'EventRegistrationController::detail/$1', ['as' => 'dashboard.communication.event-registrations.detail']);
-        $routes->get('kehadiran', 'AttendanceController::index', ['as' => 'dashboard.communication.attendance']);
-        $routes->get('waitlist-pembatalan', 'EventRegistrationController::waitlistAndCancellation', ['as' => 'dashboard.communication.waitlist-cancellations']);
+    $routes->group('approval', static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('/', 'ApprovalController::index', ['as' => 'dashboard.approvals.index', 'filter' => 'permission:approval.view']);
+        $routes->get('riwayat', 'ApprovalController::history', ['as' => 'dashboard.approvals.history', 'filter' => 'permission:approval.view']);
+        $routes->get('(:num)', 'ApprovalController::show/$1', ['as' => 'dashboard.approvals.show', 'filter' => 'permission:approval.view']);
+        $routes->post('(:num)/setujui', 'ApprovalController::approve/$1', ['as' => 'dashboard.approvals.approve', 'filter' => array_merge(['permission:approval.decide'], $dashboardWriteFilters)]);
+        $routes->post('(:num)/tolak', 'ApprovalController::reject/$1', ['as' => 'dashboard.approvals.reject', 'filter' => array_merge(['permission:approval.decide'], $dashboardWriteFilters)]);
     });
 
-    $routes->group('sertifikat', ['namespace' => 'App\Controllers\Certificate'], static function ($routes) {
-        $routes->get('/', 'CertificateController::index', ['as' => 'dashboard.certificates.index']);
-        $routes->get('tambah', 'CertificateController::create', ['as' => 'dashboard.certificates.create']);
-        $routes->get('eligibility', 'CertificateController::eligibility', ['as' => 'dashboard.certificates.eligibility']);
-        $routes->get('template', 'CertificateTemplateController::index', ['as' => 'dashboard.certificates.templates']);
-        $routes->get('template/tambah', 'CertificateTemplateController::create', ['as' => 'dashboard.certificates.templates.create']);
-        $routes->get('template/(:segment)', 'CertificateTemplateController::detail/$1', ['as' => 'dashboard.certificates.templates.detail']);
-        $routes->get('approval', 'CertificateApprovalController::index', ['as' => 'dashboard.certificates.approvals']);
-        $routes->get('approval/(:segment)', 'CertificateApprovalController::detail/$1', ['as' => 'dashboard.certificates.approvals.detail']);
-        $routes->get('verifikasi', 'CertificateController::verification', ['as' => 'dashboard.certificates.verification']);
-        $routes->get('revocation', 'CertificateController::revocation', ['as' => 'dashboard.certificates.revocation']);
-        $routes->get('nomor', 'CertificateController::numbers', ['as' => 'dashboard.certificates.numbers']);
-        $routes->get('(:segment)/ubah', 'CertificateController::edit/$1', ['as' => 'dashboard.certificates.edit']);
-        $routes->get('(:segment)', 'CertificateController::detail/$1', ['as' => 'dashboard.certificates.detail']);
+    $routes->group('audit', static function (RouteCollection $routes): void {
+        $routes->get('/', 'AuditController::index', ['as' => 'dashboard.audits.index', 'filter' => 'permission:audit.view']);
+        $routes->get('(:num)', 'AuditController::show/$1', ['as' => 'dashboard.audits.show', 'filter' => 'permission:audit.view']);
     });
 
-    $routes->group('intelligence', ['namespace' => 'App\Controllers\Intelligence'], static function ($routes) {
-        $routes->get('/', 'IntelligenceDashboardController::index', ['as' => 'dashboard.intelligence.home']);
-        $routes->get('opd-unit', 'OpdController::index', ['as' => 'dashboard.intelligence.organization-units']);
-        $routes->get('opd-unit/tambah', 'OpdController::create', ['as' => 'dashboard.intelligence.organization-units.create']);
-        $routes->get('opd-unit/(:segment)', 'OpdController::detail/$1', ['as' => 'dashboard.intelligence.organization-units.detail']);
-        $routes->get('sdm-jf-ppbj', 'JfPpbjController::index', ['as' => 'dashboard.intelligence.personnel']);
-        $routes->get('sdm-jf-ppbj/(:segment)', 'JfPpbjController::detail/$1', ['as' => 'dashboard.intelligence.personnel.detail']);
-        $routes->get('riwayat-jf-ppbj', 'JfPpbjController::histories', ['as' => 'dashboard.intelligence.personnel-histories']);
-        $routes->get('jenjang-jf-ppbj', 'JfPpbjController::levels', ['as' => 'dashboard.intelligence.personnel-levels']);
-        $routes->get('sertifikat-kompetensi', 'CompetencyCertificateController::index', ['as' => 'dashboard.intelligence.competency-certificates']);
-        $routes->get('sertifikat-kompetensi/(:segment)', 'CompetencyCertificateController::detail/$1', ['as' => 'dashboard.intelligence.competency-certificates.detail']);
-        $routes->get('jenis-sertifikat-kompetensi', 'CompetencyCertificateController::types', ['as' => 'dashboard.intelligence.competency-certificate-types']);
-        $routes->get('gap-kompetensi', 'IntelligenceDashboardController::competencyGap', ['as' => 'dashboard.intelligence.competency-gap']);
+    $routes->group('pembelajaran', ['namespace' => 'App\\Controllers\\Learning'], static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('program', 'ProgramController::index', ['as' => 'dashboard.learning.programs.index', 'filter' => 'permission:learning.program.view']);
+        $routes->get('program/baru', 'ProgramController::create', ['as' => 'dashboard.learning.programs.create', 'filter' => 'permission:learning.program.create']);
+        $routes->post('program', 'ProgramController::store', ['as' => 'dashboard.learning.programs.store', 'filter' => array_merge(['permission:learning.program.create'], $dashboardWriteFilters)]);
+        $routes->get('program/(:num)/ubah', 'ProgramController::edit/$1', ['as' => 'dashboard.learning.programs.edit', 'filter' => 'permission:learning.program.update']);
+        $routes->patch('program/(:num)', 'ProgramController::update/$1', ['as' => 'dashboard.learning.programs.update', 'filter' => array_merge(['permission:learning.program.update'], $dashboardWriteFilters)]);
+        $routes->get('course', 'CourseController::index', ['as' => 'dashboard.learning.courses.index', 'filter' => 'permission:learning.course.view']);
+        $routes->get('course/baru', 'CourseController::create', ['as' => 'dashboard.learning.courses.create', 'filter' => 'permission:learning.course.create']);
+        $routes->post('course', 'CourseController::store', ['as' => 'dashboard.learning.courses.store', 'filter' => array_merge(['permission:learning.course.create'], $dashboardWriteFilters)]);
+        $routes->get('course/(:num)/ubah', 'CourseController::edit/$1', ['as' => 'dashboard.learning.courses.edit', 'filter' => 'permission:learning.course.update']);
+        $routes->patch('course/(:num)', 'CourseController::update/$1', ['as' => 'dashboard.learning.courses.update', 'filter' => array_merge(['permission:learning.course.update'], $dashboardWriteFilters)]);
+        $routes->get('kelas', 'LearningClassController::index', ['as' => 'dashboard.learning.classes.index', 'filter' => 'permission:learning.class.view']);
+        $routes->get('kelas/baru', 'LearningClassController::create', ['as' => 'dashboard.learning.classes.create', 'filter' => 'permission:learning.class.create']);
+        $routes->post('kelas', 'LearningClassController::store', ['as' => 'dashboard.learning.classes.store', 'filter' => array_merge(['permission:learning.class.create'], $dashboardWriteFilters)]);
+        $routes->get('kelas/(:num)/ubah', 'LearningClassController::edit/$1', ['as' => 'dashboard.learning.classes.edit', 'filter' => 'permission:learning.class.update']);
+        $routes->patch('kelas/(:num)', 'LearningClassController::update/$1', ['as' => 'dashboard.learning.classes.update', 'filter' => array_merge(['permission:learning.class.update'], $dashboardWriteFilters)]);
+        $routes->get('modul', 'ModuleController::index', ['as' => 'dashboard.learning.modules.index', 'filter' => 'permission:learning.module.view']);
+        $routes->get('materi', 'LessonController::index', ['as' => 'dashboard.learning.lessons.index', 'filter' => 'permission:learning.lesson.view']);
+        $routes->get('enrollment', 'EnrollmentController::index', ['as' => 'dashboard.learning.enrollments.index', 'filter' => 'permission:learning.enrollment.view']);
+        $routes->get('nilai', 'GradeController::index', ['as' => 'dashboard.learning.grades.index', 'filter' => 'permission:learning.grade.view']);
+        $routes->get('laporan', 'LearningClassController::reports', ['as' => 'dashboard.learning.reports.index', 'filter' => 'permission:learning.report.view']);
     });
 
-    $routes->group('laporan', static function ($routes) {
-        $routes->get('pembelajaran', 'DashboardController::learningReport', ['as' => 'dashboard.reports.learning']);
-        $routes->get('event', 'DashboardController::eventReport', ['as' => 'dashboard.reports.events']);
-        $routes->get('sertifikat', 'DashboardController::certificateReport', ['as' => 'dashboard.reports.certificates']);
-        $routes->get('kompetensi', 'DashboardController::competencyReport', ['as' => 'dashboard.reports.competency']);
-        $routes->get('pengguna', 'DashboardController::userReport', ['as' => 'dashboard.reports.users']);
-        $routes->get('riwayat-export', 'DashboardController::exportHistory', ['as' => 'dashboard.reports.export-history']);
+    $routes->group('bunga-rampai', ['namespace' => 'App\\Controllers\\Knowledge'], static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('artikel', 'KnowledgeArticleController::index', ['as' => 'dashboard.knowledge.articles.index', 'filter' => 'permission:knowledge.article.view']);
+        $routes->get('artikel/baru', 'KnowledgeArticleController::create', ['as' => 'dashboard.knowledge.articles.create', 'filter' => 'permission:knowledge.article.create']);
+        $routes->post('artikel', 'KnowledgeArticleController::store', ['as' => 'dashboard.knowledge.articles.store', 'filter' => array_merge(['permission:knowledge.article.create'], $dashboardWriteFilters)]);
+        $routes->get('artikel/(:num)/ubah', 'KnowledgeArticleController::edit/$1', ['as' => 'dashboard.knowledge.articles.edit', 'filter' => 'permission:knowledge.article.update']);
+        $routes->patch('artikel/(:num)', 'KnowledgeArticleController::update/$1', ['as' => 'dashboard.knowledge.articles.update', 'filter' => array_merge(['permission:knowledge.article.update'], $dashboardWriteFilters)]);
+        $routes->get('faq', 'KnowledgeFaqController::index', ['as' => 'dashboard.knowledge.faq.index', 'filter' => 'permission:knowledge.faq.view']);
+        $routes->get('kategori', 'KnowledgeCategoryController::index', ['as' => 'dashboard.knowledge.categories.index', 'filter' => 'permission:knowledge.category.view']);
+        $routes->get('media', 'KnowledgeMediaController::index', ['as' => 'dashboard.knowledge.media.index', 'filter' => 'permission:knowledge.media.view']);
+        $routes->get('antrian-publikasi', 'KnowledgeArticleController::publicationQueue', ['as' => 'dashboard.knowledge.publication-queue', 'filter' => 'permission:knowledge.publish.review']);
     });
 
-    $routes->group('sistem', static function ($routes) {
-        $routes->get('approval', 'ApprovalController::index', ['as' => 'dashboard.system.approvals']);
-        $routes->get('approval/riwayat', 'ApprovalController::history', ['as' => 'dashboard.system.approvals.history']);
-        $routes->get('approval/(:segment)/setujui', 'ApprovalController::approve/$1', ['as' => 'dashboard.system.approvals.approve']);
-        $routes->get('approval/(:segment)/tolak', 'ApprovalController::reject/$1', ['as' => 'dashboard.system.approvals.reject']);
-        $routes->get('approval/(:segment)', 'ApprovalController::detail/$1', ['as' => 'dashboard.system.approvals.detail']);
+    $routes->group('regulasi', ['namespace' => 'App\\Controllers\\Regulation'], static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('/', 'RegulationController::index', ['as' => 'dashboard.regulations.index', 'filter' => 'permission:regulation.view']);
+        $routes->get('baru', 'RegulationController::create', ['as' => 'dashboard.regulations.create', 'filter' => 'permission:regulation.create']);
+        $routes->post('/', 'RegulationController::store', ['as' => 'dashboard.regulations.store', 'filter' => array_merge(['permission:regulation.create'], $dashboardWriteFilters)]);
+        $routes->get('(:num)/ubah', 'RegulationController::edit/$1', ['as' => 'dashboard.regulations.edit', 'filter' => 'permission:regulation.update']);
+        $routes->patch('(:num)', 'RegulationController::update/$1', ['as' => 'dashboard.regulations.update', 'filter' => array_merge(['permission:regulation.update'], $dashboardWriteFilters)]);
+        $routes->get('kategori', 'RegulationCategoryController::index', ['as' => 'dashboard.regulations.categories.index', 'filter' => 'permission:regulation.view']);
+        $routes->get('versi', 'RegulationVersionController::index', ['as' => 'dashboard.regulations.versions.index', 'filter' => 'permission:regulation.version.view']);
+        $routes->get('relasi', 'RegulationRelationController::index', ['as' => 'dashboard.regulations.relations.index', 'filter' => 'permission:regulation.relation.view']);
+        $routes->get('antrian-publikasi', 'RegulationController::publicationQueue', ['as' => 'dashboard.regulations.publication-queue', 'filter' => 'permission:regulation.publish.review']);
+    });
 
-        $routes->get('audit-trail', 'AuditController::index', ['as' => 'dashboard.system.audit-trail']);
-        $routes->get('audit-trail/(:segment)', 'AuditController::detail/$1', ['as' => 'dashboard.system.audit-trail.detail']);
-        $routes->get('file-media', 'AuditController::files', ['as' => 'dashboard.system.files-media']);
-        $routes->get('notifikasi', 'AuditController::notifications', ['as' => 'dashboard.system.notifications']);
+    $routes->group('komunikasi', ['namespace' => 'App\\Controllers\\Communication'], static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('berita', 'NewsController::index', ['as' => 'dashboard.communication.news.index', 'filter' => 'permission:news.view']);
+        $routes->get('berita/baru', 'NewsController::create', ['as' => 'dashboard.communication.news.create', 'filter' => 'permission:news.create']);
+        $routes->post('berita', 'NewsController::store', ['as' => 'dashboard.communication.news.store', 'filter' => array_merge(['permission:news.create'], $dashboardWriteFilters)]);
+        $routes->get('berita/(:num)/ubah', 'NewsController::edit/$1', ['as' => 'dashboard.communication.news.edit', 'filter' => 'permission:news.update']);
+        $routes->patch('berita/(:num)', 'NewsController::update/$1', ['as' => 'dashboard.communication.news.update', 'filter' => array_merge(['permission:news.update'], $dashboardWriteFilters)]);
+        $routes->get('event', 'EventController::index', ['as' => 'dashboard.communication.events.index', 'filter' => 'permission:event.view']);
+        $routes->get('event/baru', 'EventController::create', ['as' => 'dashboard.communication.events.create', 'filter' => 'permission:event.create']);
+        $routes->post('event', 'EventController::store', ['as' => 'dashboard.communication.events.store', 'filter' => array_merge(['permission:event.create'], $dashboardWriteFilters)]);
+        $routes->get('event/(:num)/ubah', 'EventController::edit/$1', ['as' => 'dashboard.communication.events.edit', 'filter' => 'permission:event.update']);
+        $routes->patch('event/(:num)', 'EventController::update/$1', ['as' => 'dashboard.communication.events.update', 'filter' => array_merge(['permission:event.update'], $dashboardWriteFilters)]);
+        $routes->get('event/(:num)/registrasi', 'EventRegistrationController::index/$1', ['as' => 'dashboard.communication.event-registrations.index', 'filter' => 'permission:event.registration.view']);
+        $routes->get('event/(:num)/absensi', 'AttendanceController::index/$1', ['as' => 'dashboard.communication.attendance.index', 'filter' => 'permission:event.attendance.view']);
+        $routes->post('event/(:num)/absensi', 'AttendanceController::store/$1', ['as' => 'dashboard.communication.attendance.store', 'filter' => array_merge(['permission:event.attendance.manage'], $dashboardWriteFilters)]);
+    });
 
-        $routes->get('pengaturan', 'SettingController::index', ['as' => 'dashboard.system.settings']);
-        $routes->get('pengaturan-umum', 'SettingController::general', ['as' => 'dashboard.system.settings.general']);
-        $routes->get('pengaturan-organisasi', 'SettingController::organization', ['as' => 'dashboard.system.settings.organization']);
-        $routes->get('pengaturan-pembelajaran', 'SettingController::learning', ['as' => 'dashboard.system.settings.learning']);
-        $routes->get('pengaturan-event', 'SettingController::event', ['as' => 'dashboard.system.settings.event']);
-        $routes->get('pengaturan-sertifikat', 'SettingController::certificate', ['as' => 'dashboard.system.settings.certificate']);
-        $routes->get('pengaturan-notifikasi', 'SettingController::notification', ['as' => 'dashboard.system.settings.notification']);
-        $routes->get('pengaturan-integrasi', 'SettingController::integration', ['as' => 'dashboard.system.settings.integration']);
-        $routes->get('pengaturan-keamanan', 'SettingController::security', ['as' => 'dashboard.system.settings.security']);
-        $routes->get('maintenance', 'SettingController::maintenance', ['as' => 'dashboard.system.maintenance']);
+    $routes->group('sertifikat', ['namespace' => 'App\\Controllers\\Certificate'], static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('/', 'CertificateController::index', ['as' => 'dashboard.certificates.index', 'filter' => 'permission:certificate.view']);
+        $routes->get('persetujuan', 'CertificateApprovalController::index', ['as' => 'dashboard.certificates.approval-queue', 'filter' => 'permission:certificate.approve']);
+        $routes->post('(:num)/setujui', 'CertificateApprovalController::approve/$1', ['as' => 'dashboard.certificates.approve', 'filter' => array_merge(['permission:certificate.approve'], $dashboardWriteFilters)]);
+        $routes->post('(:num)/cabut', 'CertificateController::revoke/$1', ['as' => 'dashboard.certificates.revoke', 'filter' => array_merge(['permission:certificate.approve'], $dashboardWriteFilters)]);
+        $routes->get('(:num)', 'CertificateController::show/$1', ['as' => 'dashboard.certificates.show', 'filter' => 'permission:certificate.view']);
+        $routes->get('template', 'CertificateTemplateController::index', ['as' => 'dashboard.certificates.templates.index', 'filter' => 'permission:certificate.template.view']);
+        $routes->get('template/baru', 'CertificateTemplateController::create', ['as' => 'dashboard.certificates.templates.create', 'filter' => 'permission:certificate.template.create']);
+        $routes->post('template', 'CertificateTemplateController::store', ['as' => 'dashboard.certificates.templates.store', 'filter' => array_merge(['permission:certificate.template.create'], $dashboardWriteFilters)]);
+        $routes->get('template/(:num)/ubah', 'CertificateTemplateController::edit/$1', ['as' => 'dashboard.certificates.templates.edit', 'filter' => 'permission:certificate.template.create']);
+        $routes->patch('template/(:num)', 'CertificateTemplateController::update/$1', ['as' => 'dashboard.certificates.templates.update', 'filter' => array_merge(['permission:certificate.template.create'], $dashboardWriteFilters)]);
+    });
+
+    $routes->group('inteligensi', ['namespace' => 'App\\Controllers\\Intelligence'], static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('/', 'IntelligenceDashboardController::index', ['as' => 'dashboard.intelligence.index', 'filter' => 'permission:intelligence.view']);
+        $routes->get('organisasi', 'OpdController::index', ['as' => 'dashboard.intelligence.organizations.index', 'filter' => 'permission:intelligence.organization.view']);
+        $routes->get('jf-ppbj', 'JfPpbjController::index', ['as' => 'dashboard.intelligence.jf-ppbj.index', 'filter' => 'permission:intelligence.jf_ppbj.view']);
+        $routes->get('sertifikat-kompetensi', 'CompetencyCertificateController::index', ['as' => 'dashboard.intelligence.competency-certificates.index', 'filter' => 'permission:intelligence.certificate.view']);
+        $routes->get('gap-kompetensi', 'IntelligenceDashboardController::competencyGaps', ['as' => 'dashboard.intelligence.competency-gaps.index', 'filter' => 'permission:intelligence.gap.view']);
+        $routes->post('ekspor', '\\App\\Controllers\\Shared\\ExportController::request', ['as' => 'dashboard.intelligence.exports.request', 'filter' => array_merge(['permission:intelligence.export'], $dashboardWriteFilters)]);
+    });
+
+    $routes->group('laporan', static function (RouteCollection $routes): void {
+        $routes->get('/', 'InternalReportController::index', ['as' => 'dashboard.reports.index', 'filter' => 'permission:report.view']);
+        $routes->get('statistik-internal', 'InternalReportController::statistics', ['as' => 'dashboard.reports.internal-statistics', 'filter' => 'permission:report.statistics.view']);
+    });
+
+    $routes->group('pengaturan', static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
+        $routes->get('/', 'SettingController::index', ['as' => 'dashboard.settings.index', 'filter' => 'permission:setting.view']);
+        $routes->get('aplikasi', 'SettingController::application', ['as' => 'dashboard.settings.application', 'filter' => 'permission:setting.view']);
+        $routes->patch('aplikasi', 'SettingController::updateApplication', ['as' => 'dashboard.settings.application.update', 'filter' => array_merge(['permission:setting.application.update'], $dashboardWriteFilters)]);
+        $routes->get('notifikasi', 'SettingController::notification', ['as' => 'dashboard.settings.notification', 'filter' => 'permission:setting.view']);
+        $routes->patch('notifikasi', 'SettingController::updateNotification', ['as' => 'dashboard.settings.notification.update', 'filter' => array_merge(['permission:setting.notification.update'], $dashboardWriteFilters)]);
+        $routes->get('penyimpanan', 'SettingController::storage', ['as' => 'dashboard.settings.storage', 'filter' => 'permission:setting.view']);
+        $routes->patch('penyimpanan', 'SettingController::updateStorage', ['as' => 'dashboard.settings.storage.update', 'filter' => array_merge(['permission:setting.storage.update'], $dashboardWriteFilters)]);
+        $routes->get('keamanan', 'SettingController::security', ['as' => 'dashboard.settings.security', 'filter' => 'permission:setting.view']);
+        $routes->patch('keamanan', 'SettingController::updateSecurity', ['as' => 'dashboard.settings.security.update', 'filter' => array_merge(['permission:setting.security.update'], $dashboardWriteFilters)]);
+        $routes->get('kesehatan-sistem', 'SystemHealthController::index', ['as' => 'dashboard.system-health.index', 'filter' => 'permission:system.health.view']);
     });
 });
 
-$routes->get('pratinjau/403', 'Landing\HomeController::forbiddenPreview', ['as' => 'preview.403']);
-$routes->get('pratinjau/404', 'Landing\HomeController::notFoundPreview', ['as' => 'preview.404']);
-$routes->get('pratinjau/500', 'Landing\HomeController::serverErrorPreview', ['as' => 'preview.500']);
+/*
+|--------------------------------------------------------------------------
+| Shared File dan Export
+|--------------------------------------------------------------------------
+*/
+$routes->group('file', ['namespace' => 'App\\Controllers\\Shared', 'filter' => ['auth', 'accountStatus:active']], static function (RouteCollection $routes): void {
+    $routes->post('unggah', 'FileController::upload', ['as' => 'shared.file.upload', 'filter' => ['permission:file.upload', 'auditContext']]);
+    $routes->get('(:num)/preview', 'FileController::preview/$1', ['as' => 'shared.file.preview', 'filter' => 'permission:file.preview']);
+    $routes->get('(:num)/unduh', 'FileController::download/$1', ['as' => 'shared.file.download', 'filter' => 'permission:file.download']);
+});
+
+$routes->group('ekspor', ['namespace' => 'App\\Controllers\\Shared', 'filter' => ['auth', 'accountStatus:active']], static function (RouteCollection $routes): void {
+    $routes->post('/', 'ExportController::request', ['as' => 'shared.export.request', 'filter' => 'auditContext']);
+    $routes->get('/', 'ExportController::index', ['as' => 'shared.export.index']);
+    $routes->get('(:num)/unduh', 'ExportController::download/$1', ['as' => 'shared.export.download', 'filter' => 'permission:export.download']);
+});

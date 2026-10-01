@@ -13,6 +13,16 @@ use CodeIgniter\Filters\InvalidChars;
 use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
+use App\Filters\GuestFilter;
+use App\Filters\NoopFilter;
+use App\Filters\RateLimitFilter;
+use App\Filters\AccountStatusFilter;
+use App\Filters\AdminFilter;
+use App\Filters\EmailVerifiedFilter;
+use App\Filters\PermissionFilter;
+use App\Filters\ProfileVerifiedFilter;
+use App\Filters\RoleFilter;
+use App\Filters\WorkspaceFilter;
 
 class Filters extends BaseFilters
 {
@@ -36,6 +46,18 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'auth'           => AuthenticationFilter::class,
+        'guest'          => GuestFilter::class,
+        'rateLimit'      => RateLimitFilter::class,
+        'auditContext'   => NoopFilter::class,
+        'verifiedEmail'  => EmailVerifiedFilter::class,
+        'accountStatus'  => AccountStatusFilter::class,
+        'workspaceAccess'=> WorkspaceFilter::class,
+        'role'           => RoleFilter::class,
+        'permission'     => PermissionFilter::class,
+        'profileVerified'=> ProfileVerifiedFilter::class,
+        'csrfGuard'      => NoopFilter::class,
+        'admin'          => AdminFilter::class,
+        'dashboardAccess'=> AdminFilter::class,
     ];
 
     /**

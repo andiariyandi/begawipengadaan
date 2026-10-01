@@ -15,21 +15,24 @@ class AuditLogModel extends Model
         'action',
         'resource_type',
         'resource_id',
-        'result',
-        'reason',
+        'request_id',
         'ip_hash',
         'user_agent_hash',
+        'before_snapshot',
+        'after_snapshot',
+        'reason',
+        'result',
         'created_at',
     ];
 
     public function browse(?string $module = null, ?int $userId = null, ?string $from = null, ?string $to = null)
     {
         $builder = $this->select('audit_logs.*, users.username')
-            ->join('users', 'users.id = audit_logs.user_id', 'left')
+            ->join('users', 'users.id = audit_logs.actor_id', 'left')
             ->orderBy('audit_logs.created_at', 'DESC');
 
-        if ($module) $builder->where('audit_logs.module', $module);
-        if ($userId) $builder->where('audit_logs.user_id', $userId);
+        if ($module) $builder->where('audit_logs.resource_type', $module);
+        if ($userId) $builder->where('audit_logs.actor_id', $userId);
         if ($from)   $builder->where('audit_logs.created_at >=', $from . ' 00:00:00');
         if ($to)     $builder->where('audit_logs.created_at <=', $to . ' 23:59:59');
 
@@ -38,6 +41,6 @@ class AuditLogModel extends Model
 
     public function distinctModules(): array
     {
-        return $this->select('module')->distinct()->where('module IS NOT NULL')->findAll();
+        return $this->select('resource_type')->distinct()->where('resource_type IS NOT NULL')->findAll();
     }
 }

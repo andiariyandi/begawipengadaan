@@ -10,28 +10,28 @@ class ApprovalModel extends Model
     protected $primaryKey    = 'id';
     protected $returnType    = 'array';
     protected $useTimestamps = true;
-    protected $allowedFields = ['approvable_type', 'approvable_id', 'requested_by', 'current_status'];
+    protected $allowedFields = ['resource_type', 'resource_id', 'requested_action', 'status', 'requested_by', 'reviewed_by', 'reviewed_at', 'reason', 'notes'];
 
     public function findPendingByType(string $type): array
     {
-        return $this->where('approvable_type', $type)
-            ->where('current_status', 'pending')
+        return $this->where('resource_type', $type)
+            ->where('status', 'pending')
             ->findAll();
     }
 
     public function findByApprovable(string $type, int $id): ?array
     {
-        return $this->where('approvable_type', $type)
-            ->where('approvable_id', $id)
+        return $this->where('resource_type', $type)
+            ->where('resource_id', $id)
             ->orderBy('id', 'DESC')
             ->first();
     }
 
     public function hasActiveApproval(string $type, int $id): bool
     {
-        return (bool) $this->where('approvable_type', $type)
-            ->where('approvable_id', $id)
-            ->whereIn('current_status', ['pending', 'approved'])
+        return (bool) $this->where('resource_type', $type)
+            ->where('resource_id', $id)
+            ->whereIn('status', ['pending', 'approved'])
             ->first();
     }
 }

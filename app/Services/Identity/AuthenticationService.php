@@ -44,7 +44,7 @@ class AuthenticationService
             'user_id' => (int) $user['id'],
             'username' => $user['username'],
             'account_status' => $user['account_status'],
-            'roles' => array_column($roles, 'key'),
+            'roles' => array_column($roles, 'code'),
             'permissions' => $permissions,
         ]);
 

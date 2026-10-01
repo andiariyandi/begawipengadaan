@@ -13,10 +13,13 @@ class LoginController extends BaseController
         if (session()->get('isLoggedIn')) {
             $isAdmin = (bool) array_intersect(session()->get('roles') ?? [], ['super_administrator', 'administrator']);
 
-            return redirect()->to($isAdmin ? route_to('dashboard.pbj') : route_to('landing'));
+            return redirect()->to($isAdmin ? route_to('dashboard.home') : route_to('landing.home'));
         }
 
-        return view('authentication/signin');
+        return view('dashboard/auth/login', [
+            'title' => 'Masuk | BegawiPBJ',
+            'pageTitle' => 'Masuk ke Akun Anda',
+        ]);
     }
 
     public function attempt()
@@ -31,14 +34,14 @@ class LoginController extends BaseController
         }
 
         $userModel = new UserModel();
-        $user      = $userModel->findByEmail($this->request->getPost('email'));
+        $user      = $userModel->findByLogin((string) $this->request->getPost('email'));
 
         if (! $user || ! password_verify($this->request->getPost('password'), $user['password_hash'])) {
             (new AuditService())->log(null, 'login_failed', 'auth', 'users', null, ['email' => $this->request->getPost('email')]);
             return redirect()->back()->withInput()->with('error', 'Email atau password salah.');
         }
 
-        if ($user['status'] !== 'active') {
+        if ($user['account_status'] !== 'active') {
             return redirect()->back()->withInput()->with('error', 'Akun Anda belum aktif atau sedang menunggu verifikasi Operator.');
         }
 
@@ -49,16 +52,18 @@ class LoginController extends BaseController
             'isLoggedIn' => true,
             'user_id'    => $user['id'],
             'username'   => $user['username'],
-            'user_type'  => $user['user_type'],
-            'roles'      => array_column($roles, 'slug'),
+            'user_type'  => $user['profile_type'],
+            'account_status' => $user['account_status'],
+            'email_verified_at' => $user['email_verified_at'],
+            'roles'      => array_column($roles, 'key'),
             'permissions' => $permissions,
         ]);
 
         (new AuditService())->log($user['id'], 'login', 'auth', 'users', $user['id']);
 
-        $isAdmin = (bool) array_intersect(array_column($roles, 'slug'), ['super_administrator', 'administrator']);
+        $isAdmin = (bool) array_intersect(array_column($roles, 'key'), ['super_administrator', 'administrator']);
 
-        return redirect()->to($isAdmin ? route_to('dashboard.pbj') : route_to('landing'));
+        return redirect()->to($isAdmin ? route_to('dashboard.home') : route_to('landing.home'));
     }
 
     public function logout()
@@ -68,6 +73,6 @@ class LoginController extends BaseController
 
         session()->destroy();
 
-        return redirect()->to(route_to('landing'));
+        return redirect()->to(route_to('landing.home'));
     }
 }

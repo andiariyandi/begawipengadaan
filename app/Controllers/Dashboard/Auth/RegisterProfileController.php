@@ -27,11 +27,13 @@ class RegisterProfileController extends BaseController
             'pageTitle' => 'Lengkapi Profil Pendaftaran',
             'currentStep' => 3,
             'currentKey' => 'profil',
+            'registrationProfile' => session('registration_profile') ?? [],
         ]);
     }
 
     public function store(string $type)
     {
+        session()->set('registration_profile', $this->request->getPost());
         return redirect()->to(route_to('dashboard.auth.register.review'));
     }
 }

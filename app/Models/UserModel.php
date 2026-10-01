@@ -14,7 +14,7 @@ class UserModel extends Model
     protected $useTimestamps    = true;
 
     protected $allowedFields = [
-        'username', 'email', 'password_hash', 'account_status',
+        'name', 'username', 'email', 'password_hash', 'phone', 'profile_type', 'account_status',
         'email_verified_at', 'last_login_at',
     ];
 
@@ -47,5 +47,14 @@ class UserModel extends Model
     public function findByEmail(string $email): ?array
     {
         return $this->where('email', strtolower(trim($email)))->first();
+    }
+
+    public function findByLogin(string $login): ?array
+    {
+        return $this->groupStart()
+            ->where('email', strtolower(trim($login)))
+            ->orWhere('username', trim($login))
+            ->groupEnd()
+            ->first();
     }
 }
