@@ -2,6 +2,8 @@
 
 namespace App\Filters;
 
+use App\Models\UserModel;
+use App\Services\Identity\AuthorizationService;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -30,6 +32,22 @@ class AuthenticationFilter implements FilterInterface
         if (session()->get('isLoggedIn') !== true) {
             return redirect()->to(site_url('dashboard/masuk'))
                 ->with('error', 'Silakan masuk terlebih dahulu untuk mengakses dashboard.');
+        }
+
+        $userId = (int) session()->get('user_id');
+        $user = $userId > 0 ? (new UserModel())->find($userId) : null;
+        if (! $user || ($user['account_status'] ?? null) !== 'active') {
+            session()->destroy();
+
+            return redirect()->to(site_url('dashboard/status-akun'));
+        }
+
+        if (session()->get('account_status') !== 'active') {
+            session()->set('account_status', $user['account_status']);
+        }
+
+        if (! (new AuthorizationService())->hasDashboardAccess()) {
+            return service('response')->setStatusCode(403)->setBody('Forbidden');
         }
 
         return null;

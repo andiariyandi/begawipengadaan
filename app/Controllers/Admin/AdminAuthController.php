@@ -309,26 +309,31 @@ class AdminAuthController extends BaseController
         $db = db_connect();
         $db->transStart();
         $userId = (new UserModel())->insert([
+            'name' => trim($data['full_name']),
             'username' => trim($data['username']),
             'email' => strtolower(trim($data['email'])),
+            'phone' => trim($data['phone']),
             'password_hash' => password_hash($data['password'], PASSWORD_DEFAULT),
+            'profile_type' => $data['profile_type'],
             'account_status' => 'pending_verification',
         ], true);
         $db->table('user_profiles')->insert([
             'user_id' => $userId,
-            'profile_category' => $data['profile_type'],
+            'address_line' => trim($address['address']),
             'full_name' => trim($data['full_name']),
             'phone' => trim($data['phone']),
             'province_code' => $address['province'],
             'regency_code' => $address['regency'],
             'district_code' => $address['district'],
             'village_code' => $address['village'] ?: null,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
         ]);
         $profileTable = [
-            'asn' => 'user_asn_profiles',
-            'provider' => 'user_provider_profiles',
-            'academic' => 'user_academic_profiles',
-            'public' => 'user_public_profiles',
+            'asn' => 'asn_profiles',
+            'provider' => 'provider_profiles',
+            'academic' => 'academic_profiles',
+            'public' => 'public_profiles',
         ][$data['profile_type']];
         $profileRow = ['user_id' => $userId];
         if ($data['profile_type'] === 'asn') {
@@ -341,7 +346,7 @@ class AdminAuthController extends BaseController
                 'expertise' => is_array($profile['expertise'] ?? null) ? implode(', ', $profile['expertise']) : ($profile['expertise'] ?? ''),
             ];
         } else {
-            $profileRow += ['identity_number' => $profile['nik'] ?: null];
+            $profileRow += ['national_identifier' => $profile['nik'] ?: null, 'occupation_status' => $profile['occupation_status'] ?? 'masyarakat'];
         }
         $db->table($profileTable)->insert($profileRow);
         $this->issueToken((int) $userId, $data['email'], 'email_verification');

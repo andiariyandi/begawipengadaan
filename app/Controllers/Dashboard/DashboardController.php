@@ -14,7 +14,7 @@ class DashboardController extends BaseController
         $to   = $this->request->getGet('to');
         $service = new DashboardService();
 
-        return view('dashboard_report/index', [
+        return view('dashboard/home/index', [
             'title'       => 'Dashboard PBJ',
             'subTitle'    => 'Dashboard PBJ',
             'from'        => $from,
@@ -23,6 +23,38 @@ class DashboardController extends BaseController
             'training'    => $service->trainingStats($from, $to),
             'certificate' => $service->certificateStats(),
             'regulation'  => $service->regulationStats(),
+        ]);
+    }
+
+    public function internalKpi(): string
+    {
+        return view('dashboard/home/summary', [
+            'title' => 'KPI Internal | BegawiPBJ',
+            'pageTitle' => 'KPI Internal',
+        ]);
+    }
+
+    public function approvalQueue(): string
+    {
+        return view('dashboard/home/summary', [
+            'title' => 'Antrean Persetujuan | BegawiPBJ',
+            'pageTitle' => 'Antrean Persetujuan',
+        ]);
+    }
+
+    public function recentActivity(): string
+    {
+        return view('dashboard/home/summary', [
+            'title' => 'Aktivitas Terbaru | BegawiPBJ',
+            'pageTitle' => 'Aktivitas Terbaru',
+        ]);
+    }
+
+    public function systemIndicators(): string
+    {
+        return view('dashboard/home/summary', [
+            'title' => 'Indikator Sistem | BegawiPBJ',
+            'pageTitle' => 'Indikator Sistem',
         ]);
     }
 
