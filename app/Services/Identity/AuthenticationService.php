@@ -10,8 +10,7 @@ class AuthenticationService
     public function __construct(
         private readonly UserModel $users = new UserModel(),
         private readonly AuditService $audit = new AuditService()
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{ok: bool, reason?: string, user?: array}
@@ -44,10 +43,9 @@ class AuthenticationService
             'user_id' => (int) $user['id'],
             'username' => $user['username'],
             'account_status' => $user['account_status'],
-            'roles' => array_column($roles, 'code'),
+            'roles' => array_column($roles, 'key'),
             'permissions' => $permissions,
         ]);
-
         $this->users->update((int) $user['id'], ['last_login_at' => date('Y-m-d H:i:s')]);
         $this->audit->log((int) $user['id'], 'login', 'auth', 'users', (int) $user['id']);
 

@@ -56,12 +56,12 @@ class AdminAuthController extends BaseController
         $roles = $userModel->getRoles((int) $user['id']);
         $permissions = $userModel->getPermissions((int) $user['id']);
 
-        session()->regenerate(true);
         session()->set([
             'isLoggedIn' => true,
             'user_id' => (int) $user['id'],
             'username' => $user['username'],
-            'roles' => array_column($roles, 'code'),
+            'account_status' => $user['account_status'],
+            'roles' => array_column($roles, 'key'),
             'permissions' => $permissions,
         ]);
 
@@ -104,7 +104,7 @@ class AdminAuthController extends BaseController
     {
         $rows = $this->wilayahChildren($parentCode);
 
-        return $this->response->setJSON(array_map(static fn (array $row): array => [
+        return $this->response->setJSON(array_map(static fn(array $row): array => [
             'code' => $row['kode'],
             'name' => $row['nama'],
         ], $rows));
@@ -230,27 +230,32 @@ class AdminAuthController extends BaseController
     }
 
     public function registerAttempt()
-        {
-            $rules = [
-                'full_name' => 'required|max_length[150]',
-                'username' => 'required|min_length[3]|max_length[100]|is_unique[users.username]',
-                'email' => 'required|valid_email|max_length[150]|is_unique[users.email]',
-                'phone' => 'required|max_length[25]',
-                'password' => 'required|min_length[12]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/\d/]|regex_match[/[^\w\s]/]',
-                'password_confirmation' => 'required|matches[password]',
-                'profile_type' => 'required|in_list[asn,provider,academic,public]',
-            ];
+    {
+        $rules = [
+            'full_name' => 'required|max_length[150]',
+            'username' => 'required|min_length[3]|max_length[100]|is_unique[users.username]',
+            'email' => 'required|valid_email|max_length[150]|is_unique[users.email]',
+            'phone' => 'required|max_length[25]',
+            'password' => 'required|min_length[12]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/\d/]|regex_match[/[^\w\s]/]',
+            'password_confirmation' => 'required|matches[password]',
+            'profile_type' => 'required|in_list[asn,provider,academic,public]',
+        ];
 
-            if (! $this->validate($rules)) {
-                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-            }
-
-            session()->set('registration_data', $this->request->getPost([
-                'full_name', 'username', 'email', 'phone', 'password', 'profile_type',
-            ]));
-
-            return redirect()->to(site_url('dashboard/daftar/wilayah'));
+        if (! $this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
+
+        session()->set('registration_data', $this->request->getPost([
+            'full_name',
+            'username',
+            'email',
+            'phone',
+            'password',
+            'profile_type',
+        ]));
+
+        return redirect()->to(site_url('dashboard/daftar/wilayah'));
+    }
 
     public function registerAddressAttempt()
     {
@@ -268,7 +273,11 @@ class AdminAuthController extends BaseController
         }
 
         $address = $this->request->getPost([
-            'province', 'regency', 'district', 'village', 'address',
+            'province',
+            'regency',
+            'district',
+            'village',
+            'address',
         ]);
         if (! $this->validWilayahChain($address['province'], $address['regency'], $address['district'], $address['village'] ?? null)) {
             return redirect()->back()->withInput()->with('error', 'Pilihan wilayah tidak berjenjang atau sudah tidak tersedia.');
@@ -309,26 +318,32 @@ class AdminAuthController extends BaseController
         $db = db_connect();
         $db->transStart();
         $userId = (new UserModel())->insert([
-            'username' => trim($data['username']),
-            'email' => strtolower(trim($data['email'])),
-            'password_hash' => password_hash($data['password'], PASSWORD_DEFAULT),
+            'name'           => trim($data['full_name']),
+            'username'       => trim($data['username']),
+            'email'          => strtolower(trim($data['email'])),
+            'phone'          => trim($data['phone']),
+            'password_hash'  => password_hash($data['password'], PASSWORD_DEFAULT),
+            'profile_type'   => $data['profile_type'],
             'account_status' => 'pending_verification',
+            'created_at'     => date('Y-m-d H:i:s'),
+            'updated_at'     => date('Y-m-d H:i:s'),
         ], true);
         $db->table('user_profiles')->insert([
             'user_id' => $userId,
-            'profile_category' => $data['profile_type'],
-            'full_name' => trim($data['full_name']),
-            'phone' => trim($data['phone']),
+            'address_line' => trim($address['address']),
             'province_code' => $address['province'],
             'regency_code' => $address['regency'],
             'district_code' => $address['district'],
             'village_code' => $address['village'] ?: null,
+            'profile_completion_status' => 'draft',
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
         ]);
         $profileTable = [
-            'asn' => 'user_asn_profiles',
-            'provider' => 'user_provider_profiles',
-            'academic' => 'user_academic_profiles',
-            'public' => 'user_public_profiles',
+            'asn'      => 'asn_profiles',
+            'provider' => 'provider_profiles',
+            'academic' => 'academic_profiles',
+            'public'   => 'public_profiles',
         ][$data['profile_type']];
         $profileRow = ['user_id' => $userId];
         if ($data['profile_type'] === 'asn') {
@@ -344,7 +359,7 @@ class AdminAuthController extends BaseController
             $profileRow += ['identity_number' => $profile['nik'] ?: null];
         }
         $db->table($profileTable)->insert($profileRow);
-        $this->issueToken((int) $userId, $data['email'], 'email_verification');
+        $this->issueToken((int) $userId);
         $db->transComplete();
         if (! $db->transStatus()) {
             return redirect()->back()->with('error', 'Pendaftaran gagal disimpan. Silakan periksa kembali data Anda.');
@@ -355,75 +370,75 @@ class AdminAuthController extends BaseController
         return redirect()->to(site_url('dashboard/daftar/berhasil'));
     }
 
-        public function forgotPasswordAttempt()
-        {
-            $email = strtolower(trim((string) $this->request->getPost('email')));
-            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return redirect()->back()->withInput()->with('error', 'Alamat email tidak valid.');
-            }
-
-            $user = (new UserModel())->findByEmail($email);
-            if ($user) {
-                $this->issueToken((int) $user['id'], $email, 'password_reset');
-                (new AuditService())->log((int) $user['id'], 'password_reset_requested', 'auth', 'users', (int) $user['id']);
-            }
-
-            return redirect()->back()->with('message', 'Jika email terdaftar, instruksi pengaturan ulang akan diproses.');
+    public function forgotPasswordAttempt()
+    {
+        $email = strtolower(trim((string) $this->request->getPost('email')));
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->back()->withInput()->with('error', 'Alamat email tidak valid.');
         }
 
-        public function resetPassword(string $token)
-        {
-            $tokenRow = $this->findToken($token, 'password_reset');
-            if (! $tokenRow) {
-                return redirect()->to(site_url('dashboard/lupa-kata-sandi'))->with('error', 'Token reset tidak valid atau sudah kedaluwarsa.');
-            }
-
-            if ($this->request->getMethod() === 'post') {
-                $rules = [
-                    'password' => 'required|min_length[12]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/\d/]|regex_match[/[^\w\s]/]',
-                    'password_confirmation' => 'required|matches[password]',
-                ];
-                if (! $this->validate($rules)) {
-                    return redirect()->back()->with('errors', $this->validator->getErrors());
-                }
-
-                (new UserModel())->update((int) $tokenRow['user_id'], [
-                    'password_hash' => password_hash((string) $this->request->getPost('password'), PASSWORD_DEFAULT),
-                ]);
-                (new AuthTokenModel())->update((int) $tokenRow['id'], ['used_at' => date('Y-m-d H:i:s')]);
-                (new AuditService())->log((int) $tokenRow['user_id'], 'password_reset_completed', 'auth', 'users', (int) $tokenRow['user_id']);
-
-                return redirect()->to(site_url('dashboard/masuk'))->with('message', 'Kata sandi berhasil diubah. Silakan masuk.');
-            }
-
-            return view('dashboard/auth/reset_password', ['title' => 'Reset Kata Sandi | BegawiPBJ', 'token' => $token]);
+        $user = (new UserModel())->findByEmail($email);
+        if ($user) {
+            $this->issueToken((int) $user['id'], $email, 'password_reset');
+            (new AuditService())->log((int) $user['id'], 'password_reset_requested', 'auth', 'users', (int) $user['id']);
         }
 
-        public function verifyEmail(string $token)
-        {
-            $tokenRow = $this->findToken($token, 'email_verification');
-            if (! $tokenRow) {
-                return redirect()->to(site_url('dashboard/status-akun'))->with('error', 'Token verifikasi tidak valid atau sudah kedaluwarsa.');
+        return redirect()->back()->with('message', 'Jika email terdaftar, instruksi pengaturan ulang akan diproses.');
+    }
+
+    public function resetPassword(string $token)
+    {
+        $tokenRow = $this->findToken($token, 'password_reset');
+        if (! $tokenRow) {
+            return redirect()->to(site_url('dashboard/lupa-kata-sandi'))->with('error', 'Token reset tidak valid atau sudah kedaluwarsa.');
+        }
+
+        if ($this->request->getMethod() === 'post') {
+            $rules = [
+                'password' => 'required|min_length[12]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/\d/]|regex_match[/[^\w\s]/]',
+                'password_confirmation' => 'required|matches[password]',
+            ];
+            if (! $this->validate($rules)) {
+                return redirect()->back()->with('errors', $this->validator->getErrors());
             }
 
             (new UserModel())->update((int) $tokenRow['user_id'], [
-                'email_verified_at' => date('Y-m-d H:i:s'),
-                'account_status' => 'submitted',
+                'password_hash' => password_hash((string) $this->request->getPost('password'), PASSWORD_DEFAULT),
             ]);
             (new AuthTokenModel())->update((int) $tokenRow['id'], ['used_at' => date('Y-m-d H:i:s')]);
+            (new AuditService())->log((int) $tokenRow['user_id'], 'password_reset_completed', 'auth', 'users', (int) $tokenRow['user_id']);
 
-            return redirect()->to(site_url('dashboard/status-akun'))->with('message', 'Email berhasil diverifikasi. Akun menunggu pemeriksaan operator.');
+            return redirect()->to(site_url('dashboard/masuk'))->with('message', 'Kata sandi berhasil diubah. Silakan masuk.');
         }
 
-        public function accountStatus(): string
-        {
-            $user = session()->get('user_id') ? (new UserModel())->find((int) session()->get('user_id')) : null;
+        return view('dashboard/auth/reset_password', ['title' => 'Reset Kata Sandi | BegawiPBJ', 'token' => $token]);
+    }
 
-            return view('dashboard/auth/account_status', [
-                'title' => 'Status Akun | BegawiPBJ',
-                'user' => $user,
-            ]);
+    public function verifyEmail(string $token)
+    {
+        $tokenRow = $this->findToken($token, 'email_verification');
+        if (! $tokenRow) {
+            return redirect()->to(site_url('dashboard/status-akun'))->with('error', 'Token verifikasi tidak valid atau sudah kedaluwarsa.');
         }
+
+        (new UserModel())->update((int) $tokenRow['user_id'], [
+            'email_verified_at' => date('Y-m-d H:i:s'),
+            'account_status' => 'submitted',
+        ]);
+        (new AuthTokenModel())->update((int) $tokenRow['id'], ['used_at' => date('Y-m-d H:i:s')]);
+
+        return redirect()->to(site_url('dashboard/status-akun'))->with('message', 'Email berhasil diverifikasi. Akun menunggu pemeriksaan operator.');
+    }
+
+    public function accountStatus(): string
+    {
+        $user = session()->get('user_id') ? (new UserModel())->find((int) session()->get('user_id')) : null;
+
+        return view('dashboard/auth/account_status', [
+            'title' => 'Status Akun | BegawiPBJ',
+            'user' => $user,
+        ]);
+    }
 
 
     private function registerView(
@@ -475,13 +490,12 @@ class AdminAuthController extends BaseController
         return count($codes) === db_connect()->table('wilayah')->whereIn('kode', $codes)->countAllResults();
     }
 
-    private function issueToken(int $userId, string $email, string $type): string
+    private function issueToken(int $userId): string
     {
         $plainToken = bin2hex(random_bytes(32));
-        (new AuthTokenModel())->insert([
-            'user_id' => $userId,
-            'email' => strtolower(trim($email)),
-            'token_type' => $type,
+
+        db_connect()->table('email_verifications')->insert([
+            'user_id'    => $userId,
             'token_hash' => hash('sha256', $plainToken),
             'expires_at' => date('Y-m-d H:i:s', time() + 3600),
             'created_at' => date('Y-m-d H:i:s'),

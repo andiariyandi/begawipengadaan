@@ -17,23 +17,34 @@ class AuditService
     {
         $metadata = $this->redact($metadata);
 
+        $request = service('request');
+
         $this->auditLogModel->insert([
-            'actor_user_id' => $userId,
-            'action'        => $action,
-            'subject_type'  => $targetType,
-            'subject_id'    => $targetId,
-            'route_name'    => service('router')->getMatchedRoute()[0] ?? null,
-            'ip_address'    => service('request')->getIPAddress(),
-            'user_agent'    => (string) service('request')->getUserAgent(),
-            'context_data'  => $metadata ? json_encode($metadata, JSON_THROW_ON_ERROR) : null,
+            'actor_id'          => $userId,
+            'action'            => $action,
+            'resource_type'     => $targetType,
+            'resource_id'       => $targetId,
+            'result'            => 'success',
+            'before_snapshot'   => null,
+            'after_snapshot'    => null,
+            'reason'            => $metadata ? json_encode($metadata, JSON_THROW_ON_ERROR) : null,
+            'ip_hash'           => hash('sha256', $request->getIPAddress()),
+            'user_agent_hash'   => hash('sha256', (string) $request->getUserAgent()),
+            'request_id'        => null,
+            'created_at'        => date('Y-m-d H:i:s'),
         ]);
     }
-
     private function redact(array $metadata): array
     {
         $sensitiveKeys = [
-            'password', 'password_confirmation', 'password_hash',
-            'token', 'plain_token', 'session_id', 'secret', 'credential',
+            'password',
+            'password_confirmation',
+            'password_hash',
+            'token',
+            'plain_token',
+            'session_id',
+            'secret',
+            'credential',
         ];
 
         foreach ($metadata as $key => $value) {
