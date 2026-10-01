@@ -1,0 +1,6 @@
+<?= $this->extend('dashboard/layouts/dashboard') ?>
+
+<?= $this->section('content') ?>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Bookmark Regulasi</h6><p class="text-secondary-light mb-0">Pratinjau bookmark regulasi pada dashboard.</p></div></div>
+<div class="card"><div class="card-body p-32 text-center"><span class="w-72-px h-72-px bg-primary-50 text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center mb-20"><iconify-icon icon="solar:bookmark-outline" class="text-4xl"></iconify-icon></span><h5 class="mb-12">Bookmark Regulasi</h5><p class="text-secondary-light mb-0">Halaman bookmark regulasi tersedia untuk pengembangan UI berikutnya.</p></div></div>
+<?= $this->endSection() ?>
