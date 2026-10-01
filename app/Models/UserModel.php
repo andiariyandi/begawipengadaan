@@ -15,12 +15,16 @@ class UserModel extends Model
 
     protected $allowedFields = [
         'name', 'username', 'email', 'password_hash', 'phone', 'profile_type', 'account_status',
-        'email_verified_at', 'last_login_at',
+        'email_verified_at', 'last_login_at', 'session_version', 'status_reason',
     ];
 
     protected $validationRules = [
-        'username' => 'required|min_length[3]|max_length[100]|is_unique[users.username,id,{id}]',
+        'name'     => 'required|max_length[255]',
+        'username' => 'required|min_length[3]|max_length[255]|is_unique[users.username,id,{id}]',
         'email'    => 'required|valid_email|is_unique[users.email,id,{id}]',
+        'phone'    => 'required|max_length[32]',
+        'profile_type' => 'required|in_list[asn,provider,academic,public]',
+        'account_status' => 'required|in_list[draft,submitted,pending_verification,revision_required,active,rejected,inactive,suspended,archived]',
     ];
 
     public function getRoles(int $userId): array
@@ -29,6 +33,7 @@ class UserModel extends Model
             ->select('roles.id, roles.name, roles.key')
             ->join('roles', 'roles.id = user_roles.role_id', 'inner')
             ->where('user_roles.user_id', $userId)
+            ->where('user_roles.status', 'active')
             ->get()
             ->getResultArray();
     }
@@ -36,10 +41,12 @@ class UserModel extends Model
     public function getPermissions(int $userId): array
     {
         return array_column($this->db->table('permissions')
+            ->distinct()
             ->select('permissions.name')
             ->join('role_permissions', 'role_permissions.permission_id = permissions.id')
             ->join('user_roles', 'user_roles.role_id = role_permissions.role_id')
             ->where('user_roles.user_id', $userId)
+            ->where('user_roles.status', 'active')
             ->get()
             ->getResultArray(), 'name');
     }

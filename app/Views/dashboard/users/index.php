@@ -7,7 +7,7 @@
 <div class="card">
     <div class="card-header border-bottom bg-base py-16 px-24 d-flex flex-wrap align-items-center justify-content-between gap-3">
         <h6 class="text-lg mb-0">Daftar Pengguna</h6>
-        <a href="<?= site_url('dashboard/akses/pengguna/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11"><iconify-icon icon="solar:add-circle-outline" class="text-xl me-4"></iconify-icon> Tambah Pengguna</a>
+        <a href="<?= site_url('dashboard/akses/pengguna/baru') ?>" class="btn btn-primary-600 radius-8 px-20 py-11"><iconify-icon icon="solar:add-circle-outline" class="text-xl me-4"></iconify-icon> Tambah Pengguna</a>
     </div>
     <div class="card-body p-24">
         <div class="table-responsive scroll-sm">
@@ -23,7 +23,7 @@
                     <?php foreach ($users as $user): ?>
                         <tr>
                             <td><div class="d-flex align-items-center"><span class="w-40-px h-40-px bg-primary-50 text-primary-600 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0 me-12 fw-semibold"><?= esc(substr($user['name'] ?? $user['full_name'] ?? $user['username'], 0, 1)) ?></span><div><h6 class="text-md mb-0 fw-medium"><?= esc($user['name'] ?? $user['full_name'] ?? $user['username']) ?></h6><span class="text-sm text-secondary-light fw-medium"><?= esc($user['email']) ?></span></div></div></td>
-                            <td><?= esc($user['profile'] ?? $user['profile_category'] ?? '-') ?></td><td><?= esc($user['role'] ?? $user['roles'] ?? '-') ?></td><td><?= esc(date('d M Y', strtotime($user['created_at'] ?? $user['date'] ?? 'now'))) ?></td>
+                            <td>                            <?= esc($user['profile_type'] ?? $user['profile'] ?? '-') ?></td><td><?= esc($user['role'] ?? $user['roles'] ?? '-') ?></td><td><?= esc(date('d M Y', strtotime($user['created_at'] ?? $user['date'] ?? 'now'))) ?></td>
                             <td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $user['status'] ?? $user['account_status'] ?? 'active']) ?></td>
                             <td class="text-center"><a href="<?= site_url('dashboard/akses/pengguna/' . $user['id']) ?>" class="w-32-px h-32-px bg-primary-50 text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center"><iconify-icon icon="solar:eye-outline"></iconify-icon></a><a href="<?= site_url('dashboard/akses/pengguna/' . $user['id'] . '/ubah') ?>" class="w-32-px h-32-px bg-warning-focus text-warning-main rounded-circle d-inline-flex align-items-center justify-content-center ms-6"><iconify-icon icon="solar:pen-new-square-outline"></iconify-icon></a></td>
                         </tr>

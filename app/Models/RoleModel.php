@@ -10,10 +10,15 @@ class RoleModel extends Model
     protected $primaryKey    = 'id';
     protected $returnType    = 'array';
     protected $useTimestamps = true;
-    protected $allowedFields = ['name', 'slug'];
+    protected $allowedFields = ['key', 'name', 'description', 'is_system'];
+    protected $validationRules = [
+        'key' => 'required|max_length[64]|is_unique[roles.key,id,{id}]',
+        'name' => 'required|max_length[255]',
+        'is_system' => 'permit_empty|in_list[0,1]',
+    ];
 
-    public function findBySlug(string $slug): ?array
+    public function findByKey(string $key): ?array
     {
-        return $this->where('slug', $slug)->first();
+        return $this->where('key', $key)->first();
     }
 }
