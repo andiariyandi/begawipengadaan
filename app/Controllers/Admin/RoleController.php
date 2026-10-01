@@ -39,7 +39,7 @@ class RoleController extends BaseController
     public function detail(string $id): string
     {
         $role = db_connect()->table('roles')->where('id', ctype_digit($id) ? (int) $id : 0)->get()->getRowArray();
-        $permissions = db_connect()->table('permissions p')->select('p.code')->join('role_permissions rp', 'rp.permission_id=p.id')->where('rp.role_id', $role['id'] ?? 0)->orderBy('p.code')->get()->getResultArray();
+        $permissions = db_connect()->table('permissions p')->select('p.key,p.name')->join('role_permissions rp', 'rp.permission_id=p.id')->where('rp.role_id', $role['id'] ?? 0)->orderBy('p.key')->get()->getResultArray();
         return view('dashboard/access/role_detail', [
             'title' => 'Detail Role | Dashboard BegawiPBJ',
             'pageTitle' => 'Detail Role',
@@ -47,7 +47,7 @@ class RoleController extends BaseController
             'activeMenu' => 'access',
             'activeSubmenu' => 'roles',
             'role' => $role,
-            'permissions' => array_column($permissions, 'code'),
+            'permissions' => $permissions,
         ]);
     }
 

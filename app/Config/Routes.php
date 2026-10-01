@@ -299,6 +299,29 @@ $routes->group('dashboard', ['namespace' => 'App\\Controllers\\Dashboard', 'filt
         $routes->patch('(:num)', 'ProcurementRoleController::update/$1', ['as' => 'dashboard.procurement-roles.update', 'filter' => array_merge(['permission:organization.update'], $dashboardWriteFilters)]);
     });
 
+    // Stable access-management URLs used by the dashboard navigation.
+    $routes->group('akses', static function (RouteCollection $routes): void {
+        $routes->get('pengguna', '\\App\\Controllers\\Admin\\UserController::index', ['as' => 'dashboard.access.users', 'filter' => 'permission:user.view']);
+        $routes->get('pengguna/baru', '\\App\\Controllers\\Admin\\UserController::create', ['as' => 'dashboard.access.users.create', 'filter' => 'permission:user.create']);
+        $routes->get('pengguna/(:num)', '\\App\\Controllers\\Admin\\UserController::detail/$1', ['as' => 'dashboard.access.users.show', 'filter' => 'permission:user.view']);
+        $routes->get('verifikasi-profil', '\\App\\Controllers\\Admin\\UserProfileVerificationController::index', ['as' => 'dashboard.access.profile-verifications', 'filter' => 'permission:profile.verify']);
+        $routes->get('verifikasi-profil/(:num)', '\\App\\Controllers\\Admin\\UserProfileVerificationController::detail/$1', ['as' => 'dashboard.access.profile-verifications.show', 'filter' => 'permission:profile.verify']);
+        $routes->get('permohonan-perubahan-profil', '\\App\\Controllers\\Admin\\UserProfileVerificationController::changeRequests', ['as' => 'dashboard.access.profile-change-requests', 'filter' => 'permission:profile.verify']);
+        $routes->get('permohonan-role', '\\App\\Controllers\\Admin\\RoleRequestReviewController::index', ['as' => 'dashboard.access.role-requests', 'filter' => 'permission:role.request.review']);
+        $routes->get('permohonan-role/(:num)', '\\App\\Controllers\\Admin\\RoleRequestReviewController::detail/$1', ['as' => 'dashboard.access.role-requests.show', 'filter' => 'permission:role.request.review']);
+        $routes->get('role', '\\App\\Controllers\\Admin\\RoleController::index', ['as' => 'dashboard.access.roles', 'filter' => 'permission:role.view']);
+        $routes->get('role/baru', '\\App\\Controllers\\Admin\\RoleController::create', ['as' => 'dashboard.access.roles.create', 'filter' => 'permission:role.create']);
+        $routes->get('role/(:num)', '\\App\\Controllers\\Admin\\RoleController::detail/$1', ['as' => 'dashboard.access.roles.show', 'filter' => 'permission:role.view']);
+        $routes->get('role/(:num)/ubah', '\\App\\Controllers\\Admin\\RoleController::edit/$1', ['as' => 'dashboard.access.roles.edit', 'filter' => 'permission:role.update']);
+        $routes->get('permission', '\\App\\Controllers\\Admin\\PermissionController::index', ['as' => 'dashboard.access.permissions', 'filter' => 'permission:permission.view']);
+        $routes->get('unit-organisasi', '\\App\\Controllers\\Admin\\OrganizationController::index', ['as' => 'dashboard.access.organization-units', 'filter' => 'permission:organization.view']);
+        $routes->get('unit-organisasi/baru', '\\App\\Controllers\\Admin\\OrganizationController::create', ['as' => 'dashboard.access.organization-units.create', 'filter' => 'permission:organization.create']);
+        $routes->get('unit-organisasi/(:num)', '\\App\\Controllers\\Admin\\OrganizationController::detail/$1', ['as' => 'dashboard.access.organization-units.show', 'filter' => 'permission:organization.view']);
+        $routes->get('peran-pengadaan', '\\App\\Controllers\\Admin\\ProcurementRoleController::index', ['as' => 'dashboard.access.procurement-roles', 'filter' => 'permission:organization.view']);
+        $routes->get('peran-pengadaan/baru', '\\App\\Controllers\\Admin\\ProcurementRoleController::create', ['as' => 'dashboard.access.procurement-roles.create', 'filter' => 'permission:organization.create']);
+        $routes->get('peran-pengadaan/(:num)', '\\App\\Controllers\\Admin\\ProcurementRoleController::detail/$1', ['as' => 'dashboard.access.procurement-roles.show', 'filter' => 'permission:organization.view']);
+    });
+
     $routes->group('approval', static function (RouteCollection $routes) use ($dashboardWriteFilters): void {
         $routes->get('/', 'ApprovalController::index', ['as' => 'dashboard.approvals.index', 'filter' => 'permission:approval.view']);
         $routes->get('riwayat', 'ApprovalController::history', ['as' => 'dashboard.approvals.history', 'filter' => 'permission:approval.view']);
