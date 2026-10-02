@@ -38,6 +38,12 @@ $detailBase = [
     'classes' => 'arena-belajar/kelas',
     'trainers' => 'arena-belajar/pengajar',
 ][$catalogType];
+$detailRoute = [
+    'programs' => 'public.learning.program.detail',
+    'courses' => 'public.learning.course.detail',
+    'classes' => 'public.learning.class.detail',
+    'trainers' => 'public.learning.trainer.detail',
+][$catalogType];
 ?>
 
 <section class="category-one learning-catalog">
@@ -64,20 +70,20 @@ $detailBase = [
                             <div class="course-list__content">
                                 <div class="course-list__doller-and-heart">
                                     <div class="course-list__doller"><p>PBJ Lampung</p></div>
-                                    <div class="course-list__heart"><a href="<?= site_url($detailBase . '/' . $item['slug']) ?>" aria-label="Buka <?= esc($item['title']) ?>"><span class="icon-book"></span></a></div>
+                                    <div class="course-list__heart"><a href="<?= route_to($detailRoute, $item['slug']) ?>" aria-label="Buka <?= esc($item['title'] ?? '-') ?>"><span class="icon-book"></span></a></div>
                                 </div>
-                                <h3 class="course-list__title"><a href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><?= esc($item['title']) ?></a></h3>
+                                <h3 class="course-list__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3>
                                 <div class="course-list__ratting-box">
                                     <div class="course-list__ratting"><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span></div>
                                     <p class="course-list__ratting-text"><?= esc($item['program_title'] ?? 'Materi terstruktur') ?></p>
                                 </div>
                                 <ul class="course-list__meta list-unstyled">
                                     <li><p><span class="icon-book"></span> <?= esc($item['level'] ?? 'PBJ') ?></p></li>
-                                    <li><p><span class="icon-clock"></span> <?= $item['duration_minutes'] !== null ? esc((string) $item['duration_minutes']) . ' menit' : 'Mandiri' ?></p></li>
+                                    <li><p><span class="icon-clock"></span> <?= ($item['duration_minutes'] ?? null) !== null ? esc((string) $item['duration_minutes']) . ' menit' : 'Mandiri' ?></p></li>
                                     <li><p><span class="icon-user"></span> <?= esc($item['visibility'] ?? 'Public') ?></p></li>
                                 </ul>
                                 <div class="course-list__btn-and-client-info">
-                                    <div class="course-list__btn-box"><a class="thm-btn-two" href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><span>Lihat Course</span><i class="icon-angles-right"></i></a></div>
+                                    <div class="course-list__btn-box"><a class="thm-btn-two" href="<?= route_to($detailRoute, $item['slug']) ?>"><span>Lihat Course</span><i class="icon-angles-right"></i></a></div>
                                     <div class="course-list__client-box"><div class="course-list__client-img"><img src="<?= base_url('assets/main/images/resources/course-list-client-img-' . (($index % 5) + 1) . '.jpg') ?>" alt=""></div><div class="course-list__client-content"><h4>Tim BegawiPBJ</h4><p>Pengajar PBJ</p></div></div>
                                 </div>
                             </div>
@@ -88,13 +94,13 @@ $detailBase = [
         <?php elseif ($catalogType === 'classes'): ?>
             <div class="row">
                 <?php foreach ($items as $item): ?>
-                    <div class="col-xl-3 col-lg-6 col-md-6"><article class="category-one__single"><div class="category-one__icon"><img src="<?= base_url('assets/main/images/icon/' . $item['icon']) ?>" alt=""></div><h3 class="category-one__title"><a href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><?= esc($item['title']) ?></a></h3><p class="category-one__text"><?= esc($item['course_title'] ?? '-') ?></p><p class="category-one__text">Periode: <?= esc($item['start_at'] ?? '-') ?> - <?= esc($item['end_at'] ?? '-') ?></p><p class="category-one__text">Kapasitas: <?= esc($item['capacity'] ?? '-') ?></p><?= view('landing/components/status_badge', ['status' => $item['status'] ?? '-']) ?><a class="category-one__btn" href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><span class="icon-angles-right"></span> Lihat Detail</a></article></div>
+                    <div class="col-xl-3 col-lg-6 col-md-6"><article class="category-one__single"><div class="category-one__icon"><img src="<?= base_url('assets/main/images/icon/' . ($item['icon'] ?? 'why-choose-one-icon-1.png')) ?>" alt=""></div><h3 class="category-one__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3><p class="category-one__text"><?= esc($item['course_title'] ?? '-') ?></p><p class="category-one__text">Periode: <?= esc($item['start_at'] ?? '-') ?> - <?= esc($item['end_at'] ?? '-') ?></p><p class="category-one__text">Kapasitas: <?= esc($item['capacity'] ?? '-') ?></p><?= view('landing/components/status_badge', ['status' => $item['status'] ?? '-']) ?><a class="category-one__btn" href="<?= route_to($detailRoute, $item['slug']) ?>"><span class="icon-angles-right"></span> Lihat Detail</a></article></div>
                 <?php endforeach; ?>
             </div>
         <?php elseif ($catalogType === 'trainers'): ?>
             <div class="row">
                 <?php foreach ($items as $item): ?>
-                    <div class="col-xl-3 col-lg-6 col-md-6"><article class="category-one__single"><div class="category-one__icon"><img src="<?= base_url('assets/main/images/icon/' . $item['icon']) ?>" alt=""></div><h3 class="category-one__title"><a href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><?= esc($item['title']) ?></a></h3><p class="category-one__text"><?= esc($item['text'] ?? 'Pengajar PBJ') ?></p><p class="category-one__text"><?= count($item['classes'] ?? []) ?> kelas aktif</p><a class="category-one__btn" href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><span class="icon-angles-right"></span> Lihat Profil</a></article></div>
+                    <div class="col-xl-3 col-lg-6 col-md-6"><article class="category-one__single"><div class="category-one__icon"><img src="<?= base_url('assets/main/images/icon/' . ($item['icon'] ?? 'why-choose-one-icon-1.png')) ?>" alt=""></div><h3 class="category-one__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3><p class="category-one__text"><?= esc($item['text'] ?? 'Pengajar PBJ') ?></p><p class="category-one__text"><?= count($item['classes'] ?? []) ?> kelas aktif</p><a class="category-one__btn" href="<?= route_to($detailRoute, $item['slug']) ?>"><span class="icon-angles-right"></span> Lihat Profil</a></article></div>
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
@@ -103,11 +109,11 @@ $detailBase = [
                     <div class="col-xl-3 col-lg-6 col-md-6">
                         <article class="category-one__single">
                             <div class="category-one__icon">
-                                <img src="<?= base_url('assets/main/images/icon/' . $item['icon']) ?>" alt="">
+                                <img src="<?= base_url('assets/main/images/icon/' . ($item['icon'] ?? 'why-choose-one-icon-1.png')) ?>" alt="">
                             </div>
-                            <h3 class="category-one__title"><a href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><?= esc($item['title']) ?></a></h3>
-                            <p class="category-one__text"><?= esc($item['text']) ?></p>
-                            <a class="category-one__btn" href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><span class="icon-angles-right"></span> Lihat Detail</a>
+                            <h3 class="category-one__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3>
+                            <p class="category-one__text"><?= esc($item['text'] ?? $item['summary'] ?? '-') ?></p>
+                            <a class="category-one__btn" href="<?= route_to($detailRoute, $item['slug']) ?>"><span class="icon-angles-right"></span> Lihat Detail</a>
                         </article>
                     </div>
                 <?php endforeach; ?>

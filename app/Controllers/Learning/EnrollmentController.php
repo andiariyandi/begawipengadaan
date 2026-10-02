@@ -4,6 +4,8 @@ namespace App\Controllers\Learning;
 
 use App\Controllers\BaseController;
 use App\Models\EnrollmentModel;
+use App\Services\LearningVerticalSliceService;
+use RuntimeException;
 
 class EnrollmentController extends BaseController
 {
@@ -47,7 +49,15 @@ class EnrollmentController extends BaseController
 
     public function approve(string $id)
     {
-        return $this->changeStatus($id, 'active');
+        try {
+            $this->assertEnrollmentApprovalAccess();
+            (new LearningVerticalSliceService())->activateEnrollment((int) $id);
+        } catch (RuntimeException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->to(route_to('dashboard.learning.enrollments.detail', $id))
+            ->with('success', 'Enrollment berhasil diaktifkan.');
     }
 
     public function reject(string $id)
@@ -85,5 +95,28 @@ class EnrollmentController extends BaseController
 
         return redirect()->to(route_to('dashboard.learning.enrollments.detail', $id))
             ->with('success', 'Status enrollment berhasil diperbarui.');
+    }
+
+    private function assertEnrollmentApprovalAccess(): void
+    {
+        $actorId = (int) session()->get('user_id');
+        if (session()->get('isLoggedIn') !== true || $actorId < 1) {
+            throw new RuntimeException('Akses ditolak.');
+        }
+
+        $actor = db_connect()->table('users')->where('id', $actorId)->get()->getRowArray();
+        if (! $actor || $actor['account_status'] !== 'active') {
+            throw new RuntimeException('Akun tidak aktif.');
+        }
+
+        $hasPermission = db_connect()->table('user_roles ur')
+            ->join('roles r', 'r.id = ur.role_id')
+            ->join('role_permissions rp', 'rp.role_id = r.id')
+            ->join('permissions p', 'p.id = rp.permission_id')
+            ->where(['ur.user_id' => $actorId, 'ur.status' => 'active', 'p.name' => 'enrollment.verify'])
+            ->countAllResults() > 0;
+        if (! $hasPermission) {
+            throw new RuntimeException('Anda tidak memiliki permission approval enrollment.');
+        }
     }
 }

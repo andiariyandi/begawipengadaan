@@ -20,6 +20,9 @@ $roleLabel = match (true) {
     default => 'Peserta',
 };
 $accountInitial = strtoupper(substr($userName, 0, 1));
+$hasDashboardAccess = (bool) session()->get('dashboard_access')
+    || in_array('admin', $roles, true)
+    || in_array('super_admin', $roles, true);
 ?>
 <header class="main-header">
     <div class="main-menu__top">
@@ -144,14 +147,14 @@ $accountInitial = strtoupper(substr($userName, 0, 1));
                                         <ul class="shadow-box">
                                             <li><span><?= esc($userName) ?></span></li>
                                             <li><span><?= esc($roleLabel) ?></span></li>
-                                            <li><span>Workspace</span></li>
                                             <li><a href="<?= esc($workspaceHome) ?>">Dashboard Workspace</a></li>
-                                            <li><a href="<?= esc($workspaceHome) ?>">Pembelajaran</a></li>
-                                            <li><a href="<?= esc($workspaceHome) ?>">Tugas</a></li>
-                                            <li><a href="<?= esc($workspaceHome) ?>">Penilaian</a></li>
-                                            <li><a href="<?= esc($workspaceHome) ?>">Bookmark</a></li>
-                                            <li><a href="<?= esc($workspaceHome) ?>">Notifikasi</a></li>
-                                            <li><a href="<?= esc($workspaceHome) ?>">Profil</a></li>
+                                            <li><a href="<?= route_to('workspace.bookmarks.index') ?>">Bookmark</a></li>
+                                            <li><a href="<?= route_to('workspace.notifications') ?>">Notifikasi</a></li>
+                                            <li><a href="<?= route_to('profile.index') ?>">Profil Saya</a></li>
+                                            <?php if ($hasDashboardAccess): ?>
+                                                <li><a href="<?= route_to('dashboard.home') ?>">Dashboard Administrasi</a></li>
+                                            <?php endif; ?>
+                                            <li class="main-menu__user-divider" aria-hidden="true"></li>
                                             <li>
                                                 <form action="<?= route_to('dashboard.auth.logout') ?>" method="post">
                                                     <?= csrf_field() ?>

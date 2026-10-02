@@ -29,7 +29,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-4 col-lg-5"><div class="learning-detail__card"><h3>Mulai Belajar</h3><p>Akses course dan ikuti materi secara bertahap.</p><a href="<?= site_url('dashboard/daftar') ?>" class="thm-btn"><span class="icon-angles-right"></span> Daftar Peserta</a></div></div>
+            <div class="col-xl-4 col-lg-5"><div class="learning-detail__card"><h3>Mulai Belajar</h3><p>Akses course dan ikuti materi secara bertahap.</p><a href="<?= route_to('dashboard.auth.register') ?>" class="thm-btn"><span class="icon-angles-right"></span> Daftar Peserta</a></div></div>
         </div>
     </div>
 </section>
@@ -58,7 +58,7 @@
                         <li><span class="icon-check"></span><div><h4>Materi utama</h4><p>Regulasi, studi kasus, contoh dokumen, dan latihan refleksi.</p></div></li>
                         <li><span class="icon-check"></span><div><h4>Hasil yang diharapkan</h4><p>Mampu menerapkan pengetahuan secara tertib, transparan, dan akuntabel.</p></div></li>
                     </ul>
-                    <a href="<?= site_url('dashboard/daftar') ?>" class="thm-btn"><span class="icon-angles-right"></span> Mulai Belajar</a>
+                    <a href="<?= route_to('dashboard.auth.register') ?>" class="thm-btn"><span class="icon-angles-right"></span> Mulai Belajar</a>
                 </div>
             </div>
             <div class="col-xl-5">
