@@ -31,6 +31,17 @@ class WilayahModel extends Model
             ->findAll();
     }
 
+    public function nameOf(?string $code): ?string
+    {
+        if ($code === null || $code === '') {
+            return null;
+        }
+
+        $row = $this->select('nama')->where('kode', $code)->first();
+
+        return $row['nama'] ?? null;
+    }
+
     public function isValidHierarchy(string $province, string $regency, string $district, ?string $village = null): bool
     {
         if (! str_starts_with($regency, $province . '.') || ! str_starts_with($district, $regency . '.')) {

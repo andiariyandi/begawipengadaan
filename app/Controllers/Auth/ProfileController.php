@@ -15,7 +15,7 @@ class ProfileController extends BaseController
         $user = (new UserModel())->find((int) session()->get('user_id'));
 
         if (! $user) {
-            return redirect()->to(route_to('signin'))->with('error', 'Data pengguna tidak ditemukan.');
+            return redirect()->to(site_url('dashboard/masuk'))->with('error', 'Data pengguna tidak ditemukan.');
         }
         $db = db_connect();
         $detailTables = [
@@ -44,7 +44,7 @@ class ProfileController extends BaseController
         $user   = $model->find($userId);
 
         if (! $user) {
-            return redirect()->to(route_to('signin'))->with('error', 'Data pengguna tidak ditemukan.');
+            return redirect()->to(site_url('dashboard/masuk'))->with('error', 'Data pengguna tidak ditemukan.');
         }
         $db = db_connect();
         $profileType = $user['profile_type'] ?? 'public';
@@ -121,7 +121,7 @@ class ProfileController extends BaseController
         $user   = $model->find($userId);
 
         if (! $user) {
-            return redirect()->to(route_to('signin'))->with('error', 'Data pengguna tidak ditemukan.');
+            return redirect()->to(site_url('dashboard/masuk'))->with('error', 'Data pengguna tidak ditemukan.');
         }
 
         $rules = [

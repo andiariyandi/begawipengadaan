@@ -73,37 +73,43 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
     });
 });
 
-$routes->group('', ['namespace' => 'App\Controllers\Auth'], static function ($routes) {
-    // $routes->get('masuk', 'LoginController::index', ['as' => 'auth.login']);
-    // $routes->get('keluar', 'LoginController::logoutPreview', ['as' => 'auth.logout.preview']);
-
-    $routes->group('daftar', static function ($routes) {
-        $routes->get('/', 'RegisterController::index', ['as' => 'auth.register.account']);
-        $routes->get('tipe-profil', 'RegisterProfileController::type', ['as' => 'auth.register.profile-type']);
-        $routes->get('profil/asn', 'RegisterProfileController::asn', ['as' => 'auth.register.profile.asn']);
-        $routes->get('profil/penyedia', 'RegisterProfileController::provider', ['as' => 'auth.register.profile.provider']);
-        $routes->get('profil/akademisi', 'RegisterProfileController::academic', ['as' => 'auth.register.profile.academic']);
-        $routes->get('profil/masyarakat', 'RegisterProfileController::public', ['as' => 'auth.register.profile.public']);
-        $routes->get('tinjau', 'RegisterController::review', ['as' => 'auth.register.review']);
-        $routes->get('berhasil', 'RegisterController::success', ['as' => 'auth.register.success']);
-    });
-
-    $routes->group('verifikasi-email', static function ($routes) {
-        $routes->get('/', 'EmailVerificationController::index', ['as' => 'auth.email-verification']);
-        $routes->get('terkirim', 'EmailVerificationController::sent', ['as' => 'auth.email-verification.sent']);
-        $routes->get('berhasil', 'EmailVerificationController::success', ['as' => 'auth.email-verification.success']);
-    });
-
-    $routes->get('menunggu-verifikasi', 'RegisterController::pendingVerification', ['as' => 'auth.pending-verification']);
-    $routes->get('perlu-revisi', 'RegisterController::revisionRequired', ['as' => 'auth.revision-required']);
-
-    $routes->group('kata-sandi', static function ($routes) {
-        $routes->get('lupa', 'PasswordController::forgot', ['as' => 'auth.password.forgot']);
-        $routes->get('reset', 'PasswordController::reset', ['as' => 'auth.password.reset']);
-        $routes->get('ubah', 'PasswordController::change', ['as' => 'auth.password.change']);
-        $routes->get('berhasil', 'PasswordController::success', ['as' => 'auth.password.success']);
-    });
-});
+// LEGACY Auth namespace group — DISABLED 2026-10-02 (Step 1 of auth cleanup).
+// Reason: references App\Controllers\Auth\RegisterController (deleted in working tree)
+// and several empty stub controllers. Re-enabling breaks php spark routes.
+// Per CLAUDE.md §29, do not delete legacy files yet; this group is bypassed until
+// the canonical Dashboard\Auth boundary is fully wired.
+//
+// $routes->group('', ['namespace' => 'App\Controllers\Auth'], static function ($routes) {
+//     $routes->get('masuk', 'LoginController::index', ['as' => 'auth.login']);
+//     $routes->get('keluar', 'LoginController::logoutPreview', ['as' => 'auth.logout.preview']);
+//
+//     $routes->group('daftar', static function ($routes) {
+//         $routes->get('/', 'RegisterController::index', ['as' => 'auth.register.account']);
+//         $routes->get('tipe-profil', 'RegisterProfileController::type', ['as' => 'auth.register.profile-type']);
+//         $routes->get('profil/asn', 'RegisterProfileController::asn', ['as' => 'auth.register.profile.asn']);
+//         $routes->get('profil/penyedia', 'RegisterProfileController::provider', ['as' => 'auth.register.profile.provider']);
+//         $routes->get('profil/akademisi', 'RegisterProfileController::academic', ['as' => 'auth.register.profile.academic']);
+//         $routes->get('profil/masyarakat', 'RegisterProfileController::public', ['as' => 'auth.register.profile.public']);
+//         $routes->get('tinjau', 'RegisterController::review', ['as' => 'auth.register.review']);
+//         $routes->get('berhasil', 'RegisterController::success', ['as' => 'auth.register.success']);
+//     });
+//
+//     $routes->group('verifikasi-email', static function ($routes) {
+//         $routes->get('/', 'EmailVerificationController::index', ['as' => 'auth.email-verification']);
+//         $routes->get('terkirim', 'EmailVerificationController::sent', ['as' => 'auth.email-verification.sent']);
+//         $routes->get('berhasil', 'EmailVerificationController::success', ['as' => 'auth.email-verification.success']);
+//     });
+//
+//     $routes->get('menunggu-verifikasi', 'RegisterController::pendingVerification', ['as' => 'auth.pending-verification']);
+//     $routes->get('perlu-revisi', 'RegisterController::revisionRequired', ['as' => 'auth.revision-required']);
+//
+//     $routes->group('kata-sandi', static function ($routes) {
+//         $routes->get('lupa', 'PasswordController::forgot', ['as' => 'auth.password.forgot']);
+//         $routes->get('reset', 'PasswordController::reset', ['as' => 'auth.password.reset']);
+//         $routes->get('ubah', 'PasswordController::change', ['as' => 'auth.password.change']);
+//         $routes->get('berhasil', 'PasswordController::success', ['as' => 'auth.password.success']);
+//     });
+// });
 
 $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static function ($routes) {
     $routes->get('/', 'WorkspaceHomeController::index', ['as' => 'workspace.home']);
@@ -199,31 +205,31 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
 
     $routes->group('daftar', static function ($routes) {
         // Langkah 1: Akun dasar + tipe profil
-        $routes->get('/', 'AdminAuthController::register', ['as' => 'dashboard.auth.register',]);
-        $routes->post('/', 'AdminAuthController::registerAttempt', ['as' => 'dashboard.auth.register.attempt',]);
+        $routes->get('/', '\App\Controllers\Dashboard\Auth\RegisterController::index', ['as' => 'dashboard.auth.register',]);
+        $routes->post('/', '\App\Controllers\Dashboard\Auth\RegisterController::attempt', ['as' => 'dashboard.auth.register.attempt',]);
 
         // Langkah 2: Wilayah dan alamat ringkas
-        $routes->get('wilayah', 'AdminAuthController::registerAddress', ['as' => 'dashboard.auth.register.address',]);
-        $routes->post('wilayah', 'AdminAuthController::registerAddressAttempt', ['as' => 'dashboard.auth.register.address.attempt',]);
-        $routes->get('wilayah/options', 'AdminAuthController::wilayahOptions', ['as' => 'dashboard.auth.register.address.options.root',]);
-        $routes->get('wilayah/options/(:segment)', 'AdminAuthController::wilayahOptions/$1', ['as' => 'dashboard.auth.register.address.options',]);
+        $routes->get('wilayah', '\App\Controllers\Dashboard\Auth\RegisterController::registerAddress', ['as' => 'dashboard.auth.register.address',]);
+        $routes->post('wilayah', '\App\Controllers\Dashboard\Auth\RegisterController::registerAddressAttempt', ['as' => 'dashboard.auth.register.address.attempt',]);
+        $routes->get('wilayah/options', '\App\Controllers\Dashboard\Auth\RegisterController::wilayahOptions', ['as' => 'dashboard.auth.register.address.options.root',]);
+        $routes->get('wilayah/options/(:segment)', '\App\Controllers\Dashboard\Auth\RegisterController::wilayahOptions/$1', ['as' => 'dashboard.auth.register.address.options',]);
 
         // Langkah 3: Profil khusus berdasarkan tipe profil
-        $routes->get('profil/asn', 'AdminAuthController::registerAsn', ['as' => 'dashboard.auth.register.profile.asn',]);
+        $routes->get('profil/asn', '\App\Controllers\Dashboard\Auth\RegisterController::registerAsn', ['as' => 'dashboard.auth.register.profile.asn',]);
 
-        $routes->get('profil/penyedia', 'AdminAuthController::registerProvider', ['as' => 'dashboard.auth.register.profile.provider',]);
+        $routes->get('profil/penyedia', '\App\Controllers\Dashboard\Auth\RegisterController::registerProvider', ['as' => 'dashboard.auth.register.profile.provider',]);
 
-        $routes->get('profil/akademisi', 'AdminAuthController::registerAcademic', ['as' => 'dashboard.auth.register.profile.academic',]);
+        $routes->get('profil/akademisi', '\App\Controllers\Dashboard\Auth\RegisterController::registerAcademic', ['as' => 'dashboard.auth.register.profile.academic',]);
 
-        $routes->get('profil/masyarakat', 'AdminAuthController::registerPublic', ['as' => 'dashboard.auth.register.profile.public',]);
-        $routes->post('profil/(:segment)', 'AdminAuthController::registerProfileAttempt/$1', ['as' => 'dashboard.auth.register.profile.attempt',]);
+        $routes->get('profil/masyarakat', '\App\Controllers\Dashboard\Auth\RegisterController::registerPublic', ['as' => 'dashboard.auth.register.profile.public',]);
+        $routes->post('profil/(:segment)', '\App\Controllers\Dashboard\Auth\RegisterController::registerProfileAttempt/$1', ['as' => 'dashboard.auth.register.profile.attempt',]);
 
         // Langkah 4: Tinjau data dan persetujuan
-        $routes->get('tinjau', 'AdminAuthController::registerReview', ['as' => 'dashboard.auth.register.review',]);
-        $routes->post('tinjau', 'AdminAuthController::registerReviewAttempt', ['as' => 'dashboard.auth.register.review.attempt',]);
+        $routes->get('tinjau', '\App\Controllers\Dashboard\Auth\RegisterController::registerReview', ['as' => 'dashboard.auth.register.review',]);
+        $routes->post('tinjau', '\App\Controllers\Dashboard\Auth\RegisterController::registerReviewAttempt', ['as' => 'dashboard.auth.register.review.attempt',]);
 
         // Hasil submit UI-only
-        $routes->get('berhasil', 'AdminAuthController::registerSuccess', ['as' => 'dashboard.auth.register.success',]);
+        $routes->get('berhasil', '\App\Controllers\Dashboard\Auth\RegisterController::registerSuccess', ['as' => 'dashboard.auth.register.success',]);
     });
 
     $routes->get('/', 'DashboardController::index', ['as' => 'dashboard.home']);
