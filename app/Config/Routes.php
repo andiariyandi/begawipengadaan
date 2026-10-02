@@ -113,6 +113,7 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
 
 $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static function ($routes) {
     $routes->get('/', 'WorkspaceHomeController::index', ['as' => 'workspace.home']);
+    $routes->get('section/(:segment)', 'WorkspaceHomeController::section/$1', ['as' => 'workspace.section']);
     $routes->get('notifikasi', 'NotificationController::index', ['as' => 'workspace.notifications']);
     $routes->get('notifikasi/(:segment)', 'NotificationController::detail/$1', ['as' => 'workspace.notifications.detail']);
 
@@ -312,6 +313,9 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('assessment/bank-soal', 'QuizController::questionBank', ['as' => 'dashboard.learning.question-bank']);
         $routes->get('enrollment', 'EnrollmentController::index', ['as' => 'dashboard.learning.enrollments']);
         $routes->get('enrollment/(:segment)', 'EnrollmentController::detail/$1', ['as' => 'dashboard.learning.enrollments.detail']);
+        $routes->post('enrollment/(:segment)/approve', 'EnrollmentController::approve/$1', ['as' => 'dashboard.learning.enrollments.approve']);
+        $routes->post('enrollment/(:segment)/reject', 'EnrollmentController::reject/$1', ['as' => 'dashboard.learning.enrollments.reject']);
+        $routes->post('enrollment/(:segment)/status', 'EnrollmentController::status/$1', ['as' => 'dashboard.learning.enrollments.status']);
         $routes->get('penilaian', 'GradingController::index', ['as' => 'dashboard.learning.gradings']);
         $routes->get('penilaian/(:segment)', 'GradingController::detail/$1', ['as' => 'dashboard.learning.gradings.detail']);
         $routes->get('progres-kelulusan', 'StudyController::progress', ['as' => 'dashboard.learning.progress-completion']);

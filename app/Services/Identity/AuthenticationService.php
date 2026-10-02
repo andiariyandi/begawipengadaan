@@ -41,6 +41,7 @@ class AuthenticationService
         session()->set([
             'isLoggedIn' => true,
             'user_id' => (int) $user['id'],
+            'name' => $user['name'],
             'username' => $user['username'],
             'account_status' => $user['account_status'],
             'roles' => array_column($roles, 'key'),

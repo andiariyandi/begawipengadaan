@@ -7,6 +7,19 @@ $isPrefixActive = static function (string $prefix) use ($currentPath): bool {
     $prefix = trim($prefix, '/');
     return $currentPath === $prefix || str_starts_with($currentPath, $prefix . '/');
 };
+$isLoggedIn = session()->get('isLoggedIn') === true;
+$roles = (array) session()->get('roles');
+$userName = trim((string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna'));
+$workspaceHome = route_to('workspace.home');
+$roleLabel = match (true) {
+    in_array('super_admin', $roles, true) => 'Super Admin',
+    in_array('admin', $roles, true) => 'Admin',
+    in_array('operator', $roles, true) => 'Operator',
+    in_array('evaluator', $roles, true) => 'Evaluator',
+    in_array('trainer', $roles, true) => 'Pengajar',
+    default => 'Peserta',
+};
+$accountInitial = strtoupper(substr($userName, 0, 1));
 ?>
 <header class="main-header">
     <div class="main-menu__top">
@@ -115,10 +128,41 @@ $isPrefixActive = static function (string $prefix) use ($currentPath): bool {
                         <div class="main-menu__search-cart-box">
                             <div class="main-menu__search-box"><a href="#" class="main-menu__search searcher-toggler-box icon-search" aria-label="Cari"></a></div>
                         </div>
-                        <div class="main-menu__btn-boxes">
-                            <div class="main-menu__btn-box-1"><a href="<?= site_url('dashboard/masuk') ?>" class="thm-btn">Masuk</a></div>
-                            <div class="main-menu__btn-box-2"><a href="<?= site_url('dashboard/daftar') ?>" class="thm-btn">Daftar</a></div>
-                        </div>
+                        <?php if (! $isLoggedIn): ?>
+                            <div class="main-menu__btn-boxes">
+                                <div class="main-menu__btn-box-1"><a href="<?= route_to('dashboard.auth.login') ?>" class="thm-btn">Masuk</a></div>
+                                <div class="main-menu__btn-box-2"><a href="<?= route_to('dashboard.auth.register') ?>" class="thm-btn">Daftar</a></div>
+                            </div>
+                        <?php else: ?>
+                            <div class="main-menu__btn-boxes">
+                                <ul class="main-menu__list">
+                                    <li class="dropdown main-menu__btn-box-1">
+                                        <a href="<?= esc($workspaceHome) ?>" class="thm-btn">
+                                            <span><?= esc(mb_strimwidth($userName, 0, 18, '...')) ?></span>
+                                            <span class="icon-down-arrow"></span>
+                                        </a>
+                                        <ul class="shadow-box">
+                                            <li><span><?= esc($userName) ?></span></li>
+                                            <li><span><?= esc($roleLabel) ?></span></li>
+                                            <li><span>Workspace</span></li>
+                                            <li><a href="<?= esc($workspaceHome) ?>">Dashboard Workspace</a></li>
+                                            <li><a href="<?= esc($workspaceHome) ?>">Pembelajaran</a></li>
+                                            <li><a href="<?= esc($workspaceHome) ?>">Tugas</a></li>
+                                            <li><a href="<?= esc($workspaceHome) ?>">Penilaian</a></li>
+                                            <li><a href="<?= esc($workspaceHome) ?>">Bookmark</a></li>
+                                            <li><a href="<?= esc($workspaceHome) ?>">Notifikasi</a></li>
+                                            <li><a href="<?= esc($workspaceHome) ?>">Profil</a></li>
+                                            <li>
+                                                <form action="<?= route_to('dashboard.auth.logout') ?>" method="post">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit">Keluar</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

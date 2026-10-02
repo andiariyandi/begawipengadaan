@@ -10,7 +10,19 @@ class EnrollmentModel extends Model
     protected $primaryKey    = 'id';
     protected $returnType    = 'array';
     protected $useTimestamps = true;
-    protected $allowedFields = ['user_id', 'class_id', 'enrollment_status', 'final_status'];
+    protected $allowedFields = [
+        'class_id',
+        'user_id',
+        'status',
+        'enrolled_at',
+        'activated_at',
+        'completed_at',
+        'final_score',
+        'passed_at',
+        'certificate_eligible_at',
+        'withdrawn_at',
+        'cancelled_at',
+    ];
 
     public function alreadyEnrolled(int $userId, int $classId): bool
     {
@@ -19,15 +31,15 @@ class EnrollmentModel extends Model
 
     public function withClassDetail(): self
     {
-        return $this->select('enrollments.*, classes.start_date, classes.end_date, courses.title as course_title, users.username')
-            ->join('classes', 'classes.id = enrollments.class_id')
-            ->join('courses', 'courses.id = classes.course_id')
+        return $this->select('enrollments.*, learning_classes.name AS class_name, learning_classes.code AS class_code, courses.title AS course_title, users.name AS user_name, users.username')
+            ->join('learning_classes', 'learning_classes.id = enrollments.class_id')
+            ->join('courses', 'courses.id = learning_classes.course_id')
             ->join('users', 'users.id = enrollments.user_id');
     }
 
     public function pendingList(): array
     {
-        return $this->withClassDetail()->where('enrollments.enrollment_status', 'pending')->findAll();
+        return $this->withClassDetail()->where('enrollments.status', 'pending')->findAll();
     }
 
     public function myEnrollments(int $userId): array

@@ -31,7 +31,7 @@ $catalogs = [
         ['title' => 'Arif Rahman', 'text' => 'Mentor pengadaan berkelanjutan dan inovasi layanan publik.', 'icon' => 'why-choose-one-icon-4.png', 'slug' => 'arif-rahman'],
     ],
 ];
-$items = $catalogs[$catalogType] ?? [];
+$items = $items ?? ($catalogs[$catalogType] ?? []);
 $detailBase = [
     'programs' => 'arena-belajar/program',
     'courses' => 'arena-belajar/course',
@@ -69,12 +69,12 @@ $detailBase = [
                                 <h3 class="course-list__title"><a href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><?= esc($item['title']) ?></a></h3>
                                 <div class="course-list__ratting-box">
                                     <div class="course-list__ratting"><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span></div>
-                                    <p class="course-list__ratting-text">4.9 · Materi terstruktur</p>
+                                    <p class="course-list__ratting-text"><?= esc($item['program_title'] ?? 'Materi terstruktur') ?></p>
                                 </div>
                                 <ul class="course-list__meta list-unstyled">
-                                    <li><p><span class="icon-book"></span> 6 Modul</p></li>
-                                    <li><p><span class="icon-clock"></span> 4 Jam</p></li>
-                                    <li><p><span class="icon-user"></span> Mandiri</p></li>
+                                    <li><p><span class="icon-book"></span> <?= esc($item['level'] ?? 'PBJ') ?></p></li>
+                                    <li><p><span class="icon-clock"></span> <?= $item['duration_minutes'] !== null ? esc((string) $item['duration_minutes']) . ' menit' : 'Mandiri' ?></p></li>
+                                    <li><p><span class="icon-user"></span> <?= esc($item['visibility'] ?? 'Public') ?></p></li>
                                 </ul>
                                 <div class="course-list__btn-and-client-info">
                                     <div class="course-list__btn-box"><a class="thm-btn-two" href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><span>Lihat Course</span><i class="icon-angles-right"></i></a></div>
@@ -83,6 +83,18 @@ $detailBase = [
                             </div>
                         </article>
                     </div>
+                <?php endforeach; ?>
+            </div>
+        <?php elseif ($catalogType === 'classes'): ?>
+            <div class="row">
+                <?php foreach ($items as $item): ?>
+                    <div class="col-xl-3 col-lg-6 col-md-6"><article class="category-one__single"><div class="category-one__icon"><img src="<?= base_url('assets/main/images/icon/' . $item['icon']) ?>" alt=""></div><h3 class="category-one__title"><a href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><?= esc($item['title']) ?></a></h3><p class="category-one__text"><?= esc($item['course_title'] ?? '-') ?></p><p class="category-one__text">Periode: <?= esc($item['start_at'] ?? '-') ?> - <?= esc($item['end_at'] ?? '-') ?></p><p class="category-one__text">Kapasitas: <?= esc($item['capacity'] ?? '-') ?></p><?= view('landing/components/status_badge', ['status' => $item['status'] ?? '-']) ?><a class="category-one__btn" href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><span class="icon-angles-right"></span> Lihat Detail</a></article></div>
+                <?php endforeach; ?>
+            </div>
+        <?php elseif ($catalogType === 'trainers'): ?>
+            <div class="row">
+                <?php foreach ($items as $item): ?>
+                    <div class="col-xl-3 col-lg-6 col-md-6"><article class="category-one__single"><div class="category-one__icon"><img src="<?= base_url('assets/main/images/icon/' . $item['icon']) ?>" alt=""></div><h3 class="category-one__title"><a href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><?= esc($item['title']) ?></a></h3><p class="category-one__text"><?= esc($item['text'] ?? 'Pengajar PBJ') ?></p><p class="category-one__text"><?= count($item['classes'] ?? []) ?> kelas aktif</p><a class="category-one__btn" href="<?= site_url($detailBase . '/' . $item['slug']) ?>"><span class="icon-angles-right"></span> Lihat Profil</a></article></div>
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
