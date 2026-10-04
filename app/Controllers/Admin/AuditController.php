@@ -4,46 +4,57 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 
+/**
+ * Admin Manajemen Akses → Audit Akses.
+ *
+ * Read-only audit log viewer with filters (actor, action, module, date).
+ * Backed by AuditLogModel::browse() helper.
+ */
 class AuditController extends BaseController
 {
-    public function index(): string
+    public function index()
     {
-        return $this->view('Audit Trail', 'audit-trail', 'index');
-    }
+        $model = new \App\Models\AuditLogModel();
+        $filters = [
+            'userId' => $this->request->getGet('user_id') ? (int) $this->request->getGet('user_id') : null,
+            'module' => $this->request->getGet('module'),
+            'from'   => $this->request->getGet('from'),
+            'to'     => $this->request->getGet('to'),
+        ];
 
-    public function detail(string $auditId): string
-    {
-        return $this->view('Detail Audit Trail', 'audit-trail', 'detail', [
-            'auditId' => $auditId,
+        $page = max(1, (int) ($this->request->getGet('page_audit') ?: 1));
+        $perPage = 25;
+        $builder = $model->browse(...array_values($filters));
+        $total = (clone $builder)->countAllResults();
+        $items = $builder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
+
+        $pager = service('pager');
+        $pager->store('audit', $page, $perPage, $total, 0);
+
+        return view('dashboard/audit/index', [
+            'title'         => 'Audit Akses | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Audit Akses',
+            'activeMenu'    => 'access',
+            'activeSubmenu' => 'audit',
+            'items'         => $items,
+            'filters'       => $filters,
+            'pager'         => $pager,
+            'modules'       => $model->distinctModules(),
         ]);
     }
 
-    public function files(): string
+    public function detail(string $auditId)
     {
-        return $this->view('File dan Media', 'files', 'files');
-    }
+        $id = ctype_digit($auditId) ? (int) $auditId : 0;
+        $item = (new \App\Models\AuditLogModel())->find($id);
 
-    public function notifications(): string
-    {
-        return $this->view('Notifikasi Sistem', 'notifications', 'notifications');
-    }
-
-    private function view(
-        string $pageTitle,
-        string $activeSubmenu,
-        string $viewName,
-        array $data = []
-    ): string {
-        return view('dashboard/audit/' . $viewName, array_merge([
-            'title' => $pageTitle . ' | BegawiPBJ',
-            'pageTitle' => $pageTitle,
-            'activeMenu' => 'system',
-            'activeSubmenu' => $activeSubmenu,
-            'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => site_url('dashboard')],
-                ['label' => 'Sistem'],
-                ['label' => $pageTitle],
-            ],
-        ], $data));
+        return view('dashboard/audit/detail', [
+            'title'         => 'Detail Audit | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Detail Audit',
+            'activeMenu'    => 'access',
+            'activeSubmenu' => 'audit',
+            'item'          => $item,
+            'auditId'       => $auditId,
+        ]);
     }
 }

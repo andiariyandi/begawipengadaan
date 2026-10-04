@@ -76,43 +76,8 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
 
 $routes->post('bookmark/toggle', 'BookmarkController::toggle', ['as' => 'public.bookmark.toggle']);
 
-// LEGACY Auth namespace group — DISABLED 2026-10-02 (Step 1 of auth cleanup).
-// Reason: references App\Controllers\Auth\RegisterController (deleted in working tree)
-// and several empty stub controllers. Re-enabling breaks php spark routes.
-// Per CLAUDE.md §29, do not delete legacy files yet; this group is bypassed until
-// the canonical Dashboard\Auth boundary is fully wired.
-//
-// $routes->group('', ['namespace' => 'App\Controllers\Auth'], static function ($routes) {
-//     $routes->get('masuk', 'LoginController::index', ['as' => 'auth.login']);
-//     $routes->get('keluar', 'LoginController::logoutPreview', ['as' => 'auth.logout.preview']);
-//
-//     $routes->group('daftar', static function ($routes) {
-//         $routes->get('/', 'RegisterController::index', ['as' => 'auth.register.account']);
-//         $routes->get('tipe-profil', 'RegisterProfileController::type', ['as' => 'auth.register.profile-type']);
-//         $routes->get('profil/asn', 'RegisterProfileController::asn', ['as' => 'auth.register.profile.asn']);
-//         $routes->get('profil/penyedia', 'RegisterProfileController::provider', ['as' => 'auth.register.profile.provider']);
-//         $routes->get('profil/akademisi', 'RegisterProfileController::academic', ['as' => 'auth.register.profile.academic']);
-//         $routes->get('profil/masyarakat', 'RegisterProfileController::public', ['as' => 'auth.register.profile.public']);
-//         $routes->get('tinjau', 'RegisterController::review', ['as' => 'auth.register.review']);
-//         $routes->get('berhasil', 'RegisterController::success', ['as' => 'auth.register.success']);
-//     });
-//
-//     $routes->group('verifikasi-email', static function ($routes) {
-//         $routes->get('/', 'EmailVerificationController::index', ['as' => 'auth.email-verification']);
-//         $routes->get('terkirim', 'EmailVerificationController::sent', ['as' => 'auth.email-verification.sent']);
-//         $routes->get('berhasil', 'EmailVerificationController::success', ['as' => 'auth.email-verification.success']);
-//     });
-//
-//     $routes->get('menunggu-verifikasi', 'RegisterController::pendingVerification', ['as' => 'auth.pending-verification']);
-//     $routes->get('perlu-revisi', 'RegisterController::revisionRequired', ['as' => 'auth.revision-required']);
-//
-//     $routes->group('kata-sandi', static function ($routes) {
-//         $routes->get('lupa', 'PasswordController::forgot', ['as' => 'auth.password.forgot']);
-//         $routes->get('reset', 'PasswordController::reset', ['as' => 'auth.password.reset']);
-//         $routes->get('ubah', 'PasswordController::change', ['as' => 'auth.password.change']);
-//         $routes->get('berhasil', 'PasswordController::success', ['as' => 'auth.password.success']);
-//     });
-// });
+// Auth boundary is unified on App\Controllers\Dashboard\Auth — see dashboard group below.
+// Legacy App\Controllers\Auth namespace is no longer mounted.
 
 $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static function ($routes) {
     $routes->get('/', 'WorkspaceHomeController::index', ['as' => 'workspace.home']);
@@ -128,6 +93,19 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('komunikasi', 'BookmarkController::communication', ['as' => 'workspace.bookmarks.communication']);
         $routes->get('sertifikat', 'BookmarkController::certificates', ['as' => 'workspace.bookmarks.certificates']);
         $routes->post('/', 'BookmarkController::remove', ['as' => 'workspace.bookmarks.remove']);
+    });
+
+    // Workspace profile — migrated from /profil/* (route-contract.md §6.3).
+    $routes->group('profil', static function ($routes) {
+        $routes->get('/',                  'ProfileController::index',           ['as' => 'workspace.profile.index']);
+        $routes->get('akun',               'ProfileController::account',         ['as' => 'workspace.profile.account']);
+        $routes->get('asn',                'ProfileController::asn',             ['as' => 'workspace.profile.asn']);
+        $routes->get('penyedia',           'ProfileController::provider',        ['as' => 'workspace.profile.provider']);
+        $routes->get('akademik',           'ProfileController::academic',        ['as' => 'workspace.profile.academic']);
+        $routes->get('masyarakat',         'ProfileController::public',          ['as' => 'workspace.profile.public']);
+        $routes->get('peran-pengadaan',    'ProfileController::procurementRoles',['as' => 'workspace.profile.procurement-roles']);
+        $routes->get('pengajuan-role',     'RoleRequestController::index',       ['as' => 'workspace.profile.role-requests']);
+        $routes->get('pengajuan-role/baru','RoleRequestController::create',      ['as' => 'workspace.profile.role-requests.create']);
     });
 
     $routes->group('peserta', static function ($routes) {
@@ -204,29 +182,24 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
     });
 });
 
-$routes->group('profil', ['namespace' => 'App\Controllers\Auth'], static function ($routes) {
-    $routes->get('/', 'ProfileController::index', ['as' => 'profile.index']);
-    $routes->get('akun', 'ProfileController::account', ['as' => 'profile.account']);
-    $routes->get('asn', 'ProfileController::asn', ['as' => 'profile.asn']);
-    $routes->get('penyedia', 'ProfileController::provider', ['as' => 'profile.provider']);
-    $routes->get('akademisi', 'ProfileController::academic', ['as' => 'profile.academic']);
-    $routes->get('masyarakat', 'ProfileController::public', ['as' => 'profile.public']);
-    $routes->get('peran-pengadaan', 'ProfileController::procurementRoles', ['as' => 'profile.procurement-roles']);
-    $routes->get('permohonan-perubahan', 'ProfileChangeRequestController::index', ['as' => 'profile.change-requests']);
-    $routes->get('permohonan-perubahan/buat', 'ProfileChangeRequestController::create', ['as' => 'profile.change-requests.create']);
-    $routes->get('permohonan-role', 'RoleRequestController::index', ['as' => 'profile.role-requests']);
-    $routes->get('permohonan-role/buat', 'RoleRequestController::create', ['as' => 'profile.role-requests.create']);
-});
+// /profil/* routes were migrated to /workspace/profil/* (route-contract.md §6.3).
+// See Workspace group below.
 
 $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static function ($routes) {
     $routes->get('masuk', '\App\Controllers\Dashboard\Auth\LoginController::index', ['as' => 'dashboard.auth.login']);
     $routes->post('masuk', '\App\Controllers\Dashboard\Auth\LoginController::attemptLogin', ['as' => 'dashboard.auth.login.attempt']);
-    $routes->get('lupa-kata-sandi', 'AdminAuthController::forgotPassword', ['as' => 'dashboard.auth.password.forgot']);
-    $routes->post('lupa-kata-sandi', 'AdminAuthController::forgotPasswordAttempt', ['as' => 'dashboard.auth.password.forgot.attempt']);
-    $routes->get('reset-kata-sandi/(:segment)', 'AdminAuthController::resetPassword/$1', ['as' => 'dashboard.auth.password.reset']);
-    $routes->post('reset-kata-sandi/(:segment)', 'AdminAuthController::resetPassword/$1', ['as' => 'dashboard.auth.password.reset.attempt']);
-    $routes->get('verifikasi/(:segment)', 'AdminAuthController::verifyEmail/$1', ['as' => 'dashboard.auth.email.verify']);
-    $routes->get('status-akun', 'AdminAuthController::accountStatus', ['as' => 'dashboard.auth.account.status']);
+    // Password reset (unified to Dashboard\Auth\PasswordController)
+    $routes->get('lupa-kata-sandi', '\App\Controllers\Dashboard\Auth\PasswordController::forgotForm', ['as' => 'dashboard.auth.password.forgot']);
+    $routes->post('lupa-kata-sandi', '\App\Controllers\Dashboard\Auth\PasswordController::sendReset', ['as' => 'dashboard.auth.password.send-reset']);
+    $routes->get('reset-kata-sandi/(:segment)', '\App\Controllers\Dashboard\Auth\PasswordController::resetForm/$1', ['as' => 'dashboard.auth.password.reset']);
+    $routes->post('reset-kata-sandi/(:segment)', '\App\Controllers\Dashboard\Auth\PasswordController::updatePassword/$1', ['as' => 'dashboard.auth.password.update']);
+
+    // Account status (unified to Dashboard\Auth\AccountStatusController)
+    $routes->get('status-akun', '\App\Controllers\Dashboard\Auth\AccountStatusController::show', ['as' => 'dashboard.auth.account-status']);
+
+    // NOTE: dashboard/verifikasi/{token} (email verification) is intentionally
+    // removed. CLAUDE.md §9 forbids email-token gate; account activation goes
+    // through admin/operator profile_verifications approval.
     $routes->get('keluar', '\App\Controllers\Dashboard\Auth\LoginController::logoutPreview', ['as' => 'dashboard.auth.logout.preview']);
     $routes->post('keluar', '\App\Controllers\Dashboard\Auth\LoginController::logout', ['as' => 'dashboard.auth.logout']);
 
@@ -279,26 +252,59 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('pengguna', 'UserController::store', ['as' => 'dashboard.access.users.store']);
         $routes->get('pengguna/(:segment)/ubah', 'UserController::edit/$1', ['as' => 'dashboard.access.users.edit']);
         $routes->post('pengguna/(:segment)/ubah', 'UserController::update/$1', ['as' => 'dashboard.access.users.update']);
+        $routes->post('pengguna/(:segment)/aktifkan', 'UserController::activate/$1', ['as' => 'dashboard.access.users.activate']);
+        $routes->post('pengguna/(:segment)/suspend', 'UserController::suspend/$1', ['as' => 'dashboard.access.users.suspend']);
+        $routes->post('pengguna/(:segment)/reset-password', 'UserController::resetPassword/$1', ['as' => 'dashboard.access.users.reset-password']);
         $routes->get('pengguna/(:segment)', 'UserController::detail/$1', ['as' => 'dashboard.access.users.detail']);
         $routes->get('verifikasi-profil', 'UserProfileVerificationController::index', ['as' => 'dashboard.access.profile-verifications']);
         $routes->get('verifikasi-profil/(:segment)', 'UserProfileVerificationController::detail/$1', ['as' => 'dashboard.access.profile-verifications.detail']);
+        $routes->post('verifikasi-profil/(:segment)/setujui', 'UserProfileVerificationController::approve/$1', ['as' => 'dashboard.access.profile-verifications.approve']);
+        $routes->post('verifikasi-profil/(:segment)/tolak', 'UserProfileVerificationController::reject/$1', ['as' => 'dashboard.access.profile-verifications.reject']);
+        $routes->post('verifikasi-profil/(:segment)/revisi', 'UserProfileVerificationController::requestRevision/$1', ['as' => 'dashboard.access.profile-verifications.revision']);
         $routes->get('permohonan-perubahan-profil', 'UserProfileVerificationController::changeRequests', ['as' => 'dashboard.access.profile-change-requests']);
         $routes->get('permohonan-perubahan-profil/(:segment)', 'UserProfileVerificationController::changeRequestDetail/$1', ['as' => 'dashboard.access.profile-change-requests.detail']);
         $routes->get('role', 'RoleController::index', ['as' => 'dashboard.access.roles']);
         $routes->get('role/tambah', 'RoleController::create', ['as' => 'dashboard.access.roles.create']);
+        $routes->post('role/tambah', 'RoleController::store', ['as' => 'dashboard.access.roles.store']);
         $routes->get('role/(:segment)/ubah', 'RoleController::edit/$1', ['as' => 'dashboard.access.roles.edit']);
+        $routes->post('role/(:segment)/ubah', 'RoleController::update/$1', ['as' => 'dashboard.access.roles.update']);
+        $routes->post('role/(:segment)/hapus', 'RoleController::delete/$1', ['as' => 'dashboard.access.roles.delete']);
+        $routes->get('role/matrix', 'RoleController::matrix', ['as' => 'dashboard.access.roles.matrix']);
+        $routes->post('role/matrix', 'RoleController::syncMatrix', ['as' => 'dashboard.access.roles.matrix.sync']);
         $routes->get('role/(:segment)', 'RoleController::detail/$1', ['as' => 'dashboard.access.roles.detail']);
         $routes->get('permission', 'PermissionController::index', ['as' => 'dashboard.access.permissions']);
         $routes->get('permission/tambah', 'PermissionController::create', ['as' => 'dashboard.access.permissions.create']);
+        $routes->post('permission/tambah', 'PermissionController::store', ['as' => 'dashboard.access.permissions.store']);
+        $routes->post('permission/(:segment)/ubah', 'PermissionController::update/$1', ['as' => 'dashboard.access.permissions.update']);
+        $routes->post('permission/(:segment)/hapus', 'PermissionController::delete/$1', ['as' => 'dashboard.access.permissions.delete']);
         $routes->get('permission/(:segment)', 'PermissionController::detail/$1', ['as' => 'dashboard.access.permissions.detail']);
         $routes->get('permohonan-role', 'RoleRequestReviewController::index', ['as' => 'dashboard.access.role-requests']);
         $routes->get('permohonan-role/(:segment)', 'RoleRequestReviewController::detail/$1', ['as' => 'dashboard.access.role-requests.detail']);
+        $routes->post('permohonan-role/(:segment)/setujui', 'RoleRequestReviewController::approve/$1', ['as' => 'dashboard.access.role-requests.approve']);
+        $routes->post('permohonan-role/(:segment)/tolak', 'RoleRequestReviewController::reject/$1', ['as' => 'dashboard.access.role-requests.reject']);
+        $routes->post('permohonan-role/(:segment)/revisi', 'RoleRequestReviewController::requestRevision/$1', ['as' => 'dashboard.access.role-requests.revision']);
         $routes->get('unit-organisasi', 'OrganizationController::index', ['as' => 'dashboard.access.organization-units']);
         $routes->get('unit-organisasi/tambah', 'OrganizationController::create', ['as' => 'dashboard.access.organization-units.create']);
+        $routes->post('unit-organisasi/tambah', 'OrganizationController::store', ['as' => 'dashboard.access.organization-units.store']);
+        $routes->get('unit-organisasi/(:segment)/ubah', 'OrganizationController::edit/$1', ['as' => 'dashboard.access.organization-units.edit']);
+        $routes->post('unit-organisasi/(:segment)/ubah', 'OrganizationController::update/$1', ['as' => 'dashboard.access.organization-units.update']);
+        $routes->post('unit-organisasi/(:segment)/nonaktifkan', 'OrganizationController::deactivate/$1', ['as' => 'dashboard.access.organization-units.deactivate']);
+        $routes->post('unit-organisasi/(:segment)/aktifkan', 'OrganizationController::activate/$1', ['as' => 'dashboard.access.organization-units.activate']);
         $routes->get('unit-organisasi/(:segment)', 'OrganizationController::detail/$1', ['as' => 'dashboard.access.organization-units.detail']);
         $routes->get('peran-pengadaan', 'ProcurementRoleController::index', ['as' => 'dashboard.access.procurement-roles']);
         $routes->get('peran-pengadaan/tambah', 'ProcurementRoleController::create', ['as' => 'dashboard.access.procurement-roles.create']);
+        $routes->post('peran-pengadaan/tambah', 'ProcurementRoleController::store', ['as' => 'dashboard.access.procurement-roles.store']);
+        $routes->post('peran-pengadaan/(:segment)/ubah', 'ProcurementRoleController::update/$1', ['as' => 'dashboard.access.procurement-roles.update']);
+        $routes->get('penugasan-pengadaan', 'ProcurementRoleController::assignments', ['as' => 'dashboard.access.procurement-assignments']);
+        $routes->post('penugasan-pengadaan', 'ProcurementRoleController::storeAssignment', ['as' => 'dashboard.access.procurement-assignments.store']);
+        $routes->post('penugasan-pengadaan/(:segment)/verifikasi', 'ProcurementRoleController::verifyAssignment/$1', ['as' => 'dashboard.access.procurement-assignments.verify']);
         $routes->get('peran-pengadaan/(:segment)', 'ProcurementRoleController::detail/$1', ['as' => 'dashboard.access.procurement-roles.detail']);
+
+        // Audit akses (per spec: /dashboard/akses/audit)
+        $routes->group('audit', static function ($routes) {
+            $routes->get('/', 'AuditController::index', ['as' => 'dashboard.access.audit']);
+            $routes->get('(:segment)', 'AuditController::detail/$1', ['as' => 'dashboard.access.audit.detail']);
+        });
     });
 
     $routes->group('pembelajaran', ['namespace' => 'App\Controllers\Learning'], static function ($routes) {

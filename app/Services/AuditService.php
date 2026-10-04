@@ -28,8 +28,8 @@ class AuditService
             'before_snapshot'   => null,
             'after_snapshot'    => null,
             'reason'            => $metadata ? json_encode($metadata, JSON_THROW_ON_ERROR) : null,
-            'ip_hash'           => hash('sha256', $request->getIPAddress()),
-            'user_agent_hash'   => hash('sha256', (string) $request->getUserAgent()),
+            'ip_hash'           => hash('sha256', $this->safeIp($request)),
+            'user_agent_hash'   => hash('sha256', $this->safeUserAgent($request)),
             'request_id'        => null,
             'created_at'        => date('Y-m-d H:i:s'),
         ]);
@@ -59,5 +59,38 @@ class AuditService
         }
 
         return $metadata;
+    }
+
+    /**
+     * Safe IP retrieval. IncomingRequest exposes getIPAddress(); other
+     * request types (CLIRequest, etc.) may not. Fall back to 'unknown'.
+     */
+    private function safeIp($request): string
+    {
+        try {
+            if (method_exists($request, 'getIPAddress')) {
+                $ip = $request->getIPAddress();
+                return (string) ($ip !== null && $ip !== '' ? $ip : 'unknown');
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+        return 'unknown';
+    }
+
+    /**
+     * Safe user agent retrieval. CLIRequest lacks getUserAgent(); fall back.
+     */
+    private function safeUserAgent($request): string
+    {
+        try {
+            if (method_exists($request, 'getUserAgent')) {
+                $ua = $request->getUserAgent();
+                return (string) ($ua !== null && $ua !== '' ? $ua : 'unknown');
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+        return 'unknown';
     }
 }

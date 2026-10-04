@@ -24,7 +24,7 @@ class AuthenticationFilter implements FilterInterface
         if (
             in_array($path, $publicPaths, true)
             || str_starts_with($path, 'dashboard/daftar')
-            || preg_match('#^dashboard/(verifikasi|reset-kata-sandi)/[^/]+$#', $path)
+            || preg_match('#^dashboard/reset-kata-sandi/[^/]+$#', $path)
         ) {
             return null;
         }

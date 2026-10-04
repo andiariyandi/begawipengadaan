@@ -133,7 +133,7 @@ class RegisterController extends BaseController
         $rules = [
             'username'      => 'required|min_length[3]|is_unique[users.username]',
             'email'         => 'required|valid_email|is_unique[users.email]',
-            'password'      => 'required|min_length[8]',
+            'password'      => 'required|min_length[12]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/\d/]|regex_match[/[^\w\s]/]',
             'full_name'     => 'required',
             'phone'         => 'required',
             'profile_type'  => 'required|in_list[' . implode(',', $allowedProfileTypes) . ']',

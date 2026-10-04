@@ -57,7 +57,7 @@ require_once($landingParts . 'page_header.php');
                     </div>
 
                     <div class="create-account text-center">
-                        <p>Not registered yet? <a href="sign-up.php">Create an Account</a></p>
+                        <p>Not registered yet? <a href="<?= site_url('dashboard/daftar') ?>">Create an Account</a></p>
                     </div>
                 </div>
             </form>

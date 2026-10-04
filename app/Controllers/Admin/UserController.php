@@ -4,246 +4,191 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\UserModel;
-use App\Models\UserProfileModel;
-use App\Models\UserRoleModel;
+use App\Models\WilayahModel;
+use App\Services\Admin\UserManagementService;
 
+/**
+ * Admin Manajemen Akses → Pengguna.
+ *
+ * Implements CRUD + status actions (suspend/activate) + reset password
+ * initiation. Detail view joins user_profiles, profile-type-specific
+ * tables, roles, and recent audit_logs/workflow_transitions.
+ *
+ * Password change is NOT performed directly here — admin triggers a
+ * PasswordResetService request (CLAUDE.md §Password).
+ */
 class UserController extends BaseController
 {
-    public function index(): string
+    public function index()
     {
         $db = db_connect();
         $builder = $db->table('users u')
-            ->select('u.id, u.username, u.email, u.account_status, u.created_at, u.name AS full_name, u.profile_type AS profile_category, GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ", ") roles')
-            ->join('user_profiles p', 'p.user_id = u.id', 'left')
-            ->join('user_roles ur', 'ur.user_id = u.id', 'left')
+            ->select('u.id, u.username, u.email, u.name, u.phone, u.profile_type, u.account_status, u.created_at,
+                      GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ", ") AS roles,
+                      ou.name AS organization_name')
+            ->join('user_roles ur', 'ur.user_id = u.id AND ur.status = "active"', 'left')
             ->join('roles r', 'r.id = ur.role_id', 'left')
-            ->groupBy('u.id, p.id')->orderBy('u.created_at', 'DESC');
+            ->join('user_profiles up', 'up.user_id = u.id', 'left')
+            ->join('organization_units ou', 'ou.id = up.province_code OR ou.id = up.regency_code', 'left', false)
+            ->groupBy('u.id')
+            ->orderBy('u.created_at', 'DESC');
+
+        // Filters
+        $keyword = trim((string) $this->request->getGet('keyword'));
+        if ($keyword !== '') {
+            $builder->groupStart()
+                ->like('u.name', $keyword)
+                ->orLike('u.username', $keyword)
+                ->orLike('u.email', $keyword)
+                ->groupEnd();
+        }
+        $profileType = trim((string) $this->request->getGet('profile_type'));
+        if ($profileType !== '' && in_array($profileType, UserManagementService::ALLOWED_PROFILE_TYPES, true)) {
+            $builder->where('u.profile_type', $profileType);
+        }
+        $status = trim((string) $this->request->getGet('account_status'));
+        if ($status !== '' && in_array($status, UserManagementService::ALLOWED_STATUSES, true)) {
+            $builder->where('u.account_status', $status);
+        }
+        $roleId = (int) $this->request->getGet('role_id');
+        if ($roleId > 0) {
+            $builder->where('EXISTS (SELECT 1 FROM user_roles ur2 WHERE ur2.user_id = u.id AND ur2.role_id = ' . $roleId . ' AND ur2.status = "active")', null, false);
+        }
+
         $perPage = 15;
         $page = max(1, (int) ($this->request->getGet('page_users') ?: 1));
         $total = (clone $builder)->countAllResults();
         $users = $builder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
+
         $pager = service('pager');
         $pager->store('users', $page, $perPage, $total, 0);
+
         return view('dashboard/users/index', [
-            'title' => 'Pengguna | Dashboard BegawiPBJ',
-            'pageTitle' => 'Pengguna',
-            'activeMenu' => 'access',
+            'title'         => 'Pengguna | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Manajemen Pengguna',
+            'activeMenu'    => 'access',
             'activeSubmenu' => 'users',
-            'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => site_url('dashboard')],
-                ['label' => 'Manajemen Akses'],
-                ['label' => 'Pengguna'],
+            'users'         => $users,
+            'pager'         => $pager,
+            'filters'       => [
+                'keyword'        => $keyword,
+                'profile_type'   => $profileType,
+                'account_status' => $status,
+                'role_id'        => $roleId,
             ],
-            'users' => $users,
-            'pager' => $pager,
+            'roles'         => $db->table('roles')->select('id, name')->orderBy('name')->get()->getResultArray(),
+            'profileTypes'  => UserManagementService::ALLOWED_PROFILE_TYPES,
+            'statuses'      => UserManagementService::ALLOWED_STATUSES,
         ]);
     }
 
-    public function create(): string
+    public function detail(string $id)
     {
-        return view('dashboard/users/form', $this->formData([
-            'title' => 'Tambah Pengguna | Dashboard BegawiPBJ',
-            'pageTitle' => 'Tambah Pengguna',
-            'formMode' => 'create',
-            'activeMenu' => 'access',
-            'activeSubmenu' => 'users',
-            'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => site_url('dashboard')],
-                ['label' => 'Manajemen Akses'],
-                ['label' => 'Pengguna', 'url' => site_url('dashboard/akses/pengguna')],
-                ['label' => 'Tambah Pengguna'],
-            ],
-        ]));
-    }
+        $userId = ctype_digit($id) ? (int) $id : 0;
+        $db = db_connect();
 
-    public function store()
-    {
-        return $this->saveUser();
-    }
-
-    public function detail(string $id): string
-    {
-        $user = db_connect()->table('users u')
-            ->select('
-            u.*,
-            p.province_code,
-            p.regency_code,
-            p.district_code,
-            p.village_code,
-            wp.nama AS province_name,
-            wr.nama AS regency_name,
-            wd.nama AS district_name,
-            wv.nama AS village_name,
-            GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ", ") roles
-        ')
-            ->join('user_profiles p', 'p.user_id = u.id', 'left')
-            ->join('wilayah wp', 'wp.kode = p.province_code', 'left')
-            ->join('wilayah wr', 'wr.kode = p.regency_code', 'left')
-            ->join('wilayah wd', 'wd.kode = p.district_code', 'left')
-            ->join('wilayah wv', 'wv.kode = p.village_code', 'left')
-            ->join('user_roles ur', 'ur.user_id = u.id', 'left')
+        $user = $db->table('users u')
+            ->select('u.*, GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ", ") AS roles')
+            ->join('user_roles ur', 'ur.user_id = u.id AND ur.status = "active"', 'left')
             ->join('roles r', 'r.id = ur.role_id', 'left')
-            ->where('u.id', ctype_digit($id) ? (int) $id : 0)
-            ->groupBy('u.id, p.id')
-            ->get()
-            ->getRowArray();
+            ->where('u.id', $userId)
+            ->groupBy('u.id')
+            ->get()->getRowArray();
+
+        if (! $user) {
+            return redirect()->to('dashboard/akses/pengguna')->with('error', 'Pengguna tidak ditemukan.');
+        }
+
+        $profile = $db->table('user_profiles up')
+            ->select('up.*, wp.nama AS province_name, wr.nama AS regency_name, wd.nama AS district_name, wv.nama AS village_name')
+            ->join('wilayah wp', 'wp.kode = up.province_code', 'left')
+            ->join('wilayah wr', 'wr.kode = up.regency_code', 'left')
+            ->join('wilayah wd', 'wd.kode = up.district_code', 'left')
+            ->join('wilayah wv', 'wv.kode = up.village_code', 'left')
+            ->where('up.user_id', $userId)
+            ->get()->getRowArray() ?: [];
+
+        $typeProfile = match ($user['profile_type'] ?? '') {
+            'asn'      => $db->table('asn_profiles')->where('user_id', $userId)->get()->getRowArray(),
+            'provider' => $db->table('provider_profiles')->where('user_id', $userId)->get()->getRowArray(),
+            'academic' => $db->table('academic_profiles')->where('user_id', $userId)->get()->getRowArray(),
+            'public'   => $db->table('public_profiles')->where('user_id', $userId)->get()->getRowArray(),
+            default    => null,
+        };
+
+        $verifications = $db->table('profile_verifications')
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'DESC')
+            ->limit(20)->get()
+            ->getResultArray();
+
+        $auditLogs = $db->table('audit_logs')
+            ->where('resource_type', 'users')
+            ->where('resource_id', $userId)
+            ->orderBy('created_at', 'DESC')
+            ->limit(20)->get()
+            ->getResultArray();
+
+        $transitions = $db->table('workflow_transitions')
+            ->where('resource_type', 'user')
+            ->where('resource_id', $userId)
+            ->orderBy('created_at', 'DESC')
+            ->limit(20)->get()
+            ->getResultArray();
 
         return view('dashboard/users/detail', [
-            'title' => 'Detail Pengguna | Dashboard BegawiPBJ',
-            'pageTitle' => 'Detail Pengguna',
-            'userId' => $id,
-            'activeMenu' => 'access',
+            'title'         => 'Detail Pengguna | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Detail Pengguna',
+            'activeMenu'    => 'access',
             'activeSubmenu' => 'users',
-            'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => site_url('dashboard')],
-                ['label' => 'Manajemen Akses'],
-                ['label' => 'Pengguna', 'url' => site_url('dashboard/akses/pengguna')],
-                ['label' => 'Detail'],
-            ],
-            'user' => $user,
+            'user'          => $user,
+            'profile'       => $profile,
+            'typeProfile'   => $typeProfile,
+            'verifications' => $verifications,
+            'auditLogs'     => $auditLogs,
+            'transitions'   => $transitions,
         ]);
     }
 
-    public function edit(string $id): string
+    public function activate(string $id)
+    {
+        $userId = ctype_digit($id) ? (int) $id : 0;
+        $actorId = (int) session()->get('user_id');
+        try {
+            (new UserManagementService())->activate($userId, $actorId, 'admin.activate');
+            return redirect()->to('dashboard/akses/pengguna/' . $userId)->with('success', 'Akun diaktifkan.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function suspend(string $id)
+    {
+        $userId = ctype_digit($id) ? (int) $id : 0;
+        $reason = trim((string) $this->request->getPost('reason'));
+        if ($reason === '') {
+            return redirect()->back()->with('error', 'Alasan penangguhan wajib diisi.');
+        }
+        $actorId = (int) session()->get('user_id');
+        try {
+            (new UserManagementService())->suspend($userId, $reason, $actorId);
+            return redirect()->to('dashboard/akses/pengguna/' . $userId)->with('success', 'Akun ditangguhkan.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function resetPassword(string $id)
     {
         $userId = ctype_digit($id) ? (int) $id : 0;
         $user = (new UserModel())->find($userId);
         if (! $user) {
-            return redirect()->to('dashboard/akses/pengguna')->with('error', 'Pengguna tidak ditemukan.');
-        }
-        $profile = (new UserProfileModel())->where('user_id', $userId)->first() ?: [];
-        $role = (new UserRoleModel())->where('user_id', $userId)->first();
-        $organization = [];
-        if (db_connect()->tableExists('user_organizations')) {
-            $organization = db_connect()->table('user_organizations')->where('user_id', $userId)->where('is_primary', 1)->get()->getRowArray() ?: [];
-        }
-        return view('dashboard/users/form', $this->formData([
-            'title' => 'Ubah Pengguna | Dashboard BegawiPBJ',
-            'pageTitle' => 'Ubah Pengguna',
-            'formMode' => 'edit',
-            'userId' => $id,
-            'user' => array_merge($user, $profile, [
-                'full_name' => $user['name'] ?? '',
-                'role_id' => $role['role_id'] ?? '',
-                'organization_unit_id' => $organization['organization_unit_id'] ?? ''
-            ]),
-            'activeMenu' => 'access',
-            'activeSubmenu' => 'users',
-            'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => site_url('dashboard')],
-                ['label' => 'Manajemen Akses'],
-                ['label' => 'Pengguna', 'url' => site_url('dashboard/akses/pengguna')],
-                ['label' => 'Ubah'],
-            ],
-        ]));
-    }
-
-    public function update(string $id)
-    {
-        return $this->saveUser(ctype_digit($id) ? (int) $id : 0);
-    }
-
-    private function formData(array $data): array
-    {
-        $data['roles'] = db_connect()->table('roles')->select('id,name')->orderBy('name')->get()->getResultArray();
-        $data['organizations'] = db_connect()->table('organization_units')->select('id,name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
-        return $data;
-    }
-
-    private function saveUser(?int $userId = null)
-    {
-        $post = $this->request->getPost();
-        $rules = [
-            'username' => 'required|min_length[3]|max_length[100]',
-            'email' => 'required|valid_email|max_length[150]',
-            'full_name' => 'required|max_length[150]',
-            'profile_type' => 'required|in_list[asn,provider,academic,public]',
-            'account_status' => 'required|in_list[pending,pending_verification,submitted,revision_required,active,inactive,suspended,rejected,archived]',
-        ];
-        if ($userId === null) {
-            $rules['password'] = 'required|min_length[8]';
-        } elseif ($post['password'] ?? '') {
-            $rules['password'] = 'min_length[8]';
-        }
-        if (! $this->validateData($post, $rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-        $users = new UserModel();
-
-        if ($userId !== null) {
-            $users->setValidationRule(
-                'username',
-                'required|min_length[3]|max_length[100]|is_unique[users.username,id,' . $userId . ']'
-            );
-
-            $users->setValidationRule(
-                'email',
-                'required|valid_email|is_unique[users.email,id,' . $userId . ']'
-            );
-        }
-        $email = strtolower(trim((string) $post['email']));
-        $username = trim((string) $post['username']);
-        $duplicate = $users->groupStart()->where('email', $email)->orWhere('username', $username)->groupEnd();
-        if ($userId !== null) {
-            $duplicate->where('id !=', $userId);
-        }
-        if ($duplicate->first()) {
-            return redirect()->back()->withInput()->with('error', 'Username atau email sudah digunakan.');
+            return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
         }
 
-        $db = db_connect();
-        $db->transStart();
-        $account = [
-            'username'      => $username,
-            'email'         => $email,
-            'name'          => trim((string) $post['full_name']),
-            'profile_type'  => (string) $post['profile_type'],
-            'phone'         => trim((string) ($post['phone'] ?? '')),
-            'account_status' => (string) $post['account_status'],
-        ];
-        if (! empty($post['password'])) {
-            $account['password_hash'] = password_hash((string) $post['password'], PASSWORD_DEFAULT);
-        }
-        // if ($userId === null) {
-        //     $userId = $users->insert($account, true);
-        // } else {
-        //     $users->update($userId, $account);
-        // }
-        if ($userId === null) {
-            $userId = $users->insert($account, true);
+        (new \App\Services\Identity\PasswordResetService())->requestReset((string) $user['email']);
 
-            if (! $userId) {
-                $db->transRollback();
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Pengguna gagal disimpan.');
-            }
-        } else {
-            $result = $users->update($userId, $account);
-
-            if (! $result) {
-                $db->transRollback();
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', implode(' ', $users->errors()) ?: 'Pengguna gagal diperbarui.');
-            }
-        }
-
-        $roles = new UserRoleModel();
-        $roles->where('user_id', $userId)->delete();
-        if (ctype_digit((string) ($post['role_id'] ?? '')) && db_connect()->table('roles')->where('id', (int) $post['role_id'])->countAllResults()) {
-            $roles->insert([
-                'user_id'    => $userId,
-                'role_id'    => (int) $post['role_id'],
-                'status'     => 'active',
-                'granted_at' => date('Y-m-d H:i:s'),
-                'created_at' => date('Y-m-d H:i:s'),
-            ]);
-        }
-        $db->transComplete();
-        if ($db->transStatus() === false) {
-            return redirect()->back()->withInput()->with('error', 'Perubahan pengguna gagal disimpan.');
-        }
-        return redirect()->to('dashboard/akses/pengguna/' . $userId)->with('success', 'Pengguna berhasil disimpan.');
+        return redirect()->to('dashboard/akses/pengguna/' . $userId)
+            ->with('success', 'Instruksi reset kata sandi telah dikirim ke email pengguna.');
     }
 }
