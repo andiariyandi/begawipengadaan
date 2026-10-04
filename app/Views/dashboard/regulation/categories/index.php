@@ -1,6 +1,61 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Kategori Regulasi</h6><p class="text-secondary-light mb-0">Kelola klasifikasi dokumen regulasi PBJ.</p></div><a href="<?= site_url('dashboard/regulasi/kategori/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Kategori</a></div>
-<div class="card"><div class="card-body p-24"><div class="table-responsive scroll-sm"><table class="table bordered-table sm-table mb-0"><thead><tr><th>Kategori</th><th>Kode</th><th>Deskripsi</th><th>Jumlah Regulasi</th><th class="text-center">Status</th><th class="text-center">Aksi</th></tr></thead><tbody><?php foreach ([['id' => 'CAT-001', 'name' => 'Peraturan Presiden', 'code' => 'PERPRES', 'description' => 'Regulasi tingkat Presiden terkait PBJ', 'count' => '8', 'status' => 'active'], ['id' => 'CAT-002', 'name' => 'Peraturan LKPP', 'code' => 'PERLKPP', 'description' => 'Peraturan dari Lembaga Kebijakan Pengadaan Barang/Jasa Pemerintah', 'count' => '14', 'status' => 'active'], ['id' => 'CAT-003', 'name' => 'Surat Edaran', 'code' => 'SE', 'description' => 'Surat edaran dan pedoman operasional', 'count' => '11', 'status' => 'active']] as $category): ?><tr><td><h6 class="text-md mb-0 fw-medium"><?= esc($category['name']) ?></h6></td><td><span class="text-primary-600 fw-semibold"><?= esc($category['code']) ?></span></td><td><?= esc($category['description']) ?></td><td><?= esc($category['count']) ?></td><td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $category['status']]) ?></td><td class="text-center"><a href="<?= site_url('dashboard/regulasi/kategori/' . $category['id']) ?>" class="text-primary-600">Detail</a></td></tr><?php endforeach; ?></tbody></table></div></div></div>
+<?php $categories = $categories ?? []; ?>
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+        <h6 class="fw-semibold mb-1">Kategori Regulasi</h6>
+        <p class="text-secondary-light mb-0">Kelola klasifikasi dokumen regulasi PBJ.</p>
+    </div>
+    <a href="<?= site_url('dashboard/regulasi/kategori/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Kategori</a>
+</div>
+
+<?php if (session()->getFlashdata('success')): ?>
+    <div class="alert alert-success mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')): ?>
+    <div class="alert alert-danger mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
+<?php endif; ?>
+
+<div class="card">
+    <div class="card-body p-24">
+        <div class="table-responsive scroll-sm">
+            <table class="table bordered-table sm-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Kategori</th>
+                        <th>Slug</th>
+                        <th>Deskripsi</th>
+                        <th class="text-center">Jumlah Regulasi</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($categories)): ?>
+                        <tr><td colspan="6" class="text-center text-secondary-light">Belum ada kategori.</td></tr>
+                    <?php endif; ?>
+                    <?php foreach ($categories as $c): ?>
+                        <tr>
+                            <td><h6 class="text-md mb-0 fw-medium"><?= esc($c['name']) ?></h6></td>
+                            <td><span class="text-primary-600 fw-semibold"><?= esc($c['slug']) ?></span></td>
+                            <td><?= esc($c['description'] ?? '-') ?: '-' ?></td>
+                            <td class="text-center"><?= (int) ($c['regulation_count'] ?? 0) ?></td>
+                            <td class="text-center"><?= view('dashboard/components/status_badge', ['status' => ($c['is_active'] ?? 0) ? 'active' : 'inactive']) ?></td>
+                            <td class="text-center">
+                                <a href="<?= site_url('dashboard/regulasi/kategori/' . (int) $c['id']) ?>" class="w-32-px h-32-px bg-primary-50 text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center" title="Detail">
+                                    <iconify-icon icon="solar:eye-outline"></iconify-icon>
+                                </a>
+                                <a href="<?= site_url('dashboard/regulasi/kategori/' . (int) $c['id'] . '/ubah') ?>" class="w-32-px h-32-px bg-warning-focus text-warning-main rounded-circle d-inline-flex align-items-center justify-content-center ms-6" title="Ubah">
+                                    <iconify-icon icon="solar:pen-new-square-outline"></iconify-icon>
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 <?= $this->endSection() ?>

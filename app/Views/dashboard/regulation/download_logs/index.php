@@ -1,7 +1,65 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Log Download Regulasi</h6><p class="text-secondary-light mb-0">Pratinjau riwayat download dokumen regulasi.</p></div></div>
-<?= $this->include('dashboard/components/filter_bar') ?>
-<div class="card"><div class="card-body p-24"><div class="table-responsive scroll-sm"><table class="table bordered-table sm-table mb-0"><thead><tr><th>Waktu</th><th>Pengguna</th><th>Regulasi</th><th>Versi</th><th>IP Address</th><th class="text-center">Status</th></tr></thead><tbody><?php foreach ([['time' => '29 Sep 2026, 09:15', 'user' => 'Rina Oktaviani', 'regulation' => 'Perpres Nomor 12 Tahun 2021', 'version' => 'v2.0', 'ip' => '103.12.45.10'], ['time' => '28 Sep 2026, 15:42', 'user' => 'Budi Santoso', 'regulation' => 'Peraturan LKPP Nomor 12 Tahun 2021', 'version' => 'v1.0', 'ip' => '103.12.45.11'], ['time' => '28 Sep 2026, 10:20', 'user' => 'Public User', 'regulation' => 'Perpres Nomor 16 Tahun 2018', 'version' => 'v1.0', 'ip' => '103.12.45.12']] as $log): ?><tr><td><?= esc($log['time']) ?></td><td><?= esc($log['user']) ?></td><td><h6 class="text-md mb-0 fw-medium"><?= esc($log['regulation']) ?></h6></td><td><?= esc($log['version']) ?></td><td><?= esc($log['ip']) ?></td><td class="text-center"><?= view('dashboard/components/status_badge', ['status' => 'active', 'label' => 'Berhasil']) ?></td></tr><?php endforeach; ?></tbody></table></div></div></div>
+<?php $logs = $logs ?? []; $filters = $filters ?? []; ?>
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+        <h6 class="fw-semibold mb-1">Log Download Regulasi</h6>
+        <p class="text-secondary-light mb-0">Riwayat unduh dokumen regulasi oleh pengguna.</p>
+    </div>
+</div>
+
+<form action="<?= site_url('dashboard/regulasi/log-download') ?>" method="get" class="mb-24">
+    <div class="row g-12 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label fw-semibold text-primary-light text-sm mb-8">User ID</label>
+            <input type="number" min="1" class="form-control radius-8" name="user_id" value="<?= esc($filters['user_id'] ?? '') ?>" placeholder="ID pengguna">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold text-primary-light text-sm mb-8">Regulation ID</label>
+            <input type="number" min="1" class="form-control radius-8" name="regulation_id" value="<?= esc($filters['regulation_id'] ?? '') ?>" placeholder="ID regulasi">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fw-semibold text-primary-light text-sm mb-8">Dari</label>
+            <input type="date" class="form-control radius-8" name="from" value="<?= esc($filters['from'] ?? '') ?>">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fw-semibold text-primary-light text-sm mb-8">Sampai</label>
+            <input type="date" class="form-control radius-8" name="to" value="<?= esc($filters['to'] ?? '') ?>">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary-600 radius-8 px-20 py-11 w-100">Filter</button>
+        </div>
+    </div>
+</form>
+
+<div class="card">
+    <div class="card-body p-24">
+        <div class="table-responsive scroll-sm">
+            <table class="table bordered-table sm-table mb-0">
+                <thead>
+                    <tr><th>Waktu</th><th>User</th><th>Regulasi</th><th>Versi</th><th>Tipe Akses</th></tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($logs)): ?>
+                        <tr><td colspan="5" class="text-center text-secondary-light">Belum ada log download.</td></tr>
+                    <?php endif; ?>
+                    <?php foreach ($logs as $log): ?>
+                        <tr>
+                            <td><?= esc($log['created_at'] ?? '-') ?></td>
+                            <td><?= esc($log['username'] ?? $log['user_name'] ?? '-') ?></td>
+                            <td>
+                                <h6 class="text-md mb-0 fw-medium"><?= esc($log['regulation_title'] ?? '-') ?></h6>
+                                <small class="text-secondary-light"><?= esc($log['document_number'] ?? '-') ?></small>
+                            </td>
+                            <td>v<?= esc($log['version_number'] ?? '0') ?></td>
+                            <td><span class="badge bg-primary-50 text-primary-600 px-12 py-8 radius-8"><?= esc($log['access_type'] ?? '-') ?></span></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 <?= $this->endSection() ?>

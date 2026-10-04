@@ -423,21 +423,68 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('tag/(:segment)/hapus', 'TagController::delete/$1', ['as' => 'dashboard.knowledge.tags.delete']);
     });
 
-    $routes->group('regulasi', ['namespace' => 'App\Controllers\Regulation'], static function ($routes) {
+    $routes->group('regulasi', ['namespace' => 'App\Controllers\Admin'], static function ($routes) {
+        // CRUD Regulation
         $routes->get('dokumen', 'RegulationController::index', ['as' => 'dashboard.regulations.index']);
         $routes->get('dokumen/tambah', 'RegulationController::create', ['as' => 'dashboard.regulations.create']);
+        $routes->post('dokumen', 'RegulationController::store', ['as' => 'dashboard.regulations.store']);
         $routes->get('dokumen/(:segment)/ubah', 'RegulationController::edit/$1', ['as' => 'dashboard.regulations.edit']);
-        $routes->get('dokumen/(:segment)', 'RegulationController::detail/$1', ['as' => 'dashboard.regulations.detail']);
-        $routes->get('kategori', 'RegulationCategoryController::index', ['as' => 'dashboard.regulations.categories']);
-        $routes->get('kategori/tambah', 'RegulationCategoryController::create', ['as' => 'dashboard.regulations.categories.create']);
-        $routes->get('kategori/(:segment)', 'RegulationCategoryController::detail/$1', ['as' => 'dashboard.regulations.categories.detail']);
-        $routes->get('versi', 'RegulationVersionController::index', ['as' => 'dashboard.regulations.versions']);
-        $routes->get('versi/(:segment)', 'RegulationVersionController::detail/$1', ['as' => 'dashboard.regulations.versions.detail']);
-        $routes->get('relasi', 'RegulationRelationController::index', ['as' => 'dashboard.regulations.relations']);
-        $routes->get('relasi/(:segment)', 'RegulationRelationController::detail/$1', ['as' => 'dashboard.regulations.relations.detail']);
+        $routes->post('dokumen/(:segment)/ubah', 'RegulationController::update/$1', ['as' => 'dashboard.regulations.update']);
+        $routes->get('dokumen/(:segment)', 'RegulationController::show/$1', ['as' => 'dashboard.regulations.detail']);
+        $routes->post('dokumen/(:segment)/hapus', 'RegulationController::delete/$1', ['as' => 'dashboard.regulations.delete']);
+
+        // Workflow actions
+        $routes->post('dokumen/(:segment)/submit', 'RegulationController::submitReview/$1', ['as' => 'dashboard.regulations.submit']);
+        $routes->post('dokumen/(:segment)/approve', 'RegulationController::approve/$1', ['as' => 'dashboard.regulations.approve']);
+        $routes->post('dokumen/(:segment)/reject', 'RegulationController::reject/$1', ['as' => 'dashboard.regulations.reject']);
+        $routes->post('dokumen/(:segment)/revision', 'RegulationController::requestRevision/$1', ['as' => 'dashboard.regulations.revision']);
+        $routes->post('dokumen/(:segment)/publish', 'RegulationController::publish/$1', ['as' => 'dashboard.regulations.publish']);
+
+        // Version upload + set-current
+        $routes->post('dokumen/(:segment)/versi', 'RegulationController::addVersion/$1', ['as' => 'dashboard.regulations.version.add']);
+        $routes->post('dokumen/(:segment)/versi/current', 'RegulationController::setCurrentVersion/$1', ['as' => 'dashboard.regulations.version.current']);
+
+        // Competency attach
+        $routes->post('dokumen/(:segment)/kompetensi', 'RegulationController::attachCompetency/$1', ['as' => 'dashboard.regulations.competency.attach']);
+
+        // Categories
+        $routes->get('kategori', 'RegulationController::categories', ['as' => 'dashboard.regulations.categories']);
+        $routes->get('kategori/tambah', 'RegulationController::categoryCreate', ['as' => 'dashboard.regulations.categories.create']);
+        $routes->post('kategori/tambah', 'RegulationController::categoryStore', ['as' => 'dashboard.regulations.categories.store']);
+        $routes->get('kategori/(:segment)/ubah', 'RegulationController::categoryEdit/$1', ['as' => 'dashboard.regulations.categories.edit']);
+        $routes->post('kategori/(:segment)/ubah', 'RegulationController::categoryUpdate/$1', ['as' => 'dashboard.regulations.categories.update']);
+        $routes->post('kategori/(:segment)/hapus', 'RegulationController::categoryDelete/$1', ['as' => 'dashboard.regulations.categories.delete']);
+        $routes->get('kategori/(:segment)', 'RegulationController::categoryShow/$1', ['as' => 'dashboard.regulations.categories.detail']);
+
+        // Versions list/detail
+        $routes->get('versi', 'RegulationController::versions', ['as' => 'dashboard.regulations.versions']);
+        $routes->get('versi/(:segment)', 'RegulationController::versionShow/$1', ['as' => 'dashboard.regulations.versions.detail']);
+
+        // Relations
+        $routes->get('relasi', 'RegulationController::relations', ['as' => 'dashboard.regulations.relations']);
+        $routes->get('relasi/tambah', 'RegulationController::relationCreate', ['as' => 'dashboard.regulations.relations.create']);
+        $routes->post('relasi/tambah', 'RegulationController::relationStore', ['as' => 'dashboard.regulations.relations.store']);
+        $routes->get('relasi/(:segment)', 'RegulationController::relationShow/$1', ['as' => 'dashboard.regulations.relations.detail']);
+        $routes->post('relasi/(:segment)/hapus', 'RegulationController::relationDelete/$1', ['as' => 'dashboard.regulations.relations.delete']);
+
+        // Procurement stages
         $routes->get('tahapan-pbj', 'RegulationController::procurementStages', ['as' => 'dashboard.regulations.procurement-stages']);
+        $routes->get('tahapan-pbj/tambah', 'RegulationController::procurementStageCreate', ['as' => 'dashboard.regulations.procurement-stages.create']);
+        $routes->post('tahapan-pbj/tambah', 'RegulationController::procurementStageStore', ['as' => 'dashboard.regulations.procurement-stages.store']);
+        $routes->get('tahapan-pbj/(:segment)/ubah', 'RegulationController::procurementStageEdit/$1', ['as' => 'dashboard.regulations.procurement-stages.edit']);
+        $routes->post('tahapan-pbj/(:segment)/ubah', 'RegulationController::procurementStageUpdate/$1', ['as' => 'dashboard.regulations.procurement-stages.update']);
+        $routes->post('tahapan-pbj/(:segment)/hapus', 'RegulationController::procurementStageDelete/$1', ['as' => 'dashboard.regulations.procurement-stages.delete']);
+
+        // Competencies
         $routes->get('kompetensi-terkait', 'RegulationController::competencies', ['as' => 'dashboard.regulations.competencies']);
-        $routes->get('log-download', 'RegulationDownloadController::index', ['as' => 'dashboard.regulations.download-logs']);
+        $routes->get('kompetensi/tambah', 'RegulationController::competencyCreate', ['as' => 'dashboard.regulations.competencies.create']);
+        $routes->post('kompetensi/tambah', 'RegulationController::competencyStore', ['as' => 'dashboard.regulations.competencies.store']);
+        $routes->get('kompetensi/(:segment)/ubah', 'RegulationController::competencyEdit/$1', ['as' => 'dashboard.regulations.competencies.edit']);
+        $routes->post('kompetensi/(:segment)/ubah', 'RegulationController::competencyUpdate/$1', ['as' => 'dashboard.regulations.competencies.update']);
+        $routes->post('kompetensi/(:segment)/hapus', 'RegulationController::competencyDelete/$1', ['as' => 'dashboard.regulations.competencies.delete']);
+
+        // Download logs
+        $routes->get('log-download', 'RegulationController::downloadLogs', ['as' => 'dashboard.regulations.download-logs']);
     });
 
     $routes->group('komunikasi', ['namespace' => 'App\Controllers\Communication'], static function ($routes) {

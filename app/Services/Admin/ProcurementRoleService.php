@@ -78,30 +78,49 @@ class ProcurementRoleService
 
         $now = date('Y-m-d H:i:s');
 
+        // NOTE: DB live belum punya kolom organization_unit_id; tolerate if missing.
+        $supportsUnit = $this->hasColumn('user_procurement_roles', 'organization_unit_id');
+
         if ($existing) {
-            $db->table('user_procurement_roles')->where('id', $existing['id'])->update([
-                'organization_unit_id'   => $organizationUnitId,
-                'verification_status'    => 'pending',
-                'assignment_start_at'    => $now,
-                'verified_by'            => null,
-                'verified_at'            => null,
-                'updated_at'             => $now,
-            ]);
+            $update = [
+                'verification_status' => 'pending',
+                'assignment_start_at' => $now,
+                'verified_by'         => null,
+                'verified_at'         => null,
+                'updated_at'          => $now,
+            ];
+            if ($supportsUnit) {
+                $update['organization_unit_id'] = $organizationUnitId;
+            }
+            $db->table('user_procurement_roles')->where('id', $existing['id'])->update($update);
             $id = (int) $existing['id'];
         } else {
-            $id = (int) $db->table('user_procurement_roles')->insert([
-                'user_id'                 => $userId,
-                'procurement_role_id'     => $procurementRoleId,
-                'organization_unit_id'    => $organizationUnitId,
-                'verification_status'     => 'pending',
-                'assignment_start_at'     => $now,
-                'created_at'              => $now,
-                'updated_at'              => $now,
-            ], true);
+            $insert = [
+                'user_id'             => $userId,
+                'procurement_role_id' => $procurementRoleId,
+                'verification_status' => 'pending',
+                'assignment_start_at' => $now,
+                'created_at'          => $now,
+                'updated_at'          => $now,
+            ];
+            if ($supportsUnit) {
+                $insert['organization_unit_id'] = $organizationUnitId;
+            }
+            $id = (int) $db->table('user_procurement_roles')->insert($insert, true);
         }
 
         $this->audit->log($actorId, 'procurement_role.assign', 'user_procurement_roles', 'user_procurement_role', $id);
         return $id;
+    }
+
+    private function hasColumn(string $table, string $column): bool
+    {
+        return in_array($column, db_connect()->getFieldNames($table), true);
+    }
+
+    public function getAssignmentErrors(int $assignmentId): array
+    {
+        return $this->assignments->errors();
     }
 
     public function verify(int $assignmentId, string $newStatus, ?int $actorId = null): bool

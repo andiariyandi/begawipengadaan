@@ -1,6 +1,67 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Relasi Regulasi</h6><p class="text-secondary-light mb-0">Kelola hubungan antar dokumen regulasi.</p></div></div>
-<div class="card"><div class="card-body p-24"><div class="table-responsive scroll-sm"><table class="table bordered-table sm-table mb-0"><thead><tr><th>Regulasi Utama</th><th>Tipe Relasi</th><th>Regulasi Terkait</th><th>Catatan</th><th class="text-center">Aksi</th></tr></thead><tbody><?php foreach ([['id' => 'REL-001', 'source' => 'Perpres Nomor 12 Tahun 2021', 'type' => 'Mengubah', 'target' => 'Perpres Nomor 16 Tahun 2018', 'note' => 'Perubahan ketentuan PBJ'], ['id' => 'REL-002', 'source' => 'Peraturan LKPP Nomor 12 Tahun 2021', 'type' => 'Melaksanakan', 'target' => 'Perpres Nomor 12 Tahun 2021', 'note' => 'Pedoman pelaksanaan melalui penyedia'], ['id' => 'REL-003', 'source' => 'Surat Edaran Gubernur', 'type' => 'Merujuk', 'target' => 'Peraturan LKPP Nomor 12 Tahun 2021', 'note' => 'Pedoman internal']] as $relation): ?><tr><td><h6 class="text-md mb-0 fw-medium"><?= esc($relation['source']) ?></h6></td><td><span class="badge bg-primary-50 text-primary-600 px-12 py-8 radius-8"><?= esc($relation['type']) ?></span></td><td><?= esc($relation['target']) ?></td><td><?= esc($relation['note']) ?></td><td class="text-center"><a href="<?= site_url('dashboard/regulasi/relasi/' . $relation['id']) ?>" class="text-primary-600">Detail</a></td></tr><?php endforeach; ?></tbody></table></div></div></div>
+<?php $relations = $relations ?? []; $relationTypes = $relationTypes ?? []; ?>
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+        <h6 class="fw-semibold mb-1">Relasi Regulasi</h6>
+        <p class="text-secondary-light mb-0">Kelola hubungan antar dokumen regulasi.</p>
+    </div>
+    <a href="<?= site_url('dashboard/regulasi/relasi/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Relasi</a>
+</div>
+
+<?php if (session()->getFlashdata('success')): ?>
+    <div class="alert alert-success mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')): ?>
+    <div class="alert alert-danger mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
+<?php endif; ?>
+
+<div class="card">
+    <div class="card-body p-24">
+        <div class="table-responsive scroll-sm">
+            <table class="table bordered-table sm-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Regulasi Sumber</th>
+                        <th>Tipe Relasi</th>
+                        <th>Regulasi Terkait</th>
+                        <th>Catatan</th>
+                        <th>Pembuat</th>
+                        <th class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($relations)): ?>
+                        <tr><td colspan="6" class="text-center text-secondary-light">Belum ada relasi.</td></tr>
+                    <?php endif; ?>
+                    <?php foreach ($relations as $r): ?>
+                        <tr>
+                            <td>
+                                <h6 class="text-md mb-0 fw-medium"><?= esc($r['source_title'] ?? '-') ?></h6>
+                                <small class="text-secondary-light"><?= esc($r['source_number'] ?? '-') ?></small>
+                            </td>
+                            <td><span class="badge bg-primary-50 text-primary-600 px-12 py-8 radius-8"><?= esc($r['relation_type']) ?></span></td>
+                            <td>
+                                <h6 class="text-md mb-0 fw-medium"><?= esc($r['target_title'] ?? '-') ?></h6>
+                                <small class="text-secondary-light"><?= esc($r['target_number'] ?? '-') ?></small>
+                            </td>
+                            <td><?= esc($r['notes'] ?? '-') ?: '-' ?></td>
+                            <td><?= esc($r['creator_username'] ?? '-') ?></td>
+                            <td class="text-center">
+                                <form action="<?= site_url('dashboard/regulasi/relasi/' . (int) $r['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus relasi?')" class="d-inline">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" class="w-32-px h-32-px bg-danger-focus text-danger-main rounded-circle d-inline-flex align-items-center justify-content-center" title="Hapus">
+                                        <iconify-icon icon="solar:trash-bin-trash-outline"></iconify-icon>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 <?= $this->endSection() ?>
