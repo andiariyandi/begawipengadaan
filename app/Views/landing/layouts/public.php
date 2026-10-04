@@ -392,6 +392,39 @@
             line-height: 1.75;
         }
 
+        .learning-catalog__card {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(8, 47, 92, .08);
+            border: 1px solid #e6ebf2;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .learning-catalog__card:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(8, 47, 92, .12); }
+
+        .learning-catalog__thumb {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: #eef2f7;
+        }
+        .learning-catalog__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .learning-catalog__thumb--circle img { aspect-ratio: 1 / 1; border-radius: 50%; max-width: 160px; margin: 24px auto 0; }
+
+        .learning-catalog__body { padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; }
+        .learning-catalog__badges { margin-bottom: 4px; }
+        .learning-catalog__eyebrow { color: var(--begawi-primary); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+        .learning-catalog__title { margin: 0; font-size: 20px; line-height: 1.35; color: var(--begawi-dark); }
+        .learning-catalog__title a { color: inherit; text-decoration: none; }
+        .learning-catalog__title a:hover { color: var(--begawi-primary); }
+        .learning-catalog__text { margin: 0; color: #475569; font-size: 14px; line-height: 1.6; }
+        .learning-catalog__meta { display: flex; flex-wrap: wrap; gap: 8px 14px; padding: 0; margin: 6px 0 0; font-size: 13px; color: #42526b; }
+        .learning-catalog__meta li { display: inline-flex; align-items: center; gap: 6px; }
+        .learning-catalog__actions { margin-top: auto; padding-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .learning-catalog__enroll { margin: 0; }
+
         .learning-detail {
             padding: 112px 0;
         }

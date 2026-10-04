@@ -25,6 +25,134 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
     || in_array('super_admin', $roles, true);
 ?>
 <header class="main-header">
+    <style>
+        .main-menu__user {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .main-menu__user-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(8, 47, 92, .08);
+            color: #082f5c;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1;
+            transition: background-color .15s ease;
+            white-space: nowrap;
+        }
+        .main-menu__user-trigger:hover,
+        .main-menu__user:hover .main-menu__user-trigger,
+        .main-menu__user.is-open .main-menu__user-trigger {
+            background: rgba(8, 47, 92, .16);
+            color: #082f5c;
+        }
+        .main-menu__user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ff6b35;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .main-menu__user-name {
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+        }
+        .main-menu__user-trigger .icon-down-arrow {
+            font-size: 11px;
+            opacity: .7;
+        }
+        .main-menu__user-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            min-width: 240px;
+            margin: 0;
+            padding: 6px;
+            list-style: none;
+            background: #ffffff;
+            border: 1px solid #e6ebf2;
+            border-radius: 12px;
+            box-shadow: 0 14px 40px rgba(8, 47, 92, .12);
+            visibility: hidden;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity .15s ease, transform .15s ease, visibility 0s linear .15s;
+            z-index: 1000;
+        }
+        .main-menu__user:hover .main-menu__user-menu,
+        .main-menu__user.is-open .main-menu__user-menu {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity .15s ease, transform .15s ease, visibility 0s;
+        }
+        .main-menu__user-menu > li { list-style: none; margin: 0; padding: 0; }
+        .main-menu__user-menu a,
+        .main-menu__user-menu button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: 0;
+            padding: 9px 14px;
+            font-size: 14px;
+            color: #42526b;
+            text-decoration: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .main-menu__user-menu a:hover,
+        .main-menu__user-menu button:hover {
+            background: #eef6ff;
+            color: #082f5c;
+        }
+        .main-menu__user-meta {
+            padding: 12px 14px 10px;
+            border-bottom: 1px solid #edf0f5;
+            margin: 0 0 6px;
+            list-style: none;
+        }
+        .main-menu__user-meta strong {
+            display: block;
+            color: #082f5c;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .main-menu__user-meta small {
+            display: block;
+            color: #8390a3;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        .main-menu__user-divider {
+            height: 1px;
+            background: #edf0f5;
+            margin: 6px 8px;
+            list-style: none;
+        }
+        .main-menu__user-menu form { margin: 0; padding: 0; }
+        @media (max-width: 991px) {
+            .main-menu__user-name { display: none; }
+            .main-menu__user-trigger { padding: 4px; }
+            .main-menu__user-menu { right: 0; }
+        }
+    </style>
     <div class="main-menu__top">
         <div class="container">
             <div class="main-menu__top-inner">
@@ -137,31 +265,30 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                                 <div class="main-menu__btn-box-2"><a href="<?= route_to('dashboard.auth.register') ?>" class="thm-btn">Daftar</a></div>
                             </div>
                         <?php else: ?>
-                            <div class="main-menu__btn-boxes">
-                                <ul class="main-menu__list">
-                                    <li class="dropdown main-menu__btn-box-1">
-                                        <a href="<?= esc($workspaceHome) ?>" class="thm-btn">
-                                            <span><?= esc(mb_strimwidth($userName, 0, 18, '...')) ?></span>
-                                            <span class="icon-down-arrow"></span>
-                                        </a>
-                                        <ul class="shadow-box">
-                                            <li><span><?= esc($userName) ?></span></li>
-                                            <li><span><?= esc($roleLabel) ?></span></li>
-                                            <li><a href="<?= esc($workspaceHome) ?>">Dashboard Workspace</a></li>
-                                            <li><a href="<?= route_to('workspace.bookmarks.index') ?>">Bookmark</a></li>
-                                            <li><a href="<?= route_to('workspace.notifications') ?>">Notifikasi</a></li>
-                                            <li><a href="<?= route_to('profile.index') ?>">Profil Saya</a></li>
-                                            <?php if ($hasDashboardAccess): ?>
-                                                <li><a href="<?= route_to('dashboard.home') ?>">Dashboard Administrasi</a></li>
-                                            <?php endif; ?>
-                                            <li class="main-menu__user-divider" aria-hidden="true"></li>
-                                            <li>
-                                                <form action="<?= route_to('dashboard.auth.logout') ?>" method="post">
-                                                    <?= csrf_field() ?>
-                                                    <button type="submit">Keluar</button>
-                                                </form>
-                                            </li>
-                                        </ul>
+                            <div class="main-menu__user">
+                                <a href="<?= esc($workspaceHome) ?>" class="main-menu__user-trigger" aria-haspopup="true" aria-expanded="false">
+                                    <span class="main-menu__user-avatar" aria-hidden="true"><?= esc($accountInitial ?: 'U') ?></span>
+                                    <span class="main-menu__user-name"><?= esc(mb_strimwidth($userName, 0, 16, '…')) ?></span>
+                                    <span class="icon-down-arrow" aria-hidden="true"></span>
+                                </a>
+                                <ul class="main-menu__user-menu shadow-box" role="menu">
+                                    <li class="main-menu__user-meta">
+                                        <strong><?= esc($userName) ?></strong>
+                                        <small><?= esc($roleLabel) ?></small>
+                                    </li>
+                                    <li role="none"><a role="menuitem" href="<?= esc($workspaceHome) ?>">Dashboard Workspace</a></li>
+                                    <li role="none"><a role="menuitem" href="<?= route_to('workspace.bookmarks.index') ?>">Bookmark</a></li>
+                                    <li role="none"><a role="menuitem" href="<?= route_to('workspace.notifications') ?>">Notifikasi</a></li>
+                                    <li role="none"><a role="menuitem" href="<?= route_to('profile.index') ?>">Profil Saya</a></li>
+                                    <?php if ($hasDashboardAccess): ?>
+                                        <li role="none"><a role="menuitem" href="<?= route_to('dashboard.home') ?>">Dashboard Administrasi</a></li>
+                                    <?php endif; ?>
+                                    <li class="main-menu__user-divider" aria-hidden="true"></li>
+                                    <li role="none">
+                                        <form action="<?= route_to('dashboard.auth.logout') ?>" method="post">
+                                            <?= csrf_field() ?>
+                                            <button type="submit" role="menuitem">Keluar</button>
+                                        </form>
                                     </li>
                                 </ul>
                             </div>

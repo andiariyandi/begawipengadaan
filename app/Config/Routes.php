@@ -17,6 +17,7 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
         $routes->get('course/(:segment)', 'ArenaBelajarController::courseDetail/$1', ['as' => 'public.learning.course.detail']);
         $routes->get('kelas', 'ArenaBelajarController::classes', ['as' => 'public.learning.classes']);
         $routes->get('kelas/(:segment)', 'ArenaBelajarController::classDetail/$1', ['as' => 'public.learning.class.detail']);
+        $routes->post('kelas/(:segment)/daftar', 'ArenaBelajarController::enroll/$1');
         $routes->get('pengajar', 'ArenaBelajarController::trainers', ['as' => 'public.learning.trainers']);
         $routes->get('pengajar/(:segment)', 'ArenaBelajarController::trainerDetail/$1', ['as' => 'public.learning.trainer.detail']);
     });
@@ -73,6 +74,8 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
     });
 });
 
+$routes->post('bookmark/toggle', 'BookmarkController::toggle', ['as' => 'public.bookmark.toggle']);
+
 // LEGACY Auth namespace group — DISABLED 2026-10-02 (Step 1 of auth cleanup).
 // Reason: references App\Controllers\Auth\RegisterController (deleted in working tree)
 // and several empty stub controllers. Re-enabling breaks php spark routes.
@@ -124,6 +127,7 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('regulasi', 'BookmarkController::regulations', ['as' => 'workspace.bookmarks.regulations']);
         $routes->get('komunikasi', 'BookmarkController::communication', ['as' => 'workspace.bookmarks.communication']);
         $routes->get('sertifikat', 'BookmarkController::certificates', ['as' => 'workspace.bookmarks.certificates']);
+        $routes->post('/', 'BookmarkController::remove', ['as' => 'workspace.bookmarks.remove']);
     });
 
     $routes->group('peserta', static function ($routes) {
@@ -131,11 +135,13 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('kelas-saya', 'ParticipantController::myClasses', ['as' => 'workspace.participant.classes']);
         $routes->get('kelas/(:segment)', 'ParticipantController::classDetail/$1', ['as' => 'workspace.participant.class.detail']);
         $routes->get('kelas/(:segment)/belajar', 'ParticipantController::study/$1', ['as' => 'workspace.participant.study']);
+        $routes->get('lesson/(:segment)', 'ParticipantController::lessonDetail/$1', ['as' => 'workspace.participant.lesson.detail']);
         $routes->get('kelas/(:segment)/progres', 'ParticipantController::progress/$1', ['as' => 'workspace.participant.progress']);
         $routes->get('kelas/(:segment)/pre-test', 'ParticipantController::preTest/$1', ['as' => 'workspace.participant.pre-test']);
         $routes->get('kelas/(:segment)/pre-test/hasil', 'ParticipantController::preTestResult/$1', ['as' => 'workspace.participant.pre-test.result']);
         $routes->get('kelas/(:segment)/quiz', 'ParticipantController::quiz/$1', ['as' => 'workspace.participant.quiz']);
         $routes->get('kelas/(:segment)/quiz/hasil', 'ParticipantController::quizResult/$1', ['as' => 'workspace.participant.quiz.result']);
+        $routes->get('quiz/(:segment)', 'ParticipantController::takeQuiz/$1', ['as' => 'workspace.participant.quiz.take']);
         $routes->get('kelas/(:segment)/tugas', 'ParticipantController::assignments/$1', ['as' => 'workspace.participant.assignments']);
         $routes->get('kelas/(:segment)/tugas/kirim', 'ParticipantController::assignmentSubmission/$1', ['as' => 'workspace.participant.assignment.submission']);
         $routes->get('kelas/(:segment)/tugas/revisi', 'ParticipantController::assignmentRevision/$1', ['as' => 'workspace.participant.assignment.revision']);
@@ -158,8 +164,23 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('kelas/(:segment)/peserta', 'TrainerController::participants/$1', ['as' => 'workspace.trainer.participants']);
         $routes->get('kelas/(:segment)/materi', 'TrainerController::materials/$1', ['as' => 'workspace.trainer.materials']);
         $routes->get('kelas/(:segment)/modul', 'TrainerController::modules/$1', ['as' => 'workspace.trainer.modules']);
+        $routes->get('kelas/(:segment)/modul/tambah', 'TrainerController::createModule/$1', ['as' => 'workspace.trainer.module.create']);
+        $routes->post('kelas/(:segment)/modul/tambah', 'TrainerController::createModule/$1');
+        $routes->get('kelas/(:segment)/modul/(:segment)/ubah', 'TrainerController::editModule/$1/$2', ['as' => 'workspace.trainer.module.edit']);
+        $routes->post('kelas/(:segment)/modul/(:segment)/ubah', 'TrainerController::editModule/$1/$2');
+        $routes->post('kelas/(:segment)/modul/(:segment)/hapus', 'TrainerController::deleteModule/$1/$2', ['as' => 'workspace.trainer.module.delete']);
+        $routes->get('kelas/(:segment)/modul/(:segment)/lesson/tambah', 'TrainerController::createLesson/$1/$2', ['as' => 'workspace.trainer.lesson.create']);
+        $routes->post('kelas/(:segment)/modul/(:segment)/lesson/tambah', 'TrainerController::createLesson/$1/$2');
+        $routes->get('kelas/(:segment)/lesson/(:segment)/ubah', 'TrainerController::editLesson/$1/$2', ['as' => 'workspace.trainer.lesson.edit']);
+        $routes->post('kelas/(:segment)/lesson/(:segment)/ubah', 'TrainerController::editLesson/$1/$2');
+        $routes->post('kelas/(:segment)/lesson/(:segment)/hapus', 'TrainerController::deleteLesson/$1/$2', ['as' => 'workspace.trainer.lesson.delete']);
         $routes->get('kelas/(:segment)/quiz', 'TrainerController::quizzes/$1', ['as' => 'workspace.trainer.quizzes']);
-        $routes->get('kelas/(:segment)/tugas', 'TrainerController::assignments/$1', ['as' => 'workspace.trainer.assignments']);
+        $routes->get('kelas/(:segment)/quiz/tambah', 'TrainerController::createQuiz/$1', ['as' => 'workspace.trainer.quiz.create']);
+        $routes->post('kelas/(:segment)/quiz/tambah', 'TrainerController::createQuiz/$1');
+        $routes->get('kelas/(:segment)/quiz/(:segment)/soal', 'TrainerController::editQuiz/$1/$2', ['as' => 'workspace.trainer.quiz.edit']);
+        $routes->post('kelas/(:segment)/quiz/(:segment)/soal', 'TrainerController::editQuiz/$1/$2');
+        $routes->get('kelas/(:segment)/quiz/(:segment)/soal/tambah', 'TrainerController::addQuestion/$1/$2', ['as' => 'workspace.trainer.question.create']);
+        $routes->post('kelas/(:segment)/quiz/(:segment)/soal/tambah', 'TrainerController::addQuestion/$1/$2');
         $routes->get('kelas/(:segment)/progres', 'TrainerController::progress/$1', ['as' => 'workspace.trainer.progress']);
     });
 
@@ -299,6 +320,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('kelas/(:segment)/ubah', 'LearningClassController::edit/$1', ['as' => 'dashboard.learning.classes.edit']);
         $routes->post('kelas/(:segment)/ubah', 'LearningClassController::update/$1', ['as' => 'dashboard.learning.classes.update']);
         $routes->get('kelas/(:segment)', 'LearningClassController::detail/$1', ['as' => 'dashboard.learning.classes.detail']);
+        $routes->post('kelas/(:segment)/trainer', 'LearningClassController::assignTrainer/$1', ['as' => 'dashboard.learning.classes.assign-trainer']);
+        $routes->post('kelas/(:segment)/trainer/(:segment)/cabut', 'LearningClassController::revokeTrainer/$1/$2', ['as' => 'dashboard.learning.classes.revoke-trainer']);
         $routes->get('materi-modul', 'ModuleController::index', ['as' => 'dashboard.learning.modules']);
         $routes->post('materi-modul', 'ModuleController::store', ['as' => 'dashboard.learning.modules.store']);
         $routes->get('materi-modul/tambah', 'ModuleController::create', ['as' => 'dashboard.learning.modules.create']);
@@ -330,24 +353,65 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     $routes->group('bunga-rampai', ['namespace' => 'App\Controllers\Knowledge'], static function ($routes) {
         $routes->get('artikel', 'ArticleController::index', ['as' => 'dashboard.knowledge.articles']);
         $routes->get('artikel/tambah', 'ArticleController::create', ['as' => 'dashboard.knowledge.articles.create']);
+        $routes->post('artikel/tambah', 'ArticleController::store');
         $routes->get('artikel/(:segment)/ubah', 'ArticleController::edit/$1', ['as' => 'dashboard.knowledge.articles.edit']);
+        $routes->post('artikel/(:segment)/ubah', 'ArticleController::update/$1');
         $routes->get('artikel/(:segment)', 'ArticleController::detail/$1', ['as' => 'dashboard.knowledge.articles.detail']);
+        $routes->post('artikel/(:segment)/hapus', 'ArticleController::delete/$1', ['as' => 'dashboard.knowledge.articles.delete']);
+
         $routes->get('faq', 'FaqController::index', ['as' => 'dashboard.knowledge.faqs']);
         $routes->get('faq/tambah', 'FaqController::create', ['as' => 'dashboard.knowledge.faqs.create']);
+        $routes->post('faq/tambah', 'FaqController::store');
+        $routes->get('faq/(:segment)/ubah', 'FaqController::edit/$1', ['as' => 'dashboard.knowledge.faqs.edit']);
+        $routes->post('faq/(:segment)/ubah', 'FaqController::update/$1');
         $routes->get('faq/(:segment)', 'FaqController::detail/$1', ['as' => 'dashboard.knowledge.faqs.detail']);
+        $routes->post('faq/(:segment)/hapus', 'FaqController::delete/$1', ['as' => 'dashboard.knowledge.faqs.delete']);
+
         $routes->get('studi-kasus', 'CaseStudyController::index', ['as' => 'dashboard.knowledge.case-studies']);
         $routes->get('studi-kasus/tambah', 'CaseStudyController::create', ['as' => 'dashboard.knowledge.case-studies.create']);
+        $routes->post('studi-kasus/tambah', 'CaseStudyController::store');
+        $routes->get('studi-kasus/(:segment)/ubah', 'CaseStudyController::edit/$1', ['as' => 'dashboard.knowledge.case-studies.edit']);
+        $routes->post('studi-kasus/(:segment)/ubah', 'CaseStudyController::update/$1');
         $routes->get('studi-kasus/(:segment)', 'CaseStudyController::detail/$1', ['as' => 'dashboard.knowledge.case-studies.detail']);
+        $routes->post('studi-kasus/(:segment)/hapus', 'CaseStudyController::delete/$1', ['as' => 'dashboard.knowledge.case-studies.delete']);
+
         $routes->get('template-dokumen', 'DocumentTemplateController::index', ['as' => 'dashboard.knowledge.document-templates']);
         $routes->get('template-dokumen/tambah', 'DocumentTemplateController::create', ['as' => 'dashboard.knowledge.document-templates.create']);
+        $routes->post('template-dokumen/tambah', 'DocumentTemplateController::store');
+        $routes->get('template-dokumen/(:segment)/ubah', 'DocumentTemplateController::edit/$1', ['as' => 'dashboard.knowledge.document-templates.edit']);
+        $routes->post('template-dokumen/(:segment)/ubah', 'DocumentTemplateController::update/$1');
         $routes->get('template-dokumen/(:segment)', 'DocumentTemplateController::detail/$1', ['as' => 'dashboard.knowledge.document-templates.detail']);
+        $routes->post('template-dokumen/(:segment)/hapus', 'DocumentTemplateController::delete/$1', ['as' => 'dashboard.knowledge.document-templates.delete']);
+
         $routes->get('media-galeri', 'KnowledgeMediaController::index', ['as' => 'dashboard.knowledge.media-gallery']);
         $routes->get('media-galeri/tambah', 'KnowledgeMediaController::create', ['as' => 'dashboard.knowledge.media-gallery.create']);
+        $routes->post('media-galeri/tambah', 'KnowledgeMediaController::store');
+        $routes->get('media-galeri/(:segment)/ubah', 'KnowledgeMediaController::edit/$1', ['as' => 'dashboard.knowledge.media-gallery.edit']);
+        $routes->post('media-galeri/(:segment)/ubah', 'KnowledgeMediaController::update/$1');
         $routes->get('media-galeri/(:segment)', 'KnowledgeMediaController::detail/$1', ['as' => 'dashboard.knowledge.media-gallery.detail']);
+        $routes->post('media-galeri/(:segment)/hapus', 'KnowledgeMediaController::delete/$1', ['as' => 'dashboard.knowledge.media-gallery.delete']);
+
+        $routes->get('item-media', 'KnowledgeMediaItemController::index', ['as' => 'dashboard.knowledge.media-items']);
+        $routes->get('item-media/(:segment)', 'KnowledgeMediaItemController::detail/$1', ['as' => 'dashboard.knowledge.media-items.detail']);
+
         $routes->get('carousel-konten-unggulan', 'KnowledgeCarouselController::index', ['as' => 'dashboard.knowledge.carousel']);
         $routes->get('carousel-konten-unggulan/tambah', 'KnowledgeCarouselController::create', ['as' => 'dashboard.knowledge.carousel.create']);
-        $routes->get('kategori', 'ArticleController::categories', ['as' => 'dashboard.knowledge.categories']);
-        $routes->get('tag', 'ArticleController::tags', ['as' => 'dashboard.knowledge.tags']);
+        $routes->post('carousel-konten-unggulan/tambah', 'KnowledgeCarouselController::store');
+        $routes->post('carousel-konten-unggulan/(:segment)/nonaktifkan', 'KnowledgeCarouselController::disable/$1', ['as' => 'dashboard.knowledge.carousel.disable']);
+
+        $routes->get('kategori', 'CategoryController::index', ['as' => 'dashboard.knowledge.categories']);
+        $routes->get('kategori/tambah', 'CategoryController::create', ['as' => 'dashboard.knowledge.categories.create']);
+        $routes->post('kategori/tambah', 'CategoryController::store');
+        $routes->get('kategori/(:segment)/ubah', 'CategoryController::edit/$1', ['as' => 'dashboard.knowledge.categories.edit']);
+        $routes->post('kategori/(:segment)/ubah', 'CategoryController::update/$1');
+        $routes->post('kategori/(:segment)/hapus', 'CategoryController::delete/$1', ['as' => 'dashboard.knowledge.categories.delete']);
+
+        $routes->get('tag', 'TagController::index', ['as' => 'dashboard.knowledge.tags']);
+        $routes->get('tag/tambah', 'TagController::create', ['as' => 'dashboard.knowledge.tags.create']);
+        $routes->post('tag/tambah', 'TagController::store');
+        $routes->get('tag/(:segment)/ubah', 'TagController::edit/$1', ['as' => 'dashboard.knowledge.tags.edit']);
+        $routes->post('tag/(:segment)/ubah', 'TagController::update/$1');
+        $routes->post('tag/(:segment)/hapus', 'TagController::delete/$1', ['as' => 'dashboard.knowledge.tags.delete']);
     });
 
     $routes->group('regulasi', ['namespace' => 'App\Controllers\Regulation'], static function ($routes) {

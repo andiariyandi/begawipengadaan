@@ -27,6 +27,9 @@ class LearningVerticalSliceService
         if (! $class) {
             throw new RuntimeException('Kelas tidak ditemukan.');
         }
+        if (! in_array($class['status'] ?? null, ['scheduled', 'active'], true)) {
+            throw new RuntimeException('Kelas tidak dapat diikuti pada status saat ini.');
+        }
 
         $existing = $this->db->table('enrollments')
             ->where(['class_id' => $classId, 'user_id' => $userId])
@@ -36,14 +39,18 @@ class LearningVerticalSliceService
         }
 
         $now = date('Y-m-d H:i:s');
-        $this->db->table('enrollments')->insert([
-            'class_id' => $classId,
-            'user_id' => $userId,
-            'status' => 'pending',
-            'enrolled_at' => $now,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        try {
+            $this->db->table('enrollments')->insert([
+                'class_id' => $classId,
+                'user_id' => $userId,
+                'status' => 'pending',
+                'enrolled_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        } catch (\Throwable $e) {
+            throw new RuntimeException('Enrollment ganda tidak diizinkan.');
+        }
 
         return (int) $this->db->insertID();
     }
@@ -152,6 +159,17 @@ class LearningVerticalSliceService
         $attempt = $this->db->table('quiz_attempts')->where('id', $attemptId)->get()->getRowArray();
         if (! $attempt || $attempt['status'] !== 'started') {
             throw new RuntimeException('Percobaan quiz tidak dapat disubmit.');
+        }
+
+        $owner = $this->db->table('enrollments')
+            ->select('enrollments.user_id, enrollments.status')
+            ->where('id', (int) $attempt['enrollment_id'])
+            ->get()->getRowArray();
+        if (! $owner || (int) $owner['user_id'] !== $userId) {
+            throw new RuntimeException('Anda tidak berhak mengumpulkan jawaban untuk attempt ini.');
+        }
+        if (($owner['status'] ?? null) !== 'active') {
+            throw new RuntimeException('Enrollment tidak aktif. Submit jawaban ditolak.');
         }
 
         $context = $this->quizContext($userId, (int) $attempt['quiz_id'], (int) $attempt['enrollment_id']);

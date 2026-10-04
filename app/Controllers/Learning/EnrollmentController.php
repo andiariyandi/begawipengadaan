@@ -113,7 +113,7 @@ class EnrollmentController extends BaseController
             ->join('roles r', 'r.id = ur.role_id')
             ->join('role_permissions rp', 'rp.role_id = r.id')
             ->join('permissions p', 'p.id = rp.permission_id')
-            ->where(['ur.user_id' => $actorId, 'ur.status' => 'active', 'p.name' => 'enrollment.verify'])
+            ->where(['ur.user_id' => $actorId, 'ur.status' => 'active', 'p.key' => 'enrollment.verify'])
             ->countAllResults() > 0;
         if (! $hasPermission) {
             throw new RuntimeException('Anda tidak memiliki permission approval enrollment.');

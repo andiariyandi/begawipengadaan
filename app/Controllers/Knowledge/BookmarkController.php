@@ -2,17 +2,23 @@
 
 namespace App\Controllers\Knowledge;
 
-use App\Controllers\BaseController;
+use App\Models\Knowledge\BookmarkModel;
 
-class BookmarkController extends BaseController
+class BookmarkController extends BaseKnowledgeController
 {
     public function index(): string
     {
+        $userId = $this->currentUserId();
+        $items = (new BookmarkModel())
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
         return view('dashboard/knowledge/bookmarks/index', [
-            'title' => 'Bookmark Bunga Rampai | Dashboard BegawiPBJ',
-            'pageTitle' => 'Bookmark Bunga Rampai',
-            'activeMenu' => 'knowledge',
-            'activeSubmenu' => null,
+            'title'        => 'Bookmark | Dashboard BegawiPBJ',
+            'pageTitle'    => 'Bookmark',
+            'activeMenu'   => 'knowledge',
+            'activeSubmenu'=> 'bookmarks',
+            'items'        => $items,
         ]);
     }
 }

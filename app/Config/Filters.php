@@ -3,6 +3,7 @@
 namespace Config;
 
 use App\Filters\AuthenticationFilter;
+use App\Filters\WorkspaceAuthFilter;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
@@ -36,6 +37,7 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'auth'           => AuthenticationFilter::class,
+        'workspace-auth' => WorkspaceAuthFilter::class,
     ];
 
     /**
@@ -111,6 +113,9 @@ class Filters extends BaseFilters
     public array $filters = [
         'auth' => [
             'before' => ['dashboard', 'dashboard/*'],
+        ],
+        'workspace-auth' => [
+            'before' => ['workspace', 'workspace/*'],
         ],
     ];
 }

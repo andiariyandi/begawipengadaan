@@ -5,45 +5,16 @@
 <?= view('landing/components/page_header', ['page_title' => $pageTitle]) ?>
 
 <?php
-$catalogs = [
-    'programs' => [
-        ['title' => 'Pengadaan Barang/Jasa Pemerintah', 'text' => 'Peta belajar menyeluruh dari perencanaan sampai evaluasi pengadaan.', 'icon' => 'why-choose-one-icon-1.png', 'slug' => 'pengadaan-barang-jasa-pemerintah'],
-        ['title' => 'Kompetensi Pejabat Pengadaan', 'text' => 'Latihan terarah untuk memperkuat peran dan tanggung jawab pejabat pengadaan.', 'icon' => 'why-choose-one-icon-2.png', 'slug' => 'kompetensi-pejabat-pengadaan'],
-        ['title' => 'Pengadaan Berkelanjutan', 'text' => 'Pahami prinsip ramah lingkungan dan manfaat sosial dalam proses PBJ.', 'icon' => 'why-choose-one-icon-3.png', 'slug' => 'pengadaan-berkelanjutan'],
-        ['title' => 'Klinik PBJ Lampung', 'text' => 'Pendampingan berbasis kasus untuk menjawab kebutuhan unit kerja.', 'icon' => 'why-choose-one-icon-4.png', 'slug' => 'klinik-pbj-lampung'],
-    ],
-    'courses' => [
-        ['title' => 'Perencanaan Pengadaan', 'text' => 'Menyusun kebutuhan, spesifikasi, dan strategi pengadaan yang akuntabel.', 'icon' => 'why-choose-one-icon-1.png', 'slug' => 'perencanaan-pengadaan'],
-        ['title' => 'Pemilihan Penyedia', 'text' => 'Mengenali metode pemilihan dan tahapan evaluasi penawaran.', 'icon' => 'why-choose-one-icon-2.png', 'slug' => 'pemilihan-penyedia'],
-        ['title' => 'Pengelolaan Kontrak', 'text' => 'Mengawal pelaksanaan, perubahan, pembayaran, dan serah terima kontrak.', 'icon' => 'why-choose-one-icon-3.png', 'slug' => 'pengelolaan-kontrak'],
-        ['title' => 'Manajemen Risiko PBJ', 'text' => 'Mengidentifikasi dan mengendalikan risiko pada setiap tahapan pengadaan.', 'icon' => 'why-choose-one-icon-4.png', 'slug' => 'manajemen-risiko-pbj'],
-    ],
-    'classes' => [
-        ['title' => 'Kelas Dasar PBJ', 'text' => 'Kelas pengantar untuk memahami alur dan istilah penting dalam PBJ.', 'icon' => 'why-choose-one-icon-1.png', 'slug' => 'kelas-dasar-pbj'],
-        ['title' => 'Kelas Studi Kasus', 'text' => 'Diskusi kasus nyata untuk melatih analisis dan pengambilan keputusan.', 'icon' => 'why-choose-one-icon-2.png', 'slug' => 'kelas-studi-kasus'],
-        ['title' => 'Forum Tanya Jawab', 'text' => 'Sesi interaktif bersama pengajar dan peserta dari unit kerja Lampung.', 'icon' => 'why-choose-one-icon-3.png', 'slug' => 'forum-tanya-jawab'],
-        ['title' => 'Kelas Persiapan Sertifikasi', 'text' => 'Belajar mandiri dan berkelompok untuk mempersiapkan uji kompetensi.', 'icon' => 'why-choose-one-icon-4.png', 'slug' => 'kelas-persiapan-sertifikasi'],
-    ],
-    'trainers' => [
-        ['title' => 'Rina Puspitasari', 'text' => 'Fasilitator perencanaan dan strategi Pengadaan Barang/Jasa.', 'icon' => 'why-choose-one-icon-1.png', 'slug' => 'rina-puspitasari'],
-        ['title' => 'Budi Santoso', 'text' => 'Praktisi pengelolaan kontrak dan pengendalian pelaksanaan pekerjaan.', 'icon' => 'why-choose-one-icon-2.png', 'slug' => 'budi-santoso'],
-        ['title' => 'Dewi Lestari', 'text' => 'Pengajar regulasi, kepatuhan, dan manajemen risiko PBJ.', 'icon' => 'why-choose-one-icon-3.png', 'slug' => 'dewi-lestari'],
-        ['title' => 'Arif Rahman', 'text' => 'Mentor pengadaan berkelanjutan dan inovasi layanan publik.', 'icon' => 'why-choose-one-icon-4.png', 'slug' => 'arif-rahman'],
-    ],
-];
-$items = $items ?? ($catalogs[$catalogType] ?? []);
-$detailBase = [
-    'programs' => 'arena-belajar/program',
-    'courses' => 'arena-belajar/course',
-    'classes' => 'arena-belajar/kelas',
-    'trainers' => 'arena-belajar/pengajar',
-][$catalogType];
 $detailRoute = [
     'programs' => 'public.learning.program.detail',
-    'courses' => 'public.learning.course.detail',
-    'classes' => 'public.learning.class.detail',
+    'courses'  => 'public.learning.course.detail',
+    'classes'  => 'public.learning.class.detail',
     'trainers' => 'public.learning.trainer.detail',
-][$catalogType];
+][$catalogType] ?? null;
+
+$pager = $pager ?? service('pager');
+$page  = (int) ($_GET['page'] ?? 1);
+$perPage = 15;
 ?>
 
 <section class="category-one learning-catalog">
@@ -57,72 +28,97 @@ $detailRoute = [
             <h2 class="section-title__title"><?= esc($pageTitle) ?></h2>
             <p class="learning-catalog__intro"><?= esc($description) ?></p>
         </div>
-        <?php if ($catalogType === 'courses'): ?>
-            <div class="row course-list__right">
-                <?php foreach ($items as $index => $item): ?>
-                    <div class="col-xl-6 col-lg-6 col-md-6">
-                        <article class="course-list__single">
-                            <div class="course-list__img-box">
-                                <div class="course-list__img">
-                                    <img src="<?= base_url('assets/main/images/resources/course-list-img-' . (($index % 5) + 1) . '.jpg') ?>" alt="<?= esc($item['title']) ?>">
-                                </div>
-                            </div>
-                            <div class="course-list__content">
-                                <div class="course-list__doller-and-heart">
-                                    <div class="course-list__doller"><p>PBJ Lampung</p></div>
-                                    <div class="course-list__heart"><a href="<?= route_to($detailRoute, $item['slug']) ?>" aria-label="Buka <?= esc($item['title'] ?? '-') ?>"><span class="icon-book"></span></a></div>
-                                </div>
-                                <h3 class="course-list__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3>
-                                <div class="course-list__ratting-box">
-                                    <div class="course-list__ratting"><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span></div>
-                                    <p class="course-list__ratting-text"><?= esc($item['program_title'] ?? 'Materi terstruktur') ?></p>
-                                </div>
-                                <ul class="course-list__meta list-unstyled">
-                                    <li><p><span class="icon-book"></span> <?= esc($item['level'] ?? 'PBJ') ?></p></li>
-                                    <li><p><span class="icon-clock"></span> <?= ($item['duration_minutes'] ?? null) !== null ? esc((string) $item['duration_minutes']) . ' menit' : 'Mandiri' ?></p></li>
-                                    <li><p><span class="icon-user"></span> <?= esc($item['visibility'] ?? 'Public') ?></p></li>
-                                </ul>
-                                <div class="course-list__btn-and-client-info">
-                                    <div class="course-list__btn-box"><a class="thm-btn-two" href="<?= route_to($detailRoute, $item['slug']) ?>"><span>Lihat Course</span><i class="icon-angles-right"></i></a></div>
-                                    <div class="course-list__client-box"><div class="course-list__client-img"><img src="<?= base_url('assets/main/images/resources/course-list-client-img-' . (($index % 5) + 1) . '.jpg') ?>" alt=""></div><div class="course-list__client-content"><h4>Tim BegawiPBJ</h4><p>Pengajar PBJ</p></div></div>
-                                </div>
-                            </div>
-                        </article>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php elseif ($catalogType === 'classes'): ?>
-            <div class="row">
-                <?php foreach ($items as $item): ?>
-                    <div class="col-xl-3 col-lg-6 col-md-6"><article class="category-one__single"><div class="category-one__icon"><img src="<?= base_url('assets/main/images/icon/' . ($item['icon'] ?? 'why-choose-one-icon-1.png')) ?>" alt=""></div><h3 class="category-one__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3><p class="category-one__text"><?= esc($item['course_title'] ?? '-') ?></p><p class="category-one__text">Periode: <?= esc($item['start_at'] ?? '-') ?> - <?= esc($item['end_at'] ?? '-') ?></p><p class="category-one__text">Kapasitas: <?= esc($item['capacity'] ?? '-') ?></p><?= view('landing/components/status_badge', ['status' => $item['status'] ?? '-']) ?><a class="category-one__btn" href="<?= route_to($detailRoute, $item['slug']) ?>"><span class="icon-angles-right"></span> Lihat Detail</a></article></div>
-                <?php endforeach; ?>
-            </div>
-        <?php elseif ($catalogType === 'trainers'): ?>
-            <div class="row">
-                <?php foreach ($items as $item): ?>
-                    <div class="col-xl-3 col-lg-6 col-md-6"><article class="category-one__single"><div class="category-one__icon"><img src="<?= base_url('assets/main/images/icon/' . ($item['icon'] ?? 'why-choose-one-icon-1.png')) ?>" alt=""></div><h3 class="category-one__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3><p class="category-one__text"><?= esc($item['text'] ?? 'Pengajar PBJ') ?></p><p class="category-one__text"><?= count($item['classes'] ?? []) ?> kelas aktif</p><a class="category-one__btn" href="<?= route_to($detailRoute, $item['slug']) ?>"><span class="icon-angles-right"></span> Lihat Profil</a></article></div>
-                <?php endforeach; ?>
-            </div>
+
+        <?php if ($items === []): ?>
+            <div class="row"><div class="col-12"><p class="text-center text-muted">Belum ada data.</p></div></div>
         <?php else: ?>
             <div class="row">
-                <?php foreach ($items as $item): ?>
-                    <div class="col-xl-3 col-lg-6 col-md-6">
-                        <article class="category-one__single">
-                            <div class="category-one__icon">
-                                <img src="<?= base_url('assets/main/images/icon/' . ($item['icon'] ?? 'why-choose-one-icon-1.png')) ?>" alt="">
-                            </div>
-                            <h3 class="category-one__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3>
-                            <p class="category-one__text"><?= esc($item['text'] ?? $item['summary'] ?? '-') ?></p>
-                            <a class="category-one__btn" href="<?= route_to($detailRoute, $item['slug']) ?>"><span class="icon-angles-right"></span> Lihat Detail</a>
+                <?php foreach ($items as $index => $item): ?>
+                    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+                        <article class="learning-catalog__card h-100">
+                            <?php if ($catalogType === 'courses'): ?>
+                                <div class="learning-catalog__thumb">
+                                    <img src="<?= base_url('assets/main/images/resources/course-list-img-' . (($index % 5) + 1) . '.jpg') ?>" alt="<?= esc($item['title'] ?? '') ?>">
+                                </div>
+                                <div class="learning-catalog__body">
+                                    <div class="learning-catalog__badges">
+                                        <?= view('landing/components/status_badge', ['status' => $item['status'] ?? 'draft']) ?>
+                                    </div>
+                                    <span class="learning-catalog__eyebrow"><?= esc($item['program_title'] ?? 'Materi terstruktur') ?></span>
+                                    <h3 class="learning-catalog__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3>
+                                    <p class="learning-catalog__text"><?= esc($item['summary'] ?? $item['text'] ?? '-') ?></p>
+                                    <ul class="learning-catalog__meta list-unstyled">
+                                        <li><span class="icon-book"></span> <?= esc($item['level'] ?? 'PBJ') ?></li>
+                                        <li><span class="icon-clock"></span> <?= ($item['duration_minutes'] ?? null) !== null ? esc((string) $item['duration_minutes']) . ' menit' : 'Mandiri' ?></li>
+                                    </ul>
+                                    <a class="thm-btn-two thm-btn-two--sm" href="<?= route_to($detailRoute, $item['slug']) ?>"><span>Lihat Course</span><i class="icon-angles-right"></i></a>
+                                </div>
+                            <?php elseif ($catalogType === 'classes'): ?>
+                                <div class="learning-catalog__thumb">
+                                    <img src="<?= base_url('assets/main/images/resources/course-list-img-' . (($index % 5) + 1) . '.jpg') ?>" alt="<?= esc($item['title'] ?? '') ?>">
+                                </div>
+                                <div class="learning-catalog__body">
+                                    <div class="learning-catalog__badges">
+                                        <?= view('landing/components/status_badge', ['status' => $item['status'] ?? 'draft']) ?>
+                                    </div>
+                                    <span class="learning-catalog__eyebrow">Kelas &middot; <?= esc($item['code'] ?? '') ?></span>
+                                    <h3 class="learning-catalog__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3>
+                                    <p class="learning-catalog__text">Course: <?= esc($item['course_title'] ?? '-') ?></p>
+                                    <ul class="learning-catalog__meta list-unstyled">
+                                        <li><span class="icon-clock"></span> <?= esc(($item['start_at'] ?? '-') . ' &ndash; ' . ($item['end_at'] ?? '-')) ?></li>
+                                        <li><span class="icon-user"></span> Kapasitas: <?= esc((string) ($item['capacity'] ?? '-')) ?></li>
+                                    </ul>
+                                    <div class="learning-catalog__actions">
+                                        <a class="thm-btn-two thm-btn-two--sm" href="<?= route_to($detailRoute, $item['slug']) ?>"><span>Lihat Detail</span><i class="icon-angles-right"></i></a>
+                                    </div>
+                                </div>
+                            <?php elseif ($catalogType === 'trainers'): ?>
+                                <div class="learning-catalog__thumb learning-catalog__thumb--circle">
+                                    <img src="<?= base_url('assets/main/images/resources/course-list-client-img-' . (($index % 5) + 1) . '.jpg') ?>" alt="">
+                                </div>
+                                <div class="learning-catalog__body">
+                                    <span class="learning-catalog__eyebrow"><?= esc($item['profile_type'] ?? 'Pengajar PBJ') ?></span>
+                                    <h3 class="learning-catalog__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3>
+                                    <p class="learning-catalog__text"><?= count($item['classes'] ?? []) ?> kelas aktif</p>
+                                    <a class="thm-btn-two thm-btn-two--sm" href="<?= route_to($detailRoute, $item['slug']) ?>"><span>Lihat Profil</span><i class="icon-angles-right"></i></a>
+                                </div>
+                            <?php else: ?>
+                                <div class="learning-catalog__thumb learning-catalog__thumb--circle">
+                                    <img src="<?= base_url('assets/main/images/icon/' . ($item['icon'] ?? 'why-choose-one-icon-1.png')) ?>" alt="">
+                                </div>
+                                <div class="learning-catalog__body">
+                                    <div class="learning-catalog__badges">
+                                        <?= view('landing/components/status_badge', ['status' => $item['status'] ?? 'draft']) ?>
+                                    </div>
+                                    <h3 class="learning-catalog__title"><a href="<?= route_to($detailRoute, $item['slug']) ?>"><?= esc($item['title'] ?? '-') ?></a></h3>
+                                    <p class="learning-catalog__text"><?= esc($item['text'] ?? $item['summary'] ?? '-') ?></p>
+                                    <a class="thm-btn-two thm-btn-two--sm" href="<?= route_to($detailRoute, $item['slug']) ?>"><span>Lihat Detail</span><i class="icon-angles-right"></i></a>
+                                    <?php
+                                    $bmType = match ($catalogType) {
+                                        'programs' => 'program',
+                                        'courses'  => 'course',
+                                        'classes'  => 'learning_class',
+                                        'trainers' => null,
+                                        default    => null,
+                                    };
+                                    ?>
+                                    <?php if ($bmType !== null && ! empty($item['id'])): ?>
+                                        <?= view('landing/components/bookmark_button', ['type' => $bmType, 'id' => (int) $item['id'], 'title' => $item['title'] ?? null, 'size' => 'sm']) ?>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
                         </article>
                     </div>
                 <?php endforeach; ?>
             </div>
+
+            <?php if ($pager): ?>
+                <?php $links = $pager->links($catalogType, 'default_full'); ?>
+                <?php if ($links): ?>
+                    <div class="row mt-4"><div class="col-12 d-flex justify-content-center"><?= $links ?></div></div>
+                <?php endif; ?>
+            <?php endif; ?>
         <?php endif; ?>
-        <?= view('landing/components/pagination', [
-            'currentPage' => (int) (service('request')->getGet('page') ?? 1),
-            'totalPages' => 3,
-        ]) ?>
     </div>
 </section>
 
