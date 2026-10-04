@@ -198,4 +198,48 @@ class UserProfileVerificationController extends BaseController
             'history'       => $history,
         ]);
     }
+
+    public function changeApprove(string $id)
+    {
+        $requestId = ctype_digit($id) ? (int) $id : 0;
+        $actorId = (int) session()->get('user_id');
+        $notes = (string) $this->request->getPost('notes');
+        try {
+            (new \App\Services\Admin\ProfileChangeRequestService())->approve($requestId, $actorId, $notes);
+            return redirect()->to('dashboard/akses/permohonan-perubahan-profil')->with('success', 'Perubahan profil disetujui dan diterapkan.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function changeReject(string $id)
+    {
+        $requestId = ctype_digit($id) ? (int) $id : 0;
+        $reason = trim((string) $this->request->getPost('reason'));
+        $notes = (string) $this->request->getPost('notes');
+        $actorId = (int) session()->get('user_id');
+        try {
+            (new \App\Services\Admin\ProfileChangeRequestService())->reject($requestId, $reason, $actorId, $notes);
+            return redirect()->to('dashboard/akses/permohonan-perubahan-profil')->with('success', 'Perubahan profil ditolak.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Permohonan tidak ditemukan.');
+        }
+    }
+
+    public function changeRequestRevision(string $id)
+    {
+        $requestId = ctype_digit($id) ? (int) $id : 0;
+        $note = trim((string) $this->request->getPost('revision_note'));
+        $actorId = (int) session()->get('user_id');
+        try {
+            (new \App\Services\Admin\ProfileChangeRequestService())->requestRevision($requestId, $note, $actorId);
+            return redirect()->to('dashboard/akses/permohonan-perubahan-profil')->with('success', 'Permintaan revisi dikirim.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Permohonan tidak ditemukan.');
+        }
+    }
 }

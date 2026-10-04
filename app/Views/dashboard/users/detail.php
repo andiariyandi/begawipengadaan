@@ -12,12 +12,20 @@
         </p>
     </div>
 
-    <a href="<?= site_url('dashboard/akses/pengguna/' . ($userId ?? '1') . '/ubah') ?>"
-        class="btn btn-primary-600 radius-8 px-20 py-11">
-        Ubah Pengguna
-    </a>
+    <div class="d-flex gap-12">
+        <a href="<?= site_url('dashboard/akses/pengguna') ?>"
+           class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
+        <a href="<?= site_url('dashboard/akses/pengguna/' . ($userId ?? '1') . '/ubah') ?>"
+           class="btn btn-primary-600 radius-8 px-20 py-11">Ubah Pengguna</a>
+    </div>
 </div>
 
+<?php if (session()->getFlashdata('success')): ?>
+    <div class="alert alert-success mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')): ?>
+    <div class="alert alert-danger mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
+<?php endif; ?>
 
 <div class="row gy-4">
 
@@ -212,11 +220,69 @@
 
         </div>
 
-
     </div>
 
 
 </div>
 
+<!-- Action panel -->
+<div class="row gy-4 mt-16">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body p-24">
+                <h6 class="text-lg mb-20">Tindakan Akun</h6>
+                <div class="row gy-16">
+
+                    <?php if (($user['account_status'] ?? '') !== 'active'): ?>
+                    <div class="col-md-3">
+                        <form action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/aktifkan') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-success-600 w-100 radius-8">
+                                <iconify-icon icon="solar:check-circle-outline" class="me-6"></iconify-icon>
+                                Aktifkan Akun
+                            </button>
+                        </form>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (($user['account_status'] ?? '') !== 'suspended'): ?>
+                    <div class="col-md-3">
+                        <form action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/suspend') ?>" method="post" onsubmit="return confirm('Tangguhkan akun ini?')">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="reason" value="Admin suspend via action panel">
+                            <button type="submit" class="btn btn-warning-600 w-100 radius-8">
+                                <iconify-icon icon="solar:pause-circle-outline" class="me-6"></iconify-icon>
+                                Suspend Akun
+                            </button>
+                        </form>
+                    </div>
+                    <?php endif; ?>
+
+                    <div class="col-md-3">
+                        <form action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/reset-password') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-info-600 w-100 radius-8">
+                                <iconify-icon icon="solar:lock-password-outline" class="me-6"></iconify-icon>
+                                Kirim Reset Password
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="col-md-3">
+                        <a href="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/ubah') ?>" class="btn btn-outline-primary-600 w-100 radius-8">
+                            <iconify-icon icon="solar:shield-keyhole-outline" class="me-6"></iconify-icon>
+                            Kelola Role (via Edit)
+                        </a>
+                    </div>
+
+                </div>
+                <p class="text-secondary-light text-xs mt-16 mb-0">
+                    <iconify-icon icon="solar:info-circle-outline"></iconify-icon>
+                    Password tidak dapat diubah langsung oleh admin. Reset password mengirim instruksi ke email pengguna.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?= $this->endSection() ?>
