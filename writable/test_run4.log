@@ -1,0 +1,118 @@
+﻿
+CodeIgniter v4.7.4 Command Line Tool - Server Time: 2026-10-04 18:21:06 UTC+00:00
+
+Cache
+  cache:clear       Clears the current system caches.
+  cache:info        Shows file cache information in the current system.
+
+CodeIgniter
+  config:check      Check your Config values.
+  env               Retrieves the current environment, or set a new one.
+  filter:check      Check filters for a route.
+  help              Displays basic usage information.
+  list              Lists the available commands.
+  namespaces        Verifies your namespaces are setup correctly.
+  optimize          Optimize for production.
+  phpini:check      Check your php.ini values in production environment.
+  publish           Discovers and executes all predefined Publisher classes.
+  routes            Displays all routes.
+  serve             Launches the CodeIgniter PHP-Development Server.
+
+Database
+  db:create         Create a new database schema.
+  db:seed           Runs the specified seeder to populate known data into the database.
+  db:table          Retrieves information on the selected table.
+  migrate           Locates and runs all new migrations against the database.
+  migrate:refresh   Does a rollback followed by a latest to refresh the current state of the database.
+  migrate:rollback  Runs the "down" method for all migrations in the last batch.
+  migrate:status    Displays a list of all migrations and whether they've been run or not.
+
+Encryption
+  key:generate      Generates a new encryption key and writes it in an `.env` file.
+
+Generators
+  make:cell         Generates a new Controlled Cell file and its view.
+  make:command      Generates a new spark command.
+  make:config       Generates a new config file.
+  make:controller   Generates a new controller file.
+  make:entity       Generates a new entity file.
+  make:filter       Generates a new filter file.
+  make:migration    Generates a new migration file.
+  make:model        Generates a new model file.
+  make:scaffold     Generates a complete set of scaffold files.
+  make:seeder       Generates a new seeder file.
+  make:test         Generates a new test file.
+  make:transformer  Generates a new transformer file.
+  make:validation   Generates a new validation file.
+
+Housekeeping
+  debugbar:clear    Clears all debugbar JSON files.
+  logs:clear        Clears all log files.
+
+Translation
+  lang:find         Find and save available phrases to translate.
+  lang:sync         Synchronize translation files from one language to another.
+
+Worker Mode
+  worker:install    Install FrankenPHP worker mode by creating necessary configuration files
+  worker:uninstall  Remove FrankenPHP worker mode configuration files
+
+========== TEST 0: LOGIN ==========
+[PASS] Login page returns 200
+[FAIL] Login form has CSRF token
+      Expected: present
+      Actual:   NULL
+Γ£ô Login success with superadmin@begawipbj.go.id (status=303)
+[PASS] Login SUCCESS as admin
+
+========== TEST 1: MENU REGULASI ==========
+[PASS] GET /dashboard/regulasi/dokumen returns 200
+[PASS] Halaman regulasi tidak ada "Form UI-only"
+[PASS] Halaman regulasi ada filter keyword
+[PASS] Halaman regulasi tidak ada hardcoded "Perpres Nomor 12"
+
+========== TEST 2: TAMBAH REGULASI ==========
+[PASS] GET tambah regulasi returns 200
+[FAIL] Form tambah regulasi ada CSRF token
+      Expected: present
+      Actual:   NOT FOUND
+[PASS] Form ada field category_id
+[PASS] Form ada field document_number
+[PASS] Form ada field document_year
+[PASS] Form ada file input
+[PASS] Form action tidak "#"
+[PASS] Category option dipilih
+[CodeIgniter\Database\Exceptions\DatabaseException]
+Cannot delete or update a parent row: a foreign key constraint fails (`db_begawipbj`.`regulation_versions`, CONSTRAINT `regulation_versions_regulation_id_fk` FOREIGN KEY (`regulation_id`) REFERENCES `regulations` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE)
+at SYSTEMPATH\Database\BaseConnection.php:863
+
+  Caused by:
+  [CodeIgniter\Database\Exceptions\DatabaseException]
+  Cannot delete or update a parent row: a foreign key constraint fails (`db_begawipbj`.`regulation_versions`, CONSTRAINT `regulation_versions_regulation_id_fk` FOREIGN KEY (`regulation_id`) REFERENCES `regulations` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE)
+  at SYSTEMPATH\Database\MySQLi\Connection.php:310
+
+  Caused by:
+  [mysqli_sql_exception]
+  Cannot delete or update a parent row: a foreign key constraint fails (`db_begawipbj`.`regulation_versions`, CONSTRAINT `regulation_versions_regulation_id_fk` FOREIGN KEY (`regulation_id`) REFERENCES `regulations` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE)
+  at SYSTEMPATH\Database\MySQLi\Connection.php:300
+
+Backtrace:
+  1    SYSTEMPATH\Database\MySQLi\Connection.php:300
+       mysqli()->query('DELETE FROM `regulations`
+WHERE `document_number` = \'12/2021-UI\'', 0)
+
+  2    SYSTEMPATH\Database\BaseConnection.php:908
+       CodeIgniter\Database\MySQLi\Connection()->execute('DELETE FROM `regulations`
+WHERE `document_number` = \'12/2021-UI\'')
+
+  3    SYSTEMPATH\Database\BaseConnection.php:825
+       CodeIgniter\Database\BaseConnection()->simpleQuery('DELETE FROM `regulations`
+WHERE `document_number` = \'12/2021-UI\'')
+
+  4    SYSTEMPATH\Database\BaseBuilder.php:2865
+       CodeIgniter\Database\BaseConnection()->query('DELETE FROM `regulations`
+WHERE `document_number` = :document_number:', [...], false)
+
+  5    ROOTPATH\ui_regulation_test.php:184
+       CodeIgniter\Database\BaseBuilder()->delete()
+

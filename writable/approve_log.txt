@@ -1,0 +1,13 @@
+﻿
+>  9 APPPATH\Services\Regulation\RegulationService.php(105): App\Services\Regulation\RegulationService->transition(14, 'approved', 'regulation.approve', 
+14, 'OK', [...])
+  10 APPPATH\Controllers\Admin\RegulationController.php(257): App\Services\Regulation\RegulationService->approve(14, 14, 'OK')
+  11 SYSTEMPATH\CodeIgniter.php(974): App\Controllers\Admin\RegulationController->approve('14')
+  12 SYSTEMPATH\CodeIgniter.php(520): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Admin\RegulationController))
+>  9 APPPATH\Services\Regulation\RegulationService.php(105): App\Services\Regulation\RegulationService->transition(14, 'approved', 'regulation.approve', 
+14, 'OK', [...])
+  10 APPPATH\Controllers\Admin\RegulationController.php(257): App\Services\Regulation\RegulationService->approve(14, 14, 'OK')
+  11 SYSTEMPATH\CodeIgniter.php(974): App\Controllers\Admin\RegulationController->approve('14')
+  12 SYSTEMPATH\CodeIgniter.php(520): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Admin\RegulationController))
+
+

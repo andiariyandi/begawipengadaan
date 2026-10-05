@@ -165,7 +165,7 @@
                             <label class="form-label fw-semibold text-primary-light text-sm mb-8">Tambah Kompetensi</label>
                             <select class="form-select radius-8" name="competency_id">
                                 <option value="">Pilih kompetensi</option>
-                                <?php foreach ((\App\Models\Regulation\CompetencyModel())->listActive() as $comp): ?>
+                                <?php foreach ((new \App\Models\Regulation\CompetencyModel())->listActive() as $comp): ?>
                                     <option value="<?= (int) $comp['id'] ?>"><?= esc($comp['name']) ?> (<?= esc($comp['key']) ?>)</option>
                                 <?php endforeach; ?>
                             </select>

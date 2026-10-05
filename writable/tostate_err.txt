@@ -1,0 +1,21 @@
+﻿
+  DEBUG - 2026-10-05 05:50:16 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+> ERROR - 2026-10-05 05:50:16 --> Column 'to_state' cannot be null
+  in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+   1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('INSERT INTO `workflow_transitions` (`resource_type`, `resource_id`, `from_state`, 
+`to_state`, `action`, `actor_id`, `actor_type`, `reason`, `notes`, `metadata`, `created_at`) VALUES (\'regulation\', 14, NULL, NULL, 
+\'regulation.version.add\', 14, \'user\', NULL, \'Unggahan awal.\', \'{\\"version_id\\":11,\\"version_number\\":1,\\"file_id\\":20}\', \'2026-10-05 
+05:50:16\')', 0)
+   2 SYSTEMPATH\Database\BaseConnection.php(908): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `workflow_transitions` (`resource_type`, 
+`resource_id`, `from_state`, `to_state`, `action`, `actor_id`, `actor_type`, `reason`, `notes`, `metadata`, `created_at`) VALUES (\'regulation\', 14, 
+NULL, NULL, \'regulation.version.add\', 14, \'user\', NULL, \'Unggahan awal.\', \'{\\"version_id\\":11,\\"version_number\\":1,\\"file_id\\":20}\', 
+\'2026-10-05 05:50:16\')')
+   3 SYSTEMPATH\Database\BaseConnection.php(825): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `workflow_transitions` (`resource_type`, 
+`resource_id`, `from_state`, `to_state`, `action`, `actor_id`, `actor_type`, `reason`, `notes`, `metadata`, `created_at`) VALUES (\'regulation\', 14, 
+NULL, NULL, \'regulation.version.add\', 14, \'user\', NULL, \'Unggahan awal.\', \'{\\"version_id\\":11,\\"version_number\\":1,\\"file_id\\":20}\', 
+\'2026-10-05 05:50:16\')')
+   4 SYSTEMPATH\Database\BaseBuilder.php(2355): CodeIgniter\Database\BaseConnection->query('INSERT INTO `workflow_transitions` (`resource_type`, 
+`resource_id`, `from_state`, `to_state`, `action`, `actor_id`, `actor_type`, `reason`, `notes`, `metadata`, `created_at`) VALUES (:resource_type:, 
+:resource_id:, :from_state:, :to_state:, :action:, :actor_id:, :actor_type:, :reason:, :notes:, :metadata:, :created_at:)', [...], false)
+
+

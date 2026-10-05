@@ -16,8 +16,21 @@ class RegulationModel extends Model
         'category_id', 'title', 'slug', 'document_number', 'document_year',
         'issuer_name', 'official_date', 'effective_date', 'summary',
         'official_source_url', 'workflow_status', 'legal_status', 'visibility',
-        'current_version_id', 'created_by', 'reviewed_by', 'published_by', 'archived_at',
+        'current_version_id', 'created_by', 'reviewed_by', 'reviewed_at',
+        'published_by', 'published_at', 'archived_at',
     ];
+
+    /**
+     * Lightweight dropdown listing used by relation-create form & similar.
+     * Returns id+title only, sorted by title, excluding soft-deleted rows.
+     */
+    public function listAll(): array
+    {
+        return $this->select('id, title, document_number')
+            ->where('deleted_at', null)
+            ->orderBy('title', 'ASC')
+            ->findAll();
+    }
 
     public function listForAdmin(?int $categoryId = null, ?string $keyword = null, ?string $workflowStatus = null): array
     {

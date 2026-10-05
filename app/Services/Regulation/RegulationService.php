@@ -26,7 +26,9 @@ class RegulationService
 
     public const TRANSITION_RULES = [
         'draft'             => ['submitted', 'archived'],
-        'submitted'         => ['in_review', 'rejected', 'archived'],
+        // Allow direct approve/publish path from submitted for back-office UI that
+        // collapses review into a single step; in_review remains as intermediate.
+        'submitted'         => ['in_review', 'approved', 'rejected', 'archived'],
         'in_review'         => ['approved', 'rejected', 'revision_required'],
         'revision_required' => ['submitted', 'archived'],
         'approved'          => ['published', 'archived'],
@@ -247,11 +249,20 @@ class RegulationService
         ?array $metadata = null,
     ): void {
         try {
+            // For non-transition events (e.g. version.add) both from_state and
+            // to_state may be null. workflow_transitions.to_state is NOT NULL
+            // so fall back to the current workflow_status, and if even that is
+            // null, use a sentinel 'unknown' value.
+            $resolvedTo = $toState ?? $fromState;
+            if ($resolvedTo === null || $resolvedTo === '') {
+                $row = $this->regulations->select('workflow_status')->find($resourceId);
+                $resolvedTo = $row['workflow_status'] ?? 'unknown';
+            }
             db_connect()->table('workflow_transitions')->insert([
                 'resource_type' => $resourceType,
                 'resource_id'   => $resourceId,
                 'from_state'    => $fromState,
-                'to_state'      => $toState ?? $fromState,
+                'to_state'      => $resolvedTo,
                 'action'        => $action,
                 'actor_id'      => $actorId,
                 'actor_type'    => 'user',

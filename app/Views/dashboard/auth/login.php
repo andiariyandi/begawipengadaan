@@ -22,6 +22,7 @@
 <?php endif; ?>
 
 <form action="<?= site_url('dashboard/masuk') ?>" method="post">
+    <?= csrf_field() ?>
     <div class="icon-field mb-16">
         <span class="icon top-50 translate-middle-y">
             <iconify-icon icon="mage:email"></iconify-icon>

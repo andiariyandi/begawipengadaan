@@ -1,0 +1,38 @@
+﻿
+ERROR - 2026-10-05 05:46:14 --> Cannot delete or update a parent row: a foreign key constraint fails (`db_begawipbj`.`regulation_relations`, CONSTRAINT 
+`regulation_relations_target_id_fk` FOREIGN KEY (`target_regulation_id`) REFERENCES `regulations` (`id`) ON DELETE RESTRICT ON UPDATE CASCAD
+CRITICAL - 2026-10-05 05:46:14 --> CodeIgniter\Database\Exceptions\DatabaseException: Cannot delete or update a parent row: a foreign key constraint 
+fails (`db_begawipbj`.`regulation_relations`, CONSTRAINT `regulation_relations_target_id_fk` FOREIGN KEY (`target_regulation_id`) REFERENCES 
+`regulations` (`id`) ON DELETE RESTRICT ON UPDATE CASCAD
+CRITICAL - 2026-10-05 05:46:14 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Cannot delete or update a parent row: a foreign key 
+constraint fails (`db_begawipbj`.`regulation_relations`, CONSTRAINT `regulation_relations_target_id_fk` FOREIGN KEY (`target_regulation_id`) REFERENCES 
+`regulations` (`id`) ON DELETE RESTRICT ON UPDATE CASCAD
+CRITICAL - 2026-10-05 05:46:14 --> [Caused by] mysqli_sql_exception: Cannot delete or update a parent row: a foreign key constraint fails 
+(`db_begawipbj`.`regulation_relations`, CONSTRAINT `regulation_relations_target_id_fk` FOREIGN KEY (`target_regulation_id`) REFERENCES `regulations` 
+(`id`) ON DELETE RESTRICT ON UPDATE CASCAD
+ERROR - 2026-10-05 05:46:27 --> Cannot delete or update a parent row: a foreign key constraint fails (`db_begawipbj`.`regulation_relations`, CONSTRAINT 
+`regulation_relations_target_id_fk` FOREIGN KEY (`target_regulation_id`) REFERENCES `regulations` (`id`) ON DELETE RESTRICT ON UPDATE CASCAD
+CRITICAL - 2026-10-05 05:46:27 --> CodeIgniter\Database\Exceptions\DatabaseException: Cannot delete or update a parent row: a foreign key constraint 
+fails (`db_begawipbj`.`regulation_relations`, CONSTRAINT `regulation_relations_target_id_fk` FOREIGN KEY (`target_regulation_id`) REFERENCES 
+`regulations` (`id`) ON DELETE RESTRICT ON UPDATE CASCAD
+CRITICAL - 2026-10-05 05:46:27 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Cannot delete or update a parent row: a foreign key 
+constraint fails (`db_begawipbj`.`regulation_relations`, CONSTRAINT `regulation_relations_target_id_fk` FOREIGN KEY (`target_regulation_id`) REFERENCES 
+`regulations` (`id`) ON DELETE RESTRICT ON UPDATE CASCAD
+CRITICAL - 2026-10-05 05:46:27 --> [Caused by] mysqli_sql_exception: Cannot delete or update a parent row: a foreign key constraint fails 
+(`db_begawipbj`.`regulation_relations`, CONSTRAINT `regulation_relations_target_id_fk` FOREIGN KEY (`target_regulation_id`) REFERENCES `regulations` 
+(`id`) ON DELETE RESTRICT ON UPDATE CASCAD
+ERROR - 2026-10-05 05:48:23 --> Unknown column 'resource_id' in 'where clause'
+CRITICAL - 2026-10-05 05:48:23 --> CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'resource_id' in 'where clause'
+CRITICAL - 2026-10-05 05:48:23 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'resource_id' in 'where clause'
+CRITICAL - 2026-10-05 05:48:23 --> [Caused by] mysqli_sql_exception: Unknown column 'resource_id' in 'where clause'
+ERROR - 2026-10-05 05:50:16 --> Column 'to_state' cannot be null
+ERROR - 2026-10-05 05:50:18 --> Unknown column 'reviewed_at' in 'field list'
+ERROR - 2026-10-05 05:50:19 --> Column 'to_state' cannot be null
+ERROR - 2026-10-05 05:50:20 --> Column 'to_state' cannot be null
+ERROR - 2026-10-05 05:50:23 --> Unknown column 'entity_type' in 'where clause'
+CRITICAL - 2026-10-05 05:50:23 --> CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'entity_type' in 'where clause'
+CRITICAL - 2026-10-05 05:50:23 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'entity_type' in 'where clause'
+CRITICAL - 2026-10-05 05:50:23 --> [Caused by] mysqli_sql_exception: Unknown column 'entity_type' in 'where clause'
+ERROR - 2026-10-05 05:52:51 --> Unknown column 'reviewed_at' in 'field list'
+
+
