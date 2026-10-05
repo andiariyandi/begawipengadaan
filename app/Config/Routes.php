@@ -6,6 +6,7 @@ use CodeIgniter\Router\RouteCollection;
 
 $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function ($routes) {
     $routes->get('/', 'HomeController::index', ['as' => 'public.home']);
+    $routes->get('file/(:segment)', 'FileController::show/$1', ['as' => 'public.file.show']);
     $routes->get('tentang', 'HomeController::about', ['as' => 'public.about']);
     $routes->get('kontak', 'HomeController::contact', ['as' => 'public.contact']);
 
@@ -490,16 +491,34 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     $routes->group('komunikasi', ['namespace' => 'App\Controllers\Communication'], static function ($routes) {
         $routes->get('berita', 'NewsController::index', ['as' => 'dashboard.communication.news']);
         $routes->get('berita/tambah', 'NewsController::create', ['as' => 'dashboard.communication.news.create']);
+        $routes->post('berita/tambah', 'NewsController::store');
         $routes->get('berita/(:segment)/ubah', 'NewsController::edit/$1', ['as' => 'dashboard.communication.news.edit']);
+        $routes->post('berita/(:segment)/ubah', 'NewsController::update/$1');
         $routes->get('berita/(:segment)', 'NewsController::detail/$1', ['as' => 'dashboard.communication.news.detail']);
+        $routes->post('berita/(:segment)/hapus', 'NewsController::delete/$1', ['as' => 'dashboard.communication.news.delete']);
+
         $routes->get('kategori-berita', 'NewsController::categories', ['as' => 'dashboard.communication.news-categories']);
+        $routes->get('kategori-berita/tambah', 'NewsController::categoryCreate', ['as' => 'dashboard.communication.news-categories.create']);
+        $routes->post('kategori-berita/tambah', 'NewsController::categoryStore');
+        $routes->get('kategori-berita/(:segment)/ubah', 'NewsController::categoryEdit/$1', ['as' => 'dashboard.communication.news-categories.edit']);
+        $routes->post('kategori-berita/(:segment)/ubah', 'NewsController::categoryUpdate/$1');
+        $routes->post('kategori-berita/(:segment)/hapus', 'NewsController::categoryDelete/$1');
+
         $routes->get('event-agenda', 'EventController::index', ['as' => 'dashboard.communication.events']);
         $routes->get('event-agenda/tambah', 'EventController::create', ['as' => 'dashboard.communication.events.create']);
+        $routes->post('event-agenda/tambah', 'EventController::store');
         $routes->get('event-agenda/(:segment)/ubah', 'EventController::edit/$1', ['as' => 'dashboard.communication.events.edit']);
+        $routes->post('event-agenda/(:segment)/ubah', 'EventController::update/$1');
         $routes->get('event-agenda/(:segment)', 'EventController::detail/$1', ['as' => 'dashboard.communication.events.detail']);
+        $routes->post('event-agenda/(:segment)/hapus', 'EventController::delete/$1', ['as' => 'dashboard.communication.events.delete']);
+
         $routes->get('registrasi-event', 'EventRegistrationController::index', ['as' => 'dashboard.communication.event-registrations']);
         $routes->get('registrasi-event/(:segment)', 'EventRegistrationController::detail/$1', ['as' => 'dashboard.communication.event-registrations.detail']);
+        $routes->post('registrasi-event/(:segment)/status', 'EventRegistrationController::updateStatus/$1');
+
         $routes->get('kehadiran', 'AttendanceController::index', ['as' => 'dashboard.communication.attendance']);
+        $routes->post('kehadiran/(:segment)/catatan', 'AttendanceController::record/$1');
+
         $routes->get('waitlist-pembatalan', 'EventRegistrationController::waitlistAndCancellation', ['as' => 'dashboard.communication.waitlist-cancellations']);
     });
 

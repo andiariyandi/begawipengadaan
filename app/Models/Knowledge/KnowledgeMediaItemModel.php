@@ -21,8 +21,10 @@ class KnowledgeMediaItemModel extends Model
     public function listMedia(?string $type = null, ?string $status = null, ?string $keyword = null): array
     {
         $builder = $this->db->table('knowledge_media km')
-            ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type')
+            ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type, fa.path AS file_path, fa.disk AS file_disk,
+                      ft.original_name AS thumb_original_name, ft.mime_type AS thumb_mime_type, ft.path AS thumb_path, ft.disk AS thumb_disk')
             ->join('file_assets fa', 'fa.id = km.file_id', 'left')
+            ->join('file_assets ft', 'ft.id = km.thumbnail_file_id', 'left')
             ->orderBy('km.updated_at', 'DESC');
         if ($type !== null && $type !== '') {
             $builder->where('km.type', $type);
@@ -43,7 +45,7 @@ class KnowledgeMediaItemModel extends Model
     public function detail(int $id): ?array
     {
         $row = $this->db->table('knowledge_media km')
-            ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type, ft.original_name AS thumb_original_name')
+            ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type, fa.path AS file_path, fa.disk AS file_disk, ft.original_name AS thumb_original_name, ft.mime_type AS thumb_mime_type, ft.path AS thumb_path, ft.disk AS thumb_disk')
             ->join('file_assets fa', 'fa.id = km.file_id', 'left')
             ->join('file_assets ft', 'ft.id = km.thumbnail_file_id', 'left')
             ->where('km.id', $id)

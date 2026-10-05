@@ -6,6 +6,15 @@ use App\Controllers\BaseController;
 
 class BungaRampaiController extends BaseController
 {
+    /**
+     * @var \CodeIgniter\Database\BaseConnection
+     */
+    protected $db;
+
+    public function __construct()
+    {
+        $this->db = db_connect();
+    }
     private const ARTICLES_LIMIT  = 9;
     private const CASE_LIMIT      = 6;
     private const MEDIA_LIMIT     = 9;

@@ -91,7 +91,7 @@ class ArticleController extends BaseKnowledgeController
             $payload['cover_file_id'] = $fileId;
         }
         $model->insert($payload);
-        $articleId = (int) $model->db->insertID();
+        $articleId = (int) $model->getInsertID();
         $this->syncRelations($model, $articleId);
         return redirect()->to(route_to('dashboard.knowledge.articles'))->with('success', 'Artikel berhasil ditambahkan.');
     }

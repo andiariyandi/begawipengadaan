@@ -72,7 +72,6 @@ $statusLabels = [
                 <tbody>
                     <?php foreach ($items as $article): ?>
                         <?php
-                            $cats = $this->db ? null : null;
                             $catRows = db_connect()->table('knowledge_article_categories kac')
                                 ->select('kc.name')
                                 ->join('knowledge_categories kc', 'kc.id = kac.category_id')

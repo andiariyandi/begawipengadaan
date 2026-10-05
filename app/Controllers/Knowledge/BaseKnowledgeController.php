@@ -19,10 +19,16 @@ abstract class BaseKnowledgeController extends BaseController
 {
     protected ?AuthorizationService $authz = null;
 
+    /**
+     * @var \CodeIgniter\Database\BaseConnection
+     */
+    protected $db;
+
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger): void
     {
         parent::initController($request, $response, $logger);
         $this->authz = new AuthorizationService();
+        $this->db = db_connect();
     }
 
     protected function assertCanManage()

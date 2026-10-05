@@ -67,7 +67,7 @@ class FaqController extends BaseKnowledgeController
             $payload['published_by'] = $this->currentUserId();
         }
         $model->insert($payload);
-        $faqId = (int) $model->db->insertID();
+        $faqId = (int) $model->getInsertID();
         $cats = (array) $this->request->getPost('categories');
         $cats = array_values(array_filter(array_map('intval', $cats), static fn ($v) => $v > 0));
         $model->syncCategories($faqId, $cats);

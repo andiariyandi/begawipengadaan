@@ -8,6 +8,18 @@ $statusLabel = [
     'submitted' => 'Diajukan', 'in_review' => 'Ditinjau', 'approved' => 'Disetujui',
     'revision_required' => 'Perlu Revisi', 'rejected' => 'Ditolak',
 ][$row['workflow_status'] ?? 'draft'] ?? 'Draft';
+
+// Determine preview source: thumbnail → file → external_url
+$imgSrc = null;
+if (! empty($row['thumb_path'])) {
+    $imgSrc = base_url('file/' . (int) $row['thumbnail_file_id']);
+} elseif (! empty($row['file_path'])) {
+    $imgSrc = base_url('file/' . (int) $row['file_id']);
+} elseif (! empty($row['external_url'])) {
+    $imgSrc = $row['external_url'];
+}
+$isImage = ! empty($row['file_mime_type']) && str_starts_with((string) $row['file_mime_type'], 'image/');
+$isVideo = ($row['type'] ?? '') === 'video_file' && ! $isImage;
 ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
@@ -23,8 +35,19 @@ $statusLabel = [
     <div class="col-xl-8">
         <div class="card">
             <div class="card-body p-0">
-                <div class="h-320-px bg-primary-50 d-flex align-items-center justify-content-center">
-                    <iconify-icon icon="solar:gallery-wide-outline" class="text-primary-600 text-6xl"></iconify-icon>
+                <div class="h-320-px bg-neutral-100 d-flex align-items-center justify-content-center overflow-hidden">
+                    <?php if ($imgSrc && $isImage): ?>
+                        <img src="<?= esc($imgSrc) ?>" alt="<?= esc($row['alt_text'] ?? $row['title'] ?? '') ?>"
+                             style="width:100%;height:100%;object-fit:contain;">
+                    <?php elseif ($imgSrc && $isVideo): ?>
+                        <video src="<?= esc($imgSrc) ?>" controls style="max-width:100%;max-height:100%;"></video>
+                    <?php elseif ($imgSrc): ?>
+                        <a href="<?= esc($imgSrc) ?>" target="_blank" rel="noopener" class="text-primary-600">
+                            <iconify-icon icon="solar:link-outline" class="text-6xl"></iconify-icon>
+                        </a>
+                    <?php else: ?>
+                        <iconify-icon icon="solar:gallery-wide-outline" class="text-primary-600 text-6xl"></iconify-icon>
+                    <?php endif; ?>
                 </div>
                 <div class="p-24">
                     <h5 class="mb-16"><?= esc($row['title'] ?? '(Tanpa judul)') ?></h5>

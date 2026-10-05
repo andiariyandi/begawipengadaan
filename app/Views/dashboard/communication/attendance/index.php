@@ -1,7 +1,46 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Kehadiran</h6><p class="text-secondary-light mb-0">Pratinjau pencatatan kehadiran peserta event.</p></div><button type="button" class="btn btn-primary-600 radius-8 px-20 py-11">Import Kehadiran</button></div>
-<?= $this->include('dashboard/components/filter_bar') ?>
-<div class="card"><div class="card-body p-24"><div class="table-responsive scroll-sm"><table class="table bordered-table sm-table mb-0"><thead><tr><th>Peserta</th><th>Event</th><th>Waktu Check-in</th><th>Metode</th><th class="text-center">Status</th></tr></thead><tbody><?php foreach ([['name' => 'Rina Oktaviani', 'event' => 'Webinar Transformasi Digital PBJ', 'time' => '10 Okt 2026, 08:53', 'method' => 'QR Code', 'status' => 'approved'], ['name' => 'Andi Pratama', 'event' => 'Webinar Transformasi Digital PBJ', 'time' => '10 Okt 2026, 09:06', 'method' => 'Manual', 'status' => 'approved'], ['name' => 'Dr. Maya Sari', 'event' => 'Workshop Penyusunan KAK', 'time' => '-', 'method' => '-', 'status' => 'pending']] as $attendance): ?><tr><td><h6 class="text-md mb-0 fw-medium"><?= esc($attendance['name']) ?></h6></td><td><?= esc($attendance['event']) ?></td><td><?= esc($attendance['time']) ?></td><td><?= esc($attendance['method']) ?></td><td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $attendance['status'], 'label' => $attendance['status'] === 'approved' ? 'Hadir' : 'Belum Hadir']) ?></td></tr><?php endforeach; ?></tbody></table></div></div></div>
+<?php $items = $items ?? []; ?>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+        <h6 class="fw-semibold mb-1">Kehadiran</h6>
+        <p class="text-secondary-light mb-0">Daftar pencatatan kehadiran event PBJ.</p>
+    </div>
+</div>
+
+<?php if (session()->getFlashdata('success')): ?>
+    <div class="alert alert-success radius-8 mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
+<?php endif; ?>
+
+<div class="card">
+    <div class="card-body p-24">
+        <div class="table-responsive scroll-sm">
+            <table class="table bordered-table sm-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Peserta</th>
+                        <th>Status</th>
+                        <th>Dicatat</th>
+                        <th>Oleh</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($items)): ?>
+                        <tr><td colspan="5" class="text-center text-secondary-light">Belum ada catatan kehadiran.</td></tr>
+                    <?php else: foreach ($items as $a): ?>
+                        <tr>
+                            <td><?= esc($a['event_title'] ?? '-') ?></td>
+                            <td><strong><?= esc($a['user_full_name'] ?? $a['username'] ?? '-') ?></strong></td>
+                            <td><?= view('dashboard/components/status_badge', ['status' => $a['status'] ?? 'present']) ?></td>
+                            <td><?= esc($a['recorded_at'] ?? '-') ?></td>
+                            <td><?= esc($a['recorder_username'] ?? '-') ?></td>
+                        </tr>
+                    <?php endforeach; endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 <?= $this->endSection() ?>

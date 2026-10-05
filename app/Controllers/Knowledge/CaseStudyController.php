@@ -65,7 +65,7 @@ class CaseStudyController extends BaseKnowledgeController
             $payload['published_by'] = $this->currentUserId();
         }
         $model->insert($payload);
-        $id = (int) $model->db->insertID();
+        $id = (int) $model->getInsertID();
         $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn ($v) => $v > 0));
         $model->syncCategories($id, $cats);
         return redirect()->to(route_to('dashboard.knowledge.case-studies.detail', (string) $id))->with('success', 'Studi kasus berhasil ditambahkan.');

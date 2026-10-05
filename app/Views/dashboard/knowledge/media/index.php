@@ -62,11 +62,29 @@ $statusLabels = [
     <?php if (empty($items)): ?>
         <div class="col-12"><div class="card"><div class="card-body p-24"><p class="text-secondary-light mb-0">Belum ada media. Klik "Tambah Media".</p></div></div></div>
     <?php else: foreach ($items as $m): ?>
+        <?php
+            // Resolve thumbnail → file → external url, in priority order.
+            $thumbSrc = null;
+            if (! empty($m['thumb_path'])) {
+                $thumbSrc = base_url('file/' . (int) $m['thumbnail_file_id']);
+            } elseif (! empty($m['file_path'])) {
+                $thumbSrc = base_url('file/' . (int) $m['file_id']);
+            } elseif (! empty($m['external_url'])) {
+                $thumbSrc = $m['external_url'];
+            }
+            $isImage = ! empty($m['file_mime_type']) && str_starts_with((string) $m['file_mime_type'], 'image/');
+            $isVideo = ($m['type'] ?? '') === 'video_file' && $isImage === false;
+        ?>
         <div class="col-xl-4 col-md-6">
             <div class="card h-100">
                 <div class="card-body p-0">
-                    <div class="h-180-px bg-primary-50 d-flex align-items-center justify-content-center">
-                        <iconify-icon icon="solar:gallery-wide-outline" class="text-primary-600 text-5xl"></iconify-icon>
+                    <div class="h-180-px bg-neutral-100 d-flex align-items-center justify-content-center overflow-hidden">
+                        <?php if ($thumbSrc): ?>
+                            <img src="<?= esc($thumbSrc) ?>" alt="<?= esc($m['alt_text'] ?? $m['title'] ?? '') ?>"
+                                 style="width:100%;height:100%;object-fit:cover;">
+                        <?php else: ?>
+                            <iconify-icon icon="solar:gallery-wide-outline" class="text-primary-600 text-5xl"></iconify-icon>
+                        <?php endif; ?>
                     </div>
                     <div class="p-24">
                         <div class="d-flex align-items-start justify-content-between gap-3">

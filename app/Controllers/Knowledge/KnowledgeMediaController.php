@@ -79,7 +79,7 @@ class KnowledgeMediaController extends BaseKnowledgeController
             $payload['thumbnail_file_id'] = $thumbId;
         }
         $model->insert($payload);
-        $id = (int) $model->db->insertID();
+        $id = (int) $model->getInsertID();
         return redirect()->to(route_to('dashboard.knowledge.media-gallery.detail', (string) $id))->with('success', 'Media berhasil ditambahkan.');
     }
 
