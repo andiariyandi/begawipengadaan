@@ -1,0 +1,13 @@
+alt_text
+caption
+carousel_enabled
+external_url
+featured
+file
+search
+sort_order
+status
+thumbnail
+title
+type
+visibility

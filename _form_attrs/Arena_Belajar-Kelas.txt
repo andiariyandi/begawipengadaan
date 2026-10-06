@@ -1,0 +1,10 @@
+capacity
+certificate_enabled
+code
+course_id
+end_at
+name
+passing_grade
+search
+start_at
+status

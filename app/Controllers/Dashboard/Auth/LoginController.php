@@ -10,6 +10,17 @@ class LoginController extends BaseController
     public function index()
     {
         if (session()->get('isLoggedIn')) {
+            $loggedRoles = (array) session()->get('roles');
+            $isAdmin     = in_array('super_admin', $loggedRoles, true) || in_array('admin', $loggedRoles, true);
+            if (! $isAdmin && in_array('trainer', $loggedRoles, true)) {
+                return redirect()->to(route_to('workspace.trainer.home'));
+            }
+            if (! $isAdmin && in_array('operator', $loggedRoles, true)) {
+                return redirect()->to(route_to('workspace.operator.home'));
+            }
+            if (! $isAdmin && in_array('evaluator', $loggedRoles, true)) {
+                return redirect()->to(route_to('workspace.evaluator.home'));
+            }
             return redirect()->to(site_url('dashboard'));
         }
 
@@ -42,7 +53,19 @@ class LoginController extends BaseController
             return redirect()->back()->withInput()->with('error', $message);
         }
 
-        return redirect()->to(site_url('dashboard'));
+        $loggedRoles = (array) session()->get('roles');
+        $isAdmin     = in_array('super_admin', $loggedRoles, true) || in_array('admin', $loggedRoles, true);
+        $userName    = (string) session()->get('name');
+        if (! $isAdmin && in_array('trainer', $loggedRoles, true)) {
+            return redirect()->to(route_to('workspace.trainer.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
+        }
+        if (! $isAdmin && in_array('operator', $loggedRoles, true)) {
+            return redirect()->to(route_to('workspace.operator.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
+        }
+        if (! $isAdmin && in_array('evaluator', $loggedRoles, true)) {
+            return redirect()->to(route_to('workspace.evaluator.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
+        }
+        return redirect()->to(site_url('dashboard'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
     }
 
     public function logout()

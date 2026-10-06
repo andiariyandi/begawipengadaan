@@ -30,7 +30,7 @@ class UserController extends BaseController
             ->join('roles r', 'r.id = ur.role_id', 'left')
             ->join('user_profiles up', 'up.user_id = u.id', 'left')
             ->join('organization_units ou', 'ou.id = up.province_code OR ou.id = up.regency_code', 'left', false)
-            ->groupBy('u.id')
+            ->groupBy('u.id, ou.id, r.id, ur.id')
             ->orderBy('u.created_at', 'DESC');
 
         // Filters
@@ -92,7 +92,7 @@ class UserController extends BaseController
             ->join('user_roles ur', 'ur.user_id = u.id AND ur.status = "active"', 'left')
             ->join('roles r', 'r.id = ur.role_id', 'left')
             ->where('u.id', $userId)
-            ->groupBy('u.id')
+            ->groupBy('u.id, r.id, ur.id')
             ->get()->getRowArray();
 
         if (! $user) {
@@ -142,6 +142,7 @@ class UserController extends BaseController
             'activeMenu'    => 'access',
             'activeSubmenu' => 'users',
             'user'          => $user,
+            'userId'        => $userId,
             'profile'       => $profile,
             'typeProfile'   => $typeProfile,
             'verifications' => $verifications,
@@ -190,5 +191,148 @@ class UserController extends BaseController
 
         return redirect()->to('dashboard/akses/pengguna/' . $userId)
             ->with('success', 'Instruksi reset kata sandi telah dikirim ke email pengguna.');
+    }
+
+    public function create()
+    {
+        $roles = (new \App\Services\Admin\RoleManagementService())->listRoles();
+        $categories = (new \App\Services\Admin\OrganizationService())->listTree();
+        return view('dashboard/users/form', [
+            'title'         => 'Tambah Pengguna | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Tambah Pengguna',
+            'formMode'      => 'create',
+            'activeMenu'    => 'access',
+            'activeSubmenu' => 'users',
+            'item'          => null,
+            'roles'         => $roles,
+            'categories'    => $categories,
+        ]);
+    }
+
+    public function store()
+    {
+        $rules = [
+            'username'    => 'required|min_length[3]|max_length[255]|is_unique[users.username]',
+            'email'       => 'required|valid_email|is_unique[users.email]',
+            'name'        => 'required|max_length[255]',
+            'password'    => 'required|min_length[12]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]',
+            'profile_type'=> 'required|in_list[asn,provider,academic,public]',
+        ];
+        if (! $this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+        $actorId = (int) session()->get('user_id');
+        $post = $this->request->getPost();
+        if (! $this->saveUserAvatar($post)) {
+            return redirect()->back()->withInput()->with('error', 'Upload avatar gagal.');
+        }
+        try {
+            $id = (new \App\Services\Admin\UserManagementService())->saveUser($post, null, $actorId);
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+        return redirect()->to('dashboard/akses/pengguna/' . $id)->with('success', 'Pengguna dibuat.');
+    }
+
+    public function edit(string $id)
+    {
+        $uid = ctype_digit($id) ? (int) $id : 0;
+        $user = (new \App\Models\UserModel())->find($uid);
+        if (! $user) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Pengguna tidak ditemukan.');
+        }
+        $roles = (new \App\Services\Admin\RoleManagementService())->listRoles();
+        $categories = (new \App\Services\Admin\OrganizationService())->listTree();
+        return view('dashboard/users/form', [
+            'title'         => 'Ubah Pengguna | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Ubah Pengguna',
+            'formMode'      => 'edit',
+            'activeMenu'    => 'access',
+            'activeSubmenu' => 'users',
+            'item'          => $user,
+            'userId'        => $uid,
+            'roles'         => $roles,
+            'categories'    => $categories,
+        ]);
+    }
+
+    public function update(string $id)
+    {
+        $uid = ctype_digit($id) ? (int) $id : 0;
+        $rules = [
+            'username'    => 'required|min_length[3]|max_length[255]',
+            'email'       => 'required|valid_email',
+            'name'        => 'required|max_length[255]',
+            'profile_type'=> 'required|in_list[asn,provider,academic,public]',
+        ];
+        if (! $this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+        $actorId = (int) session()->get('user_id');
+        $post = $this->request->getPost();
+        if (! $this->saveUserAvatar($post)) {
+            return redirect()->back()->withInput()->with('error', 'Upload avatar gagal.');
+        }
+        try {
+            (new \App\Services\Admin\UserManagementService())->saveUser($post, $uid, $actorId);
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+        return redirect()->to('dashboard/akses/pengguna/' . $uid)->with('success', 'Pengguna diperbarui.');
+    }
+
+    public function delete(string $id)
+    {
+        $uid = ctype_digit($id) ? (int) $id : 0;
+        if ($uid <= 0) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Pengguna tidak ditemukan.');
+        }
+        $actorId = (int) session()->get('user_id');
+        if ($uid === $actorId) {
+            return redirect()->back()->with('error', 'Tidak dapat menghapus akun sendiri.');
+        }
+        try {
+            (new \App\Models\UserModel())->delete($uid);
+            (new \App\Services\AuditService())->log($actorId, 'user.delete', 'users', 'user', $uid);
+            (new \App\Services\Admin\UserManagementService())->recordTransition('user', $uid, null, 'deleted', 'user.delete', $actorId);
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+        return redirect()->to('dashboard/akses/pengguna')->with('success', 'Pengguna dihapus.');
+    }
+
+    private function saveUserAvatar(array &$post): bool
+    {
+        $file = $this->request->getFile('avatar');
+        if (! $file || ! $file->isValid() || $file->hasMoved()) {
+            return true;
+        }
+        $dir = WRITEPATH . 'uploads/users';
+        if (! is_dir($dir) && ! @mkdir($dir, 0755, true)) {
+            return false;
+        }
+        $stored = $file->getRandomName();
+        if (! $file->move($dir, $stored)) {
+            return false;
+        }
+        $now = date('Y-m-d H:i:s');
+        $rel = 'uploads/users/' . $stored;
+        $db = db_connect();
+        $ok = $db->table('file_assets')->insert([
+            'disk' => 'local', 'path' => $rel,
+            'original_name' => $file->getClientName() ?: $stored,
+            'stored_name'   => $stored,
+            'extension'     => $file->getClientExtension() ?: 'bin',
+            'mime_type'     => $file->getClientMimeType() ?: 'application/octet-stream',
+            'size_bytes'    => (int) ($file->getSize() ?: 0),
+            'visibility'    => 'public', 'lifecycle_status' => 'available',
+            'resource_type' => 'user_avatar',
+            'resource_id'   => null,
+            'uploaded_by'   => (int) session()->get('user_id'),
+            'available_at'  => $now, 'created_at' => $now, 'updated_at' => $now,
+        ], true);
+        if (! $ok) { return false; }
+        $post['avatar_file_id'] = (int) $db->insertID();
+        return true;
     }
 }

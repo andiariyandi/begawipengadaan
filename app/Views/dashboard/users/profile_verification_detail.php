@@ -43,7 +43,7 @@
                         <?php if (in_array($key, ['id', 'user_id', 'created_at', 'updated_at'], true)) continue; ?>
                         <div class="col-md-6">
                             <p class="text-secondary-light mb-4"><?= esc(ucwords(str_replace('_', ' ', $key))) ?></p>
-                            <h6 class="mb-0"><?= esc(is_array($value) ? implode(', ', $value) : (string) $value ?: '-') ?></h6>
+                            <h6 class="mb-0"><?= esc((is_array($value) ? implode(', ', $value) : (string) $value) ?: '-') ?></h6>
                         </div>
                     <?php endforeach; ?>
                 </div>

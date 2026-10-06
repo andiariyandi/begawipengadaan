@@ -1,0 +1,7 @@
+categories[]
+content
+search
+status
+summary
+title
+visibility

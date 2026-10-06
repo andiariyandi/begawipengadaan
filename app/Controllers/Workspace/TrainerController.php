@@ -116,14 +116,15 @@ class TrainerController extends BaseController
             if ($title === '') {
                 return redirect()->back()->withInput()->with('error', 'Judul modul wajib diisi.');
             }
-            $maxOrder = (int) db_connect()->table('learning_modules')
-                ->selectMax('sort_order')->where('class_id', (int) $classId)->get()->getRowArray()['sort_order'] ?? 0;
+            $maxRow   = db_connect()->table('learning_modules')
+                ->selectMax('sort_order')->where('class_id', (int) $classId)->get()->getRowArray();
+            $maxOrder = (int) ($maxRow['sort_order'] ?? 0);
             (new LearningModuleModel())->insert([
                 'class_id'    => (int) $classId,
                 'title'       => $title,
                 'description' => $description,
                 'sort_order'  => $sortOrder > 0 ? $sortOrder : ($maxOrder + 1),
-                'is_required' => 1,
+                'is_required' => $this->request->getPost('is_required') ? 1 : 0,
                 'status'      => 'draft',
             ]);
             return redirect()->to(route_to('workspace.trainer.modules', $classId))->with('success', 'Modul berhasil dibuat.');
@@ -154,7 +155,7 @@ class TrainerController extends BaseController
                 'description' => (string) $this->request->getPost('description'),
                 'sort_order'  => (int) $this->request->getPost('sort_order'),
                 'status'      => (string) ($this->request->getPost('status') ?: $module['status']),
-                'is_required' => isset($this->getRequest()->getPost()->is_required) ? 1 : 0,
+                'is_required' => $this->request->getPost('is_required') ? 1 : 0,
             ]);
             return redirect()->to(route_to('workspace.trainer.modules', $classId))->with('success', 'Modul berhasil diperbarui.');
         }

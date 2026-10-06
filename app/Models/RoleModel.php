@@ -10,7 +10,7 @@ class RoleModel extends Model
     protected $primaryKey    = 'id';
     protected $returnType    = 'array';
     protected $useTimestamps = true;
-    protected $allowedFields = ['name', 'slug'];
+    protected $allowedFields = ["key", "name", "description", "is_system"];
 
     public function findBySlug(string $slug): ?array
     {

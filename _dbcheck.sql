@@ -1,0 +1,14 @@
+﻿SELECT 'programs' AS tbl, COUNT(*) AS n FROM programs WHERE title LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'courses' AS tbl, COUNT(*) AS n FROM courses WHERE title LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'learning_classes' AS tbl, COUNT(*) AS n FROM learning_classes WHERE name LIKE 'QA AUDIT%' OR code LIKE '%QA-AUDIT%';
+SELECT 'learning_modules' AS tbl, COUNT(*) AS n FROM learning_modules WHERE title LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'knowledge_articles' AS tbl, COUNT(*) AS n FROM knowledge_articles WHERE title LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'knowledge_faqs' AS tbl, COUNT(*) AS n FROM knowledge_faqs WHERE question LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'knowledge_document_templates' AS tbl, COUNT(*) AS n FROM knowledge_document_templates WHERE title LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'knowledge_media' AS tbl, COUNT(*) AS n FROM knowledge_media WHERE title LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'knowledge_categories' AS tbl, COUNT(*) AS n FROM knowledge_categories WHERE name LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'knowledge_tags' AS tbl, COUNT(*) AS n FROM knowledge_tags WHERE name LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'regulation_categories' AS tbl, COUNT(*) AS n FROM regulation_categories WHERE name LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'news_categories' AS tbl, COUNT(*) AS n FROM news_categories WHERE name LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'events' AS tbl, COUNT(*) AS n FROM events WHERE title LIKE 'QA AUDIT%' OR slug LIKE 'qa-audit%';
+SELECT 'news' AS tbl, COUNT(*) AS n, MAX(id) AS maxid FROM news WHERE id >= 4;

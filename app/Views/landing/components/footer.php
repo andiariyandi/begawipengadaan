@@ -16,7 +16,7 @@
                                         <div class="site-footer__contact-info-icon"><span class="icon-email"></span>
                                             <p class="site-footer__contact-info-icon-text">Email:</p>
                                         </div>
-                                        <p class="site-footer__contact-info-text"><a href="mailto:pbj@lampungprov.go.id">pbj@lampungprov.go.id</a></p>
+                                        <p class="site-footer__contact-info-text"><a href="mailto:biropbj@lampungprov.go.id">biropbj@lampungprov.go.id</a></p>
                                     </div>
                                 </li>
                                 <li>
@@ -24,7 +24,7 @@
                                         <div class="site-footer__contact-info-icon"><span class="icon-location"></span>
                                             <p class="site-footer__contact-info-icon-text">Alamat:</p>
                                         </div>
-                                        <p class="site-footer__contact-info-text">Biro PBJ Pemerintah Provinsi Lampung<br>Bandar Lampung</p>
+                                        <p class="site-footer__contact-info-text">Biro PBJ Setda Provinsi Lampung<br>Bandar Lampung</p>
                                     </div>
                                 </li>
                             </ul>
@@ -34,7 +34,7 @@
                                         <div class="site-footer__contact-info-icon"><span class="icon-phone"></span>
                                             <p class="site-footer__contact-info-icon-text">Telepon:</p>
                                         </div>
-                                        <p class="site-footer__contact-info-text"><a href="tel:+62721123456">(0721) 123456</a></p>
+                                        <p class="site-footer__contact-info-text"><a href="tel:+62721123456">+62 851-1777-9783</a></p>
                                     </div>
                                 </li>
                                 <li>

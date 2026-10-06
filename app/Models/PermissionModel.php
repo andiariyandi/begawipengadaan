@@ -10,5 +10,5 @@ class PermissionModel extends Model
     protected $primaryKey    = 'id';
     protected $returnType    = 'array';
     protected $useTimestamps = false;
-    protected $allowedFields = ['name', 'module'];
+    protected $allowedFields = ["key", "name", "domain", "description", "is_system"];
 }

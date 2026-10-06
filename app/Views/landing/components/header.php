@@ -31,6 +31,7 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
             display: inline-flex;
             align-items: center;
         }
+
         .main-menu__user-trigger {
             display: inline-flex;
             align-items: center;
@@ -46,12 +47,14 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
             transition: background-color .15s ease;
             white-space: nowrap;
         }
+
         .main-menu__user-trigger:hover,
         .main-menu__user:hover .main-menu__user-trigger,
         .main-menu__user.is-open .main-menu__user-trigger {
             background: rgba(8, 47, 92, .16);
             color: #082f5c;
         }
+
         .main-menu__user-avatar {
             width: 30px;
             height: 30px;
@@ -65,6 +68,7 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
             font-weight: 700;
             line-height: 1;
         }
+
         .main-menu__user-name {
             max-width: 130px;
             overflow: hidden;
@@ -72,10 +76,12 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
             white-space: nowrap;
             display: inline-block;
         }
+
         .main-menu__user-trigger .icon-down-arrow {
             font-size: 11px;
             opacity: .7;
         }
+
         .main-menu__user-menu {
             position: absolute;
             top: calc(100% + 10px);
@@ -94,6 +100,7 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
             transition: opacity .15s ease, transform .15s ease, visibility 0s linear .15s;
             z-index: 1000;
         }
+
         .main-menu__user:hover .main-menu__user-menu,
         .main-menu__user.is-open .main-menu__user-menu {
             visibility: visible;
@@ -101,7 +108,13 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
             transform: translateY(0);
             transition: opacity .15s ease, transform .15s ease, visibility 0s;
         }
-        .main-menu__user-menu > li { list-style: none; margin: 0; padding: 0; }
+
+        .main-menu__user-menu>li {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
         .main-menu__user-menu a,
         .main-menu__user-menu button {
             display: block;
@@ -117,40 +130,58 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
             cursor: pointer;
             font-family: inherit;
         }
+
         .main-menu__user-menu a:hover,
         .main-menu__user-menu button:hover {
             background: #eef6ff;
             color: #082f5c;
         }
+
         .main-menu__user-meta {
             padding: 12px 14px 10px;
             border-bottom: 1px solid #edf0f5;
             margin: 0 0 6px;
             list-style: none;
         }
+
         .main-menu__user-meta strong {
             display: block;
             color: #082f5c;
             font-size: 14px;
             font-weight: 700;
         }
+
         .main-menu__user-meta small {
             display: block;
             color: #8390a3;
             font-size: 12px;
             margin-top: 2px;
         }
+
         .main-menu__user-divider {
             height: 1px;
             background: #edf0f5;
             margin: 6px 8px;
             list-style: none;
         }
-        .main-menu__user-menu form { margin: 0; padding: 0; }
+
+        .main-menu__user-menu form {
+            margin: 0;
+            padding: 0;
+        }
+
         @media (max-width: 991px) {
-            .main-menu__user-name { display: none; }
-            .main-menu__user-trigger { padding: 4px; }
-            .main-menu__user-menu { right: 0; }
+            .main-menu__user-name {
+                display: none;
+            }
+
+            .main-menu__user-trigger {
+                padding: 4px;
+            }
+
+            .main-menu__user-menu {
+                right: 0;
+            }
         }
     </style>
     <div class="main-menu__top">
@@ -159,17 +190,23 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                 <ul class="list-unstyled main-menu__contact-list">
                     <li>
                         <div class="icon"><i class="icon-email"></i></div>
-                        <div class="text"><p><a href="mailto:pbj@lampungprov.go.id">pbj@lampungprov.go.id</a></p></div>
+                        <div class="text">
+                            <p><a href="mailto:biropbj@lampungprov.go.id">biropbj@lampungprov.go.id</a></p>
+                        </div>
                     </li>
                     <li>
                         <div class="icon"><i class="icon-contact"></i></div>
-                        <div class="text"><p><a href="tel:+62721123456">(0721) 123456</a></p></div>
+                        <div class="text">
+                            <p><a href="tel:+62721123456">+62 851-1777-9783</a></p>
+                        </div>
                     </li>
                 </ul>
                 <ul class="list-unstyled main-menu__contact-list main-menu__location">
                     <li>
                         <div class="icon"><i class="icon-location"></i></div>
-                        <div class="text"><p>Biro PBJ Pemerintah Provinsi Lampung</p></div>
+                        <div class="text">
+                            <p>Biro PBJ Setda Provinsi Lampung</p>
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -194,18 +231,23 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                                 <span class="icon-down-arrow"></span>
                             </div>
                             <ul class="list-unstyled main-menu__category-sub-menu">
-                                <?php foreach ([
-                                    ['icon' => 'categoyr-two-icon-1.png', 'title' => 'Arena<br>Belajar', 'subtitle' => 'Program dan kelas', 'url' => 'arena-belajar'],
-                                    ['icon' => 'categoyr-two-icon-2.png', 'title' => 'Bunga<br>Rampai', 'subtitle' => 'Artikel dan referensi', 'url' => 'bunga-rampai'],
-                                    ['icon' => 'categoyr-two-icon-3.png', 'title' => 'Regulasi<br>PBJ', 'subtitle' => 'Dokumen dan aturan', 'url' => 'regulasi'],
-                                    ['icon' => 'categoyr-two-icon-4.png', 'title' => 'Event dan<br>Agenda', 'subtitle' => 'Kegiatan mendatang', 'url' => 'event'],
-                                    ['icon' => 'categoyr-two-icon-5.png', 'title' => 'Statistik<br>Publik', 'subtitle' => 'Data dan capaian', 'url' => 'statistik'],
-                                    ['icon' => 'categoyr-two-icon-6.png', 'title' => 'Verifikasi<br>Sertifikat', 'subtitle' => 'Cek keabsahan', 'url' => 'verifikasi-sertifikat'],
-                                ] as $item): ?>
+                                <?php foreach (
+                                    [
+                                        ['icon' => 'categoyr-two-icon-1.png', 'title' => 'Arena<br>Belajar', 'subtitle' => 'Program dan kelas', 'url' => 'arena-belajar'],
+                                        ['icon' => 'categoyr-two-icon-2.png', 'title' => 'Bunga<br>Rampai', 'subtitle' => 'Artikel dan referensi', 'url' => 'bunga-rampai'],
+                                        ['icon' => 'categoyr-two-icon-3.png', 'title' => 'Regulasi<br>PBJ', 'subtitle' => 'Dokumen dan aturan', 'url' => 'regulasi'],
+                                        ['icon' => 'categoyr-two-icon-4.png', 'title' => 'Event dan<br>Agenda', 'subtitle' => 'Kegiatan mendatang', 'url' => 'event'],
+                                        ['icon' => 'categoyr-two-icon-5.png', 'title' => 'Statistik<br>Publik', 'subtitle' => 'Data dan capaian', 'url' => 'statistik'],
+                                        ['icon' => 'categoyr-two-icon-6.png', 'title' => 'Verifikasi<br>Sertifikat', 'subtitle' => 'Cek keabsahan', 'url' => 'verifikasi-sertifikat'],
+                                    ] as $item
+                                ): ?>
                                     <li>
                                         <a href="<?= site_url($item['url']) ?>">
                                             <div class="main-menu__category-icon"><img src="<?= base_url('assets/main/images/icon/' . $item['icon']) ?>" alt=""></div>
-                                            <div class="main-menu__category-content"><h5><?= $item['title'] ?></h5><p><?= esc($item['subtitle']) ?></p></div>
+                                            <div class="main-menu__category-content">
+                                                <h5><?= $item['title'] ?></h5>
+                                                <p><?= esc($item['subtitle']) ?></p>
+                                            </div>
                                         </a>
                                     </li>
                                 <?php endforeach; ?>

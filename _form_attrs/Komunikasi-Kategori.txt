@@ -1,0 +1,5 @@
+description
+is_active
+name
+search
+slug

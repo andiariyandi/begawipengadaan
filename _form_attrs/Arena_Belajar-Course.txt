@@ -1,0 +1,11 @@
+cover_file_id
+description
+duration_minutes
+level
+program_id
+search
+slug
+status
+summary
+title
+visibility

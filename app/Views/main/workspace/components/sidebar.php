@@ -13,6 +13,27 @@ $link = static function (string $label, ?string $url, bool $active = false, bool
 $displayName = $userName ?? 'Pengguna';
 $initials = strtoupper(mb_substr($displayName, 0, 1, 'UTF-8'));
 
+// === Role-aware sidebar ===========================================================
+$isTrainer      = $hasRole('trainer') && ! $hasRole('super_admin') && ! $hasRole('admin');
+$trainerClassId = 0;
+if ($isTrainer) {
+    $row = db_connect()->table('class_trainers')
+        ->select('class_id')
+        ->where('user_id', (int) session()->get('user_id'))
+        ->where('status', 'active')
+        ->orderBy('class_id', 'ASC')
+        ->limit(1)
+        ->get()->getRowArray();
+    $trainerClassId = (int) ($row['class_id'] ?? 0);
+}
+$classesUrl  = $isTrainer ? route_to('workspace.trainer.classes') : '#';
+$moduleUrl   = ($isTrainer && $trainerClassId > 0) ? route_to('workspace.trainer.modules', $trainerClassId)    : $classesUrl;
+$materialUrl = ($isTrainer && $trainerClassId > 0) ? route_to('workspace.trainer.materials', $trainerClassId)  : $classesUrl;
+$pesertaUrl  = ($isTrainer && $trainerClassId > 0) ? route_to('workspace.trainer.participants', $trainerClassId) : $classesUrl;
+$progressUrl = ($isTrainer && $trainerClassId > 0) ? route_to('workspace.trainer.progress', $trainerClassId)   : $classesUrl;
+$quizzesUrl  = ($isTrainer && $trainerClassId > 0) ? route_to('workspace.trainer.quizzes', $trainerClassId)   : $classesUrl;
+
+if (! $isTrainer) {
 $dashboard = [
     ['Ringkasan', route_to('workspace.home'), $isActive('workspace')],
     ['Kelas Aktif', route_to('workspace.participant.classes'), $isActive('workspace/peserta/kelas-saya')],
@@ -96,6 +117,37 @@ $aktivitas = [
     ['Aktivitas Belajar', null, false],
     ['Aktivitas Sistem', null, false],
 ];
+} else {
+    $dashboard = [
+        ['Ringkasan', route_to('workspace.trainer.home'), $isActive('workspace/trainer')],
+        ['Kelas Saya', $classesUrl, $isActive('workspace/trainer/kelas-saya')],
+    ];
+    $pembelajaran = [
+        [
+            'label' => 'Manajemen Kelas',
+            'items' => [
+                ['Modul', $moduleUrl, $isActive('workspace/trainer/kelas/' . $trainerClassId . '/modul')],
+                ['Materi / Lesson', $materialUrl, $isActive('workspace/trainer/kelas/' . $trainerClassId . '/materi')],
+                ['Peserta', $pesertaUrl, $isActive('workspace/trainer/kelas/' . $trainerClassId . '/peserta')],
+                ['Progress', $progressUrl, $isActive('workspace/trainer/kelas/' . $trainerClassId . '/progress')],
+            ],
+        ],
+        [
+            'label' => 'Penilaian',
+            'items' => [
+                ['Quiz / Ujian', $quizzesUrl, $isActive('workspace/trainer/kelas/' . $trainerClassId . '/quiz')],
+            ],
+        ],
+    ];
+    $assessment = [];
+    $tugas      = [];
+    $bookmark   = [];
+    $notifikasi = [];
+    $profil     = [
+        ['Data Diri', route_to('profile.index'), $isActive('profil')],
+    ];
+    $aktivitas  = [];
+}
 
 $renderGroup = static function (string $label, array $items) use (&$renderGroup): string {
     $html = '<section class="workspace-sidebar__group"><h2>' . esc($label) . '</h2>';

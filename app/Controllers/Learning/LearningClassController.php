@@ -206,7 +206,10 @@ class LearningClassController extends BaseController
             return true;
         }
         $roles = (array) session()->get('roles');
-        return in_array('super_admin', $roles, true) || in_array('admin', $roles, true);
+        return in_array('super_admin', $roles, true)
+            || in_array('admin', $roles, true)
+            || in_array('super_administrator', $roles, true)
+            || in_array('administrator', $roles, true);
     }
 
     private function forbidClassManagement()

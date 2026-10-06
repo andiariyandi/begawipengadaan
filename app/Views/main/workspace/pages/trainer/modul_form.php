@@ -28,6 +28,15 @@
                 <label class="form-label fw-semibold text-primary-light text-sm mb-2">Deskripsi</label>
                 <textarea name="description" class="form-control radius-8" rows="3"><?= esc($module['description'] ?? '') ?></textarea>
             </div>
+            <div class="col-12">
+                <div class="form-check">
+                    <input type="checkbox" name="is_required" value="1" id="is_required" class="form-check-input"
+                        <?= (($mode ?? 'create') === 'edit')
+                            ? (((int) ($module['is_required'] ?? 0) === 1) ? 'checked' : '')
+                            : 'checked' ?>>
+                    <label class="form-check-label fw-semibold text-primary-light text-sm" for="is_required">Modul wajib diselesaikan</label>
+                </div>
+            </div>
             <div class="col-12 d-flex justify-content-end gap-8">
                 <a href="<?= route_to('workspace.trainer.modules', $classId) ?>" class="btn btn-outline-neutral-300 radius-8">Batal</a>
                 <button type="submit" class="btn btn-primary radius-8">Simpan</button>

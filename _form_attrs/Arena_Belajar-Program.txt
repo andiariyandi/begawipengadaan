@@ -1,0 +1,9 @@
+cover_file_id
+description
+featured
+search
+slug
+status
+summary
+title
+visibility
