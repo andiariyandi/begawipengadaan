@@ -5,6 +5,9 @@
 </div>
 
 <div class="bg-white border rounded p-4">
+    <?php if ($error = session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger" role="alert"><?= esc($error) ?></div>
+    <?php endif; ?>
     <form method="post" action="<?= route_to('workspace.trainer.question.create', $classId, $quiz['id']) ?>">
         <?= csrf_field() ?>
         <div class="row g-3">

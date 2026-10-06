@@ -109,7 +109,7 @@ class TrainerController extends BaseController
         $userId = $this->userId();
         $this->assertTrainerOf($userId, (int) $classId);
 
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->getMethod() === 'POST') {
             $title = trim((string) $this->request->getPost('title'));
             $description = trim((string) $this->request->getPost('description'));
             $sortOrder   = (int) $this->request->getPost('sort_order');
@@ -120,6 +120,9 @@ class TrainerController extends BaseController
             }
             if (mb_strlen($title) > 255) {
                 return redirect()->back()->withInput()->with('error', 'Judul modul maksimal 255 karakter.');
+            }
+            if ($sortOrder < 0) {
+                return redirect()->back()->withInput()->with('error', 'Urutan modul tidak valid.');
             }
             if (! in_array($status, ['draft', 'published', 'archived'], true)) {
                 $status = 'draft';
@@ -145,14 +148,17 @@ class TrainerController extends BaseController
             }
 
             try {
-                (new LearningModuleModel())->insert([
+                $moduleModel = new LearningModuleModel();
+                if ($moduleModel->insert([
                     'class_id'    => $classIdInt,
                     'title'       => $title,
                     'description' => $description,
                     'sort_order'  => $finalSortOrder,
                     'is_required' => $this->request->getPost('is_required') ? 1 : 0,
                     'status'      => $status,
-                ]);
+                ]) === false) {
+                    throw new \RuntimeException('Data modul tidak tersimpan.');
+                }
             } catch (Throwable $e) {
                 return redirect()->back()->withInput()->with('error', 'Modul gagal dibuat: ' . $e->getMessage());
             }
@@ -179,7 +185,7 @@ class TrainerController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Modul tidak ditemukan.');
         }
 
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->getMethod() === 'POST') {
             $moduleModel->update((int) $moduleId, [
                 'title'       => trim((string) $this->request->getPost('title')),
                 'description' => (string) $this->request->getPost('description'),
@@ -241,12 +247,19 @@ class TrainerController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Modul tidak ditemukan.');
         }
 
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->getMethod() === 'POST') {
             $payload = $this->lessonPayload((int) $moduleId, (int) $userId);
             if (($msg = $payload['error'] ?? null) !== null) {
                 return redirect()->back()->withInput()->with('error', $msg);
             }
-            (new LessonModel())->insert($payload['data']);
+            try {
+                $lessonModel = new LessonModel();
+                if ($lessonModel->insert($payload['data']) === false) {
+                    throw new \RuntimeException('Data lesson tidak tersimpan.');
+                }
+            } catch (Throwable $e) {
+                return redirect()->back()->withInput()->with('error', 'Lesson gagal dibuat: ' . $e->getMessage());
+            }
             return redirect()->to(route_to('workspace.trainer.materials', $classId))->with('success', 'Lesson berhasil dibuat.');
         }
 
@@ -275,7 +288,7 @@ class TrainerController extends BaseController
         }
         $module = (new LearningModuleModel())->find((int) $lesson['module_id']);
 
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->getMethod() === 'POST') {
             $payload = $this->lessonPayload((int) $lesson['module_id'], (int) $userId);
             if (($msg = $payload['error'] ?? null) !== null) {
                 return redirect()->back()->withInput()->with('error', $msg);
@@ -330,7 +343,7 @@ class TrainerController extends BaseController
 
         $lessons = $this->loadLessonsForClass((int) $classId);
 
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->getMethod() === 'POST') {
             $type = (string) $this->request->getPost('type');
             if (! in_array($type, ['pre_test', 'lesson_quiz', 'post_test'], true)) {
                 return redirect()->back()->withInput()->with('error', 'Tipe ujian tidak valid.');
@@ -366,7 +379,7 @@ class TrainerController extends BaseController
                 'is_required'   => $this->request->getPost('is_required') ? 1 : 0,
                 'status'        => 'draft',
             ], true);
-            return redirect()->to(route_to('workspace.trainer.editQuiz', $classId, (string) $quizId))->with('success', 'Ujian dibuat. Tambahkan soal.');
+            return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, (string) $quizId))->with('success', 'Ujian dibuat. Tambahkan soal.');
         }
 
         return $this->render('Tambah Ujian', 'trainer/quiz_form', [
@@ -398,7 +411,7 @@ class TrainerController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Ujian tidak ditemukan.');
         }
 
-        if ($this->request->getMethod() === 'post' && $this->request->getPost('_action') === 'update_meta') {
+        if ($this->request->getMethod() === 'POST' && $this->request->getPost('_action') === 'update_meta') {
             (new QuizModel())->update((int) $quizId, [
                 'title'         => trim((string) $this->request->getPost('title')),
                 'instructions'  => (string) $this->request->getPost('instructions'),
@@ -444,7 +457,7 @@ class TrainerController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Ujian tidak ditemukan.');
         }
 
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->getMethod() === 'POST') {
             $prompt = trim((string) $this->request->getPost('prompt'));
             if ($prompt === '') {
                 return redirect()->back()->withInput()->with('error', 'Pertanyaan wajib diisi.');
@@ -478,7 +491,7 @@ class TrainerController extends BaseController
                 ]);
             }
 
-            return redirect()->to(route_to('workspace.trainer.editQuiz', $classId, $quizId))->with('success', 'Soal ditambahkan.');
+            return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, $quizId))->with('success', 'Soal ditambahkan.');
         }
 
         return $this->render('Tambah Soal', 'trainer/question_form', [
@@ -516,6 +529,9 @@ class TrainerController extends BaseController
         if ($title === '') {
             return ['error' => 'Judul lesson wajib diisi.'];
         }
+        if (mb_strlen($title) > 255) {
+            return ['error' => 'Judul lesson maksimal 255 karakter.'];
+        }
         $contentType = (string) $this->request->getPost('content_type');
         if (! in_array($contentType, ['text', 'document', 'video', 'link'], true)) {
             return ['error' => 'Tipe konten tidak valid.'];
@@ -538,8 +554,12 @@ class TrainerController extends BaseController
             }
         }
 
-        $maxOrder = (int) (db_connect()->table('lessons')
-            ->selectMax('sort_order')->where('module_id', $moduleId)->get()->getRowArray()['sort_order'] ?? 0);
+        $maxRow = db_connect()->table('lessons')
+            ->selectMax('sort_order')
+            ->where('module_id', $moduleId)
+            ->get()
+            ->getRowArray();
+        $maxOrder = (int) ($maxRow['sort_order'] ?? 0);
 
         return ['data' => [
             'module_id'    => $moduleId,

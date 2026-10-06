@@ -166,4 +166,93 @@ class CertificateController extends BaseController
             'certificate' => $certificate,
         ]);
     }
+
+    // =============================================================
+    // Dashboard Admin/Super Admin — Sertifikat (group: dashboard/sertifikat)
+    // 7 submenu + create/edit/detail. Views are UI-only placeholders.
+    // =============================================================
+
+    public function index(): string
+    {
+        return view('dashboard/certificates/index', [
+            'title'         => 'Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Sertifikat',
+            'activeMenu'    => 'certificates',
+            'activeSubmenu' => 'index',
+        ]);
+    }
+
+    public function create(): string
+    {
+        return view('dashboard/certificates/form', [
+            'title'         => 'Tambah Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Tambah Sertifikat',
+            'formMode'      => 'create',
+            'activeMenu'    => 'certificates',
+            'activeSubmenu' => 'index',
+        ]);
+    }
+
+    public function eligibility(): string
+    {
+        return view('dashboard/certificates/eligibility', [
+            'title'         => 'Eligibility Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Eligibility Sertifikat',
+            'activeMenu'    => 'certificates',
+            'activeSubmenu' => 'eligibility',
+        ]);
+    }
+
+    public function verification(): string
+    {
+        return view('dashboard/certificates/verification', [
+            'title'         => 'Verifikasi Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Verifikasi Sertifikat',
+            'activeMenu'    => 'certificates',
+            'activeSubmenu' => 'verification',
+        ]);
+    }
+
+    public function revocation(): string
+    {
+        return view('dashboard/certificates/revocation', [
+            'title'         => 'Revocation Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Revocation Sertifikat',
+            'activeMenu'    => 'certificates',
+            'activeSubmenu' => 'revocation',
+        ]);
+    }
+
+    public function numbers(): string
+    {
+        return view('dashboard/certificates/numbers', [
+            'title'         => 'Nomor Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Nomor Sertifikat',
+            'activeMenu'    => 'certificates',
+            'activeSubmenu' => 'numbers',
+        ]);
+    }
+
+    public function edit(string $id): string
+    {
+        return view('dashboard/certificates/form', [
+            'title'         => 'Ubah Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Ubah Sertifikat',
+            'formMode'      => 'edit',
+            'certificateId' => $id,
+            'activeMenu'    => 'certificates',
+            'activeSubmenu' => 'index',
+        ]);
+    }
+
+    public function detail(string $id): string
+    {
+        return view('dashboard/certificates/detail', [
+            'title'         => 'Detail Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Detail Sertifikat',
+            'certificateId' => $id,
+            'activeMenu'    => 'certificates',
+            'activeSubmenu' => 'index',
+        ]);
+    }
 }

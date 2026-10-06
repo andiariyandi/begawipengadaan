@@ -5,6 +5,9 @@
 </div>
 
 <div class="bg-white border rounded p-4">
+    <?php if ($error = session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger" role="alert"><?= esc($error) ?></div>
+    <?php endif; ?>
     <form method="post" action="<?= ($mode ?? 'create') === 'edit' ? route_to('workspace.trainer.module.edit', $classId, $module['id'] ?? 0) : route_to('workspace.trainer.module.create', $classId) ?>">
         <?= csrf_field() ?>
         <div class="row g-3">
