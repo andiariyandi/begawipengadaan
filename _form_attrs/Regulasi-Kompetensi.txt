@@ -1,5 +1,0 @@
-description
-is_active
-key
-name
-search

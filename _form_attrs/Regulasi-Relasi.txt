@@ -1,5 +1,0 @@
-notes
-relation_type
-search
-source_regulation_id
-target_regulation_id

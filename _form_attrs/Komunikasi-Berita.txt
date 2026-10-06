@@ -1,9 +1,0 @@
-category_id
-content
-cover
-scheduled_at
-search
-summary
-title
-visibility
-workflow_status
