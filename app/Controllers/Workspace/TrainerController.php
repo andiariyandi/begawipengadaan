@@ -111,29 +111,59 @@ class TrainerController extends BaseController
 
         if ($this->request->getMethod() === 'post') {
             $title = trim((string) $this->request->getPost('title'));
-            $description = (string) $this->request->getPost('description');
-            $sortOrder = (int) $this->request->getPost('sort_order');
+            $description = trim((string) $this->request->getPost('description'));
+            $sortOrder   = (int) $this->request->getPost('sort_order');
+            $status      = (string) $this->request->getPost('status');
+
             if ($title === '') {
                 return redirect()->back()->withInput()->with('error', 'Judul modul wajib diisi.');
             }
-            $maxRow   = db_connect()->table('learning_modules')
-                ->selectMax('sort_order')->where('class_id', (int) $classId)->get()->getRowArray();
+            if (mb_strlen($title) > 255) {
+                return redirect()->back()->withInput()->with('error', 'Judul modul maksimal 255 karakter.');
+            }
+            if (! in_array($status, ['draft', 'published', 'archived'], true)) {
+                $status = 'draft';
+            }
+
+            $db         = db_connect();
+            $classIdInt = (int) $classId;
+
+            $maxRow   = $db->table('learning_modules')
+                ->selectMax('sort_order')->where('class_id', $classIdInt)->get()->getRowArray();
             $maxOrder = (int) ($maxRow['sort_order'] ?? 0);
-            (new LearningModuleModel())->insert([
-                'class_id'    => (int) $classId,
-                'title'       => $title,
-                'description' => $description,
-                'sort_order'  => $sortOrder > 0 ? $sortOrder : ($maxOrder + 1),
-                'is_required' => $this->request->getPost('is_required') ? 1 : 0,
-                'status'      => 'draft',
-            ]);
+
+            // Tentukan sort_order; auto-geser jika nilai input bentrok dengan UNIQUE (class_id, sort_order)
+            $finalSortOrder = $sortOrder > 0 ? $sortOrder : ($maxOrder + 1);
+            if ($finalSortOrder > 0) {
+                $exists = (int) $db->table('learning_modules')
+                    ->where('class_id', $classIdInt)
+                    ->where('sort_order', $finalSortOrder)
+                    ->countAllResults();
+                if ($exists > 0) {
+                    $finalSortOrder = $maxOrder + 1;
+                }
+            }
+
+            try {
+                (new LearningModuleModel())->insert([
+                    'class_id'    => $classIdInt,
+                    'title'       => $title,
+                    'description' => $description,
+                    'sort_order'  => $finalSortOrder,
+                    'is_required' => $this->request->getPost('is_required') ? 1 : 0,
+                    'status'      => $status,
+                ]);
+            } catch (Throwable $e) {
+                return redirect()->back()->withInput()->with('error', 'Modul gagal dibuat: ' . $e->getMessage());
+            }
+
             return redirect()->to(route_to('workspace.trainer.modules', $classId))->with('success', 'Modul berhasil dibuat.');
         }
 
         return $this->render('Tambah Modul', 'trainer/modul_form', [
-            'classId' => (int) $classId,
-            'mode'    => 'create',
-            'module'  => null,
+            'classId'   => (int) $classId,
+            'mode'      => 'create',
+            'module'    => null,
             'className' => $this->className($classId),
         ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Tambah Modul'));
     }
