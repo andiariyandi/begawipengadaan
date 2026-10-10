@@ -17,26 +17,36 @@ class AuditController extends BaseController
         $model = new \App\Models\AuditLogModel();
         $filters = [
             'userId' => $this->request->getGet('user_id') ? (int) $this->request->getGet('user_id') : null,
-            'module' => $this->request->getGet('module'),
-            'from'   => $this->request->getGet('from'),
-            'to'     => $this->request->getGet('to'),
+            'module' => $this->request->getGet('module') ?: null,
+            'from'   => $this->request->getGet('from') ?: null,
+            'to'     => $this->request->getGet('to') ?: null,
         ];
 
         $page = max(1, (int) ($this->request->getGet('page_audit') ?: 1));
         $perPage = 25;
-        $builder = $model->browse(...array_values($filters));
+        $builder = $model->browse($filters['module'], $filters['userId'], $filters['from'], $filters['to']);
         $total = (clone $builder)->countAllResults();
         $items = $builder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
 
         $pager = service('pager');
         $pager->store('audit', $page, $perPage, $total, 0);
 
+        $db = db_connect();
+        $today = date('Y-m-d 00:00:00');
+        $stats = [
+            'total'       => (int) $db->table('audit_logs')->countAllResults(),
+            'today'       => (int) $db->table('audit_logs')->where('created_at >=', $today)->countAllResults(),
+            'success'     => (int) $db->table('audit_logs')->where('result', 'success')->countAllResults(),
+            'risk_failed' => (int) $db->table('audit_logs')->whereIn('result', ['failure', 'error', 'denied'])->countAllResults(),
+        ];
+
         return view('dashboard/audit/index', [
-            'title'         => 'Audit Akses | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Audit Akses',
+            'title'         => 'Audit Akses & Log Sistem | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Audit Trail & Log Aktivitas',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'audit',
             'items'         => $items,
+            'stats'         => $stats,
             'filters'       => $filters,
             'pager'         => $pager,
             'modules'       => $model->distinctModules(),
@@ -55,6 +65,26 @@ class AuditController extends BaseController
             'activeSubmenu' => 'audit',
             'item'          => $item,
             'auditId'       => $auditId,
+        ]);
+    }
+
+    public function files()
+    {
+        return view('dashboard/audit/files', [
+            'title'         => 'File dan Media | Dashboard BegawiPBJ',
+            'pageTitle'     => 'File dan Media',
+            'activeMenu'    => 'system',
+            'activeSubmenu' => 'files-media',
+        ]);
+    }
+
+    public function notifications()
+    {
+        return view('dashboard/audit/notifications', [
+            'title'         => 'Log Notifikasi | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Log Notifikasi Sistem',
+            'activeMenu'    => 'system',
+            'activeSubmenu' => 'notifications',
         ]);
     }
 }

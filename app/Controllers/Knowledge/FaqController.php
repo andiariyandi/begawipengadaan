@@ -10,13 +10,30 @@ class FaqController extends BaseKnowledgeController
 {
     public function index(): string
     {
-        $items = (new ArticleModel())->listArticles('faq');
+        $status   = $this->request->getGet('status') ?: null;
+        $keyword  = $this->request->getGet('q') ?: null;
+        $category = $this->request->getGet('category') ?: null;
+
+        $items = (new ArticleModel())->listArticles('faq', $status, $keyword, $category !== null ? (int) $category : null);
+        $db = db_connect();
+        $stats = [
+            'total'     => (int) $db->table('knowledge_articles')->where('type', 'faq')->countAllResults(),
+            'published' => (int) $db->table('knowledge_articles')->where('type', 'faq')->where('workflow_status', 'published')->countAllResults(),
+            'draft'     => (int) $db->table('knowledge_articles')->where('type', 'faq')->where('workflow_status', 'draft')->countAllResults(),
+            'in_review' => (int) $db->table('knowledge_articles')->where('type', 'faq')->whereIn('workflow_status', ['in_review', 'submitted'])->countAllResults(),
+        ];
+
         return view('dashboard/knowledge/faqs/index', [
-            'title'        => 'FAQ | Dashboard BegawiPBJ',
-            'pageTitle'    => 'FAQ',
-            'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'faqs',
-            'items'        => $items,
+            'title'         => 'FAQ | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Tanya Jawab (FAQ)',
+            'activeMenu'    => 'knowledge',
+            'activeSubmenu' => 'faqs',
+            'items'         => $items,
+            'stats'         => $stats,
+            'categories'    => (new KnowledgeCategoryModel())->activeFlat(),
+            'filterStatus'  => $status,
+            'filterKeyword' => $keyword,
+            'filterCategory'=> $category,
         ]);
     }
 

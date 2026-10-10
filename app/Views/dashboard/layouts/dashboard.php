@@ -12,9 +12,11 @@
         <?= $this->include('dashboard/components/header') ?>
 
         <div class="dashboard-main-body">
+            <?= $this->include('dashboard/components/flash_message') ?>
             <?= $this->renderSection('content') ?>
         </div>
 
+        <?= $this->include('dashboard/components/confirmation_modal') ?>
         <?= $this->include('dashboard/components/footer') ?>
     </main>
 

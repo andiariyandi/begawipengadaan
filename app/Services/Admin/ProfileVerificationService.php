@@ -5,6 +5,7 @@ namespace App\Services\Admin;
 use App\Models\ProfileVerificationModel;
 use App\Models\UserModel;
 use App\Services\AuditService;
+use App\Services\NotificationService;
 
 /**
  * Profile verification service (Manajemen Akses → Verifikasi Profil).
@@ -24,6 +25,7 @@ class ProfileVerificationService
         private readonly UserModel $users = new UserModel(),
         private readonly AuditService $audit = new AuditService(),
         private readonly UserManagementService $userService = new UserManagementService(),
+        private readonly NotificationService $notificationService = new NotificationService(),
     ) {}
 
     public function queue(array $filters = []): array
@@ -84,6 +86,14 @@ class ProfileVerificationService
         );
 
         $this->audit->log($actorId, 'profile_verification.approve', 'profile_verifications', 'profile_verification', $verificationId);
+
+        $this->notificationService->send(
+            $userId,
+            'account_approved',
+            'Akun Anda Telah Disetujui',
+            'Selamat, pendaftaran akun Anda telah disetujui oleh Operator/Admin. Anda kini dapat masuk dan mengakses seluruh fitur pembelajaran BegawiPBJ.'
+        );
+
         return true;
     }
 
@@ -123,6 +133,14 @@ class ProfileVerificationService
         );
 
         $this->audit->log($actorId, 'profile_verification.reject', 'profile_verifications', 'profile_verification', $verificationId);
+
+        $this->notificationService->send(
+            $userId,
+            'account_rejected',
+            'Pengajuan Verifikasi Akun Ditolak',
+            'Mohon maaf, pengajuan verifikasi akun Anda belum disetujui dengan alasan: ' . $reason
+        );
+
         return true;
     }
 

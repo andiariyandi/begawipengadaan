@@ -17,12 +17,21 @@ class ArticleController extends BaseKnowledgeController
         $model = new ArticleModel();
         $items = $model->listArticles('article', $status, $keyword, $category !== null ? (int) $category : null);
 
+        $db = db_connect();
+        $stats = [
+            'total'     => (int) $db->table('knowledge_articles')->where('type', 'article')->countAllResults(),
+            'published' => (int) $db->table('knowledge_articles')->where('type', 'article')->where('workflow_status', 'published')->countAllResults(),
+            'draft'     => (int) $db->table('knowledge_articles')->where('type', 'article')->where('workflow_status', 'draft')->countAllResults(),
+            'in_review' => (int) $db->table('knowledge_articles')->where('type', 'article')->whereIn('workflow_status', ['in_review', 'submitted'])->countAllResults(),
+        ];
+
         return view('dashboard/knowledge/articles/index', [
             'title'        => 'Artikel | Dashboard BegawiPBJ',
-            'pageTitle'    => 'Artikel',
+            'pageTitle'    => 'Artikel dan Praktik Baik',
             'activeMenu'   => 'knowledge',
             'activeSubmenu'=> 'articles',
             'items'        => $items,
+            'stats'        => $stats,
             'categories'   => (new KnowledgeCategoryModel())->activeFlat(),
             'filterStatus' => $status,
             'filterKeyword'=> $keyword,

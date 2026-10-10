@@ -115,7 +115,7 @@ class RegistrationService
         }
 
         try {
-            $db->table('user_profiles')->insert([
+            $ok = $db->table('user_profiles')->insert([
                 'user_id'                  => $userId,
                 'address_line'             => $data['address_line'] ?? '',
                 'province_code'            => $data['province_code'],
@@ -126,6 +126,10 @@ class RegistrationService
                 'created_at'               => $now,
                 'updated_at'               => $now,
             ]);
+            if (! $ok) {
+                $err = $db->error();
+                throw new \RuntimeException($err['message'] ?: 'Insert user_profiles returned false');
+            }
         } catch (\Throwable $e) {
             $db->transRollback();
             throw new \RuntimeException('Gagal menyimpan user_profiles: ' . $e->getMessage(), 0, $e);
@@ -135,7 +139,11 @@ class RegistrationService
         if ($profileTable) {
             try {
                 $row = $this->buildProfileRow($profileType, $userId, $mappedProfile, $now);
-                $db->table($profileTable)->insert($row);
+                $ok = $db->table($profileTable)->insert($row);
+                if (! $ok) {
+                    $err = $db->error();
+                    throw new \RuntimeException($err['message'] ?: "Insert {$profileTable} returned false");
+                }
             } catch (\Throwable $e) {
                 $db->transRollback();
                 throw new \RuntimeException("Gagal menyimpan {$profileTable}: " . $e->getMessage(), 0, $e);
@@ -143,7 +151,7 @@ class RegistrationService
         }
 
         try {
-            $db->table('profile_verifications')->insert([
+            $ok = $db->table('profile_verifications')->insert([
                 'user_id'          => $userId,
                 'verification_type'=> 'profile_registration',
                 'status'           => 'pending',
@@ -151,9 +159,35 @@ class RegistrationService
                 'created_at'       => $now,
                 'updated_at'       => $now,
             ]);
+            if (! $ok) {
+                $err = $db->error();
+                throw new \RuntimeException($err['message'] ?: 'Insert profile_verifications returned false');
+            }
         } catch (\Throwable $e) {
             $db->transRollback();
             throw new \RuntimeException('Gagal menyimpan profile_verifications: ' . $e->getMessage(), 0, $e);
+        }
+
+        try {
+            $role = $db->table('roles')->where('key', 'peserta')->get()->getRowArray();
+            if ($role) {
+                $ok = $db->table('user_roles')->insert([
+                    'user_id'    => $userId,
+                    'role_id'    => (int) $role['id'],
+                    'status'     => 'active',
+                    'granted_by' => null,
+                    'granted_at' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                if (! $ok) {
+                    $err = $db->error();
+                    throw new \RuntimeException($err['message'] ?: 'Insert user_roles returned false');
+                }
+            }
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            throw new \RuntimeException('Gagal menetapkan peran pengguna: ' . $e->getMessage(), 0, $e);
         }
 
         $db->transComplete();
@@ -191,10 +225,14 @@ class RegistrationService
     {
         $out = [];
         foreach (self::FIELD_MAP[$profileType] as $dbCol => $formKey) {
-            if (! array_key_exists($formKey, $profile)) {
+            $value = null;
+            if (array_key_exists($formKey, $profile)) {
+                $value = $profile[$formKey];
+            } elseif (array_key_exists($dbCol, $profile)) {
+                $value = $profile[$dbCol];
+            } else {
                 continue;
             }
-            $value = $profile[$formKey];
             $out[$dbCol] = $this->normalizeValue($dbCol, $value);
         }
         return $out;

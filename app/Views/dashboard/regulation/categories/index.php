@@ -11,13 +11,6 @@
     <a href="<?= site_url('dashboard/regulasi/kategori/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Kategori</a>
 </div>
 
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
-<?php endif; ?>
-
 <div class="card">
     <div class="card-body p-24">
         <div class="table-responsive scroll-sm">

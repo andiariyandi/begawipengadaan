@@ -20,17 +20,58 @@ class CourseController extends BaseController
 
     public function index(): string
     {
-        $courses = $this->courseModel
+        $keyword = trim((string) $this->request->getGet('keyword'));
+        $status = trim((string) $this->request->getGet('status'));
+        $programId = (int) $this->request->getGet('program_id');
+
+        $builder = $this->courseModel
             ->select('courses.*, programs.title AS program_title')
             ->join('programs', 'programs.id = courses.program_id', 'left')
-            ->orderBy('courses.created_at', 'DESC')
-            ->findAll();
+            ->orderBy('courses.created_at', 'DESC');
+
+        if ($keyword !== '') {
+            $builder->groupStart()
+                ->like('courses.title', $keyword)
+                ->orLike('courses.slug', $keyword)
+                ->orLike('courses.summary', $keyword)
+                ->groupEnd();
+        }
+        if ($status !== '') {
+            $builder->where('courses.status', $status);
+        }
+        if ($programId > 0) {
+            $builder->where('courses.program_id', $programId);
+        }
+
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
+        $page = max(1, (int) ($this->request->getGet('page_courses') ?: 1));
+        $total = $this->courseModel->countAllResults(false);
+        $courses = $this->courseModel->findAll($perPage, ($page - 1) * $perPage);
+
+        $pager = service('pager');
+        $pager->store('courses', $page, $perPage, $total, 0);
+
+        $db = db_connect();
+        $stats = [
+            'total'     => (int) $db->table('courses')->countAllResults(),
+            'published' => (int) $db->table('courses')->where('status', 'published')->countAllResults(),
+            'draft'     => (int) $db->table('courses')->where('status', 'draft')->countAllResults(),
+            'archived'  => (int) $db->table('courses')->where('status', 'archived')->countAllResults(),
+        ];
 
         return view('dashboard/learning/courses/index', [
-            'title' => 'Course | Dashboard BegawiPBJ',
-            'pageTitle' => 'Course',
-            'courses' => $courses,
-            'activeMenu' => 'learning',
+            'title'         => 'Course | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Course Pembelajaran',
+            'courses'       => $courses,
+            'stats'         => $stats,
+            'pager'         => $pager,
+            'programs'      => $this->programModel->orderBy('title', 'ASC')->findAll(),
+            'filters'       => [
+                'keyword'    => $keyword,
+                'status'     => $status,
+                'program_id' => $programId,
+            ],
+            'activeMenu'    => 'learning',
             'activeSubmenu' => 'courses',
         ]);
     }

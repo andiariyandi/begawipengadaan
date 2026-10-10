@@ -4,19 +4,42 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Services\Admin\RoleManagementService;
+use App\Services\Identity\AuthorizationService;
 
 /**
  * Admin Manajemen Akses → Permission management.
  */
 class PermissionController extends BaseController
 {
+    private function checkSuperAdmin(): ?\CodeIgniter\HTTP\ResponseInterface
+    {
+        if (! (new AuthorizationService())->isSuperAdmin()) {
+            return redirect()->to('dashboard')->with('error', 'Hanya Super Administrator yang berhak mengelola Role & Permission.');
+        }
+        return null;
+    }
+
     public function index()
     {
-        $permissions = (new RoleManagementService())->listPermissions();
-        $pager = service('pager');
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
+        $allPermissions = (new RoleManagementService())->listPermissions();
+        $keyword = trim((string) $this->request->getGet('keyword'));
+        if ($keyword !== '') {
+            $allPermissions = array_filter($allPermissions, static function ($p) use ($keyword) {
+                return stripos($p['name'] ?? '', $keyword) !== false
+                    || stripos($p['module'] ?? '', $keyword) !== false
+                    || stripos($p['description'] ?? '', $keyword) !== false;
+            });
+        }
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 20)));
         $page = max(1, (int) ($this->request->getGet('page_permissions') ?: 1));
-        $perPage = 20;
-        $pager->store('permissions', $page, $perPage, count($permissions), 0);
+        $total = count($allPermissions);
+        $permissions = array_slice(array_values($allPermissions), ($page - 1) * $perPage, $perPage);
+
+        $pager = service('pager');
+        $pager->store('permissions', $page, $perPage, $total, 0);
 
         return view('dashboard/access/permissions', [
             'title'         => 'Permission | Dashboard BegawiPBJ',
@@ -25,11 +48,16 @@ class PermissionController extends BaseController
             'activeSubmenu' => 'roles',
             'permissions'   => $permissions,
             'pager'         => $pager,
+            'keyword'       => $keyword,
+            'perPage'       => $perPage,
         ]);
     }
 
     public function create()
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         return view('dashboard/access/permission_form', [
             'title'         => 'Tambah Permission | Dashboard BegawiPBJ',
             'pageTitle'     => 'Tambah Permission',
@@ -41,6 +69,9 @@ class PermissionController extends BaseController
 
     public function store()
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         $rules = [
             'key'         => 'required|max_length[128]|is_unique[permissions.key]',
             'name'        => 'required|max_length[255]',
@@ -57,6 +88,9 @@ class PermissionController extends BaseController
 
     public function detail(string $id)
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         $permId = ctype_digit($id) ? (int) $id : 0;
         $permission = (new RoleManagementService())->findPermission($permId);
         if (! $permission) {
@@ -82,6 +116,9 @@ class PermissionController extends BaseController
 
     public function update(string $id)
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         $permId = ctype_digit($id) ? (int) $id : 0;
         $rules = [
             'name'        => 'required|max_length[255]',
@@ -98,6 +135,9 @@ class PermissionController extends BaseController
 
     public function delete(string $id)
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         $permId = ctype_digit($id) ? (int) $id : 0;
         $actorId = (int) session()->get('user_id');
         try {

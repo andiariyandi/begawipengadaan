@@ -57,7 +57,6 @@ $statusLabels = [
         </div>
     </div>
 </form>
-<?php if ($msg = session()->getFlashdata('success')): ?><div class="alert alert-success radius-8 mb-3"><?= esc($msg) ?></div><?php endif; ?>
 <div class="row gy-4">
     <?php if (empty($items)): ?>
         <div class="col-12"><div class="card"><div class="card-body p-24"><p class="text-secondary-light mb-0">Belum ada media. Klik "Tambah Media".</p></div></div></div>
@@ -94,13 +93,27 @@ $statusLabels = [
                             </div>
                             <span class="badge bg-primary-subtle text-primary-emphasis"><?= esc($statusLabels[$m['workflow_status'] ?? 'draft'] ?? ucfirst($m['workflow_status'] ?? 'draft')) ?></span>
                         </div>
-                        <div class="d-flex gap-2 mt-3">
-                            <a href="<?= route_to('dashboard.knowledge.media-gallery.detail', (string) $m['id']) ?>" class="text-primary-600 fw-semibold">Lihat Detail</a>
-                            <a href="<?= route_to('dashboard.knowledge.media-gallery.edit', (string) $m['id']) ?>" class="text-warning-main">Ubah</a>
-                            <form method="post" action="<?= route_to('dashboard.knowledge.media-gallery.delete', (string) $m['id']) ?>" class="d-inline" onsubmit="return confirm('Hapus media ini?')">
-                                <?= csrf_field() ?>
-                                <button type="submit" class="btn btn-link text-danger-main p-0">Hapus</button>
-                            </form>
+                        <div class="d-flex align-items-center justify-content-between gap-2 mt-16 pt-16 border-top">
+                            <a href="<?= route_to('dashboard.knowledge.media-gallery.detail', (string) $m['id']) ?>" class="btn btn-outline-primary-600 btn-sm radius-6 px-12 py-4 text-xs d-flex align-items-center gap-1">
+                                <iconify-icon icon="solar:eye-outline"></iconify-icon> Detail
+                            </a>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="<?= route_to('dashboard.knowledge.media-gallery.edit', (string) $m['id']) ?>" class="btn btn-outline-warning-main btn-sm radius-6 px-12 py-4 text-xs d-flex align-items-center gap-1">
+                                    <iconify-icon icon="solar:pen-2-outline"></iconify-icon> Ubah
+                                </a>
+                                <button type="button" class="btn btn-outline-danger-600 btn-sm radius-6 px-12 py-4 text-xs d-flex align-items-center gap-1"
+                                    data-bs-toggle="modal" data-bs-target="#confirmationActionModal"
+                                    data-action="<?= route_to('dashboard.knowledge.media-gallery.delete', (string) $m['id']) ?>"
+                                    data-method="POST"
+                                    data-title="Hapus Media"
+                                    data-message="Apakah Anda yakin ingin menghapus media ini?"
+                                    data-btn-text="Hapus Media"
+                                    data-btn-class="btn-danger-600"
+                                    data-icon="fluent:delete-24-regular"
+                                    data-icon-color="danger">
+                                    <iconify-icon icon="solar:trash-bin-trash-outline"></iconify-icon> Hapus
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

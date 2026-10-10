@@ -24,17 +24,58 @@ class LearningClassController extends BaseController
 
     public function index(): string
     {
-        $classes = $this->classModel
+        $keyword = trim((string) $this->request->getGet('keyword'));
+        $status = trim((string) $this->request->getGet('status'));
+        $courseId = (int) $this->request->getGet('course_id');
+
+        $builder = $this->classModel
             ->select('learning_classes.*, courses.title AS course_title')
             ->join('courses', 'courses.id = learning_classes.course_id', 'left')
-            ->orderBy('learning_classes.created_at', 'DESC')
-            ->findAll();
+            ->orderBy('learning_classes.created_at', 'DESC');
+
+        if ($keyword !== '') {
+            $builder->groupStart()
+                ->like('learning_classes.name', $keyword)
+                ->orLike('learning_classes.code', $keyword)
+                ->orLike('learning_classes.description', $keyword)
+                ->groupEnd();
+        }
+        if ($status !== '') {
+            $builder->where('learning_classes.status', $status);
+        }
+        if ($courseId > 0) {
+            $builder->where('learning_classes.course_id', $courseId);
+        }
+
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
+        $page = max(1, (int) ($this->request->getGet('page_classes') ?: 1));
+        $total = $this->classModel->countAllResults(false);
+        $classes = $this->classModel->findAll($perPage, ($page - 1) * $perPage);
+
+        $pager = service('pager');
+        $pager->store('classes', $page, $perPage, $total, 0);
+
+        $db = db_connect();
+        $stats = [
+            'total'     => (int) $db->table('learning_classes')->countAllResults(),
+            'open'      => (int) $db->table('learning_classes')->whereIn('status', ['open', 'active', 'ongoing'])->countAllResults(),
+            'completed' => (int) $db->table('learning_classes')->whereIn('status', ['completed', 'closed'])->countAllResults(),
+            'draft'     => (int) $db->table('learning_classes')->where('status', 'draft')->countAllResults(),
+        ];
 
         return view('dashboard/learning/classes/index', [
-            'title' => 'Kelas | Dashboard BegawiPBJ',
-            'pageTitle' => 'Kelas',
-            'classes' => $classes,
-            'activeMenu' => 'learning',
+            'title'         => 'Kelas | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Pelaksanaan Kelas',
+            'classes'       => $classes,
+            'stats'         => $stats,
+            'pager'         => $pager,
+            'courses'       => $this->courseModel->orderBy('title', 'ASC')->findAll(),
+            'filters'       => [
+                'keyword'   => $keyword,
+                'status'    => $status,
+                'course_id' => $courseId,
+            ],
+            'activeMenu'    => 'learning',
             'activeSubmenu' => 'classes',
         ]);
     }
@@ -85,15 +126,21 @@ class LearningClassController extends BaseController
         $trainers = $this->loadAssignedTrainers((int) $id);
         $trainerCandidates = $this->loadTrainerCandidates();
 
+        $db = db_connect();
+        $enrollmentsCount = (int) $db->table('enrollments')->where('class_id', $id)->countAllResults();
+        $modulesCount = ! empty($class['course_id']) ? (int) $db->table('course_modules')->where('course_id', $class['course_id'])->countAllResults() : 0;
+
         return view('dashboard/learning/classes/detail', [
-            'title' => 'Detail Kelas | Dashboard BegawiPBJ',
-            'pageTitle' => 'Detail Kelas',
-            'classId' => $id,
-            'class' => $class,
-            'trainers' => $trainers,
+            'title'             => 'Detail Kelas | Dashboard BegawiPBJ',
+            'pageTitle'         => 'Detail Kelas',
+            'classId'           => $id,
+            'class'             => $class,
+            'trainers'          => $trainers,
             'trainerCandidates' => $trainerCandidates,
-            'activeMenu' => 'learning',
-            'activeSubmenu' => 'classes',
+            'enrollmentsCount'  => $enrollmentsCount,
+            'modulesCount'      => $modulesCount,
+            'activeMenu'        => 'learning',
+            'activeSubmenu'     => 'classes',
         ]);
     }
 

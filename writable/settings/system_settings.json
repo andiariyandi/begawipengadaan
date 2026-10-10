@@ -1,0 +1,64 @@
+{
+    "general": {
+        "app_name": "BegawiPBJ Lampung Testing 081025",
+        "app_short_name": "BegawiPBJ",
+        "default_locale": "id",
+        "timezone": "Asia/Jakarta",
+        "date_format": "d F Y",
+        "sender_email": "noreply@begawipbj.lampungprov.go.id",
+        "app_description": "Platform pembelajaran dan pengelolaan pengadaan barang/jasa Pemerintah Provinsi Lampung."
+    },
+    "organization": {
+        "agency_name": "Pemerintah Provinsi Lampung",
+        "agency_code": "PEMPROV-LPG",
+        "address": "Jl. Wolter Monginsidi No. 69, Bandar Lampung",
+        "phone": "(0721) 481103",
+        "email": "pbj@lampungprov.go.id",
+        "provincial_unit": "Biro Pengadaan Barang dan Jasa"
+    },
+    "learning": {
+        "enrollment_mode": "open",
+        "auto_approval": "1",
+        "passing_grade_default": "75.00",
+        "quiz_weight_default": "35.00",
+        "post_test_weight_default": "70.00",
+        "max_quiz_attempts": "3"
+    },
+    "event": {
+        "default_capacity": "100",
+        "waitlist_enabled": "1",
+        "auto_attendance": "0",
+        "reminder_hours_before": "24"
+    },
+    "certificate": {
+        "sequence_prefix": "SERT",
+        "valid_period_years": "3",
+        "auto_numbering": "1",
+        "qr_verification": "1",
+        "signature_officer": "Kepala Biro PBJ Provinsi Lampung",
+        "signature_role": "Pengguna Anggaran / Penanggung Jawab"
+    },
+    "notification": {
+        "email_enabled": "1",
+        "in_app_enabled": "1",
+        "digest_frequency": "instant"
+    },
+    "integration": {
+        "lkpp_api_endpoint": "https://api.lkpp.go.id/v1",
+        "lkpp_api_key": "",
+        "webhook_url": "",
+        "sso_enabled": "0"
+    },
+    "security": {
+        "min_password_length": "8",
+        "require_numbers": "1",
+        "require_special_chars": "0",
+        "session_lifetime_minutes": "120",
+        "max_login_attempts": "5"
+    },
+    "maintenance": {
+        "maintenance_mode": "0",
+        "allowed_ips": "127.0.0.1, ::1",
+        "maintenance_message": "Sistem sedang dalam pemeliharaan berkala. Silakan coba beberapa saat lagi."
+    }
+}

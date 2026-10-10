@@ -213,6 +213,19 @@ class CertificateGenerator
             ]);
 
             $this->db->transCommit();
+
+            // Notifikasi internal penerbitan sertifikat ke peserta
+            try {
+                (new NotificationService($this->db))->send(
+                    (int) $source['user_id'],
+                    'certificate_issued',
+                    'Sertifikat Pembelajaran Diterbitkan',
+                    "Sertifikat Anda untuk '" . ($source['title'] ?? 'Pembelajaran') . "' dengan nomor {$certNumber} telah berhasil diterbitkan dan siap diunduh.",
+                    ['certificate_id' => $certificateId, 'certificate_number' => $certNumber]
+                );
+            } catch (\Throwable $e) {
+                log_message('warning', 'Failed to send certificate notification: ' . $e->getMessage());
+            }
         } catch (\Throwable $e) {
             $this->db->transRollback();
             throw $e;

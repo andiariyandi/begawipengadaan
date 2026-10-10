@@ -18,7 +18,6 @@ $currentStatus = $faq['workflow_status'] ?? 'draft';
     <div><h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'FAQ') ?></h6><p class="text-secondary-light mb-0">Form FAQ Bunga Rampai.</p></div>
     <a href="<?= route_to('dashboard.knowledge.faqs') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
 </div>
-<?php if ($msg = session()->getFlashdata('error')): ?><div class="alert alert-danger radius-8 mb-3"><?= esc($msg) ?></div><?php endif; ?>
 <div class="card"><div class="card-body p-24">
     <form method="post" action="<?= $action ?>">
         <?= csrf_field() ?>

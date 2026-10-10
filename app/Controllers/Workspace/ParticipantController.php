@@ -3,17 +3,17 @@
 namespace App\Controllers\Workspace;
 
 use App\Controllers\BaseController;
-use App\Services\LearningVerticalSliceService;
+use App\Services\LearningService;
 use Throwable;
 
 class ParticipantController extends BaseController
 {
-    private LearningVerticalSliceService $learning;
+    private LearningService $learning;
 
     public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger): void
     {
         parent::initController($request, $response, $logger);
-        $this->learning = new LearningVerticalSliceService();
+        $this->learning = new LearningService();
     }
 
     public function index()
@@ -337,28 +337,397 @@ class ParticipantController extends BaseController
 
     public function assignments(string $classId): string
     {
-        $this->userId();
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        $db = db_connect();
+
+        $enrollment = $db->table('enrollments')->where(['class_id' => $classIdInt, 'user_id' => $userId])->get()->getRowArray();
+        $assignments = $db->table('assignments')->where('class_id', $classIdInt)->orderBy('due_at', 'ASC')->get()->getResultArray();
+
+        $assignmentsList = [];
+        foreach ($assignments as $asg) {
+            $sub = null;
+            if ($enrollment) {
+                $sub = $db->table('assignment_submissions')
+                    ->where(['assignment_id' => $asg['id'], 'enrollment_id' => $enrollment['id']])
+                    ->orderBy('attempt_number', 'DESC')
+                    ->get()->getRowArray();
+            }
+
+            $status = $sub['status'] ?? 'not_submitted';
+            $label = match ($status) {
+                'graded'            => 'Telah Dinilai',
+                'submitted'         => 'Telah Dikumpulkan',
+                'revision_required' => 'Perlu Revisi',
+                'in_review'         => 'Sedang Diperiksa',
+                default             => 'Belum Mengumpulkan',
+            };
+
+            $asg['submission_status'] = $status;
+            $asg['submission_status_label'] = $label;
+            $asg['score'] = $sub['score'] ?? null;
+            $assignmentsList[] = $asg;
+        }
+
         return view('main/workspace/pages/tugas', [
-            'sectionContent' => ['cards' => [], 'items' => ['Belum ada tugas pada vertical slice ini.']],
+            'pageTitle'       => 'Tugas Kelas',
+            'assignmentsList' => $assignmentsList,
+            'sectionContent'  => [
+                'eyebrow'     => 'Aktivitas Belajar',
+                'description' => 'Daftar penugasan dan status pengumpulan untuk kelas ini.',
+                'items'       => [],
+            ],
+        ]);
+    }
+
+    public function allAssignments(): string
+    {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $assignments = $db->table('assignments a')
+            ->select('a.*, lc.name AS class_name, lc.code AS class_code, e.id AS enrollment_id')
+            ->join('learning_classes lc', 'lc.id = a.class_id')
+            ->join('enrollments e', 'e.class_id = lc.id AND e.user_id = ' . (int) $userId)
+            ->where('a.status', 'published')
+            ->orderBy('a.due_at', 'ASC')
+            ->get()->getResultArray();
+
+        $assignmentsList = [];
+        $activeCount = 0;
+        $gradedCount = 0;
+        foreach ($assignments as $asg) {
+            $sub = $db->table('assignment_submissions')
+                ->where(['assignment_id' => $asg['id'], 'enrollment_id' => $asg['enrollment_id']])
+                ->orderBy('attempt_number', 'DESC')
+                ->get()->getRowArray();
+
+            $status = $sub['status'] ?? 'not_submitted';
+            $label = match ($status) {
+                'graded'            => 'Telah Dinilai',
+                'submitted'         => 'Telah Dikumpulkan',
+                'revision_required' => 'Perlu Revisi',
+                'in_review'         => 'Sedang Diperiksa',
+                default             => 'Belum Mengumpulkan',
+            };
+
+            if ($status === 'graded') {
+                $gradedCount++;
+            } else {
+                $activeCount++;
+            }
+
+            $asg['submission_status'] = $status;
+            $asg['submission_status_label'] = $label;
+            $asg['score'] = $sub['score'] ?? null;
+            $assignmentsList[] = $asg;
+        }
+
+        return view('main/workspace/pages/tugas', [
+            'pageTitle'       => 'Tugas Saya',
+            'assignmentsList' => $assignmentsList,
+            'sectionContent'  => [
+                'eyebrow'     => 'Aktivitas Belajar',
+                'title'       => 'Tugas Saya',
+                'description' => 'Daftar seluruh tugas dari kelas pembelajaran yang Anda ikuti.',
+                'cards'       => [
+                    ['title' => 'Tugas Aktif', 'value' => sprintf('%02d', $activeCount), 'meta' => 'perlu dikerjakan/direvisi'],
+                    ['title' => 'Telah Dinilai', 'value' => sprintf('%02d', $gradedCount), 'meta' => 'tugas selesai'],
+                    ['title' => 'Total Tugas', 'value' => sprintf('%02d', count($assignmentsList)), 'meta' => 'dari semua kelas aktif'],
+                ],
+                'items'       => [],
+            ],
+        ]);
+    }
+
+    public function allAssessments(): string
+    {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $quizzes = $db->table('quizzes q')
+            ->select('q.*, lc.name AS class_name, lc.code AS class_code, e.id AS enrollment_id')
+            ->join('learning_classes lc', 'lc.id = q.class_id')
+            ->join('enrollments e', 'e.class_id = lc.id AND e.user_id = ' . (int) $userId)
+            ->where('q.status', 'published')
+            ->orderBy('q.type', 'ASC')
+            ->orderBy('q.id', 'ASC')
+            ->get()->getResultArray();
+
+        $assessmentsList = [];
+        $completedCount = 0;
+        $pendingCount = 0;
+        foreach ($quizzes as $quiz) {
+            $attempt = $db->table('quiz_attempts')
+                ->where(['quiz_id' => $quiz['id'], 'enrollment_id' => $quiz['enrollment_id']])
+                ->orderBy('attempt_number', 'DESC')
+                ->get()->getRowArray();
+
+            $status = $attempt['status'] ?? 'not_started';
+            if (in_array($status, ['submitted', 'graded', 'passed', 'completed'], true)) {
+                $completedCount++;
+            } else {
+                $pendingCount++;
+            }
+
+            $quiz['attempt_status'] = $status;
+            $quiz['score'] = $attempt['score'] ?? null;
+            $quiz['attempt_id'] = $attempt['id'] ?? null;
+            $assessmentsList[] = $quiz;
+        }
+
+        return view('main/workspace/pages/assessment', [
+            'pageTitle'        => 'Assessment Saya',
+            'assessmentsList'  => $assessmentsList,
+            'summary'          => [
+                'total'     => count($assessmentsList),
+                'completed' => $completedCount,
+                'pending'   => $pendingCount,
+            ],
+            'sectionContent'   => [
+                'eyebrow'     => 'Evaluasi Pembelajaran',
+                'title'       => 'Assessment Saya',
+                'description' => 'Pre-test, Quiz berkala, dan Post-test untuk mengukur pemahaman materi.',
+                'cards'       => [
+                    ['title' => 'Total Assessment', 'value' => sprintf('%02d', count($assessmentsList)), 'meta' => 'ujian & kuis aktif'],
+                    ['title' => 'Selesai Dikerjakan', 'value' => sprintf('%02d', $completedCount), 'meta' => 'telah diselesaikan'],
+                    ['title' => 'Belum Dikerjakan', 'value' => sprintf('%02d', $pendingCount), 'meta' => 'menunggu dikerjakan'],
+                ],
+            ],
+        ]);
+    }
+
+    public function myEvents(): string
+    {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $events = $db->table('event_registrations er')
+            ->select('er.id AS registration_id, er.status AS registration_status, er.registered_at, e.id AS event_id, e.title, e.slug, e.type, e.mode, e.status AS event_status, e.start_at, e.end_at, e.location, e.meeting_url, e.certificate_enabled')
+            ->join('events e', 'e.id = er.event_id')
+            ->where('er.user_id', $userId)
+            ->where('e.deleted_at IS NULL')
+            ->orderBy('e.start_at', 'DESC')
+            ->get()->getResultArray();
+
+        $activeCount = 0;
+        $attendedCount = 0;
+        foreach ($events as $ev) {
+            if ($ev['registration_status'] === 'attended' || strtotime($ev['end_at']) < time()) {
+                $attendedCount++;
+            } else {
+                $activeCount++;
+            }
+        }
+
+        return view('main/workspace/pages/event_saya', [
+            'pageTitle'      => 'Event Saya',
+            'events'         => $events,
+            'summary'        => [
+                'total'    => count($events),
+                'active'   => $activeCount,
+                'attended' => $attendedCount,
+            ],
+            'sectionContent' => [
+                'eyebrow'     => 'Kegiatan & Pelatihan',
+                'title'       => 'Event Saya',
+                'description' => 'Daftar seminar, workshop, webinar, dan bimbingan teknis yang Anda ikuti.',
+                'cards'       => [
+                    ['title' => 'Total Terdaftar', 'value' => sprintf('%02d', count($events)), 'meta' => 'event terdaftar'],
+                    ['title' => 'Mendatang / Aktif', 'value' => sprintf('%02d', $activeCount), 'meta' => 'siap diikuti'],
+                    ['title' => 'Selesai', 'value' => sprintf('%02d', $attendedCount), 'meta' => 'event terlaksana'],
+                ],
+            ],
+        ]);
+    }
+
+    public function myAttendance(): string
+    {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $attendances = $db->table('attendances a')
+            ->select('a.*, er.status AS registration_status, e.title AS event_title, e.mode AS event_mode, e.start_at, e.end_at, e.location')
+            ->join('event_registrations er', 'er.id = a.event_registration_id')
+            ->join('events e', 'e.id = er.event_id')
+            ->where('er.user_id', $userId)
+            ->orderBy('a.recorded_at', 'DESC')
+            ->get()->getResultArray();
+
+        $presentCount = 0;
+        foreach ($attendances as $att) {
+            if (in_array($att['status'], ['present', 'hadir'], true)) {
+                $presentCount++;
+            }
+        }
+
+        return view('main/workspace/pages/presensi_saya', [
+            'pageTitle'      => 'Presensi Saya',
+            'attendances'    => $attendances,
+            'summary'        => [
+                'total'   => count($attendances),
+                'present' => $presentCount,
+            ],
+            'sectionContent' => [
+                'eyebrow'     => 'Catatan Kehadiran',
+                'title'       => 'Presensi Saya',
+                'description' => 'Rekap log presensi dan kehadiran Anda pada event serta pembelajaran.',
+                'cards'       => [
+                    ['title' => 'Total Catatan', 'value' => sprintf('%02d', count($attendances)), 'meta' => 'sesi kehadiran'],
+                    ['title' => 'Hadir Terverifikasi', 'value' => sprintf('%02d', $presentCount), 'meta' => 'kehadiran sah'],
+                ],
+            ],
         ]);
     }
 
     public function assignmentSubmission(string $classId): string
     {
-        return $this->assignments($classId);
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        $db = db_connect();
+
+        $enrollment = $db->table('enrollments')->where(['class_id' => $classIdInt, 'user_id' => $userId])->get()->getRowArray();
+        $assignmentId = (int) ($this->request->getGet('assignment_id') ?: 0);
+
+        $assignmentQuery = $db->table('assignments')->where('class_id', $classIdInt);
+        if ($assignmentId > 0) {
+            $assignmentQuery->where('id', $assignmentId);
+        }
+        $assignment = $assignmentQuery->orderBy('id', 'ASC')->get()->getRowArray();
+
+        if (! $assignment) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Tugas tidak ditemukan.');
+        }
+
+        $latestSubmission = null;
+        if ($enrollment) {
+            $latestSubmission = $db->table('assignment_submissions')
+                ->where(['assignment_id' => $assignment['id'], 'enrollment_id' => $enrollment['id']])
+                ->orderBy('attempt_number', 'DESC')
+                ->get()->getRowArray();
+        }
+
+        return view('main/workspace/pages/tugas', [
+            'pageTitle'        => 'Pengumpulan Tugas: ' . ($assignment['title'] ?? ''),
+            'activeAssignment' => $assignment,
+            'latestSubmission' => $latestSubmission,
+            'sectionContent'   => [
+                'eyebrow'     => 'Pengumpulan Tugas',
+                'description' => 'Kirim laporan atau lembar kerja penugasan pembelajaran.',
+            ],
+        ]);
     }
 
     public function assignmentRevision(string $classId): string
     {
-        return $this->assignments($classId);
+        return $this->assignmentSubmission($classId);
+    }
+
+    public function submitAssignment(string $classId)
+    {
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+
+        $assignmentId = (int) $this->request->getPost('assignment_id');
+        $content = (string) $this->request->getPost('content');
+        if (trim($content) === '') {
+            return redirect()->back()->withInput()->with('error', 'Konten jawaban tugas tidak boleh kosong.');
+        }
+
+        $fileData = null;
+        $file = $this->request->getFile('submission_file');
+        if ($file && $file->isValid() && ! $file->hasMoved()) {
+            $newName = $file->getRandomName();
+            $file->move(WRITEPATH . 'uploads/assignments', $newName);
+            $fileData = [
+                'path'          => 'uploads/assignments/' . $newName,
+                'original_name' => $file->getClientName(),
+                'mime_type'     => $file->getClientMimeType(),
+                'size_bytes'    => $file->getSize(),
+            ];
+        }
+
+        try {
+            $this->learning->submitAssignment($userId, $classIdInt, $assignmentId, $content, $fileData);
+            return redirect()->to(site_url('workspace/peserta/kelas/' . $classId . '/tugas'))
+                ->with('message', 'Tugas berhasil dikumpulkan untuk dievaluasi.');
+        } catch (Throwable $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
     public function feedback(string $classId): string
     {
-        $this->userId();
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        $db = db_connect();
+
+        $enrollment = $db->table('enrollments')->where(['class_id' => $classIdInt, 'user_id' => $userId])->get()->getRowArray();
+        $existingFeedback = null;
+        if ($enrollment) {
+            $existingFeedback = $db->table('feedbacks')->where('enrollment_id', $enrollment['id'])->get()->getRowArray();
+        }
+
+        $items = [];
+        if ($existingFeedback) {
+            $items[] = 'Ulasan Anda (Rating ' . ($existingFeedback['rating'] ?? 5) . '/5): "' . ($existingFeedback['comment'] ?? '-') . '"';
+        }
+
         return view('main/workspace/pages/penilaian', [
-            'sectionContent' => ['cards' => [], 'items' => ['Feedback belum tersedia.']],
+            'pageTitle'      => 'Feedback Pembelajaran Kelas #' . $classId,
+            'sectionContent' => [
+                'eyebrow'     => 'Ulasan & Feedback',
+                'description' => 'Berikan masukan dan evaluasi untuk penyelenggaraan kelas ini.',
+                'cards'       => [
+                    ['title' => 'Status Feedback', 'value' => $existingFeedback ? 'Terkirim' : 'Belum Ada', 'meta' => 'partisipasi peserta'],
+                ],
+                'items'       => $items ?: ['Silakan kirimkan kritik dan saran pembelajaran di bawah ini.'],
+            ],
         ]);
+    }
+
+    public function submitFeedback(string $classId)
+    {
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        $db = db_connect();
+
+        $enrollment = $db->table('enrollments')->where(['class_id' => $classIdInt, 'user_id' => $userId])->get()->getRowArray();
+        if (! $enrollment) {
+            return redirect()->back()->with('error', 'Anda belum terdaftar pada kelas ini.');
+        }
+
+        $rating = (int) ($this->request->getPost('rating') ?: 5);
+        $comment = (string) $this->request->getPost('comment');
+
+        if ($rating < 1 || $rating > 5) {
+            $rating = 5;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $existing = $db->table('feedbacks')->where('enrollment_id', $enrollment['id'])->get()->getRowArray();
+
+        if ($existing) {
+            $db->table('feedbacks')->where('id', $existing['id'])->update([
+                'rating'       => $rating,
+                'comment'      => $comment,
+                'status'       => 'submitted',
+                'submitted_at' => $now,
+                'updated_at'   => $now,
+            ]);
+        } else {
+            $db->table('feedbacks')->insert([
+                'enrollment_id' => $enrollment['id'],
+                'rating'        => $rating,
+                'comment'       => $comment,
+                'status'        => 'submitted',
+                'submitted_at'  => $now,
+                'created_at'    => $now,
+                'updated_at'    => $now,
+            ]);
+        }
+
+        return redirect()->back()->with('message', 'Terima kasih, ulasan pembelajaran Anda telah tersimpan.');
     }
 
     public function startQuiz(int $quizId)
@@ -486,9 +855,11 @@ class ParticipantController extends BaseController
             ->orderBy('c.created_at', 'DESC')
             ->get()->getResultArray();
 
-        return view('main/participant/certificates', [
-            'title' => 'Sertifikat Saya | Workspace BegawiPBJ',
-            'certificates' => $certificates,
+        return view('main/workspace/pages/sertifikat', [
+            'title'          => 'Sertifikat Saya | Workspace BegawiPBJ',
+            'pageTitle'      => 'Sertifikat Saya',
+            'breadcrumbTail' => [['label' => 'Sertifikat Saya']],
+            'certificates'   => $certificates,
         ]);
     }
 

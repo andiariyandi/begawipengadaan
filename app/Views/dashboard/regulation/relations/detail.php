@@ -3,13 +3,6 @@
 <?= $this->section('content') ?>
 <?php $relation = $relation ?? []; $relationTypes = $relationTypes ?? []; ?>
 
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
-<?php endif; ?>
-
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Detail Relasi</h6>
@@ -52,8 +45,17 @@
     </div>
 </div>
 
-<form action="<?= site_url('dashboard/regulasi/relasi/' . (int) $relation['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus relasi?')">
-    <?= csrf_field() ?>
-    <button type="submit" class="btn btn-outline-danger-600 radius-8 px-20 py-11">Hapus Relasi</button>
-</form>
+<button type="button" class="btn btn-outline-danger-600 radius-8 px-20 py-11 d-inline-flex align-items-center gap-2"
+    data-bs-toggle="modal" data-bs-target="#confirmationActionModal"
+    data-action="<?= site_url('dashboard/regulasi/relasi/' . (int) $relation['id'] . '/hapus') ?>"
+    data-method="POST"
+    data-title="Hapus Relasi Regulasi"
+    data-message="Apakah Anda yakin ingin menghapus relasi regulasi ini?"
+    data-btn-text="Hapus Relasi"
+    data-btn-class="btn-danger-600"
+    data-icon="fluent:delete-24-regular"
+    data-icon-color="danger">
+    <iconify-icon icon="solar:trash-bin-trash-linear" class="text-xl"></iconify-icon>
+    Hapus Relasi
+</button>
 <?= $this->endSection() ?>

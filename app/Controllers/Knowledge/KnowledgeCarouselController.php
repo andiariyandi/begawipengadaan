@@ -78,11 +78,12 @@ class KnowledgeCarouselController extends BaseKnowledgeController
         return redirect()->to(route_to('dashboard.knowledge.carousel'))->with('success', 'Carousel diaktifkan.');
     }
 
-    public function disable(string $type, string $id)
+    public function disable(string $type, string $id = '')
     {
         if ($forbid = $this->assertCanManage()) {
             return $forbid;
         }
+        $id = $id !== '' ? $id : (string) $this->request->getPost('target_id');
         $now = date('Y-m-d H:i:s');
         if ($type === 'article') {
             (new ArticleModel())->update((int) $id, [

@@ -1,7 +1,186 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Audit Trail') ?></h6><p class="text-secondary-light mb-0">Jejak aktivitas pengguna dan perubahan data pada sistem.</p></div><button type="button" class="btn btn-outline-primary-600 radius-8 px-20 py-11"><iconify-icon icon="solar:download-minimalistic-outline" class="me-6"></iconify-icon>Export Log</button></div>
-<div class="row row-cols-xxxl-4 row-cols-lg-2 row-cols-1 gy-4"><div class="col"><div class="card shadow-none border bg-gradient-start-1 h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Aktivitas Hari Ini</p><h6 class="mb-0">428</h6><p class="text-sm text-primary-light mt-12 mb-0">Tercatat sejak 00:00 WIB</p></div></div></div><div class="col"><div class="card shadow-none border bg-gradient-start-2 h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Login Berhasil</p><h6 class="mb-0">214</h6><p class="text-sm text-primary-light mt-12 mb-0">Akses akun pengguna</p></div></div></div><div class="col"><div class="card shadow-none border bg-gradient-start-3 h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Perubahan Data</p><h6 class="mb-0">147</h6><p class="text-sm text-primary-light mt-12 mb-0">Create, update, dan delete</p></div></div></div><div class="col"><div class="card shadow-none border bg-gradient-start-5 h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Aktivitas Risiko</p><h6 class="mb-0">4</h6><p class="text-sm text-primary-light mt-12 mb-0">Memerlukan pemeriksaan</p></div></div></div></div>
-<div class="card mt-24"><div class="card-body p-24"><div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-20"><div><h6 class="text-lg mb-0">Log Aktivitas</h6><p class="text-secondary-light text-sm mt-4 mb-0">Data audit dummy untuk desain halaman.</p></div><div class="d-flex flex-wrap gap-12"><select class="form-select form-select-sm w-auto radius-8"><option>Semua Aktivitas</option><option>Login</option><option>Create</option><option>Update</option><option>Delete</option></select><input type="search" class="form-control form-control-sm w-auto radius-8" placeholder="Cari log"></div></div><div class="table-responsive scroll-sm"><table class="table bordered-table sm-table mb-0"><thead><tr><th>Waktu</th><th>Pengguna</th><th>Aktivitas</th><th>Modul</th><th>Target</th><th>IP Address</th><th class="text-center">Aksi</th></tr></thead><tbody><?php foreach ([['id' => 'AUD-2026-00428', 'time' => '29 Jun 2026, 10:05:42', 'user' => 'Administrator', 'activity' => 'Memperbarui data kelas', 'module' => 'Pembelajaran', 'target' => 'Kelas: Dasar PBJ', 'ip' => '10.10.1.15'], ['id' => 'AUD-2026-00427', 'time' => '29 Jun 2026, 09:58:19', 'user' => 'Admin Event', 'activity' => 'Membuat event baru', 'module' => 'Event', 'target' => 'Event: Workshop PBJ', 'ip' => '10.10.1.21'], ['id' => 'AUD-2026-00426', 'time' => '29 Jun 2026, 09:46:03', 'user' => 'Rina Oktaviani', 'activity' => 'Mengajukan sertifikat', 'module' => 'Sertifikat', 'target' => 'SKPBJ/2024/00125', 'ip' => '10.10.2.34'], ['id' => 'AUD-2026-00425', 'time' => '29 Jun 2026, 09:40:12', 'user' => 'Hendra Wijaya', 'activity' => 'Login berhasil', 'module' => 'Autentikasi', 'target' => 'Akun pengguna', 'ip' => '10.10.3.11']] as $audit): ?><tr><td><?= esc($audit['time']) ?></td><td><h6 class="text-md fw-medium mb-0"><?= esc($audit['user']) ?></h6></td><td><?= esc($audit['activity']) ?></td><td><?= esc($audit['module']) ?></td><td><?= esc($audit['target']) ?></td><td><?= esc($audit['ip']) ?></td><td class="text-center"><a href="<?= site_url('dashboard/audit-trail/' . $audit['id']) ?>" class="text-primary-600">Detail</a></td></tr><?php endforeach; ?></tbody></table></div></div></div>
+<?php
+$items   = $items ?? [];
+$filters = $filters ?? [];
+$modules = $modules ?? [];
+$stats   = $stats ?? ['total' => count($items), 'today' => 0, 'success' => 0, 'risk_failed' => 0];
+?>
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+        <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Audit Trail & Log Aktivitas') ?></h6>
+        <p class="text-secondary-light mb-0">Jejak audit kepatuhan, mutasi data, dan riwayat aktivitas pengguna back-office.</p>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row row-cols-xxl-4 row-cols-md-2 row-cols-1 g-3 mb-24">
+    <div class="col">
+        <div class="card p-20 radius-12 border bg-base shadow-none">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary-light text-sm mb-1 d-block">Total Jejak Log</span>
+                    <h5 class="fw-semibold mb-0"><?= number_format($stats['total'] ?? 0) ?></h5>
+                </div>
+                <div class="w-48-px h-48-px bg-info-50 text-info-600 rounded-circle d-flex align-items-center justify-content-center text-2xl">
+                    <iconify-icon icon="solar:history-outline"></iconify-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card p-20 radius-12 border bg-base shadow-none">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary-light text-sm mb-1 d-block">Aktivitas Hari Ini</span>
+                    <h5 class="fw-semibold text-primary-600 mb-0"><?= number_format($stats['today'] ?? 0) ?></h5>
+                </div>
+                <div class="w-48-px h-48-px bg-primary-50 text-primary-600 rounded-circle d-flex align-items-center justify-content-center text-2xl">
+                    <iconify-icon icon="solar:calendar-date-outline"></iconify-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card p-20 radius-12 border bg-base shadow-none">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary-light text-sm mb-1 d-block">Eksekusi Berhasil</span>
+                    <h5 class="fw-semibold text-success-main mb-0"><?= number_format($stats['success'] ?? 0) ?></h5>
+                </div>
+                <div class="w-48-px h-48-px bg-success-50 text-success-600 rounded-circle d-flex align-items-center justify-content-center text-2xl">
+                    <iconify-icon icon="solar:check-circle-outline"></iconify-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card p-20 radius-12 border bg-base shadow-none">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary-light text-sm mb-1 d-block">Gagal / Ditolak</span>
+                    <h5 class="fw-semibold text-danger-main mb-0"><?= number_format($stats['risk_failed'] ?? 0) ?></h5>
+                </div>
+                <div class="w-48-px h-48-px bg-danger-50 text-danger-600 rounded-circle d-flex align-items-center justify-content-center text-2xl">
+                    <iconify-icon icon="solar:shield-warning-outline"></iconify-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Toolbar -->
+<div class="card radius-12 mb-24 border">
+    <div class="card-body p-20">
+        <form method="get" action="<?= current_url() ?>">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label text-sm fw-medium mb-1">Modul / Resource</label>
+                    <select name="module" class="form-select radius-8">
+                        <option value="">Semua Modul</option>
+                        <?php foreach ($modules as $m): ?>
+                            <?php $val = $m['resource_type'] ?? ''; ?>
+                            <option value="<?= esc($val) ?>" <?= ($filters['module'] ?? '') === $val ? 'selected' : '' ?>>
+                                <?= esc(ucfirst(str_replace('_', ' ', $val))) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-sm fw-medium mb-1">Dari Tanggal</label>
+                    <input type="date" name="from" class="form-control radius-8" value="<?= esc($filters['from'] ?? '') ?>">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-sm fw-medium mb-1">Sampai Tanggal</label>
+                    <input type="date" name="to" class="form-control radius-8" value="<?= esc($filters['to'] ?? '') ?>">
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary-600 radius-8 flex-grow-1 d-flex align-items-center justify-content-center gap-1">
+                        <iconify-icon icon="solar:filter-outline"></iconify-icon> Filter
+                    </button>
+                    <a href="<?= current_url() ?>" class="btn btn-outline-neutral-300 radius-8" title="Reset">
+                        <iconify-icon icon="solar:restart-outline"></iconify-icon>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Datatable -->
+<div class="card radius-12 border">
+    <div class="card-body p-24">
+        <?php if (empty($items)): ?>
+            <?= view('dashboard/components/empty_state', [
+                'icon'        => 'solar:history-outline',
+                'title'       => 'Belum Ada Log Audit',
+                'message'     => 'Tidak ada catatan aktivitas sistem yang ditemukan untuk periode atau filter ini.',
+            ]) ?>
+        <?php else: ?>
+            <div class="table-responsive scroll-sm">
+                <table class="table bordered-table sm-table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Waktu (WIB)</th>
+                            <th>Pelaksana / Aktor</th>
+                            <th>Tindakan (Action)</th>
+                            <th>Resource</th>
+                            <th>Hasil</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($items as $log): ?>
+                            <tr>
+                                <td>
+                                    <span class="text-xs text-neutral-800 fw-medium">
+                                        <?= esc(date('d M Y, H:i:s', strtotime($log['created_at'] ?? 'now'))) ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <h6 class="text-sm fw-semibold mb-0 text-neutral-900"><?= esc($log['username'] ?? 'Sistem / Anonim') ?></h6>
+                                    <span class="text-2xs text-secondary-light">Actor ID: #<?= esc($log['actor_id'] ?? '0') ?></span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-neutral-100 text-neutral-900 radius-6 px-10 py-4 font-monospace text-xs">
+                                        <?= esc($log['action'] ?? '-') ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-sm fw-medium text-neutral-800 d-block"><?= esc($log['resource_type'] ?? '-') ?></span>
+                                    <span class="text-2xs text-secondary-light">ID: #<?= esc($log['resource_id'] ?? '-') ?></span>
+                                </td>
+                                <td>
+                                    <?= view('dashboard/components/status_badge', ['status' => $log['result'] ?? 'success']) ?>
+                                </td>
+                                <td class="text-center">
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-outline-neutral-200 btn-sm radius-8 px-8 py-4 text-secondary-light" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <iconify-icon icon="solar:menu-dots-bold" class="text-lg"></iconify-icon>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm radius-8 p-8 border">
+                                            <li>
+                                                <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= site_url('dashboard/akses/audit/' . (int) $log['id']) ?>">
+                                                    <iconify-icon icon="solar:eye-outline" class="text-lg text-primary-600"></iconify-icon>
+                                                    <span>Lihat Detail Log</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <?php if (isset($pager)): ?>
+                <?= $pager->links('audit', 'default_full') ?>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
+</div>
+
 <?= $this->endSection() ?>

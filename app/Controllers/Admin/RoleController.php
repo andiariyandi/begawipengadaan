@@ -12,14 +12,35 @@ use App\Services\Admin\RoleManagementService;
  */
 class RoleController extends BaseController
 {
+    private function checkSuperAdmin(): ?\CodeIgniter\HTTP\ResponseInterface
+    {
+        if (! (new \App\Services\Identity\AuthorizationService())->isSuperAdmin()) {
+            return redirect()->to('dashboard')->with('error', 'Hanya Super Administrator yang berhak mengelola Role & Permission.');
+        }
+        return null;
+    }
+
     public function index()
     {
-        $roles = (new RoleManagementService())->listRoles();
-        $service = new RoleManagementService();
-        $pager = service('pager');
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
+        $allRoles = (new RoleManagementService())->listRoles();
+        $keyword = trim((string) $this->request->getGet('keyword'));
+        if ($keyword !== '') {
+            $allRoles = array_filter($allRoles, static function ($r) use ($keyword) {
+                return stripos($r['name'] ?? '', $keyword) !== false
+                    || stripos($r['key'] ?? '', $keyword) !== false
+                    || stripos($r['description'] ?? '', $keyword) !== false;
+            });
+        }
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
         $page = max(1, (int) ($this->request->getGet('page_roles') ?: 1));
-        $perPage = 15;
-        $pager->store('roles', $page, $perPage, count($roles), 0);
+        $total = count($allRoles);
+        $roles = array_slice(array_values($allRoles), ($page - 1) * $perPage, $perPage);
+
+        $pager = service('pager');
+        $pager->store('roles', $page, $perPage, $total, 0);
 
         return view('dashboard/access/roles', [
             'title'         => 'Role dan Permission | Dashboard BegawiPBJ',
@@ -28,11 +49,16 @@ class RoleController extends BaseController
             'activeSubmenu' => 'roles',
             'roles'         => $roles,
             'pager'         => $pager,
+            'keyword'       => $keyword,
+            'perPage'       => $perPage,
         ]);
     }
 
     public function create()
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         return view('dashboard/access/role_form', [
             'title'         => 'Tambah Role | Dashboard BegawiPBJ',
             'pageTitle'     => 'Tambah Role',
@@ -45,6 +71,9 @@ class RoleController extends BaseController
 
     public function store()
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         $rules = [
             'key'         => 'required|max_length[64]|is_unique[roles.key]',
             'name'        => 'required|max_length[255]',
@@ -60,6 +89,9 @@ class RoleController extends BaseController
 
     public function detail(string $id)
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         $roleId = ctype_digit($id) ? (int) $id : 0;
         $service = new RoleManagementService();
         $role = $service->findRole($roleId);
@@ -81,6 +113,9 @@ class RoleController extends BaseController
 
     public function edit(string $id)
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         $roleId = ctype_digit($id) ? (int) $id : 0;
         $role = (new RoleManagementService())->findRole($roleId);
         if (! $role) {
@@ -103,6 +138,9 @@ class RoleController extends BaseController
 
     public function update(string $id)
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         $roleId = ctype_digit($id) ? (int) $id : 0;
         $rules = [
             'name'        => 'required|max_length[255]',
@@ -125,6 +163,9 @@ class RoleController extends BaseController
 
     public function delete(string $id)
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         $roleId = ctype_digit($id) ? (int) $id : 0;
         $actorId = (int) session()->get('user_id');
         try {
@@ -140,6 +181,9 @@ class RoleController extends BaseController
      */
     public function matrix()
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         $db = db_connect();
         $roles = $db->table('roles')->orderBy('name')->get()->getResultArray();
         $permissions = (new RoleManagementService())->listPermissions();
@@ -162,6 +206,9 @@ class RoleController extends BaseController
 
     public function syncMatrix()
     {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
         $actorId = (int) session()->get('user_id');
         $service = new RoleManagementService();
         $payload = (array) $this->request->getPost('matrix');

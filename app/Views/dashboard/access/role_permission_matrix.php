@@ -14,13 +14,6 @@
     </div>
 </div>
 
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
-<?php endif; ?>
-
 <div class="card">
     <div class="card-body p-24">
         <form action="<?= site_url('dashboard/akses/role/matrix') ?>" method="post">

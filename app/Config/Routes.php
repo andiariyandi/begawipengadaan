@@ -59,6 +59,7 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
         $routes->get('agenda', 'EventPublicController::agenda', ['as' => 'public.events.agenda']);
         $routes->get('kalender', 'EventPublicController::calendar', ['as' => 'public.events.calendar']);
         $routes->get('(:segment)', 'EventPublicController::detail/$1', ['as' => 'public.events.detail']);
+        $routes->post('(:segment)/daftar', 'EventPublicController::register/$1', ['as' => 'public.events.register']);
     });
 
     $routes->group('statistik', static function ($routes) {
@@ -87,8 +88,11 @@ $routes->get('verify/certificate/(:segment)', 'Landing\\CertificateVerificationC
 $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static function ($routes) {
     $routes->get('/', 'WorkspaceHomeController::index', ['as' => 'workspace.home']);
     $routes->get('section/(:segment)', 'WorkspaceHomeController::section/$1', ['as' => 'workspace.section']);
+    $routes->get('aktivitas', 'WorkspaceHomeController::activity', ['as' => 'workspace.activity']);
     $routes->get('notifikasi', 'NotificationController::index', ['as' => 'workspace.notifications']);
     $routes->get('notifikasi/(:segment)', 'NotificationController::detail/$1', ['as' => 'workspace.notifications.detail']);
+    $routes->post('notifikasi/(:segment)/baca', 'NotificationController::markAsRead/$1', ['as' => 'workspace.notifications.read']);
+    $routes->post('notifikasi/baca-semua', 'NotificationController::markAllAsRead', ['as' => 'workspace.notifications.read-all']);
 
     $routes->group('bookmark', static function ($routes) {
         $routes->get('/', 'BookmarkController::index', ['as' => 'workspace.bookmarks.index']);
@@ -111,11 +115,17 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('peran-pengadaan',    'ProfileController::procurementRoles',['as' => 'workspace.profile.procurement-roles']);
         $routes->get('pengajuan-role',     'RoleRequestController::index',       ['as' => 'workspace.profile.role-requests']);
         $routes->get('pengajuan-role/baru','RoleRequestController::create',      ['as' => 'workspace.profile.role-requests.create']);
+        $routes->post('ubah',              'ProfileController::update',          ['as' => 'workspace.profile.update']);
+        $routes->post('kata-sandi',        'ProfileController::updatePassword',  ['as' => 'workspace.profile.password.update']);
     });
 
     $routes->group('peserta', static function ($routes) {
         $routes->get('/', 'ParticipantController::index', ['as' => 'workspace.participant.home']);
         $routes->get('kelas-saya', 'ParticipantController::myClasses', ['as' => 'workspace.participant.classes']);
+        $routes->get('tugas', 'ParticipantController::allAssignments', ['as' => 'workspace.participant.all-assignments']);
+        $routes->get('assessment', 'ParticipantController::allAssessments', ['as' => 'workspace.participant.all-assessments']);
+        $routes->get('event-saya', 'ParticipantController::myEvents', ['as' => 'workspace.participant.events']);
+        $routes->get('presensi-saya', 'ParticipantController::myAttendance', ['as' => 'workspace.participant.attendance']);
         $routes->get('kelas/(:segment)', 'ParticipantController::classDetail/$1', ['as' => 'workspace.participant.class.detail']);
         $routes->get('kelas/(:segment)/belajar', 'ParticipantController::study/$1', ['as' => 'workspace.participant.study']);
         $routes->get('lesson/(:segment)', 'ParticipantController::lessonDetail/$1', ['as' => 'workspace.participant.lesson.detail']);
@@ -132,12 +142,15 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('kelas/(:segment)/post-test/hasil', 'ParticipantController::postTestResult/$1', ['as' => 'workspace.participant.post-test.result']);
         $routes->get('kelas/(:segment)/feedback', 'ParticipantController::feedback/$1', ['as' => 'workspace.participant.feedback']);
         $routes->post('kelas/(:segment)/daftar', 'ParticipantController::enroll/$1', ['as' => 'workspace.participant.enroll']);
+        $routes->post('kelas/(:segment)/tugas/kirim', 'ParticipantController::submitAssignment/$1', ['as' => 'workspace.participant.assignment.submit']);
+        $routes->post('kelas/(:segment)/feedback', 'ParticipantController::submitFeedback/$1', ['as' => 'workspace.participant.feedback.submit']);
         $routes->post('lesson/(:segment)/mulai', 'ParticipantController::startLesson/$1', ['as' => 'workspace.participant.lesson.start']);
         $routes->post('lesson/(:segment)/selesai', 'ParticipantController::completeLesson/$1', ['as' => 'workspace.participant.lesson.complete']);
         $routes->post('quiz/(:segment)/mulai', 'ParticipantController::startQuiz/$1', ['as' => 'workspace.participant.quiz.start']);
         $routes->post('quiz/attempt/(:segment)/kirim', 'ParticipantController::submitQuiz/$1', ['as' => 'workspace.participant.quiz.submit']);
         $routes->get('sertifikat', 'ParticipantController::certificates', ['as' => 'workspace.participant.certificates']);
         $routes->get('sertifikat/(:segment)', 'ParticipantController::certificateDetail/$1', ['as' => 'workspace.participant.certificate.detail']);
+        $routes->get('sertifikat/(:segment)/unduh', '\App\Controllers\Certificate\CertificateDownloadController::download/$1', ['as' => 'workspace.participant.certificate.download']);
     });
 
     $routes->group('trainer', static function ($routes) {
@@ -170,20 +183,32 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
     $routes->group('evaluator', static function ($routes) {
         $routes->get('/', 'EvaluatorController::index', ['as' => 'workspace.evaluator.home']);
         $routes->get('penugasan', 'EvaluatorController::assignments', ['as' => 'workspace.evaluator.assignments']);
+        $routes->get('review-submission', 'EvaluatorController::allSubmissions', ['as' => 'workspace.evaluator.all-submissions']);
+        $routes->get('riwayat-penilaian', 'EvaluatorController::history', ['as' => 'workspace.evaluator.history']);
+        $routes->get('semua-penilaian', 'EvaluatorController::allGrading', ['as' => 'workspace.evaluator.all-grading']);
+        $routes->get('semua-feedback', 'EvaluatorController::allFeedback', ['as' => 'workspace.evaluator.all-feedback']);
         $routes->get('kelas/(:segment)', 'EvaluatorController::classDetail/$1', ['as' => 'workspace.evaluator.class.detail']);
         $routes->get('kelas/(:segment)/submission', 'EvaluatorController::submissions/$1', ['as' => 'workspace.evaluator.submissions']);
         $routes->get('kelas/(:segment)/submission/(:segment)', 'EvaluatorController::submissionDetail/$1/$2', ['as' => 'workspace.evaluator.submission.detail']);
         $routes->get('kelas/(:segment)/penilaian', 'EvaluatorController::grading/$1', ['as' => 'workspace.evaluator.grading']);
         $routes->get('kelas/(:segment)/feedback', 'EvaluatorController::feedback/$1', ['as' => 'workspace.evaluator.feedback']);
+        $routes->post('kelas/(:segment)/submission/(:segment)/nilai', 'EvaluatorController::gradeSubmission/$1/$2', ['as' => 'workspace.evaluator.submission.grade']);
+        $routes->post('kelas/(:segment)/feedback', 'EvaluatorController::submitFeedback/$1', ['as' => 'workspace.evaluator.feedback.submit']);
     });
 
     $routes->group('operator', static function ($routes) {
         $routes->get('/', 'OperatorController::index', ['as' => 'workspace.operator.home']);
         $routes->get('verifikasi-profil', 'OperatorController::profileVerifications', ['as' => 'workspace.operator.profile-verifications']);
+        $routes->post('verifikasi-profil/(:segment)/setujui', 'OperatorController::approveVerification/$1', ['as' => 'workspace.operator.profile-verifications.approve']);
+        $routes->post('verifikasi-profil/(:segment)/tolak', 'OperatorController::rejectVerification/$1', ['as' => 'workspace.operator.profile-verifications.reject']);
         $routes->get('enrollment', 'OperatorController::enrollments', ['as' => 'workspace.operator.enrollments']);
+        $routes->post('enrollment/(:segment)/aktifkan', 'OperatorController::activateEnrollment/$1', ['as' => 'workspace.operator.enrollments.activate']);
         $routes->get('event', 'OperatorController::events', ['as' => 'workspace.operator.events']);
         $routes->get('kehadiran', 'OperatorController::attendance', ['as' => 'workspace.operator.attendance']);
         $routes->get('approval', 'OperatorController::approvals', ['as' => 'workspace.operator.approvals']);
+        $routes->post('approval/(:segment)/setujui', 'OperatorController::approveApproval/$1', ['as' => 'workspace.operator.approvals.approve']);
+        $routes->post('approval/(:segment)/tolak', 'OperatorController::rejectApproval/$1', ['as' => 'workspace.operator.approvals.reject']);
+        $routes->get('monitoring-aktivitas', 'OperatorController::activityMonitoring', ['as' => 'workspace.operator.activity-monitoring']);
     });
 });
 
@@ -411,6 +436,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('carousel-konten-unggulan', 'KnowledgeCarouselController::index', ['as' => 'dashboard.knowledge.carousel']);
         $routes->get('carousel-konten-unggulan/tambah', 'KnowledgeCarouselController::create', ['as' => 'dashboard.knowledge.carousel.create']);
         $routes->post('carousel-konten-unggulan/tambah', 'KnowledgeCarouselController::store');
+        $routes->post('carousel-konten-unggulan/(:segment)/(:segment)/nonaktifkan', 'KnowledgeCarouselController::disable/$1/$2', ['as' => 'dashboard.knowledge.carousel.disable-item']);
         $routes->post('carousel-konten-unggulan/(:segment)/nonaktifkan', 'KnowledgeCarouselController::disable/$1', ['as' => 'dashboard.knowledge.carousel.disable']);
 
         $routes->get('kategori', 'CategoryController::index', ['as' => 'dashboard.knowledge.categories']);
@@ -599,6 +625,10 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('pengaturan-integrasi', 'SettingController::integration', ['as' => 'dashboard.system.settings.integration']);
         $routes->get('pengaturan-keamanan', 'SettingController::security', ['as' => 'dashboard.system.settings.security']);
         $routes->get('maintenance', 'SettingController::maintenance', ['as' => 'dashboard.system.maintenance']);
+        $routes->post('pengaturan/(:segment)', 'SettingController::save/$1', ['as' => 'dashboard.system.settings.save']);
+        $routes->get('settings', 'SettingController::index');
+        $routes->get('settings/(:segment)', 'SettingController::groupView/$1');
+        $routes->post('settings/(:segment)', 'SettingController::save/$1');
     });
 });
 

@@ -15,16 +15,25 @@ class NewsController extends BaseController
         $category = $this->request->getGet('category') ? (int) $this->request->getGet('category') : null;
 
         $items = (new NewsModel())->listNews($status, $category, $keyword);
+        $db = db_connect();
+        $stats = [
+            'total'     => (int) $db->table('news')->where('deleted_at IS NULL', null, false)->countAllResults(),
+            'published' => (int) $db->table('news')->where('deleted_at IS NULL', null, false)->where('workflow_status', 'published')->countAllResults(),
+            'in_review' => (int) $db->table('news')->where('deleted_at IS NULL', null, false)->whereIn('workflow_status', ['in_review', 'submitted'])->countAllResults(),
+            'draft'     => (int) $db->table('news')->where('deleted_at IS NULL', null, false)->where('workflow_status', 'draft')->countAllResults(),
+        ];
 
         return view('dashboard/communication/news/index', [
-            'title'         => 'Berita | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Berita',
-            'activeMenu'    => 'communication',
-            'activeSubmenu' => 'news',
-            'items'         => $items,
-            'filterStatus'  => $status,
-            'filterKeyword' => $keyword,
-            'filterCategory'=> $category,
+            'title'          => 'Berita & Publikasi | Dashboard BegawiPBJ',
+            'pageTitle'      => 'Berita & Publikasi',
+            'activeMenu'     => 'communication',
+            'activeSubmenu'  => 'news',
+            'items'          => $items,
+            'stats'          => $stats,
+            'categories'     => (new \App\Models\Communication\NewsCategoryModel())->findAll(),
+            'filterStatus'   => $status,
+            'filterKeyword'  => $keyword,
+            'filterCategory' => $category,
         ]);
     }
 

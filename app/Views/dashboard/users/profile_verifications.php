@@ -43,7 +43,15 @@
                 </thead>
                 <tbody>
                     <?php if (empty($items)): ?>
-                        <tr><td colspan="6" class="text-center text-secondary-light">Tidak ada antrian verifikasi.</td></tr>
+                        <tr>
+                            <td colspan="6" class="p-0">
+                                <?= view('dashboard/components/empty_state', [
+                                    'title'   => 'Tidak Ada Antrean Verifikasi',
+                                    'message' => 'Saat ini tidak ada permohonan verifikasi profil yang menunggu tindakan.',
+                                    'icon'    => 'solar:user-check-rounded-outline',
+                                ]) ?>
+                            </td>
+                        </tr>
                     <?php endif; ?>
                     <?php foreach ($items as $item): ?>
                         <tr>

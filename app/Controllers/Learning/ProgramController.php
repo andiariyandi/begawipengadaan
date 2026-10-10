@@ -17,11 +17,48 @@ class ProgramController extends BaseController
 
     public function index(): string
     {
+        $keyword = trim((string) $this->request->getGet('keyword'));
+        $status = trim((string) $this->request->getGet('status'));
+
+        $builder = $this->programModel->orderBy('created_at', 'DESC');
+        if ($keyword !== '') {
+            $builder->groupStart()
+                ->like('title', $keyword)
+                ->orLike('slug', $keyword)
+                ->orLike('summary', $keyword)
+                ->groupEnd();
+        }
+        if ($status !== '') {
+            $builder->where('status', $status);
+        }
+
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
+        $page = max(1, (int) ($this->request->getGet('page_programs') ?: 1));
+        $total = $this->programModel->countAllResults(false);
+        $programs = $this->programModel->findAll($perPage, ($page - 1) * $perPage);
+
+        $pager = service('pager');
+        $pager->store('programs', $page, $perPage, $total, 0);
+
+        $db = db_connect();
+        $stats = [
+            'total'     => (int) $db->table('programs')->countAllResults(),
+            'published' => (int) $db->table('programs')->where('status', 'published')->countAllResults(),
+            'draft'     => (int) $db->table('programs')->where('status', 'draft')->countAllResults(),
+            'archived'  => (int) $db->table('programs')->where('status', 'archived')->countAllResults(),
+        ];
+
         return view('dashboard/learning/programs/index', [
-            'title' => 'Program | Dashboard BegawiPBJ',
-            'pageTitle' => 'Program',
-            'programs' => $this->programModel->orderBy('created_at', 'DESC')->findAll(),
-            'activeMenu' => 'learning',
+            'title'         => 'Program | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Program Pembelajaran',
+            'programs'      => $programs,
+            'stats'         => $stats,
+            'pager'         => $pager,
+            'filters'       => [
+                'keyword' => $keyword,
+                'status'  => $status,
+            ],
+            'activeMenu'    => 'learning',
             'activeSubmenu' => 'programs',
         ]);
     }

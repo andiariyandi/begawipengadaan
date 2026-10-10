@@ -21,12 +21,6 @@
     </div>
     <a href="<?= site_url('dashboard/sertifikat/approval') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
 </div>
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success radius-8 mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger radius-8 mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
-<?php endif; ?>
 <div class="row gy-4">
     <div class="col-xl-8">
         <div class="card">

@@ -11,13 +11,6 @@
     </a>
 </div>
 
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success radius-8 mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger radius-8 mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
-<?php endif; ?>
-
 <?php if (empty($items)): ?>
     <div class="card">
         <div class="card-body p-24 text-center text-secondary-light">

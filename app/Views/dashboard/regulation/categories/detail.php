@@ -3,13 +3,6 @@
 <?= $this->section('content') ?>
 <?php $category = $category ?? []; $regulations = $regulations ?? []; ?>
 
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
-<?php endif; ?>
-
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Detail Kategori</h6>
@@ -67,9 +60,18 @@
 </div>
 
 <div class="mt-16">
-    <form action="<?= site_url('dashboard/regulasi/kategori/' . (int) $category['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus kategori ini?')">
-        <?= csrf_field() ?>
-        <button type="submit" class="btn btn-outline-danger-600 radius-8 px-20 py-11">Hapus Kategori</button>
-    </form>
+    <button type="button" class="btn btn-outline-danger-600 radius-8 px-20 py-11 d-inline-flex align-items-center gap-2"
+        data-bs-toggle="modal" data-bs-target="#confirmationActionModal"
+        data-action="<?= site_url('dashboard/regulasi/kategori/' . (int) $category['id'] . '/hapus') ?>"
+        data-method="POST"
+        data-title="Hapus Kategori Regulasi"
+        data-message="Apakah Anda yakin ingin menghapus kategori '<?= esc($category['name'] ?? '') ?>' ini?"
+        data-btn-text="Hapus Kategori"
+        data-btn-class="btn-danger-600"
+        data-icon="fluent:delete-24-regular"
+        data-icon-color="danger">
+        <iconify-icon icon="solar:trash-bin-trash-linear" class="text-xl"></iconify-icon>
+        Hapus Kategori
+    </button>
 </div>
 <?= $this->endSection() ?>

@@ -2,8 +2,11 @@
 $currentMenu = $activeMenu ?? '';
 $currentSubmenu = $activeSubmenu ?? '';
 $activeClass = static fn(string $menu, ?string $submenu = null): string =>
-$currentMenu === $menu && ($submenu === null || $currentSubmenu === $submenu) ? 'active-page' : '';
+    $currentMenu === $menu && ($submenu === null || $currentSubmenu === $submenu) ? 'active-page' : '';
 $openClass = static fn(string $menu): string => $currentMenu === $menu ? 'open' : '';
+
+$auth = new \App\Services\Identity\AuthorizationService();
+$isSuperAdmin = $auth->isSuperAdmin();
 ?>
 
 <aside class="sidebar">
@@ -48,8 +51,10 @@ $openClass = static fn(string $menu): string => $currentMenu === $menu ? 'open' 
                     <li><a class="<?= $activeClass('access', 'users') ?>" href="<?= site_url('dashboard/akses/pengguna') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengguna</a></li>
                     <li><a class="<?= $activeClass('access', 'profile-verifications') ?>" href="<?= site_url('dashboard/akses/verifikasi-profil') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Verifikasi Profil</a></li>
                     <li><a class="<?= $activeClass('access', 'profile-change-requests') ?>" href="<?= site_url('dashboard/akses/permohonan-perubahan-profil') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Perubahan Profil</a></li>
-                    <li><a class="<?= $activeClass('access', 'roles') ?>" href="<?= site_url('dashboard/akses/role') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Role dan Permission</a></li>
-                    <li><a class="<?= $activeClass('access', 'role-requests') ?>" href="<?= site_url('dashboard/akses/permohonan-role') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Permohonan Role</a></li>
+                    <?php if ($isSuperAdmin): ?>
+                        <li><a class="<?= $activeClass('access', 'roles') ?>" href="<?= site_url('dashboard/akses/role') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Role dan Permission</a></li>
+                        <li><a class="<?= $activeClass('access', 'role-requests') ?>" href="<?= site_url('dashboard/akses/permohonan-role') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Permohonan Role</a></li>
+                    <?php endif; ?>
                     <li><a class="<?= $activeClass('access', 'organization-units') ?>" href="<?= site_url('dashboard/akses/unit-organisasi') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Unit Organisasi</a></li>
                     <li><a class="<?= $activeClass('access', 'procurement-roles') ?>" href="<?= site_url('dashboard/akses/peran-pengadaan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Peran Pengadaan</a></li>
                 </ul>
@@ -181,13 +186,14 @@ $openClass = static fn(string $menu): string => $currentMenu === $menu ? 'open' 
                     <li><a class="<?= $activeClass('system', 'audit-trail') ?>" href="<?= site_url('dashboard/sistem/audit-trail') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Audit Trail</a></li>
                     <li><a class="<?= $activeClass('system', 'files-media') ?>" href="<?= site_url('dashboard/sistem/file-media') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> File dan Media</a></li>
                     <li><a class="<?= $activeClass('system', 'notifications') ?>" href="<?= site_url('dashboard/sistem/notifikasi') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Notifikasi</a></li>
-                    <li><a class="<?= $activeClass('system', 'general') ?>" href="<?= site_url('dashboard/sistem/pengaturan-umum') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Umum</a></li>
-                    <li><a class="<?= $activeClass('system', 'security') ?>" href="<?= site_url('dashboard/sistem/pengaturan-keamanan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Keamanan</a></li>
-                    <li><a class="<?= $activeClass('system', 'email') ?>" href="<?= site_url('dashboard/sistem/pengaturan-email') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Email</a></li>
-                    <li><a class="<?= $activeClass('system', 'file-storage') ?>" href="<?= site_url('dashboard/sistem/pengaturan-file-storage') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan File Storage</a></li>
-                    <li><a class="<?= $activeClass('system', 'certificate') ?>" href="<?= site_url('dashboard/sistem/pengaturan-sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Sertifikat</a></li>
-                    <li><a class="<?= $activeClass('system', 'appearance') ?>" href="<?= site_url('dashboard/sistem/pengaturan-tampilan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Tampilan</a></li>
-                    <li><a class="<?= $activeClass('system', 'maintenance') ?>" href="<?= site_url('dashboard/sistem/maintenance') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Maintenance</a></li>
+                    <?php if ($isSuperAdmin): ?>
+                        <li><a class="<?= $activeClass('system', 'general') ?>" href="<?= site_url('dashboard/sistem/pengaturan-umum') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Umum</a></li>
+                        <li><a class="<?= $activeClass('system', 'security') ?>" href="<?= site_url('dashboard/sistem/pengaturan-keamanan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Keamanan</a></li>
+                        <li><a class="<?= $activeClass('system', 'file-storage') ?>" href="<?= site_url('dashboard/sistem/pengaturan-file-storage') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan File Storage</a></li>
+                        <li><a class="<?= $activeClass('system', 'certificate') ?>" href="<?= site_url('dashboard/sistem/pengaturan-sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Sertifikat</a></li>
+                        <li><a class="<?= $activeClass('system', 'appearance') ?>" href="<?= site_url('dashboard/sistem/pengaturan-tampilan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Tampilan</a></li>
+                        <li><a class="<?= $activeClass('system', 'maintenance') ?>" href="<?= site_url('dashboard/sistem/maintenance') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Maintenance</a></li>
+                    <?php endif; ?>
                 </ul>
             </li>
         </ul>

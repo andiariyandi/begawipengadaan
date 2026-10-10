@@ -24,6 +24,8 @@ $trainerCandidates = $trainerCandidates ?? [];
     <div class="col-md-6"><p class="text-secondary-light mb-4">Selesai</p><h6 class="mb-0"><?= esc($class['end_at'] ?? '-') ?></h6></div>
     <div class="col-md-6"><p class="text-secondary-light mb-4">Nilai Lulus</p><h6 class="mb-0"><?= esc($class['passing_grade']) ?></h6></div>
     <div class="col-md-6"><p class="text-secondary-light mb-4">Sertifikat</p><h6 class="mb-0"><?= ! empty($class['certificate_enabled']) ? 'Aktif' : 'Tidak aktif' ?></h6></div>
+    <div class="col-md-6"><p class="text-secondary-light mb-4">Peserta Terdaftar</p><h6 class="mb-0 text-primary-600"><?= (int) ($enrollmentsCount ?? 0) ?> Peserta</h6></div>
+    <div class="col-md-6"><p class="text-secondary-light mb-4">Modul Silabus</p><h6 class="mb-0 text-info-main"><?= (int) ($modulesCount ?? 0) ?> Modul</h6></div>
 </div></div></div>
 
 <div class="card"><div class="card-body p-24">
@@ -48,7 +50,11 @@ $trainerCandidates = $trainerCandidates ?? [];
     </form>
 
     <?php if (empty($trainers)): ?>
-        <p class="text-secondary-light mb-0">Belum ada trainer yang ditugaskan.</p>
+        <?= view('dashboard/components/empty_state', [
+            'title'   => 'Belum Ada Trainer Ditugaskan',
+            'message' => 'Silakan pilih trainer pada formulir di atas untuk mengampu kelas pembelajaran ini.',
+            'icon'    => 'solar:user-speak-outline',
+        ]) ?>
     <?php else: ?>
         <div class="table-responsive scroll-sm">
             <table class="table bordered-table sm-table mb-0">
@@ -63,11 +69,19 @@ $trainerCandidates = $trainerCandidates ?? [];
                         <td><?= esc($t['assigned_at'] ?? '-') ?></td>
                         <td class="text-end">
                             <?php if (($t['status'] ?? '') === 'active'): ?>
-                                <form method="post" action="<?= route_to('dashboard.learning.classes.revoke-trainer', $classId, $t['user_id']) ?>" class="d-inline" onsubmit="return confirm('Cabut penugasan trainer ini?')">
-                                    <?= csrf_field() ?>
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">Cabut</button>
-                                </form>
-                            <?php else: ?>
+                                <button type="button" class="btn btn-outline-danger-600 btn-sm radius-8 px-12 py-6 d-inline-flex align-items-center gap-1"
+                                    data-bs-toggle="modal" data-bs-target="#confirmationActionModal"
+                                    data-action="<?= route_to('dashboard.learning.classes.revoke-trainer', $classId, $t['user_id']) ?>"
+                                    data-method="POST"
+                                    data-title="Cabut Penugasan Trainer"
+                                    data-message="Apakah Anda yakin ingin mencabut penugasan trainer '<?= esc($t['name'] ?? '') ?>' dari kelas ini?"
+                                    data-btn-text="Cabut Penugasan"
+                                    data-btn-class="btn-danger-600"
+                                    data-icon="solar:user-cross-linear"
+                                    data-icon-color="danger">
+                                    <iconify-icon icon="solar:user-cross-linear"></iconify-icon>
+                                    Cabut
+                                </button>
                                 <span class="text-muted small">Tidak aktif</span>
                             <?php endif; ?>
                         </td>

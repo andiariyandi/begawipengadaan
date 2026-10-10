@@ -12,8 +12,6 @@ $counts = $counts ?? [];
     </div>
     <a href="<?= route_to('dashboard.knowledge.categories.create') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Kategori</a>
 </div>
-<?php if ($msg = session()->getFlashdata('success')): ?><div class="alert alert-success radius-8 mb-3"><?= esc($msg) ?></div><?php endif; ?>
-<?php if ($msg = session()->getFlashdata('error')): ?><div class="alert alert-danger radius-8 mb-3"><?= esc($msg) ?></div><?php endif; ?>
 <div class="card"><div class="card-body p-24">
     <?php if (empty($items)): ?>
         <p class="text-secondary-light mb-0">Belum ada kategori.</p>
@@ -33,13 +31,36 @@ $counts = $counts ?? [];
                         <td><?= esc(! empty($cat['parent_id']) ? ($byId[(int) $cat['parent_id']]['name'] ?? '-') : '—') ?></td>
                         <td><?= (int) ($counts[(int) $cat['id']] ?? 0) ?></td>
                         <td><?= (int) ($cat['sort_order'] ?? 0) ?></td>
-                        <td class="text-center"><span class="badge bg-primary-subtle text-primary-emphasis"><?= ! empty($cat['is_active']) ? 'Aktif' : 'Nonaktif' ?></span></td>
+                        <td class="text-center"><?= view('dashboard/components/status_badge', ['status' => ! empty($cat['is_active']) ? 'active' : 'inactive']) ?></td>
                         <td class="text-center">
-                            <a href="<?= route_to('dashboard.knowledge.categories.edit', (string) $cat['id']) ?>" class="text-warning-main me-12">Ubah</a>
-                            <form method="post" action="<?= route_to('dashboard.knowledge.categories.delete', (string) $cat['id']) ?>" class="d-inline" onsubmit="return confirm('Hapus kategori ini?')">
-                                <?= csrf_field() ?>
-                                <button type="submit" class="btn btn-link text-danger-main p-0">Hapus</button>
-                            </form>
+                            <div class="dropdown">
+                                <button class="btn btn-icon btn-sm btn-outline-neutral-300 radius-8" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <iconify-icon icon="solar:menu-dots-bold" class="text-lg"></iconify-icon>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end p-8 radius-8 border border-neutral-200">
+                                    <li>
+                                        <a class="dropdown-item px-12 py-8 radius-6 d-flex align-items-center gap-2 text-secondary-light" href="<?= route_to('dashboard.knowledge.categories.edit', (string) $cat['id']) ?>">
+                                            <iconify-icon icon="solar:pen-linear" class="text-lg"></iconify-icon>
+                                            <span>Edit</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <button type="button" class="dropdown-item px-12 py-8 radius-6 d-flex align-items-center gap-2 text-danger-600"
+                                            data-bs-toggle="modal" data-bs-target="#confirmationActionModal"
+                                            data-action="<?= route_to('dashboard.knowledge.categories.delete', (string) $cat['id']) ?>"
+                                            data-method="POST"
+                                            data-title="Hapus Kategori"
+                                            data-message="Apakah Anda yakin ingin menghapus kategori ini?"
+                                            data-btn-text="Hapus Kategori"
+                                            data-btn-class="btn-danger-600"
+                                            data-icon="fluent:delete-24-regular"
+                                            data-icon-color="danger">
+                                            <iconify-icon icon="solar:trash-bin-trash-linear" class="text-lg"></iconify-icon>
+                                            <span>Hapus</span>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>

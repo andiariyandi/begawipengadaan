@@ -12,7 +12,6 @@ $media = $media ?? [];
     </div>
     <a href="<?= route_to('dashboard.knowledge.carousel.create') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Carousel</a>
 </div>
-<?php if ($msg = session()->getFlashdata('success')): ?><div class="alert alert-success radius-8 mb-3"><?= esc($msg) ?></div><?php endif; ?>
 <div class="card mb-24">
     <div class="card-body p-24">
         <h6 class="fw-semibold mb-3">Artikel di Carousel</h6>
@@ -30,11 +29,19 @@ $media = $media ?? [];
                             <td><?= (int) $a['carousel_order'] ?></td>
                             <td><span class="badge bg-primary-subtle text-primary-emphasis"><?= esc($a['workflow_status']) ?></span></td>
                             <td class="text-end">
-                                <form method="post" action="<?= route_to('dashboard.knowledge.carousel.disable', $a['type']) ?>" class="d-inline" onsubmit="return confirm('Nonaktifkan dari carousel?')">
-                                    <?= csrf_field() ?>
-                                    <input type="hidden" name="target_id" value="<?= (int) $a['id'] ?>">
-                                    <button type="submit" class="btn btn-link text-danger-main p-0">Nonaktifkan</button>
-                                </form>
+                                <button type="button" class="btn btn-outline-danger-600 btn-sm radius-8 px-12 py-6 d-inline-flex align-items-center gap-1"
+                                    data-bs-toggle="modal" data-bs-target="#confirmationActionModal"
+                                    data-action="<?= route_to('dashboard.knowledge.carousel.disable-item', $a['type'], (string) $a['id']) ?>"
+                                    data-method="POST"
+                                    data-title="Nonaktifkan Carousel"
+                                    data-message="Apakah Anda yakin ingin menonaktifkan artikel ini dari carousel?"
+                                    data-btn-text="Nonaktifkan"
+                                    data-btn-class="btn-danger-600"
+                                    data-icon="solar:close-circle-linear"
+                                    data-icon-color="danger">
+                                    <iconify-icon icon="solar:close-circle-linear"></iconify-icon>
+                                    Nonaktifkan
+                                </button>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -61,11 +68,19 @@ $media = $media ?? [];
                             <td><?= (int) $m['sort_order'] ?></td>
                             <td><span class="badge bg-primary-subtle text-primary-emphasis"><?= esc($m['workflow_status']) ?></span></td>
                             <td class="text-end">
-                                <form method="post" action="<?= route_to('dashboard.knowledge.carousel.disable', 'media') ?>" class="d-inline" onsubmit="return confirm('Nonaktifkan dari carousel?')">
-                                    <?= csrf_field() ?>
-                                    <input type="hidden" name="target_id" value="<?= (int) $m['id'] ?>">
-                                    <button type="submit" class="btn btn-link text-danger-main p-0">Nonaktifkan</button>
-                                </form>
+                                <button type="button" class="btn btn-outline-danger-600 btn-sm radius-8 px-12 py-6 d-inline-flex align-items-center gap-1"
+                                    data-bs-toggle="modal" data-bs-target="#confirmationActionModal"
+                                    data-action="<?= route_to('dashboard.knowledge.carousel.disable-item', 'media', (string) $m['id']) ?>"
+                                    data-method="POST"
+                                    data-title="Nonaktifkan Carousel"
+                                    data-message="Apakah Anda yakin ingin menonaktifkan media ini dari carousel?"
+                                    data-btn-text="Nonaktifkan"
+                                    data-btn-class="btn-danger-600"
+                                    data-icon="solar:close-circle-linear"
+                                    data-icon-color="danger">
+                                    <iconify-icon icon="solar:close-circle-linear"></iconify-icon>
+                                    Nonaktifkan
+                                </button>
                             </td>
                         </tr>
                     <?php endforeach; ?>

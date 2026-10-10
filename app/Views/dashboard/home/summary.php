@@ -17,7 +17,7 @@ $fmt = static fn(int $n): string => number_format($n, 0, ',', '.');
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Ringkasan') ?></h6>
-        <p class="text-secondary-light mb-0">Pratinjau UI BegawiPBJ.</p>
+        <p class="text-secondary-light mb-0">Ikhtisar operasional dan pemantauan metrik BegawiPBJ.</p>
     </div>
     <ul class="d-flex align-items-center gap-2 mb-0">
         <li class="fw-medium"><a href="<?= site_url('dashboard') ?>" class="hover-text-primary">Beranda</a></li>

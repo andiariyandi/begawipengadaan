@@ -11,12 +11,6 @@
     <a href="<?= site_url('dashboard/akses/permohonan-role') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
 </div>
 
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
-<?php endif; ?>
 
 <div class="row gy-4">
     <div class="col-xl-8">
@@ -98,22 +92,31 @@
                 <form action="<?= site_url('dashboard/akses/permohonan-role/' . (int) ($request['id'] ?? 0) . '/setujui') ?>" method="post" class="mb-16">
                     <?= csrf_field() ?>
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Catatan (opsional)</label>
-                    <textarea class="form-control radius-8 mb-12" name="notes" rows="2" placeholder="Catatan approval..."></textarea>
-                    <button type="submit" class="btn btn-success-600 w-100 radius-8">Setujui Permohonan</button>
+                    <textarea class="form-control radius-8 mb-12" name="notes" rows="2" placeholder="Catatan persetujuan..."></textarea>
+                    <button type="submit" class="btn btn-success-600 w-100 radius-8 py-11 d-inline-flex align-items-center justify-content-center gap-2">
+                        <iconify-icon icon="solar:check-circle-outline" class="text-lg"></iconify-icon>
+                        <span>Setujui Permohonan</span>
+                    </button>
                 </form>
 
                 <form action="<?= site_url('dashboard/akses/permohonan-role/' . (int) ($request['id'] ?? 0) . '/revisi') ?>" method="post" class="mb-16">
                     <?= csrf_field() ?>
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Catatan Revisi <span class="text-danger">*</span></label>
                     <textarea class="form-control radius-8 mb-12" name="revision_note" rows="2" placeholder="Apa yang perlu direvisi?" required></textarea>
-                    <button type="submit" class="btn btn-warning-600 w-100 radius-8">Minta Revisi</button>
+                    <button type="submit" class="btn btn-warning-600 w-100 radius-8 py-11 d-inline-flex align-items-center justify-content-center gap-2">
+                        <iconify-icon icon="solar:refresh-circle-outline" class="text-lg"></iconify-icon>
+                        <span>Minta Revisi</span>
+                    </button>
                 </form>
 
                 <form action="<?= site_url('dashboard/akses/permohonan-role/' . (int) ($request['id'] ?? 0) . '/tolak') ?>" method="post">
                     <?= csrf_field() ?>
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Alasan Penolakan <span class="text-danger">*</span></label>
                     <textarea class="form-control radius-8 mb-12" name="reason" rows="2" placeholder="Alasan menolak..." required></textarea>
-                    <button type="submit" class="btn btn-danger-600 w-100 radius-8">Tolak Permohonan</button>
+                    <button type="submit" class="btn btn-danger-600 w-100 radius-8 py-11 d-inline-flex align-items-center justify-content-center gap-2">
+                        <iconify-icon icon="solar:close-circle-outline" class="text-lg"></iconify-icon>
+                        <span>Tolak Permohonan</span>
+                    </button>
                 </form>
 
                 <?php else: ?>

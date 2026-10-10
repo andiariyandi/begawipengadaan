@@ -55,13 +55,52 @@ class UserController extends BaseController
             $builder->where('EXISTS (SELECT 1 FROM user_roles ur2 WHERE ur2.user_id = u.id AND ur2.role_id = ' . $roleId . ' AND ur2.status = "active")', null, false);
         }
 
-        $perPage = 15;
+        // Sorting
+        $sort = (string) ($this->request->getGet('sort') ?: 'created_at');
+        $dir = strtolower((string) ($this->request->getGet('dir') ?: 'desc')) === 'asc' ? 'ASC' : 'DESC';
+        $allowedSorts = [
+            'name'           => 'u.name',
+            'created_at'     => 'u.created_at',
+            'email'          => 'u.email',
+            'profile_type'   => 'u.profile_type',
+            'account_status' => 'u.account_status',
+        ];
+        $orderCol = $allowedSorts[$sort] ?? 'u.created_at';
+        $builder->orderBy($orderCol, $dir);
+
+        // Count without GROUP BY breaking count
+        $countBuilder = $db->table('users u');
+        if ($keyword !== '') {
+            $countBuilder->groupStart()
+                ->like('u.name', $keyword)
+                ->orLike('u.username', $keyword)
+                ->orLike('u.email', $keyword)
+                ->groupEnd();
+        }
+        if ($profileType !== '' && in_array($profileType, UserManagementService::ALLOWED_PROFILE_TYPES, true)) {
+            $countBuilder->where('u.profile_type', $profileType);
+        }
+        if ($status !== '' && in_array($status, UserManagementService::ALLOWED_STATUSES, true)) {
+            $countBuilder->where('u.account_status', $status);
+        }
+        if ($roleId > 0) {
+            $countBuilder->where('EXISTS (SELECT 1 FROM user_roles ur2 WHERE ur2.user_id = u.id AND ur2.role_id = ' . $roleId . ' AND ur2.status = "active")', null, false);
+        }
+        $total = $countBuilder->countAllResults();
+
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
         $page = max(1, (int) ($this->request->getGet('page_users') ?: 1));
-        $total = (clone $builder)->countAllResults();
         $users = $builder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
 
         $pager = service('pager');
         $pager->store('users', $page, $perPage, $total, 0);
+
+        $stats = [
+            'total'   => (int) $db->table('users')->countAllResults(),
+            'active'  => (int) $db->table('users')->where('account_status', 'active')->countAllResults(),
+            'pending' => (int) $db->table('users')->whereIn('account_status', ['pending_approval', 'pending_verification', 'submitted'])->countAllResults(),
+            'asn'     => (int) $db->table('users')->where('profile_type', 'asn')->countAllResults(),
+        ];
 
         return view('dashboard/users/index', [
             'title'         => 'Pengguna | Dashboard BegawiPBJ',
@@ -69,12 +108,19 @@ class UserController extends BaseController
             'activeMenu'    => 'access',
             'activeSubmenu' => 'users',
             'users'         => $users,
+            'stats'         => $stats,
             'pager'         => $pager,
+            'perPage'       => $perPage,
+            'sort'          => $sort,
+            'dir'           => strtolower($dir),
             'filters'       => [
                 'keyword'        => $keyword,
                 'profile_type'   => $profileType,
                 'account_status' => $status,
                 'role_id'        => $roleId,
+                'per_page'       => $perPage,
+                'sort'           => $sort,
+                'dir'            => strtolower($dir),
             ],
             'roles'         => $db->table('roles')->select('id, name')->orderBy('name')->get()->getResultArray(),
             'profileTypes'  => UserManagementService::ALLOWED_PROFILE_TYPES,
@@ -195,7 +241,11 @@ class UserController extends BaseController
 
     public function create()
     {
+        $isSuperAdmin = (new \App\Services\Identity\AuthorizationService())->isSuperAdmin();
         $roles = (new \App\Services\Admin\RoleManagementService())->listRoles();
+        if (! $isSuperAdmin) {
+            $roles = array_values(array_filter($roles, static fn($r) => ! in_array($r['key'] ?? '', ['super_administrator', 'administrator'], true)));
+        }
         $categories = (new \App\Services\Admin\OrganizationService())->listTree();
         return view('dashboard/users/form', [
             'title'         => 'Tambah Pengguna | Dashboard BegawiPBJ',
@@ -206,6 +256,7 @@ class UserController extends BaseController
             'item'          => null,
             'roles'         => $roles,
             'categories'    => $categories,
+            'isSuperAdmin'  => $isSuperAdmin,
         ]);
     }
 
@@ -223,6 +274,18 @@ class UserController extends BaseController
         }
         $actorId = (int) session()->get('user_id');
         $post = $this->request->getPost();
+
+        $roleId = (int) ($post['role_id'] ?? 0);
+        if ($roleId > 0) {
+            $isSuperAdmin = (new \App\Services\Identity\AuthorizationService())->isSuperAdmin();
+            if (! $isSuperAdmin) {
+                $roleObj = (new \App\Services\Admin\RoleManagementService())->findRole($roleId);
+                if ($roleObj && in_array($roleObj['key'] ?? '', ['super_administrator', 'administrator'], true)) {
+                    return redirect()->back()->withInput()->with('error', 'Hanya Super Administrator yang berhak menetapkan role Administrator.');
+                }
+            }
+        }
+
         if (! $this->saveUserAvatar($post)) {
             return redirect()->back()->withInput()->with('error', 'Upload avatar gagal.');
         }
@@ -241,7 +304,11 @@ class UserController extends BaseController
         if (! $user) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Pengguna tidak ditemukan.');
         }
+        $isSuperAdmin = (new \App\Services\Identity\AuthorizationService())->isSuperAdmin();
         $roles = (new \App\Services\Admin\RoleManagementService())->listRoles();
+        if (! $isSuperAdmin) {
+            $roles = array_values(array_filter($roles, static fn($r) => ! in_array($r['key'] ?? '', ['super_administrator', 'administrator'], true)));
+        }
         $categories = (new \App\Services\Admin\OrganizationService())->listTree();
         return view('dashboard/users/form', [
             'title'         => 'Ubah Pengguna | Dashboard BegawiPBJ',
@@ -253,6 +320,7 @@ class UserController extends BaseController
             'userId'        => $uid,
             'roles'         => $roles,
             'categories'    => $categories,
+            'isSuperAdmin'  => $isSuperAdmin,
         ]);
     }
 
@@ -270,6 +338,18 @@ class UserController extends BaseController
         }
         $actorId = (int) session()->get('user_id');
         $post = $this->request->getPost();
+
+        $roleId = (int) ($post['role_id'] ?? 0);
+        if ($roleId > 0) {
+            $isSuperAdmin = (new \App\Services\Identity\AuthorizationService())->isSuperAdmin();
+            if (! $isSuperAdmin) {
+                $roleObj = (new \App\Services\Admin\RoleManagementService())->findRole($roleId);
+                if ($roleObj && in_array($roleObj['key'] ?? '', ['super_administrator', 'administrator'], true)) {
+                    return redirect()->back()->withInput()->with('error', 'Hanya Super Administrator yang berhak menetapkan role Administrator.');
+                }
+            }
+        }
+
         if (! $this->saveUserAvatar($post)) {
             return redirect()->back()->withInput()->with('error', 'Upload avatar gagal.');
         }

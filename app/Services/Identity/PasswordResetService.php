@@ -2,7 +2,7 @@
 
 namespace App\Services\Identity;
 
-use App\Models\AuthTokenModel;
+use App\Models\PasswordResetModel;
 use App\Models\UserModel;
 use App\Services\AuditService;
 
@@ -18,15 +18,14 @@ use App\Services\AuditService;
  *   - expires_at = now + 1 hour
  *   - one-time use: token marked used_at on successful reset
  *
- * Storage: auth_tokens table (token_type = 'password_reset').
+ * Storage: password_resets table.
  */
 class PasswordResetService
 {
-    public const TOKEN_TYPE = 'password_reset';
     public const TOKEN_TTL_SECONDS = 3600;
 
     public function __construct(
-        private readonly AuthTokenModel $tokens = new AuthTokenModel(),
+        private readonly PasswordResetModel $resets = new PasswordResetModel(),
         private readonly UserModel $users = new UserModel(),
         private readonly AuditService $audit = new AuditService(),
     ) {}
@@ -49,10 +48,8 @@ class PasswordResetService
         $userId = (int) $user['id'];
         $plainToken = bin2hex(random_bytes(32));
 
-        $this->tokens->insert([
+        $this->resets->insert([
             'user_id'    => $userId,
-            'email'      => $email,
-            'token_type' => self::TOKEN_TYPE,
             'token_hash' => hash('sha256', $plainToken),
             'expires_at' => date('Y-m-d H:i:s', time() + self::TOKEN_TTL_SECONDS),
             'created_at' => date('Y-m-d H:i:s'),
@@ -71,9 +68,8 @@ class PasswordResetService
     {
         $hash = hash('sha256', $plainToken);
 
-        $row = $this->tokens
+        $row = $this->resets
             ->where('token_hash', $hash)
-            ->where('token_type', self::TOKEN_TYPE)
             ->where('used_at IS NULL', null, false)
             ->where('expires_at >', date('Y-m-d H:i:s'))
             ->first();
@@ -99,7 +95,7 @@ class PasswordResetService
             'password_hash' => password_hash($newPassword, PASSWORD_DEFAULT),
         ]);
 
-        $this->tokens->update((int) $row['id'], [
+        $this->resets->update((int) $row['id'], [
             'used_at' => date('Y-m-d H:i:s'),
         ]);
 

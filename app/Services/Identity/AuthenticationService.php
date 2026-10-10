@@ -31,7 +31,7 @@ class AuthenticationService
                 'account_status' => $user['account_status'] ?? null,
             ]);
 
-            return ['ok' => false, 'reason' => 'inactive_account'];
+            return ['ok' => false, 'reason' => 'inactive_account', 'user' => $user];
         }
 
         $roles = $this->users->getRoles((int) $user['id']);

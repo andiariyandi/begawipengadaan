@@ -27,7 +27,11 @@ class WorkspaceAuthFilter implements FilterInterface
         }
 
         if (session()->get('account_status') !== 'active') {
+            $pendingUserId = (int) session()->get('user_id');
             session()->destroy();
+            if ($pendingUserId > 0) {
+                session()->setFlashdata('pending_user_id', $pendingUserId);
+            }
             return redirect()->to(site_url('dashboard/status-akun'));
         }
 

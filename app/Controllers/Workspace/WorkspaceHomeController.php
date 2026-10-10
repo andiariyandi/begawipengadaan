@@ -16,22 +16,224 @@ class WorkspaceHomeController extends BaseController
         return $this->renderWorkspace($section);
     }
 
+    public function activity()
+    {
+        $userId = $this->userId();
+        $role = $this->workspaceRole();
+        $db = db_connect();
+
+        $logs = $db->table('audit_logs')
+            ->where('actor_id', $userId)
+            ->orderBy('created_at', 'DESC')
+            ->limit(50)
+            ->get()->getResultArray();
+
+        return view('main/workspace/pages/aktivitas', [
+            'title'          => 'Aktivitas Saya | Workspace BegawiPBJ',
+            'pageTitle'      => 'Aktivitas Saya',
+            'breadcrumbTail' => [['label' => 'Aktivitas Saya']],
+            'userName'       => (string) (session()->get('name') ?: 'Pengguna BegawiPBJ'),
+            'primaryRole'    => $role,
+            'roleLabel'      => $this->roleLabel($role),
+            'logs'           => $logs,
+        ]);
+    }
+
     private function renderWorkspace(string $section)
     {
         $section = $this->normalizeSection($section);
         $role = $this->workspaceRole();
+        $userId = $this->userId();
+        $db = db_connect();
 
         $view = $section === 'dashboard' ? 'home' : $section;
+        $dashboardData = [];
 
-        return view('main/workspace/pages/' . $view, [
-            'title' => ucfirst($section) . ' | Workspace BegawiPBJ',
-            'userName' => (string) (session()->get('name') ?: 'Pengguna BegawiPBJ'),
-            'roles' => [$role],
-            'primaryRole' => $role,
-            'roleLabel' => $this->roleLabel($role),
-            'menuItems' => $this->menuItems($role),
+        if ($section === 'dashboard') {
+            $dashboardData = $this->fetchRoleDashboardData($role, $userId, $db);
+        }
+
+        return view('main/workspace/pages/' . $view, array_merge([
+            'title'          => ucfirst($section) . ' | Workspace BegawiPBJ',
+            'pageTitle'      => ucfirst($section) . ' Workspace',
+            'userName'       => (string) (session()->get('name') ?: 'Pengguna BegawiPBJ'),
+            'roles'          => [$role],
+            'primaryRole'    => $role,
+            'roleLabel'      => $this->roleLabel($role),
+            'menuItems'      => $this->menuItems($role),
             'sectionContent' => $this->sectionContent($section),
-        ]);
+        ], $dashboardData));
+    }
+
+    private function fetchRoleDashboardData(string $role, int $userId, $db): array
+    {
+        $cards = [];
+        $recentClasses = [];
+        $recentActivities = [];
+        $recentTasks = [];
+
+        if ($role === 'participant') {
+            // Participant Real KPIs
+            $enrolledCount = $db->table('enrollments')
+                ->where('user_id', $userId)
+                ->where('status', 'active')
+                ->countAllResults();
+
+            $completedCount = $db->table('enrollments')
+                ->where('user_id', $userId)
+                ->where('status', 'completed')
+                ->countAllResults();
+
+            $certCount = $db->table('certificates')
+                ->where('user_id', $userId)
+                ->where('status', 'issued')
+                ->countAllResults();
+
+            $eventCount = $db->table('event_registrations')
+                ->where('user_id', $userId)
+                ->countAllResults();
+
+            $cards = [
+                ['title' => 'Kelas Aktif', 'value' => sprintf('%02d', $enrolledCount), 'meta' => 'pembelajaran sedang diikuti', 'icon' => 'fas fa-graduation-cap'],
+                ['title' => 'Kelas Selesai', 'value' => sprintf('%02d', $completedCount), 'meta' => 'tuntas pembelajaran', 'icon' => 'fas fa-check-circle'],
+                ['title' => 'Sertifikat Terbit', 'value' => sprintf('%02d', $certCount), 'meta' => 'pencapaian kompetensi', 'icon' => 'fas fa-award'],
+                ['title' => 'Event Terdaftar', 'value' => sprintf('%02d', $eventCount), 'meta' => 'kegiatan & pelatihan', 'icon' => 'fas fa-calendar-alt'],
+            ];
+
+            // Recent Enrolled Classes
+            $recentClasses = $db->table('enrollments e')
+                ->select('e.id AS enrollment_id, e.class_id, e.status AS enrollment_status, lc.code AS class_code, lc.name AS class_name, lc.start_at, lc.end_at, courses.title AS course_title')
+                ->join('learning_classes lc', 'lc.id = e.class_id')
+                ->join('courses', 'courses.id = lc.course_id')
+                ->where('e.user_id', $userId)
+                ->orderBy('e.updated_at', 'DESC')
+                ->limit(4)
+                ->get()->getResultArray();
+
+            $enrollmentIds = array_map(static fn ($r) => (int) $r['enrollment_id'], $recentClasses);
+            $progressMap = [];
+            if ($enrollmentIds !== []) {
+                $progRows = $db->table('learning_progress')
+                    ->select('enrollment_id, progress_percent')
+                    ->whereIn('enrollment_id', $enrollmentIds)
+                    ->get()->getResultArray();
+                $counts = [];
+                foreach ($progRows as $p) {
+                    $eid = (int) $p['enrollment_id'];
+                    $progressMap[$eid] = ($progressMap[$eid] ?? 0.0) + (float) ($p['progress_percent'] ?? 0);
+                    $counts[$eid] = ($counts[$eid] ?? 0) + 1;
+                }
+                foreach ($progressMap as $eid => $sum) {
+                    $progressMap[$eid] = $counts[$eid] > 0 ? round($sum / $counts[$eid], 1) : 0.0;
+                }
+            }
+            foreach ($recentClasses as &$cl) {
+                $eid = (int) $cl['enrollment_id'];
+                $cl['progress_percent'] = $progressMap[$eid] ?? (($cl['enrollment_status'] ?? '') === 'completed' ? 100 : 0);
+            }
+            unset($cl);
+
+            // Recent Tasks
+            $recentTasks = $db->table('assignments a')
+                ->select('a.id, a.class_id, a.title, a.due_at, lc.name AS class_name')
+                ->join('learning_classes lc', 'lc.id = a.class_id')
+                ->join('enrollments e', 'e.class_id = lc.id AND e.user_id = ' . (int) $userId)
+                ->where('a.status', 'published')
+                ->orderBy('a.due_at', 'ASC')
+                ->limit(4)
+                ->get()->getResultArray();
+
+        } elseif ($role === 'trainer') {
+            // Trainer Real KPIs
+            $classCount = $db->table('class_trainers')
+                ->where('user_id', $userId)
+                ->where('status', 'active')
+                ->countAllResults();
+
+            $trainerClassIds = $db->table('class_trainers')
+                ->select('class_id')
+                ->where('user_id', $userId)
+                ->where('status', 'active')
+                ->get()->getResultArray();
+            $cIds = array_column($trainerClassIds, 'class_id');
+
+            $studentCount = 0;
+            $moduleCount = 0;
+            if ($cIds !== []) {
+                $studentCount = $db->table('enrollments')->whereIn('class_id', $cIds)->countAllResults();
+                $moduleCount = $db->table('learning_modules')->whereIn('class_id', $cIds)->countAllResults();
+            }
+
+            $cards = [
+                ['title' => 'Kelas Diampu', 'value' => sprintf('%02d', $classCount), 'meta' => 'kelas aktif penugasan', 'icon' => 'fas fa-chalkboard-teacher'],
+                ['title' => 'Total Peserta', 'value' => sprintf('%02d', $studentCount), 'meta' => 'peserta dalam kelas Anda', 'icon' => 'fas fa-users'],
+                ['title' => 'Modul Dikelola', 'value' => sprintf('%02d', $moduleCount), 'meta' => 'modul pembelajaran', 'icon' => 'fas fa-layer-group'],
+            ];
+
+            if ($cIds !== []) {
+                $recentClasses = $db->table('learning_classes lc')
+                    ->select('lc.*, c.title AS course_title, (SELECT COUNT(*) FROM enrollments e WHERE e.class_id = lc.id) AS student_count')
+                    ->join('courses c', 'c.id = lc.course_id', 'left')
+                    ->whereIn('lc.id', $cIds)
+                    ->orderBy('lc.created_at', 'DESC')
+                    ->limit(4)
+                    ->get()->getResultArray();
+            }
+
+        } elseif ($role === 'evaluator') {
+            // Evaluator Real KPIs
+            $assignedClasses = $db->table('class_evaluators')
+                ->where('user_id', $userId)
+                ->where('status', 'active')
+                ->countAllResults();
+
+            $gradedCount = $db->table('assignment_submissions')
+                ->where('graded_by', $userId)
+                ->countAllResults();
+
+            $cards = [
+                ['title' => 'Kelas Ditugaskan', 'value' => sprintf('%02d', $assignedClasses), 'meta' => 'kelas evaluasi aktif', 'icon' => 'fas fa-clipboard-check'],
+                ['title' => 'Submission Dinilai', 'value' => sprintf('%02d', $gradedCount), 'meta' => 'evaluasi diselesaikan', 'icon' => 'fas fa-check-double'],
+            ];
+
+        } elseif ($role === 'operator') {
+            // Operator Real KPIs
+            $pendingVerif = $db->table('profile_verifications')->where('status', 'pending')->countAllResults();
+            $pendingEnroll = $db->table('enrollments')->where('status', 'pending')->countAllResults();
+            $pendingApprov = $db->table('approvals')->where('status', 'pending')->countAllResults();
+            $activeEvents = $db->table('events')->whereIn('status', ['open_registration', 'coming_soon'])->countAllResults();
+
+            $cards = [
+                ['title' => 'Verifikasi Profil', 'value' => sprintf('%02d', $pendingVerif), 'meta' => 'menunggu persetujuan', 'icon' => 'fas fa-id-card'],
+                ['title' => 'Enrollment Kelas', 'value' => sprintf('%02d', $pendingEnroll), 'meta' => 'antrean pendaftaran', 'icon' => 'fas fa-user-plus'],
+                ['title' => 'Antrean Approval', 'value' => sprintf('%02d', $pendingApprov), 'meta' => 'perlu tindakan', 'icon' => 'fas fa-stamp'],
+                ['title' => 'Event Aktif', 'value' => sprintf('%02d', $activeEvents), 'meta' => 'kegiatan operasional', 'icon' => 'fas fa-calendar-check'],
+            ];
+        }
+
+        // Recent Audit Activities for current actor
+        $recentActivities = $db->table('audit_logs')
+            ->where('actor_id', $userId)
+            ->orderBy('created_at', 'DESC')
+            ->limit(5)
+            ->get()->getResultArray();
+
+        return [
+            'kpiCards'          => $cards,
+            'recentClasses'     => $recentClasses,
+            'recentTasks'       => $recentTasks,
+            'recentActivities'  => $recentActivities,
+        ];
+    }
+
+    private function userId(): int
+    {
+        $id = (int) session()->get('user_id');
+        if ($id > 0) {
+            return $id;
+        }
+        $first = db_connect()->table('users')->select('id')->orderBy('id', 'ASC')->get()->getRowArray();
+        return $first ? (int) $first['id'] : 1;
     }
 
     private function workspaceRole(): string
@@ -51,9 +253,9 @@ class WorkspaceHomeController extends BaseController
     {
         return [
             'participant' => 'Peserta',
-            'trainer' => 'Pengajar',
-            'evaluator' => 'Evaluator',
-            'operator' => 'Operator',
+            'trainer'     => 'Pengajar',
+            'evaluator'   => 'Evaluator',
+            'operator'    => 'Operator',
         ][$role] ?? 'Pengguna';
     }
 
@@ -75,162 +277,51 @@ class WorkspaceHomeController extends BaseController
 
     private function menuItems(string $role): array
     {
-        $workspace = route_to('workspace.home');
-        $section = static fn (string $name): string => route_to('workspace.section', $name);
-        $allowed = static fn (array $roles): bool => in_array('all', $roles, true) || in_array($role, $roles, true);
-
-        $menu = [
-            ['label' => 'Dashboard', 'items' => [
-                ['label' => 'Ringkasan', 'url' => $workspace],
-                ['label' => 'Aktivitas Terakhir', 'url' => $section('aktivitas')],
-                ['label' => 'Statistik Role', 'url' => $workspace],
-            ]],
-            ['label' => 'Pembelajaran', 'items' => [
-                ['label' => 'Kelas Saya', 'url' => $section('pembelajaran'), 'roles' => ['all']],
-                ['label' => 'Jadwal Belajar', 'url' => $section('pembelajaran'), 'roles' => ['participant']],
-                ['label' => 'Jadwal Mengajar', 'url' => $section('pembelajaran'), 'roles' => ['trainer']],
-                ['label' => 'Progress Belajar', 'url' => $section('pembelajaran'), 'roles' => ['participant']],
-                ['label' => 'Progress Peserta', 'url' => $section('pembelajaran'), 'roles' => ['trainer', 'evaluator']],
-                ['label' => 'Course Saya', 'url' => $section('pembelajaran'), 'roles' => ['participant']],
-                ['label' => 'Sertifikat Saya', 'url' => $section('pembelajaran'), 'roles' => ['participant']],
-            ]],
-            ['label' => 'Tugas', 'items' => [
-                ['label' => 'Tugas Aktif', 'url' => $section('tugas'), 'roles' => ['participant']],
-                ['label' => 'Pengumpulan Tugas', 'url' => $section('tugas'), 'roles' => ['participant']],
-                ['label' => 'Revisi Tugas', 'url' => $section('tugas'), 'roles' => ['participant']],
-                ['label' => 'Review Tugas', 'url' => $section('tugas'), 'roles' => ['trainer', 'evaluator']],
-                ['label' => 'Riwayat Tugas', 'url' => $section('tugas'), 'roles' => ['all']],
-            ]],
-            ['label' => 'Penilaian', 'items' => [
-                ['label' => 'Pre Test', 'url' => $section('penilaian'), 'roles' => ['participant']],
-                ['label' => 'Quiz', 'url' => $section('penilaian'), 'roles' => ['participant']],
-                ['label' => 'Post Test', 'url' => $section('penilaian'), 'roles' => ['participant']],
-                ['label' => 'Penilaian Peserta', 'url' => $section('penilaian'), 'roles' => ['trainer', 'evaluator']],
-                ['label' => 'Grading', 'url' => $section('penilaian'), 'roles' => ['evaluator']],
-                ['label' => 'Nilai Saya', 'url' => $section('penilaian'), 'roles' => ['participant']],
-                ['label' => 'Feedback', 'url' => $section('penilaian'), 'roles' => ['all']],
-            ]],
-            ['label' => 'Bookmark', 'items' => [
-                ['label' => 'Pembelajaran', 'url' => $section('bookmark'), 'roles' => ['all']],
-                ['label' => 'Bunga Rampai', 'url' => $section('bookmark'), 'roles' => ['all']],
-                ['label' => 'Regulasi', 'url' => $section('bookmark'), 'roles' => ['all']],
-                ['label' => 'Berita', 'url' => $section('bookmark'), 'roles' => ['all']],
-                ['label' => 'Event', 'url' => $section('bookmark'), 'roles' => ['all']],
-            ]],
-            ['label' => 'Notifikasi', 'items' => [
-                ['label' => 'Pembelajaran', 'url' => $section('notifikasi'), 'roles' => ['all']],
-                ['label' => 'Tugas', 'url' => $section('notifikasi'), 'roles' => ['all']],
-                ['label' => 'Penilaian', 'url' => $section('notifikasi'), 'roles' => ['all']],
-                ['label' => 'Sistem', 'url' => $section('notifikasi'), 'roles' => ['all']],
-            ]],
-            ['label' => 'Profil', 'items' => [
-                ['label' => 'Data Diri', 'url' => $section('profil'), 'roles' => ['all']],
-                ['label' => 'Profil Kompetensi', 'url' => $section('profil'), 'roles' => ['all']],
-                ['label' => 'Pengaturan', 'url' => $section('profil'), 'roles' => ['all']],
-                ['label' => 'Riwayat Belajar', 'url' => $section('profil'), 'roles' => ['participant']],
-                ['label' => 'Riwayat Mengajar', 'url' => $section('profil'), 'roles' => ['trainer']],
-                ['label' => 'Riwayat Penilaian', 'url' => $section('profil'), 'roles' => ['evaluator']],
-            ]],
-            ['label' => 'Aktivitas', 'items' => [
-                ['label' => 'Riwayat Login', 'url' => $section('aktivitas'), 'roles' => ['all']],
-                ['label' => 'Aktivitas Belajar', 'url' => $section('aktivitas'), 'roles' => ['participant']],
-                ['label' => 'Aktivitas Mengajar', 'url' => $section('aktivitas'), 'roles' => ['trainer']],
-                ['label' => 'Aktivitas Penilaian', 'url' => $section('aktivitas'), 'roles' => ['evaluator']],
-                ['label' => 'Aktivitas Sistem', 'url' => $section('aktivitas'), 'roles' => ['operator']],
-            ]],
-            ['label' => 'Operasional', 'items' => [
-                ['label' => 'Verifikasi Operasional', 'url' => $section('operasional'), 'roles' => ['operator']],
-                ['label' => 'Enrollment', 'url' => $section('operasional'), 'roles' => ['operator']],
-                ['label' => 'Kelas', 'url' => $section('operasional'), 'roles' => ['operator']],
-                ['label' => 'Approval', 'url' => $section('operasional'), 'roles' => ['operator']],
-                ['label' => 'Laporan Operasional', 'url' => $section('operasional'), 'roles' => ['operator']],
-            ]],
-        ];
-
-        foreach ($menu as &$group) {
-            $group['items'] = array_values(array_filter(
-                $group['items'],
-                static fn (array $item): bool => ! isset($item['roles']) || $allowed($item['roles'])
-            ));
-        }
-        unset($group);
-
-        return array_values(array_filter($menu, static fn (array $group): bool => $group['items'] !== []));
+        return [];
     }
 
     private function sectionContent(string $section): array
     {
         $content = [
             'dashboard' => [
-                'eyebrow' => 'Ringkasan Workspace',
-                'title' => 'Dashboard Workspace',
-                'description' => 'Pantau pembelajaran dan aktivitas personal Anda dari satu ruang kerja.',
-                'cards' => [
-                    ['title' => 'Program Saya', 'value' => '08', 'meta' => 'program tersedia'],
-                    ['title' => 'Tugas Aktif', 'value' => '03', 'meta' => 'perlu diselesaikan'],
-                    ['title' => 'Progress Belajar', 'value' => '72%', 'meta' => 'capaian prototype'],
-                ],
-                'items' => ['Menyelesaikan materi pengantar PBJ', 'Menyimpan program ke bookmark', 'Memperbarui profil Workspace'],
+                'eyebrow'     => 'Ringkasan Workspace',
+                'title'       => 'Dashboard Workspace',
+                'description' => 'Pantau pembelajaran, tugas, dan aktivitas personal Anda dari satu ruang kerja terpadu.',
             ],
             'pembelajaran' => [
-                'eyebrow' => 'Area Pembelajaran',
-                'title' => 'Pembelajaran Saya',
+                'eyebrow'     => 'Area Pembelajaran',
+                'title'       => 'Pembelajaran Saya',
                 'description' => 'Temukan program, course, kelas, dan materi yang sedang Anda ikuti.',
-                'cards' => [
-                    ['title' => 'Program Saya', 'value' => '08', 'meta' => 'program diikuti'],
-                    ['title' => 'Course Saya', 'value' => '12', 'meta' => 'course tersimpan'],
-                    ['title' => 'Kelas Saya', 'value' => '04', 'meta' => 'kelas aktif'],
-                ],
-                'items' => ['Pengantar Pengadaan Barang/Jasa', 'Strategi Pengelolaan Kontrak', 'Penyusunan Dokumen Pemilihan'],
             ],
             'tugas' => [
-                'eyebrow' => 'Aktivitas Belajar',
-                'title' => 'Tugas',
-                'description' => 'Daftar tugas dan aktivitas yang perlu Anda perhatikan.',
-                'cards' => [['title' => 'Tugas Aktif', 'value' => '03', 'meta' => 'menunggu dikerjakan'], ['title' => 'Selesai', 'value' => '11', 'meta' => 'tugas terselesaikan']],
-                'items' => ['Review materi Prinsip PBJ', 'Unggah refleksi pembelajaran', 'Persiapan diskusi kelas'],
+                'eyebrow'     => 'Aktivitas Belajar',
+                'title'       => 'Tugas Pembelajaran',
+                'description' => 'Daftar tugas dan aktivitas yang perlu Anda kerjakan dan perhatikan.',
             ],
             'penilaian' => [
-                'eyebrow' => 'Aktivitas Belajar',
-                'title' => 'Penilaian',
-                'description' => 'Ringkasan penilaian pembelajaran Anda.',
-                'cards' => [['title' => 'Nilai Rata-rata', 'value' => '86', 'meta' => 'dari 100'], ['title' => 'Assessment', 'value' => '05', 'meta' => 'tersedia']],
-                'items' => ['Pre-test Pengantar PBJ', 'Kuis Modul 2', 'Evaluasi pembelajaran kelas'],
+                'eyebrow'     => 'Aktivitas Belajar',
+                'title'       => 'Penilaian & Evaluasi',
+                'description' => 'Ringkasan penilaian pre-test, quiz, tugas, dan kelulusan pembelajaran Anda.',
             ],
             'bookmark' => [
-                'eyebrow' => 'Personal',
-                'title' => 'Bookmark',
-                'description' => 'Konten yang Anda simpan untuk dibaca kembali.',
-                'cards' => [['title' => 'Pembelajaran', 'value' => '06', 'meta' => 'tersimpan'], ['title' => 'Referensi PBJ', 'value' => '04', 'meta' => 'tersimpan']],
-                'items' => ['Panduan Pengadaan Berkelanjutan', 'Regulasi PBJ terbaru', 'Materi strategi pemilihan'],
+                'eyebrow'     => 'Personal',
+                'title'       => 'Bookmark Saya',
+                'description' => 'Konten dan referensi yang Anda simpan untuk dibaca kembali.',
             ],
             'notifikasi' => [
-                'eyebrow' => 'Personal',
-                'title' => 'Notifikasi',
+                'eyebrow'     => 'Pusat Informasi',
+                'title'       => 'Notifikasi',
                 'description' => 'Informasi terbaru terkait aktivitas Workspace Anda.',
-                'cards' => [['title' => 'Belum dibaca', 'value' => '04', 'meta' => 'notifikasi'], ['title' => 'Minggu ini', 'value' => '12', 'meta' => 'pembaruan']],
-                'items' => ['Kelas baru tersedia untuk Anda', 'Tugas mendekati batas waktu', 'Profil Workspace berhasil diperbarui'],
             ],
             'profil' => [
-                'eyebrow' => 'Personal',
-                'title' => 'Profil Workspace',
+                'eyebrow'     => 'Personal',
+                'title'       => 'Profil Workspace',
                 'description' => 'Kelola informasi dan preferensi personal Anda.',
-                'cards' => [['title' => 'Status Akun', 'value' => 'Aktif', 'meta' => 'siap digunakan'], ['title' => 'Role', 'value' => 'Peserta', 'meta' => 'role Workspace']],
-                'items' => ['Data dasar pengguna', 'Peran pengadaan', 'Preferensi notifikasi'],
             ],
             'aktivitas' => [
-                'eyebrow' => 'Riwayat Aktivitas',
-                'title' => 'Aktivitas Terakhir',
+                'eyebrow'     => 'Riwayat Aktivitas',
+                'title'       => 'Aktivitas Terakhir',
                 'description' => 'Jejak aktivitas Workspace yang tercatat untuk pengguna.',
-                'cards' => [['title' => 'Hari ini', 'value' => '05', 'meta' => 'aktivitas'], ['title' => 'Minggu ini', 'value' => '18', 'meta' => 'aktivitas']],
-                'items' => ['Masuk ke Workspace', 'Membuka materi Pengantar PBJ', 'Melihat detail kelas'],
-            ],
-            'operasional' => [
-                'eyebrow' => 'Operasional',
-                'title' => 'Workspace Operasional',
-                'description' => 'Ringkasan verifikasi, enrollment, approval, dan laporan operasional.',
-                'cards' => [['title' => 'Menunggu Verifikasi', 'value' => '07', 'meta' => 'permintaan'], ['title' => 'Enrollment', 'value' => '12', 'meta' => 'permintaan'], ['title' => 'Approval', 'value' => '04', 'meta' => 'perlu ditinjau']],
-                'items' => ['Verifikasi profil', 'Approval peserta', 'Monitoring kelas'],
             ],
         ];
 

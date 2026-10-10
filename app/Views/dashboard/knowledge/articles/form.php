@@ -25,7 +25,6 @@ $currentVisibility = $article['visibility'] ?? 'internal';
     <div><h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Artikel') ?></h6><p class="text-secondary-light mb-0">Form artikel Bunga Rampai.</p></div>
     <a href="<?= route_to('dashboard.knowledge.articles') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
 </div>
-<?php if ($msg = session()->getFlashdata('error')): ?><div class="alert alert-danger radius-8 mb-3"><?= esc($msg) ?></div><?php endif; ?>
 <div class="card"><div class="card-body p-24">
     <form method="post" action="<?= $action ?>" enctype="multipart/form-data">
         <?= csrf_field() ?>

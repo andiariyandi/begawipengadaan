@@ -19,13 +19,49 @@ class EnrollmentController extends BaseController
 
     public function index(): string
     {
-        $enrollments = $this->enrollmentModel->withClassDetail()->orderBy('enrollments.enrolled_at', 'DESC')->findAll();
+        $keyword = trim((string) $this->request->getGet('keyword'));
+        $status = trim((string) $this->request->getGet('status'));
+
+        $builder = $this->enrollmentModel->withClassDetail()->orderBy('enrollments.enrolled_at', 'DESC');
+        if ($keyword !== '') {
+            $builder->groupStart()
+                ->like('users.name', $keyword)
+                ->orLike('users.username', $keyword)
+                ->orLike('learning_classes.name', $keyword)
+                ->orLike('courses.title', $keyword)
+                ->groupEnd();
+        }
+        if ($status !== '') {
+            $builder->where('enrollments.status', $status);
+        }
+
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
+        $page = max(1, (int) ($this->request->getGet('page_enrollments') ?: 1));
+        $total = $this->enrollmentModel->countAllResults(false);
+        $enrollments = $this->enrollmentModel->findAll($perPage, ($page - 1) * $perPage);
+
+        $pager = service('pager');
+        $pager->store('enrollments', $page, $perPage, $total, 0);
+
+        $db = db_connect();
+        $stats = [
+            'total'     => (int) $db->table('enrollments')->countAllResults(),
+            'active'    => (int) $db->table('enrollments')->whereIn('status', ['active', 'enrolled', 'in_progress'])->countAllResults(),
+            'completed' => (int) $db->table('enrollments')->whereIn('status', ['completed', 'passed'])->countAllResults(),
+            'pending'   => (int) $db->table('enrollments')->where('status', 'pending')->countAllResults(),
+        ];
 
         return view('dashboard/learning/enrollments/index', [
-            'title' => 'Enrollment | Dashboard BegawiPBJ',
-            'pageTitle' => 'Enrollment',
-            'enrollments' => $enrollments,
-            'activeMenu' => 'learning',
+            'title'         => 'Enrollment | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Pendaftaran Peserta (Enrollment)',
+            'enrollments'   => $enrollments,
+            'stats'         => $stats,
+            'pager'         => $pager,
+            'filters'       => [
+                'keyword' => $keyword,
+                'status'  => $status,
+            ],
+            'activeMenu'    => 'learning',
             'activeSubmenu' => 'enrollments',
         ]);
     }

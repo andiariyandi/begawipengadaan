@@ -9,13 +9,30 @@ class DocumentTemplateController extends BaseKnowledgeController
 {
     public function index(): string
     {
-        $items = (new ArticleModel())->listArticles('template');
+        $status   = $this->request->getGet('status') ?: null;
+        $keyword  = $this->request->getGet('q') ?: null;
+        $category = $this->request->getGet('category') ?: null;
+
+        $items = (new ArticleModel())->listArticles('template', $status, $keyword, $category !== null ? (int) $category : null);
+        $db = db_connect();
+        $stats = [
+            'total'     => (int) $db->table('knowledge_articles')->where('type', 'template')->countAllResults(),
+            'published' => (int) $db->table('knowledge_articles')->where('type', 'template')->where('workflow_status', 'published')->countAllResults(),
+            'draft'     => (int) $db->table('knowledge_articles')->where('type', 'template')->where('workflow_status', 'draft')->countAllResults(),
+            'in_review' => (int) $db->table('knowledge_articles')->where('type', 'template')->whereIn('workflow_status', ['in_review', 'submitted'])->countAllResults(),
+        ];
+
         return view('dashboard/knowledge/templates/index', [
-            'title'        => 'Template Dokumen | Dashboard BegawiPBJ',
-            'pageTitle'    => 'Template Dokumen',
-            'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'document-templates',
-            'items'        => $items,
+            'title'         => 'Template Dokumen | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Template Dokumen PBJ',
+            'activeMenu'    => 'knowledge',
+            'activeSubmenu' => 'document-templates',
+            'items'         => $items,
+            'stats'         => $stats,
+            'categories'    => (new KnowledgeCategoryModel())->activeFlat(),
+            'filterStatus'  => $status,
+            'filterKeyword' => $keyword,
+            'filterCategory'=> $category,
         ]);
     }
 

@@ -26,7 +26,15 @@
                 </thead>
                 <tbody>
                     <?php if (empty($items)): ?>
-                        <tr><td colspan="6" class="text-center text-secondary-light">Tidak ada permohonan perubahan.</td></tr>
+                        <tr>
+                            <td colspan="6" class="p-0">
+                                <?= view('dashboard/components/empty_state', [
+                                    'title'   => 'Tidak Ada Permohonan Perubahan',
+                                    'message' => 'Saat ini tidak ada permohonan perubahan profil dari pengguna.',
+                                    'icon'    => 'solar:user-id-outline',
+                                ]) ?>
+                            </td>
+                        </tr>
                     <?php endif; ?>
                     <?php foreach ($items as $item): ?>
                         <tr>

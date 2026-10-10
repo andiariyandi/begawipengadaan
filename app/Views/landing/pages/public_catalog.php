@@ -22,7 +22,7 @@ $sets = [
         ['title' => 'Klinik Persiapan Sertifikasi', 'text' => 'Sesi pendampingan menuju uji kompetensi.', 'slug' => 'klinik-persiapan-sertifikasi'],
     ],
 ];
-$items = $sets[$catalogType] ?? $sets['news'];
+$items = (!empty($items)) ? $items : ($sets[$catalogType] ?? $sets['news']);
 $prefix = $catalogType === 'regulations' ? 'regulasi' : ($catalogType === 'news' ? 'berita' : 'event');
 ?>
 <section class="category-one knowledge-catalog">

@@ -20,12 +20,6 @@
     </div>
 </div>
 
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
-<?php endif; ?>
 
 <div class="row gy-4">
 
@@ -235,37 +229,61 @@
 
                     <?php if (($user['account_status'] ?? '') !== 'active'): ?>
                     <div class="col-md-3">
-                        <form action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/aktifkan') ?>" method="post">
-                            <?= csrf_field() ?>
-                            <button type="submit" class="btn btn-success-600 w-100 radius-8">
-                                <iconify-icon icon="solar:check-circle-outline" class="me-6"></iconify-icon>
-                                Aktifkan Akun
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-success-600 w-100 radius-8"
+                                data-bs-toggle="modal"
+                                data-bs-target="#confirmationActionModal"
+                                data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/aktifkan') ?>"
+                                data-method="POST"
+                                data-title="Aktifkan Akun Pengguna"
+                                data-message="Apakah Anda yakin ingin mengaktifkan akun <?= esc($user['name'] ?? $user['username']) ?>?"
+                                data-btn-text="Ya, Aktifkan"
+                                data-btn-class="btn-success-600"
+                                data-icon="solar:user-check-rounded-bold"
+                                data-icon-color="success">
+                            <iconify-icon icon="solar:check-circle-outline" class="me-6"></iconify-icon>
+                            Aktifkan Akun
+                        </button>
                     </div>
                     <?php endif; ?>
 
                     <?php if (($user['account_status'] ?? '') !== 'suspended'): ?>
                     <div class="col-md-3">
-                        <form action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/suspend') ?>" method="post" onsubmit="return confirm('Tangguhkan akun ini?')">
-                            <?= csrf_field() ?>
-                            <input type="hidden" name="reason" value="Admin suspend via action panel">
-                            <button type="submit" class="btn btn-warning-600 w-100 radius-8">
-                                <iconify-icon icon="solar:pause-circle-outline" class="me-6"></iconify-icon>
-                                Suspend Akun
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-warning-600 w-100 radius-8"
+                                data-bs-toggle="modal"
+                                data-bs-target="#confirmationActionModal"
+                                data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/suspend') ?>"
+                                data-method="POST"
+                                data-title="Tangguhkan Akun Pengguna"
+                                data-message="Apakah Anda yakin ingin menangguhkan akun pengguna ini? Pengguna tidak akan dapat mengakses platform."
+                                data-btn-text="Ya, Tangguhkan"
+                                data-btn-class="btn-warning-600"
+                                data-icon="solar:user-block-rounded-bold"
+                                data-icon-color="warning"
+                                data-require-input="true"
+                                data-input-label="Alasan Penangguhan *"
+                                data-input-name="reason"
+                                data-input-placeholder="Tulis alasan penangguhan akun...">
+                            <iconify-icon icon="solar:pause-circle-outline" class="me-6"></iconify-icon>
+                            Suspend Akun
+                        </button>
                     </div>
                     <?php endif; ?>
 
                     <div class="col-md-3">
-                        <form action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/reset-password') ?>" method="post">
-                            <?= csrf_field() ?>
-                            <button type="submit" class="btn btn-info-600 w-100 radius-8">
-                                <iconify-icon icon="solar:lock-password-outline" class="me-6"></iconify-icon>
-                                Kirim Reset Password
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-info-600 w-100 radius-8"
+                                data-bs-toggle="modal"
+                                data-bs-target="#confirmationActionModal"
+                                data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/reset-password') ?>"
+                                data-method="POST"
+                                data-title="Kirim Reset Password"
+                                data-message="Apakah Anda yakin ingin mengirim permintaan reset password untuk akun <?= esc($user['name'] ?? $user['username']) ?>?"
+                                data-btn-text="Kirim Reset"
+                                data-btn-class="btn-info-600"
+                                data-icon="solar:lock-password-bold"
+                                data-icon-color="info">
+                            <iconify-icon icon="solar:lock-password-outline" class="me-6"></iconify-icon>
+                            Kirim Reset Password
+                        </button>
                     </div>
 
                     <div class="col-md-3">

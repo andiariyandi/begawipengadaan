@@ -41,20 +41,39 @@ class RegulationController extends BaseController
             'workflow_status'  => $this->request->getGet('workflow_status') ?: null,
         ];
 
-        $regulations = (new RegulationModel())->listForAdmin(
+        $allRegulations = (new RegulationModel())->listForAdmin(
             $filters['category_id'] ? (int) $filters['category_id'] : null,
             $filters['keyword'],
             $filters['workflow_status'],
         );
 
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
+        $page = max(1, (int) ($this->request->getGet('page_regulations') ?: 1));
+        $total = count($allRegulations);
+        $regulations = array_slice($allRegulations, ($page - 1) * $perPage, $perPage);
+
+        $pager = service('pager');
+        $pager->store('regulations', $page, $perPage, $total, 0);
+
+        $db = db_connect();
+        $stats = [
+            'total'       => (int) $db->table('regulations')->countAllResults(),
+            'active'      => (int) $db->table('regulations')->whereIn('legal_status', ['active', 'berlaku'])->countAllResults(),
+            'published'   => (int) $db->table('regulations')->where('workflow_status', 'published')->countAllResults(),
+            'in_review'   => (int) $db->table('regulations')->whereIn('workflow_status', ['in_review', 'submitted', 'draft'])->countAllResults(),
+        ];
+
         return view('dashboard/regulation/regulations/index', [
-            'title'         => 'Regulasi PBJ | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Regulasi',
-            'activeMenu'    => 'regulations',
-            'activeSubmenu' => 'regulations',
-            'regulations'   => $regulations,
-            'categories'    => (new RegulationCategoryModel())->listAll(),
-            'filters'       => $filters,
+            'title'            => 'Regulasi PBJ | Dashboard BegawiPBJ',
+            'pageTitle'        => 'Regulasi Pengadaan Barang/Jasa',
+            'activeMenu'       => 'regulations',
+            'activeSubmenu'    => 'regulations',
+            'regulations'      => $regulations,
+            'stats'            => $stats,
+            'pager'            => $pager,
+            'perPage'          => $perPage,
+            'categories'       => (new RegulationCategoryModel())->listAll(),
+            'filters'          => $filters,
             'workflowStatuses' => RegulationService::ALLOWED_WORKFLOW_STATUSES,
         ]);
     }

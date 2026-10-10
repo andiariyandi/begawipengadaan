@@ -33,7 +33,7 @@ class ProfileController extends BaseController
         $detailTables = $this->detailTables();
         $profileType = $user['profile_type'] ?? 'public';
 
-        return view('landing/user/profile', [
+        return view('main/workspace/pages/profil', [
             'title'       => 'Profil Saya',
             'subTitle'    => 'Profil Saya',
             'user'        => $user,
@@ -126,39 +126,53 @@ class ProfileController extends BaseController
                 ->with('error', 'Kombinasi wilayah domisili tidak valid.');
         }
 
-        $data = [
-            'username' => trim((string) $this->request->getPost('username')),
-            'email'    => trim((string) $this->request->getPost('email')),
+        $now = date('Y-m-d H:i:s');
+        $userData = [
+            'username'   => trim((string) $this->request->getPost('username')),
+            'email'      => trim((string) $this->request->getPost('email')),
+            'name'       => trim((string) $this->request->getPost('full_name')),
+            'phone'      => trim((string) $this->request->getPost('phone')),
+            'updated_at' => $now,
         ];
 
-        if (! $model->update($userId, $data)) {
+        if (! $model->update($userId, $userData)) {
             return redirect()->back()->withInput()
                 ->with('error', 'Profil gagal diperbarui.');
         }
 
-        $common = ['full_name', 'title_prefix', 'title_suffix', 'phone', 'province_code', 'regency_code', 'district_code', 'village_code'];
-        $profileData = [];
-        foreach ($common as $field) {
-            $profileData[$field] = trim((string) $this->request->getPost($field));
+        $profileData = [
+            'province_code' => trim((string) $this->request->getPost('province_code')),
+            'regency_code'  => trim((string) $this->request->getPost('regency_code')),
+            'district_code' => trim((string) $this->request->getPost('district_code')),
+            'village_code'  => trim((string) $this->request->getPost('village_code')) ?: null,
+            'updated_at'    => $now,
+        ];
+        if ($this->request->getPost('address_line') !== null) {
+            $profileData['address_line'] = trim((string) $this->request->getPost('address_line'));
         }
         $db->table('user_profiles')->where('user_id', $userId)->update($profileData);
 
         if (isset($detailTables[$profileType])) {
-            $detail = $db->table($detailTables[$profileType])->where('user_id', $userId)->get()->getRowArray();
-            $detailData = [];
-            foreach (array_keys($detail ?: []) as $field) {
-                if (! in_array($field, ['id', 'user_id', 'created_at', 'updated_at'], true)) {
-                    $detailData[$field] = trim((string) $this->request->getPost($field));
-                }
-            }
+            $table = $detailTables[$profileType];
+            $detail = $db->table($table)->where('user_id', $userId)->get()->getRowArray();
             if ($detail) {
-                $db->table($detailTables[$profileType])->where('user_id', $userId)->update($detailData);
+                $detailData = ['updated_at' => $now];
+                foreach (array_keys($detail) as $field) {
+                    if (in_array($field, ['id', 'user_id', 'created_at', 'updated_at'], true)) {
+                        continue;
+                    }
+                    if ($this->request->getPost($field) !== null) {
+                        $detailData[$field] = trim((string) $this->request->getPost($field));
+                    }
+                }
+                $db->table($table)->where('user_id', $userId)->update($detailData);
             }
         }
 
         session()->set([
-            'username' => $data['username'],
-            'email'    => $data['email'],
+            'username' => $userData['username'],
+            'email'    => $userData['email'],
+            'name'     => $userData['name'],
         ]);
 
         (new AuditService())->log($userId, 'update_profile', 'auth', 'users', $userId);
@@ -208,10 +222,10 @@ class ProfileController extends BaseController
     private function detailTables(): array
     {
         return [
-            'asn'                  => 'user_asn_profiles',
-            'provider'             => 'user_provider_profiles',
-            'academic_practitioner' => 'user_academic_profiles',
-            'public'               => 'user_public_profiles',
+            'asn'      => 'asn_profiles',
+            'provider' => 'provider_profiles',
+            'academic' => 'academic_profiles',
+            'public'   => 'public_profiles',
         ];
     }
 }

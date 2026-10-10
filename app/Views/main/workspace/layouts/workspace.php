@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="<?= base_url('assets/main/css/font-awesome-all.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/main/css/module-css/footer.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/main/css/module-css/page-header.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/main/css/module-css/courses.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/main/css/module-css/event.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/main/css/style.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/main/css/responsive.css') ?>">
     <style>

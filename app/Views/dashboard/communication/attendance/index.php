@@ -9,10 +9,6 @@
     </div>
 </div>
 
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success radius-8 mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
-
 <div class="card">
     <div class="card-body p-24">
         <div class="table-responsive scroll-sm">

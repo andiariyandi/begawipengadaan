@@ -8,14 +8,14 @@
                     <p class="section-title__tagline">Akun Anda</p>
                     <h3>Profil Saya</h3>
                 </div>
-                <form class="landing-form" action="<?= route_to('profile.update') ?>" method="post">
+                <form class="landing-form" action="<?= route_to('workspace.profile.update') ?>" method="post">
                     <?= csrf_field() ?>
                     <div class="row">
                     <?php foreach ([
                         'username' => ['Username','text',$user['username'] ?? ''],
                         'email' => ['Email','email',$user['email'] ?? ''],
-                        'full_name' => ['Nama Lengkap','text',$profile['full_name'] ?? ''],
-                        'phone' => ['No. HP / WhatsApp','text',$profile['phone'] ?? '']
+                        'full_name' => ['Nama Lengkap','text',$user['name'] ?? ''],
+                        'phone' => ['No. HP / WhatsApp','text',$user['phone'] ?? '']
                     ] as $field => $item): ?>
                         <div class="col-md-6 landing-form__field">
                             <label><?= esc($item[0]) ?></label>
@@ -42,11 +42,11 @@
                     <p class="section-title__tagline">Keamanan</p>
                     <h3>Ubah Password</h3>
                 </div>
-                <form class="landing-form" action="<?= route_to('profile.password.update') ?>" method="post">
+                <form class="landing-form" action="<?= route_to('workspace.profile.password.update') ?>" method="post">
                     <?= csrf_field() ?>
                     <div class="landing-form__field"><label>Password Saat Ini</label><input class="form-control" type="password" name="current_password" required></div>
-                    <div class="landing-form__field"><label>Password Baru</label><input class="form-control" type="password" name="password" minlength="8" required></div>
-                    <div class="landing-form__field"><label>Konfirmasi Password Baru</label><input class="form-control" type="password" name="password_confirmation" minlength="8" required></div>
+                    <div class="landing-form__field"><label>Password Baru</label><input class="form-control" type="password" name="password" minlength="12" required></div>
+                    <div class="landing-form__field"><label>Konfirmasi Password Baru</label><input class="form-control" type="password" name="password_confirmation" minlength="12" required></div>
                     <button class="thm-btn" type="submit">Ubah Password</button>
                 </form>
             </div>

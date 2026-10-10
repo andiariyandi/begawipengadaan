@@ -11,17 +11,24 @@ class LoginController extends BaseController
     {
         if (session()->get('isLoggedIn')) {
             $loggedRoles = (array) session()->get('roles');
-            $isAdmin     = in_array('super_admin', $loggedRoles, true) || in_array('admin', $loggedRoles, true);
-            if (! $isAdmin && in_array('trainer', $loggedRoles, true)) {
+            $isAdmin     = in_array('super_administrator', $loggedRoles, true)
+                || in_array('administrator', $loggedRoles, true)
+                || in_array('super_admin', $loggedRoles, true)
+                || in_array('admin', $loggedRoles, true);
+
+            if ($isAdmin) {
+                return redirect()->to(site_url('dashboard'));
+            }
+            if (in_array('trainer', $loggedRoles, true)) {
                 return redirect()->to(route_to('workspace.trainer.home'));
             }
-            if (! $isAdmin && in_array('operator', $loggedRoles, true)) {
+            if (in_array('operator', $loggedRoles, true)) {
                 return redirect()->to(route_to('workspace.operator.home'));
             }
-            if (! $isAdmin && in_array('evaluator', $loggedRoles, true)) {
+            if (in_array('evaluator', $loggedRoles, true)) {
                 return redirect()->to(route_to('workspace.evaluator.home'));
             }
-            return redirect()->to(site_url('dashboard'));
+            return redirect()->to(route_to('workspace.home'));
         }
 
         return view('dashboard/auth/login', [
@@ -46,26 +53,37 @@ class LoginController extends BaseController
         );
 
         if (! $result['ok']) {
-            $message = $result['reason'] === 'inactive_account'
-                ? 'Akun belum aktif atau sedang tidak dapat digunakan.'
-                : 'Email atau kata sandi salah.';
+            if ($result['reason'] === 'inactive_account') {
+                $pendingUserId = (int) ($result['user']['id'] ?? 0);
+                if ($pendingUserId > 0) {
+                    session()->setFlashdata('pending_user_id', $pendingUserId);
+                }
+                return redirect()->to(site_url('dashboard/status-akun'));
+            }
 
-            return redirect()->back()->withInput()->with('error', $message);
+            return redirect()->back()->withInput()->with('error', 'Email atau kata sandi salah.');
         }
 
         $loggedRoles = (array) session()->get('roles');
-        $isAdmin     = in_array('super_admin', $loggedRoles, true) || in_array('admin', $loggedRoles, true);
+        $isAdmin     = in_array('super_administrator', $loggedRoles, true)
+            || in_array('administrator', $loggedRoles, true)
+            || in_array('super_admin', $loggedRoles, true)
+            || in_array('admin', $loggedRoles, true);
         $userName    = (string) session()->get('name');
-        if (! $isAdmin && in_array('trainer', $loggedRoles, true)) {
+
+        if ($isAdmin) {
+            return redirect()->to(site_url('dashboard'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
+        }
+        if (in_array('trainer', $loggedRoles, true)) {
             return redirect()->to(route_to('workspace.trainer.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
         }
-        if (! $isAdmin && in_array('operator', $loggedRoles, true)) {
+        if (in_array('operator', $loggedRoles, true)) {
             return redirect()->to(route_to('workspace.operator.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
         }
-        if (! $isAdmin && in_array('evaluator', $loggedRoles, true)) {
+        if (in_array('evaluator', $loggedRoles, true)) {
             return redirect()->to(route_to('workspace.evaluator.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
         }
-        return redirect()->to(site_url('dashboard'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
+        return redirect()->to(route_to('workspace.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
     }
 
     public function logout()

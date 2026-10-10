@@ -372,12 +372,25 @@ class CertificateEligibilityService
         }
 
         $now = date('Y-m-d H:i:s');
+        // Ensure requested_by references an existing user or is null (foreign key safe)
+        $validActorId = null;
+        if ($requestedBy) {
+            $userExists = $this->db->table('users')->where('id', $requestedBy)->countAllResults();
+            if ($userExists > 0) {
+                $validActorId = $requestedBy;
+            }
+        }
+        if ($validActorId === null) {
+            $firstUser = $this->db->table('users')->select('id')->orderBy('id', 'ASC')->get()->getRowArray();
+            $validActorId = $firstUser ? (int) $firstUser['id'] : null;
+        }
+
         $data = [
             'resource_type'    => 'certificate',
             'resource_id'      => $sourceId,
             'requested_action' => self::APPROVAL_ACTION,
             'status'           => 'pending',
-            'requested_by'     => $requestedBy ?: 1,  // system fallback (admin system)
+            'requested_by'     => $validActorId,
             'notes'            => $notes,
             'created_at'       => $now,
             'updated_at'       => $now,

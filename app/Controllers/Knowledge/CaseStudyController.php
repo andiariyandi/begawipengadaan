@@ -9,13 +9,30 @@ class CaseStudyController extends BaseKnowledgeController
 {
     public function index(): string
     {
-        $items = (new ArticleModel())->listArticles('case_study');
+        $status   = $this->request->getGet('status') ?: null;
+        $keyword  = $this->request->getGet('q') ?: null;
+        $category = $this->request->getGet('category') ?: null;
+
+        $items = (new ArticleModel())->listArticles('case_study', $status, $keyword, $category !== null ? (int) $category : null);
+        $db = db_connect();
+        $stats = [
+            'total'     => (int) $db->table('knowledge_articles')->where('type', 'case_study')->countAllResults(),
+            'published' => (int) $db->table('knowledge_articles')->where('type', 'case_study')->where('workflow_status', 'published')->countAllResults(),
+            'draft'     => (int) $db->table('knowledge_articles')->where('type', 'case_study')->where('workflow_status', 'draft')->countAllResults(),
+            'in_review' => (int) $db->table('knowledge_articles')->where('type', 'case_study')->whereIn('workflow_status', ['in_review', 'submitted'])->countAllResults(),
+        ];
+
         return view('dashboard/knowledge/case_studies/index', [
-            'title'        => 'Studi Kasus | Dashboard BegawiPBJ',
-            'pageTitle'    => 'Studi Kasus',
-            'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'case-studies',
-            'items'        => $items,
+            'title'         => 'Studi Kasus | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Studi Kasus PBJ',
+            'activeMenu'    => 'knowledge',
+            'activeSubmenu' => 'case-studies',
+            'items'         => $items,
+            'stats'         => $stats,
+            'categories'    => (new KnowledgeCategoryModel())->activeFlat(),
+            'filterStatus'  => $status,
+            'filterKeyword' => $keyword,
+            'filterCategory'=> $category,
         ]);
     }
 

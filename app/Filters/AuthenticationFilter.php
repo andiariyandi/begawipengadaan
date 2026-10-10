@@ -37,7 +37,11 @@ class AuthenticationFilter implements FilterInterface
         $userId = (int) session()->get('user_id');
         $user = $userId > 0 ? (new UserModel())->find($userId) : null;
         if (! $user || ($user['account_status'] ?? null) !== 'active') {
+            $pendingUserId = $userId;
             session()->destroy();
+            if ($pendingUserId > 0) {
+                session()->setFlashdata('pending_user_id', $pendingUserId);
+            }
 
             return redirect()->to(site_url('dashboard/status-akun'));
         }
@@ -47,7 +51,14 @@ class AuthenticationFilter implements FilterInterface
         }
 
         if (! (new AuthorizationService())->hasDashboardAccess()) {
-            return service('response')->setStatusCode(403)->setBody('Forbidden');
+            $roles = (array) session()->get('roles');
+            $workspaceRoles = ['peserta', 'participant', 'trainer', 'evaluator', 'operator'];
+            if (array_intersect($roles, $workspaceRoles)) {
+                return redirect()->to(site_url('workspace'))
+                    ->with('info', 'Anda dialihkan ke Workspace Fistudy sesuai hak akses peran akun Anda.');
+            }
+
+            return service('response')->setStatusCode(403)->setBody(view('errors/html/error_403'));
         }
 
         return null;

@@ -13,10 +13,6 @@ $item = $item ?? [];
     <a href="<?= site_url('dashboard/komunikasi/kategori-berita') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
 </div>
 
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger radius-8 mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
-<?php endif; ?>
-
 <div class="card">
     <div class="card-body p-24">
         <form action="<?= $isEdit ? site_url('dashboard/komunikasi/kategori-berita/' . (int) ($catId ?? 0) . '/ubah') : site_url('dashboard/komunikasi/kategori-berita/tambah') ?>" method="post">

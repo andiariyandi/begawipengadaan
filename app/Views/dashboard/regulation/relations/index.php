@@ -11,13 +11,6 @@
     <a href="<?= site_url('dashboard/regulasi/relasi/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Relasi</a>
 </div>
 
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
-<?php endif; ?>
-
 <div class="card">
     <div class="card-body p-24">
         <div class="table-responsive scroll-sm">
@@ -50,12 +43,19 @@
                             <td><?= esc($r['notes'] ?? '-') ?: '-' ?></td>
                             <td><?= esc($r['creator_username'] ?? '-') ?></td>
                             <td class="text-center">
-                                <form action="<?= site_url('dashboard/regulasi/relasi/' . (int) $r['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Hapus relasi?')" class="d-inline">
-                                    <?= csrf_field() ?>
-                                    <button type="submit" class="w-32-px h-32-px bg-danger-focus text-danger-main rounded-circle d-inline-flex align-items-center justify-content-center" title="Hapus">
-                                        <iconify-icon icon="solar:trash-bin-trash-outline"></iconify-icon>
-                                    </button>
-                                </form>
+                                <button type="button" class="w-32-px h-32-px bg-danger-focus text-danger-main rounded-circle d-inline-flex align-items-center justify-content-center border-0"
+                                    data-bs-toggle="modal" data-bs-target="#confirmationActionModal"
+                                    data-action="<?= site_url('dashboard/regulasi/relasi/' . (int) $r['id'] . '/hapus') ?>"
+                                    data-method="POST"
+                                    data-title="Hapus Relasi Regulasi"
+                                    data-message="Apakah Anda yakin ingin menghapus relasi regulasi ini?"
+                                    data-btn-text="Hapus Relasi"
+                                    data-btn-class="btn-danger-600"
+                                    data-icon="fluent:delete-24-regular"
+                                    data-icon-color="danger"
+                                    title="Hapus Relasi">
+                                    <iconify-icon icon="solar:trash-bin-trash-outline"></iconify-icon>
+                                </button>
                             </td>
                         </tr>
                     <?php endforeach; ?>

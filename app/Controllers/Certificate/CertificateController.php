@@ -57,12 +57,32 @@ class CertificateController extends BaseController
         if ($keyword === '') { $keyword = null; }
         if ($status  === '') { $status  = null; }
 
+        $db = db_connect();
+        $stats = [
+            'total'            => (int) $db->table('certificates')->countAllResults(),
+            'issued'           => (int) $db->table('certificates')->where('status', 'issued')->countAllResults(),
+            'revoked'          => (int) $db->table('certificates')->where('status', 'revoked')->countAllResults(),
+            'pending_approval' => (int) $db->table('certificate_approvals')->where('status', 'pending')->countAllResults(),
+        ];
+
+        $allCertificates = $this->certificateModel->listForAdmin($keyword, $status);
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
+        $page = max(1, (int) ($this->request->getGet('page_certificates') ?: 1));
+        $total = count($allCertificates);
+        $certificates = array_slice($allCertificates, ($page - 1) * $perPage, $perPage);
+
+        $pager = service('pager');
+        $pager->store('certificates', $page, $perPage, $total, 0);
+
         return view('dashboard/certificates/index', [
             'title'         => 'Sertifikat | Dashboard BegawiPBJ',
             'pageTitle'     => 'Sertifikat Terbit',
             'activeMenu'    => 'certificates',
             'activeSubmenu' => 'index',
-            'certificates'  => $this->certificateModel->listForAdmin($keyword, $status),
+            'certificates'  => $certificates,
+            'stats'         => $stats,
+            'pager'         => $pager,
+            'perPage'       => $perPage,
             'keyword'       => $keyword ?? '',
             'statusFilter'  => $status  ?? 'all',
         ]);

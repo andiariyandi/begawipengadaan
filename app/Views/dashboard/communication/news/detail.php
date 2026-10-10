@@ -2,9 +2,6 @@
 
 <?= $this->section('content') ?>
 <?php $item = $item ?? []; $coverSrc = null; if (! empty($item['cover_path'])) { $coverSrc = base_url('file/' . (int) $item['cover_file_id']); } ?>
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success radius-8 mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Detail Berita</h6>
@@ -52,10 +49,19 @@
             <p class="mb-16"><?= (int) ($item['view_count'] ?? 0) ?> kali</p>
             <p class="text-secondary-light mb-4">Diperbarui</p>
             <p class="mb-16"><?= esc($item['updated_at'] ?? '-') ?></p>
-            <form action="<?= route_to('dashboard.communication.news.delete', (string) ($newsId ?? '')) ?>" method="post" onsubmit="return confirm('Hapus berita ini?')">
-                <?= csrf_field() ?>
-                <button type="submit" class="btn btn-outline-danger-600 w-100 radius-8">Hapus Berita</button>
-            </form>
+            <button type="button" class="btn btn-outline-danger-600 w-100 radius-8 d-flex align-items-center justify-content-center gap-2"
+                data-bs-toggle="modal" data-bs-target="#confirmationActionModal"
+                data-action="<?= route_to('dashboard.communication.news.delete', (string) ($newsId ?? '')) ?>"
+                data-method="POST"
+                data-title="Hapus Berita"
+                data-message="Apakah Anda yakin ingin menghapus berita ini secara permanen?"
+                data-btn-text="Hapus Berita"
+                data-btn-class="btn-danger-600"
+                data-icon="fluent:delete-24-regular"
+                data-icon-color="danger">
+                <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
+                Hapus Berita
+            </button>
         </div></div>
     </div>
 </div>

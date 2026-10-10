@@ -97,7 +97,7 @@ $statusBadge = static function (string $status): array {
                                     } ?>
                                 </span>
                             <?php endif; ?>
-                            <a class="btn btn-outline-primary btn-sm" href="<?= route_to('public.learning.class.detail', $item['class_code'] ?? '') ?>">Lihat Detail</a>
+                            <a class="btn btn-outline-primary btn-sm" href="<?= route_to('workspace.participant.class.detail', $classId) ?>">Lihat Detail</a>
                         </div>
                     </article>
                 </div>

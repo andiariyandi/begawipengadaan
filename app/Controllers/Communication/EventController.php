@@ -14,13 +14,21 @@ class EventController extends BaseController
         $keyword  = $this->request->getGet('q') ?: null;
 
         $items = (new EventModel())->listEvents($status, $keyword);
+        $db = db_connect();
+        $stats = [
+            'total'       => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->countAllResults(),
+            'open'        => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->where('status', 'open_registration')->countAllResults(),
+            'coming_soon' => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->whereIn('status', ['coming_soon', 'published'])->countAllResults(),
+            'finished'    => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->where('status', 'finished')->countAllResults(),
+        ];
 
         return view('dashboard/communication/events/index', [
-            'title'         => 'Event dan Agenda | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Event dan Agenda',
+            'title'         => 'Event & Agenda PBJ | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Event & Agenda PBJ',
             'activeMenu'    => 'communication',
             'activeSubmenu' => 'events',
             'items'         => $items,
+            'stats'         => $stats,
             'filterStatus'  => $status,
             'filterKeyword' => $keyword,
         ]);

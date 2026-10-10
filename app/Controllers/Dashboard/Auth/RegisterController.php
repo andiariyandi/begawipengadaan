@@ -58,8 +58,8 @@ class RegisterController extends BaseController
             'required'     => ['company_name', 'business_entity_type', 'registrant_position', 'responsible_person'],
             'json_fields'  => [],
         ],
-        'academic_practitioner' => [
-            'profile_type' => 'academic_practitioner',
+        'academic' => [
+            'profile_type' => 'academic',
             'segment'      => 'akademisi',
             'view'         => 'dashboard/auth/register_academic',
             'table'        => 'academic_profiles',

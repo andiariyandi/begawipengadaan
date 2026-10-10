@@ -2,9 +2,6 @@
 
 <?= $this->section('content') ?>
 <?php $item = $item ?? []; ?>
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success radius-8 mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
-<?php endif; ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Detail Registrasi</h6>

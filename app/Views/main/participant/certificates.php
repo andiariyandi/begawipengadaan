@@ -17,11 +17,21 @@
                     <p class="text-muted mb-3"><?= esc($certificate['certificate_number']) ?></p>
                     <?php if ($certificate['status'] === 'pending'): ?>
                         <span class="badge bg-warning-subtle text-warning-emphasis">Sedang diproses</span>
-                    <?php elseif ($certificate['pdf_file_id'] === null): ?>
+                    <?php elseif (empty($certificate['pdf_file_id'])): ?>
                         <span class="badge bg-success-subtle text-success-emphasis">Telah diterbitkan</span>
-                        <p class="small text-muted mt-3 mb-0">File sertifikat belum tersedia untuk diunduh.</p>
+                        <p class="small text-muted mt-3 mb-0">File sertifikat sedang diproses untuk diunduh.</p>
                     <?php else: ?>
-                        <span class="badge bg-success-subtle text-success-emphasis">Telah diterbitkan</span>
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <span class="badge bg-success-subtle text-success-emphasis">Telah diterbitkan</span>
+                        </div>
+                        <div class="mt-3 d-flex flex-wrap gap-2">
+                            <a href="<?= route_to('workspace.participant.certificate.download', $certificate['id']) ?>" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-download"></i> Unduh PDF
+                            </a>
+                            <a href="<?= site_url('sertifikat/verifikasi/' . urlencode($certificate['certificate_number'])) ?>" target="_blank" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-shield-check"></i> Verifikasi
+                            </a>
+                        </div>
                     <?php endif; ?>
                 </article>
             </div>

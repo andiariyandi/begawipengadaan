@@ -20,12 +20,17 @@ class AccountStatusController extends BaseController
     public function show()
     {
         $user = null;
+        $userId = 0;
 
         if (session()->get('isLoggedIn')) {
             $userId = (int) session()->get('user_id');
-            if ($userId > 0) {
-                $user = (new UserModel())->find($userId);
-            }
+        } elseif (session()->getFlashdata('pending_user_id')) {
+            $userId = (int) session()->getFlashdata('pending_user_id');
+            session()->setFlashdata('pending_user_id', $userId);
+        }
+
+        if ($userId > 0) {
+            $user = (new UserModel())->find($userId);
         }
 
         if (! $user) {
@@ -35,18 +40,12 @@ class AccountStatusController extends BaseController
 
         $status = $user['account_status'] ?? 'draft';
 
-        $view = match ($status) {
-            'revision_required' => 'dashboard/auth/account_revision_required',
-            'rejected', 'inactive', 'suspended', 'archived' => 'dashboard/auth/account_rejected',
-            default => 'dashboard/auth/account_pending',
-        };
-
-        return view($view, [
-            'title'         => 'Status Akun | BegawiPBJ',
-            'pageTitle'     => 'Status Akun Anda',
+        return view('dashboard/auth/account_status', [
+            'title'           => 'Status Akun | BegawiPBJ',
+            'pageTitle'       => 'Status Akun Anda',
             'pageDescription' => 'Ringkasan status akun dan langkah selanjutnya.',
-            'user'          => $user,
-            'accountStatus' => $status,
+            'user'            => $user,
+            'accountStatus'   => $status,
         ]);
     }
 }

@@ -3,13 +3,6 @@
 <?= $this->section('content') ?>
 <?php $formMode = $formMode ?? 'create'; $isEdit = $formMode === 'edit'; $regulations = $regulations ?? []; $relationTypes = $relationTypes ?? []; ?>
 
-<?php if (! empty($errors ?? [])): ?>
-    <div class="alert alert-danger mb-16"><ul class="mb-0"><?php foreach ($errors as $e): ?><li><?= esc($e) ?></li><?php endforeach; ?></ul></div>
-<?php endif; ?>
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
-<?php endif; ?>
-
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Tambah Relasi</h6>

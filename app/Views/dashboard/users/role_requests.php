@@ -44,7 +44,15 @@
                 </thead>
                 <tbody>
                     <?php if (empty($items)): ?>
-                        <tr><td colspan="7" class="text-center text-secondary-light">Tidak ada permohonan role.</td></tr>
+                        <tr>
+                            <td colspan="7" class="p-0">
+                                <?= view('dashboard/components/empty_state', [
+                                    'title'   => 'Tidak Ada Permohonan Role',
+                                    'message' => 'Saat ini tidak ada permohonan role yang menunggu persetujuan.',
+                                    'icon'    => 'solar:shield-check-outline',
+                                ]) ?>
+                            </td>
+                        </tr>
                     <?php endif; ?>
                     <?php foreach ($items as $item): ?>
                         <tr>
