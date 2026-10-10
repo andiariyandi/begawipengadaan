@@ -29,11 +29,11 @@
                         <h6 class="alert-heading mb-1">Status Pengumpulan Terakhir: <span class="badge bg-dark"><?= esc($latestSubmission['status'] ?? 'submitted') ?></span></h6>
                         <small>Dikumpulkan pada: <?= esc($latestSubmission['submitted_at'] ?? '-') ?></small>
                         <?php if ($latestSubmission['score'] !== null): ?>
-                            <div class="mt-2">Nilai Evaluator: <strong class="fs-5"><?= esc($latestSubmission['score']) ?></strong> / 100</div>
+                            <div class="mt-2">Nilai Pengajar: <strong class="fs-5"><?= esc($latestSubmission['score']) ?></strong> / 100</div>
                         <?php endif; ?>
                         <?php if (!empty($latestSubmission['feedback'])): ?>
                             <div class="mt-2 p-2 bg-white rounded border">
-                                <strong>Catatan / Feedback Evaluator:</strong>
+                                <strong>Catatan / Feedback Pengajar:</strong>
                                 <p class="mb-0 mt-1"><?= nl2br(esc($latestSubmission['feedback'])) ?></p>
                             </div>
                         <?php endif; ?>

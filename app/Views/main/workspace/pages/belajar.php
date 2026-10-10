@@ -2,89 +2,459 @@
 
 <?= $this->section('content') ?>
 <?php
-$modules       = $modules ?? [];
-$enrollment    = $enrollment ?? [];
-$progressInfo  = $progressInfo ?? ['total' => 0, 'completed' => 0, 'in_progress' => 0, 'percent' => 0];
-$classContext  = $classContext ?? [];
-$quizzes       = $quizzes ?? [];
-$lessonBadge = static fn (string $status): array => match ($status) {
-    'completed' => ['label' => 'Selesai',      'class' => 'bg-success-subtle text-success-emphasis'],
-    'in_progress' => ['label' => 'Sedang Belajar', 'class' => 'bg-warning-subtle text-warning-emphasis'],
-    default     => ['label' => 'Belum Dimulai','class' => 'bg-light text-muted'],
-};
-$typeLabel = static fn (string $type): string => match ($type) {
-    'pre_test'  => 'Pre-test',
-    'post_test' => 'Post-test',
-    default     => 'Quiz',
-};
+$state       = $state ?? [];
+$ctx         = $state['class'] ?? $classContext ?? [];
+$trainers    = $state['trainers'] ?? [];
+$enrollment  = $state['enrollment'] ?? [];
+$modules     = $state['modules'] ?? [];
+$cta         = $state['cta'] ?? [];
+$stateCode   = $state['stateCode'] ?? 'in_learning';
+$preTest     = $state['pre_test'] ?? [];
+$postTest    = $state['post_test'] ?? [];
+$activeType  = $activeType ?? 'lesson';
+$activeItem  = $activeItem ?? null;
+$pct         = (float) ($state['overall_percent'] ?? 0);
+$finalScore  = $enrollment['final_score'] ?? null;
+$fileAsset   = $fileAsset ?? null;
+$prevLesson  = $prevLesson ?? null;
+$nextLesson  = $nextLesson ?? null;
+
+// Helper to determine YouTube/Vimeo embed
+$embedUrl = null;
+if (! empty($activeItem['external_url'])) {
+    $rawUrl = $activeItem['external_url'];
+    if (preg_match('/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/', $rawUrl, $matches)) {
+        $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+    } elseif (preg_match('/vimeo\.com\/(?:video\/)?([0-9]+)/', $rawUrl, $matches)) {
+        $embedUrl = 'https://player.vimeo.com/video/' . $matches[1];
+    }
+}
 ?>
 
-<div class="bg-white border rounded p-4 p-lg-5 mb-4">
-    <p class="text-uppercase text-muted small mb-2">Learning Room</p>
-    <h1 class="mb-2"><?= esc($classContext['class_name'] ?? 'Belajar') ?></h1>
-    <p class="text-muted mb-3">Course: <?= esc($classContext['course_title'] ?? '-') ?><?php if (! empty($classContext['program_title'])): ?> &middot; Program: <?= esc($classContext['program_title']) ?><?php endif; ?></p>
-    <div class="progress" role="progressbar" aria-label="Progress" aria-valuenow="<?= (int) $progressInfo['percent'] ?>" aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-bar bg-primary" style="width: <?= (float) $progressInfo['percent'] ?>%"></div>
-    </div>
-    <p class="small text-muted mt-2 mb-0">
-        <?= (int) $progressInfo['completed'] ?> dari <?= (int) $progressInfo['total'] ?> lesson selesai
-        (<?= (float) $progressInfo['percent'] ?>%)
-    </p>
-</div>
-
-<div class="bg-white border rounded p-4 mb-4">
-    <h2 class="h4 mb-3">Struktur Pembelajaran</h2>
-
-    <?php if ($modules === []): ?>
-        <p class="text-muted mb-0">Kelas ini belum memiliki modul atau lesson.</p>
-    <?php else: ?>
-        <?php foreach ($modules as $index => $mod): ?>
-            <section class="border rounded p-3 mb-3">
-                <header class="d-flex align-items-baseline gap-2 mb-2">
-                    <span class="badge bg-light text-body fw-semibold">Modul <?= esc((string) ($index + 1)) ?></span>
-                    <h3 class="h5 mb-0"><?= esc($mod['title'] ?? 'Modul') ?></h3>
-                </header>
-                <?php if (empty($mod['lessons'])): ?>
-                    <p class="text-muted small mb-0">Modul ini belum memiliki lesson.</p>
-                <?php else: ?>
-                    <ol class="list-group list-group-numbered list-group-flush">
-                        <?php foreach ($mod['lessons'] as $lesson): ?>
-                            <?php $p = $lesson['progress'] ?? null; $badge = $lessonBadge((string) ($p['status'] ?? 'not_started')); ?>
-                            <li class="list-group-item bg-transparent px-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                <a class="text-decoration-none" href="<?= route_to('workspace.participant.lesson.detail', $lesson['id']) ?>"><?= esc($lesson['title'] ?? '-') ?></a>
-                                <span class="badge <?= $badge['class'] ?>"><?= esc($badge['label']) ?></span>
-                            </li>
-                        <?php endforeach; ?>
-                    </ol>
-                <?php endif; ?>
-            </section>
-        <?php endforeach; ?>
-    <?php endif; ?>
-</div>
-
-<div class="bg-white border rounded p-4">
-    <h2 class="h4 mb-3">Penilaian</h2>
-    <?php if ($quizzes === []): ?>
-        <p class="text-muted mb-0">Kelas ini belum memiliki quiz atau test.</p>
-    <?php else: ?>
-        <div class="table-responsive scroll-sm">
-            <table class="table bordered-table sm-table mb-0">
-                <thead><tr><th>#</th><th>Judul</th><th>Tipe</th><th>Percobaan</th><th class="text-end">Aksi</th></tr></thead>
-                <tbody>
-                <?php foreach ($quizzes as $i => $q): ?>
-                    <tr>
-                        <td><?= (int) ($i + 1) ?></td>
-                        <td><?= esc($q['title'] ?? '-') ?></td>
-                        <td><?= esc($typeLabel((string) ($q['type'] ?? 'lesson_quiz'))) ?></td>
-                        <td><?= (int) ($q['attempt_limit'] ?? 1) ?></td>
-                        <td class="text-end">
-                            <a class="btn btn-outline-primary btn-sm" href="<?= route_to('workspace.participant.quiz.take', (string) $q['id']) ?>">Buka</a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
+<!-- 1. LEARNING ROOM HEADER -->
+<div class="learning-header bg-white border rounded shadow-sm p-4 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div>
+            <a href="<?= route_to('workspace.participant.class.detail', (string) ($ctx['id'] ?? 0)) ?>" class="btn btn-outline-secondary btn-sm mb-2">
+                <i class="bi bi-arrow-left me-1"></i> Kembali ke Overview Kelas
+            </a>
+            <h1 class="h3 text-navy mb-1"><?= esc($ctx['name'] ?? 'Learning Room') ?></h1>
+            <p class="text-muted small mb-0">
+                Course: <strong class="text-dark"><?= esc($ctx['course_title'] ?? '-') ?></strong> &middot;
+                Kode: <code class="text-primary"><?= esc($ctx['code'] ?? '-') ?></code>
+            </p>
         </div>
-    <?php endif; ?>
+
+        <!-- Trainer Info Pill -->
+        <?php if (! empty($trainers)): ?>
+            <?php $trainer = $trainers[0]; ?>
+            <div class="d-flex align-items-center gap-3 p-2 px-3 rounded border bg-light">
+                <div class="avatar-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 40px; height: 40px; font-size: 15px;">
+                    <?= strtoupper(substr($trainer['name'] ?? 'T', 0, 2)) ?>
+                </div>
+                <div>
+                    <span class="d-block text-muted small" style="font-size: 11px;">Instruktur Utama</span>
+                    <strong class="text-dark small"><?= esc($trainer['name'] ?? 'Trainer') ?></strong>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="pt-2 border-top">
+        <div class="d-flex align-items-center justify-content-between small text-muted mb-1">
+            <span>Capaian Pembelajaran: <strong><?= $pct ?>%</strong></span>
+            <span><?= (int) ($state['completed_lessons_count'] ?? 0) ?> dari <?= (int) ($state['all_lessons_count'] ?? 0) ?> materi selesai</span>
+        </div>
+        <div class="progress" style="height: 8px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: <?= $pct ?>%" aria-valuenow="<?= $pct ?>" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. MAIN LEARNING ROOM LAYOUT: SIDEBAR + CONTENT -->
+<div class="row g-4">
+    <!-- LEFT SIDEBAR: DAFTAR MODUL & MATERI -->
+    <div class="col-lg-4 col-xl-3">
+        <div class="learning-sidebar bg-white border rounded shadow-sm p-3 sticky-top" style="top: 90px; max-height: calc(100vh - 110px); overflow-y: auto;">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <h2 class="h6 mb-0 text-navy fw-bold text-uppercase" style="font-size: 12px; letter-spacing: 0.5px;">
+                    <i class="bi bi-list-task me-1"></i> Kurikulum Kelas
+                </h2>
+                <span class="badge bg-primary-subtle text-primary small"><?= count($modules) ?> Modul</span>
+            </div>
+
+            <!-- Pre-Test Item (Jika Ada) -->
+            <?php if ($preTest['exists']): ?>
+                <div class="learning-nav-item border rounded p-2 mb-2 <?= $activeType === 'pre_test' ? 'border-primary bg-primary-subtle' : ($preTest['completed'] ? 'border-success-subtle bg-success-subtle' : 'bg-light') ?>">
+                    <div class="d-flex align-items-center justify-content-between gap-1">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                            <?php if ($preTest['completed']): ?>
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            <?php else: ?>
+                                <i class="bi bi-pencil-square text-primary"></i>
+                            <?php endif; ?>
+                            <a href="<?= route_to('workspace.participant.quiz.take', (string) $preTest['quiz']['id']) ?>" class="small fw-semibold text-dark text-truncate text-decoration-none">
+                                <?= esc($preTest['quiz']['title'] ?? 'Pre-Test') ?>
+                            </a>
+                        </div>
+                        <?php if ($preTest['completed']): ?>
+                            <span class="badge bg-success" style="font-size: 10px;">Skor: <?= (float) ($preTest['attempt']['score'] ?? 0) ?></span>
+                        <?php else: ?>
+                            <span class="badge bg-warning text-dark" style="font-size: 10px;">Wajib</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Modules List -->
+            <?php foreach ($modules as $mIndex => $mod): ?>
+                <div class="module-group border rounded mb-3 overflow-hidden <?= $mod['is_completed'] ? 'border-success-subtle' : ($mod['is_unlocked'] ? 'border-primary-subtle' : 'border-light bg-light') ?>">
+                    <!-- Module Header -->
+                    <div class="p-2 px-3 d-flex align-items-center justify-content-between <?= $mod['is_completed'] ? 'bg-success-subtle' : ($mod['is_unlocked'] ? 'bg-light border-bottom' : 'bg-light') ?>">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                            <?php if ($mod['is_completed']): ?>
+                                <i class="bi bi-check2-circle text-success fw-bold"></i>
+                            <?php elseif ($mod['is_unlocked']): ?>
+                                <i class="bi bi-folder2-open text-primary"></i>
+                            <?php else: ?>
+                                <i class="bi bi-lock-fill text-muted"></i>
+                            <?php endif; ?>
+                            <span class="small fw-bold text-dark text-truncate" title="<?= esc($mod['title']) ?>">
+                                M<?= ($mIndex + 1) ?>: <?= esc($mod['title']) ?>
+                            </span>
+                        </div>
+                        <?php if ($mod['is_completed']): ?>
+                            <span class="badge bg-success text-white" style="font-size: 9px;">Selesai</span>
+                        <?php elseif (! $mod['is_unlocked']): ?>
+                            <span class="badge bg-secondary text-white" style="font-size: 9px;">Terkunci</span>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Module Lessons -->
+                    <?php if (! empty($mod['lessons'])): ?>
+                        <div class="list-group list-group-flush">
+                            <?php foreach ($mod['lessons'] as $les): ?>
+                                <?php $isCurrentActive = ($activeType === 'lesson' && ! empty($activeItem['id']) && (int) $activeItem['id'] === (int) $les['id']); ?>
+                                <div class="list-group-item list-group-item-action p-2 px-3 border-0 d-flex align-items-center justify-content-between gap-2 <?= $isCurrentActive ? 'bg-primary-subtle text-primary border-start border-primary border-3 fw-bold' : '' ?>">
+                                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                        <?php if ($les['is_completed']): ?>
+                                            <i class="bi bi-check-circle-fill text-success" style="font-size: 13px;"></i>
+                                        <?php elseif ($isCurrentActive): ?>
+                                            <i class="bi bi-play-circle-fill text-primary" style="font-size: 13px;"></i>
+                                        <?php elseif ($les['is_unlocked']): ?>
+                                            <i class="bi bi-circle text-muted" style="font-size: 13px;"></i>
+                                        <?php else: ?>
+                                            <i class="bi bi-lock text-muted" style="font-size: 13px;"></i>
+                                        <?php endif; ?>
+
+                                        <?php if ($les['is_unlocked']): ?>
+                                            <a href="<?= route_to('workspace.participant.lesson.detail', (string) $les['id']) ?>" class="small text-decoration-none text-truncate <?= $isCurrentActive ? 'text-primary fw-bold' : 'text-dark' ?>">
+                                                <?= esc($les['title']) ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="small text-muted text-truncate"><?= esc($les['title']) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <span class="badge bg-light text-muted border text-uppercase" style="font-size: 9px;">
+                                        <?= esc($les['content_type']) ?>
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Module Quiz (Jika Configured) -->
+                    <?php if (! empty($mod['quiz'])): ?>
+                        <div class="p-2 px-3 border-top bg-white d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                <i class="bi bi-patch-question text-warning"></i>
+                                <?php if ($mod['quiz']['is_unlocked']): ?>
+                                    <a href="<?= route_to('workspace.participant.quiz.take', (string) $mod['quiz']['id']) ?>" class="small text-decoration-none text-dark fw-semibold text-truncate">
+                                        <?= esc($mod['quiz']['title']) ?>
+                                    </a>
+                                <?php else: ?>
+                                    <span class="small text-muted text-truncate"><?= esc($mod['quiz']['title']) ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <?php if ($mod['quiz']['is_completed']): ?>
+                                <span class="badge bg-success" style="font-size: 9px;"><i class="bi bi-check"></i> <?= (float) ($mod['quiz']['score'] ?? 0) ?></span>
+                            <?php elseif ($mod['quiz']['is_unlocked']): ?>
+                                <span class="badge bg-warning text-dark" style="font-size: 9px;">Siap</span>
+                            <?php else: ?>
+                                <span class="badge bg-light text-muted border" style="font-size: 9px;"><i class="bi bi-lock"></i></span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Module Assignment (Jika Configured) -->
+                    <?php if (! empty($mod['assignment'])): ?>
+                        <div class="p-2 px-3 border-top bg-white d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                <i class="bi bi-file-earmark-check text-info"></i>
+                                <?php if ($mod['assignment']['is_unlocked']): ?>
+                                    <a href="<?= route_to('workspace.participant.assignment.submission', (string) $ctx['id']) ?>?assignment_id=<?= (int) $mod['assignment']['id'] ?>" class="small text-decoration-none text-dark fw-semibold text-truncate">
+                                        <?= esc($mod['assignment']['title']) ?>
+                                    </a>
+                                <?php else: ?>
+                                    <span class="small text-muted text-truncate"><?= esc($mod['assignment']['title']) ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <?php if ($mod['assignment']['is_submitted']): ?>
+                                <span class="badge bg-info text-dark" style="font-size: 9px;">Terkumpul</span>
+                            <?php elseif ($mod['assignment']['is_unlocked']): ?>
+                                <span class="badge bg-primary text-white" style="font-size: 9px;">Tugas</span>
+                            <?php else: ?>
+                                <span class="badge bg-light text-muted border" style="font-size: 9px;"><i class="bi bi-lock"></i></span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+
+            <!-- Post-Test Item (Jika Ada) -->
+            <?php if ($postTest['exists']): ?>
+                <div class="learning-nav-item border rounded p-2 mb-2 <?= $activeType === 'post_test' ? 'border-primary bg-primary-subtle' : ($postTest['completed'] ? 'border-success-subtle bg-success-subtle' : 'bg-light') ?>">
+                    <div class="d-flex align-items-center justify-content-between gap-1">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                            <?php if ($postTest['completed']): ?>
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            <?php else: ?>
+                                <i class="bi bi-award text-primary"></i>
+                            <?php endif; ?>
+                            <?php if ($postTest['is_unlocked']): ?>
+                                <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="small fw-semibold text-dark text-truncate text-decoration-none">
+                                    <?= esc($postTest['quiz']['title'] ?? 'Post-Test') ?>
+                                </a>
+                            <?php else: ?>
+                                <span class="small text-muted text-truncate"><?= esc($postTest['quiz']['title'] ?? 'Post-Test') ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <?php if ($postTest['completed']): ?>
+                            <span class="badge bg-success" style="font-size: 10px;">Skor: <?= (float) ($postTest['attempt']['score'] ?? 0) ?></span>
+                        <?php elseif ($postTest['is_unlocked']): ?>
+                            <span class="badge bg-primary" style="font-size: 10px;">Siap</span>
+                        <?php else: ?>
+                            <span class="badge bg-secondary" style="font-size: 10px;"><i class="bi bi-lock"></i></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Kelulusan & Sertifikat Item -->
+            <div class="learning-nav-item border rounded p-2 <?= in_array($stateCode, ['certificate_issued', 'completed_passed'], true) ? 'bg-success-subtle border-success' : 'bg-light' ?>">
+                <div class="d-flex align-items-center justify-content-between gap-1">
+                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                        <i class="bi bi-patch-check text-success"></i>
+                        <span class="small fw-semibold text-dark text-truncate">Kelulusan & Sertifikat</span>
+                    </div>
+                    <?php if ($stateCode === 'certificate_issued'): ?>
+                        <span class="badge bg-success" style="font-size: 10px;">Terbit</span>
+                    <?php elseif ($stateCode === 'waiting_certificate'): ?>
+                        <span class="badge bg-warning text-dark" style="font-size: 10px;">Approval</span>
+                    <?php elseif ($stateCode === 'completed_passed'): ?>
+                        <span class="badge bg-success" style="font-size: 10px;">Lulus</span>
+                    <?php else: ?>
+                        <span class="badge bg-secondary" style="font-size: 10px;"><i class="bi bi-lock"></i></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT MAIN CONTENT: MATERI AKTIF / VIEWER -->
+    <div class="col-lg-8 col-xl-9">
+        <div class="bg-white border rounded shadow-sm p-4 p-lg-5">
+            <?php if ($activeType === 'lesson' && ! empty($activeItem)): ?>
+                <!-- HEADER MATERI -->
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-3 border-bottom">
+                    <div>
+                        <span class="text-uppercase text-muted small fw-semibold">
+                            <?= esc($activeItem['module_title'] ?? 'Modul Pembelajaran') ?>
+                        </span>
+                        <h2 class="h3 text-navy mb-1"><?= esc($activeItem['title'] ?? 'Materi') ?></h2>
+                    </div>
+                    <div>
+                        <?php
+                        $progStatus = (string) ($activeItem['progress']['status'] ?? ($activeItem['status'] ?? 'in_progress'));
+                        ?>
+                        <?php if ($progStatus === 'completed'): ?>
+                            <span class="badge bg-success-subtle text-success-emphasis px-3 py-2 fs-6">
+                                <i class="bi bi-check-circle-fill me-1"></i> Selesai
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-2 fs-6">
+                                <i class="bi bi-play-circle me-1"></i> Sedang Dipelajari
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- CONTENT VIEWER BERDASARKAN TIPE MATERI -->
+                <div class="learning-content-viewer mb-4">
+                    <?php if (($activeItem['content_type'] ?? '') === 'video'): ?>
+                        <!-- Video Player -->
+                        <?php if ($embedUrl !== null): ?>
+                            <div class="ratio ratio-16x9 rounded overflow-hidden shadow-sm mb-4">
+                                <iframe src="<?= esc($embedUrl) ?>" title="<?= esc($activeItem['title']) ?>" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            </div>
+                        <?php elseif (! empty($activeItem['external_url'])): ?>
+                            <div class="p-4 border rounded bg-light mb-4 text-center">
+                                <i class="bi bi-play-circle-fill text-primary" style="font-size: 48px;"></i>
+                                <p class="text-muted mt-2 mb-3">Video materi tersedia melalui platform video eksternal.</p>
+                                <a href="<?= esc($activeItem['external_url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary px-4">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> Buka Video Pembelajaran
+                                </a>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Deskripsi / Teks Pendukung Video -->
+                        <?php if (! empty($activeItem['content'])): ?>
+                            <div class="p-3 bg-light rounded text-dark lh-base">
+                                <h3 class="h6 text-navy mb-2"><i class="bi bi-info-circle me-1"></i> Ringkasan & Catatan Materi:</h3>
+                                <?= nl2br(esc($activeItem['content'])) ?>
+                            </div>
+                        <?php endif; ?>
+
+                    <?php elseif (($activeItem['content_type'] ?? '') === 'document'): ?>
+                        <!-- Document Viewer -->
+                        <div class="p-4 border rounded bg-light mb-4 text-center">
+                            <i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size: 48px;"></i>
+                            <h3 class="h5 mt-2 mb-1"><?= esc($activeItem['title']) ?></h3>
+                            <?php if ($fileAsset !== null): ?>
+                                <p class="text-muted small mb-3">Dokumen lampiran: <strong><?= esc($fileAsset['original_name'] ?? 'File Dokumen') ?></strong> (<?= round(($fileAsset['size_bytes'] ?? 0) / 1024, 1) ?> KB)</p>
+                            <?php else: ?>
+                                <p class="text-muted small mb-3">Dokumen pembelajaran terintegrasi.</p>
+                            <?php endif; ?>
+
+                            <?php if (! empty($activeItem['external_url'])): ?>
+                                <a href="<?= esc($activeItem['external_url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary px-4">
+                                    <i class="bi bi-download me-1"></i> Buka / Unduh Dokumen
+                                </a>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php if (! empty($activeItem['content'])): ?>
+                            <div class="p-3 bg-light rounded text-dark lh-base">
+                                <h3 class="h6 text-navy mb-2"><i class="bi bi-info-circle me-1"></i> Panduan Membaca:</h3>
+                                <?= nl2br(esc($activeItem['content'])) ?>
+                            </div>
+                        <?php endif; ?>
+
+                    <?php elseif (($activeItem['content_type'] ?? '') === 'link'): ?>
+                        <!-- External Resource Link -->
+                        <div class="p-4 border rounded bg-light mb-4 text-center">
+                            <i class="bi bi-link-45deg text-primary" style="font-size: 48px;"></i>
+                            <h3 class="h5 mt-2 mb-1"><?= esc($activeItem['title']) ?></h3>
+                            <p class="text-muted small mb-3">Tautan materi referensi eksternal.</p>
+                            <?php if (! empty($activeItem['external_url'])): ?>
+                                <a href="<?= esc($activeItem['external_url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary px-4">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> Buka Tautan Eksternal
+                                </a>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php if (! empty($activeItem['content'])): ?>
+                            <div class="p-3 bg-light rounded text-dark lh-base">
+                                <h3 class="h6 text-navy mb-2"><i class="bi bi-info-circle me-1"></i> Catatan Materi:</h3>
+                                <?= nl2br(esc($activeItem['content'])) ?>
+                            </div>
+                        <?php endif; ?>
+
+                    <?php else: ?>
+                        <!-- Standard Rich Text Content -->
+                        <?php if (! empty($activeItem['content'])): ?>
+                            <div class="lesson-article text-dark lh-lg fs-6" style="min-height: 250px;">
+                                <?= nl2br(esc($activeItem['content'])) ?>
+                            </div>
+                        <?php else: ?>
+                            <p class="text-muted p-4 bg-light rounded text-center">Isi materi teks belum diunggah oleh instruktur.</p>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+
+                <!-- 3. TOMBOL AKSI DI BAWAH MATERI [Tandai Selesai & Lanjut] & NAVIGASI -->
+                <div class="learning-action-bar pt-4 border-top d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div>
+                        <?php if ($prevLesson !== null): ?>
+                            <a href="<?= route_to('workspace.participant.lesson.detail', (string) $prevLesson['id']) ?>" class="btn btn-outline-secondary">
+                                &laquo; <?= esc($prevLesson['title']) ?>
+                            </a>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="text-center">
+                        <?php if ($progStatus !== 'completed'): ?>
+                            <form method="post" action="<?= route_to('workspace.participant.lesson.complete', (string) $activeItem['id']) ?>" class="d-inline">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-primary btn-lg px-4 shadow-sm fw-semibold">
+                                    <i class="bi bi-check2-circle me-1"></i> Tandai Selesai & Lanjut &raquo;
+                                </button>
+                            </form>
+                        <?php else: ?>
+                            <span class="badge bg-success text-white py-2 px-3 fs-6">
+                                <i class="bi bi-check2-all me-1"></i> Materi Ini Telah Selesai
+                            </span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div>
+                        <?php if ($nextLesson !== null && $nextLesson['is_unlocked']): ?>
+                            <a href="<?= route_to('workspace.participant.lesson.detail', (string) $nextLesson['id']) ?>" class="btn btn-outline-primary">
+                                <?= esc($nextLesson['title']) ?> &raquo;
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+            <?php else: ?>
+                <!-- SUMMARY / COMPLETION OVERVIEW KETIKA SELURUH MATERI SELESAI -->
+                <div class="text-center py-5">
+                    <?php if (in_array($stateCode, ['certificate_issued', 'completed_passed'], true)): ?>
+                        <div class="mb-3">
+                            <i class="bi bi-patch-check-fill text-success" style="font-size: 64px;"></i>
+                        </div>
+                        <h2 class="h3 text-navy mb-2">Selamat! Anda Telah Lulus Pembelajaran</h2>
+                        <p class="text-muted mb-4">
+                            Seluruh materi, modul, kuis, dan ujian akhir telah Anda selesaikan dengan nilai akhir <strong><?= (float) ($finalScore ?? 0) ?></strong>.
+                        </p>
+                        <?php if ($stateCode === 'certificate_issued'): ?>
+                            <a href="<?= route_to('workspace.participant.certificate.download', (string) $state['certificate']['id']) ?>" class="btn btn-success btn-lg px-4 shadow-sm">
+                                <i class="bi bi-download me-1"></i> Unduh Sertifikat Resmi (PDF)
+                            </a>
+                        <?php else: ?>
+                            <span class="badge bg-success px-3 py-2 fs-6">Status: Lulus</span>
+                        <?php endif; ?>
+
+                    <?php elseif ($stateCode === 'waiting_certificate'): ?>
+                        <div class="mb-3">
+                            <i class="bi bi-hourglass-split text-warning" style="font-size: 64px;"></i>
+                        </div>
+                        <h2 class="h3 text-navy mb-2">Menunggu Persetujuan Sertifikat</h2>
+                        <p class="text-muted mb-4">
+                            Anda telah menuntaskan seluruh proses pembelajaran dengan nilai <strong><?= (float) ($finalScore ?? 0) ?></strong>.<br>
+                            Sertifikat Anda saat ini berada dalam antrean peninjauan & persetujuan Operator/Admin.
+                        </p>
+                        <span class="badge bg-warning text-dark px-3 py-2 fs-6">
+                            <i class="bi bi-clock-history me-1"></i> Menunggu Persetujuan Sertifikat
+                        </span>
+
+                    <?php else: ?>
+                        <div class="mb-3">
+                            <i class="bi bi-journal-bookmark-fill text-primary" style="font-size: 64px;"></i>
+                        </div>
+                        <h2 class="h3 text-navy mb-2">Ruang Belajar Interaktif</h2>
+                        <p class="text-muted mb-4">Pilih materi yang tersedia pada sidebar di sebelah kiri untuk melanjutkan proses belajar Anda.</p>
+                        <?php if (! empty($cta['url']) && empty($cta['disabled'])): ?>
+                            <a href="<?= esc($cta['url']) ?>" class="btn btn-primary btn-lg px-4 shadow-sm">
+                                <?= esc($cta['label']) ?> &raquo;
+                            </a>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
 </div>
 <?= $this->endSection() ?>

@@ -156,8 +156,14 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
     $routes->group('trainer', static function ($routes) {
         $routes->get('/', 'TrainerController::index', ['as' => 'workspace.trainer.home']);
         $routes->get('kelas-saya', 'TrainerController::myClasses', ['as' => 'workspace.trainer.classes']);
+        $routes->get('materi', 'TrainerController::allMaterials', ['as' => 'workspace.trainer.all-materials']);
+        $routes->get('assessment', 'TrainerController::allQuizzes', ['as' => 'workspace.trainer.all-quizzes']);
+        $routes->get('peserta', 'TrainerController::allParticipants', ['as' => 'workspace.trainer.all-participants']);
+        $routes->get('progres', 'TrainerController::allProgress', ['as' => 'workspace.trainer.all-progress']);
         $routes->get('kelas/(:segment)', 'TrainerController::classDetail/$1', ['as' => 'workspace.trainer.class.detail']);
         $routes->get('kelas/(:segment)/peserta', 'TrainerController::participants/$1', ['as' => 'workspace.trainer.participants']);
+        $routes->get('kelas/(:segment)/peserta/(:segment)', 'TrainerController::participantDetail/$1/$2', ['as' => 'workspace.trainer.participant.detail']);
+        $routes->post('kelas/(:segment)/peserta/(:segment)/feedback', 'TrainerController::submitParticipantFeedback/$1/$2', ['as' => 'workspace.trainer.participant.feedback']);
         $routes->get('kelas/(:segment)/materi', 'TrainerController::materials/$1', ['as' => 'workspace.trainer.materials']);
         $routes->get('kelas/(:segment)/modul', 'TrainerController::modules/$1', ['as' => 'workspace.trainer.modules']);
         $routes->get('kelas/(:segment)/modul/tambah', 'TrainerController::createModule/$1', ['as' => 'workspace.trainer.module.create']);
@@ -165,11 +171,13 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('kelas/(:segment)/modul/(:segment)/ubah', 'TrainerController::editModule/$1/$2', ['as' => 'workspace.trainer.module.edit']);
         $routes->post('kelas/(:segment)/modul/(:segment)/ubah', 'TrainerController::editModule/$1/$2');
         $routes->post('kelas/(:segment)/modul/(:segment)/hapus', 'TrainerController::deleteModule/$1/$2', ['as' => 'workspace.trainer.module.delete']);
+        $routes->post('kelas/(:segment)/modul/(:segment)/toggle-status', 'TrainerController::toggleModuleStatus/$1/$2', ['as' => 'workspace.trainer.module.toggle-status']);
         $routes->get('kelas/(:segment)/modul/(:segment)/lesson/tambah', 'TrainerController::createLesson/$1/$2', ['as' => 'workspace.trainer.lesson.create']);
         $routes->post('kelas/(:segment)/modul/(:segment)/lesson/tambah', 'TrainerController::createLesson/$1/$2');
         $routes->get('kelas/(:segment)/lesson/(:segment)/ubah', 'TrainerController::editLesson/$1/$2', ['as' => 'workspace.trainer.lesson.edit']);
         $routes->post('kelas/(:segment)/lesson/(:segment)/ubah', 'TrainerController::editLesson/$1/$2');
         $routes->post('kelas/(:segment)/lesson/(:segment)/hapus', 'TrainerController::deleteLesson/$1/$2', ['as' => 'workspace.trainer.lesson.delete']);
+        $routes->post('kelas/(:segment)/lesson/(:segment)/toggle-status', 'TrainerController::toggleLessonStatus/$1/$2', ['as' => 'workspace.trainer.lesson.toggle-status']);
         $routes->get('kelas/(:segment)/quiz', 'TrainerController::quizzes/$1', ['as' => 'workspace.trainer.quizzes']);
         $routes->get('kelas/(:segment)/quiz/tambah', 'TrainerController::createQuiz/$1', ['as' => 'workspace.trainer.quiz.create']);
         $routes->post('kelas/(:segment)/quiz/tambah', 'TrainerController::createQuiz/$1');
@@ -177,23 +185,18 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->post('kelas/(:segment)/quiz/(:segment)/soal', 'TrainerController::editQuiz/$1/$2');
         $routes->get('kelas/(:segment)/quiz/(:segment)/soal/tambah', 'TrainerController::addQuestion/$1/$2', ['as' => 'workspace.trainer.question.create']);
         $routes->post('kelas/(:segment)/quiz/(:segment)/soal/tambah', 'TrainerController::addQuestion/$1/$2');
+        $routes->post('kelas/(:segment)/quiz/(:segment)/soal/(:segment)/hapus', 'TrainerController::deleteQuestion/$1/$2/$3', ['as' => 'workspace.trainer.question.delete']);
+        $routes->get('kelas/(:segment)/tugas', 'TrainerController::assignments/$1', ['as' => 'workspace.trainer.assignments']);
+        $routes->get('kelas/(:segment)/tugas/tambah', 'TrainerController::createAssignment/$1', ['as' => 'workspace.trainer.assignment.create']);
+        $routes->post('kelas/(:segment)/tugas/tambah', 'TrainerController::createAssignment/$1');
+        $routes->get('kelas/(:segment)/tugas/(:segment)/ubah', 'TrainerController::editAssignment/$1/$2', ['as' => 'workspace.trainer.assignment.edit']);
+        $routes->post('kelas/(:segment)/tugas/(:segment)/ubah', 'TrainerController::editAssignment/$1/$2');
+        $routes->post('kelas/(:segment)/tugas/(:segment)/hapus', 'TrainerController::deleteAssignment/$1/$2', ['as' => 'workspace.trainer.assignment.delete']);
+        $routes->get('submissions', 'TrainerController::allSubmissions', ['as' => 'workspace.trainer.all-submissions']);
+        $routes->get('kelas/(:segment)/tugas/(:segment)/submissions', 'TrainerController::assignmentSubmissions/$1/$2', ['as' => 'workspace.trainer.assignment.submissions']);
+        $routes->get('submission/(:segment)/review', 'TrainerController::reviewSubmission/$1', ['as' => 'workspace.trainer.submission.review']);
+        $routes->post('submission/(:segment)/review', 'TrainerController::submitReviewSubmission/$1', ['as' => 'workspace.trainer.submission.review.submit']);
         $routes->get('kelas/(:segment)/progres', 'TrainerController::progress/$1', ['as' => 'workspace.trainer.progress']);
-    });
-
-    $routes->group('evaluator', static function ($routes) {
-        $routes->get('/', 'EvaluatorController::index', ['as' => 'workspace.evaluator.home']);
-        $routes->get('penugasan', 'EvaluatorController::assignments', ['as' => 'workspace.evaluator.assignments']);
-        $routes->get('review-submission', 'EvaluatorController::allSubmissions', ['as' => 'workspace.evaluator.all-submissions']);
-        $routes->get('riwayat-penilaian', 'EvaluatorController::history', ['as' => 'workspace.evaluator.history']);
-        $routes->get('semua-penilaian', 'EvaluatorController::allGrading', ['as' => 'workspace.evaluator.all-grading']);
-        $routes->get('semua-feedback', 'EvaluatorController::allFeedback', ['as' => 'workspace.evaluator.all-feedback']);
-        $routes->get('kelas/(:segment)', 'EvaluatorController::classDetail/$1', ['as' => 'workspace.evaluator.class.detail']);
-        $routes->get('kelas/(:segment)/submission', 'EvaluatorController::submissions/$1', ['as' => 'workspace.evaluator.submissions']);
-        $routes->get('kelas/(:segment)/submission/(:segment)', 'EvaluatorController::submissionDetail/$1/$2', ['as' => 'workspace.evaluator.submission.detail']);
-        $routes->get('kelas/(:segment)/penilaian', 'EvaluatorController::grading/$1', ['as' => 'workspace.evaluator.grading']);
-        $routes->get('kelas/(:segment)/feedback', 'EvaluatorController::feedback/$1', ['as' => 'workspace.evaluator.feedback']);
-        $routes->post('kelas/(:segment)/submission/(:segment)/nilai', 'EvaluatorController::gradeSubmission/$1/$2', ['as' => 'workspace.evaluator.submission.grade']);
-        $routes->post('kelas/(:segment)/feedback', 'EvaluatorController::submitFeedback/$1', ['as' => 'workspace.evaluator.feedback.submit']);
     });
 
     $routes->group('operator', static function ($routes) {
@@ -203,6 +206,10 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->post('verifikasi-profil/(:segment)/tolak', 'OperatorController::rejectVerification/$1', ['as' => 'workspace.operator.profile-verifications.reject']);
         $routes->get('enrollment', 'OperatorController::enrollments', ['as' => 'workspace.operator.enrollments']);
         $routes->post('enrollment/(:segment)/aktifkan', 'OperatorController::activateEnrollment/$1', ['as' => 'workspace.operator.enrollments.activate']);
+        $routes->post('enrollment/(:segment)/override-nilai', 'OperatorController::overrideEnrollmentScore/$1', ['as' => 'workspace.operator.enrollments.override-score']);
+        $routes->get('evaluasi', 'OperatorController::evaluations', ['as' => 'workspace.operator.evaluations']);
+        $routes->get('evaluasi/submission/(:segment)', 'OperatorController::reviewSubmission/$1', ['as' => 'workspace.operator.submission.review']);
+        $routes->post('evaluasi/submission/(:segment)/override', 'OperatorController::overrideSubmission/$1', ['as' => 'workspace.operator.submission.override']);
         $routes->get('event', 'OperatorController::events', ['as' => 'workspace.operator.events']);
         $routes->get('kehadiran', 'OperatorController::attendance', ['as' => 'workspace.operator.attendance']);
         $routes->get('approval', 'OperatorController::approvals', ['as' => 'workspace.operator.approvals']);

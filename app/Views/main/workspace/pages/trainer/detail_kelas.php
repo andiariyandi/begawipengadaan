@@ -1,46 +1,791 @@
-<div class="bg-white border rounded p-4 p-lg-5 mb-4">
-    <p class="text-uppercase text-muted small mb-2">Trainer</p>
-    <h1 class="mb-2"><?= esc($classCtx['name'] ?? 'Detail Kelas') ?></h1>
-    <p class="text-muted mb-3">Kode: <?= esc($classCtx['code'] ?? '-') ?> &middot; Course: <?= esc($classCtx['course_title'] ?? '-') ?><?php if (! empty($classCtx['program_title'])): ?> &middot; Program: <?= esc($classCtx['program_title']) ?><?php endif; ?></p>
-    <p class="small text-muted mb-0">Periode: <?= esc(($classCtx['start_at'] ?? '-') . ' &ndash; ' . ($classCtx['end_at'] ?? '-')) ?></p>
-</div>
+<?php
+/**
+ * Trainer Learning Management Room
+ * Detail Kelas & Tab Navigation FiStudy UI DNA
+ */
+$c           = $classCtx ?? [];
+$classId     = (int) ($c['id'] ?? 0);
+$trainers    = $trainers ?? [];
+$activeTab   = $activeTab ?? 'overview';
+$modules     = $modules ?? [];
+$participants= $participants ?? [];
+$quizzes     = $quizzes ?? [];
+$assignments = $assignments ?? [];
+$stats       = $stats ?? [];
+?>
 
-<div class="row g-3 mb-4">
-    <div class="col-md-3 col-sm-6">
-        <div class="bg-white border rounded p-3 h-100">
-            <p class="text-muted small mb-1">Peserta Aktif</p>
-            <strong class="display-6"><?= (int) ($participantCount ?? 0) ?></strong>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="bg-white border rounded p-3 h-100">
-            <p class="text-muted small mb-1">Modul</p>
-            <strong class="display-6"><?= count($modules ?? []) ?></strong>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="bg-white border rounded p-3 h-100">
-            <p class="text-muted small mb-1">Ujian</p>
-            <strong class="display-6"><?= (int) ($quizCount ?? 0) ?></strong>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="bg-white border rounded p-3 h-100">
-            <p class="text-muted small mb-1">Status</p>
-            <strong class="display-6"><?= esc(ucfirst($classCtx['status'] ?? 'draft')) ?></strong>
-        </div>
-    </div>
-</div>
+<div class="trainer-room-wrapper">
+    <!-- Header Hero Room -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+        <div class="card-body p-4 p-lg-5">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-4">
+                <div class="flex-grow-1">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 small fw-semibold">
+                            <?= esc($c['code'] ?? 'KELAS') ?>
+                        </span>
+                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 small fw-medium">
+                            <?= esc(ucfirst($c['status'] ?? 'active')) ?>
+                        </span>
+                        <span class="badge bg-light text-navy border rounded-pill px-3 py-1 small">
+                            Passing Grade: <?= esc($c['passing_grade'] ?? '70.00') ?>
+                        </span>
+                    </div>
 
-<div class="bg-white border rounded p-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h4 mb-0">Aksi Cepat</h2>
+                    <h1 class="h2 fw-bold text-navy mb-2"><?= esc($c['name'] ?? 'Ruang Belajar Pengajar') ?></h1>
+                    
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-book-open text-primary me-2"></i><strong><?= esc($c['course_title'] ?? '-') ?></strong>
+                        <?php if (! empty($c['program_title'])): ?>
+                            &nbsp;&middot;&nbsp;<span class="text-muted">Program: <?= esc($c['program_title']) ?></span>
+                        <?php endif; ?>
+                    </p>
+
+                    <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mb-0">
+                        <span>
+                            <i class="far fa-calendar-alt text-primary me-1"></i>
+                            Periode: <?= esc(! empty($c['start_at']) ? date('d M Y', strtotime($c['start_at'])) : '-') ?> &ndash; <?= esc(! empty($c['end_at']) ? date('d M Y', strtotime($c['end_at'])) : '-') ?>
+                        </span>
+                        <span>
+                            <i class="fas fa-chalkboard-teacher text-warning me-1"></i>
+                            Pengajar: 
+                            <?php if (! empty($trainers)): ?>
+                                <?= esc(implode(', ', array_column($trainers, 'name'))) ?>
+                            <?php else: ?>
+                                <?= esc($userName ?? 'Anda') ?>
+                            <?php endif; ?>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Stats Summary Pill -->
+                <div class="d-flex flex-row flex-lg-column gap-2 text-nowrap">
+                    <a href="<?= route_to('workspace.trainer.classes') ?>" class="btn btn-outline-secondary rounded-pill px-3">
+                        <i class="fas fa-arrow-left me-1"></i> Semua Kelas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs (FiStudy Pill Tab Design) -->
+        <div class="px-4 border-top bg-light-subtle">
+            <ul class="nav nav-pills flex-nowrap overflow-auto py-3 gap-2" role="tablist" style="white-space: nowrap;">
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-4 fw-semibold <?= $activeTab === 'overview' ? 'active bg-primary text-white shadow-sm' : 'text-navy bg-white border' ?>" href="?tab=overview">
+                        <i class="fas fa-info-circle me-1"></i> Overview
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-4 fw-semibold <?= $activeTab === 'materi' ? 'active bg-primary text-white shadow-sm' : 'text-navy bg-white border' ?>" href="?tab=materi">
+                        <i class="fas fa-layer-group me-1"></i> Materi & Modul
+                        <span class="badge <?= $activeTab === 'materi' ? 'bg-white text-primary' : 'bg-primary-subtle text-primary' ?> rounded-pill ms-1"><?= (int) ($stats['moduleCount'] ?? 0) ?></span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-4 fw-semibold <?= $activeTab === 'peserta' ? 'active bg-primary text-white shadow-sm' : 'text-navy bg-white border' ?>" href="?tab=peserta">
+                        <i class="fas fa-users me-1"></i> Peserta
+                        <span class="badge <?= $activeTab === 'peserta' ? 'bg-white text-primary' : 'bg-primary-subtle text-primary' ?> rounded-pill ms-1"><?= (int) ($stats['participantCount'] ?? 0) ?></span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-4 fw-semibold <?= $activeTab === 'assessment' ? 'active bg-primary text-white shadow-sm' : 'text-navy bg-white border' ?>" href="?tab=assessment">
+                        <i class="fas fa-clipboard-check me-1"></i> Assessment
+                        <span class="badge <?= $activeTab === 'assessment' ? 'bg-white text-primary' : 'bg-primary-subtle text-primary' ?> rounded-pill ms-1"><?= (int) ($stats['quizCount'] ?? 0) ?></span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-4 fw-semibold <?= $activeTab === 'assignment' ? 'active bg-primary text-white shadow-sm' : 'text-navy bg-white border' ?>" href="?tab=assignment">
+                        <i class="fas fa-tasks me-1"></i> Assignment
+                        <span class="badge <?= $activeTab === 'assignment' ? 'bg-white text-primary' : 'bg-primary-subtle text-primary' ?> rounded-pill ms-1"><?= (int) ($stats['assignmentCount'] ?? 0) ?></span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-4 fw-semibold <?= $activeTab === 'progres' ? 'active bg-primary text-white shadow-sm' : 'text-navy bg-white border' ?>" href="?tab=progres">
+                        <i class="fas fa-chart-line me-1"></i> Progress
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
-    <div class="d-flex flex-wrap gap-8">
-        <a class="btn btn-outline-primary" href="<?= route_to('workspace.trainer.participants', $classCtx['id']) ?>">Peserta</a>
-        <a class="btn btn-outline-primary" href="<?= route_to('workspace.trainer.modules', $classCtx['id']) ?>">Modul</a>
-        <a class="btn btn-outline-primary" href="<?= route_to('workspace.trainer.materials', $classCtx['id']) ?>">Materi</a>
-        <a class="btn btn-outline-primary" href="<?= route_to('workspace.trainer.quizzes', $classCtx['id']) ?>">Ujian</a>
-        <a class="btn btn-outline-primary" href="<?= route_to('workspace.trainer.progress', $classCtx['id']) ?>">Progress</a>
-    </div>
+
+    <!-- Flash Messages -->
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i> <?= esc(session()->getFlashdata('success')) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> <?= esc(session()->getFlashdata('error')) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
+    <!-- TAB 1: OVERVIEW -->
+    <?php if ($activeTab === 'overview'): ?>
+        <div class="row g-4">
+            <div class="col-12 col-lg-8">
+                <!-- Deskripsi & Bobot Penilaian -->
+                <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+                    <h2 class="h5 fw-bold text-navy mb-3"><i class="fas fa-sliders-h text-primary me-2"></i>Bobot Penilaian & Passing Grade</h2>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded-3 p-3 text-center bg-light">
+                                <small class="text-muted d-block mb-1">Passing Grade</small>
+                                <strong class="h4 text-success mb-0"><?= esc($c['passing_grade'] ?? '70.00') ?></strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded-3 p-3 text-center bg-light">
+                                <small class="text-muted d-block mb-1">Bobot Quiz</small>
+                                <strong class="h4 text-navy mb-0"><?= esc($c['quiz_weight'] ?? '40.00') ?>%</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded-3 p-3 text-center bg-light">
+                                <small class="text-muted d-block mb-1">Bobot Tugas</small>
+                                <strong class="h4 text-navy mb-0"><?= esc($c['assignment_weight'] ?? '0.00') ?>%</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="border rounded-3 p-3 text-center bg-light">
+                                <small class="text-muted d-block mb-1">Bobot Post-Test</small>
+                                <strong class="h4 text-navy mb-0"><?= esc($c['post_test_weight'] ?? '60.00') ?>%</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <?php if (! empty($c['course_desc'])): ?>
+                        <h3 class="h6 fw-bold text-navy mb-2">Tentang Materi Pelatihan</h3>
+                        <div class="text-muted small lh-lg">
+                            <?= nl2br(esc($c['course_desc'])) ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Aksi Cepat Pengajar -->
+                <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+                    <h2 class="h5 fw-bold text-navy mb-3"><i class="fas fa-tools text-primary me-2"></i>Alat Pengelolaan Kelas</h2>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <a href="<?= route_to('workspace.trainer.module.create', (string) $classId) ?>" class="card text-decoration-none border rounded-3 p-3 h-100 bg-light-hover">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle bg-primary text-white" style="width: 44px; height: 44px;">
+                                        <i class="fas fa-folder-plus"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-navy d-block">Tambah Modul Baru</strong>
+                                        <small class="text-muted">Buat bab materi pembelajaran baru</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <a href="<?= route_to('workspace.trainer.quiz.create', (string) $classId) ?>" class="card text-decoration-none border rounded-3 p-3 h-100 bg-light-hover">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle bg-warning text-dark" style="width: 44px; height: 44px;">
+                                        <i class="fas fa-question-circle"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-navy d-block">Tambah Ujian / Kuis</strong>
+                                        <small class="text-muted">Buat Pre-Test, Quiz Modul, atau Post-Test</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <a href="<?= route_to('workspace.trainer.assignment.create', (string) $classId) ?>" class="card text-decoration-none border rounded-3 p-3 h-100 bg-light-hover">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle bg-info text-white" style="width: 44px; height: 44px;">
+                                        <i class="fas fa-tasks"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-navy d-block">Buat Tugas Baru</strong>
+                                        <small class="text-muted">Berikan instruksi dan deadline tugas</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <a href="?tab=peserta" class="card text-decoration-none border rounded-3 p-3 h-100 bg-light-hover">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle bg-success text-white" style="width: 44px; height: 44px;">
+                                        <i class="fas fa-user-check"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-navy d-block">Evaluasi Peserta</strong>
+                                        <small class="text-muted">Pantau progres dan berikan feedback</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kolom Kanan: Info Pengajar & Statistik Ringkas -->
+            <div class="col-12 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+                    <h2 class="h6 fw-bold text-navy mb-3"><i class="fas fa-chart-pie text-primary me-2"></i>Statistik Pembelajaran</h2>
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                            <span class="text-muted small">Total Peserta Terdaftar</span>
+                            <strong class="text-navy"><?= (int) ($stats['participantCount'] ?? 0) ?></strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                            <span class="text-muted small">Peserta Aktif Belajar</span>
+                            <strong class="text-success"><?= (int) ($stats['activeParticipantCount'] ?? 0) ?></strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                            <span class="text-muted small">Peserta Lulus / Selesai</span>
+                            <strong class="text-primary"><?= (int) ($stats['completedCount'] ?? 0) ?></strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                            <span class="text-muted small">Completion Rate</span>
+                            <strong class="text-navy"><?= esc($stats['completionRate'] ?? 0.0) ?>%</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                            <span class="text-muted small">Total Modul</span>
+                            <strong class="text-navy"><?= (int) ($stats['moduleCount'] ?? 0) ?></strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Total Materi / Lesson</span>
+                            <strong class="text-navy"><?= (int) ($stats['lessonCount'] ?? 0) ?></strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tim Pengajar -->
+                <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+                    <h2 class="h6 fw-bold text-navy mb-3"><i class="fas fa-users-cog text-primary me-2"></i>Tim Pengajar Kelas</h2>
+                    <?php if (empty($trainers)): ?>
+                        <p class="text-muted small mb-0">Hanya Anda yang ditugaskan pada kelas ini.</p>
+                    <?php else: ?>
+                        <div class="d-flex flex-column gap-3">
+                            <?php foreach ($trainers as $t): ?>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle bg-primary-subtle text-primary fw-bold" style="width: 40px; height: 40px;">
+                                        <?= strtoupper(substr($t['name'] ?? 'U', 0, 1)) ?>
+                                    </div>
+                                    <div>
+                                        <strong class="text-navy small d-block"><?= esc($t['name'] ?? '-') ?></strong>
+                                        <span class="text-muted" style="font-size: 0.78rem;"><?= esc($t['email'] ?? '-') ?></span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+    <!-- TAB 2: MATERI & MODUL -->
+    <?php elseif ($activeTab === 'materi'): ?>
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div>
+                    <h2 class="h4 fw-bold text-navy mb-1">Kurikulum Pembelajaran</h2>
+                    <p class="text-muted small mb-0">Susun urutan modul, lesson, dan tentukan status publikasi materi kelas.</p>
+                </div>
+                <div>
+                    <a href="<?= route_to('workspace.trainer.module.create', (string) $classId) ?>" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                        <i class="fas fa-plus me-1"></i> Tambah Modul
+                    </a>
+                </div>
+            </div>
+
+            <?php if (empty($modules)): ?>
+                <div class="text-center py-5 border rounded-4 bg-light">
+                    <i class="fas fa-layer-group fa-3x text-muted mb-3 opacity-25"></i>
+                    <h3 class="h6 fw-bold text-navy mb-1">Belum Ada Modul Pembelajaran</h3>
+                    <p class="text-muted small mb-3">Mulai buat modul pertama untuk menyusun materi pembelajaran bagi peserta.</p>
+                    <a href="<?= route_to('workspace.trainer.module.create', (string) $classId) ?>" class="btn btn-sm btn-primary rounded-pill px-4">
+                        Buat Modul Sekarang
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="d-flex flex-column gap-4">
+                    <?php foreach ($modules as $mIndex => $m): ?>
+                        <div class="border rounded-4 bg-white overflow-hidden shadow-sm">
+                            <!-- Module Header -->
+                            <div class="bg-light p-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge bg-primary text-white rounded-pill px-3 py-2 fw-semibold">
+                                        Modul <?= esc($m['sort_order']) ?>
+                                    </span>
+                                    <div>
+                                        <h3 class="h6 fw-bold text-navy mb-0"><?= esc($m['title']) ?></h3>
+                                        <?php if (! empty($m['description'])): ?>
+                                            <small class="text-muted"><?= esc($m['description']) ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge <?= $m['status'] === 'published' ? 'bg-success' : 'bg-secondary' ?> rounded-pill px-3 py-1 small">
+                                        <?= esc(ucfirst($m['status'] ?? 'draft')) ?>
+                                    </span>
+
+                                    <!-- Quick Actions Modul -->
+                                    <a href="<?= route_to('workspace.trainer.lesson.create', (string) $classId, (string) $m['id']) ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="Tambah Materi">
+                                        <i class="fas fa-plus me-1"></i> Materi
+                                    </a>
+                                    <a href="<?= route_to('workspace.trainer.module.edit', (string) $classId, (string) $m['id']) ?>" class="btn btn-sm btn-light border rounded-pill px-3" title="Ubah Modul">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="<?= route_to('workspace.trainer.module.toggle-status', (string) $classId, (string) $m['id']) ?>" method="POST" class="d-inline">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn btn-sm btn-light border rounded-pill px-3" title="Toggle Status">
+                                            <i class="fas <?= $m['status'] === 'published' ? 'fa-eye-slash text-warning' : 'fa-globe text-success' ?>"></i>
+                                        </button>
+                                    </form>
+                                    <form action="<?= route_to('workspace.trainer.module.delete', (string) $classId, (string) $m['id']) ?>" method="POST" class="d-inline" onsubmit="return confirm('Hapus modul ini dan seluruh materi di dalamnya?');">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn btn-sm btn-light border text-danger rounded-pill px-3" title="Hapus Modul">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Lessons List -->
+                            <div class="p-3 px-4">
+                                <?php if (empty($m['lessons'])): ?>
+                                    <p class="text-muted small mb-0 py-2">
+                                        <i class="fas fa-info-circle me-1"></i> Belum ada materi di modul ini. Silakan klik tombol <strong>+ Materi</strong> di atas.
+                                    </p>
+                                <?php else: ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead class="table-light small text-muted">
+                                                <tr>
+                                                    <th style="width: 60px;">Urutan</th>
+                                                    <th>Judul Materi</th>
+                                                    <th>Tipe</th>
+                                                    <th>Status</th>
+                                                    <th class="text-end" style="width: 160px;">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($m['lessons'] as $l): ?>
+                                                    <tr>
+                                                        <td class="fw-semibold text-center text-muted"><?= esc($l['sort_order']) ?></td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <?php if ($l['content_type'] === 'video'): ?>
+                                                                    <i class="fas fa-play-circle text-danger fs-5"></i>
+                                                                <?php elseif ($l['content_type'] === 'document'): ?>
+                                                                    <i class="fas fa-file-pdf text-danger fs-5"></i>
+                                                                <?php elseif ($l['content_type'] === 'link'): ?>
+                                                                    <i class="fas fa-link text-info fs-5"></i>
+                                                                <?php else: ?>
+                                                                    <i class="fas fa-file-alt text-primary fs-5"></i>
+                                                                <?php endif; ?>
+                                                                <strong class="text-navy small"><?= esc($l['title']) ?></strong>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-light text-muted border rounded-pill px-2 py-1 small">
+                                                                <?= esc(strtoupper($l['content_type'])) ?>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge <?= $l['status'] === 'published' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' ?> rounded-pill px-2 py-1 small">
+                                                                <?= esc(ucfirst($l['status'])) ?>
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-end">
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="<?= route_to('workspace.trainer.lesson.edit', (string) $classId, (string) $l['id']) ?>" class="btn btn-light border" title="Ubah">
+                                                                    <i class="fas fa-edit"></i>
+                                                                </a>
+                                                                <form action="<?= route_to('workspace.trainer.lesson.toggle-status', (string) $classId, (string) $l['id']) ?>" method="POST" class="d-inline">
+                                                                    <?= csrf_field() ?>
+                                                                    <button type="submit" class="btn btn-light border" title="Toggle Publish">
+                                                                        <i class="fas <?= $l['status'] === 'published' ? 'fa-eye-slash text-warning' : 'fa-globe text-success' ?>"></i>
+                                                                    </button>
+                                                                </form>
+                                                                <form action="<?= route_to('workspace.trainer.lesson.delete', (string) $classId, (string) $l['id']) ?>" method="POST" class="d-inline" onsubmit="return confirm('Hapus materi ini?');">
+                                                                    <?= csrf_field() ?>
+                                                                    <button type="submit" class="btn btn-light border text-danger" title="Hapus">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+    <!-- TAB 3: PESERTA -->
+    <?php elseif ($activeTab === 'peserta'): ?>
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div>
+                    <h2 class="h4 fw-bold text-navy mb-1">Daftar Peserta Kelas</h2>
+                    <p class="text-muted small mb-0">Pantau kehadiran, progres materi, dan evaluasi hasil belajar peserta.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-light text-navy border px-3 py-2 rounded-pill fw-semibold">
+                        Total: <?= count($participants) ?> Peserta
+                    </span>
+                </div>
+            </div>
+
+            <?php if (empty($participants)): ?>
+                <div class="text-center py-5 border rounded-4 bg-light">
+                    <i class="fas fa-users-slash fa-3x text-muted mb-3 opacity-25"></i>
+                    <h3 class="h6 fw-bold text-navy mb-1">Belum Ada Peserta Terdaftar</h3>
+                    <p class="text-muted small mb-0">Belum ada peserta yang mendaftar atau disetujui pada kelas ini.</p>
+                </div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-muted">
+                            <tr>
+                                <th>Peserta</th>
+                                <th>Status Pendaftaran</th>
+                                <th>Tanggal Bergabung</th>
+                                <th style="width: 220px;">Progres Belajar</th>
+                                <th>Nilai Akhir</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($participants as $p): ?>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="avatar-circle bg-primary-subtle text-primary fw-bold" style="width: 40px; height: 40px;">
+                                                <?= strtoupper(substr($p['name'] ?? 'U', 0, 1)) ?>
+                                            </div>
+                                            <div>
+                                                <strong class="text-navy small d-block"><?= esc($p['name']) ?></strong>
+                                                <span class="text-muted" style="font-size: 0.78rem;"><?= esc($p['email']) ?></span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?= $p['enrollment_status'] === 'active' ? 'bg-success-subtle text-success' : ($p['enrollment_status'] === 'completed' ? 'bg-primary-subtle text-primary' : 'bg-secondary-subtle text-secondary') ?> rounded-pill px-3 py-1 small">
+                                            <?= esc(ucfirst($p['enrollment_status'])) ?>
+                                        </span>
+                                    </td>
+                                    <td class="small text-muted">
+                                        <?= esc(! empty($p['enrolled_at']) ? date('d M Y', strtotime($p['enrolled_at'])) : '-') ?>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
+                                            <span><?= (int) ($p['completed_lessons'] ?? 0) ?>/<?= (int) ($p['total_lessons'] ?? 0) ?> materi</span>
+                                            <span class="fw-semibold text-navy"><?= esc($p['progress_percent'] ?? 0.0) ?>%</span>
+                                        </div>
+                                        <div class="progress rounded-pill" style="height: 6px;">
+                                            <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: <?= esc($p['progress_percent'] ?? 0.0) ?>%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <?php if (! empty($p['passed_at']) || ! empty($p['final_score'])): ?>
+                                            <strong class="text-success"><?= esc($p['final_score'] ?? '100.00') ?></strong>
+                                        <?php else: ?>
+                                            <span class="text-muted small">&ndash;</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="<?= route_to('workspace.trainer.participant.detail', (string) $classId, (string) $p['enrollment_id']) ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                            <i class="fas fa-eye me-1"></i> Rincian & Catatan
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+
+    <!-- TAB 4: ASSESSMENT (QUIZ) -->
+    <?php elseif ($activeTab === 'assessment'): ?>
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div>
+                    <h2 class="h4 fw-bold text-navy mb-1">Ujian & Kuis Pembelajaran</h2>
+                    <p class="text-muted small mb-0">Kelola Pre-Test pembuka, Kuis evaluasi per modul, serta Post-Test kelulusan.</p>
+                </div>
+                <div>
+                    <a href="<?= route_to('workspace.trainer.quiz.create', (string) $classId) ?>" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                        <i class="fas fa-plus me-1"></i> Tambah Ujian
+                    </a>
+                </div>
+            </div>
+
+            <?php if (empty($quizzes)): ?>
+                <div class="text-center py-5 border rounded-4 bg-light">
+                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3 opacity-25"></i>
+                    <h3 class="h6 fw-bold text-navy mb-1">Belum Ada Ujian Dibuat</h3>
+                    <p class="text-muted small mb-3">Tambahkan Pre-Test, Quiz modul, atau Post-Test untuk menguji pemahaman peserta.</p>
+                    <a href="<?= route_to('workspace.trainer.quiz.create', (string) $classId) ?>" class="btn btn-sm btn-primary rounded-pill px-4">
+                        Buat Ujian Baru
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-muted">
+                            <tr>
+                                <th>Tipe Ujian</th>
+                                <th>Judul Kuis</th>
+                                <th>Batas Percobaan</th>
+                                <th>Jumlah Soal</th>
+                                <th>Percobaan Dikerjakan</th>
+                                <th>Status</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($quizzes as $q): ?>
+                                <tr>
+                                    <td>
+                                        <?php if ($q['type'] === 'pre_test'): ?>
+                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-1 small fw-semibold">Pre-Test</span>
+                                        <?php elseif ($q['type'] === 'post_test'): ?>
+                                            <span class="badge bg-danger rounded-pill px-3 py-1 small fw-semibold">Post-Test</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-info text-dark rounded-pill px-3 py-1 small fw-semibold">Quiz Modul</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <strong class="text-navy small d-block"><?= esc($q['title']) ?></strong>
+                                    </td>
+                                    <td class="small text-muted">
+                                        <?= (int) ($q['attempt_limit'] ?? 1) ?> kali
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-navy border rounded-pill px-2 py-1 small">
+                                            <?= (int) ($q['question_count'] ?? 0) ?> Soal
+                                        </span>
+                                    </td>
+                                    <td class="small text-muted">
+                                        <?= (int) ($q['attempts_count'] ?? 0) ?> submission
+                                    </td>
+                                    <td>
+                                        <span class="badge <?= $q['status'] === 'published' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' ?> rounded-pill px-2 py-1 small">
+                                            <?= esc(ucfirst($q['status'] ?? 'draft')) ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="<?= route_to('workspace.trainer.quiz.edit', (string) $classId, (string) $q['id']) ?>" class="btn btn-sm btn-primary rounded-pill px-3">
+                                            <i class="fas fa-edit me-1"></i> Kelola Soal
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+
+    <!-- TAB 5: ASSIGNMENT (TUGAS) -->
+    <?php elseif ($activeTab === 'assignment'): ?>
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div>
+                    <h2 class="h4 fw-bold text-navy mb-1">Manajemen Tugas & Praktik</h2>
+                    <p class="text-muted small mb-0">Tugas bersifat opsional. Buat penugasan kasus atau dokumen untuk dievaluasi.</p>
+                </div>
+                <div>
+                    <a href="<?= route_to('workspace.trainer.assignment.create', (string) $classId) ?>" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                        <i class="fas fa-plus me-1"></i> Buat Tugas Baru
+                    </a>
+                </div>
+            </div>
+
+            <?php if (empty($assignments)): ?>
+                <div class="text-center py-5 border rounded-4 bg-light">
+                    <i class="fas fa-tasks fa-3x text-muted mb-3 opacity-25"></i>
+                    <h3 class="h6 fw-bold text-navy mb-1">Belum Ada Tugas Dibuat</h3>
+                    <p class="text-muted small mb-3">Tugas opsional dan dapat dibuat jika kelas membutuhkan evaluasi praktikum.</p>
+                    <a href="<?= route_to('workspace.trainer.assignment.create', (string) $classId) ?>" class="btn btn-sm btn-primary rounded-pill px-4">
+                        Buat Tugas Baru
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-muted">
+                            <tr>
+                                <th>Judul Tugas</th>
+                                <th>Materi Terkait</th>
+                                <th>Batas Waktu (Deadline)</th>
+                                <th>Pengumpulan</th>
+                                <th>Perlu Review</th>
+                                <th>Status</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($assignments as $asg): ?>
+                                <tr>
+                                    <td>
+                                        <strong class="text-navy small d-block"><?= esc($asg['title']) ?></strong>
+                                    </td>
+                                    <td class="small text-muted">
+                                        <?= esc($asg['lesson_title'] ?? 'Semua Modul') ?>
+                                    </td>
+                                    <td class="small text-muted">
+                                        <?= esc(! empty($asg['due_at']) ? date('d M Y, H:i', strtotime($asg['due_at'])) : 'Tanpa batas waktu') ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-navy border rounded-pill px-2 py-1 small">
+                                            <?= (int) ($asg['total_submissions'] ?? 0) ?> submission
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php if ((int) ($asg['pending_reviews'] ?? 0) > 0): ?>
+                                            <span class="badge bg-warning text-dark rounded-pill px-2 py-1 small fw-semibold">
+                                                <i class="fas fa-clock me-1"></i> <?= (int) $asg['pending_reviews'] ?> perlu review
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1 small">
+                                                Selesai direview
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?= $asg['status'] === 'published' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' ?> rounded-pill px-2 py-1 small">
+                                            <?= esc(ucfirst($asg['status'] ?? 'published')) ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="<?= route_to('workspace.trainer.assignment.submissions', (string) $classId, (string) $asg['id']) ?>" class="btn btn-outline-primary" title="Lihat Submission">
+                                                <i class="fas fa-eye me-1"></i> Submissions
+                                            </a>
+                                            <a href="<?= route_to('workspace.trainer.assignment.edit', (string) $classId, (string) $asg['id']) ?>" class="btn btn-light border" title="Ubah">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form action="<?= route_to('workspace.trainer.assignment.delete', (string) $classId, (string) $asg['id']) ?>" method="POST" class="d-inline" onsubmit="return confirm('Hapus penugasan ini?');">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="btn btn-light border text-danger" title="Hapus">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+
+    <!-- TAB 6: PROGRESS MONITORING -->
+    <?php elseif ($activeTab === 'progres'): ?>
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div>
+                    <h2 class="h4 fw-bold text-navy mb-1">Monitoring Progres Kelas</h2>
+                    <p class="text-muted small mb-0">Pantau tingkat kelulusan dan rincian penyelesaian modul per peserta.</p>
+                </div>
+            </div>
+
+            <!-- Summary Bar -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="border rounded-3 p-3 bg-light text-center">
+                        <small class="text-muted d-block mb-1">Total Peserta</small>
+                        <strong class="h4 text-navy mb-0"><?= (int) ($stats['participantCount'] ?? 0) ?></strong>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="border rounded-3 p-3 bg-light text-center">
+                        <small class="text-muted d-block mb-1">Peserta Aktif</small>
+                        <strong class="h4 text-primary mb-0"><?= (int) ($stats['activeParticipantCount'] ?? 0) ?></strong>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="border rounded-3 p-3 bg-light text-center">
+                        <small class="text-muted d-block mb-1">Lulus / Selesai</small>
+                        <strong class="h4 text-success mb-0"><?= (int) ($stats['completedCount'] ?? 0) ?></strong>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="border rounded-3 p-3 bg-light text-center">
+                        <small class="text-muted d-block mb-1">Completion Rate</small>
+                        <strong class="h4 text-navy mb-0"><?= esc($stats['completionRate'] ?? 0.0) ?>%</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Participants Progress Table -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-muted">
+                        <tr>
+                            <th>Peserta</th>
+                            <th>Status Enrollment</th>
+                            <th>Materi Selesai</th>
+                            <th style="width: 250px;">Progres Pembelajaran</th>
+                            <th>Nilai Akhir</th>
+                            <th class="text-end">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($participants)): ?>
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted small">Belum ada peserta di kelas ini.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($participants as $p): ?>
+                                <tr>
+                                    <td>
+                                        <strong class="text-navy small d-block"><?= esc($p['name']) ?></strong>
+                                        <span class="text-muted" style="font-size: 0.78rem;"><?= esc($p['email']) ?></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?= $p['enrollment_status'] === 'active' ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary' ?> rounded-pill px-3 py-1 small">
+                                            <?= esc(ucfirst($p['enrollment_status'])) ?>
+                                        </span>
+                                    </td>
+                                    <td class="small text-muted">
+                                        <?= (int) ($p['completed_lessons'] ?? 0) ?> / <?= (int) ($p['total_lessons'] ?? 0) ?> materi
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
+                                            <span>Penyelesaian</span>
+                                            <span class="fw-semibold text-navy"><?= esc($p['progress_percent'] ?? 0.0) ?>%</span>
+                                        </div>
+                                        <div class="progress rounded-pill" style="height: 6px;">
+                                            <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: <?= esc($p['progress_percent'] ?? 0.0) ?>%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <?php if (! empty($p['passed_at']) || ! empty($p['final_score'])): ?>
+                                            <strong class="text-success"><?= esc($p['final_score'] ?? '100.00') ?></strong>
+                                        <?php else: ?>
+                                            <span class="text-muted small">&ndash;</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="<?= route_to('workspace.trainer.participant.detail', (string) $classId, (string) $p['enrollment_id']) ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                            Lihat Detail
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>

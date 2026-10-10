@@ -510,6 +510,229 @@ class OperatorController extends BaseController
         return $this->renderOperasional('Monitoring Aktivitas', $sectionContent);
     }
 
+    public function evaluations()
+    {
+        $pendingReviews   = $this->db->table('assignment_submissions')->whereIn('status', ['submitted', 'in_review'])->countAllResults();
+        $gradedCount      = $this->db->table('assignment_submissions')->where('status', 'graded')->countAllResults();
+        $revisionCount    = $this->db->table('assignment_submissions')->where('status', 'revision_required')->countAllResults();
+        $totalSubmissions = $this->db->table('assignment_submissions')->countAllResults();
+
+        $list = $this->db->table('assignment_submissions s')
+            ->select('s.*, a.title AS assignment_title, lc.name AS class_name, lc.code AS class_code, u.name AS participant_name, u.email AS participant_email, grader.name AS grader_name')
+            ->join('assignments a', 'a.id = s.assignment_id')
+            ->join('learning_classes lc', 'lc.id = a.class_id')
+            ->join('enrollments e', 'e.id = s.enrollment_id')
+            ->join('users u', 'u.id = e.user_id')
+            ->join('users grader', 'grader.id = s.graded_by', 'left')
+            ->orderBy('s.submitted_at', 'DESC')
+            ->limit(35)
+            ->get()->getResultArray();
+
+        $rows = [];
+        foreach ($list as $item) {
+            $badge = match ($item['status']) {
+                'graded'            => '<span class="badge bg-success-subtle text-success">Graded</span>',
+                'revision_required' => '<span class="badge bg-danger-subtle text-danger">Revisi</span>',
+                'in_review'         => '<span class="badge bg-info-subtle text-info">In Review</span>',
+                default             => '<span class="badge bg-warning-subtle text-warning">Menunggu</span>',
+            };
+
+            $reviewUrl = route_to('workspace.operator.submission.review', (string) $item['id']);
+            $actionBtn = '<a href="' . $reviewUrl . '" class="btn btn-sm btn-outline-warning py-0 px-2 fw-medium text-dark"><i class="fas fa-edit me-1"></i>Review / Override</a>';
+
+            $rows[] = [
+                '#' . $item['id'],
+                '<strong>' . esc($item['participant_name'] ?? 'Peserta') . '</strong><br><small class="text-muted">' . esc($item['participant_email'] ?? '') . '</small>',
+                '<strong>' . esc($item['assignment_title'] ?? '-') . '</strong><br><small class="text-muted">' . esc($item['class_name'] ?? '-') . '</small>',
+                $badge,
+                $item['score'] !== null ? '<strong>' . number_format((float) $item['score'], 1) . '</strong>' : '<span class="text-muted">-</span>',
+                esc($item['grader_name'] ?? 'Belum dinilai'),
+                $item['submitted_at'] ? esc(date('d/m/Y H:i', strtotime($item['submitted_at']))) : '-',
+                $actionBtn,
+            ];
+        }
+
+        $sectionContent = [
+            'eyebrow'     => 'Kewenangan Override Operasional',
+            'title'       => 'Evaluasi Pembelajaran & Override Nilai',
+            'description' => 'Monitoring seluruh penugasan dan hasil evaluasi trainer dengan hak override operasional.',
+            'cards'       => [
+                ['title' => 'Perlu Review', 'value' => sprintf('%02d', $pendingReviews), 'meta' => 'antrean review submission'],
+                ['title' => 'Telah Dinilai', 'value' => sprintf('%02d', $gradedCount), 'meta' => 'selesai evaluasi'],
+                ['title' => 'Minta Revisi', 'value' => sprintf('%02d', $revisionCount), 'meta' => 'perlu perbaikan peserta'],
+                ['title' => 'Total Submission', 'value' => sprintf('%02d', $totalSubmissions), 'meta' => 'arsip tugas terkumpul'],
+            ],
+            'tableTitle'  => 'Antrean Evaluasi Tugas & Submisi Lintas Kelas',
+            'table'       => [
+                'headers' => ['ID', 'Peserta', 'Tugas & Kelas', 'Status', 'Nilai', 'Penilai', 'Waktu Submit', 'Aksi'],
+                'rows'    => $rows,
+            ],
+            'items'       => [
+                ['label' => 'Monitoring Kelulusan Peserta pada Enrollment Kelas', 'url' => route_to('workspace.operator.enrollments'), 'btn' => 'Buka Enrollment'],
+                ['label' => 'Persetujuan Sertifikat & Hasil Kelulusan', 'url' => route_to('workspace.operator.approvals'), 'btn' => 'Buka Approval'],
+            ],
+        ];
+
+        return $this->renderOperasional('Evaluasi & Override', $sectionContent);
+    }
+
+    public function reviewSubmission(string $submissionId)
+    {
+        $submission = $this->db->table('assignment_submissions s')
+            ->select('s.*, a.title AS assignment_title, a.instructions AS assignment_instructions, lc.name AS class_name, lc.code AS class_code, u.name AS participant_name, u.email AS participant_email, grader.name AS grader_name')
+            ->join('assignments a', 'a.id = s.assignment_id')
+            ->join('learning_classes lc', 'lc.id = a.class_id')
+            ->join('enrollments e', 'e.id = s.enrollment_id')
+            ->join('users u', 'u.id = e.user_id')
+            ->join('users grader', 'grader.id = s.graded_by', 'left')
+            ->where('s.id', (int) $submissionId)
+            ->get()->getRowArray();
+
+        if (! $submission) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Submission tidak ditemukan.');
+        }
+
+        $files = $this->db->table('assignment_submission_files sf')
+            ->select('sf.*, fa.original_name, fa.mime_type, fa.size_bytes')
+            ->join('file_assets fa', 'fa.id = sf.file_id', 'left')
+            ->where('sf.submission_id', (int) $submissionId)
+            ->get()->getResultArray();
+
+        $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Operator');
+
+        return view('main/workspace/pages/operator/override_submission', [
+            'title'       => 'Override Penilaian #' . $submissionId . ' | Operator BegawiPBJ',
+            'pageTitle'   => 'Override Penilaian Tugas',
+            'userName'    => $userName,
+            'roles'       => ['operator'],
+            'primaryRole' => 'operator',
+            'roleLabel'   => 'Operator',
+            'submission'  => $submission,
+            'files'       => $files,
+        ]);
+    }
+
+    public function overrideSubmission(string $submissionId)
+    {
+        $actorId = (int) (session()->get('user_id') ?: 1);
+        $score   = (float) $this->request->getPost('score');
+        $status  = (string) $this->request->getPost('status');
+        $reason  = trim((string) $this->request->getPost('override_reason')) ?: 'Penyesuaian nilai oleh kewenangan Operator.';
+
+        $submission = $this->db->table('assignment_submissions s')
+            ->select('s.*, a.class_id')
+            ->join('assignments a', 'a.id = s.assignment_id')
+            ->where('s.id', (int) $submissionId)
+            ->get()->getRowArray();
+
+        if (! $submission) {
+            return redirect()->back()->with('error', 'Submission tugas tidak ditemukan.');
+        }
+
+        if (! in_array($status, ['graded', 'revision_required', 'in_review'], true)) {
+            $status = 'graded';
+        }
+        $score = max(0.0, min(100.0, $score));
+
+        $now = date('Y-m-d H:i:s');
+        $existingFeedback = trim((string) ($submission['feedback'] ?? ''));
+        $overrideTag = "[OVERRIDE OPERATOR " . date('d/m/Y H:i') . "]: " . $reason;
+        $updatedFeedback = $existingFeedback !== '' ? ($existingFeedback . "\n\n" . $overrideTag) : $overrideTag;
+
+        $this->db->table('assignment_submissions')->where('id', (int) $submissionId)->update([
+            'score'      => $score,
+            'status'     => $status,
+            'feedback'   => $updatedFeedback,
+            'graded_by'  => $actorId,
+            'graded_at'  => $now,
+            'updated_at' => $now,
+        ]);
+
+        if ($status === 'graded') {
+            try {
+                (new \App\Services\LearningService($this->db))->evaluateCompletion((int) $submission['enrollment_id']);
+            } catch (\Throwable $e) {
+                log_message('error', 'evaluateCompletion failed on override: {m}', ['m' => $e->getMessage()]);
+            }
+        }
+
+        // Catat Audit Trail
+        $this->db->table('audit_logs')->insert([
+            'actor_id'      => $actorId,
+            'action'        => 'evaluation.operator_override',
+            'resource_type' => 'assignment_submission',
+            'resource_id'   => (int) $submissionId,
+            'result'        => 'success',
+            'context'       => json_encode([
+                'old_score'  => $submission['score'],
+                'new_score'  => $score,
+                'old_status' => $submission['status'],
+                'new_status' => $status,
+                'reason'     => $reason,
+            ], JSON_UNESCAPED_SLASHES),
+            'ip_address'    => $this->request->getIPAddress(),
+            'user_agent'    => mb_substr((string) $this->request->getUserAgent(), 0, 255),
+            'created_at'    => $now,
+        ]);
+
+        return redirect()->to(route_to('workspace.operator.evaluations'))
+            ->with('message', 'Penilaian submission #' . $submissionId . ' berhasil di-override oleh Operator (Nilai: ' . $score . ', Status: ' . $status . ').');
+    }
+
+    public function overrideEnrollmentScore(string $enrollmentId)
+    {
+        $actorId = (int) (session()->get('user_id') ?: 1);
+        $score   = (float) $this->request->getPost('final_score');
+        $status  = (string) $this->request->getPost('status') ?: 'completed';
+        $reason  = trim((string) $this->request->getPost('reason')) ?: 'Penyesuaian nilai akhir / kelulusan khusus oleh Operator.';
+
+        $enrollment = $this->db->table('enrollments')->where('id', (int) $enrollmentId)->get()->getRowArray();
+        if (! $enrollment) {
+            return redirect()->back()->with('error', 'Enrollment tidak ditemukan.');
+        }
+
+        if (! in_array($status, ['active', 'completed', 'withdrawn', 'cancelled'], true)) {
+            $status = 'completed';
+        }
+        $score = max(0.0, min(100.0, $score));
+        $now = date('Y-m-d H:i:s');
+
+        $updateData = [
+            'final_score' => $score,
+            'status'      => $status,
+            'updated_at'  => $now,
+        ];
+
+        if ($status === 'completed') {
+            $updateData['completed_at'] = $now;
+            $updateData['passed_at']    = $now;
+            $updateData['certificate_eligible_at'] = $now;
+        }
+
+        $this->db->table('enrollments')->where('id', (int) $enrollmentId)->update($updateData);
+
+        // Catat Audit Trail
+        $this->db->table('audit_logs')->insert([
+            'actor_id'      => $actorId,
+            'action'        => 'enrollment.operator_override',
+            'resource_type' => 'enrollment',
+            'resource_id'   => (int) $enrollmentId,
+            'result'        => 'success',
+            'context'       => json_encode([
+                'old_score'  => $enrollment['final_score'],
+                'new_score'  => $score,
+                'old_status' => $enrollment['status'],
+                'new_status' => $status,
+                'reason'     => $reason,
+            ], JSON_UNESCAPED_SLASHES),
+            'ip_address'    => $this->request->getIPAddress(),
+            'user_agent'    => mb_substr((string) $this->request->getUserAgent(), 0, 255),
+            'created_at'    => $now,
+        ]);
+
+        return redirect()->back()->with('message', 'Nilai akhir dan status kelulusan enrollment #' . $enrollmentId . ' berhasil di-override oleh Operator.');
+    }
+
     private function renderOperasional(string $title, array $sectionContent): string
     {
         $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Operator');
@@ -539,6 +762,7 @@ class OperatorController extends BaseController
             ['label' => 'Operasional', 'items' => [
                 ['label' => 'Verifikasi Profil', 'url' => route_to('workspace.operator.profile-verifications')],
                 ['label' => 'Enrollment', 'url' => route_to('workspace.operator.enrollments')],
+                ['label' => 'Evaluasi & Override', 'url' => route_to('workspace.operator.evaluations')],
                 ['label' => 'Event', 'url' => route_to('workspace.operator.events')],
                 ['label' => 'Kehadiran', 'url' => route_to('workspace.operator.attendance')],
                 ['label' => 'Approval', 'url' => route_to('workspace.operator.approvals')],

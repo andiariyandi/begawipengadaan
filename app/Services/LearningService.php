@@ -131,16 +131,31 @@ class LearningService
     {
         $lesson = $this->lessonContext($userId, $lessonId);
         $now = date('Y-m-d H:i:s');
-        $this->db->table('learning_progress')->where([
+        $existing = $this->db->table('learning_progress')->where([
             'enrollment_id' => $lesson['enrollment']['id'],
             'lesson_id'     => $lessonId,
-        ])->update([
-            'status'           => 'completed',
-            'started_at'       => $now,
-            'completed_at'     => $now,
-            'progress_percent' => 100.00,
-            'updated_at'       => $now,
-        ]);
+        ])->get()->getRowArray();
+
+        if ($existing) {
+            $this->db->table('learning_progress')->where('id', $existing['id'])->update([
+                'status'           => 'completed',
+                'started_at'       => $existing['started_at'] ?: $now,
+                'completed_at'     => $now,
+                'progress_percent' => 100.00,
+                'updated_at'       => $now,
+            ]);
+        } else {
+            $this->db->table('learning_progress')->insert([
+                'enrollment_id'    => $lesson['enrollment']['id'],
+                'lesson_id'        => $lessonId,
+                'status'           => 'completed',
+                'started_at'       => $now,
+                'completed_at'     => $now,
+                'progress_percent' => 100.00,
+                'created_at'       => $now,
+                'updated_at'       => $now,
+            ]);
+        }
 
         $this->evaluateCompletion((int) $lesson['enrollment']['id']);
     }

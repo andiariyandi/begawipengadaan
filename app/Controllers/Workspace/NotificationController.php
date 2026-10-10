@@ -56,8 +56,7 @@ class NotificationController extends BaseController
         $roles    = (array) session()->get('roles');
 
         $primaryRole = in_array('operator', $roles, true) ? 'operator'
-            : (in_array('trainer', $roles, true) ? 'trainer'
-            : (in_array('evaluator', $roles, true) ? 'evaluator' : 'participant'));
+            : (in_array('trainer', $roles, true) ? 'trainer' : 'participant');
 
         $notifications = [];
         $unread = 0;

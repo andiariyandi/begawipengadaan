@@ -180,22 +180,6 @@ class WorkspaceHomeController extends BaseController
                     ->get()->getResultArray();
             }
 
-        } elseif ($role === 'evaluator') {
-            // Evaluator Real KPIs
-            $assignedClasses = $db->table('class_evaluators')
-                ->where('user_id', $userId)
-                ->where('status', 'active')
-                ->countAllResults();
-
-            $gradedCount = $db->table('assignment_submissions')
-                ->where('graded_by', $userId)
-                ->countAllResults();
-
-            $cards = [
-                ['title' => 'Kelas Ditugaskan', 'value' => sprintf('%02d', $assignedClasses), 'meta' => 'kelas evaluasi aktif', 'icon' => 'fas fa-clipboard-check'],
-                ['title' => 'Submission Dinilai', 'value' => sprintf('%02d', $gradedCount), 'meta' => 'evaluasi diselesaikan', 'icon' => 'fas fa-check-double'],
-            ];
-
         } elseif ($role === 'operator') {
             // Operator Real KPIs
             $pendingVerif = $db->table('profile_verifications')->where('status', 'pending')->countAllResults();
@@ -240,7 +224,7 @@ class WorkspaceHomeController extends BaseController
     {
         $roles = (array) session()->get('roles');
 
-        foreach (['operator', 'evaluator', 'trainer', 'participant', 'peserta'] as $role) {
+        foreach (['operator', 'trainer', 'participant', 'peserta'] as $role) {
             if (in_array($role, $roles, true)) {
                 return $role === 'peserta' ? 'participant' : $role;
             }
@@ -254,7 +238,6 @@ class WorkspaceHomeController extends BaseController
         return [
             'participant' => 'Peserta',
             'trainer'     => 'Pengajar',
-            'evaluator'   => 'Evaluator',
             'operator'    => 'Operator',
         ][$role] ?? 'Pengguna';
     }

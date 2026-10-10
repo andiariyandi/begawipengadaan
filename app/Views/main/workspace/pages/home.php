@@ -22,10 +22,6 @@
                 <a href="<?= route_to('workspace.trainer.classes') ?>" class="btn btn-primary px-4 py-2 rounded-pill">
                     <i class="fas fa-chalkboard-teacher me-2"></i> Kelola Kelas
                 </a>
-            <?php elseif ($primaryRole === 'evaluator'): ?>
-                <a href="<?= route_to('workspace.evaluator.all-submissions') ?>" class="btn btn-primary px-4 py-2 rounded-pill">
-                    <i class="fas fa-tasks me-2"></i> Review Tugas
-                </a>
             <?php elseif ($primaryRole === 'operator'): ?>
                 <a href="<?= route_to('workspace.operator.profile-verifications') ?>" class="btn btn-primary px-4 py-2 rounded-pill">
                     <i class="fas fa-user-check me-2"></i> Verifikasi User
@@ -63,7 +59,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
                 <div>
                     <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">
-                        <?= $primaryRole === 'trainer' ? 'Kelas yang Anda Ampu' : ($primaryRole === 'evaluator' ? 'Kelas Penugasan Evaluator' : 'Pembelajaran Terkini') ?>
+                        <?= $primaryRole === 'trainer' ? 'Kelas yang Anda Ampu' : 'Pembelajaran Terkini' ?>
                     </h2>
                     <small class="text-muted">Pantau progres dan kelanjutan pembelajaran Anda</small>
                 </div>

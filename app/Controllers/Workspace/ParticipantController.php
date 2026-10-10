@@ -92,200 +92,211 @@ class ParticipantController extends BaseController
     public function classDetail(string $classId): string
     {
         $userId = $this->userId();
-        $enrollment = db_connect()->table('enrollments')
-            ->where(['class_id' => $classId, 'user_id' => $userId])
-            ->get()->getRowArray();
-        if (! $enrollment) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas tidak ditemukan.');
-        }
-
-        $class = db_connect()->table('learning_classes lc')
-            ->select('lc.*, courses.title AS course_title, programs.title AS program_title')
-            ->join('courses', 'courses.id = lc.course_id')
-            ->join('programs', 'programs.id = courses.program_id', 'left')
-            ->where('lc.id', $classId)->get()->getRowArray();
-        if (! $class) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas tidak ditemukan.');
-        }
-
-        $moduleRows = db_connect()->table('learning_modules m')
-            ->select('m.id AS module_id, m.title AS module_title, m.sort_order AS module_order, l.id AS lesson_id, l.title AS lesson_title, l.sort_order AS lesson_order, l.status AS lesson_status')
-            ->join('lessons l', 'l.module_id = m.id AND l.status = \'published\'', 'left')
-            ->where('m.class_id', $classId)
-            ->where('m.status', 'published')
-            ->orderBy('m.sort_order', 'ASC')
-            ->orderBy('l.sort_order', 'ASC')
-            ->get()->getResultArray();
-
-        $lessonIds = [];
-        foreach ($moduleRows as $row) {
-            if (! empty($row['lesson_id'])) {
-                $lessonIds[] = (int) $row['lesson_id'];
-            }
-        }
-        $progressMap = $this->loadProgressMap((int) $enrollment['id'], $lessonIds);
-
-        $modules = [];
-        foreach ($moduleRows as $row) {
-            $mid = (int) ($row['module_id'] ?? 0);
-            if ($mid < 1) {
-                continue;
-            }
-            if (! isset($modules[$mid])) {
-                $modules[$mid] = [
-                    'id'      => $mid,
-                    'title'   => (string) ($row['module_title'] ?? 'Modul'),
-                    'order'   => (int) ($row['module_order'] ?? 0),
-                    'lessons' => [],
-                ];
-            }
-            if (! empty($row['lesson_id'])) {
-                $lid = (int) $row['lesson_id'];
-                $modules[$mid]['lessons'][] = [
-                    'id'        => $lid,
-                    'title'     => (string) ($row['lesson_title'] ?? ''),
-                    'order'     => (int) ($row['lesson_order'] ?? 0),
-                    'progress'  => $progressMap[$lid] ?? null,
-                    'can_enter' => ($enrollment['status'] ?? null) === 'active',
-                ];
-            }
-        }
-        $moduleTree = array_values($modules);
-        usort($moduleTree, static fn (array $a, array $b): int => $a['order'] <=> $b['order']);
-        foreach ($moduleTree as &$mod) {
-            usort($mod['lessons'], static fn (array $a, array $b): int => $a['order'] <=> $b['order']);
-        }
-        unset($mod);
-
-        $progress = $this->summarizeProgress((int) $enrollment['id']);
+        $classIdInt = (int) $classId;
+        $state = $this->resolveClassLearningState($classIdInt, $userId);
 
         return view('main/workspace/pages/detail_kelas', [
-            'pageTitle'      => $class['name'] ?? 'Detail Kelas',
-            'classContext'   => [
-                'name'          => $class['name'] ?? '-',
-                'code'          => $class['code'] ?? '-',
-                'course_title'  => $class['course_title'] ?? null,
-                'program_title' => $class['program_title'] ?? null,
-                'start_at'      => $class['start_at'] ?? null,
-                'end_at'        => $class['end_at'] ?? null,
+            'pageTitle'      => ($state['class']['name'] ?? 'Detail Kelas'),
+            'breadcrumbTail' => [
+                ['label' => 'Kelas Saya', 'url' => route_to('workspace.participant.classes')],
+                ['label' => $state['class']['name'] ?? 'Detail Kelas'],
             ],
-            'modules'      => $moduleTree,
-            'enrollment'   => $enrollment,
-            'progressInfo' => $progress,
-            'mode'         => 'detail',
+            'state'          => $state,
+            'classContext'   => $state['class'],
+            'trainers'       => $state['trainers'],
+            'enrollment'     => $state['enrollment'],
+            'modules'        => $state['modules'],
+            'cta'            => $state['cta'],
+            'progressInfo'   => [
+                'total'     => $state['all_lessons_count'],
+                'completed' => $state['completed_lessons_count'],
+                'percent'   => $state['overall_percent'],
+            ],
         ]);
     }
 
     public function study(string $classId): string
     {
         $userId = $this->userId();
-        $enrollment = db_connect()->table('enrollments')
-            ->where(['class_id' => $classId, 'user_id' => $userId])
-            ->get()->getRowArray();
-        if (! $enrollment) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas tidak ditemukan.');
-        }
-        if (($enrollment['status'] ?? null) !== 'active') {
-            return redirect()->to(route_to('workspace.participant.class.detail', $classId))
-                ->with('error', 'Kelas belum aktif. Selesaikan approval terlebih dahulu.');
+        $classIdInt = (int) $classId;
+        $state = $this->resolveClassLearningState($classIdInt, $userId);
+
+        if ($state['enrollmentStatus'] === 'pending') {
+            return redirect()->to(route_to('workspace.participant.class.detail', (string) $classIdInt))
+                ->with('error', 'Kelas belum aktif. Selesaikan persetujuan pendaftaran terlebih dahulu.');
         }
 
-        $modules = $this->loadModuleTree($classId, (int) $enrollment['id']);
-        $progress = $this->summarizeProgress((int) $enrollment['id']);
-        $quizzes  = $this->loadQuizzesForClass($classId);
+        // Support explicit selection via query parameters
+        $reqLessonId = (int) ($this->request->getGet('lesson') ?: 0);
+        if ($reqLessonId > 0) {
+            return $this->lessonDetail((string) $reqLessonId);
+        }
 
+        $reqQuizId = (int) ($this->request->getGet('quiz') ?: 0);
+        if ($reqQuizId > 0) {
+            return redirect()->to(route_to('workspace.participant.quiz.take', (string) $reqQuizId));
+        }
+
+        $reqAsgId = (int) ($this->request->getGet('assignment') ?: 0);
+        if ($reqAsgId > 0) {
+            return redirect()->to(route_to('workspace.participant.assignment.submission', (string) $classIdInt) . '?assignment_id=' . $reqAsgId);
+        }
+
+        // Automatically guide user to their next pending item
+        $activeType = $state['current_step']['type'] ?? 'overview';
+        $activeItem = $state['current_step']['item'] ?? null;
+
+        if ($activeType === 'lesson' && ! empty($activeItem['id'])) {
+            return $this->lessonDetail((string) $activeItem['id']);
+        }
+
+        if ($activeType === 'pre_test' && ! empty($state['pre_test']['quiz']['id'])) {
+            return redirect()->to(route_to('workspace.participant.quiz.take', (string) $state['pre_test']['quiz']['id']))
+                ->with('info', 'Silakan selesaikan Pre-Test terlebih dahulu sebelum memulai materi pembelajaran.');
+        }
+
+        if ($activeType === 'post_test' && ! empty($state['post_test']['quiz']['id'])) {
+            return redirect()->to(route_to('workspace.participant.quiz.take', (string) $state['post_test']['quiz']['id']))
+                ->with('info', 'Seluruh modul telah selesai! Silakan kerjakan Post-Test evaluasi akhir.');
+        }
+
+        if ($activeType === 'quiz' && ! empty($activeItem['id'])) {
+            return redirect()->to(route_to('workspace.participant.quiz.take', (string) $activeItem['id']))
+                ->with('info', 'Materi modul selesai! Silakan selesaikan Quiz Modul untuk membuka modul berikutnya.');
+        }
+
+        if ($activeType === 'assignment' && ! empty($activeItem['id'])) {
+            return redirect()->to(route_to('workspace.participant.assignment.submission', (string) $classIdInt) . '?assignment_id=' . $activeItem['id']);
+        }
+
+        // Renders unified Learning Room
         return view('main/workspace/pages/belajar', [
-            'pageTitle'      => 'Learning Room',
+            'pageTitle'      => 'Learning Room | ' . ($state['class']['name'] ?? 'Kelas'),
             'breadcrumbTail' => [
                 ['label' => 'Kelas Saya', 'url' => route_to('workspace.participant.classes')],
+                ['label' => $state['class']['name'] ?? 'Kelas', 'url' => route_to('workspace.participant.class.detail', (string) $classIdInt)],
                 ['label' => 'Belajar'],
             ],
-            'enrollment'   => $enrollment,
-            'modules'      => $modules,
-            'progressInfo' => $progress,
-            'classContext' => $this->loadClassContext($classId),
-            'quizzes'      => $quizzes,
+            'state'          => $state,
+            'activeType'     => $activeType,
+            'activeItem'     => $activeItem,
+            'classContext'   => $state['class'],
+            'trainers'       => $state['trainers'],
+            'enrollment'     => $state['enrollment'],
+            'modules'        => $state['modules'],
+            'progressInfo'   => [
+                'total'     => $state['all_lessons_count'],
+                'completed' => $state['completed_lessons_count'],
+                'percent'   => $state['overall_percent'],
+            ],
         ]);
     }
 
     public function lessonDetail(string $lessonId): string
     {
         $userId = $this->userId();
-        $lessonId = (int) $lessonId;
+        $db = db_connect();
+        $lessonIdInt = (int) $lessonId;
 
-        $lesson = db_connect()->table('lessons l')
-            ->select('l.*, learning_modules.id AS module_id, learning_modules.title AS module_title, learning_modules.class_id AS class_id, learning_modules.status AS module_status')
-            ->join('learning_modules', 'learning_modules.id = l.module_id')
-            ->where('l.id', $lessonId)
+        $lesson = $db->table('lessons l')
+            ->select('l.*, m.id AS module_id, m.title AS module_title, m.class_id AS class_id, m.sort_order AS module_order')
+            ->join('learning_modules m', 'm.id = l.module_id')
+            ->where('l.id', $lessonIdInt)
             ->where('l.status', 'published')
-            ->where('learning_modules.status', 'published')
+            ->where('m.status', 'published')
             ->get()->getRowArray();
-        if ($lesson === null) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Lesson tidak ditemukan atau belum dipublikasikan.');
+
+        if (! $lesson) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Materi lesson tidak ditemukan atau belum dipublikasikan.');
         }
 
-        $enrollment = db_connect()->table('enrollments')
-            ->where(['class_id' => (int) $lesson['class_id'], 'user_id' => $userId])
-            ->get()->getRowArray();
-        if ($enrollment === null) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Enrollment tidak ditemukan.');
-        }
-        if (($enrollment['status'] ?? null) !== 'active') {
-            return redirect()->to(route_to('workspace.participant.classes'))
-                ->with('error', 'Lesson tidak dapat dibuka. Enrollment belum aktif.');
+        $classIdInt = (int) $lesson['class_id'];
+        $state = $this->resolveClassLearningState($classIdInt, $userId);
+
+        if ($state['enrollmentStatus'] !== 'active' && $state['enrollmentStatus'] !== 'completed') {
+            return redirect()->to(route_to('workspace.participant.class.detail', (string) $classIdInt))
+                ->with('error', 'Pendaftaran kelas belum aktif.');
         }
 
-        try {
-            $this->learning->startLesson($userId, $lessonId);
-        } catch (Throwable $e) {
-            log_message('error', 'lesson.startLesson failed: {message}', ['message' => $e->getMessage()]);
+        // Enforce Pre-Test gate
+        if ($state['pre_test']['exists'] && ! $state['pre_test']['completed']) {
+            return redirect()->to(route_to('workspace.participant.quiz.take', (string) $state['pre_test']['quiz']['id']))
+                ->with('warning', 'Anda wajib menyelesaikan Pre-Test terlebih dahulu sebelum mengakses materi modul.');
         }
 
-        $progress = db_connect()->table('learning_progress')
-            ->where(['enrollment_id' => (int) $enrollment['id'], 'lesson_id' => $lessonId])
-            ->get()->getRowArray() ?: [];
-
-        $siblings = db_connect()->table('lessons l')
-            ->select('l.id, l.title, l.sort_order, learning_modules.id AS module_id, learning_modules.sort_order AS module_order')
-            ->join('learning_modules', 'learning_modules.id = l.module_id')
-            ->where('learning_modules.class_id', (int) $lesson['class_id'])
-            ->orderBy('learning_modules.sort_order', 'ASC')
-            ->orderBy('l.sort_order', 'ASC')
-            ->get()->getResultArray();
-
-        $prev = null;
-        $next = null;
-        $count = count($siblings);
-        for ($i = 0; $i < $count; $i++) {
-            if ((int) $siblings[$i]['id'] === $lessonId) {
-                if ($i > 0) {
-                    $prev = $siblings[$i - 1];
+        // Check if this lesson is unlocked
+        $isUnlocked = false;
+        foreach ($state['modules'] as $mod) {
+            foreach ($mod['lessons'] as $les) {
+                if ((int) $les['id'] === $lessonIdInt) {
+                    $isUnlocked = $les['is_unlocked'];
+                    break 2;
                 }
-                if ($i + 1 < $count) {
-                    $next = $siblings[$i + 1];
+            }
+        }
+
+        if (! $isUnlocked && $state['enrollmentStatus'] !== 'completed') {
+            return redirect()->to(route_to('workspace.participant.study', (string) $classIdInt))
+                ->with('error', 'Materi ini masih terkunci. Silakan selesaikan materi dan quiz modul sebelumnya terlebih dahulu.');
+        }
+
+        // Auto-start lesson progress
+        try {
+            $this->learning->startLesson($userId, $lessonIdInt);
+        } catch (Throwable $e) {
+            log_message('error', 'lessonDetail startLesson failed: {message}', ['message' => $e->getMessage()]);
+        }
+
+        // Find sibling lessons for navigation
+        $allLessons = [];
+        foreach ($state['modules'] as $mod) {
+            foreach ($mod['lessons'] as $les) {
+                $allLessons[] = $les;
+            }
+        }
+        $prevLesson = null;
+        $nextLesson = null;
+        $totalL = count($allLessons);
+        for ($i = 0; $i < $totalL; $i++) {
+            if ((int) $allLessons[$i]['id'] === $lessonIdInt) {
+                if ($i > 0) {
+                    $prevLesson = $allLessons[$i - 1];
+                }
+                if ($i + 1 < $totalL) {
+                    $nextLesson = $allLessons[$i + 1];
                 }
                 break;
             }
         }
 
-        $classInfo = db_connect()->table('learning_classes lc')
-            ->select('lc.id, lc.name, lc.code')
-            ->where('lc.id', (int) $lesson['class_id'])
-            ->get()->getRowArray() ?: [];
+        $fileAsset = null;
+        if (! empty($lesson['file_id'])) {
+            $fileAsset = $db->table('file_assets')->where('id', (int) $lesson['file_id'])->get()->getRowArray();
+        }
 
-        return view('main/workspace/pages/lesson', [
-            'pageTitle'      => $lesson['title'] ?? 'Lesson',
+        return view('main/workspace/pages/belajar', [
+            'pageTitle'      => $lesson['title'] . ' | ' . ($state['class']['name'] ?? 'Learning Room'),
             'breadcrumbTail' => [
                 ['label' => 'Kelas Saya', 'url' => route_to('workspace.participant.classes')],
-                ['label' => 'Belajar', 'url' => route_to('workspace.participant.study', $lesson['class_id'])],
-                ['label' => $lesson['title'] ?? 'Lesson'],
+                ['label' => $state['class']['name'] ?? 'Kelas', 'url' => route_to('workspace.participant.class.detail', (string) $classIdInt)],
+                ['label' => 'Belajar', 'url' => route_to('workspace.participant.study', (string) $classIdInt)],
+                ['label' => $lesson['title']],
             ],
-            'lesson'    => $lesson,
-            'enrollment'=> $enrollment,
-            'progress'  => $progress,
-            'prev'      => $prev,
-            'next'      => $next,
-            'classInfo' => $classInfo,
+            'state'          => $state,
+            'activeType'     => 'lesson',
+            'activeItem'     => $lesson,
+            'fileAsset'      => $fileAsset,
+            'prevLesson'     => $prevLesson,
+            'nextLesson'     => $nextLesson,
+            'classContext'   => $state['class'],
+            'trainers'       => $state['trainers'],
+            'enrollment'     => $state['enrollment'],
+            'modules'        => $state['modules'],
+            'progressInfo'   => [
+                'total'     => $state['all_lessons_count'],
+                'completed' => $state['completed_lessons_count'],
+                'percent'   => $state['overall_percent'],
+            ],
         ]);
     }
 
@@ -305,32 +316,48 @@ class ParticipantController extends BaseController
         ));
     }
 
-    public function preTest(string $classId): string
+    public function preTest(string $classId)
     {
-        return $this->assessmentPage('Pre-test', 'Baseline kemampuan sebelum pembelajaran dimulai.', $classId, 'pre_test');
+        $this->userId();
+        $quiz = db_connect()->table('quizzes')
+            ->where(['class_id' => (int) $classId, 'type' => 'pre_test', 'status' => 'published'])
+            ->get()->getRowArray();
+        if ($quiz) {
+            return redirect()->to(route_to('workspace.participant.quiz.take', (string) $quiz['id']));
+        }
+        return redirect()->to(route_to('workspace.participant.study', $classId))
+            ->with('info', 'Kelas ini tidak memiliki Pre-Test.');
     }
 
-    public function quiz(string $classId): string
+    public function quiz(string $classId)
     {
-        return $this->assessmentPage('Lesson Quiz', 'Quiz yang terkait dengan lesson pembelajaran.', $classId, 'lesson_quiz');
+        return redirect()->to(route_to('workspace.participant.study', $classId));
     }
 
-    public function postTest(string $classId): string
+    public function postTest(string $classId)
     {
-        return $this->assessmentPage('Post-test', 'Evaluasi akhir sebagai komponen nilai pembelajaran.', $classId, 'post_test');
+        $this->userId();
+        $quiz = db_connect()->table('quizzes')
+            ->where(['class_id' => (int) $classId, 'type' => 'post_test', 'status' => 'published'])
+            ->get()->getRowArray();
+        if ($quiz) {
+            return redirect()->to(route_to('workspace.participant.quiz.take', (string) $quiz['id']));
+        }
+        return redirect()->to(route_to('workspace.participant.study', $classId))
+            ->with('info', 'Kelas ini tidak memiliki Post-Test.');
     }
 
-    public function preTestResult(string $classId): string
+    public function preTestResult(string $classId)
     {
         return $this->preTest($classId);
     }
 
-    public function quizResult(string $classId): string
+    public function quizResult(string $classId)
     {
         return $this->quiz($classId);
     }
 
-    public function postTestResult(string $classId): string
+    public function postTestResult(string $classId)
     {
         return $this->postTest($classId);
     }
@@ -746,7 +773,9 @@ class ParticipantController extends BaseController
     {
         $userId = $this->userId();
         $quizId = (int) $quizId;
-        $quiz = db_connect()->table('quizzes')
+        $db = db_connect();
+
+        $quiz = $db->table('quizzes')
             ->select('quizzes.*, learning_classes.name AS class_name, learning_classes.code AS class_code')
             ->join('learning_classes', 'learning_classes.id = quizzes.class_id')
             ->where('quizzes.id', $quizId)
@@ -756,20 +785,56 @@ class ParticipantController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Quiz tidak ditemukan atau belum dipublikasikan.');
         }
 
-        $enrollment = db_connect()->table('enrollments')
-            ->where(['class_id' => (int) $quiz['class_id'], 'user_id' => $userId, 'status' => 'active'])
-            ->get()->getRowArray();
-        if (! $enrollment) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Enrollment aktif tidak ditemukan.');
+        $classId = (int) $quiz['class_id'];
+        $state = $this->resolveClassLearningState($classId, $userId);
+
+        if ($state['enrollmentStatus'] !== 'active' && $state['enrollmentStatus'] !== 'completed') {
+            return redirect()->to(route_to('workspace.participant.class.detail', (string) $classId))
+                ->with('error', 'Pendaftaran kelas belum aktif.');
         }
 
-        $questions = db_connect()->table('quiz_questions')
+        // Gate checks based on quiz type
+        if ($quiz['type'] === 'post_test') {
+            // Must have completed all modules
+            $allDone = true;
+            foreach ($state['modules'] as $mod) {
+                if (! $mod['is_completed']) {
+                    $allDone = false;
+                    break;
+                }
+            }
+            if (! $allDone && $state['enrollmentStatus'] !== 'completed') {
+                return redirect()->to(route_to('workspace.participant.study', (string) $classId))
+                    ->with('error', 'Post-Test masih terkunci. Anda wajib menyelesaikan seluruh materi dan quiz modul terlebih dahulu.');
+            }
+        } elseif ($quiz['type'] === 'lesson_quiz') {
+            // Find which module this quiz belongs to and check its lessons
+            foreach ($state['modules'] as $mod) {
+                if (! empty($mod['quiz']) && (int) $mod['quiz']['id'] === $quizId) {
+                    if (! $mod['is_unlocked']) {
+                        return redirect()->to(route_to('workspace.participant.study', (string) $classId))
+                            ->with('error', 'Modul kuis ini masih terkunci. Selesaikan modul sebelumnya terlebih dahulu.');
+                    }
+                    foreach ($mod['lessons'] as $les) {
+                        if (! $les['is_completed']) {
+                            return redirect()->to(route_to('workspace.participant.study', (string) $classId))
+                                ->with('error', 'Quiz modul ini masih terkunci. Silakan selesaikan seluruh materi pada modul ini terlebih dahulu.');
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        $enrollment = $state['enrollment'];
+
+        $questions = $db->table('quiz_questions')
             ->where('quiz_id', $quizId)
             ->orderBy('sort_order', 'ASC')
             ->get()->getResultArray();
         $optionsByQuestion = [];
         if ($questions !== []) {
-            $rows = db_connect()->table('quiz_options')
+            $rows = $db->table('quiz_options')
                 ->whereIn('question_id', array_map(static fn ($q): int => (int) $q['id'], $questions))
                 ->orderBy('sort_order', 'ASC')
                 ->get()->getResultArray();
@@ -781,16 +846,16 @@ class ParticipantController extends BaseController
         $attemptId = (int) ($this->request->getGet('attempt') ?: 0);
         $attempt = null;
         if ($attemptId > 0) {
-            $attempt = db_connect()->table('quiz_attempts')
+            $attempt = $db->table('quiz_attempts')
                 ->where(['id' => $attemptId, 'enrollment_id' => (int) $enrollment['id'], 'quiz_id' => $quizId])
                 ->get()->getRowArray();
         }
 
-        $latest = db_connect()->table('quiz_attempts')
+        $latest = $db->table('quiz_attempts')
             ->where(['quiz_id' => $quizId, 'enrollment_id' => (int) $enrollment['id']])
             ->orderBy('attempt_number', 'DESC')
             ->get()->getRowArray();
-        $attemptCount = (int) db_connect()->table('quiz_attempts')
+        $attemptCount = (int) $db->table('quiz_attempts')
             ->where(['quiz_id' => $quizId, 'enrollment_id' => (int) $enrollment['id']])
             ->countAllResults();
 
@@ -798,7 +863,8 @@ class ParticipantController extends BaseController
             'pageTitle'      => $quiz['title'] ?? 'Quiz',
             'breadcrumbTail' => [
                 ['label' => 'Kelas Saya', 'url' => route_to('workspace.participant.classes')],
-                ['label' => $quiz['class_name'] ?? 'Kelas', 'url' => route_to('workspace.participant.study', $quiz['class_id'])],
+                ['label' => $quiz['class_name'] ?? 'Kelas', 'url' => route_to('workspace.participant.class.detail', (string) $classId)],
+                ['label' => 'Belajar', 'url' => route_to('workspace.participant.study', (string) $classId)],
                 ['label' => $quiz['title'] ?? 'Quiz'],
             ],
             'quiz'             => $quiz,
@@ -809,25 +875,72 @@ class ParticipantController extends BaseController
             'attemptLimit'     => (int) ($quiz['attempt_limit'] ?? 1),
             'latest'           => $latest,
             'remaining'        => max(0, (int) ($quiz['attempt_limit'] ?? 1) - $attemptCount),
+            'classContext'     => $state['class'],
+            'state'            => $state,
         ]);
     }
 
     public function submitQuiz(int $attemptId)
     {
-        return $this->runAction(function () use ($attemptId) {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $attempt = $db->table('quiz_attempts')->where('id', $attemptId)->get()->getRowArray();
+        if (! $attempt) {
+            return redirect()->back()->with('error', 'Percobaan quiz tidak ditemukan.');
+        }
+
+        $quiz = $db->table('quizzes')->where('id', (int) $attempt['quiz_id'])->get()->getRowArray();
+        if (! $quiz) {
+            return redirect()->back()->with('error', 'Quiz tidak ditemukan.');
+        }
+        $classId = (int) $quiz['class_id'];
+
+        try {
             $answers = (array) $this->request->getPost('answers');
             $normalized = [];
             foreach ($answers as $qid => $oid) {
                 $normalized[(int) $qid] = (int) $oid;
             }
-            $this->learning->submitQuiz($this->userId(), (int) $attemptId, $normalized);
-            $attempt = db_connect()->table('quiz_attempts')->where('id', (int) $attemptId)->get()->getRowArray();
-            $quizId  = $attempt['quiz_id'] ?? 0;
-            if ($quizId > 0) {
-                return redirect()->to(route_to('workspace.participant.quiz.take', (string) $quizId) . '?attempt=' . $attemptId)
-                    ->with('success', 'Quiz berhasil dinilai. Skor: ' . ($attempt['score'] ?? '-'));
+            $result = $this->learning->submitQuiz($userId, $attemptId, $normalized);
+            $score = $result['score'] ?? 0;
+
+            // Re-resolve state to determine intelligent next destination
+            $state = $this->resolveClassLearningState($classId, $userId);
+
+            if ($quiz['type'] === 'pre_test') {
+                if ($state['stateCode'] === 'in_learning' && ! empty($state['current_step']['item']['id'])) {
+                    return redirect()->to(route_to('workspace.participant.lesson.detail', (string) $state['current_step']['item']['id']))
+                        ->with('success', "Pre-Test berhasil diselesaikan (Skor: {$score})! Modul 1 telah dibuka.");
+                }
+                return redirect()->to(route_to('workspace.participant.study', (string) $classId))
+                    ->with('success', "Pre-Test berhasil diselesaikan (Skor: {$score})! Silakan mulai materi pembelajaran.");
             }
-        }, 'Quiz berhasil dinilai.');
+
+            if ($quiz['type'] === 'lesson_quiz') {
+                if ($state['stateCode'] === 'in_learning' && ! empty($state['current_step']['item']['id'])) {
+                    return redirect()->to(route_to('workspace.participant.lesson.detail', (string) $state['current_step']['item']['id']))
+                        ->with('success', "Quiz Modul berhasil diselesaikan (Skor: {$score})! Melanjutkan ke materi berikutnya: " . esc($state['current_step']['title']));
+                }
+                if ($state['stateCode'] === 'post_test_required' && ! empty($state['current_step']['item']['id'])) {
+                    return redirect()->to(route_to('workspace.participant.quiz.take', (string) $state['current_step']['item']['id']))
+                        ->with('success', "Quiz Modul selesai (Skor: {$score})! Seluruh modul telah selesai. Silakan kerjakan Post-Test.");
+                }
+                return redirect()->to(route_to('workspace.participant.study', (string) $classId))
+                    ->with('success', "Quiz Modul berhasil diselesaikan (Skor: {$score})! Modul berikutnya telah terbuka.");
+            }
+
+            if ($quiz['type'] === 'post_test') {
+                return redirect()->to(route_to('workspace.participant.study', (string) $classId))
+                    ->with('success', "Post-Test berhasil diselesaikan (Skor: {$score})! Evaluasi kelulusan pembelajaran Anda telah diproses.");
+            }
+
+            return redirect()->to(route_to('workspace.participant.quiz.take', (string) $quiz['id']) . '?attempt=' . $attemptId)
+                ->with('success', "Quiz berhasil dinilai. Skor: {$score}");
+        } catch (Throwable $e) {
+            log_message('error', 'submitQuiz failed: {message}', ['message' => $e->getMessage()]);
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     public function startLesson(int $lessonId)
@@ -837,9 +950,53 @@ class ParticipantController extends BaseController
 
     public function completeLesson(int $lessonId)
     {
-        return $this->runAction(function () use ($lessonId) {
-            $this->learning->completeLesson($this->userId(), $lessonId);
-        }, 'Lesson selesai.');
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $lesson = $db->table('lessons')->where('id', $lessonId)->get()->getRowArray();
+        if (! $lesson) {
+            return redirect()->back()->with('error', 'Materi tidak ditemukan.');
+        }
+
+        $module = $db->table('learning_modules')->where('id', (int) $lesson['module_id'])->get()->getRowArray();
+        $classId = (int) ($module['class_id'] ?? 0);
+
+        try {
+            $this->learning->completeLesson($userId, $lessonId);
+
+            // Re-resolve state to determine intelligent next destination
+            $state = $this->resolveClassLearningState($classId, $userId);
+
+            if ($state['stateCode'] === 'in_learning' && ! empty($state['current_step']['item']['id'])) {
+                $nextLessonId = (int) $state['current_step']['item']['id'];
+                return redirect()->to(route_to('workspace.participant.lesson.detail', (string) $nextLessonId))
+                    ->with('success', 'Materi selesai! Melanjutkan ke materi: ' . esc($state['current_step']['title']));
+            }
+
+            if ($state['stateCode'] === 'module_quiz_required' && ! empty($state['current_step']['item']['id'])) {
+                $quizId = (int) $state['current_step']['item']['id'];
+                return redirect()->to(route_to('workspace.participant.quiz.take', (string) $quizId))
+                    ->with('info', 'Materi modul selesai! Silakan selesaikan Quiz Modul untuk membuka modul berikutnya.');
+            }
+
+            if ($state['stateCode'] === 'assignment_required' && ! empty($state['current_step']['item']['id'])) {
+                $asgId = (int) $state['current_step']['item']['id'];
+                return redirect()->to(route_to('workspace.participant.assignment.submission', (string) $classId) . '?assignment_id=' . $asgId)
+                    ->with('info', 'Materi modul selesai! Silakan selesaikan tugas mandiri berikut.');
+            }
+
+            if ($state['stateCode'] === 'post_test_required' && ! empty($state['current_step']['item']['id'])) {
+                $postTestId = (int) $state['current_step']['item']['id'];
+                return redirect()->to(route_to('workspace.participant.quiz.take', (string) $postTestId))
+                    ->with('success', 'Seluruh modul pembelajaran telah selesai! Silakan selesaikan Post-Test evaluasi akhir.');
+            }
+
+            return redirect()->to(route_to('workspace.participant.study', (string) $classId))
+                ->with('success', 'Materi selesai dipelajari.');
+        } catch (Throwable $e) {
+            log_message('error', 'completeLesson failed: {message}', ['message' => $e->getMessage()]);
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     public function certificates(): string
@@ -883,6 +1040,566 @@ class ParticipantController extends BaseController
             'title' => 'Detail Sertifikat | Workspace BegawiPBJ',
             'certificates' => [$certificate],
         ]);
+    }
+
+    /**
+     * Resolves complete modular learning journey state for a participant in a class.
+     * Enforces:
+     *  1. Pre-test requirement (configurable, blocks modules if uncompleted)
+     *  2. Sequential module & lesson unlocking
+     *  3. Module quiz requirement (configurable, blocks next module if uncompleted)
+     *  4. Module assignment requirement (configurable, optional)
+     *  5. Post-test requirement (configurable, unlocked only when all modules completed)
+     *  6. Evaluation passing grade & certificate approval pipeline
+     *
+     * @return array<string, mixed>
+     */
+    public function resolveClassLearningState(int $classId, int $userId): array
+    {
+        $db = db_connect();
+
+        // 1. Class & Course & Program Context
+        $class = $db->table('learning_classes lc')
+            ->select('lc.*, courses.title AS course_title, courses.slug AS course_slug, courses.summary AS course_summary, courses.description AS course_description, courses.level AS course_level, courses.duration_minutes, programs.title AS program_title')
+            ->join('courses', 'courses.id = lc.course_id', 'left')
+            ->join('programs', 'programs.id = courses.program_id', 'left')
+            ->where('lc.id', $classId)
+            ->get()->getRowArray();
+
+        if (! $class) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas tidak ditemukan.');
+        }
+
+        // 2. Active Trainers
+        $trainers = $db->table('class_trainers ct')
+            ->select('ct.user_id, ct.assigned_at, ct.status AS trainer_status, u.name, u.email, u.phone, u.profile_type')
+            ->join('users u', 'u.id = ct.user_id')
+            ->where(['ct.class_id' => $classId, 'ct.status' => 'active'])
+            ->get()->getResultArray();
+
+        // 3. Participant Enrollment
+        $enrollment = $db->table('enrollments')
+            ->where(['class_id' => $classId, 'user_id' => $userId])
+            ->get()->getRowArray();
+
+        $enrollmentId = $enrollment ? (int) $enrollment['id'] : 0;
+        $enrollmentStatus = (string) ($enrollment['status'] ?? 'not_enrolled');
+
+        // 4. Pre-Test & Attempts
+        $preTest = $db->table('quizzes')
+            ->where(['class_id' => $classId, 'type' => 'pre_test', 'status' => 'published'])
+            ->orderBy('id', 'ASC')
+            ->get()->getRowArray();
+
+        $preTestAttempt = null;
+        $preTestCompleted = false;
+        if ($preTest && $enrollmentId > 0) {
+            $preTestAttempt = $db->table('quiz_attempts')
+                ->where(['quiz_id' => (int) $preTest['id'], 'enrollment_id' => $enrollmentId])
+                ->whereIn('status', ['submitted', 'graded', 'passed', 'completed'])
+                ->orderBy('attempt_number', 'DESC')
+                ->get()->getRowArray();
+            $preTestCompleted = $preTestAttempt !== null;
+        }
+
+        // 5. Post-Test & Attempts
+        $postTest = $db->table('quizzes')
+            ->where(['class_id' => $classId, 'type' => 'post_test', 'status' => 'published'])
+            ->orderBy('id', 'ASC')
+            ->get()->getRowArray();
+
+        $postTestAttempt = null;
+        $postTestCompleted = false;
+        if ($postTest && $enrollmentId > 0) {
+            $postTestAttempt = $db->table('quiz_attempts')
+                ->where(['quiz_id' => (int) $postTest['id'], 'enrollment_id' => $enrollmentId])
+                ->whereIn('status', ['submitted', 'graded', 'passed', 'completed'])
+                ->orderBy('attempt_number', 'DESC')
+                ->get()->getRowArray();
+            $postTestCompleted = $postTestAttempt !== null;
+        }
+
+        // 6. Lesson Quizzes & Attempts
+        $lessonQuizzes = $db->table('quizzes')
+            ->where(['class_id' => $classId, 'type' => 'lesson_quiz', 'status' => 'published'])
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
+
+        $quizAttemptsMap = [];
+        if ($lessonQuizzes !== [] && $enrollmentId > 0) {
+            $quizIds = array_map(static fn ($q): int => (int) $q['id'], $lessonQuizzes);
+            $attempts = $db->table('quiz_attempts')
+                ->where('enrollment_id', $enrollmentId)
+                ->whereIn('quiz_id', $quizIds)
+                ->whereIn('status', ['submitted', 'graded', 'passed', 'completed'])
+                ->orderBy('score', 'DESC')
+                ->get()->getResultArray();
+            foreach ($attempts as $att) {
+                $qid = (int) $att['quiz_id'];
+                if (! isset($quizAttemptsMap[$qid])) {
+                    $quizAttemptsMap[$qid] = $att;
+                }
+            }
+        }
+
+        // 7. Assignments & Submissions
+        $assignments = $db->table('assignments')
+            ->where(['class_id' => $classId, 'status' => 'published'])
+            ->orderBy('due_at', 'ASC')
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
+
+        $assignmentSubmissionsMap = [];
+        if ($assignments !== [] && $enrollmentId > 0) {
+            $asgIds = array_map(static fn ($a): int => (int) $a['id'], $assignments);
+            $subs = $db->table('assignment_submissions')
+                ->where('enrollment_id', $enrollmentId)
+                ->whereIn('assignment_id', $asgIds)
+                ->orderBy('attempt_number', 'DESC')
+                ->get()->getResultArray();
+            foreach ($subs as $sub) {
+                $aid = (int) $sub['assignment_id'];
+                if (! isset($assignmentSubmissionsMap[$aid])) {
+                    $assignmentSubmissionsMap[$aid] = $sub;
+                }
+            }
+        }
+
+        // 8. Modules & Lessons
+        $moduleRows = $db->table('learning_modules m')
+            ->select('m.*')
+            ->where(['m.class_id' => $classId, 'm.status' => 'published'])
+            ->orderBy('m.sort_order', 'ASC')
+            ->get()->getResultArray();
+
+        $lessonRows = $db->table('lessons l')
+            ->select('l.*, learning_modules.sort_order AS module_order')
+            ->join('learning_modules', 'learning_modules.id = l.module_id')
+            ->where(['learning_modules.class_id' => $classId, 'l.status' => 'published', 'learning_modules.status' => 'published'])
+            ->orderBy('learning_modules.sort_order', 'ASC')
+            ->orderBy('l.sort_order', 'ASC')
+            ->get()->getResultArray();
+
+        $lessonIds = array_map(static fn ($l): int => (int) $l['id'], $lessonRows);
+        $progressMap = $enrollmentId > 0 ? $this->loadProgressMap($enrollmentId, $lessonIds) : [];
+
+        // Build Modules Structure and compute Sequential Unlocking
+        $lessonsByModule = [];
+        foreach ($lessonRows as $l) {
+            $mid = (int) $l['module_id'];
+            $lessonsByModule[$mid][] = $l;
+        }
+
+        $allLessonsCount = count($lessonRows);
+        $completedLessonsCount = 0;
+        foreach ($progressMap as $prog) {
+            if (($prog['status'] ?? '') === 'completed') {
+                $completedLessonsCount++;
+            }
+        }
+
+        // Pre-Test gate: if pre-test exists and is not completed, modules are locked
+        $preTestBlocksModules = ($preTest !== null && ! $preTestCompleted);
+        $prevModuleCompleted = ! $preTestBlocksModules;
+        $activeItemFound = false;
+        $nextActionItem = null;
+
+        $isGraduated = ($enrollmentStatus === 'completed' || ! empty($enrollment['passed_at']));
+
+        if (! $isGraduated && $preTestBlocksModules && $enrollmentStatus === 'active') {
+            $activeItemFound = true;
+            $nextActionItem = [
+                'type'  => 'pre_test',
+                'title' => $preTest['title'] ?? 'Pre-Test',
+                'item'  => $preTest,
+            ];
+        }
+
+        $modulesTree = [];
+        foreach ($moduleRows as $mIdx => $m) {
+            $mid = (int) $m['id'];
+            $modLessons = $lessonsByModule[$mid] ?? [];
+            $modLessonIds = array_map(static fn ($l): int => (int) $l['id'], $modLessons);
+
+            // Match quiz to this module
+            $modQuiz = null;
+            foreach ($lessonQuizzes as $q) {
+                if (! empty($q['lesson_id']) && in_array((int) $q['lesson_id'], $modLessonIds, true)) {
+                    $modQuiz = $q;
+                    break;
+                }
+            }
+            if ($modQuiz === null && count($lessonQuizzes) > $mIdx && empty($lessonQuizzes[$mIdx]['lesson_id'])) {
+                $modQuiz = $lessonQuizzes[$mIdx];
+            }
+
+            // Match assignment to this module
+            $modAssignment = null;
+            foreach ($assignments as $a) {
+                if (! empty($a['lesson_id']) && in_array((int) $a['lesson_id'], $modLessonIds, true)) {
+                    $modAssignment = $a;
+                    break;
+                }
+            }
+            if ($modAssignment === null && count($assignments) > $mIdx && empty($assignments[$mIdx]['lesson_id'])) {
+                $modAssignment = $assignments[$mIdx];
+            }
+
+            $isModuleUnlocked = $isGraduated || ($enrollmentStatus === 'active' && $prevModuleCompleted);
+            $moduleLessonsData = [];
+            $allModLessonsDone = true;
+            $prevLessonDone = true;
+
+            foreach ($modLessons as $l) {
+                $lid = (int) $l['id'];
+                $prog = $progressMap[$lid] ?? null;
+                $pStatus = (string) ($prog['status'] ?? 'not_started');
+                $isLessonCompleted = $isGraduated || ($pStatus === 'completed');
+
+                $isLessonUnlocked = $isGraduated || ($isModuleUnlocked && $prevLessonDone);
+                $isLessonActive = false;
+
+                if (! $isLessonCompleted) {
+                    $allModLessonsDone = false;
+                    if ($isLessonUnlocked && ! $activeItemFound && $enrollmentStatus === 'active') {
+                        $isLessonActive = true;
+                        $activeItemFound = true;
+                        $nextActionItem = [
+                            'type'   => 'lesson',
+                            'title'  => $l['title'],
+                            'item'   => $l,
+                            'module' => $m,
+                        ];
+                    }
+                }
+
+                $moduleLessonsData[] = [
+                    'id'           => $lid,
+                    'title'        => $l['title'],
+                    'content_type' => $l['content_type'],
+                    'sort_order'   => (int) $l['sort_order'],
+                    'status'       => $isGraduated ? 'completed' : $pStatus,
+                    'is_completed' => $isLessonCompleted,
+                    'is_unlocked'  => $isLessonUnlocked,
+                    'is_active'    => $isLessonActive,
+                    'progress'     => $prog,
+                    'raw'          => $l,
+                ];
+
+                $prevLessonDone = $isLessonCompleted;
+            }
+
+            // Quiz state for this module
+            $quizData = null;
+            $isQuizCompleted = true;
+            if ($modQuiz !== null) {
+                $qid = (int) $modQuiz['id'];
+                $qAttempt = $quizAttemptsMap[$qid] ?? null;
+                $isQuizCompleted = $isGraduated || ($qAttempt !== null);
+                $isQuizUnlocked = $isGraduated || ($isModuleUnlocked && $allModLessonsDone);
+                $isQuizActive = false;
+
+                if (! $isGraduated && $isQuizUnlocked && ! $isQuizCompleted && ! $activeItemFound && $enrollmentStatus === 'active') {
+                    $isQuizActive = true;
+                    $activeItemFound = true;
+                    $nextActionItem = [
+                        'type'   => 'quiz',
+                        'title'  => $modQuiz['title'],
+                        'item'   => $modQuiz,
+                        'module' => $m,
+                    ];
+                }
+
+                $quizData = [
+                    'id'           => $qid,
+                    'title'        => $modQuiz['title'],
+                    'is_required'  => (bool) ($modQuiz['is_required'] ?? 0),
+                    'is_unlocked'  => $isQuizUnlocked,
+                    'is_completed' => $isQuizCompleted,
+                    'is_active'    => $isQuizActive,
+                    'attempt'      => $qAttempt,
+                    'score'        => $qAttempt['score'] ?? null,
+                    'raw'          => $modQuiz,
+                ];
+            }
+
+            // Assignment state for this module
+            $asgData = null;
+            $isAsgSatisfied = true;
+            if ($modAssignment !== null) {
+                $aid = (int) $modAssignment['id'];
+                $aSub = $assignmentSubmissionsMap[$aid] ?? null;
+                $isSubDone = $aSub !== null && in_array($aSub['status'], ['submitted', 'in_review', 'graded'], true);
+                $isAsgRequired = (bool) ($modAssignment['is_required'] ?? 0);
+                if ($isAsgRequired && ! $isSubDone && ! $isGraduated) {
+                    $isAsgSatisfied = false;
+                }
+                $isAsgUnlocked = $isGraduated || ($isModuleUnlocked && $allModLessonsDone);
+                $isAsgActive = false;
+
+                if (! $isGraduated && $isAsgUnlocked && ! $isSubDone && ! $activeItemFound && $enrollmentStatus === 'active') {
+                    $isAsgActive = true;
+                    $activeItemFound = true;
+                    $nextActionItem = [
+                        'type'   => 'assignment',
+                        'title'  => $modAssignment['title'],
+                        'item'   => $modAssignment,
+                        'module' => $m,
+                    ];
+                }
+
+                $asgData = [
+                    'id'           => $aid,
+                    'title'        => $modAssignment['title'],
+                    'is_required'  => $isAsgRequired,
+                    'is_unlocked'  => $isAsgUnlocked,
+                    'is_submitted' => $isSubDone,
+                    'is_active'    => $isAsgActive,
+                    'submission'   => $aSub,
+                    'score'        => $aSub['score'] ?? null,
+                    'raw'          => $modAssignment,
+                ];
+            }
+
+            $isModuleCompleted = $isGraduated || ($isModuleUnlocked && $allModLessonsDone && $isQuizCompleted && $isAsgSatisfied);
+
+            $modulesTree[] = [
+                'id'           => $mid,
+                'title'        => $m['title'],
+                'sort_order'   => (int) $m['sort_order'],
+                'is_unlocked'  => $isModuleUnlocked,
+                'is_completed' => $isModuleCompleted,
+                'lessons'      => $moduleLessonsData,
+                'quiz'         => $quizData,
+                'assignment'   => $asgData,
+            ];
+
+            // Next module unlocks only when this module is completed!
+            $prevModuleCompleted = $isModuleCompleted;
+        }
+
+        $allModulesCompleted = $isGraduated || ($prevModuleCompleted && ! $preTestBlocksModules);
+
+        // Post-Test Unlocking
+        $isPostTestUnlocked = ($isGraduated || $allModulesCompleted) && in_array($enrollmentStatus, ['active', 'completed'], true);
+        $isPostTestActive = false;
+        if ($postTest !== null) {
+            if (! $isGraduated && $isPostTestUnlocked && ! $postTestCompleted && ! $activeItemFound && $enrollmentStatus === 'active') {
+                $isPostTestActive = true;
+                $activeItemFound = true;
+                $nextActionItem = [
+                    'type'  => 'post_test',
+                    'title' => $postTest['title'] ?? 'Post-Test',
+                    'item'  => $postTest,
+                ];
+            }
+        }
+
+        // Graduation Evaluation & Certificate Pipeline
+        $isFinishedAllActivities = $isGraduated || ($allModulesCompleted && ($postTest === null || $postTestCompleted));
+        if ($isFinishedAllActivities && $enrollmentStatus === 'active') {
+            try {
+                $this->learning->evaluateCompletion($enrollmentId);
+                $enrollment = $db->table('enrollments')->where('id', $enrollmentId)->get()->getRowArray() ?: $enrollment;
+                $enrollmentStatus = (string) ($enrollment['status'] ?? 'active');
+            } catch (Throwable $e) {
+                log_message('error', 'evaluateCompletion trigger failed: {message}', ['message' => $e->getMessage()]);
+            }
+        }
+
+        $certificate = null;
+        $approval = null;
+        if ($enrollmentId > 0) {
+            $certificate = $db->table('certificates')
+                ->where(['source_type' => 'learning_enrollment', 'source_id' => $enrollmentId])
+                ->get()->getRowArray();
+            $approval = $db->table('approvals')
+                ->where(['resource_type' => 'certificate', 'resource_id' => $enrollmentId])
+                ->get()->getRowArray();
+        }
+
+        $isPassed = ! empty($enrollment['passed_at']) || ((float) ($enrollment['final_score'] ?? 0) >= (float) ($class['passing_grade'] ?? 70.0));
+        $certEnabled = (int) ($class['certificate_enabled'] ?? 0) === 1;
+
+        // Compute overall progress summary
+        $totalItems = $allLessonsCount;
+        $completedItems = $completedLessonsCount;
+        if ($preTest) {
+            $totalItems++;
+            if ($preTestCompleted) {
+                $completedItems++;
+            }
+        }
+        if ($postTest) {
+            $totalItems++;
+            if ($postTestCompleted) {
+                $completedItems++;
+            }
+        }
+        foreach ($modulesTree as $mTree) {
+            if (! empty($mTree['quiz'])) {
+                $totalItems++;
+                if ($mTree['quiz']['is_completed']) {
+                    $completedItems++;
+                }
+            }
+            if (! empty($mTree['assignment'])) {
+                $totalItems++;
+                if ($mTree['assignment']['is_submitted']) {
+                    $completedItems++;
+                }
+            }
+        }
+        if ($isGraduated) {
+            $completedItems = $totalItems;
+            $overallPercent = 100.0;
+        } else {
+            $overallPercent = $totalItems > 0 ? round(($completedItems / $totalItems) * 100, 1) : 0.0;
+        }
+
+        // Compute State Code and Dynamic Action CTA
+        $stateCode = 'in_learning';
+        $cta = [];
+
+        if ($enrollmentStatus === 'not_enrolled') {
+            $stateCode = 'not_enrolled';
+            $cta = [
+                'label'    => 'Daftar Kelas Ini',
+                'url'      => route_to('workspace.participant.enroll', (string) $classId),
+                'method'   => 'POST',
+                'type'     => 'enroll',
+                'class'    => 'btn btn-primary',
+                'disabled' => false,
+            ];
+        } elseif ($enrollmentStatus === 'pending') {
+            $stateCode = 'enrollment_pending';
+            $cta = [
+                'label'    => 'Menunggu Persetujuan Operator',
+                'url'      => '#',
+                'type'     => 'pending',
+                'class'    => 'btn btn-secondary disabled',
+                'disabled' => true,
+            ];
+        } elseif ($isGraduated || $isFinishedAllActivities) {
+            if ($isPassed) {
+                if ($certificate && $certificate['status'] === 'issued') {
+                    $stateCode = 'certificate_issued';
+                    $cta = [
+                        'label'    => 'Unduh Sertifikat',
+                        'url'      => route_to('workspace.participant.certificate.download', (string) $certificate['id']),
+                        'type'     => 'certificate_download',
+                        'class'    => 'btn btn-success',
+                        'disabled' => false,
+                    ];
+                } elseif ($certEnabled) {
+                    $stateCode = 'waiting_certificate';
+                    $cta = [
+                        'label'    => 'Menunggu Persetujuan Sertifikat',
+                        'url'      => '#',
+                        'type'     => 'certificate_pending',
+                        'class'    => 'btn btn-secondary disabled',
+                        'disabled' => true,
+                    ];
+                } else {
+                    $stateCode = 'completed_passed';
+                    $cta = [
+                        'label'    => 'Pembelajaran Selesai (Lulus)',
+                        'url'      => route_to('workspace.participant.study', (string) $classId),
+                        'type'     => 'completed',
+                        'class'    => 'btn btn-success',
+                        'disabled' => false,
+                    ];
+                }
+            } else {
+                $stateCode = 'completed_failed';
+                $cta = [
+                    'label'    => 'Belum Memenuhi Passing Grade',
+                    'url'      => route_to('workspace.participant.study', (string) $classId),
+                    'type'     => 'failed',
+                    'class'    => 'btn btn-danger disabled',
+                    'disabled' => true,
+                ];
+            }
+        } elseif ($preTestBlocksModules) {
+            $stateCode = 'pre_test_required';
+            $cta = [
+                'label'    => 'Mulai Pre-Test',
+                'url'      => route_to('workspace.participant.quiz.take', (string) $preTest['id']),
+                'type'     => 'pre_test',
+                'class'    => 'btn btn-primary',
+                'disabled' => false,
+            ];
+        } elseif ($nextActionItem && $nextActionItem['type'] === 'lesson') {
+            $stateCode = 'in_learning';
+            $isFirstLesson = ($completedLessonsCount === 0);
+            $cta = [
+                'label'    => $isFirstLesson ? 'Mulai Kelas' : 'Lanjutkan Belajar: ' . $nextActionItem['title'],
+                'url'      => route_to('workspace.participant.lesson.detail', (string) $nextActionItem['item']['id']),
+                'type'     => 'lesson',
+                'class'    => 'btn btn-primary',
+                'disabled' => false,
+            ];
+        } elseif ($nextActionItem && $nextActionItem['type'] === 'quiz') {
+            $stateCode = 'module_quiz_required';
+            $cta = [
+                'label'    => 'Kerjakan Quiz: ' . $nextActionItem['title'],
+                'url'      => route_to('workspace.participant.quiz.take', (string) $nextActionItem['item']['id']),
+                'type'     => 'quiz',
+                'class'    => 'btn btn-warning text-dark',
+                'disabled' => false,
+            ];
+        } elseif ($nextActionItem && $nextActionItem['type'] === 'assignment') {
+            $stateCode = 'assignment_required';
+            $cta = [
+                'label'    => 'Submit Assignment: ' . $nextActionItem['title'],
+                'url'      => route_to('workspace.participant.assignment.submission', (string) $classId) . '?assignment_id=' . $nextActionItem['item']['id'],
+                'type'     => 'assignment',
+                'class'    => 'btn btn-info text-dark',
+                'disabled' => false,
+            ];
+        } elseif ($postTest !== null && ! $postTestCompleted && $allModulesCompleted) {
+            $stateCode = 'post_test_required';
+            $cta = [
+                'label'    => 'Kerjakan Post-Test',
+                'url'      => route_to('workspace.participant.quiz.take', (string) $postTest['id']),
+                'type'     => 'post_test',
+                'class'    => 'btn btn-primary',
+                'disabled' => false,
+            ];
+        }
+
+        return [
+            'class'                  => $class,
+            'trainers'               => $trainers,
+            'enrollment'             => $enrollment,
+            'enrollmentStatus'       => $enrollmentStatus,
+            'stateCode'              => $stateCode,
+            'cta'                    => $cta,
+            'current_step'           => $nextActionItem,
+            'pre_test'               => [
+                'exists'    => $preTest !== null,
+                'quiz'      => $preTest,
+                'completed' => $preTestCompleted,
+                'attempt'   => $preTestAttempt,
+            ],
+            'post_test'              => [
+                'exists'      => $postTest !== null,
+                'quiz'        => $postTest,
+                'is_unlocked' => $isPostTestUnlocked,
+                'completed'   => $postTestCompleted,
+                'attempt'     => $postTestAttempt,
+            ],
+            'modules'                => $modulesTree,
+            'has_assignments'        => $assignments !== [],
+            'assignments'            => $assignments,
+            'all_lessons_count'      => $allLessonsCount,
+            'completed_lessons_count'=> $completedLessonsCount,
+            'overall_percent'        => $overallPercent,
+            'is_passed'              => $isPassed,
+            'certificate'            => $certificate,
+            'approval'               => $approval,
+            'certificate_enabled'    => $certEnabled,
+        ];
     }
 
     private function userId(): int

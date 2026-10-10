@@ -25,9 +25,6 @@ class LoginController extends BaseController
             if (in_array('operator', $loggedRoles, true)) {
                 return redirect()->to(route_to('workspace.operator.home'));
             }
-            if (in_array('evaluator', $loggedRoles, true)) {
-                return redirect()->to(route_to('workspace.evaluator.home'));
-            }
             return redirect()->to(route_to('workspace.home'));
         }
 
@@ -79,9 +76,6 @@ class LoginController extends BaseController
         }
         if (in_array('operator', $loggedRoles, true)) {
             return redirect()->to(route_to('workspace.operator.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
-        }
-        if (in_array('evaluator', $loggedRoles, true)) {
-            return redirect()->to(route_to('workspace.evaluator.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
         }
         return redirect()->to(route_to('workspace.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
     }

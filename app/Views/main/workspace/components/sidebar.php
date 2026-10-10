@@ -5,19 +5,16 @@ $hasRole = static fn (string $role): bool => in_array($role, $roles, true);
 
 // Determine primary role priority
 $primaryRole = 'participant';
-if ($hasRole('operator')) {
+if ($hasRole('operator') || $hasRole('admin') || $hasRole('super_admin') || $hasRole('administrator')) {
     $primaryRole = 'operator';
-} elseif ($hasRole('evaluator')) {
-    $primaryRole = 'evaluator';
 } elseif ($hasRole('trainer')) {
     $primaryRole = 'trainer';
 }
 
 $roleLabel = match ($primaryRole) {
-    'operator'  => 'Operator',
-    'evaluator' => 'Evaluator',
-    'trainer'   => 'Pengajar (Trainer)',
-    default     => 'Peserta (Participant)',
+    'operator' => 'Operator',
+    'trainer'  => 'Pengajar (Trainer)',
+    default    => 'Peserta (Participant)',
 };
 
 $displayName = (string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna');
@@ -67,29 +64,22 @@ $quizzesUrl  = ($trainerClassId > 0) ? route_to('workspace.trainer.quizzes', $tr
 $menuItems = match ($primaryRole) {
     'trainer' => [
         ['Beranda', route_to('workspace.trainer.home'), 'fas fa-home'],
-        ['Kelas Saya', $classesUrl, 'fas fa-graduation-cap'],
-        ['Materi', $materialUrl, 'fas fa-book'],
-        ['Modul', $moduleUrl, 'fas fa-layer-group'],
-        ['Peserta', $pesertaUrl, 'fas fa-users'],
-        ['Assessment', $quizzesUrl, 'fas fa-clipboard-check'],
-        ['Progress Peserta', $progressUrl, 'fas fa-chart-line'],
+        ['Kelas Saya', route_to('workspace.trainer.classes'), 'fas fa-graduation-cap'],
+        ['Materi Pembelajaran', route_to('workspace.trainer.all-materials'), 'fas fa-book'],
+        ['Assessment', route_to('workspace.trainer.all-quizzes'), 'fas fa-clipboard-check'],
+        ['Peserta', route_to('workspace.trainer.all-participants'), 'fas fa-users'],
+        ['Progress Peserta', route_to('workspace.trainer.all-progress'), 'fas fa-chart-line'],
         ['Aktivitas', route_to('workspace.activity'), 'fas fa-history'],
-        ['Profil', route_to('workspace.profile.index'), 'fas fa-user-circle'],
-    ],
-    'evaluator' => [
-        ['Beranda', route_to('workspace.evaluator.home'), 'fas fa-home'],
-        ['Review Submission', route_to('workspace.evaluator.all-submissions'), 'fas fa-tasks'],
-        ['Penilaian', route_to('workspace.evaluator.all-grading'), 'fas fa-clipboard-check'],
-        ['Feedback', route_to('workspace.evaluator.all-feedback'), 'fas fa-comment-dots'],
-        ['Riwayat Penilaian', route_to('workspace.evaluator.history'), 'fas fa-history'],
         ['Profil', route_to('workspace.profile.index'), 'fas fa-user-circle'],
     ],
     'operator' => [
         ['Beranda', route_to('workspace.operator.home'), 'fas fa-home'],
-        ['Approval', route_to('workspace.operator.approvals'), 'fas fa-check-double'],
-        ['Verifikasi User', route_to('workspace.operator.profile-verifications'), 'fas fa-id-card'],
+        ['Verifikasi Profil', route_to('workspace.operator.profile-verifications'), 'fas fa-id-card'],
+        ['Enrollment', route_to('workspace.operator.enrollments'), 'fas fa-user-graduate'],
+        ['Evaluasi & Override', route_to('workspace.operator.evaluations'), 'fas fa-clipboard-check'],
         ['Event Operation', route_to('workspace.operator.events'), 'fas fa-calendar-alt'],
         ['Presensi', route_to('workspace.operator.attendance'), 'fas fa-user-check'],
+        ['Approval', route_to('workspace.operator.approvals'), 'fas fa-stamp'],
         ['Monitoring Aktivitas', route_to('workspace.operator.activity-monitoring'), 'fas fa-chart-line'],
         ['Profil', route_to('workspace.profile.index'), 'fas fa-user-circle'],
     ],

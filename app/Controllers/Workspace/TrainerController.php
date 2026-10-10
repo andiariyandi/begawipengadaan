@@ -3,27 +3,173 @@
 namespace App\Controllers\Workspace;
 
 use App\Controllers\BaseController;
+use App\Models\Learning\AssignmentModel;
+use App\Models\Learning\AssignmentSubmissionModel;
 use App\Models\Learning\ClassTrainerModel;
+use App\Models\Learning\EnrollmentModel;
 use App\Models\Learning\LearningClassModel;
 use App\Models\Learning\LearningModuleModel;
+use App\Models\Learning\LearningProgressModel;
 use App\Models\Learning\LessonModel;
-use App\Models\Learning\QuizModel;
 use App\Models\Learning\QuestionModel;
 use App\Models\Learning\QuestionOptionModel;
+use App\Models\Learning\QuizModel;
+use App\Services\LearningService;
 use Throwable;
 
 class TrainerController extends BaseController
 {
-    public function index()
-    {
-        return $this->render('Dashboard Trainer', 'trainer/home', [], 'trainer');
+    protected LearningService $learning;
+
+    public function initController(
+        \CodeIgniter\HTTP\RequestInterface $request,
+        \CodeIgniter\HTTP\ResponseInterface $response,
+        \Psr\Log\LoggerInterface $logger
+    ) {
+        parent::initController($request, $response, $logger);
+        $this->learning = new LearningService();
     }
 
+    /**
+     * 1. TRAINER HOME
+     * Tampilan dashboard operasional pengajar (bukan admin).
+     */
+    public function index()
+    {
+        $userId = $this->userId();
+        $db     = db_connect();
+
+        $assignedClasses = $db->table('class_trainers ct')
+            ->select('ct.class_id, ct.assigned_at, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, courses.title AS course_title')
+            ->join('learning_classes lc', 'lc.id = ct.class_id')
+            ->join('courses', 'courses.id = lc.course_id')
+            ->where('ct.user_id', $userId)
+            ->where('ct.status', 'active')
+            ->orderBy('lc.start_at', 'DESC')
+            ->get()->getResultArray();
+
+        $classIds = array_map(static fn ($c): int => (int) $c['class_id'], $assignedClasses);
+
+        if ($classIds === []) {
+            return $this->render('Beranda Pengajar', 'trainer/home', [
+                'hasClasses'            => false,
+                'assignedClasses'       => [],
+                'stats'                 => [
+                    'totalClasses'       => 0,
+                    'activeParticipants' => 0,
+                    'avgProgress'        => 0.0,
+                    'pendingReviews'     => 0,
+                ],
+                'recentActivities'      => [],
+            ], 'trainer');
+        }
+
+        // Statistik agregat
+        $totalClasses = count($assignedClasses);
+        $activeParticipants = (int) $db->table('enrollments')
+            ->whereIn('class_id', $classIds)
+            ->where('status', 'active')
+            ->countAllResults();
+
+        // Hitung rata-rata progres kelas dari learning_progress
+        $progressAvgRow = $db->table('enrollments e')
+            ->selectAvg('lp.progress_percent', 'avg_progress')
+            ->join('learning_progress lp', 'lp.enrollment_id = e.id', 'inner')
+            ->whereIn('e.class_id', $classIds)
+            ->get()->getRowArray();
+        $avgProgress = round((float) ($progressAvgRow['avg_progress'] ?? 0), 1);
+
+        // Tugas yang perlu di-review pengajar
+        $pendingReviews = (int) $db->table('assignment_submissions s')
+            ->join('assignments a', 'a.id = s.assignment_id')
+            ->whereIn('a.class_id', $classIds)
+            ->whereIn('s.status', ['submitted', 'in_review'])
+            ->countAllResults();
+
+        // Kelas dengan metrik ringkas
+        $classesWithMetrics = [];
+        foreach ($assignedClasses as $ac) {
+            $cid = (int) $ac['class_id'];
+            $pCount = (int) $db->table('enrollments')->where('class_id', $cid)->where('status', 'active')->countAllResults();
+            $mCount = (int) $db->table('learning_modules')->where('class_id', $cid)->countAllResults();
+            $asgCount = (int) $db->table('assignments')->where('class_id', $cid)->countAllResults();
+            
+            $clsAvgProg = (float) ($db->table('enrollments e')
+                ->selectAvg('lp.progress_percent', 'avg_p')
+                ->join('learning_progress lp', 'lp.enrollment_id = e.id')
+                ->where('e.class_id', $cid)
+                ->get()->getRowArray()['avg_p'] ?? 0.0);
+
+            $ac['participant_count'] = $pCount;
+            $ac['module_count']      = $mCount;
+            $ac['assignment_count']  = $asgCount;
+            $ac['avg_progress']      = round($clsAvgProg, 1);
+            $classesWithMetrics[]    = $ac;
+        }
+
+        // Aktivitas terbaru:
+        // 1. Peserta masuk kelas (enrollments)
+        $recentEnrollments = $db->table('enrollments e')
+            ->select('e.enrolled_at AS time, u.name AS user_name, lc.name AS class_name, "enrollment" AS type')
+            ->join('users u', 'u.id = e.user_id')
+            ->join('learning_classes lc', 'lc.id = e.class_id')
+            ->whereIn('e.class_id', $classIds)
+            ->where('e.status', 'active')
+            ->orderBy('e.enrolled_at', 'DESC')
+            ->limit(4)->get()->getResultArray();
+
+        // 2. Peserta menyelesaikan materi (learning_progress)
+        $recentLessons = $db->table('learning_progress lp')
+            ->select('lp.completed_at AS time, u.name AS user_name, l.title AS lesson_title, lc.name AS class_name, "lesson_completed" AS type')
+            ->join('enrollments e', 'e.id = lp.enrollment_id')
+            ->join('users u', 'u.id = e.user_id')
+            ->join('lessons l', 'l.id = lp.lesson_id')
+            ->join('learning_classes lc', 'lc.id = e.class_id')
+            ->whereIn('e.class_id', $classIds)
+            ->where('lp.status', 'completed')
+            ->where('lp.completed_at IS NOT NULL')
+            ->orderBy('lp.completed_at', 'DESC')
+            ->limit(4)->get()->getResultArray();
+
+        // 3. Submission baru (assignment_submissions)
+        $recentSubmissions = $db->table('assignment_submissions s')
+            ->select('s.id AS submission_id, s.submitted_at AS time, s.status, u.name AS user_name, a.title AS assignment_title, lc.name AS class_name, "submission" AS type')
+            ->join('assignments a', 'a.id = s.assignment_id')
+            ->join('enrollments e', 'e.id = s.enrollment_id')
+            ->join('users u', 'u.id = e.user_id')
+            ->join('learning_classes lc', 'lc.id = a.class_id')
+            ->whereIn('a.class_id', $classIds)
+            ->orderBy('s.submitted_at', 'DESC')
+            ->limit(4)->get()->getResultArray();
+
+        $allActivities = array_merge($recentEnrollments, $recentLessons, $recentSubmissions);
+        usort($allActivities, static fn ($a, $b) => strcmp((string) ($b['time'] ?? ''), (string) ($a['time'] ?? '')));
+        $allActivities = array_slice($allActivities, 0, 6);
+
+        return $this->render('Beranda Pengajar', 'trainer/home', [
+            'hasClasses'        => true,
+            'assignedClasses'   => $classesWithMetrics,
+            'stats'             => [
+                'totalClasses'       => $totalClasses,
+                'activeParticipants' => $activeParticipants,
+                'avgProgress'        => $avgProgress,
+                'pendingReviews'     => $pendingReviews,
+            ],
+            'recentActivities'  => $allActivities,
+        ], 'trainer');
+    }
+
+    /**
+     * 2. KELAS SAYA
+     * Daftar kelas yang menjadi tanggung jawab trainer.
+     */
     public function myClasses()
     {
         $userId = $this->userId();
-        $items = db_connect()->table('class_trainers ct')
-            ->select('ct.class_id, ct.assigned_at, ct.status AS ct_status, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, courses.title AS course_title, programs.title AS program_title')
+        $db     = db_connect();
+
+        $items = $db->table('class_trainers ct')
+            ->select('ct.class_id, ct.assigned_at, ct.status AS ct_status, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, courses.title AS course_title, programs.title AS program_title')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->join('courses', 'courses.id = lc.course_id')
             ->join('programs', 'programs.id = courses.program_id', 'left')
@@ -32,76 +178,442 @@ class TrainerController extends BaseController
             ->orderBy('lc.start_at', 'DESC')
             ->get()->getResultArray();
 
+        foreach ($items as &$row) {
+            $cid = (int) $row['class_id'];
+            $row['participant_count'] = (int) $db->table('enrollments')->where('class_id', $cid)->where('status', 'active')->countAllResults();
+            $row['modules_count']     = (int) $db->table('learning_modules')->where('class_id', $cid)->countAllResults();
+            $row['quizzes_count']     = (int) $db->table('quizzes')->where('class_id', $cid)->countAllResults();
+            $row['assignments_count'] = (int) $db->table('assignments')->where('class_id', $cid)->countAllResults();
+
+            $clsAvgProg = (float) ($db->table('enrollments e')
+                ->selectAvg('lp.progress_percent', 'avg_p')
+                ->join('learning_progress lp', 'lp.enrollment_id = e.id')
+                ->where('e.class_id', $cid)
+                ->get()->getRowArray()['avg_p'] ?? 0.0);
+            $row['avg_progress'] = round($clsAvgProg, 1);
+        }
+        unset($row);
+
         return $this->render('Kelas Saya', 'trainer/kelas_saya', ['classes' => $items], 'trainer');
     }
 
+    /**
+     * 3. DETAIL KELAS TRAINER (Learning Management Room versi Pengajar)
+     * Dilengkapi tab: Overview, Materi, Peserta, Assessment, Assignment, Progress.
+     */
     public function classDetail(string $classId)
     {
-        $userId = $this->userId();
-        $this->assertTrainerOf($userId, (int) $classId);
+        $userId   = $this->userId();
+        $classIdInt = (int) $classId;
+        $this->assertTrainerOf($userId, $classIdInt);
 
-        $class = db_connect()->table('learning_classes lc')
-            ->select('lc.*, courses.title AS course_title, programs.title AS program_title')
+        $db = db_connect();
+
+        $class = $db->table('learning_classes lc')
+            ->select('lc.*, courses.title AS course_title, courses.description AS course_desc, programs.title AS program_title')
             ->join('courses', 'courses.id = lc.course_id')
             ->join('programs', 'programs.id = courses.program_id', 'left')
-            ->where('lc.id', $classId)->get()->getRowArray();
+            ->where('lc.id', $classIdInt)->get()->getRowArray();
         if (! $class) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas tidak ditemukan.');
         }
 
-        $modules = db_connect()->table('learning_modules')
-            ->where('class_id', (int) $classId)
+        $activeTab = (string) ($this->request->getGet('tab') ?: 'overview');
+        if (! in_array($activeTab, ['overview', 'materi', 'peserta', 'assessment', 'assignment', 'progres'], true)) {
+            $activeTab = 'overview';
+        }
+
+        // Trainer pengampu kelas
+        $trainers = $db->table('class_trainers ct')
+            ->select('ct.assigned_at, ct.status, u.id AS user_id, u.name, u.email')
+            ->join('users u', 'u.id = ct.user_id')
+            ->where('ct.class_id', $classIdInt)
+            ->where('ct.status', 'active')
+            ->get()->getResultArray();
+
+        // 1. Modul & Lessons (Materi)
+        $modules = $db->table('learning_modules')
+            ->where('class_id', $classIdInt)
             ->orderBy('sort_order', 'ASC')
             ->get()->getResultArray();
 
-        $participantCount = (int) db_connect()->table('enrollments')
-            ->where('class_id', (int) $classId)
-            ->where('status', 'active')->countAllResults();
+        $lessons = [];
+        if ($modules !== []) {
+            $modIds = array_map(static fn ($m): int => (int) $m['id'], $modules);
+            $lessons = $db->table('lessons')
+                ->whereIn('module_id', $modIds)
+                ->orderBy('sort_order', 'ASC')
+                ->get()->getResultArray();
+        }
 
-        $quizCount = (int) db_connect()->table('quizzes')
-            ->where('class_id', (int) $classId)->countAllResults();
+        $modulesWithLessons = [];
+        foreach ($modules as $mod) {
+            $mid = (int) $mod['id'];
+            $mod['lessons'] = array_values(array_filter($lessons, static fn ($l): bool => (int) $l['module_id'] === $mid));
+            $modulesWithLessons[] = $mod;
+        }
 
-        return $this->render($class['name'] ?? 'Detail Kelas', 'trainer/detail_kelas', [
-            'classCtx'        => $class,
-            'modules'         => $modules,
-            'participantCount'=> $participantCount,
-            'quizCount'       => $quizCount,
-        ], 'trainer', [['label' => 'Kelas Saya', 'url' => route_to('workspace.trainer.classes')]]);
-    }
-
-    public function participants(string $classId)
-    {
-        $userId = $this->userId();
-        $this->assertTrainerOf($userId, (int) $classId);
-
-        $items = db_connect()->table('enrollments e')
-            ->select('e.id AS enrollment_id, e.status AS enrollment_status, e.enrolled_at, e.activated_at, u.id AS user_id, u.name, u.username, u.email')
+        // 2. Peserta & Progress
+        $participants = $db->table('enrollments e')
+            ->select('e.id AS enrollment_id, e.status AS enrollment_status, e.enrolled_at, e.activated_at, e.completed_at, e.final_score, e.passed_at, u.id AS user_id, u.name, u.username, u.email')
             ->join('users u', 'u.id = e.user_id')
-            ->where('e.class_id', (int) $classId)
+            ->where('e.class_id', $classIdInt)
             ->orderBy('e.enrolled_at', 'DESC')
             ->get()->getResultArray();
 
-        return $this->render('Peserta', 'trainer/peserta', [
-            'classId'     => (int) $classId,
-            'participants'=> $items,
-        ], 'trainer', $this->trainerBreadcrumb((int) $classId));
+        $allLessonsCount = count($lessons);
+        foreach ($participants as &$p) {
+            $eid = (int) $p['enrollment_id'];
+            $completedLessons = (int) $db->table('learning_progress')
+                ->where('enrollment_id', $eid)
+                ->where('status', 'completed')
+                ->countAllResults();
+
+            $p['completed_lessons'] = $completedLessons;
+            $p['total_lessons']     = $allLessonsCount;
+            $p['progress_percent']   = $allLessonsCount > 0 ? round(($completedLessons / $allLessonsCount) * 100, 1) : 0.0;
+        }
+        unset($p);
+
+        // 3. Quizzes (Assessment)
+        $quizzes = $db->table('quizzes')
+            ->where('class_id', $classIdInt)
+            ->orderBy('type', 'ASC')
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
+
+        foreach ($quizzes as &$q) {
+            $qid = (int) $q['id'];
+            $q['question_count'] = (int) $db->table('quiz_questions')->where('quiz_id', $qid)->countAllResults();
+            $q['attempts_count'] = (int) $db->table('quiz_attempts')->where('quiz_id', $qid)->countAllResults();
+        }
+        unset($q);
+
+        // 4. Assignments (Tugas)
+        $assignments = $db->table('assignments a')
+            ->select('a.*, l.title AS lesson_title')
+            ->join('lessons l', 'l.id = a.lesson_id', 'left')
+            ->where('a.class_id', $classIdInt)
+            ->orderBy('a.created_at', 'DESC')
+            ->get()->getResultArray();
+
+        foreach ($assignments as &$asg) {
+            $aid = (int) $asg['id'];
+            $asg['total_submissions'] = (int) $db->table('assignment_submissions')->where('assignment_id', $aid)->countAllResults();
+            $asg['pending_reviews']   = (int) $db->table('assignment_submissions')->where('assignment_id', $aid)->whereIn('status', ['submitted', 'in_review'])->countAllResults();
+        }
+        unset($asg);
+
+        // Ringkasan metrik kelas
+        $activeParticipantCount = count(array_filter($participants, static fn ($p): bool => $p['enrollment_status'] === 'active'));
+        $completedParticipantCount = count(array_filter($participants, static fn ($p): bool => in_array($p['enrollment_status'], ['completed'], true) || ! empty($p['passed_at'])));
+        $completionRate = count($participants) > 0 ? round(($completedParticipantCount / count($participants)) * 100, 1) : 0.0;
+
+        return $this->render($class['name'] ?? 'Detail Kelas', 'trainer/detail_kelas', [
+            'classCtx'                  => $class,
+            'trainers'                  => $trainers,
+            'activeTab'                 => $activeTab,
+            'modules'                   => $modulesWithLessons,
+            'participants'              => $participants,
+            'quizzes'                   => $quizzes,
+            'assignments'               => $assignments,
+            'stats'                     => [
+                'participantCount'       => count($participants),
+                'activeParticipantCount' => $activeParticipantCount,
+                'completedCount'         => $completedParticipantCount,
+                'completionRate'         => $completionRate,
+                'moduleCount'            => count($modules),
+                'lessonCount'            => $allLessonsCount,
+                'quizCount'              => count($quizzes),
+                'assignmentCount'        => count($assignments),
+            ],
+        ], 'trainer', [['label' => 'Kelas Saya', 'url' => route_to('workspace.trainer.classes')]]);
     }
 
-    public function modules(string $classId)
+    /**
+     * MATERI PEMBELAJARAN (Agregat view untuk Sidebar)
+     */
+    public function allMaterials()
     {
         $userId = $this->userId();
-        $this->assertTrainerOf($userId, (int) $classId);
+        $db     = db_connect();
 
-        $modules = db_connect()->table('learning_modules')
-            ->where('class_id', (int) $classId)
+        $assignedClasses = $this->getTrainerClasses($userId);
+        if ($assignedClasses === []) {
+            return $this->render('Materi Pembelajaran', 'trainer/all_materials', [
+                'classes'      => [],
+                'selectedClass'=> null,
+                'modules'      => [],
+            ], 'trainer');
+        }
+
+        $classIdParam = (int) ($this->request->getGet('class_id') ?: $assignedClasses[0]['id']);
+        $this->assertTrainerOf($userId, $classIdParam);
+
+        $selectedClass = $db->table('learning_classes lc')
+            ->select('lc.*, courses.title AS course_title')
+            ->join('courses', 'courses.id = lc.course_id')
+            ->where('lc.id', $classIdParam)->get()->getRowArray();
+
+        $modules = $db->table('learning_modules')
+            ->where('class_id', $classIdParam)
             ->orderBy('sort_order', 'ASC')
             ->get()->getResultArray();
 
-        return $this->render('Modul', 'trainer/modul_list', [
-            'classId' => (int) $classId,
-            'modules' => $modules,
-            'className' => $this->className($classId),
-        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Modul'));
+        $modIds = array_map(static fn ($m): int => (int) $m['id'], $modules);
+        $lessons = $modIds !== [] ? $db->table('lessons')->whereIn('module_id', $modIds)->orderBy('sort_order', 'ASC')->get()->getResultArray() : [];
+
+        foreach ($modules as &$mod) {
+            $mid = (int) $mod['id'];
+            $mod['lessons'] = array_values(array_filter($lessons, static fn ($l): bool => (int) $l['module_id'] === $mid));
+        }
+        unset($mod);
+
+        return $this->render('Materi Pembelajaran', 'trainer/all_materials', [
+            'classes'       => $assignedClasses,
+            'selectedClass' => $selectedClass,
+            'modules'       => $modules,
+        ], 'trainer');
+    }
+
+    /**
+     * ASSESSMENT (Agregat view untuk Sidebar)
+     */
+    public function allQuizzes()
+    {
+        $userId = $this->userId();
+        $db     = db_connect();
+
+        $assignedClasses = $this->getTrainerClasses($userId);
+        if ($assignedClasses === []) {
+            return $this->render('Assessment & Ujian', 'trainer/all_quizzes', [
+                'classes'      => [],
+                'selectedClass'=> null,
+                'quizzes'      => [],
+            ], 'trainer');
+        }
+
+        $classIdParam = (int) ($this->request->getGet('class_id') ?: $assignedClasses[0]['id']);
+        $this->assertTrainerOf($userId, $classIdParam);
+
+        $selectedClass = $db->table('learning_classes lc')
+            ->select('lc.*, courses.title AS course_title')
+            ->join('courses', 'courses.id = lc.course_id')
+            ->where('lc.id', $classIdParam)->get()->getRowArray();
+
+        $quizzes = $db->table('quizzes')
+            ->where('class_id', $classIdParam)
+            ->orderBy('type', 'ASC')
+            ->get()->getResultArray();
+
+        foreach ($quizzes as &$q) {
+            $qid = (int) $q['id'];
+            $q['question_count'] = (int) $db->table('quiz_questions')->where('quiz_id', $qid)->countAllResults();
+            $q['attempts_count'] = (int) $db->table('quiz_attempts')->where('quiz_id', $qid)->countAllResults();
+        }
+        unset($q);
+
+        return $this->render('Assessment & Ujian', 'trainer/all_quizzes', [
+            'classes'       => $assignedClasses,
+            'selectedClass' => $selectedClass,
+            'quizzes'       => $quizzes,
+        ], 'trainer');
+    }
+
+    /**
+     * PESERTA (Agregat view untuk Sidebar)
+     */
+    public function allParticipants()
+    {
+        $userId = $this->userId();
+        $db     = db_connect();
+
+        $assignedClasses = $this->getTrainerClasses($userId);
+        $classIds = array_map(static fn ($c): int => (int) $c['id'], $assignedClasses);
+
+        if ($classIds === []) {
+            return $this->render('Peserta Kelas', 'trainer/all_participants', [
+                'classes'      => [],
+                'selectedClassId' => null,
+                'participants' => [],
+            ], 'trainer');
+        }
+
+        $selectedClassId = (int) ($this->request->getGet('class_id') ?: 0);
+        $targetClassIds = ($selectedClassId > 0 && in_array($selectedClassId, $classIds, true)) ? [$selectedClassId] : $classIds;
+
+        $query = $db->table('enrollments e')
+            ->select('e.id AS enrollment_id, e.class_id, e.status AS enrollment_status, e.enrolled_at, e.final_score, e.passed_at, lc.name AS class_name, lc.code AS class_code, u.id AS user_id, u.name, u.username, u.email')
+            ->join('users u', 'u.id = e.user_id')
+            ->join('learning_classes lc', 'lc.id = e.class_id')
+            ->whereIn('e.class_id', $targetClassIds)
+            ->orderBy('e.enrolled_at', 'DESC');
+
+        $participants = $query->get()->getResultArray();
+
+        foreach ($participants as &$p) {
+            $eid = (int) $p['enrollment_id'];
+            $cid = (int) $p['class_id'];
+            $totalLessons = (int) $db->table('lessons l')
+                ->join('learning_modules m', 'm.id = l.module_id')
+                ->where('m.class_id', $cid)->countAllResults();
+
+            $doneLessons = (int) $db->table('learning_progress')
+                ->where('enrollment_id', $eid)
+                ->where('status', 'completed')->countAllResults();
+
+            $p['total_lessons']   = $totalLessons;
+            $p['done_lessons']    = $doneLessons;
+            $p['progress_percent'] = $totalLessons > 0 ? round(($doneLessons / $totalLessons) * 100, 1) : 0.0;
+        }
+        unset($p);
+
+        return $this->render('Peserta Kelas', 'trainer/all_participants', [
+            'classes'         => $assignedClasses,
+            'selectedClassId' => $selectedClassId,
+            'participants'    => $participants,
+        ], 'trainer');
+    }
+
+    /**
+     * PROGRESS PESERTA (Agregat view untuk Sidebar)
+     */
+    public function allProgress()
+    {
+        $userId = $this->userId();
+        $db     = db_connect();
+
+        $assignedClasses = $this->getTrainerClasses($userId);
+        $classIds = array_map(static fn ($c): int => (int) $c['id'], $assignedClasses);
+
+        if ($classIds === []) {
+            return $this->render('Progress Peserta', 'trainer/all_progress', [
+                'classes'      => [],
+                'classSummaries'=> [],
+            ], 'trainer');
+        }
+
+        $classSummaries = [];
+        foreach ($assignedClasses as $ac) {
+            $cid = (int) $ac['id'];
+            $totalEnrollments = (int) $db->table('enrollments')->where('class_id', $cid)->countAllResults();
+            $activeEnrollments = (int) $db->table('enrollments')->where('class_id', $cid)->where('status', 'active')->countAllResults();
+            $completedEnrollments = (int) $db->table('enrollments')->where('class_id', $cid)->where('status', 'completed')->countAllResults();
+
+            $avgProg = (float) ($db->table('enrollments e')
+                ->selectAvg('lp.progress_percent', 'avg_p')
+                ->join('learning_progress lp', 'lp.enrollment_id = e.id')
+                ->where('e.class_id', $cid)
+                ->get()->getRowArray()['avg_p'] ?? 0.0);
+
+            $ac['total_enrollments']     = $totalEnrollments;
+            $ac['active_enrollments']    = $activeEnrollments;
+            $ac['completed_enrollments'] = $completedEnrollments;
+            $ac['avg_progress']          = round($avgProg, 1);
+            $ac['completion_rate']       = $totalEnrollments > 0 ? round(($completedEnrollments / $totalEnrollments) * 100, 1) : 0.0;
+            $classSummaries[]            = $ac;
+        }
+
+        return $this->render('Progress Monitoring', 'trainer/all_progress', [
+            'classes'        => $assignedClasses,
+            'classSummaries' => $classSummaries,
+        ], 'trainer');
+    }
+
+    /**
+     * DETAIL PESERTA & FEEDBACK CATATAN
+     */
+    public function participantDetail(string $classId, string $enrollmentId)
+    {
+        $userId = $this->userId();
+        $cid    = (int) $classId;
+        $eid    = (int) $enrollmentId;
+        $this->assertTrainerOf($userId, $cid);
+
+        $db = db_connect();
+
+        $enrollment = $db->table('enrollments e')
+            ->select('e.*, u.name, u.username, u.email, lc.name AS class_name, lc.code AS class_code')
+            ->join('users u', 'u.id = e.user_id')
+            ->join('learning_classes lc', 'lc.id = e.class_id')
+            ->where('e.id', $eid)
+            ->where('e.class_id', $cid)
+            ->get()->getRowArray();
+        if (! $enrollment) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Peserta tidak ditemukan.');
+        }
+
+        // Lesson progress
+        $lessonsProgress = $db->table('lessons l')
+            ->select('l.id AS lesson_id, l.title AS lesson_title, l.content_type, m.title AS module_title, m.sort_order AS module_order, l.sort_order AS lesson_order, lp.status, lp.progress_percent, lp.started_at, lp.completed_at')
+            ->join('learning_modules m', 'm.id = l.module_id')
+            ->join('learning_progress lp', 'lp.lesson_id = l.id AND lp.enrollment_id = ' . $eid, 'left')
+            ->where('m.class_id', $cid)
+            ->orderBy('m.sort_order', 'ASC')
+            ->orderBy('l.sort_order', 'ASC')
+            ->get()->getResultArray();
+
+        // Quiz attempts
+        $quizAttempts = $db->table('quiz_attempts qa')
+            ->select('qa.*, q.title AS quiz_title, q.type AS quiz_type')
+            ->join('quizzes q', 'q.id = qa.quiz_id')
+            ->where('qa.enrollment_id', $eid)
+            ->orderBy('qa.started_at', 'DESC')
+            ->get()->getResultArray();
+
+        // Assignment submissions
+        $assignmentSubmissions = $db->table('assignment_submissions s')
+            ->select('s.*, a.title AS assignment_title')
+            ->join('assignments a', 'a.id = s.assignment_id')
+            ->where('s.enrollment_id', $eid)
+            ->orderBy('s.submitted_at', 'DESC')
+            ->get()->getResultArray();
+
+        return $this->render('Detail Peserta: ' . $enrollment['name'], 'trainer/participant_detail', [
+            'classId'              => $cid,
+            'enrollment'           => $enrollment,
+            'lessonsProgress'      => $lessonsProgress,
+            'quizAttempts'         => $quizAttempts,
+            'assignmentSubmissions'=> $assignmentSubmissions,
+            'className'            => $enrollment['class_name'],
+        ], 'trainer', $this->trainerBreadcrumb($cid, 'Detail Peserta'));
+    }
+
+    /**
+     * SUBMIT CATATAN FEEDBACK UNTUK PESERTA
+     */
+    public function submitParticipantFeedback(string $classId, string $enrollmentId)
+    {
+        $userId = $this->userId();
+        $cid    = (int) $classId;
+        $eid    = (int) $enrollmentId;
+        $this->assertTrainerOf($userId, $cid);
+
+        $note = trim((string) $this->request->getPost('trainer_note'));
+        if ($note !== '') {
+            // Catat feedback pada submissions terbaru atau log
+            db_connect()->table('assignment_submissions')
+                ->where('enrollment_id', $eid)
+                ->orderBy('id', 'DESC')
+                ->limit(1)
+                ->update(['feedback' => $note]);
+        }
+
+        return redirect()->back()->with('success', 'Catatan evaluasi untuk peserta berhasil disimpan.');
+    }
+
+    // =========================================================================
+    // 4. MANAGEMENT MODULE & LESSON
+    // =========================================================================
+
+    public function modules(string $classId)
+    {
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=materi');
+    }
+
+    public function materials(string $classId)
+    {
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=materi');
     }
 
     public function createModule(string $classId)
@@ -110,19 +622,13 @@ class TrainerController extends BaseController
         $this->assertTrainerOf($userId, (int) $classId);
 
         if ($this->request->getMethod() === 'POST') {
-            $title = trim((string) $this->request->getPost('title'));
+            $title       = trim((string) $this->request->getPost('title'));
             $description = trim((string) $this->request->getPost('description'));
             $sortOrder   = (int) $this->request->getPost('sort_order');
             $status      = (string) $this->request->getPost('status');
 
             if ($title === '') {
                 return redirect()->back()->withInput()->with('error', 'Judul modul wajib diisi.');
-            }
-            if (mb_strlen($title) > 255) {
-                return redirect()->back()->withInput()->with('error', 'Judul modul maksimal 255 karakter.');
-            }
-            if ($sortOrder < 0) {
-                return redirect()->back()->withInput()->with('error', 'Urutan modul tidak valid.');
             }
             if (! in_array($status, ['draft', 'published', 'archived'], true)) {
                 $status = 'draft';
@@ -131,46 +637,37 @@ class TrainerController extends BaseController
             $db         = db_connect();
             $classIdInt = (int) $classId;
 
-            $maxRow   = $db->table('learning_modules')
-                ->selectMax('sort_order')->where('class_id', $classIdInt)->get()->getRowArray();
+            $maxRow   = $db->table('learning_modules')->selectMax('sort_order')->where('class_id', $classIdInt)->get()->getRowArray();
             $maxOrder = (int) ($maxRow['sort_order'] ?? 0);
-
-            // Tentukan sort_order; auto-geser jika nilai input bentrok dengan UNIQUE (class_id, sort_order)
             $finalSortOrder = $sortOrder > 0 ? $sortOrder : ($maxOrder + 1);
-            if ($finalSortOrder > 0) {
-                $exists = (int) $db->table('learning_modules')
-                    ->where('class_id', $classIdInt)
-                    ->where('sort_order', $finalSortOrder)
-                    ->countAllResults();
-                if ($exists > 0) {
-                    $finalSortOrder = $maxOrder + 1;
-                }
+
+            $exists = (int) $db->table('learning_modules')->where('class_id', $classIdInt)->where('sort_order', $finalSortOrder)->countAllResults();
+            if ($exists > 0) {
+                $finalSortOrder = $maxOrder + 1;
             }
 
             try {
                 $moduleModel = new LearningModuleModel();
-                if ($moduleModel->insert([
+                $moduleModel->insert([
                     'class_id'    => $classIdInt,
                     'title'       => $title,
                     'description' => $description,
                     'sort_order'  => $finalSortOrder,
                     'is_required' => $this->request->getPost('is_required') ? 1 : 0,
                     'status'      => $status,
-                ]) === false) {
-                    throw new \RuntimeException('Data modul tidak tersimpan.');
-                }
+                ]);
             } catch (Throwable $e) {
                 return redirect()->back()->withInput()->with('error', 'Modul gagal dibuat: ' . $e->getMessage());
             }
 
-            return redirect()->to(route_to('workspace.trainer.modules', $classId))->with('success', 'Modul berhasil dibuat.');
+            return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=materi')->with('success', 'Modul berhasil dibuat.');
         }
 
         return $this->render('Tambah Modul', 'trainer/modul_form', [
             'classId'   => (int) $classId,
             'mode'      => 'create',
             'module'    => null,
-            'className' => $this->className($classId),
+            'className' => $this->className((int) $classId),
         ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Tambah Modul'));
     }
 
@@ -193,14 +690,14 @@ class TrainerController extends BaseController
                 'status'      => (string) ($this->request->getPost('status') ?: $module['status']),
                 'is_required' => $this->request->getPost('is_required') ? 1 : 0,
             ]);
-            return redirect()->to(route_to('workspace.trainer.modules', $classId))->with('success', 'Modul berhasil diperbarui.');
+            return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=materi')->with('success', 'Modul berhasil diperbarui.');
         }
 
         return $this->render('Ubah Modul', 'trainer/modul_form', [
-            'classId' => (int) $classId,
-            'mode'    => 'edit',
-            'module'  => $module,
-            'className' => $this->className($classId),
+            'classId'   => (int) $classId,
+            'mode'      => 'edit',
+            'module'    => $module,
+            'className' => $this->className((int) $classId),
         ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Ubah Modul'));
     }
 
@@ -214,27 +711,20 @@ class TrainerController extends BaseController
         } catch (Throwable $e) {
             return redirect()->back()->with('error', 'Modul gagal dihapus: ' . $e->getMessage());
         }
-        return redirect()->to(route_to('workspace.trainer.modules', $classId))->with('success', 'Modul dihapus.');
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=materi')->with('success', 'Modul dihapus.');
     }
 
-    public function materials(string $classId)
+    public function toggleModuleStatus(string $classId, string $moduleId)
     {
         $userId = $this->userId();
         $this->assertTrainerOf($userId, (int) $classId);
-
-        $modules = db_connect()->table('learning_modules m')
-            ->select('m.id AS module_id, m.title, lessons.id AS lesson_id, lessons.title AS lesson_title, lessons.content_type, lessons.status')
-            ->join('lessons', 'lessons.module_id = m.id', 'left')
-            ->where('m.class_id', (int) $classId)
-            ->orderBy('m.sort_order', 'ASC')
-            ->orderBy('lessons.sort_order', 'ASC')
-            ->get()->getResultArray();
-
-        return $this->render('Materi', 'trainer/materi_list', [
-            'classId'   => (int) $classId,
-            'className' => $this->className($classId),
-            'items'     => $modules,
-        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Materi'));
+        $module = (new LearningModuleModel())->where('id', (int) $moduleId)->where('class_id', (int) $classId)->first();
+        if ($module) {
+            $newStatus = ($module['status'] === 'published') ? 'draft' : 'published';
+            (new LearningModuleModel())->update((int) $moduleId, ['status' => $newStatus]);
+            return redirect()->back()->with('success', 'Status modul diperbarui menjadi ' . ucfirst($newStatus));
+        }
+        return redirect()->back()->with('error', 'Modul tidak ditemukan.');
     }
 
     public function createLesson(string $classId, string $moduleId)
@@ -254,22 +744,20 @@ class TrainerController extends BaseController
             }
             try {
                 $lessonModel = new LessonModel();
-                if ($lessonModel->insert($payload['data']) === false) {
-                    throw new \RuntimeException('Data lesson tidak tersimpan.');
-                }
+                $lessonModel->insert($payload['data']);
             } catch (Throwable $e) {
                 return redirect()->back()->withInput()->with('error', 'Lesson gagal dibuat: ' . $e->getMessage());
             }
-            return redirect()->to(route_to('workspace.trainer.materials', $classId))->with('success', 'Lesson berhasil dibuat.');
+            return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=materi')->with('success', 'Materi berhasil ditambahkan.');
         }
 
-        return $this->render('Tambah Lesson', 'trainer/lesson_form', [
+        return $this->render('Tambah Materi', 'trainer/lesson_form', [
             'classId'   => (int) $classId,
             'module'    => $module,
             'mode'      => 'create',
             'lesson'    => null,
-            'className' => $this->className($classId),
-        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Tambah Lesson'));
+            'className' => $this->className((int) $classId),
+        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Tambah Materi'));
     }
 
     public function editLesson(string $classId, string $lessonId)
@@ -284,7 +772,7 @@ class TrainerController extends BaseController
             ->where('learning_modules.class_id', (int) $classId)
             ->get()->getRowArray();
         if (! $lesson) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Lesson tidak ditemukan.');
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Materi tidak ditemukan.');
         }
         $module = (new LearningModuleModel())->find((int) $lesson['module_id']);
 
@@ -294,16 +782,16 @@ class TrainerController extends BaseController
                 return redirect()->back()->withInput()->with('error', $msg);
             }
             $lessonModel->update((int) $lessonId, $payload['data']);
-            return redirect()->to(route_to('workspace.trainer.materials', $classId))->with('success', 'Lesson diperbarui.');
+            return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=materi')->with('success', 'Materi diperbarui.');
         }
 
-        return $this->render('Ubah Lesson', 'trainer/lesson_form', [
+        return $this->render('Ubah Materi', 'trainer/lesson_form', [
             'classId'   => (int) $classId,
             'module'    => $module,
             'mode'      => 'edit',
             'lesson'    => $lesson,
-            'className' => $this->className($classId),
-        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Ubah Lesson'));
+            'className' => $this->className((int) $classId),
+        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Ubah Materi'));
     }
 
     public function deleteLesson(string $classId, string $lessonId)
@@ -313,34 +801,37 @@ class TrainerController extends BaseController
         try {
             (new LessonModel())->where('id', (int) $lessonId)->delete();
         } catch (Throwable $e) {
-            return redirect()->back()->with('error', 'Lesson gagal dihapus: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Materi gagal dihapus: ' . $e->getMessage());
         }
-        return redirect()->to(route_to('workspace.trainer.materials', $classId))->with('success', 'Lesson dihapus.');
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=materi')->with('success', 'Materi dihapus.');
     }
 
-    public function quizzes(string $classId)
+    public function toggleLessonStatus(string $classId, string $lessonId)
     {
         $userId = $this->userId();
         $this->assertTrainerOf($userId, (int) $classId);
+        $lesson = (new LessonModel())->find((int) $lessonId);
+        if ($lesson) {
+            $newStatus = ($lesson['status'] === 'published') ? 'draft' : 'published';
+            (new LessonModel())->update((int) $lessonId, ['status' => $newStatus]);
+            return redirect()->back()->with('success', 'Status materi diperbarui menjadi ' . ucfirst($newStatus));
+        }
+        return redirect()->back()->with('error', 'Materi tidak ditemukan.');
+    }
 
-        $quizzes = db_connect()->table('quizzes')
-            ->where('class_id', (int) $classId)
-            ->orderBy('type', 'ASC')
-            ->orderBy('id', 'ASC')
-            ->get()->getResultArray();
+    // =========================================================================
+    // 5. QUIZ MANAGEMENT
+    // =========================================================================
 
-        return $this->render('Ujian', 'trainer/quiz_list', [
-            'classId'   => (int) $classId,
-            'className' => $this->className($classId),
-            'quizzes'   => $quizzes,
-        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Ujian'));
+    public function quizzes(string $classId)
+    {
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=assessment');
     }
 
     public function createQuiz(string $classId)
     {
         $userId = $this->userId();
         $this->assertTrainerOf($userId, (int) $classId);
-
         $lessons = $this->loadLessonsForClass((int) $classId);
 
         if ($this->request->getMethod() === 'POST') {
@@ -352,23 +843,15 @@ class TrainerController extends BaseController
             if ($title === '') {
                 return redirect()->back()->withInput()->with('error', 'Judul ujian wajib diisi.');
             }
+
             $lessonId = null;
             if ($type === 'lesson_quiz') {
                 $lessonId = (int) $this->request->getPost('lesson_id');
                 if ($lessonId < 1) {
-                    return redirect()->back()->withInput()->with('error', 'Quiz lesson wajib memilih lesson.');
-                }
-                $lessonExists = false;
-                foreach ($lessons as $row) {
-                    if ((int) $row['id'] === $lessonId) {
-                        $lessonExists = true;
-                        break;
-                    }
-                }
-                if (! $lessonExists) {
-                    return redirect()->back()->withInput()->with('error', 'Lesson tidak valid untuk kelas ini.');
+                    return redirect()->back()->withInput()->with('error', 'Quiz modul wajib memilih lesson/materi.');
                 }
             }
+
             $quizId = (new QuizModel())->insert([
                 'class_id'      => (int) $classId,
                 'lesson_id'     => $lessonId,
@@ -377,29 +860,19 @@ class TrainerController extends BaseController
                 'instructions'  => (string) $this->request->getPost('instructions'),
                 'attempt_limit' => max(1, (int) $this->request->getPost('attempt_limit')),
                 'is_required'   => $this->request->getPost('is_required') ? 1 : 0,
-                'status'        => 'draft',
+                'status'        => (string) ($this->request->getPost('status') ?: 'draft'),
             ], true);
-            return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, (string) $quizId))->with('success', 'Ujian dibuat. Tambahkan soal.');
+
+            return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, (string) $quizId))->with('success', 'Ujian dibuat. Silakan tambahkan soal.');
         }
 
         return $this->render('Tambah Ujian', 'trainer/quiz_form', [
             'classId'   => (int) $classId,
-            'className' => $this->className($classId),
+            'className' => $this->className((int) $classId),
             'mode'      => 'create',
             'quiz'      => null,
             'lessons'   => $lessons,
         ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Tambah Ujian'));
-    }
-
-    private function loadLessonsForClass(int $classId): array
-    {
-        return db_connect()->table('lessons l')
-            ->select('l.id, l.title, learning_modules.title AS module_title')
-            ->join('learning_modules', 'learning_modules.id = l.module_id')
-            ->where('learning_modules.class_id', $classId)
-            ->orderBy('learning_modules.sort_order', 'ASC')
-            ->orderBy('l.sort_order', 'ASC')
-            ->get()->getResultArray();
     }
 
     public function editQuiz(string $classId, string $quizId)
@@ -419,7 +892,7 @@ class TrainerController extends BaseController
                 'is_required'   => $this->request->getPost('is_required') ? 1 : 0,
                 'status'        => (string) ($this->request->getPost('status') ?: $quiz['status']),
             ]);
-            return redirect()->back()->with('success', 'Ujian diperbarui.');
+            return redirect()->back()->with('success', 'Ujian berhasil diperbarui.');
         }
 
         $questions = db_connect()->table('quiz_questions')
@@ -438,14 +911,14 @@ class TrainerController extends BaseController
             }
         }
 
-        return $this->render('Soal Ujian', 'trainer/quiz_edit', [
-            'classId'   => (int) $classId,
-            'className' => $this->className($classId),
-            'mode'      => 'edit',
-            'quiz'      => $quiz,
-            'questions' => $questions,
+        return $this->render('Kelola Soal: ' . $quiz['title'], 'trainer/quiz_edit', [
+            'classId'           => (int) $classId,
+            'className'         => $this->className((int) $classId),
+            'mode'              => 'edit',
+            'quiz'              => $quiz,
+            'questions'         => $questions,
             'optionsByQuestion' => $optionsByQuestion,
-        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Soal'));
+        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Soal Ujian'));
     }
 
     public function addQuestion(string $classId, string $quizId)
@@ -466,10 +939,10 @@ class TrainerController extends BaseController
             $correct = (int) $this->request->getPost('correct_option');
             $options = array_values(array_filter(array_map('trim', $options), static fn ($o): bool => $o !== ''));
             if (count($options) < 2) {
-                return redirect()->back()->withInput()->with('error', 'Minimal dua pilihan jawaban.');
+                return redirect()->back()->withInput()->with('error', 'Minimal sediakan dua pilihan jawaban.');
             }
             if ($correct < 0 || $correct >= count($options)) {
-                return redirect()->back()->withInput()->with('error', 'Tandai satu jawaban benar.');
+                return redirect()->back()->withInput()->with('error', 'Tandai satu pilihan sebagai jawaban benar.');
             }
 
             $maxOrder = (int) (db_connect()->table('quiz_questions')->selectMax('sort_order')->where('quiz_id', (int) $quizId)->get()->getRowArray()['sort_order'] ?? 0);
@@ -477,7 +950,7 @@ class TrainerController extends BaseController
                 'quiz_id'    => (int) $quizId,
                 'type'       => 'multiple_choice',
                 'prompt'     => $prompt,
-                'points'     => max(0.01, (float) $this->request->getPost('points')),
+                'points'     => max(0.01, (float) ($this->request->getPost('points') ?: 1.0)),
                 'sort_order' => $maxOrder + 1,
                 'explanation'=> (string) $this->request->getPost('explanation'),
             ], true);
@@ -491,90 +964,381 @@ class TrainerController extends BaseController
                 ]);
             }
 
-            return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, $quizId))->with('success', 'Soal ditambahkan.');
+            return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, $quizId))->with('success', 'Soal berhasil ditambahkan.');
         }
 
         return $this->render('Tambah Soal', 'trainer/question_form', [
             'classId'   => (int) $classId,
             'quiz'      => $quiz,
-            'className' => $this->className($classId),
+            'className' => $this->className((int) $classId),
         ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Tambah Soal'));
     }
 
-    public function progress(string $classId)
+    public function deleteQuestion(string $classId, string $quizId, string $questionId)
     {
         $userId = $this->userId();
         $this->assertTrainerOf($userId, (int) $classId);
 
-        $rows = db_connect()->table('enrollments e')
-            ->select('u.name, u.username, u.email, lp.status, lp.progress_percent, lp.started_at, lp.completed_at, lessons.title AS lesson_title')
+        try {
+            db_connect()->table('quiz_options')->where('question_id', (int) $questionId)->delete();
+            (new QuestionModel())->where('id', (int) $questionId)->where('quiz_id', (int) $quizId)->delete();
+        } catch (Throwable $e) {
+            return redirect()->back()->with('error', 'Soal gagal dihapus: ' . $e->getMessage());
+        }
+
+        return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, $quizId))->with('success', 'Soal dihapus.');
+    }
+
+    // =========================================================================
+    // 6. ASSIGNMENT MANAGEMENT
+    // =========================================================================
+
+    public function assignments(string $classId)
+    {
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=assignment');
+    }
+
+    public function createAssignment(string $classId)
+    {
+        $userId = $this->userId();
+        $this->assertTrainerOf($userId, (int) $classId);
+        $lessons = $this->loadLessonsForClass((int) $classId);
+
+        if ($this->request->getMethod() === 'POST') {
+            $title = trim((string) $this->request->getPost('title'));
+            if ($title === '') {
+                return redirect()->back()->withInput()->with('error', 'Judul tugas wajib diisi.');
+            }
+
+            $lessonId = (int) $this->request->getPost('lesson_id') ?: null;
+            $dueAt    = $this->request->getPost('due_at') ? date('Y-m-d H:i:s', strtotime((string) $this->request->getPost('due_at'))) : null;
+            $status   = (string) ($this->request->getPost('status') ?: 'published');
+
+            try {
+                (new AssignmentModel())->insert([
+                    'class_id'     => (int) $classId,
+                    'lesson_id'    => $lessonId,
+                    'title'        => $title,
+                    'instructions' => (string) $this->request->getPost('instructions'),
+                    'due_at'       => $dueAt,
+                    'is_required'  => $this->request->getPost('is_required') ? 1 : 0,
+                    'max_attempts' => max(1, (int) ($this->request->getPost('max_attempts') ?: 1)),
+                    'status'       => $status,
+                    'created_by'   => $userId,
+                    'updated_by'   => $userId,
+                ]);
+            } catch (Throwable $e) {
+                return redirect()->back()->withInput()->with('error', 'Tugas gagal dibuat: ' . $e->getMessage());
+            }
+
+            return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=assignment')->with('success', 'Tugas berhasil dibuat.');
+        }
+
+        return $this->render('Buat Tugas Baru', 'trainer/assignment_form', [
+            'classId'    => (int) $classId,
+            'mode'       => 'create',
+            'assignment' => null,
+            'lessons'    => $lessons,
+            'className'  => $this->className((int) $classId),
+        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Buat Tugas'));
+    }
+
+    public function editAssignment(string $classId, string $assignmentId)
+    {
+        $userId = $this->userId();
+        $this->assertTrainerOf($userId, (int) $classId);
+        $assignment = (new AssignmentModel())->where('id', (int) $assignmentId)->where('class_id', (int) $classId)->first();
+        if (! $assignment) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Tugas tidak ditemukan.');
+        }
+        $lessons = $this->loadLessonsForClass((int) $classId);
+
+        if ($this->request->getMethod() === 'POST') {
+            $title = trim((string) $this->request->getPost('title'));
+            if ($title === '') {
+                return redirect()->back()->withInput()->with('error', 'Judul tugas wajib diisi.');
+            }
+
+            $lessonId = (int) $this->request->getPost('lesson_id') ?: null;
+            $dueAt    = $this->request->getPost('due_at') ? date('Y-m-d H:i:s', strtotime((string) $this->request->getPost('due_at'))) : null;
+            $status   = (string) ($this->request->getPost('status') ?: $assignment['status']);
+
+            (new AssignmentModel())->update((int) $assignmentId, [
+                'lesson_id'    => $lessonId,
+                'title'        => $title,
+                'instructions' => (string) $this->request->getPost('instructions'),
+                'due_at'       => $dueAt,
+                'is_required'  => $this->request->getPost('is_required') ? 1 : 0,
+                'max_attempts' => max(1, (int) ($this->request->getPost('max_attempts') ?: 1)),
+                'status'       => $status,
+                'updated_by'   => $userId,
+            ]);
+
+            return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=assignment')->with('success', 'Tugas berhasil diperbarui.');
+        }
+
+        return $this->render('Ubah Tugas', 'trainer/assignment_form', [
+            'classId'    => (int) $classId,
+            'mode'       => 'edit',
+            'assignment' => $assignment,
+            'lessons'    => $lessons,
+            'className'  => $this->className((int) $classId),
+        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Ubah Tugas'));
+    }
+
+    public function deleteAssignment(string $classId, string $assignmentId)
+    {
+        $userId = $this->userId();
+        $this->assertTrainerOf($userId, (int) $classId);
+
+        try {
+            (new AssignmentModel())->where('id', (int) $assignmentId)->where('class_id', (int) $classId)->delete();
+        } catch (Throwable $e) {
+            return redirect()->back()->with('error', 'Tugas gagal dihapus: ' . $e->getMessage());
+        }
+
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=assignment')->with('success', 'Tugas berhasil dihapus.');
+    }
+
+    public function allSubmissions()
+    {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $assignedClasses = $this->getTrainerClasses($userId);
+        if ($assignedClasses === []) {
+            return $this->render('Review Pengumpulan Tugas', 'trainer/assignment_submissions', [
+                'classId'     => 0,
+                'assignment'  => ['title' => 'Semua Pengumpulan Tugas'],
+                'submissions' => [],
+                'className'   => 'Semua Kelas',
+            ], 'trainer');
+        }
+
+        $classIds = array_column($assignedClasses, 'id');
+        $selectedClassId = (int) ($this->request->getGet('class_id') ?: 0);
+        $statusFilter    = (string) $this->request->getGet('status');
+
+        $query = $db->table('assignment_submissions s')
+            ->select('s.*, a.title AS assignment_title, lc.name AS class_name, u.name AS user_name, u.email AS user_email')
+            ->join('assignments a', 'a.id = s.assignment_id')
+            ->join('learning_classes lc', 'lc.id = a.class_id')
+            ->join('enrollments e', 'e.id = s.enrollment_id')
             ->join('users u', 'u.id = e.user_id')
-            ->join('learning_progress lp', 'lp.enrollment_id = e.id', 'left')
-            ->join('lessons', 'lessons.id = lp.lesson_id', 'left')
-            ->where('e.class_id', (int) $classId)
-            ->orderBy('u.name', 'ASC')
-            ->orderBy('lessons.sort_order', 'ASC')
+            ->whereIn('a.class_id', $classIds);
+
+        if ($selectedClassId > 0 && in_array($selectedClassId, $classIds, true)) {
+            $query->where('a.class_id', $selectedClassId);
+        }
+        if ($statusFilter !== '') {
+            $query->where('s.status', $statusFilter);
+        }
+
+        $submissions = $query->orderBy('s.submitted_at', 'DESC')->get()->getResultArray();
+
+        return $this->render('Review Pengumpulan Tugas', 'trainer/assignment_submissions', [
+            'classId'     => $selectedClassId ?: (int) $assignedClasses[0]['id'],
+            'assignment'  => ['title' => 'Daftar Semua Submission Tugas'],
+            'submissions' => $submissions,
+            'className'   => $selectedClassId > 0 ? $this->className($selectedClassId) : 'Seluruh Kelas Binaan',
+        ], 'trainer');
+    }
+
+    public function assignmentSubmissions(string $classId, string $assignmentId)
+    {
+        $userId = $this->userId();
+        $this->assertTrainerOf($userId, (int) $classId);
+        $db = db_connect();
+
+        $assignment = (new AssignmentModel())->where('id', (int) $assignmentId)->where('class_id', (int) $classId)->first();
+        if (! $assignment) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Tugas tidak ditemukan.');
+        }
+
+        $submissions = $db->table('assignment_submissions s')
+            ->select('s.*, u.name AS user_name, u.email AS user_email')
+            ->join('enrollments e', 'e.id = s.enrollment_id')
+            ->join('users u', 'u.id = e.user_id')
+            ->where('s.assignment_id', (int) $assignmentId)
+            ->orderBy('s.submitted_at', 'DESC')
             ->get()->getResultArray();
 
-        return $this->render('Progress Peserta', 'trainer/progress', [
-            'classId'   => (int) $classId,
-            'className' => $this->className($classId),
-            'items'     => $rows,
-        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Progress'));
+        return $this->render('Submission: ' . $assignment['title'], 'trainer/assignment_submissions', [
+            'classId'     => (int) $classId,
+            'assignment'  => $assignment,
+            'submissions' => $submissions,
+            'className'   => $this->className((int) $classId),
+        ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Submission'));
+    }
+
+    public function reviewSubmission(string $submissionId)
+    {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $submission = $db->table('assignment_submissions s')
+            ->select('s.*, a.title AS assignment_title, a.instructions AS assignment_instructions, a.class_id, u.name AS user_name, u.email AS user_email')
+            ->join('assignments a', 'a.id = s.assignment_id')
+            ->join('enrollments e', 'e.id = s.enrollment_id')
+            ->join('users u', 'u.id = e.user_id')
+            ->where('s.id', (int) $submissionId)
+            ->get()->getRowArray();
+        if (! $submission) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Submission tidak ditemukan.');
+        }
+
+        $this->assertTrainerOf($userId, (int) $submission['class_id']);
+
+        $files = $db->table('assignment_submission_files sf')
+            ->select('f.*')
+            ->join('file_assets f', 'f.id = sf.file_id')
+            ->where('sf.submission_id', (int) $submissionId)
+            ->get()->getResultArray();
+
+        return $this->render('Review Tugas: ' . $submission['user_name'], 'trainer/submission_review', [
+            'submission' => $submission,
+            'files'      => $files,
+            'classId'    => (int) $submission['class_id'],
+            'className'  => $this->className((int) $submission['class_id']),
+        ], 'trainer', $this->trainerBreadcrumb((int) $submission['class_id'], 'Review Tugas'));
+    }
+
+    public function submitReviewSubmission(string $submissionId)
+    {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $submission = $db->table('assignment_submissions s')
+            ->select('s.*, a.class_id')
+            ->join('assignments a', 'a.id = s.assignment_id')
+            ->where('s.id', (int) $submissionId)
+            ->get()->getRowArray();
+        if (! $submission) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Submission tidak ditemukan.');
+        }
+
+        $this->assertTrainerOf($userId, (int) $submission['class_id']);
+
+        $score    = (float) $this->request->getPost('score');
+        $feedback = trim((string) $this->request->getPost('feedback'));
+        $status   = (string) $this->request->getPost('status');
+
+        if (! in_array($status, ['graded', 'revision_required', 'in_review'], true)) {
+            $status = 'graded';
+        }
+        $score = max(0.0, min(100.0, $score));
+
+        (new AssignmentSubmissionModel())->update((int) $submissionId, [
+            'score'        => $score,
+            'feedback'     => $feedback,
+            'status'       => $status,
+            'graded_by'    => $userId,
+            'graded_at'    => date('Y-m-d H:i:s'),
+        ]);
+
+        if ($status === 'graded') {
+            try {
+                $this->learning->evaluateCompletion((int) $submission['enrollment_id']);
+            } catch (Throwable $e) {
+                log_message('error', 'evaluateCompletion failed: {m}', ['m' => $e->getMessage()]);
+            }
+        }
+
+        return redirect()->to(route_to('workspace.trainer.assignment.submissions', (string) $submission['class_id'], (string) $submission['assignment_id']))
+            ->with('success', 'Penilaian dan feedback tugas berhasil disimpan.');
+    }
+
+    // =========================================================================
+    // 7 & 8. PESERTA & PROGRESS
+    // =========================================================================
+
+    public function participants(string $classId)
+    {
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=peserta');
+    }
+
+    public function progress(string $classId)
+    {
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=progres');
+    }
+
+    // =========================================================================
+    // HELPER METHODS
+    // =========================================================================
+
+    private function getTrainerClasses(int $userId): array
+    {
+        return db_connect()->table('class_trainers ct')
+            ->select('lc.id, lc.name, lc.code, lc.status, courses.title AS course_title')
+            ->join('learning_classes lc', 'lc.id = ct.class_id')
+            ->join('courses', 'courses.id = lc.course_id')
+            ->where('ct.user_id', $userId)
+            ->where('ct.status', 'active')
+            ->orderBy('lc.name', 'ASC')
+            ->get()->getResultArray();
+    }
+
+    private function loadLessonsForClass(int $classId): array
+    {
+        return db_connect()->table('lessons l')
+            ->select('l.id, l.title, learning_modules.title AS module_title')
+            ->join('learning_modules', 'learning_modules.id = l.module_id')
+            ->where('learning_modules.class_id', $classId)
+            ->orderBy('learning_modules.sort_order', 'ASC')
+            ->orderBy('l.sort_order', 'ASC')
+            ->get()->getResultArray();
     }
 
     private function lessonPayload(int $moduleId, int $actorId): array
     {
         $title = trim((string) $this->request->getPost('title'));
         if ($title === '') {
-            return ['error' => 'Judul lesson wajib diisi.'];
-        }
-        if (mb_strlen($title) > 255) {
-            return ['error' => 'Judul lesson maksimal 255 karakter.'];
+            return ['error' => 'Judul materi wajib diisi.'];
         }
         $contentType = (string) $this->request->getPost('content_type');
         if (! in_array($contentType, ['text', 'document', 'video', 'link'], true)) {
-            return ['error' => 'Tipe konten tidak valid.'];
+            return ['error' => 'Tipe konten materi tidak valid.'];
         }
-        $content = (string) $this->request->getPost('content');
-        $fileId  = null;
+
+        $content     = (string) $this->request->getPost('content');
         $externalUrl = null;
+        $fileId      = null;
+
         if ($contentType === 'document') {
             $fileId = (int) $this->request->getPost('file_id');
             if ($fileId < 1) {
-                $fileId = $this->registerFileAsset((string) $this->request->getPost('document_label'), 'document');
-                if ($fileId === null) {
-                    return ['error' => 'Lengkapi data file materi.'];
-                }
+                $fileId = $this->registerFileAsset((string) ($this->request->getPost('document_label') ?: $title), 'document');
             }
         } elseif ($contentType === 'video' || $contentType === 'link') {
             $externalUrl = trim((string) $this->request->getPost('external_url'));
             if ($externalUrl === '') {
-                return ['error' => 'URL wajib diisi untuk tipe video/link.'];
+                return ['error' => 'URL wajib diisi untuk tipe video atau link.'];
             }
         }
 
         $maxRow = db_connect()->table('lessons')
             ->selectMax('sort_order')
             ->where('module_id', $moduleId)
-            ->get()
-            ->getRowArray();
+            ->get()->getRowArray();
         $maxOrder = (int) ($maxRow['sort_order'] ?? 0);
+        $sortOrder = (int) $this->request->getPost('sort_order') ?: ($maxOrder + 1);
+
+        $status = (string) ($this->request->getPost('status') ?: 'published');
 
         return ['data' => [
             'module_id'    => $moduleId,
-            'title'         => $title,
-            'slug'          => url_title($title, '-', true),
-            'content_type'  => $contentType,
-            'content'       => $content,
-            'file_id'       => $fileId,
-            'external_url'  => $externalUrl,
-            'sort_order'    => $maxOrder + 1,
-            'is_required'   => 1,
-            'status'        => 'draft',
-            'visibility'    => 'internal',
-            'created_by'    => $actorId,
-            'updated_by'    => $actorId,
+            'title'        => $title,
+            'slug'         => url_title($title, '-', true) . '-' . substr((string) time(), -4),
+            'content_type' => $contentType,
+            'content'      => $content,
+            'file_id'      => $fileId,
+            'external_url' => $externalUrl,
+            'sort_order'   => $sortOrder,
+            'is_required'  => $this->request->getPost('is_required') ? 1 : 0,
+            'status'       => $status,
+            'visibility'   => 'internal',
+            'created_by'   => $actorId,
+            'updated_by'   => $actorId,
         ]];
     }
 
@@ -584,21 +1348,21 @@ class TrainerController extends BaseController
         if ($label === '') {
             return null;
         }
-        $now = date('Y-m-d H:i:s');
+        $now  = date('Y-m-d H:i:s');
         $path = 'lessons/' . url_title($label, '-', true) . '-' . substr((string) time(), -4);
-        $row = [
+        $row  = [
             'disk'            => 'local',
             'path'            => $path,
-            'original_name'    => $label,
-            'stored_name'      => basename($path),
-            'extension'        => 'bin',
-            'mime_type'        => 'application/octet-stream',
-            'size_bytes'       => 0,
-            'visibility'       => 'internal',
-            'lifecycle_status' => 'pending_upload',
-            'resource_type'    => 'lesson',
-            'created_at'       => $now,
-            'updated_at'       => $now,
+            'original_name'   => $label,
+            'stored_name'     => basename($path),
+            'extension'       => 'bin',
+            'mime_type'       => 'application/octet-stream',
+            'size_bytes'      => 0,
+            'visibility'      => 'internal',
+            'lifecycle_status'=> 'pending_upload',
+            'resource_type'   => 'lesson',
+            'created_at'      => $now,
+            'updated_at'      => $now,
         ];
         return (int) db_connect()->table('file_assets')->insert($row, true);
     }
@@ -663,12 +1427,12 @@ class TrainerController extends BaseController
     {
         $data = array_merge($data, [
             'pageTitle'      => $pageTitle,
-            'breadcrumbTail'  => $breadcrumbTail,
+            'breadcrumbTail' => $breadcrumbTail,
             'activeMenu'     => $activeMenu,
-            'activeSubmenu'   => '',
-            'userName'       => session()->get('username') ?? 'Pengguna',
-            'roleLabel'       => 'Pengajar',
-            'innerView'       => 'main/workspace/pages/' . $viewPage,
+            'activeSubmenu'  => '',
+            'userName'       => session()->get('username') ?? 'Pengajar',
+            'roleLabel'      => 'Pengajar',
+            'innerView'      => 'main/workspace/pages/' . $viewPage,
         ]);
         return view('main/workspace/layouts/workspace_inner', $data);
     }
