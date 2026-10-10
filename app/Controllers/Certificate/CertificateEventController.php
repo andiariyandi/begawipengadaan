@@ -5,171 +5,276 @@ namespace App\Controllers\Certificate;
 use App\Controllers\BaseController;
 use App\Services\AuditService;
 use App\Services\CertificateEligibilityService;
+use App\Services\CertificateGenerator;
 use CodeIgniter\Database\ConnectionInterface;
 use RuntimeException;
 
 /**
- * Pengajuan sertifikat EVENT batch.
+ * CertificateEventController
  *
- * Menampilkan event yang eligible untuk pengajuan, preview peserta,
- * dan eksekusi generate yang HANYA membuat approvals (pending) —
- * bukan certificates. Approvals kemudian diproses di
- * CertificateApprovalController::issue() oleh approver.
- *
- * Flow:
- *   Event selesai
- *     → select()           : pilih event
- *     → preview($eventId)  : peserta eligible
- *     → generate($eventId) : buat approvals (pending)
- *     → admin/operator approve di CertificateApprovalController::issue()
- *     → CertificateGenerator bikin certificates
+ * Mengelola sertifikat event/agenda:
+ * Hirarki: Event / Agenda -> Peserta Terdaftar -> Presensi / Kehadiran (Hadir / Present) -> Sertifikat.
  */
 class CertificateEventController extends BaseController
 {
     private ConnectionInterface $db;
     private CertificateEligibilityService $eligibility;
+    private CertificateGenerator $generator;
     private AuditService $auditService;
 
     public function __construct()
     {
-        $this->db = db_connect();
+        $this->db           = db_connect();
         $this->eligibility  = new CertificateEligibilityService();
+        $this->generator    = new CertificateGenerator();
         $this->auditService = new AuditService();
     }
 
     /**
-     * GET /dashboard/sertifikat/pengajuan-event
+     * GET /dashboard/sertifikat/event
+     * Menampilkan daftar event beserta ringkasan peserta hadir dan sertifikat terbit.
      */
-    public function select()
+    public function index()
     {
-        $events = $this->eligibility->listEligibleEvents();
+        $keyword = trim((string) $this->request->getGet('keyword'));
+        $status  = (string) $this->request->getGet('status');
 
-        // Tandai event yang sudah punya approval aktif (supaya admin tidak
-        // double-submit untuk event yang sama).
-        if (! empty($events)) {
-            $ids = array_map(static fn ($r) => (int) $r['id'], $events);
-            $approvalStats = $this->db->table('approvals a')
-                ->select('a.resource_id, COUNT(*) AS pending_count')
-                ->join('event_registrations er', 'er.id = a.resource_id', 'left')
-                ->where('a.resource_type', 'certificate')
-                ->where('a.requested_action', CertificateEligibilityService::APPROVAL_ACTION)
-                ->where('a.status', 'pending')
-                ->whereIn('er.event_id', $ids)
-                ->groupBy('a.resource_id')
-                ->get()
-                ->getResultArray();
+        $builder = $this->db->table('events ev')
+            ->select([
+                'ev.id',
+                'ev.title',
+                'ev.slug',
+                'ev.start_at',
+                'ev.end_at',
+                'ev.mode',
+                'ev.location',
+                'ev.certificate_enabled',
+                'ev.status AS event_status',
+                'COUNT(er.id) AS total_registered',
+                'SUM(CASE WHEN a.status = "present" THEN 1 ELSE 0 END) AS total_present',
+                'SUM(CASE WHEN c.id IS NOT NULL AND c.status = "issued" THEN 1 ELSE 0 END) AS total_certified',
+            ])
+            ->join('event_registrations er', 'er.event_id = ev.id', 'left')
+            ->join('attendances a', 'a.event_registration_id = er.id', 'left')
+            ->join('certificates c', 'c.source_type = "event_registration" AND c.source_id = er.id', 'left')
+            ->where('ev.deleted_at IS NULL', null, false)
+            ->groupBy('ev.id')
+            ->orderBy('ev.start_at', 'DESC');
 
-            $pendingByEventReg = [];
-            foreach ($approvalStats as $row) {
-                $pendingByEventReg[(int) $row['resource_id']] = (int) $row['pending_count'];
-            }
-
-            // Hitung per event: jumlah approval pending
-            $pendingByEvent = [];
-            $regs = $this->db->table('event_registrations')
-                ->select('id, event_id')
-                ->whereIn('event_id', $ids)
-                ->get()
-                ->getResultArray();
-            foreach ($regs as $r) {
-                $eventId = (int) $r['event_id'];
-                if (! isset($pendingByEvent[$eventId])) {
-                    $pendingByEvent[$eventId] = 0;
-                }
-                $pendingByEvent[$eventId] += (int) ($pendingByEventReg[(int) $r['id']] ?? 0);
-            }
-
-            foreach ($events as &$ev) {
-                $ev['pending_approval_count'] = $pendingByEvent[(int) $ev['id']] ?? 0;
-            }
-            unset($ev);
+        if ($keyword !== '') {
+            $builder->like('ev.title', $keyword);
         }
 
+        if ($status !== '' && $status !== 'all') {
+            $builder->where('ev.status', $status);
+        }
+
+        $events = $builder->get()->getResultArray();
+
         return view('dashboard/certificates/events/select', [
-            'title'         => 'Pengajuan Sertifikat Event | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Pengajuan Sertifikat Event',
+            'title'         => 'Event Certificate | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Event / Agenda Certificate',
             'activeMenu'    => 'certificates',
-            'activeSubmenu' => 'event-approval',
+            'activeSubmenu' => 'event',
             'events'        => $events,
+            'keyword'       => $keyword,
+            'statusFilter'  => $status ?: 'all',
         ]);
     }
 
     /**
-     * GET /dashboard/sertifikat/pengajuan-event/{eventId}/preview
+     * GET /dashboard/sertifikat/event/{eventId}
+     * Menampilkan preview peserta event, status presensi, dan status sertifikat.
      */
-    public function preview(string $eventId)
+    public function detail(string $eventId)
     {
-        $eventId = (int) $eventId;
-        $event   = $this->db->table('events')->where('id', $eventId)->get()->getRowArray();
+        $eventIdInt = (int) $eventId;
+        $event      = $this->db->table('events')->where('id', $eventIdInt)->get()->getRowArray();
         if (! $event) {
             return $this->notFound('Event tidak ditemukan.');
         }
 
-        $participants = $this->db->table('event_registrations er')
+        $attendanceFilter = (string) $this->request->getGet('attendance');
+
+        $builder = $this->db->table('event_registrations er')
             ->select([
                 'er.id          AS registration_id',
                 'er.user_id',
                 'er.status      AS registration_status',
+                'er.created_at  AS registered_at',
                 'u.name         AS user_name',
                 'u.email        AS user_email',
                 'a.status       AS attendance_status',
-                $this->db->raw("CASE WHEN a.status = 'present' THEN 1 ELSE 0 END AS eligible"),
-                $this->db->raw("(SELECT COUNT(*) FROM approvals ap WHERE ap.resource_type = 'certificate' AND ap.resource_id = er.id AND ap.status = 'pending') AS pending_approval"),
-                $this->db->raw("(SELECT COUNT(*) FROM certificates c WHERE c.source_type = 'event_registration' AND c.source_id = er.id AND c.status = 'issued') AS existing_certificate"),
+                'a.created_at   AS attended_at',
+                'c.id           AS certificate_id',
+                'c.certificate_number',
+                'c.status       AS certificate_status',
+                'c.issued_at    AS certificate_issued_at',
             ])
-            ->join('attendances a', 'a.event_registration_id = er.id', 'left')
-            ->join('users u',        'u.id = er.user_id',          'left')
-            ->where('er.event_id', $eventId)
+            ->join('attendances a',   'a.event_registration_id = er.id', 'left')
+            ->join('users u',          'u.id = er.user_id',               'left')
+            ->join('certificates c',   'c.source_type = "event_registration" AND c.source_id = er.id', 'left')
+            ->where('er.event_id', $eventIdInt)
             ->where('er.status', 'registered')
-            ->orderBy('u.name', 'ASC')
-            ->get()
-            ->getResultArray();
+            ->orderBy('u.name', 'ASC');
+
+        if ($attendanceFilter === 'present') {
+            $builder->where('a.status', 'present');
+        } elseif ($attendanceFilter === 'absent') {
+            $builder->groupStart()
+                ->where('a.status IS NULL', null, false)
+                ->orWhere('a.status !=', 'present')
+                ->groupEnd();
+        }
+
+        $participants = $builder->get()->getResultArray();
+
+        $eligibleCount = 0;
+        foreach ($participants as &$p) {
+            $isPresent = ($p['attendance_status'] === 'present');
+            $hasCert   = (! empty($p['certificate_id']) && $p['certificate_status'] === 'issued');
+
+            if ($hasCert) {
+                $p['eligibility_status'] = 'certified';
+                $p['eligibility_label']  = 'Sudah Terbit';
+            } elseif ($isPresent) {
+                $p['eligibility_status'] = 'eligible';
+                $p['eligibility_label']  = 'Layak (Hadir)';
+                $eligibleCount++;
+            } else {
+                $p['eligibility_status'] = 'not_eligible';
+                $p['eligibility_label']  = 'Tidak Hadir';
+            }
+        }
+        unset($p);
 
         return view('dashboard/certificates/events/preview', [
-            'title'         => 'Preview Peserta Event | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Preview Peserta Event',
-            'activeMenu'    => 'certificates',
-            'activeSubmenu' => 'event-approval',
-            'event'         => $event,
-            'eventId'       => $eventId,
-            'participants'  => $participants,
+            'title'            => 'Peserta & Presensi Event | ' . ($event['title'] ?? 'Event'),
+            'pageTitle'        => 'Sertifikat Event — ' . ($event['title'] ?? 'Event'),
+            'activeMenu'       => 'certificates',
+            'activeSubmenu'    => 'event',
+            'event'            => $event,
+            'eventId'          => $eventIdInt,
+            'participants'     => $participants,
+            'eligibleCount'    => $eligibleCount,
+            'attendanceFilter' => $attendanceFilter ?: 'all',
         ]);
     }
 
     /**
-     * POST /dashboard/sertifikat/pengajuan-event/{eventId}/generate
-     *
-     * Hasil: HANYA approvals (status pending). Tidak membuat baris
-     * certificates. Approvals akan muncul di antrean
-     * CertificateApprovalController::index().
+     * POST /dashboard/sertifikat/event/issue/{registrationId}
+     * Penerbitan single sertifikat untuk peserta event yang hadir.
      */
-    public function generate(string $eventId)
+    public function issueSingle(string $registrationId)
     {
-        $eventId  = (int) $eventId;
+        $regIdInt = (int) $registrationId;
         $actorId  = (int) session()->get('user_id');
-        $now      = date('Y-m-d H:i:s');
 
         try {
-            if ($actorId < 1 || session()->get('isLoggedIn') !== true) {
-                throw new RuntimeException('Akses ditolak.');
+            // Validasi kehadiran
+            $attendance = $this->db->table('attendances')
+                ->where('event_registration_id', $regIdInt)
+                ->where('status', 'present')
+                ->get()
+                ->getRowArray();
+
+            if (! $attendance) {
+                throw new RuntimeException('Peserta belum terkonfirmasi hadir (status presensi bukan present). Hanya peserta hadir yang berhak menerima sertifikat.');
             }
 
-            $created = $this->eligibility->scanEventParticipantsEligible($eventId, $actorId);
+            $result = $this->generator->generateDirect('event_registration', $regIdInt, $actorId);
 
-            $this->auditService->log($actorId, 'approval.batch_created', 'approval', 'event', $eventId, [
-                'resource_type'    => 'certificate',
-                'requested_action' => CertificateEligibilityService::APPROVAL_ACTION,
-                'count'            => count($created),
-            ]);
-
-            return redirect()->to(site_url('dashboard/sertifikat/approval'))
-                ->with(
-                    'success',
-                    count($created) . ' approval sertifikat berhasil dibuat dan menunggu persetujuan.'
-                );
-        } catch (RuntimeException $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->with(
+                'success',
+                "Sertifikat event berhasil diterbitkan dengan nomor: {$result['certificate_number']}."
+            );
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Gagal menerbitkan sertifikat: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * POST /dashboard/sertifikat/event/{eventId}/batch
+     * Penerbitan sertifikat batch untuk seluruh peserta yang hadir di event.
+     */
+    public function issueBatch(string $eventId)
+    {
+        $eventIdInt = (int) $eventId;
+        $actorId    = (int) session()->get('user_id');
+
+        try {
+            // Cari peserta yang hadir (status = 'present')
+            $attendees = $this->db->table('event_registrations er')
+                ->select('er.id, er.user_id')
+                ->join('attendances a', 'a.event_registration_id = er.id')
+                ->where('er.event_id', $eventIdInt)
+                ->where('er.status', 'registered')
+                ->where('a.status', 'present')
+                ->get()
+                ->getResultArray();
+
+            if (empty($attendees)) {
+                return redirect()->back()->with('warning', 'Tidak ada peserta dengan presensi "Hadir" pada event ini.');
+            }
+
+            $successCount = 0;
+            $skippedCount = 0;
+            $failedCount  = 0;
+
+            foreach ($attendees as $att) {
+                $regId = (int) $att['id'];
+
+                // Cek apakah sudah pernah terbit
+                $exists = $this->db->table('certificates')
+                    ->where('source_type', 'event_registration')
+                    ->where('source_id', $regId)
+                    ->countAllResults();
+
+                if ($exists > 0) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                try {
+                    $this->generator->generateDirect('event_registration', $regId, $actorId);
+                    $successCount++;
+                } catch (\Throwable $err) {
+                    $failedCount++;
+                    log_message('error', '[BatchEventCert] Failed for reg #' . $regId . ': ' . $err->getMessage());
+                }
+            }
+
+            $msg = "Batch selesai. Berhasil diterbitkan: {$successCount} sertifikat.";
+            if ($skippedCount > 0) {
+                $msg .= " Dilewati (sudah memiliki sertifikat): {$skippedCount}.";
+            }
+            if ($failedCount > 0) {
+                $msg .= " Gagal: {$failedCount}.";
+            }
+
+            return redirect()->back()->with('success', $msg);
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Gagal memproses batch sertifikat event: ' . $e->getMessage());
+        }
+    }
+
+    // =============================================================
+    // Compatibility methods
+    // =============================================================
+
+    public function select()
+    {
+        return $this->index();
+    }
+
+    public function preview(string $eventId)
+    {
+        return $this->detail($eventId);
+    }
+
+    public function generate(string $eventId)
+    {
+        return $this->issueBatch($eventId);
     }
 
     private function notFound(string $msg)

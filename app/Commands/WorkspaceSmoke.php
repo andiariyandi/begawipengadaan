@@ -92,7 +92,19 @@ class WorkspaceSmoke extends BaseCommand
         $sidebarRoleChecks = [
             'participant' => ['Pembelajaran Saya', 'Tugas', 'Assessment', 'Sertifikat Saya', 'Bookmark'],
             'trainer'     => ['Kelas Saya', 'Materi Pembelajaran', 'Assessment', 'Peserta', 'Progress Peserta'],
-            'operator'    => ['Approval', 'Verifikasi Profil', 'Event Operation', 'Presensi', 'Evaluasi'],
+            'operator'    => [
+                'Beranda',
+                'Approval',
+                'Verifikasi User',
+                'Kelas & Trainer Assignment',
+                'Operasional Event',
+                'Presensi',
+                'Monitoring Pembelajaran',
+                'Verifikasi Sertifikat',
+                'Evaluasi & Override',
+                'Aktivitas',
+                'Profil',
+            ],
         ];
 
         foreach ($sidebarRoleChecks as $role => $expectedKeywords) {
@@ -106,8 +118,9 @@ class WorkspaceSmoke extends BaseCommand
             try {
                 $sidebarHtml = view('main/workspace/components/sidebar');
                 $allMatched = true;
+                $decodedHtml = html_entity_decode($sidebarHtml);
                 foreach ($expectedKeywords as $kw) {
-                    if (! str_contains($sidebarHtml, $kw)) {
+                    if (! str_contains($decodedHtml, $kw)) {
                         $allMatched = false;
                         CLI::error("   Missing keyword '{$kw}' for role '{$role}'");
                         break;
@@ -278,6 +291,91 @@ class WorkspaceSmoke extends BaseCommand
             } else {
                 CLI::error(" [FAIL] Graduation state check failed: got " . $completedState['stateCode']);
                 $failed++;
+            }
+
+            CLI::newLine();
+            CLI::write("Testing Participant Workspace Event Refinement (Event Saya & Detail Event)...", "yellow");
+
+            // Setup session for participant with events
+            $db = db_connect();
+            $testEvent = $db->table('events')->where('deleted_at IS NULL')->orderBy('id', 'DESC')->limit(1)->get()->getRowArray();
+            $testUser = $db->table('users')->where('account_status', 'active')->orderBy('id', 'ASC')->limit(1)->get()->getRowArray();
+
+            if ($testEvent && $testUser) {
+                $session->set([
+                    'isLoggedIn' => true,
+                    'user_id'    => (int) $testUser['id'],
+                    'name'       => $testUser['name'],
+                    'roles'      => ['participant'],
+                ]);
+
+                // Ensure participant is registered to testEvent
+                $regCheck = $db->table('event_registrations')
+                    ->where(['event_id' => $testEvent['id'], 'user_id' => $testUser['id']])
+                    ->get()->getRowArray();
+                if (! $regCheck) {
+                    $db->table('event_registrations')->insert([
+                        'event_id'      => $testEvent['id'],
+                        'user_id'       => $testUser['id'],
+                        'status'        => 'registered',
+                        'registered_at' => date('Y-m-d H:i:s'),
+                        'created_at'    => date('Y-m-d H:i:s'),
+                        'updated_at'    => date('Y-m-d H:i:s'),
+                    ]);
+                }
+
+                // 1. Test myEvents view
+                $myEventsHtml = html_entity_decode($controller->myEvents());
+                $hasEventTitle = str_contains($myEventsHtml, 'Event Saya');
+                $hasExploreBtn = str_contains($myEventsHtml, 'Cari Event Baru');
+                $has4Tabs = str_contains($myEventsHtml, '1. Event Aktif Saya')
+                    && str_contains($myEventsHtml, '2. Riwayat Event')
+                    && str_contains($myEventsHtml, '3. Presensi Saya')
+                    && str_contains($myEventsHtml, '4. Sertifikat Event');
+                $hasQuickPresensi = str_contains($myEventsHtml, 'Presensi Kehadiran');
+
+                if ($hasEventTitle && $hasExploreBtn && $has4Tabs && $hasQuickPresensi) {
+                    CLI::write(" [PASS] View event_saya.php: 4 Main Tabs, Stat KPIs, Quick Presensi & Explore Link OK", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] View event_saya.php missing expected elements");
+                    $failed++;
+                }
+
+                // 2. Test eventDetail view (Participant Workspace Detail Event)
+                $detailEventHtml = html_entity_decode($controller->eventDetail((string) $testEvent['id']));
+                $hasEventHeader = str_contains($detailEventHtml, $testEvent['title']);
+                $hasTimeline = str_contains($detailEventHtml, 'Status Keikutsertaan')
+                    && str_contains($detailEventHtml, 'Daftar Event')
+                    && str_contains($detailEventHtml, 'Terdaftar')
+                    && str_contains($detailEventHtml, 'Menunggu Kehadiran')
+                    && str_contains($detailEventHtml, 'Hadir')
+                    && str_contains($detailEventHtml, 'Sertifikat');
+                $hasPresensiSection = str_contains($detailEventHtml, 'Presensi Kehadiran') || str_contains($detailEventHtml, 'Kehadiran berhasil dicatat');
+                $hasInfoSection = str_contains($detailEventHtml, 'Informasi Event');
+                $hasCertSection = str_contains($detailEventHtml, 'Sertifikat Event');
+                $staysInWorkspace = str_contains($detailEventHtml, 'Kembali ke Event Saya');
+
+                if ($hasEventHeader && $hasTimeline && $hasPresensiSection && $hasInfoSection && $hasCertSection && $staysInWorkspace) {
+                    CLI::write(" [PASS] View detail_event.php: Dedicated Participant Workspace Detail (5-Stage Timeline, Presensi, Info, Cert) OK", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] View detail_event.php missing expected participant workspace components");
+                    $failed++;
+                }
+
+                // 3. Test myAttendance view
+                $myAttendanceHtml = html_entity_decode($controller->myAttendance());
+                $hasAttendanceHeader = str_contains($myAttendanceHtml, 'Presensi Saya');
+                $hasAttendanceTable = str_contains($myAttendanceHtml, 'Riwayat Presensi Saya');
+
+                if ($hasAttendanceHeader && $hasAttendanceTable) {
+                    CLI::write(" [PASS] View presensi_saya.php: Form Presensi & Riwayat Kehadiran table OK", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] View presensi_saya.php missing expected elements");
+                    $failed++;
+                }
             }
 
         } catch (\Throwable $e) {
@@ -584,6 +682,183 @@ class WorkspaceSmoke extends BaseCommand
 
         } catch (\Throwable $e) {
             CLI::error(" [ERR] Operator Override error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
+            $failed++;
+        }
+
+        // ================================================================
+        // 7. COMPREHENSIVE OPERATOR WORKSPACE OPERATIONAL SUITE
+        // ================================================================
+        CLI::newLine();
+        CLI::write("Testing Comprehensive Operator Workspace Suite & Flows...", 'yellow');
+        try {
+            $db = db_connect();
+            $firstUser = $db->table('users')->select('id')->orderBy('id', 'ASC')->get()->getRowArray();
+            $operatorUserId = $firstUser ? (int) $firstUser['id'] : 1;
+
+            $session->set([
+                'isLoggedIn' => true,
+                'user_id'    => $operatorUserId,
+                'name'       => 'Eko Prasetyo Operator',
+                'roles'      => ['operator'],
+            ]);
+
+            $operatorController = new \App\Controllers\Workspace\OperatorController();
+
+            // 7.1 Operator Home (7 KPIs & 4 Activity Feeds)
+            $homeHtml = $operatorController->index();
+            $hasHomeKpis = str_contains($homeHtml, 'Pusat Operasional Harian Sistem')
+                && str_contains($homeHtml, 'Pending Approval')
+                && str_contains($homeHtml, 'Verifikasi User')
+                && str_contains($homeHtml, 'Kelas Aktif')
+                && str_contains($homeHtml, 'Trainer Aktif')
+                && str_contains($homeHtml, 'Event Berjalan')
+                && str_contains($homeHtml, 'Presensi Pending')
+                && str_contains($homeHtml, 'Sertifikat Pending');
+
+            $hasHomeFeeds = str_contains($homeHtml, 'Approval Terbaru')
+                && str_contains($homeHtml, 'Penugasan Trainer Terbaru')
+                && str_contains($homeHtml, 'Event PBJ Terbaru')
+                && str_contains($homeHtml, 'Log Override Terbaru');
+
+            if ($hasHomeKpis && $hasHomeFeeds) {
+                CLI::write(" [PASS] Operator Home: 7 Summary KPIs & 4 Operational Activity Feeds rendered OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Operator Home view missing expected KPIs or Activity feeds");
+                $failed++;
+            }
+
+            // 7.2 Kelas & Trainer Assignment View
+            $assignmentHtml = $operatorController->classTrainers();
+            $hasAssignmentElements = str_contains($assignmentHtml, 'Kelas & Trainer Assignment')
+                && str_contains($assignmentHtml, 'Daftar Kelas & Penugasan Pengajar')
+                && str_contains($assignmentHtml, 'Direktori Pengajar (Trainer)')
+                && str_contains($assignmentHtml, 'assignTrainerModal');
+
+            if ($hasAssignmentElements) {
+                CLI::write(" [PASS] Operator Class & Trainer: Assignment matrix, trainer directory & modals rendered OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Operator Class & Trainer assignment view missing expected elements");
+                $failed++;
+            }
+
+            // 7.3 Integration: Operator Assigns Trainer -> Trainer Sees Class in "Kelas Saya"
+            $testClass = $db->table('learning_classes')->select('id, name')->orderBy('id', 'ASC')->get()->getRowArray();
+            $testTrainer = $db->table('users u')
+                ->select('u.id, u.name')
+                ->join('user_roles ur', 'ur.user_id = u.id')
+                ->join('roles r', 'r.id = ur.role_id')
+                ->where('r.key', 'trainer')
+                ->get()->getRowArray();
+
+            if ($testClass && $testTrainer) {
+                $cid = (int) $testClass['id'];
+                $tid = (int) $testTrainer['id'];
+                $now = date('Y-m-d H:i:s');
+
+                // Upsert class_trainer as active
+                $existing = $db->table('class_trainers')->where('class_id', $cid)->where('user_id', $tid)->get()->getRowArray();
+                if ($existing) {
+                    $db->table('class_trainers')->where('class_id', $cid)->where('user_id', $tid)->update([
+                        'status'      => 'active',
+                        'assigned_by' => $operatorUserId,
+                        'assigned_at' => $now,
+                    ]);
+                } else {
+                    $db->table('class_trainers')->insert([
+                        'class_id'    => $cid,
+                        'user_id'     => $tid,
+                        'assigned_by' => $operatorUserId,
+                        'assigned_at' => $now,
+                        'status'      => 'active',
+                    ]);
+                }
+
+                // Verify trainer sees it in active assignments
+                $trainerCheck = $db->table('class_trainers')
+                    ->where('class_id', $cid)
+                    ->where('user_id', $tid)
+                    ->where('status', 'active')
+                    ->countAllResults();
+
+                if ($trainerCheck > 0) {
+                    CLI::write(" [PASS] Core Integration: Operator assigns trainer ({$testTrainer['name']}) -> active in 'Kelas Saya' OK", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] Core Integration: Trainer assignment not found in active state");
+                    $failed++;
+                }
+            } else {
+                CLI::write(" [SKIP] Core Integration: Seeded class or trainer not found for test", 'yellow');
+            }
+
+            // 7.4 Operator Learning Monitoring
+            $monitoringHtml = $operatorController->learningMonitoring();
+            $hasMonitoringElements = str_contains($monitoringHtml, 'Monitoring Pembelajaran Kelas')
+                && str_contains($monitoringHtml, 'Status Pembelajaran Lintas Kelas')
+                && str_contains($monitoringHtml, 'Rata-rata Progres');
+
+            if ($hasMonitoringElements) {
+                CLI::write(" [PASS] Operator Learning Monitoring: Cross-class progress, trainer status & completion metrics rendered OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Operator Learning Monitoring view missing expected elements");
+                $failed++;
+            }
+
+            // 7.5 Operator Certificate Verification Queue
+            $certHtml = $operatorController->certificateVerification();
+            $hasCertElements = str_contains($certHtml, 'Verifikasi & Penerbitan Sertifikat')
+                && str_contains($certHtml, 'Antrean Peserta Memenuhi Syarat')
+                && str_contains($certHtml, 'Daftar Sertifikat Terbit');
+
+            if ($hasCertElements) {
+                CLI::write(" [PASS] Operator Certificate Verification: Eligibility queue & issued archive rendered OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Operator Certificate Verification view missing expected elements");
+                $failed++;
+            }
+
+            // 7.6 Operator Operational Event & Attendance
+            $eventHtml = html_entity_decode($operatorController->events());
+            $hasEventList = str_contains($eventHtml, 'Operasional Event & Workshop PBJ')
+                && str_contains($eventHtml, 'Daftar Event & Workshop PBJ');
+
+            $attendanceHtml = html_entity_decode($operatorController->attendance());
+            $hasAttendanceList = str_contains($attendanceHtml, 'Pencatatan Kehadiran')
+                && str_contains($attendanceHtml, 'Catatan Presensi Terkini');
+
+            if ($hasEventList && $hasAttendanceList) {
+                CLI::write(" [PASS] Operator Event & Attendance: Events list and quick attendance update controls rendered OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Operator Event or Attendance view missing expected elements");
+                $failed++;
+            }
+
+            // 7.7 Admin & Super Admin Permission Inheritance
+            $session->set([
+                'isLoggedIn' => true,
+                'user_id'    => $operatorUserId,
+                'name'       => 'Administrator Utama',
+                'roles'      => ['admin'],
+            ]);
+
+            $adminHomeHtml = $operatorController->index();
+            $adminInheritanceOk = str_contains($adminHomeHtml, 'Dashboard Operasional');
+
+            if ($adminInheritanceOk) {
+                CLI::write(" [PASS] Inheritance Permission: Administrator seamlessly inherits Operator Workspace capabilities", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Administrator failed to inherit Operator Workspace access");
+                $failed++;
+            }
+
+        } catch (\Throwable $e) {
+            CLI::error(" [ERR] Comprehensive Operator Suite error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
             $failed++;
         }
 

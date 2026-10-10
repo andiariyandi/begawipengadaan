@@ -18,6 +18,7 @@ class EventModel extends Model
         'start_at', 'end_at', 'location', 'meeting_url',
         'registration_open_at', 'registration_close_at',
         'capacity', 'waitlist_enabled', 'certificate_enabled',
+        'attendance_code', 'attendance_code_hash', 'attendance_open_at', 'attendance_close_at',
         'created_by', 'updated_by', 'cancelled_by', 'cancelled_at',
         'cancellation_reason',
     ];

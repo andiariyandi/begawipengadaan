@@ -142,8 +142,9 @@ $stats = $stats ?? [
                     <tr>
                         <th>Course</th>
                         <th>Program Induk</th>
-                        <th>Level</th>
-                        <th>Durasi</th>
+                        <th class="text-center">Kelas</th>
+                        <th class="text-center">Peserta</th>
+                        <th class="text-center">Completion Rate</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Aksi</th>
                     </tr>
@@ -151,7 +152,7 @@ $stats = $stats ?? [
                 <tbody>
                     <?php if (empty($courses)): ?>
                         <tr>
-                            <td colspan="6" class="p-0">
+                            <td colspan="7" class="p-0">
                                 <?= view('dashboard/components/empty_state', [
                                     'title'       => 'Course Tidak Ditemukan',
                                     'message'     => 'Belum ada data course yang sesuai dengan kriteria filter.',
@@ -162,6 +163,11 @@ $stats = $stats ?? [
                         </tr>
                     <?php else: ?>
                         <?php foreach ($courses as $course): ?>
+                            <?php
+                            $studentCount = (int) ($course['student_count'] ?? 0);
+                            $completedCount = (int) ($course['completed_count'] ?? 0);
+                            $completionPct = $studentCount > 0 ? round(($completedCount / $studentCount) * 100) : 0;
+                            ?>
                             <tr>
                                 <td>
                                     <h6 class="text-md mb-0 fw-medium">
@@ -170,6 +176,7 @@ $stats = $stats ?? [
                                         </a>
                                     </h6>
                                     <span class="text-secondary-light text-sm"><?= esc($course['summary'] ?? '') ?></span>
+                                    <div class="text-xs text-secondary-light mt-1">Level: <?= esc(ucfirst($course['level'] ?? 'Dasar')) ?> | <?= $course['duration_minutes'] !== null ? esc((string) $course['duration_minutes']) . ' mnt' : '-' ?></div>
                                 </td>
                                 <td>
                                     <?php if (! empty($course['program_title'])): ?>
@@ -178,13 +185,23 @@ $stats = $stats ?? [
                                         <span class="text-secondary-light text-sm italic">Mandiri</span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
-                                    <span class="badge bg-neutral-100 text-secondary-light px-10 py-4 radius-4 fw-medium text-xs">
-                                        <?= esc(ucfirst($course['level'] ?? 'Dasar')) ?>
+                                <td class="text-center">
+                                    <span class="badge bg-info-50 text-info-600 px-10 py-4 radius-4 fw-medium text-xs">
+                                        <?= number_format($course['class_count'] ?? 0) ?> Kelas
                                     </span>
                                 </td>
-                                <td>
-                                    <?= $course['duration_minutes'] !== null ? esc((string) $course['duration_minutes']) . ' menit' : '-' ?>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-50 text-primary-600 px-10 py-4 radius-4 fw-medium text-xs">
+                                        <?= number_format($studentCount) ?> Peserta
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-inline-flex align-items-center gap-2">
+                                        <div class="progress w-60-px" style="height: 6px;">
+                                            <div class="progress-bar bg-success-600" role="progressbar" style="width: <?= $completionPct ?>%"></div>
+                                        </div>
+                                        <span class="text-xs fw-semibold text-secondary-light"><?= $completionPct ?>%</span>
+                                    </div>
                                 </td>
                                 <td class="text-center">
                                     <?= view('dashboard/components/status_badge', ['status' => $course['status'] ?? 'draft']) ?>
@@ -213,6 +230,16 @@ $stats = $stats ?? [
                                                     <iconify-icon icon="solar:users-group-rounded-outline" class="text-lg text-info-main"></iconify-icon>
                                                     <span>Lihat Kelas</span>
                                                 </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider my-4"></li>
+                                            <li>
+                                                <form action="<?= site_url('dashboard/pembelajaran/course/' . $course['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menghapus course ini?');">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="dropdown-item px-12 py-8 radius-4 text-danger-main bg-hover-danger-50 d-flex align-items-center gap-2 text-sm w-100 border-0 bg-transparent">
+                                                        <iconify-icon icon="solar:trash-bin-trash-outline" class="text-lg text-danger-main"></iconify-icon>
+                                                        <span>Hapus Course</span>
+                                                    </button>
+                                                </form>
                                             </li>
                                         </ul>
                                     </div>

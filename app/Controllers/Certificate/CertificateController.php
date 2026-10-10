@@ -50,22 +50,62 @@ class CertificateController extends BaseController
     // Active v4 dashboard flow
     // =============================================================
 
-    public function index()
+    /**
+     * 1. Overview Sertifikat (KPIs, Recent Certs, Quick Actions).
+     */
+    public function overview()
     {
-        $keyword = trim((string) $this->request->getGet('keyword'));
-        $status  = (string) $this->request->getGet('status');
-        if ($keyword === '') { $keyword = null; }
-        if ($status  === '') { $status  = null; }
+        $db = $this->db;
 
-        $db = db_connect();
+        $stats = [
+            'total'          => (int) $db->table('certificates')->countAllResults(),
+            'learning_total' => (int) $db->table('certificates')->where('source_type', 'learning_enrollment')->where('status', 'issued')->countAllResults(),
+            'event_total'    => (int) $db->table('certificates')->where('source_type', 'event_registration')->where('status', 'issued')->countAllResults(),
+            'revoked_total'  => (int) $db->table('certificates')->where('status', 'revoked')->countAllResults(),
+            'active_templates' => (int) $db->table('certificate_templates')->where('is_active', 1)->countAllResults(),
+            'pending_approval' => (int) $db->table('approvals')->where('resource_type', 'certificate')->where('status', 'pending')->countAllResults(),
+        ];
+
+        // 10 Sertifikat terbaru
+        $recentCertificates = $this->certificateModel->listForAdmin(null, null, null, null, null);
+        $recentCertificates = array_slice($recentCertificates, 0, 8);
+
+        return view('dashboard/certificates/overview', [
+            'title'              => 'Overview Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'          => 'Overview Sertifikat',
+            'activeMenu'         => 'certificates',
+            'activeSubmenu'      => 'overview',
+            'stats'              => $stats,
+            'recentCertificates' => $recentCertificates,
+        ]);
+    }
+
+    /**
+     * 7. Riwayat Sertifikat (Archive).
+     */
+    public function riwayat()
+    {
+        $keyword  = trim((string) $this->request->getGet('keyword'));
+        $status   = (string) $this->request->getGet('status');
+        $category = (string) $this->request->getGet('category');
+        $dateFrom = (string) $this->request->getGet('date_from');
+        $dateTo   = (string) $this->request->getGet('date_to');
+
+        if ($keyword === '')  { $keyword = null; }
+        if ($status  === '')  { $status  = null; }
+        if ($category === '') { $category = null; }
+        if ($dateFrom === '') { $dateFrom = null; }
+        if ($dateTo   === '') { $dateTo   = null; }
+
+        $db = $this->db;
         $stats = [
             'total'            => (int) $db->table('certificates')->countAllResults(),
             'issued'           => (int) $db->table('certificates')->where('status', 'issued')->countAllResults(),
             'revoked'          => (int) $db->table('certificates')->where('status', 'revoked')->countAllResults(),
-            'pending_approval' => (int) $db->table('certificate_approvals')->where('status', 'pending')->countAllResults(),
+            'pending_approval' => (int) $db->table('approvals')->where('resource_type', 'certificate')->where('status', 'pending')->countAllResults(),
         ];
 
-        $allCertificates = $this->certificateModel->listForAdmin($keyword, $status);
+        $allCertificates = $this->certificateModel->listForAdmin($keyword, $status, $category, $dateFrom, $dateTo);
         $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
         $page = max(1, (int) ($this->request->getGet('page_certificates') ?: 1));
         $total = count($allCertificates);
@@ -75,16 +115,89 @@ class CertificateController extends BaseController
         $pager->store('certificates', $page, $perPage, $total, 0);
 
         return view('dashboard/certificates/index', [
-            'title'         => 'Sertifikat | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Sertifikat Terbit',
+            'title'          => 'Riwayat Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'      => 'Riwayat Sertifikat',
+            'activeMenu'     => 'certificates',
+            'activeSubmenu'  => 'riwayat',
+            'certificates'   => $certificates,
+            'stats'          => $stats,
+            'pager'          => $pager,
+            'perPage'        => $perPage,
+            'keyword'        => $keyword ?? '',
+            'statusFilter'   => $status  ?? 'all',
+            'categoryFilter' => $category ?? 'all',
+            'dateFrom'       => $dateFrom ?? '',
+            'dateTo'         => $dateTo ?? '',
+        ]);
+    }
+
+    public function index()
+    {
+        return $this->riwayat();
+    }
+
+    /**
+     * 6. Verification Admin View.
+     */
+    public function verification()
+    {
+        return view('dashboard/certificates/verification', [
+            'title'         => 'Verifikasi Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Verifikasi Sertifikat',
             'activeMenu'    => 'certificates',
-            'activeSubmenu' => 'index',
-            'certificates'  => $certificates,
-            'stats'         => $stats,
-            'pager'         => $pager,
-            'perPage'       => $perPage,
-            'keyword'       => $keyword ?? '',
-            'statusFilter'  => $status  ?? 'all',
+            'activeSubmenu' => 'verification',
+            'certificate'   => null,
+            'searchQuery'   => '',
+            'notFound'      => false,
+        ]);
+    }
+
+    /**
+     * 6. Verification Search (Admin).
+     */
+    public function checkVerification()
+    {
+        $query = trim((string) $this->request->getPost('search_query'));
+        if ($query === '') {
+            return redirect()->to(site_url('dashboard/sertifikat/verifikasi'))
+                ->with('warning', 'Masukkan nomor sertifikat atau token verifikasi untuk memeriksa.');
+        }
+
+        // Cari berdasarkan nomor sertifikat ATAU verification_token_hash ATAU token clear
+        $builder = $this->db->table('certificates c')
+            ->select('c.id')
+            ->where('c.certificate_number', $query)
+            ->orWhere('c.verification_token_hash', hash('sha256', $query))
+            ->orWhere('c.verification_token_hash', $query);
+
+        $row = $builder->get()->getRowArray();
+
+        $certificate = null;
+        $notFound = true;
+
+        if ($row) {
+            $certificate = $this->certificateModel->withFullDetail((int) $row['id']);
+            $notFound = false;
+
+            // Audit verification log
+            $this->auditService->log(
+                (int) session()->get('user_id'),
+                'certificate.verified',
+                'certificate',
+                'certificate',
+                (int) $row['id'],
+                ['query' => $query, 'mode' => 'admin_dashboard']
+            );
+        }
+
+        return view('dashboard/certificates/verification', [
+            'title'         => 'Verifikasi Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'     => 'Verifikasi Sertifikat',
+            'activeMenu'    => 'certificates',
+            'activeSubmenu' => 'verification',
+            'certificate'   => $certificate,
+            'searchQuery'   => $query,
+            'notFound'      => $notFound,
         ]);
     }
 
@@ -109,7 +222,7 @@ class CertificateController extends BaseController
             'title'                  => 'Detail Sertifikat | Dashboard BegawiPBJ',
             'pageTitle'              => 'Detail Sertifikat',
             'activeMenu'             => 'certificates',
-            'activeSubmenu'          => 'index',
+            'activeSubmenu'          => 'riwayat',
             'certificate'            => $certificate,
             'issuedToken'            => $issuedToken,
             'verifyTokenForDisplay'  => $verifyTokenForDisplay,

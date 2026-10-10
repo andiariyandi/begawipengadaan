@@ -144,8 +144,9 @@ $stats = $stats ?? [
                     <tr>
                         <th>Kelas & Kode</th>
                         <th>Course</th>
-                        <th class="text-center">Kapasitas</th>
-                        <th>Periode Pelaksanaan</th>
+                        <th>Trainer</th>
+                        <th class="text-center">Peserta</th>
+                        <th class="text-center">Progress Selesai</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Aksi</th>
                     </tr>
@@ -153,7 +154,7 @@ $stats = $stats ?? [
                 <tbody>
                     <?php if (empty($classes)): ?>
                         <tr>
-                            <td colspan="6" class="p-0">
+                            <td colspan="7" class="p-0">
                                 <?= view('dashboard/components/empty_state', [
                                     'title'       => 'Kelas Tidak Ditemukan',
                                     'message'     => 'Belum ada data kelas pembelajaran yang sesuai dengan kriteria.',
@@ -164,6 +165,11 @@ $stats = $stats ?? [
                         </tr>
                     <?php else: ?>
                         <?php foreach ($classes as $class): ?>
+                            <?php
+                            $students = (int) ($class['student_count'] ?? 0);
+                            $completed = (int) ($class['completed_count'] ?? 0);
+                            $classProg = $students > 0 ? round(($completed / $students) * 100) : 0;
+                            ?>
                             <tr>
                                 <td>
                                     <h6 class="text-md mb-0 fw-medium">
@@ -174,19 +180,34 @@ $stats = $stats ?? [
                                     <span class="badge bg-neutral-100 text-primary-600 font-monospace px-8 py-2 radius-4 text-xs mt-4">
                                         <?= esc($class['code']) ?>
                                     </span>
+                                    <div class="text-xs text-secondary-light mt-1">
+                                        <?= ! empty($class['start_at']) ? date('d/m/Y', strtotime($class['start_at'])) : '-' ?> s/d <?= ! empty($class['end_at']) ? date('d/m/Y', strtotime($class['end_at'])) : '-' ?>
+                                    </div>
                                 </td>
                                 <td>
                                     <span class="fw-medium text-sm"><?= esc($class['course_title'] ?? '-') ?></span>
                                 </td>
+                                <td>
+                                    <?php if (! empty($class['trainer_names'])): ?>
+                                        <span class="badge bg-primary-50 text-primary-600 px-8 py-4 radius-4 text-xs">
+                                            <iconify-icon icon="solar:user-speak-rounded-outline" class="me-1"></iconify-icon>
+                                            <?= esc($class['trainer_names']) ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-neutral-100 text-secondary-light px-8 py-4 radius-4 text-xs italic">Belum ada trainer</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="text-center">
-                                    <span class="badge bg-neutral-100 text-secondary-light px-10 py-4 radius-4 fw-medium text-xs">
-                                        <?= esc((string) ($class['capacity'] ?? '-')) ?> peserta
+                                    <span class="badge bg-info-50 text-info-700 px-10 py-4 radius-4 fw-medium text-xs">
+                                        <?= number_format($students) ?> / <?= ! empty($class['capacity']) ? number_format($class['capacity']) : '∞' ?>
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="text-sm">
-                                        <div><span class="text-secondary-light text-xs">Mulai:</span> <?= esc($class['start_at'] ?? '-') ?></div>
-                                        <div><span class="text-secondary-light text-xs">Selesai:</span> <?= esc($class['end_at'] ?? '-') ?></div>
+                                <td class="text-center">
+                                    <div class="d-inline-flex align-items-center gap-2">
+                                        <div class="progress w-60-px" style="height: 6px;">
+                                            <div class="progress-bar bg-success-600" role="progressbar" style="width: <?= $classProg ?>%"></div>
+                                        </div>
+                                        <span class="text-xs fw-semibold text-secondary-light"><?= $classProg ?>%</span>
                                     </div>
                                 </td>
                                 <td class="text-center">
@@ -212,10 +233,26 @@ $stats = $stats ?? [
                                             </li>
                                             <li><hr class="dropdown-divider my-4"></li>
                                             <li>
+                                                <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= site_url('dashboard/pembelajaran/kurikulum/kelas/' . $class['id']) ?>">
+                                                    <iconify-icon icon="solar:list-check-outline" class="text-lg text-primary-600"></iconify-icon>
+                                                    <span>Kelola Kurikulum</span>
+                                                </a>
+                                            </li>
+                                            <li>
                                                 <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= route_to('dashboard.learning.enrollments') ?>?class_id=<?= (int) $class['id'] ?>">
                                                     <iconify-icon icon="solar:users-group-two-rounded-outline" class="text-lg text-info-main"></iconify-icon>
                                                     <span>Daftar Peserta</span>
                                                 </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider my-4"></li>
+                                            <li>
+                                                <form action="<?= site_url('dashboard/pembelajaran/kelas/' . $class['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kelas ini?');">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="dropdown-item px-12 py-8 radius-4 text-danger-main bg-hover-danger-50 d-flex align-items-center gap-2 text-sm w-100 border-0 bg-transparent">
+                                                        <iconify-icon icon="solar:trash-bin-trash-outline" class="text-lg text-danger-main"></iconify-icon>
+                                                        <span>Hapus Kelas</span>
+                                                    </button>
+                                                </form>
                                             </li>
                                         </ul>
                                     </div>

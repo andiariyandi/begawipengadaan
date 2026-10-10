@@ -7,10 +7,28 @@ $trainers        = $trainers ?? [];
 $trainerCandidates = $trainerCandidates ?? [];
 ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-    <div><h6 class="fw-semibold mb-1">Detail Kelas</h6><p class="text-secondary-light mb-0">ID Kelas: <?= esc($classId) ?></p></div>
-    <div class="d-flex gap-2">
-        <a href="<?= route_to('dashboard.learning.classes.edit', $classId) ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Ubah Kelas</a>
-        <a href="<?= route_to('dashboard.learning.classes') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
+    <div>
+        <h6 class="fw-semibold mb-1"><?= esc($class['name'] ?? 'Detail Kelas') ?></h6>
+        <p class="text-secondary-light mb-0">Kode: <?= esc($class['code'] ?? '-') ?> &bull; ID Kelas: <?= esc($classId) ?></p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="<?= site_url('dashboard/pembelajaran/kurikulum/kelas/' . $classId) ?>" class="btn btn-primary-600 radius-8 px-16 py-9 d-inline-flex align-items-center gap-1">
+            <iconify-icon icon="solar:list-check-outline" class="text-lg"></iconify-icon>
+            <span>Kurikulum</span>
+        </a>
+        <a href="<?= route_to('dashboard.learning.enrollments') ?>?class_id=<?= $classId ?>" class="btn btn-outline-info radius-8 px-16 py-9 d-inline-flex align-items-center gap-1">
+            <iconify-icon icon="solar:users-group-two-rounded-outline" class="text-lg"></iconify-icon>
+            <span>Peserta</span>
+        </a>
+        <a href="<?= site_url('dashboard/pembelajaran/kelayakan-sertifikat?class_id=' . $classId) ?>" class="btn btn-outline-success radius-8 px-16 py-9 d-inline-flex align-items-center gap-1">
+            <iconify-icon icon="solar:diploma-verified-outline" class="text-lg"></iconify-icon>
+            <span>Sertifikat</span>
+        </a>
+        <a href="<?= route_to('dashboard.learning.classes.edit', $classId) ?>" class="btn btn-outline-warning-main radius-8 px-16 py-9 d-inline-flex align-items-center gap-1">
+            <iconify-icon icon="solar:pen-new-square-outline" class="text-lg"></iconify-icon>
+            <span>Ubah</span>
+        </a>
+        <a href="<?= route_to('dashboard.learning.classes') ?>" class="btn btn-outline-neutral-300 radius-8 px-16 py-9">Kembali</a>
     </div>
 </div>
 

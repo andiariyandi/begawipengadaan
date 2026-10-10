@@ -2,54 +2,50 @@
 
 <?= $this->section('content') ?>
 <?php
-    $c = $certificate;
-    $isIssued = ($c['status'] ?? '') === 'issued';
-    $issuedAtFmt = ! empty($c['issued_at'])
-        ? date('d F Y', strtotime($c['issued_at']))
-        : '—';
-    $expiresAtFmt = ! empty($c['expires_at'])
-        ? date('d F Y', strtotime($c['expires_at']))
-        : 'Berlaku Selamanya';
-    $revokedAtFmt = ! empty($c['revoked_at'])
-        ? date('d F Y H:i', strtotime($c['revoked_at']))
-        : '—';
+$c        = $certificate;
+$isIssued = ($c['status'] ?? '') === 'issued';
+$isLearning = ($c['source_type'] ?? '') === 'learning_enrollment';
+$issuedAtFmt = ! empty($c['issued_at'])
+    ? date('d F Y, H:i', strtotime($c['issued_at']))
+    : '—';
+$expiresAtFmt = ! empty($c['expires_at'])
+    ? date('d F Y', strtotime($c['expires_at']))
+    : 'Berlaku Selamanya';
+$revokedAtFmt = ! empty($c['revoked_at'])
+    ? date('d F Y, H:i', strtotime($c['revoked_at']))
+    : '—';
 ?>
 
+<!-- Header -->
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-    <div>
-        <h6 class="fw-semibold mb-1">Kredensial Sertifikat</h6>
-        <p class="text-secondary-light mb-0">Nomor Registrasi: <?= esc($c['certificate_number']) ?></p>
+    <div class="d-flex align-items-center gap-3">
+        <a href="<?= site_url('dashboard/sertifikat/riwayat') ?>" class="w-40-px h-40-px radius-8 border bg-base d-flex align-items-center justify-content-center text-secondary-light hover-bg-neutral-100">
+            <iconify-icon icon="solar:arrow-left-outline" class="text-xl"></iconify-icon>
+        </a>
+        <div>
+            <h6 class="fw-semibold mb-1">Detail Sertifikat Resmi PBJ</h6>
+            <p class="text-secondary-light mb-0">Nomor Registrasi: <span class="font-monospace fw-bold text-primary-light"><?= esc($c['certificate_number']) ?></span></p>
+        </div>
     </div>
     <div class="d-flex align-items-center gap-2">
-        <a href="<?= site_url('dashboard/sertifikat') ?>" class="btn btn-outline-neutral-300 radius-8 px-16 py-11 d-flex align-items-center gap-2">
-            <iconify-icon icon="solar:arrow-left-outline" class="text-lg"></iconify-icon>
-            Kembali
+        <a href="<?= site_url('dashboard/sertifikat/' . $c['id'] . '/unduh') ?>" class="btn btn-success-600 radius-8 px-16 py-9 d-flex align-items-center gap-2 text-sm text-white">
+            <iconify-icon icon="solar:download-minimalistic-outline" class="text-lg"></iconify-icon>
+            Unduh PDF
         </a>
-        <?php if ($isIssued): ?>
-            <a href="<?= site_url('dashboard/sertifikat/' . $c['id'] . '/unduh') ?>" class="btn btn-success-600 radius-8 px-20 py-11 d-flex align-items-center gap-2">
-                <iconify-icon icon="solar:download-square-outline" class="text-lg"></iconify-icon>
-                Unduh PDF
-            </a>
-            <button type="button" onclick="window.print()" class="btn btn-outline-neutral-300 radius-8 px-16 py-11 d-flex align-items-center gap-2">
-                <iconify-icon icon="solar:printer-outline" class="text-lg"></iconify-icon>
-                Cetak
-            </button>
-        <?php endif; ?>
-        <a href="<?= site_url('dashboard/sertifikat/' . $c['id'] . '/ubah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11 d-flex align-items-center gap-2">
-            <iconify-icon icon="solar:pen-2-outline" class="text-lg"></iconify-icon>
-            Ubah
-        </a>
+        <button type="button" onclick="window.print()" class="btn btn-outline-secondary radius-8 px-16 py-9 d-flex align-items-center gap-2 text-sm">
+            <iconify-icon icon="solar:printer-outline" class="text-lg"></iconify-icon>
+            Cetak
+        </button>
     </div>
 </div>
-
 
 <?php if (! empty($issuedToken)): ?>
     <div class="alert alert-warning radius-8 mb-24 border border-warning-main">
         <div class="d-flex align-items-start gap-3">
             <iconify-icon icon="solar:shield-warning-bold" class="text-3xl text-warning-main flex-shrink-0"></iconify-icon>
             <div>
-                <h6 class="mb-4 fw-semibold text-warning-main">Token Verifikasi Baru (Satu Kali Ditampilkan)</h6>
-                <p class="mb-8 text-sm text-neutral-800">Simpan token ini sekarang. Token digunakan untuk verifikasi publik kredensial dan tidak akan ditampilkan lagi demi keamanan.</p>
+                <h6 class="mb-4 fw-semibold text-warning-main">Token Verifikasi Baru (Ditampilkan Sekali)</h6>
+                <p class="mb-8 text-sm text-neutral-800">Simpan token ini untuk pengujian atau verifikasi langsung. Token disimpan di database hanya dalam bentuk hash SHA-256 demi keamanan kredensial.</p>
                 <code class="p-8 radius-6 bg-white border d-inline-block fw-bold text-sm text-neutral-900 select-all"><?= esc($issuedToken) ?></code>
             </div>
         </div>
@@ -57,79 +53,163 @@
 <?php endif; ?>
 
 <div class="row gy-4">
-    <!-- Main Credential Sheet -->
+    <!-- Main Credential Details -->
     <div class="col-xl-8">
         <div class="card radius-12 border bg-white shadow-none">
-            <!-- Sheet Header -->
-            <div class="p-32 border-bottom bg-neutral-50 radius-top-12">
+            <!-- Header card -->
+            <div class="p-24 border-bottom bg-neutral-50 radius-top-12">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="w-56-px h-56-px bg-primary-100 text-primary-600 rounded-circle d-flex align-items-center justify-content-center text-2xl flex-shrink-0">
+                        <div class="w-56-px h-56-px bg-primary-100 text-primary-600 rounded-circle d-flex align-items-center justify-content-center text-3xl flex-shrink-0">
                             <iconify-icon icon="solar:diploma-verified-outline"></iconify-icon>
                         </div>
                         <div>
-                            <span class="text-xs text-secondary-light fw-medium d-block text-uppercase">BegawiPBJ Official Credential</span>
-                            <h5 class="fw-bold text-primary-light mb-0"><?= esc($c['certificate_number']) ?></h5>
+                            <span class="text-xs text-secondary-light fw-medium d-block text-uppercase">
+                                <?= $isLearning ? 'Learning Completion Credential' : 'Event Attendance Credential' ?>
+                            </span>
+                            <h5 class="fw-bold text-primary-light font-monospace mb-0"><?= esc($c['certificate_number']) ?></h5>
                         </div>
                     </div>
                     <div>
-                        <?= view('dashboard/components/status_badge', ['status' => $c['status']]) ?>
+                        <?php if ($c['status'] === 'issued'): ?>
+                            <span class="badge bg-success-50 text-success-600 px-12 py-6 radius-4 fw-bold text-xs">
+                                <iconify-icon icon="solar:check-circle-bold" class="me-1"></iconify-icon>
+                                AKTIF / BERLAKU
+                            </span>
+                        <?php elseif ($c['status'] === 'revoked'): ?>
+                            <span class="badge bg-danger-50 text-danger-600 px-12 py-6 radius-4 fw-bold text-xs">
+                                <iconify-icon icon="solar:close-circle-bold" class="me-1"></iconify-icon>
+                                DICABUT (TIDAK BERLAKU)
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-warning-50 text-warning-600 px-12 py-6 radius-4 fw-bold text-xs">
+                                <?= esc(strtoupper($c['status'])) ?>
+                            </span>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
 
-            <!-- Sheet Body -->
-            <div class="card-body p-32">
-                <div class="p-24 radius-8 border bg-neutral-50 mb-24 text-center">
-                    <span class="text-xs text-secondary-light d-block text-uppercase fw-semibold mb-2">Diberikan Kepada:</span>
-                    <h4 class="fw-bold text-neutral-900 mb-1"><?= esc($c['user_name'] ?? '—') ?></h4>
+            <div class="card-body p-24">
+                <!-- Recipient Info -->
+                <div class="p-20 radius-8 border bg-neutral-50 mb-24 text-center">
+                    <span class="text-xs text-secondary-light d-block text-uppercase fw-semibold mb-2">Diberikan Kepada Penerima Resmi:</span>
+                    <h4 class="fw-bold text-primary-light mb-1"><?= esc($c['user_name'] ?? '—') ?></h4>
                     <span class="text-secondary-light text-sm"><?= esc($c['user_email'] ?? '') ?></span>
                 </div>
 
-                <div class="row gy-4 mb-24">
+                <!-- Distinct Activity Information -->
+                <h6 class="text-sm fw-bold text-primary-light mb-3">Informasi Sumber Kegiatan</h6>
+                <div class="row g-3 mb-24">
+                    <?php if ($isLearning): ?>
+                        <div class="col-md-6">
+                            <div class="p-16 radius-8 border h-100">
+                                <span class="text-secondary-light text-xs d-block mb-1">PROGRAM PEMBELAJARAN</span>
+                                <h6 class="text-sm fw-semibold text-primary-light mb-0"><?= esc($c['program_title'] ?? 'Program Reguler PBJ') ?></h6>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-16 radius-8 border h-100">
+                                <span class="text-secondary-light text-xs d-block mb-1">COURSE & KELAS</span>
+                                <h6 class="text-sm fw-semibold text-primary-light mb-1"><?= esc($c['course_title'] ?? '—') ?></h6>
+                                <span class="text-xs text-secondary-light">Kelas: <?= esc($c['class_name'] ?? '—') ?></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-16 radius-8 border h-100">
+                                <span class="text-secondary-light text-xs d-block mb-1">HASIL PENILAIAN / KELULUSAN</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-success-50 text-success-600 px-8 py-3 radius-4 text-xs">Lulus 100%</span>
+                                    <?php if (! empty($c['final_score'])): ?>
+                                        <span class="fw-bold text-sm text-primary-light">Nilai: <?= number_format((float) $c['final_score'], 1) ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-16 radius-8 border h-100">
+                                <span class="text-secondary-light text-xs d-block mb-1">TRAINER PENGAJAR</span>
+                                <span class="text-sm text-primary-light fw-medium"><?= esc($c['trainers_names'] ?? 'Pengajar BegawiPBJ') ?></span>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="col-md-6">
+                            <div class="p-16 radius-8 border h-100">
+                                <span class="text-secondary-light text-xs d-block mb-1">AGENDA / EVENT</span>
+                                <h6 class="text-sm fw-semibold text-primary-light mb-0"><?= esc($c['event_title'] ?? $c['source_label'] ?? '—') ?></h6>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-16 radius-8 border h-100">
+                                <span class="text-secondary-light text-xs d-block mb-1">MODE & LOKASI</span>
+                                <h6 class="text-sm fw-semibold text-primary-light mb-1"><?= esc(ucfirst($c['event_mode'] ?? 'Offline')) ?></h6>
+                                <span class="text-xs text-secondary-light"><?= esc($c['event_location'] ?? '—') ?></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-16 radius-8 border h-100">
+                                <span class="text-secondary-light text-xs d-block mb-1">JADWAL PELAKSANAAN</span>
+                                <span class="text-xs text-secondary-light d-block">
+                                    <?= ! empty($c['event_start_at']) ? date('d M Y, H:i', strtotime($c['event_start_at'])) : '—' ?>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-16 radius-8 border h-100">
+                                <span class="text-secondary-light text-xs d-block mb-1">STATUS KEHADIRAN (PRESENSI)</span>
+                                <span class="badge bg-success-50 text-success-600 px-8 py-3 radius-4 text-xs">
+                                    <iconify-icon icon="solar:check-circle-bold" class="me-1"></iconify-icon>
+                                    Hadir Sah
+                                </span>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Credential Metadata -->
+                <h6 class="text-sm fw-bold text-primary-light mb-3">Kredensial & Validasi Sistem</h6>
+                <div class="row g-3 mb-24">
                     <div class="col-md-6">
                         <div class="p-16 radius-8 border h-100">
-                            <span class="text-secondary-light text-xs d-block mb-1">Program / Kelas Pelatihan</span>
-                            <h6 class="text-sm fw-semibold text-neutral-900 mb-1"><?= esc($c['source_label'] ?? '—') ?></h6>
-                            <span class="text-2xs text-secondary-light">ID Sumber: #<?= esc($c['source_id']) ?></span>
+                            <span class="text-secondary-light text-xs d-block mb-1">TANGGAL PENERBITAN</span>
+                            <span class="text-sm fw-semibold text-primary-light"><?= esc($issuedAtFmt) ?></span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-16 radius-8 border h-100">
-                            <span class="text-secondary-light text-xs d-block mb-1">Format Template Sertifikat</span>
-                            <h6 class="text-sm fw-semibold text-neutral-900 mb-1"><?= esc($c['template_name'] ?? 'Format Standar PBJ') ?></h6>
-                            <span class="text-2xs text-secondary-light">Otomatisasi Generator Sistem</span>
+                            <span class="text-secondary-light text-xs d-block mb-1">MASA BERLAKU</span>
+                            <span class="text-sm fw-semibold text-primary-light"><?= esc($expiresAtFmt) ?></span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-16 radius-8 border h-100">
-                            <span class="text-secondary-light text-xs d-block mb-1">Tanggal Penerbitan Resmi</span>
-                            <h6 class="text-sm fw-semibold text-neutral-900 mb-0"><?= esc($issuedAtFmt) ?></h6>
+                            <span class="text-secondary-light text-xs d-block mb-1">DITERBITKAN OLEH</span>
+                            <span class="text-sm fw-semibold text-primary-light"><?= esc($c['issued_by_name'] ?? 'Sistem BegawiPBJ') ?></span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-16 radius-8 border h-100">
-                            <span class="text-secondary-light text-xs d-block mb-1">Masa Berlaku Kredensial</span>
-                            <h6 class="text-sm fw-semibold text-neutral-900 mb-0"><?= esc($expiresAtFmt) ?></h6>
+                            <span class="text-secondary-light text-xs d-block mb-1">TEMPLATE YANG DIGUNAKAN</span>
+                            <span class="text-sm fw-semibold text-primary-light"><?= esc($c['template_name'] ?? 'Standar BegawiPBJ') ?></span>
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="p-16 radius-8 border bg-neutral-50">
-                            <span class="text-secondary-light text-xs d-block mb-1">Hash Tanda Tangan Digital (SHA-256)</span>
-                            <code class="text-xs text-neutral-900 word-break-all d-block"><?= esc($c['token_preview'] ?? '—') ?>…</code>
-                            <span class="text-2xs text-secondary-light mt-1 d-block">Tersimpan secara kriptografis untuk validasi integritas dokumen.</span>
+                        <div class="p-16 radius-8 border bg-neutral-100">
+                            <span class="text-secondary-light text-xs d-block mb-1">INTEGRITY HASH (SHA-256)</span>
+                            <code class="text-xs text-primary-light word-break-all d-block"><?= esc($c['verification_token_hash'] ?? '—') ?></code>
+                            <span class="text-xs text-secondary-light mt-1 d-block">Tercatat secara kriptografis untuk perlindungan pemalsuan sertifikat.</span>
                         </div>
                     </div>
                 </div>
 
                 <?php if (! empty($c['revoked_at'])): ?>
-                    <div class="p-20 radius-8 bg-danger-50 border border-danger-200">
+                    <div class="p-20 radius-8 bg-danger-50 border border-danger-main mb-24">
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <iconify-icon icon="solar:danger-triangle-bold" class="text-danger-main text-lg"></iconify-icon>
-                            <h6 class="text-danger-main text-sm fw-semibold mb-0">Sertifikat Telah Dicabut</h6>
+                            <iconify-icon icon="solar:danger-triangle-bold" class="text-danger-main text-xl"></iconify-icon>
+                            <h6 class="text-danger-main text-sm fw-bold mb-0">Sertifikat Telah Dicabut</h6>
                         </div>
-                        <p class="text-xs text-neutral-800 mb-1">Dicabut pada: <strong><?= esc($revokedAtFmt) ?></strong> oleh <strong><?= esc($c['revoked_by_name'] ?? 'Administrator') ?></strong></p>
-                        <p class="text-xs text-neutral-800 mb-0">Alasan: <?= esc($c['revocation_reason'] ?? 'Tidak ada keterangan') ?></p>
+                        <p class="text-xs text-neutral-800 mb-1">Waktu Pencabutan: <strong><?= esc($revokedAtFmt) ?></strong> oleh <strong><?= esc($c['revoked_by_name'] ?? 'Administrator') ?></strong></p>
+                        <p class="text-xs text-neutral-800 mb-0">Alasan Resmi: <strong><?= esc($c['revocation_reason'] ?? 'Tidak ada alasan dicantumkan') ?></strong></p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -139,52 +219,72 @@
             <!-- Revocation Action Panel -->
             <div class="card radius-12 border mt-24">
                 <div class="card-body p-24">
-                    <h6 class="fw-semibold mb-8 text-danger-main d-flex align-items-center gap-2">
+                    <h6 class="fw-semibold mb-2 text-danger-main d-flex align-items-center gap-2">
                         <iconify-icon icon="solar:shield-cross-outline"></iconify-icon>
                         Tindakan Pencabutan Sertifikat
                     </h6>
-                    <p class="text-secondary-light text-sm mb-16">Pencabutan sertifikat akan membatalkan status validitas dokumen dan menonaktifkan verifikasi publik secara permanen.</p>
-                    <button type="button" class="btn btn-outline-danger-600 radius-8 px-20 py-11 text-sm fw-semibold d-inline-flex align-items-center gap-2"
-                            data-bs-toggle="modal"
-                            data-bs-target="#confirmationActionModal"
-                            data-action="<?= esc(site_url('dashboard/sertifikat/' . $c['id'] . '/cabut')) ?>"
-                            data-method="POST"
-                            data-title="Cabut Sertifikat Resmi"
-                            data-message="Pencabutan sertifikat nomor <?= esc($c['certificate_number']) ?> akan membatalkan status validitas dokumen dan menonaktifkan verifikasi publik secara permanen."
-                            data-btn-text="Ya, Cabut Sertifikat"
-                            data-btn-class="btn-danger-600"
-                            data-icon="solar:shield-cross-bold"
-                            data-icon-color="danger"
-                            data-require-input="true"
-                            data-input-label="Alasan Resmi Pencabutan *"
-                            data-input-name="revocation_reason"
-                            data-input-placeholder="Contoh: Terjadi kesalahan integritas penilaian atau pembatalan kelulusan.">
-                        <iconify-icon icon="solar:shield-cross-outline" class="text-lg"></iconify-icon>
-                        <span>Cabut Sertifikat Ini</span>
+                    <p class="text-secondary-light text-xs mb-16">
+                        Pencabutan sertifikat akan membatalkan status keabsahan dokumen dan menandai verifikasi publik sebagai tidak sah. Tindakan ini memerlukan alasan pencabutan resmi.
+                    </p>
+                    <button type="button" class="btn btn-outline-danger-600 radius-8 px-16 py-9 text-xs fw-semibold d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#revokeModal">
+                        <iconify-icon icon="solar:close-circle-outline" class="text-lg"></iconify-icon>
+                        Cabut Sertifikat Ini
                     </button>
+                </div>
+            </div>
+
+            <!-- Revoke Modal -->
+            <div class="modal fade" id="revokeModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <form method="post" action="<?= site_url('dashboard/sertifikat/' . $c['id'] . '/cabut') ?>" class="modal-content radius-12 border-0">
+                        <?= csrf_field() ?>
+                        <div class="modal-header border-bottom py-16 px-24">
+                            <h6 class="modal-title fw-semibold text-danger-main">Konfirmasi Pencabutan Sertifikat</h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-24">
+                            <p class="text-xs text-secondary-light mb-16">
+                                Anda akan mencabut sertifikat nomor <strong><?= esc($c['certificate_number']) ?></strong>.
+                            </p>
+                            <div>
+                                <label class="form-label text-sm fw-medium mb-1">Alasan Pencabutan Resmi <span class="text-danger-main">*</span></label>
+                                <textarea name="revocation_reason" class="form-control radius-8 py-10" rows="3" placeholder="Masukkan alasan pencabutan sertifikat..." required minlength="5"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top py-12 px-24">
+                            <button type="button" class="btn btn-outline-secondary radius-8 px-16 py-8 text-xs" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-danger-600 radius-8 px-16 py-8 text-xs">Ya, Cabut</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         <?php endif; ?>
     </div>
 
-    <!-- Right Sidebar Column: Verification Box -->
+    <!-- Right Column: Verification & Security Card -->
     <div class="col-xl-4">
-        <div class="card radius-12 border text-center">
+        <div class="card radius-12 border text-center shadow-none mb-24">
             <div class="card-body p-24">
-                <div class="w-100-px h-100-px bg-primary-50 rounded-circle d-inline-flex align-items-center justify-content-center mb-16 mx-auto">
-                    <iconify-icon icon="solar:qr-code-outline" class="text-primary-600 text-5xl"></iconify-icon>
+                <div class="w-80-px h-80-px bg-primary-50 text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center mb-16 mx-auto">
+                    <iconify-icon icon="solar:qr-code-bold" class="text-4xl"></iconify-icon>
                 </div>
-                <h6 class="fw-semibold mb-8">Verifikasi Kredensial</h6>
+                <h6 class="fw-semibold mb-2">QR Code & Verifikasi</h6>
                 <p class="text-secondary-light text-xs mb-16">
-                    Setiap sertifikat resmi dilengkapi QR Code unik yang terhubung ke portal verifikasi publik BegawiPBJ.
+                    Sertifikat ini memiliki QR Code tertanam yang menghubungkan langsung ke portal verifikasi online publik tanpa mengekspos data pribadi rahasia.
                 </p>
-                <div class="p-12 radius-8 bg-neutral-50 border text-start mb-20">
-                    <span class="text-2xs text-secondary-light d-block mb-1">URL Verifikasi:</span>
-                    <span class="text-xs text-neutral-800 fw-medium">/verifikasi-sertifikat</span>
+                <div class="p-12 radius-8 bg-neutral-50 border text-start mb-16">
+                    <span class="text-xs text-secondary-light d-block mb-1">Verifikasi Admin:</span>
+                    <a href="<?= site_url('dashboard/sertifikat/verifikasi') ?>" class="text-xs text-primary-600 fw-semibold hover-underline d-flex align-items-center gap-1">
+                        Dashboard Verifikasi <iconify-icon icon="solar:arrow-right-outline"></iconify-icon>
+                    </a>
                 </div>
-                <a href="<?= site_url('verifikasi-sertifikat') ?>" target="_blank" class="btn btn-outline-primary-600 w-100 radius-8 text-sm py-10 d-flex align-items-center justify-content-center gap-2">
+                <div class="p-12 radius-8 bg-neutral-50 border text-start mb-20">
+                    <span class="text-xs text-secondary-light d-block mb-1">Verifikasi Online Publik:</span>
+                    <span class="text-xs text-primary-light font-monospace d-block text-truncate">/verifikasi-sertifikat</span>
+                </div>
+                <a href="<?= site_url('verifikasi-sertifikat') ?>" target="_blank" class="btn btn-outline-primary-600 w-100 radius-8 text-xs py-10 d-flex align-items-center justify-content-center gap-2">
                     <iconify-icon icon="solar:square-top-down-outline"></iconify-icon>
-                    Buka Portal Verifikasi
+                    Buka Halaman Verifikasi Publik
                 </a>
             </div>
         </div>

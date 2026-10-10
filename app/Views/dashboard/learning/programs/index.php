@@ -130,7 +130,8 @@ $stats = $stats ?? [
                     <tr>
                         <th>Program</th>
                         <th>Kode Slug</th>
-                        <th>Visibilitas</th>
+                        <th class="text-center">Jumlah Course</th>
+                        <th class="text-center">Jumlah Kelas</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Aksi</th>
                     </tr>
@@ -138,7 +139,7 @@ $stats = $stats ?? [
                 <tbody>
                     <?php if (empty($programs)): ?>
                         <tr>
-                            <td colspan="5" class="p-0">
+                            <td colspan="6" class="p-0">
                                 <?= view('dashboard/components/empty_state', [
                                     'title'       => 'Program Tidak Ditemukan',
                                     'message'     => 'Belum ada data program pembelajaran yang sesuai dengan kriteria.',
@@ -163,9 +164,14 @@ $stats = $stats ?? [
                                         <?= esc($program['slug']) ?>
                                     </span>
                                 </td>
-                                <td>
-                                    <span class="badge bg-neutral-200 text-secondary-light px-10 py-4 radius-4 fw-medium text-xs">
-                                        <?= esc(ucfirst($program['visibility'] ?? '-')) ?>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-50 text-primary-600 px-10 py-4 radius-4 fw-medium text-xs">
+                                        <?= number_format($program['course_count'] ?? 0) ?> Course
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info-50 text-info-600 px-10 py-4 radius-4 fw-medium text-xs">
+                                        <?= number_format($program['class_count'] ?? 0) ?> Kelas
                                     </span>
                                 </td>
                                 <td class="text-center">
@@ -195,6 +201,16 @@ $stats = $stats ?? [
                                                     <iconify-icon icon="solar:notebook-outline" class="text-lg text-info-main"></iconify-icon>
                                                     <span>Lihat Course Terkait</span>
                                                 </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider my-4"></li>
+                                            <li>
+                                                <form action="<?= site_url('dashboard/pembelajaran/program/' . $program['id'] . '/hapus') ?>" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menghapus program ini?');">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="dropdown-item px-12 py-8 radius-4 text-danger-main bg-hover-danger-50 d-flex align-items-center gap-2 text-sm w-100 border-0 bg-transparent">
+                                                        <iconify-icon icon="solar:trash-bin-trash-outline" class="text-lg text-danger-main"></iconify-icon>
+                                                        <span>Hapus Program</span>
+                                                    </button>
+                                                </form>
                                             </li>
                                         </ul>
                                     </div>

@@ -150,15 +150,43 @@ class CommunicationService
     {
         $title = trim((string) ($data['title'] ?? ''));
         $now = date('Y-m-d H:i:s');
+
+        // Normalisasi mode ('online', 'offline', 'hybrid') dan type
+        $mode = strtolower(trim((string) ($data['mode'] ?? 'online')));
+        $type = strtolower(trim((string) ($data['type'] ?? 'webinar')));
+
+        // Tangani kasus jika nilai mode dan type tertukar dari form
+        if (in_array($type, ['online', 'offline', 'hybrid'], true) && ! in_array($mode, ['online', 'offline', 'hybrid'], true)) {
+            $temp = $mode;
+            $mode = $type;
+            $type = in_array($temp, ['open', 'invitation', 'closed'], true) ? 'webinar' : $temp;
+        }
+
+        if (! in_array($mode, ['online', 'offline', 'hybrid'], true)) {
+            $mode = 'online';
+        }
+
+        $validStatuses = ['draft', 'coming_soon', 'open_registration', 'full', 'finished', 'cancelled'];
+        $status = strtolower(trim((string) ($data['status'] ?? 'draft')));
+        if (! in_array($status, $validStatuses, true)) {
+            $status = 'draft';
+        }
+
+        $validVisibilities = ['public', 'internal', 'restricted'];
+        $visibility = strtolower(trim((string) ($data['visibility'] ?? 'public')));
+        if (! in_array($visibility, $validVisibilities, true)) {
+            $visibility = 'public';
+        }
+
         $payload = [
-            'title'                => $title,
-            'slug'                 => $this->events->generateUniqueSlug($title),
-            'type'                 => (string) ($data['type'] ?? 'online'),
-            'mode'                 => (string) ($data['mode'] ?? 'open'),
-            'status'               => (string) ($data['status'] ?? 'draft'),
-            'visibility'           => (string) ($data['visibility'] ?? 'public'),
-            'summary'              => (string) ($data['summary'] ?? ''),
-            'description'          => (string) ($data['description'] ?? ''),
+            'title'                 => $title,
+            'slug'                  => $this->events->generateUniqueSlug($title),
+            'type'                  => $type !== '' ? $type : 'webinar',
+            'mode'                  => $mode,
+            'status'                => $status,
+            'visibility'            => $visibility,
+            'summary'               => (string) ($data['summary'] ?? ''),
+            'description'           => (string) ($data['description'] ?? ''),
             'start_at'              => $this->parseDateTime($data['start_at'] ?? null),
             'end_at'                => $this->parseDateTime($data['end_at'] ?? null),
             'location'              => (string) ($data['location'] ?? ''),
@@ -186,24 +214,57 @@ class CommunicationService
 
     public function updateEvent(int $id, array $data, ?int $actorId = null): bool
     {
+        $current = $this->events->find($id);
+        if (! $current) {
+            return false;
+        }
+
+        $mode = strtolower(trim((string) ($data['mode'] ?? $current['mode'] ?? 'online')));
+        $type = strtolower(trim((string) ($data['type'] ?? $current['type'] ?? 'webinar')));
+
+        if (in_array($type, ['online', 'offline', 'hybrid'], true) && ! in_array($mode, ['online', 'offline', 'hybrid'], true)) {
+            $temp = $mode;
+            $mode = $type;
+            $type = in_array($temp, ['open', 'invitation', 'closed'], true) ? ($current['type'] ?? 'webinar') : $temp;
+        }
+
+        if (! in_array($mode, ['online', 'offline', 'hybrid'], true)) {
+            $mode = $current['mode'] ?? 'online';
+        }
+
+        $validStatuses = ['draft', 'coming_soon', 'open_registration', 'full', 'finished', 'cancelled'];
+        $status = strtolower(trim((string) ($data['status'] ?? $current['status'] ?? 'draft')));
+        if (! in_array($status, $validStatuses, true)) {
+            $status = $current['status'] ?? 'draft';
+        }
+
+        $validVisibilities = ['public', 'internal', 'restricted'];
+        $visibility = strtolower(trim((string) ($data['visibility'] ?? $current['visibility'] ?? 'public')));
+        if (! in_array($visibility, $validVisibilities, true)) {
+            $visibility = $current['visibility'] ?? 'public';
+        }
+
+        $title = isset($data['title']) && trim($data['title']) !== '' ? trim((string) $data['title']) : $current['title'];
+        $slug = ($title !== $current['title']) ? $this->events->generateUniqueSlug($title, $id) : $current['slug'];
+
         $payload = [
-            'title'                => trim((string) ($data['title'] ?? '')),
-            'slug'                 => $this->events->generateUniqueSlug(trim((string) ($data['title'] ?? 'event')), $id),
-            'type'                 => (string) ($data['type'] ?? 'online'),
-            'mode'                 => (string) ($data['mode'] ?? 'open'),
-            'status'               => (string) ($data['status'] ?? 'draft'),
-            'visibility'           => (string) ($data['visibility'] ?? 'public'),
-            'summary'              => (string) ($data['summary'] ?? ''),
-            'description'          => (string) ($data['description'] ?? ''),
-            'start_at'              => $this->parseDateTime($data['start_at'] ?? null),
-            'end_at'                => $this->parseDateTime($data['end_at'] ?? null),
-            'location'              => (string) ($data['location'] ?? ''),
-            'meeting_url'           => (string) ($data['meeting_url'] ?? ''),
-            'registration_open_at'  => $this->parseDateTime($data['registration_open_at'] ?? null),
-            'registration_close_at' => $this->parseDateTime($data['registration_close_at'] ?? null),
-            'capacity'              => isset($data['capacity']) && $data['capacity'] !== '' ? (int) $data['capacity'] : null,
-            'waitlist_enabled'      => isset($data['waitlist_enabled']) ? 1 : 0,
-            'certificate_enabled'   => isset($data['certificate_enabled']) ? 1 : 0,
+            'title'                 => $title,
+            'slug'                  => $slug,
+            'type'                  => $type !== '' ? $type : ($current['type'] ?? 'webinar'),
+            'mode'                  => $mode,
+            'status'                => $status,
+            'visibility'            => $visibility,
+            'summary'               => array_key_exists('summary', $data) ? (string) $data['summary'] : ($current['summary'] ?? ''),
+            'description'           => array_key_exists('description', $data) ? (string) $data['description'] : ($current['description'] ?? ''),
+            'start_at'              => array_key_exists('start_at', $data) ? $this->parseDateTime($data['start_at']) : $current['start_at'],
+            'end_at'                => array_key_exists('end_at', $data) ? $this->parseDateTime($data['end_at']) : $current['end_at'],
+            'location'              => array_key_exists('location', $data) ? (string) $data['location'] : ($current['location'] ?? ''),
+            'meeting_url'           => array_key_exists('meeting_url', $data) ? (string) $data['meeting_url'] : ($current['meeting_url'] ?? ''),
+            'registration_open_at'  => array_key_exists('registration_open_at', $data) ? $this->parseDateTime($data['registration_open_at']) : $current['registration_open_at'],
+            'registration_close_at' => array_key_exists('registration_close_at', $data) ? $this->parseDateTime($data['registration_close_at']) : $current['registration_close_at'],
+            'capacity'              => array_key_exists('capacity', $data) ? ($data['capacity'] !== '' && $data['capacity'] !== null ? (int) $data['capacity'] : null) : $current['capacity'],
+            'waitlist_enabled'      => array_key_exists('waitlist_enabled', $data) ? (isset($data['waitlist_enabled']) && $data['waitlist_enabled'] ? 1 : 0) : (int) ($current['waitlist_enabled'] ?? 0),
+            'certificate_enabled'   => array_key_exists('certificate_enabled', $data) ? (isset($data['certificate_enabled']) && $data['certificate_enabled'] ? 1 : 0) : (int) ($current['certificate_enabled'] ?? 0),
             'updated_by'            => $actorId,
             'updated_at'            => date('Y-m-d H:i:s'),
         ];
@@ -269,7 +330,246 @@ class CommunicationService
         return $ok;
     }
 
-    // ============== FILE HELPER ==============
+    public function generateAttendanceCode(int $eventId, ?int $actorId = null): string
+    {
+        $event = $this->events->find($eventId);
+        if (! $event) {
+            throw new \RuntimeException('Event tidak ditemukan.');
+        }
+
+        // Format kode presensi: BGW-EVT-XXXXX (huruf kapital dan angka)
+        $code = 'BGW-EVT-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 5));
+        $codeHash = hash('sha256', $code);
+        $now = date('Y-m-d H:i:s');
+
+        $this->events->update($eventId, [
+            'attendance_code'      => $code,
+            'attendance_code_hash' => $codeHash,
+            'updated_at'           => $now,
+        ]);
+
+        $this->audit->log($actorId, 'event.generate_attendance_code', 'events', 'event', $eventId, [
+            'code' => $code,
+        ]);
+
+        return $code;
+    }
+
+    public function openAttendance(int $eventId, ?int $actorId = null): string
+    {
+        $event = $this->events->find($eventId);
+        if (! $event) {
+            throw new \RuntimeException('Event tidak ditemukan.');
+        }
+
+        $code = $event['attendance_code'] ?? null;
+        $now = date('Y-m-d H:i:s');
+        $payload = [
+            'attendance_open_at'  => $now,
+            'attendance_close_at' => null,
+            'updated_at'          => $now,
+        ];
+
+        if (empty($code)) {
+            $code = 'BGW-EVT-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 5));
+            $payload['attendance_code']      = $code;
+            $payload['attendance_code_hash'] = hash('sha256', $code);
+        }
+
+        $this->events->update($eventId, $payload);
+
+        $this->audit->log($actorId, 'event.open_attendance', 'events', 'event', $eventId, [
+            'code'    => $code,
+            'open_at' => $now,
+        ]);
+
+        return $code;
+    }
+
+    public function closeAttendance(int $eventId, ?int $actorId = null): bool
+    {
+        $event = $this->events->find($eventId);
+        if (! $event) {
+            throw new \RuntimeException('Event tidak ditemukan.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $ok = (bool) $this->events->update($eventId, [
+            'attendance_close_at' => $now,
+            'updated_at'          => $now,
+        ]);
+
+        if ($ok) {
+            $this->audit->log($actorId, 'event.close_attendance', 'events', 'event', $eventId, [
+                'close_at' => $now,
+            ]);
+        }
+
+        return $ok;
+    }
+
+    public function validateAndCheckIn(string $rawCode, int $userId): array
+    {
+        $code = trim(strtoupper($rawCode));
+        if ($code === '') {
+            throw new \RuntimeException('Kode presensi tidak valid');
+        }
+
+        $db = db_connect();
+
+        // 1. Kode cocok dengan event
+        $event = $db->table('events')
+            ->where('attendance_code', $code)
+            ->where('deleted_at IS NULL')
+            ->get()->getRowArray();
+
+        if (! $event) {
+            throw new \RuntimeException('Kode presensi tidak valid');
+        }
+
+        $now = time();
+        $openAt = ! empty($event['attendance_open_at']) ? strtotime((string) $event['attendance_open_at']) : null;
+        $closeAt = ! empty($event['attendance_close_at']) ? strtotime((string) $event['attendance_close_at']) : null;
+
+        // 2. Presensi belum dibuka
+        if ($openAt === null || $openAt > $now) {
+            throw new \RuntimeException('Presensi belum tersedia');
+        }
+
+        // Presensi sudah ditutup
+        if ($closeAt !== null && $closeAt <= $now) {
+            throw new \RuntimeException('Presensi sudah ditutup');
+        }
+
+        // 3. Peserta sudah terdaftar
+        $reg = $db->table('event_registrations')
+            ->where('event_id', (int) $event['id'])
+            ->where('user_id', $userId)
+            ->whereIn('status', ['registered', 'confirmed'])
+            ->get()->getRowArray();
+
+        if (! $reg) {
+            throw new \RuntimeException('Anda belum terdaftar pada event ini');
+        }
+
+        $registrationId = (int) $reg['id'];
+
+        // 4. Peserta belum melakukan presensi sebelumnya
+        $existingAttendance = $db->table('attendances')
+            ->where('event_registration_id', $registrationId)
+            ->get()->getRowArray();
+
+        if ($existingAttendance && in_array(strtolower($existingAttendance['status']), ['present', 'hadir'], true)) {
+            throw new \RuntimeException('Anda sudah melakukan presensi');
+        }
+
+        $nowTime = date('Y-m-d H:i:s');
+        if ($existingAttendance) {
+            $db->table('attendances')->where('id', $existingAttendance['id'])->update([
+                'status'      => 'present',
+                'recorded_by' => $userId,
+                'recorded_at' => $nowTime,
+                'notes'       => 'Presensi mandiri melalui kode sandi: ' . $code,
+                'updated_at'  => $nowTime,
+            ]);
+            $attendanceId = (int) $existingAttendance['id'];
+        } else {
+            $db->table('attendances')->insert([
+                'event_registration_id' => $registrationId,
+                'status'               => 'present',
+                'recorded_by'          => $userId,
+                'recorded_at'          => $nowTime,
+                'notes'                => 'Presensi mandiri melalui kode sandi: ' . $code,
+                'created_at'           => $nowTime,
+                'updated_at'           => $nowTime,
+            ]);
+            $attendanceId = (int) $db->insertID();
+        }
+
+        $this->audit->log($userId, 'attendance.checkin_code', 'attendances', 'attendance', $attendanceId, [
+            'event_id'        => (int) $event['id'],
+            'registration_id' => $registrationId,
+            'code'            => $code,
+        ]);
+
+        return [
+            'event'           => $event,
+            'registration'    => $reg,
+            'attendance_id'   => $attendanceId,
+            'message'         => 'Presensi berhasil dicatat! Kehadiran Anda pada event "' . $event['title'] . '" telah terkonfirmasi.',
+        ];
+    }
+
+    public function batchGenerateEventCertificates(int $eventId, ?int $actorId = null): array
+    {
+        $db = db_connect();
+        $event = $db->table('events')->where('id', $eventId)->get()->getRowArray();
+        if (! $event) {
+            throw new \RuntimeException('Event tidak ditemukan.');
+        }
+
+        // Ambil peserta: event_registrations JOIN attendances DENGAN kondisi attendance.status = 'present'
+        $participants = $db->table('event_registrations er')
+            ->select('er.id AS registration_id, er.user_id, u.name AS user_name, u.email AS user_email, a.status AS attendance_status')
+            ->join('attendances a', 'a.event_registration_id = er.id')
+            ->join('users u', 'u.id = er.user_id')
+            ->where('er.event_id', $eventId)
+            ->where('er.status', 'registered')
+            ->where('a.status', 'present')
+            ->orderBy('er.id', 'ASC')
+            ->get()->getResultArray();
+
+        $generated = [];
+        $now = date('Y-m-d H:i:s');
+
+        foreach ($participants as $p) {
+            $regId  = (int) $p['registration_id'];
+            $userId = (int) $p['user_id'];
+
+            // Cek apakah sertifikat sudah ada
+            $existing = $db->table('certificates')
+                ->where('source_type', 'event_registration')
+                ->where('source_id', $regId)
+                ->get()->getRowArray();
+
+            if ($existing) {
+                continue;
+            }
+
+            $certNumber = 'CERT-EVT-' . date('Ymd') . '-' . sprintf('%04d', $regId);
+            $tokenHash  = hash('sha256', bin2hex(random_bytes(16)) . $regId . $now);
+
+            $db->table('certificates')->insert([
+                'source_type'             => 'event_registration',
+                'source_id'               => $regId,
+                'user_id'                 => $userId,
+                'certificate_number'      => $certNumber,
+                'verification_token_hash' => $tokenHash,
+                'status'                  => 'issued',
+                'issued_at'               => $now,
+                'issued_by'               => $actorId,
+                'created_at'              => $now,
+                'updated_at'              => $now,
+            ]);
+
+            $certId = (int) $db->insertID();
+            $generated[] = [
+                'certificate_id'     => $certId,
+                'certificate_number' => $certNumber,
+                'registration_id'    => $regId,
+                'user_id'            => $userId,
+                'user_name'          => $p['user_name'],
+            ];
+
+            $this->audit->log($actorId, 'certificate.event_batch_issue', 'certificates', 'certificate', $certId, [
+                'event_id'           => $eventId,
+                'registration_id'    => $regId,
+                'certificate_number' => $certNumber,
+            ]);
+        }
+
+        return $generated;
+    }
 
     /**
      * Stream-uploaded file to writable/uploads/<resource>/ + file_assets row.

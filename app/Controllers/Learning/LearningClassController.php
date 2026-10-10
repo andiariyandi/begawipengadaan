@@ -29,7 +29,11 @@ class LearningClassController extends BaseController
         $courseId = (int) $this->request->getGet('course_id');
 
         $builder = $this->classModel
-            ->select('learning_classes.*, courses.title AS course_title')
+            ->select('learning_classes.*, courses.title AS course_title,
+                      (SELECT COUNT(1) FROM class_trainers ct WHERE ct.class_id = learning_classes.id AND ct.status = "active") AS trainer_count,
+                      (SELECT GROUP_CONCAT(u.name SEPARATOR ", ") FROM class_trainers ct JOIN users u ON u.id = ct.user_id WHERE ct.class_id = learning_classes.id AND ct.status = "active") AS trainer_names,
+                      (SELECT COUNT(1) FROM enrollments e WHERE e.class_id = learning_classes.id) AS student_count,
+                      (SELECT COUNT(1) FROM enrollments e WHERE e.class_id = learning_classes.id AND e.status IN ("completed", "passed")) AS completed_count')
             ->join('courses', 'courses.id = learning_classes.course_id', 'left')
             ->orderBy('learning_classes.created_at', 'DESC');
 
@@ -306,6 +310,29 @@ class LearningClassController extends BaseController
         $this->classModel->update($id, $data);
 
         return redirect()->to(route_to('dashboard.learning.classes'))->with('success', 'Kelas berhasil diperbarui.');
+    }
+
+    public function delete(string $id)
+    {
+        if (! $this->canManageClasses()) {
+            return $this->forbidClassManagement();
+        }
+
+        $class = $this->classModel->find($id);
+        if ($class === null) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas tidak ditemukan.');
+        }
+
+        $db = db_connect();
+        $enrollmentCount = (int) $db->table('enrollments')->where('class_id', $id)->countAllResults();
+        if ($enrollmentCount > 0) {
+            return redirect()->back()->with('error', "Tidak dapat menghapus kelas: Terdapat {$enrollmentCount} peserta terdaftar pada kelas ini.");
+        }
+
+        $db->table('class_trainers')->where('class_id', $id)->delete();
+        $this->classModel->delete($id);
+
+        return redirect()->to(route_to('dashboard.learning.classes'))->with('success', 'Kelas berhasil dihapus.');
     }
 
     private function validatedClassData(): ?array

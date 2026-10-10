@@ -37,7 +37,9 @@ class AuthenticationService
         $roles = $this->users->getRoles((int) $user['id']);
         $permissions = $this->users->getPermissions((int) $user['id']);
 
-        session()->regenerate(true);
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session()->regenerate(true);
+        }
         session()->set([
             'isLoggedIn' => true,
             'user_id' => (int) $user['id'],

@@ -224,10 +224,14 @@ class WorkspaceHomeController extends BaseController
     {
         $roles = (array) session()->get('roles');
 
-        foreach (['operator', 'trainer', 'participant', 'peserta'] as $role) {
+        foreach (['operator', 'admin', 'administrator', 'super_admin', 'super_administrator'] as $role) {
             if (in_array($role, $roles, true)) {
-                return $role === 'peserta' ? 'participant' : $role;
+                return 'operator';
             }
+        }
+
+        if (in_array('trainer', $roles, true)) {
+            return 'trainer';
         }
 
         return 'participant';

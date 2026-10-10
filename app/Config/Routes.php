@@ -125,7 +125,10 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('tugas', 'ParticipantController::allAssignments', ['as' => 'workspace.participant.all-assignments']);
         $routes->get('assessment', 'ParticipantController::allAssessments', ['as' => 'workspace.participant.all-assessments']);
         $routes->get('event-saya', 'ParticipantController::myEvents', ['as' => 'workspace.participant.events']);
+        $routes->get('event-saya/(:segment)', 'ParticipantController::eventDetail/$1', ['as' => 'workspace.participant.event.detail']);
+        $routes->get('event/(:segment)', 'ParticipantController::eventDetail/$1');
         $routes->get('presensi-saya', 'ParticipantController::myAttendance', ['as' => 'workspace.participant.attendance']);
+        $routes->post('presensi/checkin', 'ParticipantController::submitAttendanceCode', ['as' => 'workspace.participant.attendance.checkin']);
         $routes->get('kelas/(:segment)', 'ParticipantController::classDetail/$1', ['as' => 'workspace.participant.class.detail']);
         $routes->get('kelas/(:segment)/belajar', 'ParticipantController::study/$1', ['as' => 'workspace.participant.study']);
         $routes->get('lesson/(:segment)', 'ParticipantController::lessonDetail/$1', ['as' => 'workspace.participant.lesson.detail']);
@@ -201,20 +204,29 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
 
     $routes->group('operator', static function ($routes) {
         $routes->get('/', 'OperatorController::index', ['as' => 'workspace.operator.home']);
+        $routes->get('approval', 'OperatorController::approvals', ['as' => 'workspace.operator.approvals']);
+        $routes->post('approval/(:segment)/setujui', 'OperatorController::approveApproval/$1', ['as' => 'workspace.operator.approvals.approve']);
+        $routes->post('approval/(:segment)/tolak', 'OperatorController::rejectApproval/$1', ['as' => 'workspace.operator.approvals.reject']);
         $routes->get('verifikasi-profil', 'OperatorController::profileVerifications', ['as' => 'workspace.operator.profile-verifications']);
         $routes->post('verifikasi-profil/(:segment)/setujui', 'OperatorController::approveVerification/$1', ['as' => 'workspace.operator.profile-verifications.approve']);
         $routes->post('verifikasi-profil/(:segment)/tolak', 'OperatorController::rejectVerification/$1', ['as' => 'workspace.operator.profile-verifications.reject']);
+        $routes->get('penugasan-trainer', 'OperatorController::classTrainers', ['as' => 'workspace.operator.class-trainers']);
+        $routes->post('penugasan-trainer/assign', 'OperatorController::assignTrainer', ['as' => 'workspace.operator.class-trainers.assign']);
+        $routes->post('penugasan-trainer/revoke', 'OperatorController::revokeTrainer', ['as' => 'workspace.operator.class-trainers.revoke']);
+        $routes->get('event', 'OperatorController::events', ['as' => 'workspace.operator.events']);
+        $routes->get('event/(:segment)/peserta', 'OperatorController::eventParticipants/$1', ['as' => 'workspace.operator.events.participants']);
+        $routes->get('kehadiran', 'OperatorController::attendance', ['as' => 'workspace.operator.attendance']);
+        $routes->post('kehadiran/(:segment)/update', 'OperatorController::updateAttendance/$1', ['as' => 'workspace.operator.attendance.update']);
+        $routes->get('monitoring-pembelajaran', 'OperatorController::learningMonitoring', ['as' => 'workspace.operator.learning-monitoring']);
+        $routes->get('verifikasi-sertifikat', 'OperatorController::certificateVerification', ['as' => 'workspace.operator.certificates']);
+        $routes->post('verifikasi-sertifikat/(:segment)/terbitkan', 'OperatorController::issueCertificate/$1', ['as' => 'workspace.operator.certificates.issue']);
+        $routes->post('verifikasi-sertifikat/(:segment)/batalkan', 'OperatorController::revokeCertificate/$1', ['as' => 'workspace.operator.certificates.revoke']);
         $routes->get('enrollment', 'OperatorController::enrollments', ['as' => 'workspace.operator.enrollments']);
         $routes->post('enrollment/(:segment)/aktifkan', 'OperatorController::activateEnrollment/$1', ['as' => 'workspace.operator.enrollments.activate']);
         $routes->post('enrollment/(:segment)/override-nilai', 'OperatorController::overrideEnrollmentScore/$1', ['as' => 'workspace.operator.enrollments.override-score']);
         $routes->get('evaluasi', 'OperatorController::evaluations', ['as' => 'workspace.operator.evaluations']);
         $routes->get('evaluasi/submission/(:segment)', 'OperatorController::reviewSubmission/$1', ['as' => 'workspace.operator.submission.review']);
         $routes->post('evaluasi/submission/(:segment)/override', 'OperatorController::overrideSubmission/$1', ['as' => 'workspace.operator.submission.override']);
-        $routes->get('event', 'OperatorController::events', ['as' => 'workspace.operator.events']);
-        $routes->get('kehadiran', 'OperatorController::attendance', ['as' => 'workspace.operator.attendance']);
-        $routes->get('approval', 'OperatorController::approvals', ['as' => 'workspace.operator.approvals']);
-        $routes->post('approval/(:segment)/setujui', 'OperatorController::approveApproval/$1', ['as' => 'workspace.operator.approvals.approve']);
-        $routes->post('approval/(:segment)/tolak', 'OperatorController::rejectApproval/$1', ['as' => 'workspace.operator.approvals.reject']);
         $routes->get('monitoring-aktivitas', 'OperatorController::activityMonitoring', ['as' => 'workspace.operator.activity-monitoring']);
     });
 });
@@ -348,26 +360,63 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     });
 
     $routes->group('pembelajaran', ['namespace' => 'App\Controllers\Learning'], static function ($routes) {
+        // 1. Overview
+        $routes->get('', 'LearningOverviewController::index', ['as' => 'dashboard.learning.overview']);
+
+        // 2. Program
         $routes->get('program', 'ProgramController::index', ['as' => 'dashboard.learning.programs']);
         $routes->post('program', 'ProgramController::store', ['as' => 'dashboard.learning.programs.store']);
         $routes->get('program/tambah', 'ProgramController::create', ['as' => 'dashboard.learning.programs.create']);
         $routes->get('program/(:segment)/ubah', 'ProgramController::edit/$1', ['as' => 'dashboard.learning.programs.edit']);
         $routes->post('program/(:segment)/ubah', 'ProgramController::update/$1', ['as' => 'dashboard.learning.programs.update']);
+        $routes->post('program/(:segment)/hapus', 'ProgramController::delete/$1', ['as' => 'dashboard.learning.programs.delete']);
         $routes->get('program/(:segment)', 'ProgramController::detail/$1', ['as' => 'dashboard.learning.programs.detail']);
+
+        // 3. Course
         $routes->get('course', 'CourseController::index', ['as' => 'dashboard.learning.courses']);
         $routes->post('course', 'CourseController::store', ['as' => 'dashboard.learning.courses.store']);
         $routes->get('course/tambah', 'CourseController::create', ['as' => 'dashboard.learning.courses.create']);
         $routes->get('course/(:segment)/ubah', 'CourseController::edit/$1', ['as' => 'dashboard.learning.courses.edit']);
         $routes->post('course/(:segment)/ubah', 'CourseController::update/$1', ['as' => 'dashboard.learning.courses.update']);
+        $routes->post('course/(:segment)/hapus', 'CourseController::delete/$1', ['as' => 'dashboard.learning.courses.delete']);
         $routes->get('course/(:segment)', 'CourseController::detail/$1', ['as' => 'dashboard.learning.courses.detail']);
+
+        // 4. Class / Batch
         $routes->get('kelas', 'LearningClassController::index', ['as' => 'dashboard.learning.classes']);
         $routes->post('kelas', 'LearningClassController::store', ['as' => 'dashboard.learning.classes.store']);
         $routes->get('kelas/tambah', 'LearningClassController::create', ['as' => 'dashboard.learning.classes.create']);
         $routes->get('kelas/(:segment)/ubah', 'LearningClassController::edit/$1', ['as' => 'dashboard.learning.classes.edit']);
         $routes->post('kelas/(:segment)/ubah', 'LearningClassController::update/$1', ['as' => 'dashboard.learning.classes.update']);
+        $routes->post('kelas/(:segment)/hapus', 'LearningClassController::delete/$1', ['as' => 'dashboard.learning.classes.delete']);
         $routes->get('kelas/(:segment)', 'LearningClassController::detail/$1', ['as' => 'dashboard.learning.classes.detail']);
         $routes->post('kelas/(:segment)/trainer', 'LearningClassController::assignTrainer/$1', ['as' => 'dashboard.learning.classes.assign-trainer']);
         $routes->post('kelas/(:segment)/trainer/(:segment)/cabut', 'LearningClassController::revokeTrainer/$1/$2', ['as' => 'dashboard.learning.classes.revoke-trainer']);
+
+        // 5. Trainer Assignment
+        $routes->get('trainer', 'TrainerAssignmentController::index', ['as' => 'dashboard.learning.trainers']);
+        $routes->post('trainer/assign', 'TrainerAssignmentController::assign', ['as' => 'dashboard.learning.trainers.assign']);
+        $routes->post('trainer/(:segment)/(:segment)/cabut', 'TrainerAssignmentController::revoke/$1/$2', ['as' => 'dashboard.learning.trainers.revoke']);
+
+        // 6. Peserta & Enrollment
+        $routes->get('enrollment', 'EnrollmentController::index', ['as' => 'dashboard.learning.enrollments']);
+        $routes->get('enrollment/(:segment)', 'EnrollmentController::detail/$1', ['as' => 'dashboard.learning.enrollments.detail']);
+        $routes->post('enrollment/tambah', 'EnrollmentController::store', ['as' => 'dashboard.learning.enrollments.store']);
+        $routes->post('enrollment/(:segment)/approve', 'EnrollmentController::approve/$1', ['as' => 'dashboard.learning.enrollments.approve']);
+        $routes->post('enrollment/(:segment)/reject', 'EnrollmentController::reject/$1', ['as' => 'dashboard.learning.enrollments.reject']);
+        $routes->post('enrollment/(:segment)/status', 'EnrollmentController::status/$1', ['as' => 'dashboard.learning.enrollments.status']);
+        $routes->post('enrollment/(:segment)/hapus', 'EnrollmentController::delete/$1', ['as' => 'dashboard.learning.enrollments.delete']);
+
+        // 7. Curriculum Management
+        $routes->get('kurikulum', 'CurriculumController::index', ['as' => 'dashboard.learning.curriculum']);
+        $routes->get('kurikulum/kelas/(:segment)', 'CurriculumController::index/$1', ['as' => 'dashboard.learning.curriculum.class']);
+        $routes->post('kurikulum/modul', 'CurriculumController::storeModule', ['as' => 'dashboard.learning.curriculum.module.store']);
+        $routes->post('kurikulum/modul/(:segment)/ubah', 'CurriculumController::updateModule/$1', ['as' => 'dashboard.learning.curriculum.module.update']);
+        $routes->post('kurikulum/modul/(:segment)/hapus', 'CurriculumController::deleteModule/$1', ['as' => 'dashboard.learning.curriculum.module.delete']);
+        $routes->post('kurikulum/lesson', 'CurriculumController::storeLesson', ['as' => 'dashboard.learning.curriculum.lesson.store']);
+        $routes->post('kurikulum/lesson/(:segment)/ubah', 'CurriculumController::updateLesson/$1', ['as' => 'dashboard.learning.curriculum.lesson.update']);
+        $routes->post('kurikulum/lesson/(:segment)/hapus', 'CurriculumController::deleteLesson/$1', ['as' => 'dashboard.learning.curriculum.lesson.delete']);
+
+        // Legacy module and lesson routes
         $routes->get('materi-modul', 'ModuleController::index', ['as' => 'dashboard.learning.modules']);
         $routes->post('materi-modul', 'ModuleController::store', ['as' => 'dashboard.learning.modules.store']);
         $routes->get('materi-modul/tambah', 'ModuleController::create', ['as' => 'dashboard.learning.modules.create']);
@@ -380,20 +429,31 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('lesson/(:segment)/ubah', 'LessonController::edit/$1', ['as' => 'dashboard.learning.lessons.edit']);
         $routes->post('lesson/(:segment)/ubah', 'LessonController::update/$1', ['as' => 'dashboard.learning.lessons.update']);
         $routes->get('lesson/(:segment)', 'LessonController::detail/$1', ['as' => 'dashboard.learning.lessons.detail']);
-        $routes->get('assessment', 'QuizController::index', ['as' => 'dashboard.learning.assessments']);
+
+        // 8. Assessment
+        $routes->get('assessment', 'AssessmentManagementController::index', ['as' => 'dashboard.learning.assessments']);
+        $routes->post('assessment/quiz', 'AssessmentManagementController::storeQuiz', ['as' => 'dashboard.learning.assessments.quiz.store']);
+        $routes->post('assessment/assignment', 'AssessmentManagementController::storeAssignment', ['as' => 'dashboard.learning.assessments.assignment.store']);
+        $routes->get('assessment/bank-soal', 'AssessmentManagementController::questionBank', ['as' => 'dashboard.learning.question-bank']);
         $routes->get('assessment/pre-test', 'PreTestController::index', ['as' => 'dashboard.learning.pre-tests']);
         $routes->get('assessment/quiz', 'QuizController::index', ['as' => 'dashboard.learning.quizzes']);
         $routes->get('assessment/post-test', 'PostTestController::index', ['as' => 'dashboard.learning.post-tests']);
-        $routes->get('assessment/bank-soal', 'QuizController::questionBank', ['as' => 'dashboard.learning.question-bank']);
-        $routes->get('enrollment', 'EnrollmentController::index', ['as' => 'dashboard.learning.enrollments']);
-        $routes->get('enrollment/(:segment)', 'EnrollmentController::detail/$1', ['as' => 'dashboard.learning.enrollments.detail']);
-        $routes->post('enrollment/(:segment)/approve', 'EnrollmentController::approve/$1', ['as' => 'dashboard.learning.enrollments.approve']);
-        $routes->post('enrollment/(:segment)/reject', 'EnrollmentController::reject/$1', ['as' => 'dashboard.learning.enrollments.reject']);
-        $routes->post('enrollment/(:segment)/status', 'EnrollmentController::status/$1', ['as' => 'dashboard.learning.enrollments.status']);
         $routes->get('penilaian', 'GradingController::index', ['as' => 'dashboard.learning.gradings']);
         $routes->get('penilaian/(:segment)', 'GradingController::detail/$1', ['as' => 'dashboard.learning.gradings.detail']);
-        $routes->get('progres-kelulusan', 'StudyController::progress', ['as' => 'dashboard.learning.progress-completion']);
+
+        // 9. Learning Progress
+        $routes->get('progres', 'ProgressMonitoringController::index', ['as' => 'dashboard.learning.progress']);
+        $routes->get('progres/detail/(:segment)', 'ProgressMonitoringController::detail/$1', ['as' => 'dashboard.learning.progress.detail']);
+        $routes->get('progres-kelulusan', 'ProgressMonitoringController::index', ['as' => 'dashboard.learning.progress-completion']);
         $routes->get('feedback-peserta', 'StudyController::feedback', ['as' => 'dashboard.learning.participant-feedback']);
+
+        // 10. Certificate Eligibility
+        $routes->get('kelayakan-sertifikat', 'CertificateEligibilityController::index', ['as' => 'dashboard.learning.certificate-eligibility']);
+        $routes->post('kelayakan-sertifikat/generate/(:segment)', 'CertificateEligibilityController::generate/$1', ['as' => 'dashboard.learning.certificate-eligibility.generate']);
+        $routes->post('kelayakan-sertifikat/batch-generate', 'CertificateEligibilityController::batchGenerate', ['as' => 'dashboard.learning.certificate-eligibility.batch-generate']);
+
+        // 11. Reports
+        $routes->get('laporan', 'LearningReportController::index', ['as' => 'dashboard.learning.reports']);
     });
 
     $routes->group('bunga-rampai', ['namespace' => 'App\Controllers\Knowledge'], static function ($routes) {
@@ -547,6 +607,10 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('event-agenda/(:segment)/ubah', 'EventController::edit/$1', ['as' => 'dashboard.communication.events.edit']);
         $routes->post('event-agenda/(:segment)/ubah', 'EventController::update/$1');
         $routes->get('event-agenda/(:segment)', 'EventController::detail/$1', ['as' => 'dashboard.communication.events.detail']);
+        $routes->post('event-agenda/(:segment)/generate-kode-presensi', 'EventController::generateAttendanceCode/$1', ['as' => 'dashboard.communication.events.generate-attendance-code']);
+        $routes->post('event-agenda/(:segment)/buka-presensi', 'EventController::openAttendance/$1', ['as' => 'dashboard.communication.events.open-attendance']);
+        $routes->post('event-agenda/(:segment)/tutup-presensi', 'EventController::closeAttendance/$1', ['as' => 'dashboard.communication.events.close-attendance']);
+        $routes->post('event-agenda/(:segment)/batch-certificates', 'EventController::batchCertificates/$1', ['as' => 'dashboard.communication.events.batch-certificates']);
         $routes->post('event-agenda/(:segment)/hapus', 'EventController::delete/$1', ['as' => 'dashboard.communication.events.delete']);
 
         $routes->get('registrasi-event', 'EventRegistrationController::index', ['as' => 'dashboard.communication.event-registrations']);
@@ -560,16 +624,31 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     });
 
     $routes->group('sertifikat', ['namespace' => 'App\Controllers\Certificate'], static function ($routes) {
-        $routes->get('/', 'CertificateController::index', ['as' => 'dashboard.certificates.index']);
-        $routes->get('approval', 'CertificateApprovalController::index', ['as' => 'dashboard.certificates.approvals']);
-        $routes->get('approval/(:segment)', 'CertificateApprovalController::detail/$1', ['as' => 'dashboard.certificates.approvals.detail']);
-        $routes->post('approval/(:segment)/terbitkan', 'CertificateApprovalController::issue/$1', ['as' => 'dashboard.certificates.approvals.issue']);
-        $routes->post('approval/(:segment)/tolak', 'CertificateApprovalController::reject/$1', ['as' => 'dashboard.certificates.approvals.reject']);
-        // Pengajuan sertifikat event (batch approvals)
+        // 1. Overview Sertifikat
+        $routes->get('/', 'CertificateController::overview', ['as' => 'dashboard.certificates.overview']);
+
+        // 2. Learning Certificate
+        $routes->get('learning', 'CertificateLearningController::index', ['as' => 'dashboard.certificates.learning']);
+        $routes->get('learning/kelas/(:segment)', 'CertificateLearningController::classDetail/$1', ['as' => 'dashboard.certificates.learning.class-detail']);
+        $routes->post('learning/issue/(:segment)', 'CertificateLearningController::issueSingle/$1', ['as' => 'dashboard.certificates.learning.issue-single']);
+        $routes->post('learning/kelas/(:segment)/batch', 'CertificateLearningController::issueClassBatch/$1', ['as' => 'dashboard.certificates.learning.issue-batch']);
+
+        // 3. Event / Agenda Certificate
+        $routes->get('event', 'CertificateEventController::index', ['as' => 'dashboard.certificates.events']);
+        $routes->get('event/(:segment)', 'CertificateEventController::detail/$1', ['as' => 'dashboard.certificates.events.detail']);
+        $routes->post('event/issue/(:segment)', 'CertificateEventController::issueSingle/$1', ['as' => 'dashboard.certificates.events.issue-single']);
+        $routes->post('event/(:segment)/batch', 'CertificateEventController::issueBatch/$1', ['as' => 'dashboard.certificates.events.issue-batch']);
+        // Event approval compatibility
         $routes->get('pengajuan-event', 'CertificateEventController::select', ['as' => 'dashboard.certificates.event-approval']);
         $routes->get('pengajuan-event/(:segment)/preview', 'CertificateEventController::preview/$1', ['as' => 'dashboard.certificates.event-approval.preview']);
         $routes->post('pengajuan-event/(:segment)/generate', 'CertificateEventController::generate/$1', ['as' => 'dashboard.certificates.event-approval.generate']);
-        // Template
+
+        // 4. Batch Generation
+        $routes->get('batch', 'CertificateBatchController::index', ['as' => 'dashboard.certificates.batch']);
+        $routes->post('batch/learning', 'CertificateBatchController::processLearningBatch', ['as' => 'dashboard.certificates.batch.learning']);
+        $routes->post('batch/event', 'CertificateBatchController::processEventBatch', ['as' => 'dashboard.certificates.batch.event']);
+
+        // 5. Template Sertifikat
         $routes->get('template', 'CertificateTemplateController::index', ['as' => 'dashboard.certificates.templates']);
         $routes->get('template/tambah', 'CertificateTemplateController::create', ['as' => 'dashboard.certificates.templates.create']);
         $routes->post('template/simpan', 'CertificateTemplateController::store', ['as' => 'dashboard.certificates.templates.store']);
@@ -578,10 +657,25 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('template/(:segment)/aktifkan', 'CertificateTemplateController::activate/$1', ['as' => 'dashboard.certificates.templates.activate']);
         $routes->post('template/(:segment)/nonaktifkan', 'CertificateTemplateController::deactivate/$1', ['as' => 'dashboard.certificates.templates.deactivate']);
         $routes->get('template/(:segment)', 'CertificateTemplateController::detail/$1', ['as' => 'dashboard.certificates.templates.detail']);
-        // Detail / edit / revoke / download (tidak ada create()/store() — generator only)
+
+        // 6. Verification (Internal Dashboard)
+        $routes->get('verifikasi', 'CertificateController::verification', ['as' => 'dashboard.certificates.verification']);
+        $routes->post('verifikasi/cari', 'CertificateController::checkVerification', ['as' => 'dashboard.certificates.verification.check']);
+
+        // 7. Riwayat Sertifikat (Archive)
+        $routes->get('riwayat', 'CertificateController::riwayat', ['as' => 'dashboard.certificates.riwayat']);
+        $routes->get('index', 'CertificateController::riwayat', ['as' => 'dashboard.certificates.index']);
+
+        // Legacy / Approval Queue compatibility
+        $routes->get('approval', 'CertificateApprovalController::index', ['as' => 'dashboard.certificates.approvals']);
+        $routes->get('approval/(:segment)', 'CertificateApprovalController::detail/$1', ['as' => 'dashboard.certificates.approvals.detail']);
+        $routes->post('approval/(:segment)/terbitkan', 'CertificateApprovalController::issue/$1', ['as' => 'dashboard.certificates.approvals.issue']);
+        $routes->post('approval/(:segment)/tolak', 'CertificateApprovalController::reject/$1', ['as' => 'dashboard.certificates.approvals.reject']);
+
+        // Certificate Operations (detail, edit, revoke, download)
         $routes->get('(:segment)/ubah', 'CertificateController::edit/$1', ['as' => 'dashboard.certificates.edit']);
         $routes->post('(:segment)/ubah', 'CertificateController::update/$1');
-        $routes->post('(:segment)/cabut', 'CertificateController::revoke/$1');
+        $routes->post('(:segment)/cabut', 'CertificateController::revoke/$1', ['as' => 'dashboard.certificates.revoke']);
         $routes->get('(:segment)/unduh', 'CertificateDownloadController::download/$1', ['as' => 'dashboard.certificates.download']);
         $routes->get('(:segment)', 'CertificateController::detail/$1', ['as' => 'dashboard.certificates.detail']);
     });

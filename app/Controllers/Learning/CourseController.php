@@ -25,7 +25,10 @@ class CourseController extends BaseController
         $programId = (int) $this->request->getGet('program_id');
 
         $builder = $this->courseModel
-            ->select('courses.*, programs.title AS program_title')
+            ->select('courses.*, programs.title AS program_title,
+                      (SELECT COUNT(1) FROM learning_classes lc WHERE lc.course_id = courses.id) AS class_count,
+                      (SELECT COUNT(DISTINCT e.user_id) FROM enrollments e JOIN learning_classes lc ON lc.id = e.class_id WHERE lc.course_id = courses.id) AS student_count,
+                      (SELECT COUNT(1) FROM enrollments e JOIN learning_classes lc ON lc.id = e.class_id WHERE lc.course_id = courses.id AND e.status IN ("completed", "passed")) AS completed_count')
             ->join('programs', 'programs.id = courses.program_id', 'left')
             ->orderBy('courses.created_at', 'DESC');
 
@@ -164,6 +167,24 @@ class CourseController extends BaseController
         $this->courseModel->update($id, $data);
 
         return redirect()->to(route_to('dashboard.learning.courses'))->with('success', 'Course berhasil diperbarui.');
+    }
+
+    public function delete(string $id)
+    {
+        $course = $this->courseModel->find($id);
+        if ($course === null) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Course tidak ditemukan.');
+        }
+
+        $db = db_connect();
+        $classCount = (int) $db->table('learning_classes')->where('course_id', $id)->countAllResults();
+        if ($classCount > 0) {
+            return redirect()->back()->with('error', "Tidak dapat menghapus course: Masih terdapat {$classCount} kelas terkait pada course ini.");
+        }
+
+        $this->courseModel->delete($id);
+
+        return redirect()->to(route_to('dashboard.learning.courses'))->with('success', 'Course berhasil dihapus.');
     }
 
     private function validatedCourseData(): ?array

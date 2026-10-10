@@ -13,3 +13,30 @@
  *
  * @see: https://codeigniter.com/user_guide/extending/common.html
  */
+
+if (! function_exists('csrf_token')) {
+    function csrf_token(): string
+    {
+        if (is_cli() && ! (service('request') instanceof \CodeIgniter\HTTP\IncomingRequest)) {
+            return config('Security')->tokenName ?? 'csrf_test_name';
+        }
+        return service('security')->getTokenName();
+    }
+}
+
+if (! function_exists('csrf_hash')) {
+    function csrf_hash(): string
+    {
+        if (is_cli() && ! (service('request') instanceof \CodeIgniter\HTTP\IncomingRequest)) {
+            return 'cli_dummy_csrf_hash';
+        }
+        return service('security')->getHash();
+    }
+}
+
+if (! function_exists('csrf_field')) {
+    function csrf_field(?string $id = null): string
+    {
+        return '<input type="hidden"' . ($id !== null ? ' id="' . esc($id, 'attr') . '"' : '') . ' name="' . csrf_token() . '" value="' . csrf_hash() . '" />';
+    }
+}

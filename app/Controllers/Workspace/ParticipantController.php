@@ -530,41 +530,197 @@ class ParticipantController extends BaseController
         $db = db_connect();
 
         $events = $db->table('event_registrations er')
-            ->select('er.id AS registration_id, er.status AS registration_status, er.registered_at, e.id AS event_id, e.title, e.slug, e.type, e.mode, e.status AS event_status, e.start_at, e.end_at, e.location, e.meeting_url, e.certificate_enabled')
+            ->select('
+                er.id AS registration_id,
+                er.status AS registration_status,
+                er.registered_at,
+                e.id AS event_id,
+                e.title,
+                e.slug,
+                e.type,
+                e.mode,
+                e.status AS event_status,
+                e.start_at,
+                e.end_at,
+                e.location,
+                e.meeting_url,
+                e.certificate_enabled,
+                e.attendance_open_at,
+                e.attendance_close_at,
+                e.summary,
+                fa.path AS cover_path,
+                u.name AS creator_name,
+                a.id AS attendance_id,
+                a.status AS attendance_status,
+                a.recorded_at AS attendance_recorded_at,
+                c.id AS certificate_id,
+                c.certificate_number,
+                c.status AS certificate_status
+            ')
             ->join('events e', 'e.id = er.event_id')
+            ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
+            ->join('users u', 'u.id = e.created_by', 'left')
+            ->join('attendances a', 'a.event_registration_id = er.id', 'left')
+            ->join('certificates c', 'c.source_type = \'event_registration\' AND c.source_id = er.id', 'left')
             ->where('er.user_id', $userId)
             ->where('e.deleted_at IS NULL')
             ->orderBy('e.start_at', 'DESC')
             ->get()->getResultArray();
 
-        $activeCount = 0;
-        $attendedCount = 0;
-        foreach ($events as $ev) {
-            if ($ev['registration_status'] === 'attended' || strtotime($ev['end_at']) < time()) {
-                $attendedCount++;
+        $now = time();
+        $activeEvents = [];
+        $historyEvents = [];
+        $attendanceEvents = [];
+        $certificateEvents = [];
+
+        foreach ($events as &$ev) {
+            $startAt = ! empty($ev['start_at']) ? strtotime($ev['start_at']) : $now;
+            $endAt = ! empty($ev['end_at']) ? strtotime($ev['end_at']) : $now;
+            $attOpenAt = ! empty($ev['attendance_open_at']) ? strtotime((string) $ev['attendance_open_at']) : null;
+            $attCloseAt = ! empty($ev['attendance_close_at']) ? strtotime((string) $ev['attendance_close_at']) : null;
+
+            $hasAttended = (! empty($ev['attendance_status']) && in_array(strtolower($ev['attendance_status']), ['present', 'hadir'], true));
+            $isFinished = ($ev['event_status'] === 'finished' || $endAt < $now);
+            $isOngoing = (! $isFinished && $startAt <= $now && $endAt >= $now);
+            $isUpcoming = (! $isFinished && ! $isOngoing);
+
+            $isPresensiActive = ($attOpenAt !== null && $attOpenAt <= $now && ($attCloseAt === null || $attCloseAt > $now));
+            $isPresensiClosed = ($attCloseAt !== null && $attCloseAt <= $now);
+
+            $ev['has_attended'] = $hasAttended;
+            $ev['is_finished'] = $isFinished;
+            $ev['is_ongoing'] = $isOngoing;
+            $ev['is_upcoming'] = $isUpcoming;
+            $ev['is_presensi_active'] = $isPresensiActive;
+            $ev['is_presensi_closed'] = $isPresensiClosed;
+
+            if ($isFinished || $hasAttended) {
+                $historyEvents[] = $ev;
             } else {
-                $activeCount++;
+                $activeEvents[] = $ev;
+            }
+
+            if ($hasAttended) {
+                $attendanceEvents[] = $ev;
+            }
+
+            if (! empty($ev['certificate_status']) && $ev['certificate_status'] === 'issued') {
+                $certificateEvents[] = $ev;
             }
         }
+        unset($ev);
 
         return view('main/workspace/pages/event_saya', [
-            'pageTitle'      => 'Event Saya',
-            'events'         => $events,
-            'summary'        => [
-                'total'    => count($events),
-                'active'   => $activeCount,
-                'attended' => $attendedCount,
+            'pageTitle'          => 'Event Saya',
+            'breadcrumbTail'     => [['label' => 'Event Saya']],
+            'events'             => $events,
+            'activeEvents'       => $activeEvents,
+            'historyEvents'      => $historyEvents,
+            'attendanceEvents'   => $attendanceEvents,
+            'certificateEvents'  => $certificateEvents,
+            'summary'            => [
+                'total'        => count($events),
+                'active'       => count($activeEvents),
+                'history'      => count($historyEvents),
+                'attended'     => count($attendanceEvents),
+                'certificates' => count($certificateEvents),
             ],
-            'sectionContent' => [
+            'sectionContent'     => [
                 'eyebrow'     => 'Kegiatan & Pelatihan',
                 'title'       => 'Event Saya',
                 'description' => 'Daftar seminar, workshop, webinar, dan bimbingan teknis yang Anda ikuti.',
                 'cards'       => [
                     ['title' => 'Total Terdaftar', 'value' => sprintf('%02d', count($events)), 'meta' => 'event terdaftar'],
-                    ['title' => 'Mendatang / Aktif', 'value' => sprintf('%02d', $activeCount), 'meta' => 'siap diikuti'],
-                    ['title' => 'Selesai', 'value' => sprintf('%02d', $attendedCount), 'meta' => 'event terlaksana'],
+                    ['title' => 'Event Aktif', 'value' => sprintf('%02d', count($activeEvents)), 'meta' => 'siap diikuti'],
+                    ['title' => 'Selesai / Hadir', 'value' => sprintf('%02d', count($historyEvents)), 'meta' => 'riwayat kegiatan'],
+                    ['title' => 'Sertifikat Terbit', 'value' => sprintf('%02d', count($certificateEvents)), 'meta' => 'sertifikat resmi'],
                 ],
             ],
+        ]);
+    }
+
+    public function eventDetail(string $idOrSlug): string
+    {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $query = $db->table('events e')
+            ->select('e.*, fa.path AS cover_path, u.name AS creator_name, u.email AS creator_email')
+            ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
+            ->join('users u', 'u.id = e.created_by', 'left')
+            ->where('e.deleted_at IS NULL');
+
+        if (is_numeric($idOrSlug)) {
+            $query->where('e.id', (int) $idOrSlug);
+        } else {
+            $query->where('e.slug', $idOrSlug);
+        }
+
+        $event = $query->get()->getRowArray();
+        if (! $event) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
+        }
+
+        $eventId = (int) $event['id'];
+
+        // Get participant registration
+        $registration = $db->table('event_registrations')
+            ->where(['event_id' => $eventId, 'user_id' => $userId])
+            ->get()->getRowArray();
+
+        if (! $registration) {
+            return redirect()->to(site_url('event/' . esc($event['slug'] ?: $event['id'])))
+                ->with('info', 'Anda belum terdaftar pada event ini. Silakan mendaftar terlebih dahulu.');
+        }
+
+        // Get attendance
+        $attendance = $db->table('attendances')
+            ->where('event_registration_id', (int) $registration['id'])
+            ->get()->getRowArray();
+
+        // Get certificate
+        $certificate = $db->table('certificates')
+            ->where('source_type', 'event_registration')
+            ->where('source_id', (int) $registration['id'])
+            ->get()->getRowArray();
+
+        // Presensi states
+        $now = time();
+        $openAt = ! empty($event['attendance_open_at']) ? strtotime((string) $event['attendance_open_at']) : null;
+        $closeAt = ! empty($event['attendance_close_at']) ? strtotime((string) $event['attendance_close_at']) : null;
+
+        $isPresensiActive = ($openAt !== null && $openAt <= $now && ($closeAt === null || $closeAt > $now));
+        $isPresensiClosed = ($closeAt !== null && $closeAt <= $now);
+        $isPresensiNotOpenYet = ($openAt === null || $openAt > $now);
+
+        $hasAttended = ($attendance && in_array(strtolower($attendance['status']), ['present', 'hadir'], true));
+
+        // Event schedule state
+        $startAt = ! empty($event['start_at']) ? strtotime($event['start_at']) : $now;
+        $endAt = ! empty($event['end_at']) ? strtotime($event['end_at']) : $now;
+
+        $eventState = 'upcoming'; // Belum Dimulai
+        if ($event['status'] === 'finished' || $endAt < $now) {
+            $eventState = 'finished'; // Selesai
+        } elseif ($startAt <= $now && $endAt >= $now) {
+            $eventState = 'ongoing'; // Berlangsung
+        }
+
+        return view('main/workspace/pages/detail_event', [
+            'pageTitle'            => $event['title'] . ' | Event Saya',
+            'breadcrumbTail'       => [
+                ['label' => 'Event Saya', 'url' => route_to('workspace.participant.events')],
+                ['label' => $event['title']],
+            ],
+            'event'                => $event,
+            'registration'         => $registration,
+            'attendance'           => $attendance,
+            'certificate'          => $certificate,
+            'hasAttended'          => $hasAttended,
+            'isPresensiActive'     => $isPresensiActive,
+            'isPresensiClosed'     => $isPresensiClosed,
+            'isPresensiNotOpenYet' => $isPresensiNotOpenYet,
+            'eventState'           => $eventState,
         ]);
     }
 
@@ -574,7 +730,7 @@ class ParticipantController extends BaseController
         $db = db_connect();
 
         $attendances = $db->table('attendances a')
-            ->select('a.*, er.status AS registration_status, e.title AS event_title, e.mode AS event_mode, e.start_at, e.end_at, e.location')
+            ->select('a.*, er.status AS registration_status, er.registered_at, e.id AS event_id, e.title AS event_title, e.slug AS event_slug, e.mode AS event_mode, e.type AS event_type, e.start_at, e.end_at, e.location')
             ->join('event_registrations er', 'er.id = a.event_registration_id')
             ->join('events e', 'e.id = er.event_id')
             ->where('er.user_id', $userId)
@@ -583,13 +739,14 @@ class ParticipantController extends BaseController
 
         $presentCount = 0;
         foreach ($attendances as $att) {
-            if (in_array($att['status'], ['present', 'hadir'], true)) {
+            if (in_array(strtolower($att['status']), ['present', 'hadir'], true)) {
                 $presentCount++;
             }
         }
 
         return view('main/workspace/pages/presensi_saya', [
             'pageTitle'      => 'Presensi Saya',
+            'breadcrumbTail' => [['label' => 'Presensi Saya']],
             'attendances'    => $attendances,
             'summary'        => [
                 'total'   => count($attendances),
@@ -605,6 +762,32 @@ class ParticipantController extends BaseController
                 ],
             ],
         ]);
+    }
+
+    public function submitAttendanceCode()
+    {
+        $userId = $this->userId();
+        $code = trim((string) $this->request->getPost('attendance_code'));
+
+        if ($code === '') {
+            return redirect()->back()->with('error', 'Silakan masukkan kode presensi event.');
+        }
+
+        $commService = new \App\Services\Communication\CommunicationService();
+        try {
+            $result = $commService->validateAndCheckIn($code, $userId);
+            $eventTitle = $result['event']['title'] ?? 'Event';
+            $successMsg = '✓ Kehadiran berhasil dicatat';
+            return redirect()->back()
+                ->with('message', $successMsg)
+                ->with('attendance_success', [
+                    'event_title' => $eventTitle,
+                    'recorded_at' => date('d M Y, H:i') . ' WIB',
+                    'status'      => 'Hadir (Terverifikasi)',
+                ]);
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
     public function assignmentSubmission(string $classId): string
@@ -1002,15 +1185,27 @@ class ParticipantController extends BaseController
     public function certificates(): string
     {
         $userId = $this->userId();
-        $certificates = db_connect()->table('certificates c')
-            ->select('c.*, lc.name AS class_name, courses.title AS course_title')
+        $db = db_connect();
+
+        $classCerts = $db->table('certificates c')
+            ->select('c.*, lc.name AS class_name, courses.title AS course_title, NULL AS event_title, \'class\' AS cert_category')
             ->join('enrollments e', 'e.id = c.source_id AND c.source_type = \'learning_enrollment\'')
             ->join('learning_classes lc', 'lc.id = e.class_id')
             ->join('courses', 'courses.id = lc.course_id')
             ->where('c.user_id', $userId)
             ->whereIn('c.status', ['pending', 'issued'])
-            ->orderBy('c.created_at', 'DESC')
             ->get()->getResultArray();
+
+        $eventCerts = $db->table('certificates c')
+            ->select('c.*, NULL AS class_name, NULL AS course_title, e.title AS event_title, \'event\' AS cert_category')
+            ->join('event_registrations er', 'er.id = c.source_id AND c.source_type = \'event_registration\'')
+            ->join('events e', 'e.id = er.event_id')
+            ->where('c.user_id', $userId)
+            ->whereIn('c.status', ['pending', 'issued'])
+            ->get()->getResultArray();
+
+        $certificates = array_merge($classCerts, $eventCerts);
+        usort($certificates, static fn ($a, $b) => strtotime($b['created_at'] ?? 'now') <=> strtotime($a['created_at'] ?? 'now'));
 
         return view('main/workspace/pages/sertifikat', [
             'title'          => 'Sertifikat Saya | Workspace BegawiPBJ',
@@ -1241,8 +1436,19 @@ class ParticipantController extends BaseController
                     break;
                 }
             }
-            if ($modAssignment === null && count($assignments) > $mIdx && empty($assignments[$mIdx]['lesson_id'])) {
-                $modAssignment = $assignments[$mIdx];
+            if ($modAssignment === null) {
+                $unassignedAssignments = array_values(array_filter($assignments, static fn ($a) => empty($a['lesson_id'])));
+                $unassignedCount = count($unassignedAssignments);
+                if ($unassignedCount > 0) {
+                    if ($unassignedCount >= count($moduleRows)) {
+                        if (isset($unassignedAssignments[$mIdx])) {
+                            $modAssignment = $unassignedAssignments[$mIdx];
+                        }
+                    } elseif ($mIdx === count($moduleRows) - 1) {
+                        // Capstone class-level assignment belongs to the final module
+                        $modAssignment = $unassignedAssignments[0];
+                    }
+                }
             }
 
             $isModuleUnlocked = $isGraduated || ($enrollmentStatus === 'active' && $prevModuleCompleted);

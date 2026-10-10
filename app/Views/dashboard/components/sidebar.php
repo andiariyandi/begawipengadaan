@@ -66,15 +66,17 @@ $isSuperAdmin = $auth->isSuperAdmin();
                     <span>Arena Belajar</span>
                 </a>
                 <ul class="sidebar-submenu">
+                    <li><a class="<?= $activeClass('learning', 'overview') ?>" href="<?= site_url('dashboard/pembelajaran') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Overview</a></li>
                     <li><a class="<?= $activeClass('learning', 'programs') ?>" href="<?= site_url('dashboard/pembelajaran/program') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Program</a></li>
                     <li><a class="<?= $activeClass('learning', 'courses') ?>" href="<?= site_url('dashboard/pembelajaran/course') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Course</a></li>
-                    <li><a class="<?= $activeClass('learning', 'classes') ?>" href="<?= site_url('dashboard/pembelajaran/kelas') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Kelas</a></li>
-                    <li><a class="<?= $activeClass('learning', 'modules') ?>" href="<?= site_url('dashboard/pembelajaran/materi-modul') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Materi dan Modul</a></li>
-                    <li><a class="<?= $activeClass('learning', 'assessments') ?>" href="<?= site_url('dashboard/pembelajaran/assessment') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Assessment dan Bank Soal</a></li>
-                    <li><a class="<?= $activeClass('learning', 'enrollments') ?>" href="<?= site_url('dashboard/pembelajaran/enrollment') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Enrollment</a></li>
-                    <li><a class="<?= $activeClass('learning', 'gradings') ?>" href="<?= site_url('dashboard/pembelajaran/penilaian') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Penilaian</a></li>
-                    <li><a class="<?= $activeClass('learning', 'progress-completion') ?>" href="<?= site_url('dashboard/pembelajaran/progres-kelulusan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Progres dan Kelulusan</a></li>
-                    <li><a class="<?= $activeClass('learning', 'participant-feedback') ?>" href="<?= site_url('dashboard/pembelajaran/feedback-peserta') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Feedback Peserta</a></li>
+                    <li><a class="<?= $activeClass('learning', 'classes') ?>" href="<?= site_url('dashboard/pembelajaran/kelas') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Class / Batch</a></li>
+                    <li><a class="<?= $activeClass('learning', 'trainers') ?>" href="<?= site_url('dashboard/pembelajaran/trainer') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Trainer Assignment</a></li>
+                    <li><a class="<?= $activeClass('learning', 'enrollments') ?>" href="<?= site_url('dashboard/pembelajaran/enrollment') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Peserta & Enrollment</a></li>
+                    <li><a class="<?= $activeClass('learning', 'curriculum') ?>" href="<?= site_url('dashboard/pembelajaran/kurikulum') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Curriculum Management</a></li>
+                    <li><a class="<?= $activeClass('learning', 'assessments') ?>" href="<?= site_url('dashboard/pembelajaran/assessment') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Assessment</a></li>
+                    <li><a class="<?= $activeClass('learning', 'progress') ?>" href="<?= site_url('dashboard/pembelajaran/progres') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Learning Progress</a></li>
+                    <li><a class="<?= $activeClass('learning', 'certificate-eligibility') ?>" href="<?= site_url('dashboard/pembelajaran/kelayakan-sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Certificate Eligibility</a></li>
+                    <li><a class="<?= $activeClass('learning', 'reports') ?>" href="<?= site_url('dashboard/pembelajaran/laporan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Reports</a></li>
                 </ul>
             </li>
 
@@ -132,11 +134,13 @@ $isSuperAdmin = $auth->isSuperAdmin();
                     <span>Sertifikat</span>
                 </a>
                 <ul class="sidebar-submenu">
-                    <li><a class="<?= $activeClass('certificates', 'approvals') ?>" href="<?= site_url('dashboard/sertifikat/approval') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Approval / Pengajuan</a></li>
-                    <li><a class="<?= $activeClass('certificates', 'index') ?>" href="<?= site_url('dashboard/sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Sertifikat Terbit</a></li>
-                    <li><a class="<?= $activeClass('certificates', 'event-approval') ?>" href="<?= site_url('dashboard/sertifikat/pengajuan-event') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengajuan Event</a></li>
-                    <li><a class="<?= $activeClass('certificates', 'templates') ?>" href="<?= site_url('dashboard/sertifikat/template') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Template</a></li>
-                    <li><a class="<?= $activeClass('certificates', 'verification') ?>" href="<?= site_url('verifikasi-sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Verifikasi Publik</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'overview') ?>" href="<?= site_url('dashboard/sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Overview Sertifikat</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'learning') ?>" href="<?= site_url('dashboard/sertifikat/learning') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Learning Certificate</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'event') ?>" href="<?= site_url('dashboard/sertifikat/event') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Event / Agenda Certificate</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'batch') ?>" href="<?= site_url('dashboard/sertifikat/batch') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Batch Generation</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'templates') ?>" href="<?= site_url('dashboard/sertifikat/template') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Template Sertifikat</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'verification') ?>" href="<?= site_url('dashboard/sertifikat/verifikasi') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Verification</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'riwayat') ?>" href="<?= site_url('dashboard/sertifikat/riwayat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Riwayat Sertifikat</a></li>
                 </ul>
             </li>
 

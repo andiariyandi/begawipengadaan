@@ -85,6 +85,20 @@
 
                     <!-- Workspace Main Content -->
                     <main class="col-lg-9 col-xl-9 workspace-content">
+                        <?php if (session()->getFlashdata('message') || session()->getFlashdata('success')): ?>
+                            <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4 shadow-sm" role="alert">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <?= esc(session()->getFlashdata('message') ?: session()->getFlashdata('success')) ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (session()->getFlashdata('error')): ?>
+                            <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <?= esc(session()->getFlashdata('error')) ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        <?php endif; ?>
                         <?= $this->renderSection('content') ?>
                     </main>
                 </div>

@@ -1,0 +1,216 @@
+<?= $this->extend('main/workspace/layouts/workspace') ?>
+<?= $this->section('content') ?>
+
+<div class="operator-certificates-wrapper">
+    <!-- Header Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <span class="badge bg-success text-white px-3 py-1 rounded-pill small fw-semibold mb-2">
+                    <i class="fas fa-award me-1"></i> Verifikasi Kelulusan
+                </span>
+                <h1 class="h3 fw-bold text-navy mb-1">Verifikasi & Penerbitan Sertifikat</h1>
+                <p class="text-muted small mb-0">
+                    Otorisasi penerbitan sertifikat bagi peserta yang telah menyelesaikan kurikulum dan dinyatakan memenuhi syarat kelulusan.
+                </p>
+            </div>
+            <div>
+                <a href="<?= route_to('workspace.operator.learning-monitoring') ?>" class="btn btn-outline-secondary rounded-pill px-3">
+                    <i class="fas fa-chart-line me-1"></i> Monitoring Kelas
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <?php if (session()->getFlashdata('message')): ?>
+        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i> <?= esc(session()->getFlashdata('message')) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> <?= esc(session()->getFlashdata('error')) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    <!-- Summary Counters -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 p-3 bg-warning-subtle text-warning fs-4 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-medium d-block">Menunggu Verifikasi</span>
+                        <strong class="h4 fw-bold text-navy mb-0"><?= count($pendingQueue) ?></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 p-3 bg-success-subtle text-success fs-4 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-medium d-block">Sertifikat Terbit</span>
+                        <strong class="h4 fw-bold text-navy mb-0"><?= count(array_filter($issuedCertificates, static fn ($c) => $c['status'] === 'issued')) ?></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 p-3 bg-danger-subtle text-danger fs-4 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-medium d-block">Sertifikat Dibatalkan</span>
+                        <strong class="h4 fw-bold text-navy mb-0"><?= count(array_filter($issuedCertificates, static fn ($c) => $c['status'] === 'revoked')) ?></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table 1: Antrean Peserta Memenuhi Syarat (Eligible) -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="h5 fw-bold text-navy mb-0"><i class="fas fa-user-graduate text-warning me-2"></i>Antrean Peserta Memenuhi Syarat Sertifikasi</h2>
+                <small class="text-muted">Peserta yang telah lulus kurikulum dan siap diterbitkan sertifikatnya oleh Operator.</small>
+            </div>
+            <span class="badge bg-warning text-dark px-3 py-2 small"><?= count($pendingQueue) ?> Menunggu Tindakan</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-muted">
+                    <tr>
+                        <th>Peserta</th>
+                        <th>Kelas & Course</th>
+                        <th>Nilai Akhir</th>
+                        <th>Tanggal Eligible</th>
+                        <th>Status Sertifikat</th>
+                        <th class="text-end">Aksi Operator</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($pendingQueue)): ?>
+                        <tr><td colspan="6" class="text-center py-4 text-muted">Tidak ada peserta dalam antrean verifikasi sertifikat saat ini.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($pendingQueue as $item): ?>
+                            <tr>
+                                <td>
+                                    <strong class="text-navy small d-block"><?= esc($item['user_name']) ?></strong>
+                                    <span class="text-muted" style="font-size: 0.78rem;"><?= esc($item['user_email']) ?></span>
+                                </td>
+                                <td>
+                                    <strong class="text-navy small d-block"><?= esc($item['class_name']) ?></strong>
+                                    <span class="text-muted" style="font-size: 0.78rem;"><?= esc($item['course_title'] ?? '-') ?></span>
+                                </td>
+                                <td>
+                                    <strong class="text-success"><?= $item['final_score'] !== null ? number_format((float) $item['final_score'], 1) : '-' ?></strong> / 100
+                                </td>
+                                <td class="small text-muted">
+                                    <?= !empty($item['certificate_eligible_at']) ? date('d/m/Y H:i', strtotime($item['certificate_eligible_at'])) : '-' ?>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-1 small">
+                                        Siap Diterbitkan
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <form method="POST" action="<?= route_to('workspace.operator.certificates.issue', (string) $item['enrollment_id']) ?>" class="d-inline" onsubmit="return confirm('Verifikasi kelulusan dan terbitkan sertifikat untuk peserta ini?')">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm">
+                                            <i class="fas fa-check-circle me-1"></i> Verifikasi & Terbitkan
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Table 2: Sertifikat yang Sudah Diterbitkan -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 fw-bold text-navy mb-0"><i class="fas fa-award text-success me-2"></i>Daftar Sertifikat Terbit</h2>
+            <span class="badge bg-light text-dark border px-3 py-2 small"><?= count($issuedCertificates) ?> Arsip Sertifikat</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-muted">
+                    <tr>
+                        <th>Nomor Sertifikat</th>
+                        <th>Penerima (Peserta)</th>
+                        <th>Waktu Terbit</th>
+                        <th>Diterbitkan Oleh</th>
+                        <th>Status</th>
+                        <th class="text-end">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($issuedCertificates)): ?>
+                        <tr><td colspan="6" class="text-center py-4 text-muted">Belum ada sertifikat yang diterbitkan.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($issuedCertificates as $cert): ?>
+                            <tr>
+                                <td>
+                                    <strong class="text-navy small font-monospace d-block"><?= esc($cert['certificate_number']) ?></strong>
+                                    <span class="text-muted" style="font-size: 0.72rem;">Token: <?= substr(esc($cert['verification_token_hash']), 0, 16) ?>...</span>
+                                </td>
+                                <td>
+                                    <strong class="text-navy small d-block"><?= esc($cert['user_name'] ?? 'Peserta') ?></strong>
+                                    <span class="text-muted" style="font-size: 0.78rem;"><?= esc($cert['user_email'] ?? '') ?></span>
+                                </td>
+                                <td class="small text-muted">
+                                    <?= !empty($cert['issued_at']) ? date('d/m/Y H:i', strtotime($cert['issued_at'])) : '-' ?>
+                                </td>
+                                <td class="small text-muted">
+                                    <i class="fas fa-user-shield me-1 text-primary"></i> <?= esc($cert['issuer_name'] ?? 'Operator') ?>
+                                </td>
+                                <td>
+                                    <?php if ($cert['status'] === 'issued'): ?>
+                                        <span class="badge bg-success rounded-pill px-3 py-1 small">Aktif / Terbit</span>
+                                    <?php elseif ($cert['status'] === 'revoked'): ?>
+                                        <span class="badge bg-danger rounded-pill px-3 py-1 small">Dibatalkan</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary rounded-pill px-3 py-1 small"><?= esc(ucfirst($cert['status'])) ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-end">
+                                    <?php if ($cert['status'] === 'issued'): ?>
+                                        <form method="POST" action="<?= route_to('workspace.operator.certificates.revoke', (string) $cert['id']) ?>" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan (revoke) sertifikat ini?')">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="reason" value="Dibatalkan oleh Operator karena peninjauan ulang administratif.">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" style="font-size: 0.78rem;">
+                                                <i class="fas fa-ban me-1"></i> Batalkan
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="text-muted small fst-italic">Telah Dicabut</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<?= $this->endSection() ?>

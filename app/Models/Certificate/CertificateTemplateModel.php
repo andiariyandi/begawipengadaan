@@ -56,6 +56,11 @@ class CertificateTemplateModel extends Model
             ->where('source_type', $sourceType)
             ->orderBy('id', 'ASC')
             ->first();
-        return $row ?: null;
+        if ($row) {
+            return $row;
+        }
+
+        // Fallback to any active template so generation is robust
+        return $this->where('is_active', 1)->orderBy('id', 'ASC')->first();
     }
 }

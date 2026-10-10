@@ -51,9 +51,9 @@
 
                         <!-- Certificate Title -->
                         <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">
-                            <?= esc($cert['course_title'] ?? $cert['class_name'] ?? 'Pelatihan PBJ') ?>
+                            <?= esc($cert['event_title'] ?? $cert['course_title'] ?? $cert['class_name'] ?? 'Kegiatan / Pelatihan PBJ') ?>
                         </h2>
-                        <p class="small text-muted mb-3"><?= esc($cert['class_name'] ?? '') ?></p>
+                        <p class="small text-muted mb-3"><?= esc(!empty($cert['event_title']) ? 'Kegiatan & Event PBJ' : ($cert['class_name'] ?? '')) ?></p>
 
                         <!-- Number & Info -->
                         <div class="p-3 bg-light rounded-3 mb-3">

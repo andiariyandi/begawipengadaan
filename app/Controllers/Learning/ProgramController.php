@@ -20,16 +20,20 @@ class ProgramController extends BaseController
         $keyword = trim((string) $this->request->getGet('keyword'));
         $status = trim((string) $this->request->getGet('status'));
 
-        $builder = $this->programModel->orderBy('created_at', 'DESC');
+        $builder = $this->programModel
+            ->select('programs.*,
+                      (SELECT COUNT(1) FROM courses c WHERE c.program_id = programs.id) AS course_count,
+                      (SELECT COUNT(1) FROM learning_classes lc JOIN courses c ON c.id = lc.course_id WHERE c.program_id = programs.id) AS class_count')
+            ->orderBy('programs.created_at', 'DESC');
         if ($keyword !== '') {
             $builder->groupStart()
-                ->like('title', $keyword)
-                ->orLike('slug', $keyword)
-                ->orLike('summary', $keyword)
+                ->like('programs.title', $keyword)
+                ->orLike('programs.slug', $keyword)
+                ->orLike('programs.summary', $keyword)
                 ->groupEnd();
         }
         if ($status !== '') {
-            $builder->where('status', $status);
+            $builder->where('programs.status', $status);
         }
 
         $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
@@ -148,6 +152,24 @@ class ProgramController extends BaseController
         $this->programModel->update($id, $data);
 
         return redirect()->to(route_to('dashboard.learning.programs'))->with('success', 'Program berhasil diperbarui.');
+    }
+
+    public function delete(string $id)
+    {
+        $program = $this->programModel->find($id);
+        if ($program === null) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Program tidak ditemukan.');
+        }
+
+        $db = db_connect();
+        $courseCount = (int) $db->table('courses')->where('program_id', $id)->countAllResults();
+        if ($courseCount > 0) {
+            return redirect()->back()->with('error', "Tidak dapat menghapus program: Masih terdapat {$courseCount} course terkait pada program ini.");
+        }
+
+        $this->programModel->delete($id);
+
+        return redirect()->to(route_to('dashboard.learning.programs'))->with('success', 'Program berhasil dihapus.');
     }
 
     private function validatedProgramData(): ?array
