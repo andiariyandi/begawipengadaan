@@ -9,6 +9,9 @@ $map = [
     'rejected' => ['class' => 'bg-danger-focus text-danger-main', 'label' => 'Ditolak'],
     'revision' => ['class' => 'bg-warning-focus text-warning-main', 'label' => 'Perlu Revisi'],
     'draft' => ['class' => 'bg-neutral-200 text-secondary-light', 'label' => 'Draft'],
+    'issued' => ['class' => 'bg-success-focus text-success-main', 'label' => 'Diterbitkan'],
+    'revoked' => ['class' => 'bg-danger-focus text-danger-main', 'label' => 'Dicabut'],
+    'expired' => ['class' => 'bg-neutral-200 text-secondary-light', 'label' => 'Kedaluwarsa'],
 ];
 $current = $map[$status] ?? $map['draft'];
 ?>

@@ -70,12 +70,16 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
 
     $routes->group('verifikasi-sertifikat', static function ($routes) {
         $routes->get('/', 'CertificateVerificationController::index', ['as' => 'public.certificate.verify']);
-        $routes->get('hasil', 'CertificateVerificationController::result', ['as' => 'public.certificate.verify.result']);
+        $routes->post('hasil', 'CertificateVerificationController::result', ['as' => 'public.certificate.verify.result']);
         $routes->get('(:segment)', 'CertificateVerificationController::detail/$1', ['as' => 'public.certificate.verify.detail']);
     });
 });
 
 $routes->post('bookmark/toggle', 'BookmarkController::toggle', ['as' => 'public.bookmark.toggle']);
+
+// Public QR verification route. Token tidak boleh mengandung slash.
+// {token} adalah token klar hasil QR Code — di-hash (sha256) lalu di-lookup.
+$routes->get('verify/certificate/(:segment)', 'Landing\\CertificateVerificationController::detail/$1', ['as' => 'public.certificate.verify.qr']);
 
 // Auth boundary is unified on App\Controllers\Dashboard\Auth — see dashboard group below.
 // Legacy App\Controllers\Auth namespace is no longer mounted.
@@ -524,18 +528,28 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
 
     $routes->group('sertifikat', ['namespace' => 'App\Controllers\Certificate'], static function ($routes) {
         $routes->get('/', 'CertificateController::index', ['as' => 'dashboard.certificates.index']);
-        $routes->get('tambah', 'CertificateController::create', ['as' => 'dashboard.certificates.create']);
-        $routes->get('eligibility', 'CertificateController::eligibility', ['as' => 'dashboard.certificates.eligibility']);
-        $routes->get('template', 'CertificateTemplateController::index', ['as' => 'dashboard.certificates.templates']);
-        $routes->get('template/tambah', 'CertificateTemplateController::create', ['as' => 'dashboard.certificates.templates.create']);
-        $routes->get('template/(:segment)', 'CertificateTemplateController::detail/$1', ['as' => 'dashboard.certificates.templates.detail']);
         $routes->get('approval', 'CertificateApprovalController::index', ['as' => 'dashboard.certificates.approvals']);
         $routes->get('approval/(:segment)', 'CertificateApprovalController::detail/$1', ['as' => 'dashboard.certificates.approvals.detail']);
         $routes->post('approval/(:segment)/terbitkan', 'CertificateApprovalController::issue/$1', ['as' => 'dashboard.certificates.approvals.issue']);
-        $routes->get('verifikasi', 'CertificateController::verification', ['as' => 'dashboard.certificates.verification']);
-        $routes->get('revocation', 'CertificateController::revocation', ['as' => 'dashboard.certificates.revocation']);
-        $routes->get('nomor', 'CertificateController::numbers', ['as' => 'dashboard.certificates.numbers']);
+        $routes->post('approval/(:segment)/tolak', 'CertificateApprovalController::reject/$1', ['as' => 'dashboard.certificates.approvals.reject']);
+        // Pengajuan sertifikat event (batch approvals)
+        $routes->get('pengajuan-event', 'CertificateEventController::select', ['as' => 'dashboard.certificates.event-approval']);
+        $routes->get('pengajuan-event/(:segment)/preview', 'CertificateEventController::preview/$1', ['as' => 'dashboard.certificates.event-approval.preview']);
+        $routes->post('pengajuan-event/(:segment)/generate', 'CertificateEventController::generate/$1', ['as' => 'dashboard.certificates.event-approval.generate']);
+        // Template
+        $routes->get('template', 'CertificateTemplateController::index', ['as' => 'dashboard.certificates.templates']);
+        $routes->get('template/tambah', 'CertificateTemplateController::create', ['as' => 'dashboard.certificates.templates.create']);
+        $routes->post('template/simpan', 'CertificateTemplateController::store', ['as' => 'dashboard.certificates.templates.store']);
+        $routes->get('template/(:segment)/ubah', 'CertificateTemplateController::edit/$1', ['as' => 'dashboard.certificates.templates.edit']);
+        $routes->post('template/(:segment)/ubah', 'CertificateTemplateController::update/$1', ['as' => 'dashboard.certificates.templates.update']);
+        $routes->post('template/(:segment)/aktifkan', 'CertificateTemplateController::activate/$1', ['as' => 'dashboard.certificates.templates.activate']);
+        $routes->post('template/(:segment)/nonaktifkan', 'CertificateTemplateController::deactivate/$1', ['as' => 'dashboard.certificates.templates.deactivate']);
+        $routes->get('template/(:segment)', 'CertificateTemplateController::detail/$1', ['as' => 'dashboard.certificates.templates.detail']);
+        // Detail / edit / revoke / download (tidak ada create()/store() — generator only)
         $routes->get('(:segment)/ubah', 'CertificateController::edit/$1', ['as' => 'dashboard.certificates.edit']);
+        $routes->post('(:segment)/ubah', 'CertificateController::update/$1');
+        $routes->post('(:segment)/cabut', 'CertificateController::revoke/$1');
+        $routes->get('(:segment)/unduh', 'CertificateDownloadController::download/$1', ['as' => 'dashboard.certificates.download']);
         $routes->get('(:segment)', 'CertificateController::detail/$1', ['as' => 'dashboard.certificates.detail']);
     });
 

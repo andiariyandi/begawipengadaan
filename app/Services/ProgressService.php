@@ -8,7 +8,6 @@ use App\Models\EnrollmentModel;
 use App\Models\LessonModel;
 use App\Models\ModuleModel;
 use App\Models\ProgressModel;
-use App\Services\CertificateService;
 use RuntimeException;
 
 /**
@@ -108,9 +107,8 @@ class ProgressService
         if ($newStatus !== $enrollment['final_status']) {
             $this->enrollmentModel->update($enrollmentId, ['final_status' => $newStatus]);
 
-            if ($newStatus === 'passed') {
-                (new CertificateService())->requestIfEligible($enrollmentId);
-            }
+            // Penerbitan sertifikat sepenuhnya dilakukan manual oleh admin
+            // melalui dashboard Sertifikat. Tidak ada auto-request lagi.
         }
 
         return $newStatus;

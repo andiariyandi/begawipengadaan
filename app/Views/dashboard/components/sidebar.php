@@ -127,13 +127,11 @@ $openClass = static fn(string $menu): string => $currentMenu === $menu ? 'open' 
                     <span>Sertifikat</span>
                 </a>
                 <ul class="sidebar-submenu">
-                    <li><a class="<?= $activeClass('certificates', 'index') ?>" href="<?= site_url('dashboard/sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Sertifikat</a></li>
-                    <li><a class="<?= $activeClass('certificates', 'eligibility') ?>" href="<?= site_url('dashboard/sertifikat/eligibility') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Eligibility Sertifikat</a></li>
-                    <li><a class="<?= $activeClass('certificates', 'templates') ?>" href="<?= site_url('dashboard/sertifikat/template') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Template Sertifikat</a></li>
-                    <li><a class="<?= $activeClass('certificates', 'approvals') ?>" href="<?= site_url('dashboard/sertifikat/approval') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Approval Sertifikat</a></li>
-                    <li><a class="<?= $activeClass('certificates', 'verification') ?>" href="<?= site_url('dashboard/sertifikat/verifikasi') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Verifikasi Sertifikat</a></li>
-                    <li><a class="<?= $activeClass('certificates', 'revocation') ?>" href="<?= site_url('dashboard/sertifikat/revocation') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Revocation Sertifikat</a></li>
-                    <li><a class="<?= $activeClass('certificates', 'numbers') ?>" href="<?= site_url('dashboard/sertifikat/nomor') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Nomor Sertifikat</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'approvals') ?>" href="<?= site_url('dashboard/sertifikat/approval') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Approval / Pengajuan</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'index') ?>" href="<?= site_url('dashboard/sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Sertifikat Terbit</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'event-approval') ?>" href="<?= site_url('dashboard/sertifikat/pengajuan-event') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengajuan Event</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'templates') ?>" href="<?= site_url('dashboard/sertifikat/template') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Template</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'verification') ?>" href="<?= site_url('verifikasi-sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Verifikasi Publik</a></li>
                 </ul>
             </li>
 

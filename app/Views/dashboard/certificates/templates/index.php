@@ -1,6 +1,89 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1">Template Sertifikat</h6><p class="text-secondary-light mb-0">Kelola template desain dan metadata sertifikat.</p></div><a href="<?= site_url('dashboard/sertifikat/template/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Template</a></div>
-<div class="row gy-4"><?php foreach ([['id' => 'CTP-001', 'name' => 'Sertifikat Kelulusan PBJ', 'type' => 'Kelulusan Kelas', 'updated' => '24 Sep 2026', 'status' => 'active'], ['id' => 'CTP-002', 'name' => 'Sertifikat Partisipasi Event', 'type' => 'Kehadiran Event', 'updated' => '20 Sep 2026', 'status' => 'active'], ['id' => 'CTP-003', 'name' => 'Sertifikat Webinar PBJ', 'type' => 'Webinar', 'updated' => '18 Sep 2026', 'status' => 'draft']] as $template): ?><div class="col-xl-4 col-md-6"><div class="card h-100"><div class="card-body p-0"><div class="h-180-px bg-primary-50 d-flex align-items-center justify-content-center"><iconify-icon icon="solar:diploma-verified-outline" class="text-primary-600 text-6xl"></iconify-icon></div><div class="p-24"><div class="d-flex justify-content-between align-items-start gap-3"><div><h6 class="text-md mb-6"><?= esc($template['name']) ?></h6><p class="text-secondary-light text-sm mb-12"><?= esc($template['type']) ?></p></div><?= view('dashboard/components/status_badge', ['status' => $template['status']]) ?></div><p class="text-secondary-light text-sm">Diperbarui: <?= esc($template['updated']) ?></p><a href="<?= site_url('dashboard/sertifikat/template/' . $template['id']) ?>" class="text-primary-600 fw-semibold">Lihat Detail <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></a></div></div></div></div><?php endforeach; ?></div>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+        <h6 class="fw-semibold mb-1">Template Sertifikat</h6>
+        <p class="text-secondary-light mb-0">Kelola template desain sertifikat. Hanya yang berstatus <strong>Aktif</strong> akan dipakai generator.</p>
+    </div>
+    <a href="<?= site_url('dashboard/sertifikat/template/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">
+        Tambah Template
+    </a>
+</div>
+
+<?php if (session()->getFlashdata('success')): ?>
+    <div class="alert alert-success radius-8 mb-16"><?= esc(session()->getFlashdata('success')) ?></div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')): ?>
+    <div class="alert alert-danger radius-8 mb-16"><?= esc(session()->getFlashdata('error')) ?></div>
+<?php endif; ?>
+
+<?php if (empty($items)): ?>
+    <div class="card">
+        <div class="card-body p-24 text-center text-secondary-light">
+            Belum ada template sertifikat. Klik <em>Tambah Template</em> untuk mulai.
+        </div>
+    </div>
+<?php else: ?>
+    <div class="card">
+        <div class="card-body p-24">
+            <div class="table-responsive scroll-sm">
+                <table class="table bordered-table sm-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>Tipe Sumber</th>
+                            <th>Status</th>
+                            <th>Diperbarui</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($items as $row): ?>
+                        <tr>
+                            <td>
+                                <h6 class="text-md mb-0 fw-medium"><?= esc($row['name']) ?></h6>
+                            </td>
+                            <td>
+                                <span class="text-sm"><?= esc($row['source_type']) ?></span>
+                            </td>
+                            <td>
+                                <?= view('dashboard/components/status_badge', ['status' => (int) $row['is_active'] === 1 ? 'active' : 'inactive']) ?>
+                            </td>
+                            <td>
+                                <small class="text-secondary-light">
+                                    <?= ! empty($row['updated_at']) ? esc(date('d M Y H:i', strtotime($row['updated_at']))) : '—' ?>
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                <a href="<?= site_url('dashboard/sertifikat/template/' . (int) $row['id']) ?>" class="text-primary-600 fw-semibold me-12">
+                                    Lihat
+                                </a>
+                                <a href="<?= site_url('dashboard/sertifikat/template/' . (int) $row['id'] . '/ubah') ?>" class="text-secondary-light fw-semibold me-12">
+                                    Ubah
+                                </a>
+                                <?php if ((int) $row['is_active'] === 1): ?>
+                                    <form method="post"
+                                          action="<?= site_url('dashboard/sertifikat/template/' . (int) $row['id'] . '/nonaktifkan') ?>"
+                                          class="d-inline">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn btn-link p-0 text-warning-600">Nonaktifkan</button>
+                                    </form>
+                                <?php else: ?>
+                                    <form method="post"
+                                          action="<?= site_url('dashboard/sertifikat/template/' . (int) $row['id'] . '/aktifkan') ?>"
+                                          class="d-inline">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn btn-link p-0 text-success-600">Aktifkan</button>
+                                    </form>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
 <?= $this->endSection() ?>

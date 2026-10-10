@@ -3,256 +3,233 @@
 namespace App\Controllers\Certificate;
 
 use App\Controllers\BaseController;
-use App\Models\ApprovalModel;
-use App\Models\CertificateModel;
-use App\Models\CertificateVerificationModel;
-use App\Models\UserModel;
-use App\Services\CertificateService;
+use App\Models\Certificate\CertificateModel;
+use App\Services\AuditService;
 use RuntimeException;
 
+/**
+ * Dashboard admin sertifikat (v4 schema).
+ *
+ * Active flow (5): index, detail, edit, update, revoke.
+ *
+ * CATATAN PENTING:
+ *   - Tidak ada create()/store(). Sertifikat TIDAK dibuat manual dari
+ *     form admin. Lifecycle sertifikat:
+ *
+ *         Eligibility  →  Approval  →  CertificateGenerator  →  Issued
+ *
+ *     Baris certificates hanya dibuat oleh CertificateGenerator dari
+ *     approval yang sudah berstatus 'approved'
+ *     (lihat CertificateApprovalController::issue()).
+ *
+ *   - certificate_number: atomik via CertificateSequenceModel
+ *     (SERT/{YEAR}/{NNNNN}). TIDAK pernah MAX()+UPDATE.
+ *   - verification_token: random_bytes(32), hanya hash sha256 di DB
+ *     (verification_token_hash). Token clear hanya muncul SEKALI di flash
+ *     session setelah generator().
+ *   - Revoke = soft-action: status='revoked' + revoked_at + revoked_by +
+ *     revocation_reason. Tidak ada delete.
+ *
+ * Audit:
+ *   certificate.updated, certificate.revoked
+ *   (certificate.created di-emit oleh CertificateGenerator).
+ */
 class CertificateController extends BaseController
 {
-    public function my()
+    private CertificateModel $certificateModel;
+    private AuditService $auditService;
+
+    public function __construct()
     {
-        return view('landing/user/certificates', [
-            'title'        => 'Sertifikat Saya',
-            'subTitle'     => 'Sertifikat Saya',
-            'certificates' => (new CertificateModel())->myCertificates(session()->get('user_id')),
-        ]);
-    }
-
-    public function download(int $certificateId)
-    {
-        $certificateModel = new CertificateModel();
-        $certificate      = $certificateModel->withDetail($certificateId);
-
-        if (! $certificate || ! $certificate['file_path']) {
-            return redirect()->back()->with('error', 'Sertifikat tidak ditemukan.');
-        }
-
-        $userId = (int) session()->get('user_id');
-        $roles  = (new UserModel())->getRoles($userId);
-        $slugs  = array_column($roles, 'slug');
-        $isPrivileged = (bool) array_intersect($slugs, ['super_administrator', 'administrator', 'evaluator']);
-
-        if (! $isPrivileged && (int) $certificate['user_id'] !== $userId) {
-            return redirect()->back()->with('error', 'Anda tidak memiliki akses ke sertifikat ini.');
-        }
-
-        if ($certificate['status'] !== 'issued') {
-            return redirect()->back()->with('error', 'Sertifikat ini sudah tidak berlaku.');
-        }
-
-        $basePath = realpath(WRITEPATH . 'certificates');
-        $fullPath = realpath(WRITEPATH . ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $certificate['file_path']), DIRECTORY_SEPARATOR));
-
-        if ($basePath === false || $fullPath === false || ! is_file($fullPath)) {
-            return redirect()->back()->with('error', 'File sertifikat tidak ditemukan di server.');
-        }
-
-        $basePath = rtrim($basePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-
-        if (strncmp($fullPath, $basePath, strlen($basePath)) !== 0) {
-            return redirect()->back()->with('error', 'File sertifikat tidak ditemukan di server.');
-        }
-
-        return $this->response->download($fullPath, null)->setFileName($certificate['certificate_number'] . '.pdf');
-    }
-
-    public function pending()
-    {
-        $approvalModel = new ApprovalModel();
-
-        $pendingApprovals = $approvalModel->db->table('approvals')
-            ->select('approvals.id as approval_id, approvals.approvable_id as enrollment_id, approvals.created_at,
-                      users.username, courses.title as course_title')
-            ->join('enrollments', 'enrollments.id = approvals.approvable_id')
-            ->join('users', 'users.id = enrollments.user_id')
-            ->join('classes', 'classes.id = enrollments.class_id')
-            ->join('courses', 'courses.id = classes.course_id')
-            ->where('approvals.approvable_type', 'certificate')
-            ->where('approvals.current_status', 'pending')
-            ->get()->getResultArray();
-
-        return view('certificate/pending', [
-            'title'    => 'Persetujuan Sertifikat',
-            'subTitle' => 'Persetujuan Sertifikat',
-            'items'    => $pendingApprovals,
-        ]);
-    }
-
-    public function verifyDecision(int $enrollmentId)
-    {
-        $decision = $this->request->getPost('decision');
-        $actedBy  = session()->get('user_id');
-
-        if (! in_array($decision, ['approve', 'reject'], true)) {
-            return redirect()->back()->with('error', 'Keputusan tidak valid.');
-        }
-
-        $service = new CertificateService();
-
-        try {
-            if ($decision === 'approve') {
-                $service->approve($enrollmentId, $actedBy);
-                $message = 'Sertifikat berhasil diterbitkan.';
-            } else {
-                $service->reject($enrollmentId, $actedBy, $this->request->getPost('notes'));
-                $message = 'Pengajuan sertifikat ditolak.';
-            }
-        } catch (RuntimeException $e) {
-            return redirect()->back()->with('error', $e->getMessage());
-        }
-
-        return redirect()->to(route_to('certificate.pending'))->with('message', $message);
-    }
-
-    /**
-     * Kelola SEMUA sertifikat yang sudah terbit (issued + revoked) —
-     * beda dari my() yang hanya menampilkan milik sendiri. Di sinilah
-     * tombol "Cabut" dipasang.
-     */
-    public function manage()
-    {
-        return view('certificate/manage', [
-            'title'        => 'Kelola Sertifikat',
-            'subTitle'     => 'Kelola Sertifikat',
-            'certificates' => (new CertificateModel())->allWithDetail(),
-        ]);
-    }
-
-    public function revoke(int $certificateId)
-    {
-        $reason = $this->request->getPost('reason');
-        $certificate = (new CertificateModel())->find($certificateId);
-
-        if (! $certificate) {
-            return redirect()->back()->with('error', 'Sertifikat tidak ditemukan.');
-        }
-
-        if ($certificate['status'] !== 'issued') {
-            return redirect()->back()->with('error', 'Sertifikat sudah tidak aktif.');
-        }
-
-        if (! is_string($reason) || trim($reason) === '') {
-            return redirect()->back()->with('error', 'Alasan pencabutan wajib diisi.');
-        }
-
-        try {
-            (new CertificateService())->revoke($certificateId, session()->get('user_id'), trim($reason));
-        } catch (RuntimeException $e) {
-            return redirect()->back()->with('error', $e->getMessage());
-        }
-
-        return redirect()->to(route_to('certificate.manage'))->with('message', 'Sertifikat telah dicabut.');
-    }
-
-    // PUBLIK — tanpa login, diakses lewat scan QR
-    public function verify(string $token)
-    {
-        $certificate = (new CertificateModel())->withDetailByToken($token);
-
-        if ($certificate) {
-            (new CertificateVerificationModel())->insert([
-                'certificate_id' => $certificate['id'],
-                'verified_at'    => date('Y-m-d H:i:s'),
-                'ip_address'     => $this->request->getIPAddress(),
-            ]);
-        }
-
-        return view('certificate/verify', [
-            'title'       => 'Verifikasi Sertifikat',
-            'subTitle'    => 'Verifikasi Sertifikat',
-            'certificate' => $certificate,
-        ]);
+        $this->db               = db_connect();
+        $this->certificateModel = new CertificateModel();
+        $this->auditService     = new AuditService();
     }
 
     // =============================================================
-    // Dashboard Admin/Super Admin — Sertifikat (group: dashboard/sertifikat)
-    // 7 submenu + create/edit/detail. Views are UI-only placeholders.
+    // Active v4 dashboard flow
     // =============================================================
 
-    public function index(): string
+    public function index()
     {
+        $keyword = trim((string) $this->request->getGet('keyword'));
+        $status  = (string) $this->request->getGet('status');
+        if ($keyword === '') { $keyword = null; }
+        if ($status  === '') { $status  = null; }
+
         return view('dashboard/certificates/index', [
             'title'         => 'Sertifikat | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Sertifikat',
+            'pageTitle'     => 'Sertifikat Terbit',
             'activeMenu'    => 'certificates',
             'activeSubmenu' => 'index',
+            'certificates'  => $this->certificateModel->listForAdmin($keyword, $status),
+            'keyword'       => $keyword ?? '',
+            'statusFilter'  => $status  ?? 'all',
         ]);
     }
 
-    public function create(): string
+    public function detail(string $id)
     {
-        return view('dashboard/certificates/form', [
-            'title'         => 'Tambah Sertifikat | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Tambah Sertifikat',
-            'formMode'      => 'create',
-            'activeMenu'    => 'certificates',
-            'activeSubmenu' => 'index',
+        $certificate = $this->certificateModel->withFullDetail((int) $id);
+        if (! $certificate) {
+            return $this->notFound();
+        }
+
+        // Ambil flash token (satu kali) jika baru diterbitkan.
+        $issuedToken = null;
+        $flash = session()->getFlashdata('certificate_issued_token');
+        if (is_array($flash) && (int) ($flash['id'] ?? 0) === (int) $id) {
+            $issuedToken = $flash['token'];
+        }
+
+        // Siapkan link verifikasi publik (untuk QR display di view)
+        $verifyTokenForDisplay = $issuedToken ?? null;
+
+        return view('dashboard/certificates/detail', [
+            'title'                  => 'Detail Sertifikat | Dashboard BegawiPBJ',
+            'pageTitle'              => 'Detail Sertifikat',
+            'activeMenu'             => 'certificates',
+            'activeSubmenu'          => 'index',
+            'certificate'            => $certificate,
+            'issuedToken'            => $issuedToken,
+            'verifyTokenForDisplay'  => $verifyTokenForDisplay,
         ]);
     }
 
-    public function eligibility(): string
+    public function edit(string $id)
     {
-        return view('dashboard/certificates/eligibility', [
-            'title'         => 'Eligibility Sertifikat | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Eligibility Sertifikat',
-            'activeMenu'    => 'certificates',
-            'activeSubmenu' => 'eligibility',
-        ]);
-    }
+        $certificate = $this->certificateModel->withFullDetail((int) $id);
+        if (! $certificate) {
+            return $this->notFound();
+        }
 
-    public function verification(): string
-    {
-        return view('dashboard/certificates/verification', [
-            'title'         => 'Verifikasi Sertifikat | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Verifikasi Sertifikat',
-            'activeMenu'    => 'certificates',
-            'activeSubmenu' => 'verification',
-        ]);
-    }
-
-    public function revocation(): string
-    {
-        return view('dashboard/certificates/revocation', [
-            'title'         => 'Revocation Sertifikat | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Revocation Sertifikat',
-            'activeMenu'    => 'certificates',
-            'activeSubmenu' => 'revocation',
-        ]);
-    }
-
-    public function numbers(): string
-    {
-        return view('dashboard/certificates/numbers', [
-            'title'         => 'Nomor Sertifikat | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Nomor Sertifikat',
-            'activeMenu'    => 'certificates',
-            'activeSubmenu' => 'numbers',
-        ]);
-    }
-
-    public function edit(string $id): string
-    {
         return view('dashboard/certificates/form', [
             'title'         => 'Ubah Sertifikat | Dashboard BegawiPBJ',
             'pageTitle'     => 'Ubah Sertifikat',
             'formMode'      => 'edit',
-            'certificateId' => $id,
             'activeMenu'    => 'certificates',
             'activeSubmenu' => 'index',
+            'certificate'   => $certificate,
         ]);
     }
 
-    public function detail(string $id): string
+    public function update(string $id)
     {
-        return view('dashboard/certificates/detail', [
-            'title'         => 'Detail Sertifikat | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Detail Sertifikat',
-            'certificateId' => $id,
-            'activeMenu'    => 'certificates',
-            'activeSubmenu' => 'index',
+        $idInt = (int) $id;
+        $before = $this->certificateModel->withFullDetail($idInt);
+        if (! $before) {
+            return $this->notFound();
+        }
+
+        $rules = [
+            'status'              => 'required|in_list[pending,issued,revoked,expired]',
+            'issued_at'           => 'permit_empty|valid_date',
+            'expires_at'          => 'permit_empty|valid_date',
+            'revocation_reason'   => 'permit_empty|string|max_length[1000]',
+        ];
+        if (! $this->validateData((array) $this->request->getPost(), $rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $post = (array) $this->request->getPost();
+        $data = [
+            'status'            => $post['status'],
+            'issued_at'         => $this->normalizeDateTime($post['issued_at']   ?? null, $before['issued_at']  ?? 'now'),
+            'expires_at'        => $this->normalizeDateTime($post['expires_at']  ?? null, $before['expires_at'] ?? null),
+            'revocation_reason' => $post['revocation_reason'] ?? null,
+        ];
+
+        try {
+            $this->certificateModel->update($idInt, $data);
+        } catch (RuntimeException $e) {
+            return redirect()->back()->withInput()->with('error', 'Gagal memperbarui sertifikat: ' . $e->getMessage());
+        }
+
+        $this->auditService->log(
+            (int) session()->get('user_id'),
+            'certificate.updated',
+            'certificate',
+            'certificate',
+            $idInt,
+            [
+                'before' => array_intersect_key((array) $before, array_flip(['status','issued_at','expires_at','revocation_reason'])),
+                'after'  => $data,
+            ]
+        );
+
+        return redirect()->to(site_url('dashboard/sertifikat/' . $idInt))
+            ->with('success', 'Sertifikat berhasil diperbarui.');
+    }
+
+    public function revoke(string $id)
+    {
+        $idInt = (int) $id;
+        $before = $this->certificateModel->withFullDetail($idInt);
+        if (! $before) {
+            return $this->notFound();
+        }
+
+        $rules = [
+            'revocation_reason' => 'required|string|min_length[5]|max_length[1000]',
+        ];
+        if (! $this->validateData((array) $this->request->getPost(), $rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $reason  = trim((string) $this->request->getPost('revocation_reason'));
+        $actorId = (int) session()->get('user_id');
+
+        $data = [
+            'status'            => 'revoked',
+            'revoked_at'        => date('Y-m-d H:i:s'),
+            'revoked_by'        => $actorId,
+            'revocation_reason' => $reason,
+        ];
+
+        try {
+            $this->certificateModel->update($idInt, $data);
+        } catch (RuntimeException $e) {
+            return redirect()->back()->withInput()->with('error', 'Gagal mencabut sertifikat: ' . $e->getMessage());
+        }
+
+        $this->auditService->log(
+            $actorId,
+            'certificate.revoked',
+            'certificate',
+            'certificate',
+            $idInt,
+            [
+                'reason'        => $reason,
+                'before_status' => $before['status'] ?? null,
+            ]
+        );
+
+        return redirect()->to(site_url('dashboard/sertifikat'))
+            ->with('success', 'Sertifikat telah dicabut.');
+    }
+
+    // =============================================================
+    // Helpers
+    // =============================================================
+
+    private function normalizeDateTime(?string $value, $fallback): ?string
+    {
+        if ($value === null || $value === '') {
+            if ($fallback === null) { return null; }
+            if ($fallback === 'now') { return date('Y-m-d H:i:s'); }
+            return is_string($fallback) ? $fallback : null;
+        }
+        $ts = strtotime($value);
+        if ($ts === false) { return is_string($fallback) ? $fallback : null; }
+        return date('Y-m-d H:i:s', $ts);
+    }
+
+    private function notFound()
+    {
+        return view('dashboard/errors/404', [
+            'title'      => 'Sertifikat tidak ditemukan',
+            'pageTitle'  => 'Sertifikat tidak ditemukan',
+            'activeMenu' => 'certificates',
         ]);
     }
 }
