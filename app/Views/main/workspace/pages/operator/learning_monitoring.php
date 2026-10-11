@@ -150,9 +150,14 @@
                                     </span>
                                 </td>
                                 <td class="text-end">
-                                    <a href="<?= route_to('workspace.operator.class-trainers') ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" style="font-size: 0.78rem;">
-                                        <i class="fas fa-chalkboard-teacher me-1"></i> Penugasan
-                                    </a>
+                                    <div class="d-inline-flex gap-1">
+                                        <a href="<?= route_to('workspace.trainer.class.detail', (string) $item['id']) ?>" class="btn btn-sm btn-primary rounded-pill px-3 py-1" style="font-size: 0.78rem;">
+                                            <i class="fas fa-chalkboard me-1"></i> Kelola Pembelajaran
+                                        </a>
+                                        <a href="<?= route_to('workspace.operator.class-trainers') ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" style="font-size: 0.78rem;">
+                                            <i class="fas fa-chalkboard-teacher me-1"></i> Penugasan
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

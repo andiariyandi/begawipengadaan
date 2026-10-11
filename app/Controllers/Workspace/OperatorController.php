@@ -133,12 +133,12 @@ class OperatorController extends BaseController
         }
         $pendingCertificates = $certBuilder->countAllResults();
 
-        // 4 Feeds Aktivitas Terkini
+        // 4 Feeds Aktivitas Terkini (Mendukung client-side pagination)
         $recentApprovals = $this->db->table('approvals a')
             ->select('a.id, a.resource_type, a.requested_action, a.status, a.created_at, u.name AS requester_name')
             ->join('users u', 'u.id = a.requested_by', 'left')
             ->orderBy('a.created_at', 'DESC')
-            ->limit(5)
+            ->limit(15)
             ->get()->getResultArray();
 
         $recentAssignments = $this->db->table('class_trainers ct')
@@ -146,13 +146,13 @@ class OperatorController extends BaseController
             ->join('users u', 'u.id = ct.user_id')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->orderBy('ct.assigned_at', 'DESC')
-            ->limit(5)
+            ->limit(15)
             ->get()->getResultArray();
 
         $recentEvents = $this->db->table('events')
             ->select('id, title, type, status, start_at')
             ->orderBy('created_at', 'DESC')
-            ->limit(5)
+            ->limit(15)
             ->get()->getResultArray();
 
         $recentOverrides = $this->db->table('audit_logs a')
@@ -160,7 +160,7 @@ class OperatorController extends BaseController
             ->join('users u', 'u.id = a.actor_id', 'left')
             ->where('a.action LIKE', '%override%')
             ->orderBy('a.created_at', 'DESC')
-            ->limit(5)
+            ->limit(15)
             ->get()->getResultArray();
 
         $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Operator');

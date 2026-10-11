@@ -29,63 +29,156 @@ class ParticipantController extends BaseController
     public function myClasses(): string
     {
         $userId = $this->userId();
-        $items = db_connect()->table('enrollments e')
-            ->select('e.id AS enrollment_id, e.class_id, e.status AS enrollment_status, e.enrolled_at, e.activated_at, e.cancelled_at, e.completed_at, lc.code AS class_code, lc.name AS class_name, lc.status AS class_status, lc.start_at, lc.end_at, courses.title AS course_title, programs.title AS program_title')
+        $db = db_connect();
+
+        $items = $db->table('enrollments e')
+            ->select('
+                e.id AS enrollment_id,
+                e.class_id,
+                e.status AS enrollment_status,
+                e.enrolled_at,
+                e.activated_at,
+                e.cancelled_at,
+                e.completed_at,
+                e.final_score,
+                e.passed_at,
+                e.certificate_eligible_at,
+                e.withdrawn_at,
+                lc.code AS class_code,
+                lc.name AS class_name,
+                lc.status AS class_status,
+                lc.start_at,
+                lc.end_at,
+                lc.capacity,
+                lc.passing_grade,
+                lc.certificate_enabled,
+                courses.title AS course_title,
+                courses.level AS course_level,
+                courses.duration_minutes,
+                courses.summary AS course_summary,
+                programs.title AS program_title,
+                fa.path AS cover_path,
+                cert.id AS certificate_id,
+                cert.certificate_number,
+                cert.status AS certificate_status,
+                cert.issued_at AS certificate_issued_at
+            ')
             ->join('learning_classes lc', 'lc.id = e.class_id')
             ->join('courses', 'courses.id = lc.course_id')
             ->join('programs', 'programs.id = courses.program_id', 'left')
+            ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
+            ->join('certificates cert', 'cert.source_type = "learning_enrollment" AND cert.source_id = e.id', 'left')
             ->where('e.user_id', $userId)
             ->orderBy('e.updated_at', 'DESC')
             ->get()->getResultArray();
 
-        $enrollmentIds = array_map(static fn (array $row): int => (int) $row['enrollment_id'], $items);
-        $progressByEnrollment = [];
-        if ($enrollmentIds !== []) {
-            $progressRows = db_connect()->table('learning_progress')
-                ->select('enrollment_id, status, progress_percent')
-                ->whereIn('enrollment_id', $enrollmentIds)
-                ->get()->getResultArray();
-            foreach ($progressRows as $row) {
-                $eid = (int) $row['enrollment_id'];
-                if (! isset($progressByEnrollment[$eid])) {
-                    $progressByEnrollment[$eid] = ['completed' => 0, 'total' => 0, 'percent' => 0.0];
-                }
-                $progressByEnrollment[$eid]['total']++;
-                $progressByEnrollment[$eid]['percent'] += (float) ($row['progress_percent'] ?? 0);
-                if (($row['status'] ?? '') === 'completed') {
-                    $progressByEnrollment[$eid]['completed']++;
-                }
-            }
-            foreach ($progressByEnrollment as $eid => &$agg) {
-                $agg['percent'] = $agg['total'] > 0 ? round($agg['percent'] / $agg['total'], 2) : 0.0;
-            }
-            unset($agg);
-        }
+        $activeClasses = [];
+        $completedClasses = [];
+        $pendingClasses = [];
+        $issuedCertsCount = 0;
+
         foreach ($items as &$row) {
-            $eid = (int) $row['enrollment_id'];
-            $row['progress_summary'] = $progressByEnrollment[$eid] ?? ['completed' => 0, 'total' => 0, 'percent' => 0.0];
+            $classId = (int) $row['class_id'];
+            $state = $this->resolveClassLearningState($classId, $userId);
+            $row['state'] = $state;
+
+            // Shortcut fields for easy access in views
+            $row['state_code']               = $state['stateCode'];
+            $row['cta']                      = $state['cta'];
+            $row['current_step']             = $state['current_step'];
+            $row['pre_test']                 = $state['pre_test'];
+            $row['post_test']                = $state['post_test'];
+            $row['modules']                  = $state['modules'];
+            $row['all_lessons_count']        = $state['all_lessons_count'];
+            $row['completed_lessons_count']  = $state['completed_lessons_count'];
+            $row['overall_percent']          = $state['overall_percent'];
+            $row['is_passed']                = $state['is_passed'];
+            $row['trainers']                 = $state['trainers'];
+
+            // Harmonize certificate info
+            if (! empty($state['certificate'])) {
+                $row['certificate_id']        = $state['certificate']['id'];
+                $row['certificate_number']    = $state['certificate']['certificate_number'];
+                $row['certificate_status']    = $state['certificate']['status'];
+                $row['certificate_issued_at'] = $state['certificate']['issued_at'] ?? $row['certificate_issued_at'];
+            }
+
+            // Backward compatibility progress_summary for existing tests/views
+            $row['progress_summary'] = [
+                'completed' => (int) $state['completed_lessons_count'],
+                'total'     => (int) $state['all_lessons_count'],
+                'percent'   => (float) $state['overall_percent'],
+            ];
+
+            if (($row['certificate_status'] ?? '') === 'issued') {
+                $issuedCertsCount++;
+            }
+
+            $eStatus = (string) ($row['enrollment_status'] ?? 'pending');
+            if ($eStatus === 'active') {
+                $activeClasses[] = $row;
+            } elseif ($eStatus === 'completed') {
+                $completedClasses[] = $row;
+            } elseif ($eStatus === 'pending') {
+                $pendingClasses[] = $row;
+            }
         }
         unset($row);
 
         $summary = [
-            'pending'   => 0,
-            'active'    => 0,
-            'completed' => 0,
-            'cancelled' => 0,
-            'withdrawn' => 0,
+            'pending'             => count($pendingClasses),
+            'active'              => count($activeClasses),
+            'completed'           => count($completedClasses),
+            'cancelled'           => 0,
+            'withdrawn'           => 0,
+            'issued_certificates' => $issuedCertsCount,
         ];
         foreach ($items as $row) {
             $key = (string) ($row['enrollment_status'] ?? '');
-            if (isset($summary[$key])) {
+            if (in_array($key, ['cancelled', 'withdrawn'], true)) {
                 $summary[$key]++;
             }
         }
 
         return view('main/workspace/pages/kelas_saya', [
-            'pageTitle'    => 'Kelas Saya',
-            'breadcrumbTail' => [['label' => 'Kelas Saya']],
-            'enrollments'  => $items,
-            'summary'      => $summary,
+            'pageTitle'        => 'Pembelajaran & Kelas Saya',
+            'breadcrumbTail'   => [['label' => 'Kelas Saya']],
+            'enrollments'      => $items,
+            'activeClasses'    => $activeClasses,
+            'completedClasses' => $completedClasses,
+            'pendingClasses'   => $pendingClasses,
+            'summary'          => $summary,
+            'sectionContent'   => [
+                'eyebrow'     => 'Arena Belajar & Kompetensi',
+                'title'       => 'Pembelajaran & Kelas Saya',
+                'description' => 'Kelola seluruh proses pembelajaran Anda dari awal pendaftaran, materi modul, kuis bab, tugas praktik, ujian akhir, hingga sertifikat kelulusan resmi.',
+                'cards'       => [
+                    [
+                        'title' => 'Kelas Aktif',
+                        'value' => sprintf('%02d', count($activeClasses)),
+                        'meta'  => 'sedang dipelajari',
+                        'icon'  => 'fas fa-book-reader',
+                    ],
+                    [
+                        'title' => 'Kelas Selesai',
+                        'value' => sprintf('%02d', count($completedClasses)),
+                        'meta'  => 'tuntas & lulus',
+                        'icon'  => 'fas fa-graduation-cap',
+                    ],
+                    [
+                        'title' => 'Sertifikat Terbit',
+                        'value' => sprintf('%02d', $issuedCertsCount),
+                        'meta'  => 'resmi terverifikasi',
+                        'icon'  => 'fas fa-award',
+                    ],
+                    [
+                        'title' => 'Menunggu Approval',
+                        'value' => sprintf('%02d', count($pendingClasses)),
+                        'meta'  => 'dalam antrean operator',
+                        'icon'  => 'fas fa-user-clock',
+                    ],
+                ],
+            ],
         ]);
     }
 
@@ -810,17 +903,27 @@ class ParticipantController extends BaseController
         }
 
         $latestSubmission = null;
+        $submittedFile = null;
         if ($enrollment) {
             $latestSubmission = $db->table('assignment_submissions')
                 ->where(['assignment_id' => $assignment['id'], 'enrollment_id' => $enrollment['id']])
                 ->orderBy('attempt_number', 'DESC')
                 ->get()->getRowArray();
+
+            if ($latestSubmission) {
+                $submittedFile = $db->table('assignment_submission_files asf')
+                    ->select('fa.*')
+                    ->join('file_assets fa', 'fa.id = asf.file_id')
+                    ->where('asf.submission_id', $latestSubmission['id'])
+                    ->get()->getRowArray();
+            }
         }
 
         return view('main/workspace/pages/tugas', [
             'pageTitle'        => 'Pengumpulan Tugas: ' . ($assignment['title'] ?? ''),
             'activeAssignment' => $assignment,
             'latestSubmission' => $latestSubmission,
+            'submittedFile'    => $submittedFile,
             'sectionContent'   => [
                 'eyebrow'     => 'Pengumpulan Tugas',
                 'description' => 'Kirim laporan atau lembar kerja penugasan pembelajaran.',
@@ -847,8 +950,12 @@ class ParticipantController extends BaseController
         $fileData = null;
         $file = $this->request->getFile('submission_file');
         if ($file && $file->isValid() && ! $file->hasMoved()) {
+            $uploadDir = WRITEPATH . 'uploads/assignments';
+            if (! is_dir($uploadDir)) {
+                @mkdir($uploadDir, 0755, true);
+            }
             $newName = $file->getRandomName();
-            $file->move(WRITEPATH . 'uploads/assignments', $newName);
+            $file->move($uploadDir, $newName);
             $fileData = [
                 'path'          => 'uploads/assignments/' . $newName,
                 'original_name' => $file->getClientName(),

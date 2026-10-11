@@ -15,8 +15,8 @@ $pct         = (float) ($state['overall_percent'] ?? 0);
 $finalScore  = $enrollment['final_score'] ?? null;
 ?>
 
-<!-- 1. Hero Card: Informasi Kelas & Konteks Pembelajaran -->
-<div class="bg-white border rounded shadow-sm p-4 p-lg-5 mb-4">
+<!-- 1. Hero Card: Informasi Kelas & Konteks Pembelajaran (FiStudy DNA) -->
+<div class="card border-0 rounded-4 shadow-sm p-4 p-lg-5 mb-4 bg-white">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <div>
             <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2 rounded-pill text-uppercase">
@@ -29,41 +29,41 @@ $finalScore  = $enrollment['final_score'] ?? null;
             <?php endif; ?>
         </div>
         <div class="text-muted small">
-            <i class="bi bi-calendar3 me-1"></i>
+            <i class="bi bi-calendar3 me-1 text-primary"></i>
             Periode: <strong><?= esc($ctx['start_at'] ? date('d M Y', strtotime($ctx['start_at'])) : 'Fleksibel') ?></strong>
             &ndash;
             <strong><?= esc($ctx['end_at'] ? date('d M Y', strtotime($ctx['end_at'])) : 'Selesai') ?></strong>
         </div>
     </div>
 
-    <h1 class="h2 text-navy mb-2"><?= esc($ctx['name'] ?? 'Detail Kelas') ?></h1>
+    <h1 class="h2 fw-bold mb-2" style="color: #082f5c;"><?= esc($ctx['name'] ?? 'Detail Kelas') ?></h1>
     <p class="text-muted fs-6 mb-3">
         Course: <strong class="text-dark"><?= esc($ctx['course_title'] ?? '-') ?></strong> &middot; 
-        Kode Kelas: <code class="text-primary fw-semibold"><?= esc($ctx['code'] ?? '-') ?></code>
+        Kode Kelas: <code class="text-primary fw-bold font-monospace"><?= esc($ctx['code'] ?? '-') ?></code>
     </p>
 
     <!-- Component Evaluation Weights & Passing Grade -->
     <div class="row g-3 pt-3 border-top mt-3">
         <div class="col-6 col-md-3">
-            <div class="p-3 bg-light rounded text-center">
+            <div class="p-3 bg-light rounded-4 text-center border">
                 <span class="d-block text-muted small mb-1">Passing Grade</span>
                 <strong class="fs-5 text-dark"><?= (float) ($ctx['passing_grade'] ?? 70.0) ?>%</strong>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="p-3 bg-light rounded text-center">
+            <div class="p-3 bg-light rounded-4 text-center border">
                 <span class="d-block text-muted small mb-1">Bobot Quiz</span>
                 <strong class="fs-5 text-dark"><?= (float) ($ctx['quiz_weight'] ?? 40.0) ?>%</strong>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="p-3 bg-light rounded text-center">
+            <div class="p-3 bg-light rounded-4 text-center border">
                 <span class="d-block text-muted small mb-1">Bobot Tugas</span>
                 <strong class="fs-5 text-dark"><?= (float) ($ctx['assignment_weight'] ?? 0.0) ?>%</strong>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="p-3 bg-light rounded text-center">
+            <div class="p-3 bg-light rounded-4 text-center border">
                 <span class="d-block text-muted small mb-1">Bobot Post-Test</span>
                 <strong class="fs-5 text-dark"><?= (float) ($ctx['post_test_weight'] ?? 60.0) ?>%</strong>
             </div>
@@ -72,59 +72,59 @@ $finalScore  = $enrollment['final_score'] ?? null;
 </div>
 
 <!-- 2. STATE-DRIVEN ACTION CARD (Kondisional & Responsif Berdasarkan Status Peserta) -->
-<div class="card border-0 shadow-sm mb-4 overflow-hidden">
+<div class="card border-0 rounded-4 shadow-sm mb-4 overflow-hidden">
     <div class="card-body p-4 p-lg-5 <?= in_array($stateCode, ['certificate_issued', 'completed_passed'], true) ? 'bg-success-subtle text-success-emphasis' : (in_array($stateCode, ['pre_test_required', 'module_quiz_required'], true) ? 'bg-warning-subtle text-warning-emphasis' : ($stateCode === 'completed_failed' ? 'bg-danger-subtle text-danger-emphasis' : 'bg-primary-subtle text-primary-emphasis')) ?>">
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4">
             <div class="flex-grow-1">
                 <?php if ($stateCode === 'not_enrolled'): ?>
-                    <span class="badge bg-primary text-white mb-2">Pendaftaran Tersedia</span>
-                    <h3 class="h4 mb-2">Mulai Kelas Pembelajaran Ini</h3>
+                    <span class="badge bg-primary text-white rounded-pill mb-2 px-3 py-2">Pendaftaran Tersedia</span>
+                    <h3 class="h4 fw-bold mb-2" style="color: #082f5c;">Mulai Kelas Pembelajaran Ini</h3>
                     <p class="mb-0 text-muted">Daftarkan diri Anda untuk mengakses seluruh modul pembelajaran, materi interaktif, kuis, dan ujian akhir.</p>
                 <?php elseif ($stateCode === 'enrollment_pending'): ?>
-                    <span class="badge bg-secondary text-white mb-2">Verifikasi Pendaftaran</span>
-                    <h3 class="h4 mb-2">Pendaftaran Menunggu Persetujuan</h3>
+                    <span class="badge bg-secondary text-white rounded-pill mb-2 px-3 py-2">Verifikasi Pendaftaran</span>
+                    <h3 class="h4 fw-bold mb-2" style="color: #082f5c;">Pendaftaran Menunggu Persetujuan</h3>
                     <p class="mb-0 text-muted">Permintaan pendaftaran Anda telah tersimpan dan sedang menunggu konfirmasi dari Operator/Admin.</p>
                 <?php elseif ($stateCode === 'pre_test_required'): ?>
-                    <span class="badge bg-warning text-dark mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Tahap Wajib</span>
-                    <h3 class="h4 mb-2">Selesaikan Pre-Test Terlebih Dahulu</h3>
+                    <span class="badge bg-warning text-dark rounded-pill mb-2 px-3 py-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Tahap Wajib</span>
+                    <h3 class="h4 fw-bold mb-2">Selesaikan Pre-Test Terlebih Dahulu</h3>
                     <p class="mb-0 text-dark">Kelas ini menerapkan Pre-Test. Anda wajib mengerjakan Pre-Test untuk membuka akses ke modul pembelajaran pertama.</p>
                 <?php elseif ($stateCode === 'in_learning'): ?>
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-primary text-white">Sedang Belajar</span>
+                        <span class="badge bg-primary text-white rounded-pill px-3 py-2">Sedang Belajar</span>
                         <span class="text-muted small"><?= (int) ($state['completed_lessons_count'] ?? 0) ?> dari <?= (int) ($state['all_lessons_count'] ?? 0) ?> materi selesai</span>
                     </div>
-                    <h3 class="h4 mb-2">Lanjutkan Progres Belajar Anda</h3>
-                    <div class="progress mb-2" style="height: 10px; max-width: 480px;">
-                        <div class="progress-bar bg-primary" role="progressbar" style="width: <?= $pct ?>%" aria-valuenow="<?= $pct ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                    <h3 class="h4 fw-bold mb-2" style="color: #082f5c;">Lanjutkan Progres Belajar Anda</h3>
+                    <div class="progress mb-2 rounded-pill" style="height: 10px; max-width: 480px;">
+                        <div class="progress-bar bg-primary rounded-pill" role="progressbar" style="width: <?= $pct ?>%" aria-valuenow="<?= $pct ?>" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                     <p class="mb-0 text-muted small">Capaian kurikulum: <strong><?= $pct ?>%</strong>.</p>
                 <?php elseif ($stateCode === 'module_quiz_required'): ?>
-                    <span class="badge bg-warning text-dark mb-2"><i class="bi bi-clock-history me-1"></i> Evaluasi Modul</span>
-                    <h3 class="h4 mb-2">Kerjakan Quiz Modul</h3>
+                    <span class="badge bg-warning text-dark rounded-pill mb-2 px-3 py-2"><i class="bi bi-clock-history me-1"></i> Evaluasi Modul</span>
+                    <h3 class="h4 fw-bold mb-2">Kerjakan Quiz Modul</h3>
                     <p class="mb-0 text-dark">Seluruh materi pada modul ini telah selesai. Selesaikan quiz modul untuk membuka materi pada modul berikutnya.</p>
                 <?php elseif ($stateCode === 'assignment_required'): ?>
-                    <span class="badge bg-info text-dark mb-2"><i class="bi bi-file-earmark-text me-1"></i> Penugasan</span>
-                    <h3 class="h4 mb-2">Kumpulkan Tugas Mandiri</h3>
+                    <span class="badge bg-info text-dark rounded-pill mb-2 px-3 py-2"><i class="bi bi-file-earmark-text me-1"></i> Penugasan</span>
+                    <h3 class="h4 fw-bold mb-2">Kumpulkan Tugas Mandiri</h3>
                     <p class="mb-0 text-dark">Terdapat tugas wajib yang perlu Anda kumpulkan untuk dinilai oleh instruktur.</p>
                 <?php elseif ($stateCode === 'post_test_required'): ?>
-                    <span class="badge bg-primary text-white mb-2"><i class="bi bi-trophy me-1"></i> Tahap Akhir</span>
-                    <h3 class="h4 mb-2">Semua Modul Selesai! Kerjakan Post-Test</h3>
+                    <span class="badge bg-primary text-white rounded-pill mb-2 px-3 py-2"><i class="bi bi-trophy me-1"></i> Tahap Akhir</span>
+                    <h3 class="h4 fw-bold mb-2">Semua Modul Selesai! Kerjakan Post-Test</h3>
                     <p class="mb-0 text-dark">Selamat! Anda telah menuntaskan seluruh modul. Kerjakan Post-Test sebagai penentu kelulusan kelas.</p>
                 <?php elseif ($stateCode === 'waiting_certificate'): ?>
-                    <span class="badge bg-warning text-dark mb-2"><i class="bi bi-hourglass-split me-1"></i> Antrean Approval</span>
-                    <h3 class="h4 mb-2">Selamat, Anda Dinyatakan Lulus!</h3>
+                    <span class="badge bg-warning text-dark rounded-pill mb-2 px-3 py-2"><i class="bi bi-hourglass-split me-1"></i> Antrean Approval</span>
+                    <h3 class="h4 fw-bold mb-2">Selamat, Anda Dinyatakan Lulus!</h3>
                     <p class="mb-0 text-dark">Nilai Akhir: <strong><?= (float) ($finalScore ?? 0) ?></strong> (Passing Grade: <?= (float) ($ctx['passing_grade'] ?? 70) ?>). Pengajuan sertifikat Anda sedang menunggu verifikasi dan persetujuan Operator/Admin.</p>
                 <?php elseif ($stateCode === 'certificate_issued'): ?>
-                    <span class="badge bg-success text-white mb-2"><i class="bi bi-patch-check-fill me-1"></i> Sertifikat Terbit</span>
-                    <h3 class="h4 mb-2">Selamat! Sertifikat Resmi Anda Telah Terbit</h3>
+                    <span class="badge bg-success text-white rounded-pill mb-2 px-3 py-2"><i class="bi bi-patch-check-fill me-1"></i> Sertifikat Terbit</span>
+                    <h3 class="h4 fw-bold mb-2">Selamat! Sertifikat Resmi Anda Telah Terbit</h3>
                     <p class="mb-0 text-dark">Nomor Sertifikat: <strong class="font-monospace"><?= esc($state['certificate']['certificate_number'] ?? '-') ?></strong> &middot; Nilai Akhir: <strong><?= (float) ($finalScore ?? 0) ?></strong>.</p>
                 <?php elseif ($stateCode === 'completed_passed'): ?>
-                    <span class="badge bg-success text-white mb-2"><i class="bi bi-check-circle-fill me-1"></i> Lulus</span>
-                    <h3 class="h4 mb-2">Selamat, Anda Telah Lulus Pembelajaran!</h3>
+                    <span class="badge bg-success text-white rounded-pill mb-2 px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> Lulus</span>
+                    <h3 class="h4 fw-bold mb-2">Selamat, Anda Telah Lulus Pembelajaran!</h3>
                     <p class="mb-0 text-dark">Seluruh kurikulum telah diselesaikan dengan Nilai Akhir: <strong><?= (float) ($finalScore ?? 0) ?></strong>.</p>
                 <?php elseif ($stateCode === 'completed_failed'): ?>
-                    <span class="badge bg-danger text-white mb-2">Belum Lulus</span>
-                    <h3 class="h4 mb-2">Belum Memenuhi Passing Grade</h3>
+                    <span class="badge bg-danger text-white rounded-pill mb-2 px-3 py-2">Belum Lulus</span>
+                    <h3 class="h4 fw-bold mb-2">Belum Memenuhi Passing Grade</h3>
                     <p class="mb-0 text-dark">Nilai akhir Anda <strong><?= (float) ($finalScore ?? 0) ?></strong> belum mencapai passing grade <strong><?= (float) ($ctx['passing_grade'] ?? 70) ?></strong>.</p>
                 <?php endif; ?>
             </div>
@@ -134,16 +134,16 @@ $finalScore  = $enrollment['final_score'] ?? null;
                 <?php if ($stateCode === 'not_enrolled'): ?>
                     <form method="post" action="<?= esc($cta['url'] ?? '#') ?>">
                         <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-primary btn-lg px-4 shadow-sm fw-semibold">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm fw-bold">
                             <i class="bi bi-plus-circle me-1"></i> <?= esc($cta['label'] ?? 'Daftar Kelas Ini') ?>
                         </button>
                     </form>
                 <?php elseif (! empty($cta['disabled'])): ?>
-                    <button class="<?= esc($cta['class'] ?? 'btn btn-secondary') ?> btn-lg px-4" disabled>
+                    <button class="<?= esc($cta['class'] ?? 'btn btn-secondary') ?> btn-lg rounded-pill px-4" disabled>
                         <?= esc($cta['label'] ?? 'Status') ?>
                     </button>
                 <?php else: ?>
-                    <a href="<?= esc($cta['url'] ?? '#') ?>" class="<?= esc($cta['class'] ?? 'btn btn-primary') ?> btn-lg px-4 shadow-sm fw-semibold">
+                    <a href="<?= esc($cta['url'] ?? '#') ?>" class="<?= esc($cta['class'] ?? 'btn btn-primary') ?> btn-lg rounded-pill px-5 shadow-sm fw-bold">
                         <?= esc($cta['label'] ?? 'Mulai Belajar') ?> &raquo;
                     </a>
                 <?php endif; ?>
@@ -153,8 +153,8 @@ $finalScore  = $enrollment['final_score'] ?? null;
 </div>
 
 <!-- 3. Profil Trainer & Pengajar -->
-<div class="bg-white border rounded shadow-sm p-4 mb-4">
-    <h2 class="h5 mb-3 text-navy d-flex align-items-center gap-2">
+<div class="card border-0 rounded-4 shadow-sm p-4 p-lg-5 mb-4 bg-white">
+    <h2 class="h5 mb-3 fw-bold d-flex align-items-center gap-2" style="color: #082f5c;">
         <i class="bi bi-person-badge text-primary"></i> Instruktur & Trainer Kelas
     </h2>
     <?php if (empty($trainers)): ?>
@@ -163,13 +163,13 @@ $finalScore  = $enrollment['final_score'] ?? null;
         <div class="row g-3">
             <?php foreach ($trainers as $t): ?>
                 <div class="col-md-6">
-                    <div class="d-flex align-items-center gap-3 p-3 rounded border bg-light">
+                    <div class="d-flex align-items-center gap-3 p-3 rounded-4 border bg-light">
                         <div class="avatar-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 48px; height: 48px; font-size: 18px;">
                             <?= strtoupper(substr($t['name'] ?? 'T', 0, 2)) ?>
                         </div>
                         <div class="overflow-hidden">
-                            <h3 class="h6 mb-0 text-dark text-truncate"><?= esc($t['name'] ?? 'Trainer') ?></h3>
-                            <span class="badge bg-primary-subtle text-primary small mb-1">Pengajar Utama</span>
+                            <h3 class="h6 mb-0 text-dark fw-bold text-truncate"><?= esc($t['name'] ?? 'Trainer') ?></h3>
+                            <span class="badge bg-primary-subtle text-primary small rounded-pill mb-1">Pengajar Utama</span>
                             <?php if (! empty($t['email'])): ?>
                                 <p class="text-muted small mb-0 text-truncate"><?= esc($t['email']) ?></p>
                             <?php endif; ?>
@@ -182,8 +182,8 @@ $finalScore  = $enrollment['final_score'] ?? null;
 </div>
 
 <!-- 4. Deskripsi & Silabus Kurikulum Lengkap -->
-<div class="bg-white border rounded shadow-sm p-4 mb-4">
-    <h2 class="h5 mb-3 text-navy d-flex align-items-center gap-2">
+<div class="card border-0 rounded-4 shadow-sm p-4 p-lg-5 mb-4 bg-white">
+    <h2 class="h5 mb-3 fw-bold d-flex align-items-center gap-2" style="color: #082f5c;">
         <i class="bi bi-card-text text-primary"></i> Deskripsi Kursus
     </h2>
     <?php if (! empty($ctx['course_description'])): ?>
@@ -198,13 +198,13 @@ $finalScore  = $enrollment['final_score'] ?? null;
         <p class="text-muted mb-4 small">Deskripsi materi kursus belum tersedia.</p>
     <?php endif; ?>
 
-    <h2 class="h5 mb-3 text-navy d-flex align-items-center gap-2 pt-3 border-top">
+    <h2 class="h5 mb-3 fw-bold d-flex align-items-center gap-2 pt-3 border-top" style="color: #082f5c;">
         <i class="bi bi-signpost-split text-primary"></i> Silabus & Roadmap Pembelajaran
     </h2>
 
     <!-- Step 1: Pre-Test (Jika Ada) -->
     <?php if ($preTest['exists']): ?>
-        <div class="border rounded p-3 mb-3 <?= $preTest['completed'] ? 'bg-success-subtle border-success' : ($stateCode === 'pre_test_required' ? 'border-primary bg-primary-subtle' : 'bg-light') ?>">
+        <div class="border rounded-4 p-3 mb-3 <?= $preTest['completed'] ? 'bg-success-subtle border-success' : ($stateCode === 'pre_test_required' ? 'border-primary bg-primary-subtle' : 'bg-light') ?>">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <?php if ($preTest['completed']): ?>
@@ -219,43 +219,43 @@ $finalScore  = $enrollment['final_score'] ?? null;
                 </div>
                 <div>
                     <?php if ($preTest['completed']): ?>
-                        <span class="badge bg-success">Selesai (Skor: <?= (float) ($preTest['attempt']['score'] ?? 0) ?>)</span>
+                        <span class="badge bg-success rounded-pill px-3 py-2">Selesai (Skor: <?= (float) ($preTest['attempt']['score'] ?? 0) ?>)</span>
                     <?php elseif ($state['enrollmentStatus'] === 'active'): ?>
-                        <a href="<?= route_to('workspace.participant.quiz.take', (string) $preTest['quiz']['id']) ?>" class="btn btn-primary btn-sm">Mulai Pre-Test</a>
+                        <a href="<?= route_to('workspace.participant.quiz.take', (string) $preTest['quiz']['id']) ?>" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">Mulai Pre-Test</a>
                     <?php else: ?>
-                        <span class="badge bg-secondary">Terkunci</span>
+                        <span class="badge bg-secondary rounded-pill px-3 py-2">Terkunci</span>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
     <?php endif; ?>
 
-    <!-- Step 2..N: Modul Pembelajaran -->
+    <!-- Step 2..N: Modul Pembelajaran (Dengan Pagination jika banyak modul) -->
     <?php if (empty($modules)): ?>
         <p class="text-muted mb-0 small">Belum ada modul atau materi yang dipublikasikan pada kelas ini.</p>
     <?php else: ?>
-        <div class="modules-accordion">
+        <div class="modules-accordion ws-paginated-container" data-page-size="5">
             <?php foreach ($modules as $mIndex => $mod): ?>
-                <div class="border rounded p-3 mb-3 <?= $mod['is_completed'] ? 'border-success' : ($mod['is_unlocked'] ? 'border-primary' : 'bg-light') ?>">
+                <div class="border rounded-4 p-3 mb-3 ws-paginated-item <?= $mod['is_completed'] ? 'border-success' : ($mod['is_unlocked'] ? 'border-primary' : 'bg-light') ?>">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-light text-dark border fw-bold">Modul <?= esc((string) ($mIndex + 1)) ?></span>
-                            <h3 class="h6 mb-0 text-dark"><?= esc($mod['title']) ?></h3>
+                            <span class="badge bg-light text-dark border fw-bold rounded-pill">Modul <?= esc((string) ($mIndex + 1)) ?></span>
+                            <h3 class="h6 mb-0 text-dark fw-bold"><?= esc($mod['title']) ?></h3>
                         </div>
                         <div>
                             <?php if ($mod['is_completed']): ?>
-                                <span class="badge bg-success-subtle text-success-emphasis"><i class="bi bi-check2 me-1"></i> Modul Selesai</span>
+                                <span class="badge bg-success-subtle text-success-emphasis rounded-pill px-3 py-1"><i class="bi bi-check2 me-1"></i> Modul Selesai</span>
                             <?php elseif ($mod['is_unlocked']): ?>
-                                <span class="badge bg-primary-subtle text-primary-emphasis">Sedang Berjalan</span>
+                                <span class="badge bg-primary-subtle text-primary-emphasis rounded-pill px-3 py-1">Sedang Berjalan</span>
                             <?php else: ?>
-                                <span class="badge bg-light text-muted border"><i class="bi bi-lock-fill me-1"></i> Terkunci</span>
+                                <span class="badge bg-light text-muted border rounded-pill px-3 py-1"><i class="bi bi-lock-fill me-1"></i> Terkunci</span>
                             <?php endif; ?>
                         </div>
                     </div>
 
                     <!-- Daftar Lessons Dalam Modul -->
                     <?php if (! empty($mod['lessons'])): ?>
-                        <ul class="list-group list-group-flush mb-2 border rounded bg-white">
+                        <ul class="list-group list-group-flush mb-2 border rounded-3 bg-white overflow-hidden">
                             <?php foreach ($mod['lessons'] as $les): ?>
                                 <li class="list-group-item d-flex align-items-center justify-content-between flex-wrap gap-2 py-2 px-3">
                                     <div class="d-flex align-items-center gap-2">
@@ -276,9 +276,9 @@ $finalScore  = $enrollment['final_score'] ?? null;
                                         <?php endif; ?>
                                     </div>
                                     <div>
-                                        <span class="badge bg-light text-muted small text-uppercase"><?= esc($les['content_type']) ?></span>
+                                        <span class="badge bg-light text-muted small text-uppercase rounded-pill"><?= esc($les['content_type']) ?></span>
                                         <?php if ($les['is_completed']): ?>
-                                            <span class="badge bg-success-subtle text-success-emphasis ms-1">Selesai</span>
+                                            <span class="badge bg-success-subtle text-success-emphasis ms-1 rounded-pill">Selesai</span>
                                         <?php endif; ?>
                                     </div>
                                 </li>
@@ -288,21 +288,21 @@ $finalScore  = $enrollment['final_score'] ?? null;
 
                     <!-- Quiz Modul (Jika Configured) -->
                     <?php if (! empty($mod['quiz'])): ?>
-                        <div class="p-2 border rounded bg-white d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2">
+                        <div class="p-2 px-3 border rounded-3 bg-white d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2">
                             <div class="d-flex align-items-center gap-2">
                                 <i class="bi bi-patch-question text-warning fs-5"></i>
                                 <div>
                                     <strong class="small d-block text-dark"><?= esc($mod['quiz']['title']) ?></strong>
-                                    <span class="text-muted small">Quiz per Modul</span>
+                                    <span class="text-muted small">Quiz Evaluasi Modul</span>
                                 </div>
                             </div>
                             <div>
                                 <?php if ($mod['quiz']['is_completed']): ?>
-                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Skor: <?= (float) ($mod['quiz']['score'] ?? 0) ?></span>
+                                    <span class="badge bg-success rounded-pill px-3 py-1"><i class="bi bi-check-circle me-1"></i> Skor: <?= (float) ($mod['quiz']['score'] ?? 0) ?></span>
                                 <?php elseif ($mod['quiz']['is_unlocked']): ?>
-                                    <a href="<?= route_to('workspace.participant.quiz.take', (string) $mod['quiz']['id']) ?>" class="btn btn-warning btn-sm text-dark fw-semibold">Kerjakan Quiz</a>
+                                    <a href="<?= route_to('workspace.participant.quiz.take', (string) $mod['quiz']['id']) ?>" class="btn btn-warning btn-sm text-dark fw-bold rounded-pill px-3">Kerjakan Quiz</a>
                                 <?php else: ?>
-                                    <span class="badge bg-light text-muted border"><i class="bi bi-lock me-1"></i> Terkunci</span>
+                                    <span class="badge bg-light text-muted border rounded-pill px-2 py-1"><i class="bi bi-lock me-1"></i> Terkunci</span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -310,7 +310,7 @@ $finalScore  = $enrollment['final_score'] ?? null;
 
                     <!-- Assignment Modul (Jika Configured) -->
                     <?php if (! empty($mod['assignment'])): ?>
-                        <div class="p-2 border rounded bg-white d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2">
+                        <div class="p-2 px-3 border rounded-3 bg-white d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2">
                             <div class="d-flex align-items-center gap-2">
                                 <i class="bi bi-file-earmark-check text-info fs-5"></i>
                                 <div>
@@ -320,11 +320,11 @@ $finalScore  = $enrollment['final_score'] ?? null;
                             </div>
                             <div>
                                 <?php if ($mod['assignment']['is_submitted']): ?>
-                                    <span class="badge bg-info text-dark"><i class="bi bi-check me-1"></i> Terkumpul</span>
+                                    <span class="badge bg-info text-dark rounded-pill px-3 py-1"><i class="bi bi-check me-1"></i> Terkumpul</span>
                                 <?php elseif ($mod['assignment']['is_unlocked']): ?>
-                                    <a href="<?= route_to('workspace.participant.assignment.submission', (string) $ctx['id']) ?>?assignment_id=<?= (int) $mod['assignment']['id'] ?>" class="btn btn-info btn-sm text-dark fw-semibold">Submit Tugas</a>
+                                    <a href="<?= route_to('workspace.participant.assignment.submission', (string) $ctx['id']) ?>?assignment_id=<?= (int) $mod['assignment']['id'] ?>" class="btn btn-info btn-sm text-dark fw-bold rounded-pill px-3">Submit Tugas</a>
                                 <?php else: ?>
-                                    <span class="badge bg-light text-muted border"><i class="bi bi-lock me-1"></i> Terkunci</span>
+                                    <span class="badge bg-light text-muted border rounded-pill px-2 py-1"><i class="bi bi-lock me-1"></i> Terkunci</span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -336,7 +336,7 @@ $finalScore  = $enrollment['final_score'] ?? null;
 
     <!-- Step Next: Post-Test (Jika Ada) -->
     <?php if ($postTest['exists']): ?>
-        <div class="border rounded p-3 mb-3 <?= $postTest['completed'] ? 'bg-success-subtle border-success' : ($postTest['is_unlocked'] ? 'border-primary bg-primary-subtle' : 'bg-light') ?>">
+        <div class="border rounded-4 p-3 mb-3 <?= $postTest['completed'] ? 'bg-success-subtle border-success' : ($postTest['is_unlocked'] ? 'border-primary bg-primary-subtle' : 'bg-light') ?>">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <?php if ($postTest['completed']): ?>
@@ -351,11 +351,11 @@ $finalScore  = $enrollment['final_score'] ?? null;
                 </div>
                 <div>
                     <?php if ($postTest['completed']): ?>
-                        <span class="badge bg-success">Selesai (Skor: <?= (float) ($postTest['attempt']['score'] ?? 0) ?>)</span>
+                        <span class="badge bg-success rounded-pill px-3 py-2">Selesai (Skor: <?= (float) ($postTest['attempt']['score'] ?? 0) ?>)</span>
                     <?php elseif ($postTest['is_unlocked']): ?>
-                        <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="btn btn-primary btn-sm">Mulai Post-Test</a>
+                        <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">Mulai Post-Test</a>
                     <?php else: ?>
-                        <span class="badge bg-secondary"><i class="bi bi-lock-fill me-1"></i> Terkunci (Selesaikan Semua Modul)</span>
+                        <span class="badge bg-secondary rounded-pill px-3 py-2"><i class="bi bi-lock-fill me-1"></i> Terkunci (Selesaikan Semua Modul)</span>
                     <?php endif; ?>
                 </div>
             </div>
@@ -363,7 +363,7 @@ $finalScore  = $enrollment['final_score'] ?? null;
     <?php endif; ?>
 
     <!-- Step Final: Kelulusan & Sertifikat -->
-    <div class="border rounded p-3 bg-light">
+    <div class="border rounded-4 p-3 bg-light">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-patch-check text-success fs-5"></i>
@@ -374,15 +374,15 @@ $finalScore  = $enrollment['final_score'] ?? null;
             </div>
             <div>
                 <?php if ($stateCode === 'certificate_issued'): ?>
-                    <a href="<?= route_to('workspace.participant.certificate.download', (string) $state['certificate']['id']) ?>" class="btn btn-success btn-sm">
+                    <a href="<?= route_to('workspace.participant.certificate.download', (string) $state['certificate']['id']) ?>" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold">
                         <i class="bi bi-download me-1"></i> Unduh Sertifikat
                     </a>
                 <?php elseif ($stateCode === 'waiting_certificate'): ?>
-                    <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i> Menunggu Persetujuan Operator</span>
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-clock me-1"></i> Menunggu Persetujuan Operator</span>
                 <?php elseif ($stateCode === 'completed_passed'): ?>
-                    <span class="badge bg-success">Lulus</span>
+                    <span class="badge bg-success rounded-pill px-3 py-2">Lulus</span>
                 <?php else: ?>
-                    <span class="badge bg-secondary"><i class="bi bi-lock-fill me-1"></i> Belum Memenuhi Syarat</span>
+                    <span class="badge bg-secondary rounded-pill px-3 py-2"><i class="bi bi-lock-fill me-1"></i> Belum Memenuhi Syarat</span>
                 <?php endif; ?>
             </div>
         </div>

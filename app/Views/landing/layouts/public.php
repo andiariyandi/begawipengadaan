@@ -882,6 +882,532 @@
                 max-height: 48px;
             }
         }
+
+        /* =========================================================
+           ARENA BELAJAR ENHANCED SHOWCASE & BOOKMARK STYLES
+           ========================================================= */
+        .arena-bookmark-form {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .arena-bookmark-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            border: 1px solid #d0d7de;
+            background: #ffffff;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            line-height: 1.3;
+        }
+
+        .arena-bookmark-btn:hover {
+            background: #f8fafc;
+            border-color: #f59e0b;
+            color: #d97706;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.15);
+        }
+
+        .arena-bookmark-btn.is-saved {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #b45309;
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.2);
+        }
+
+        .arena-bookmark-btn.is-saved:hover {
+            background: #fde68a;
+            border-color: #d97706;
+            color: #78350f;
+        }
+
+        .arena-bookmark-btn--sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .arena-bookmark-btn--icon {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        .arena-bookmark-btn--icon.arena-bookmark-btn--sm {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Floating Bookmark on Card Thumbnail */
+        .arena-card-floating-bookmark {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 5;
+        }
+
+        /* =========================================================
+           ARENA BELAJAR HERO (DARK CONTRAST BANNER)
+           ========================================================= */
+        .arena-hero {
+            position: relative;
+            padding-top: 225px;
+            padding-bottom: 110px;
+            background: linear-gradient(135deg, #041830 0%, #082f5c 42%, #0c5aa6 80%, #07274c 100%);
+            overflow: hidden;
+            color: #ffffff;
+            z-index: 1;
+        }
+
+        @media (max-width: 1199px) {
+            .arena-hero {
+                padding-top: 200px;
+                padding-bottom: 90px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .arena-hero {
+                padding-top: 160px;
+                padding-bottom: 80px;
+            }
+        }
+
+        .arena-hero__bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.22;
+            mix-blend-mode: luminosity;
+            z-index: 1;
+        }
+
+        .arena-hero__overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(12, 90, 166, 0.45) 0%, rgba(4, 24, 48, 0.92) 80%);
+            z-index: 2;
+        }
+
+        .arena-hero .container {
+            position: relative;
+            z-index: 3;
+        }
+
+        /* Arena Belajar Hero Sub-Nav Pills */
+        .arena-nav-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 28px 0 10px;
+        }
+
+        .arena-nav-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.25s ease;
+            text-decoration: none;
+        }
+
+        .arena-nav-pill:hover,
+        .arena-nav-pill.active {
+            background: #ffffff;
+            color: var(--begawi-primary);
+            border-color: #ffffff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .arena-nav-pill .badge {
+            background: rgba(12, 90, 166, 0.12);
+            color: var(--begawi-primary);
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 20px;
+            padding: 2px 8px;
+        }
+
+        .arena-nav-pill:not(.active):not(:hover) .badge {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+
+        /* Hero Search Bar */
+        .arena-search-bar {
+            max-width: 680px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .arena-search-bar form {
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border-radius: 50px;
+            padding: 6px 8px 6px 22px;
+            box-shadow: 0 12px 36px rgba(8, 47, 92, 0.22);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .arena-search-bar form:focus-within {
+            box-shadow: 0 16px 40px rgba(12, 90, 166, 0.28);
+            border-color: var(--begawi-accent);
+        }
+
+        .arena-search-bar input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            color: #1e293b;
+            background: transparent;
+        }
+
+        .arena-search-bar input::placeholder {
+            color: #94a3b8;
+        }
+
+        .arena-search-bar button {
+            background: var(--begawi-primary);
+            color: #ffffff;
+            border: none;
+            outline: none;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .arena-search-bar button:hover {
+            background: var(--begawi-dark);
+            color: var(--begawi-accent);
+        }
+
+        /* Stat Counter Strip */
+        .arena-stats-strip {
+            margin-top: -45px;
+            position: relative;
+            z-index: 10;
+            margin-bottom: 55px;
+        }
+
+        .arena-stat-box {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 22px 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            border: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .arena-stat-box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 36px rgba(12, 90, 166, 0.12);
+            border-color: #cbd5e1;
+        }
+
+        .arena-stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .arena-stat-icon--blue { background: #eff6ff; color: #2563eb; }
+        .arena-stat-icon--amber { background: #fffbeb; color: #d97706; }
+        .arena-stat-icon--green { background: #f0fdf4; color: #16a34a; }
+        .arena-stat-icon--purple { background: #faf5ff; color: #9333ea; }
+
+        .arena-stat-content h4 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        .arena-stat-content p {
+            font-size: 13px;
+            color: #64748b;
+            margin: 3px 0 0;
+            line-height: 1.3;
+        }
+
+        /* Modern Showcase Card */
+        .arena-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            height: 100%;
+        }
+
+        .arena-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 18px 40px rgba(12, 90, 166, 0.12);
+            border-color: #cbd5e1;
+        }
+
+        .arena-card__thumb {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+            background: #f1f5f9;
+        }
+
+        .arena-card__thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .arena-card:hover .arena-card__thumb img {
+            transform: scale(1.05);
+        }
+
+        .arena-card__badge-row {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            display: flex;
+            gap: 6px;
+            z-index: 4;
+            flex-wrap: wrap;
+        }
+
+        .arena-pill-badge {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(15, 23, 42, 0.75);
+            color: #ffffff;
+            backdrop-filter: blur(6px);
+            line-height: 1.2;
+        }
+
+        .arena-pill-badge--primary {
+            background: rgba(12, 90, 166, 0.88);
+            color: #ffffff;
+        }
+
+        .arena-pill-badge--accent {
+            background: rgba(243, 162, 11, 0.92);
+            color: #082f5c;
+        }
+
+        .arena-card__body {
+            padding: 22px 20px 18px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .arena-card__category {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--begawi-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .arena-card__title {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.35;
+            margin-bottom: 8px;
+            color: #0f172a;
+        }
+
+        .arena-card__title a {
+            color: #0f172a;
+            transition: color 0.2s ease;
+        }
+
+        .arena-card__title a:hover {
+            color: var(--begawi-primary);
+        }
+
+        .arena-card__text {
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: #64748b;
+            margin-bottom: 16px;
+            flex-grow: 1;
+        }
+
+        .arena-card__meta {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 12.5px;
+            color: #64748b;
+            margin-bottom: 16px;
+        }
+
+        .arena-card__meta span i {
+            margin-right: 5px;
+            color: #94a3b8;
+        }
+
+        .arena-card__actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .arena-btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            background: var(--begawi-primary);
+            color: #ffffff;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: none;
+        }
+
+        .arena-btn-primary:hover {
+            background: var(--begawi-dark);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        /* Section Headings */
+        .arena-section-head {
+            margin-bottom: 36px;
+        }
+
+        .arena-section-head__tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.75px;
+            color: var(--begawi-primary);
+            background: #eff6ff;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+
+        .arena-section-head__title {
+            font-size: 30px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.25;
+            margin-bottom: 8px;
+        }
+
+        .arena-section-head__desc {
+            font-size: 15px;
+            color: #64748b;
+            max-width: 650px;
+        }
+
+        /* Program Specific UI Enhancements */
+        .arena-program-card {
+            border: 1px solid #e2e8f0 !important;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .arena-program-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 36px rgba(8, 47, 92, 0.12) !important;
+            border-color: #cbd5e1 !important;
+        }
+        .arena-program-card__cover {
+            overflow: hidden;
+        }
+        .arena-program-card:hover .arena-program-card__cover img {
+            transform: scale(1.06);
+        }
+        .arena-program-course-preview {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border: 1px solid #f1f5f9;
+        }
+        .arena-program-roadmap {
+            border-left: 5px solid #0c5aa6 !important;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+        }
+        .hover-primary {
+            transition: color 0.2s ease;
+        }
+        .hover-primary:hover {
+            color: var(--begawi-primary) !important;
+        }
+        .hover-border-primary {
+            transition: all 0.25s ease;
+        }
+        .hover-border-primary:hover {
+            border-color: var(--begawi-primary) !important;
+            box-shadow: 0 10px 24px rgba(8, 47, 92, 0.08) !important;
+            transform: translateY(-2px);
+        }
+        .shadow-2xs {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
     </style>
 
     <?= $this->renderSection('pageStyles') ?>

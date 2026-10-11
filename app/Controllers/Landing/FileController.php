@@ -38,9 +38,12 @@ class FileController extends Controller
         }
 
         $mime = ! empty($row['mime_type']) ? $row['mime_type'] : 'application/octet-stream';
+        $isDownload = (bool) ($this->request->getGet('download'));
+        $disposition = ($isDownload ? 'attachment' : 'inline') . '; filename="' . ($row['original_name'] ?? 'file') . '"';
+
         return $this->response
             ->setHeader('Content-Type', $mime)
-            ->setHeader('Content-Disposition', 'inline; filename="' . ($row['original_name'] ?? 'file') . '"')
+            ->setHeader('Content-Disposition', $disposition)
             ->setBody(file_get_contents($fullPath));
     }
 }

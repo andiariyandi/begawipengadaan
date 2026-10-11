@@ -35,10 +35,10 @@
         <p class="text-muted mb-0">Tidak ada quiz, pre-test, atau post-test yang tersedia di kelas pembelajaran aktif Anda.</p>
     </div>
 <?php else: ?>
-    <div class="row g-4">
+    <div class="row g-4 ws-paginated-container" data-page-size="6">
         <?php foreach ($assessmentsList as $qz): ?>
-            <div class="col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white d-flex flex-column justify-content-between">
+            <div class="col-md-6 col-lg-4 ws-paginated-item">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white d-flex flex-column justify-content-between ws-class-card">
                     <div>
                         <!-- Header -->
                         <div class="d-flex justify-content-between align-items-center mb-3">

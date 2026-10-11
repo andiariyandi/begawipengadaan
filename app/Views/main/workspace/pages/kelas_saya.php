@@ -2,107 +2,669 @@
 
 <?= $this->section('content') ?>
 <?php
-$enrollments = $enrollments ?? [];
-$summary     = $summary ?? ['pending' => 0, 'active' => 0, 'completed' => 0, 'cancelled' => 0, 'withdrawn' => 0];
-$fmt         = static fn (int $n): string => number_format($n, 0, ',', '.');
+$enrollments      = $enrollments ?? [];
+$activeClasses    = $activeClasses ?? [];
+$completedClasses = $completedClasses ?? [];
+$pendingClasses   = $pendingClasses ?? [];
+$summary          = $summary ?? ['pending' => 0, 'active' => 0, 'completed' => 0, 'cancelled' => 0, 'withdrawn' => 0, 'issued_certificates' => 0];
+$fmt              = static fn (int $n): string => number_format($n, 0, ',', '.');
+
 $statusBadge = static function (string $status): array {
     return match ($status) {
-        'active'    => ['label' => 'Aktif',            'class' => 'bg-success-subtle text-success-emphasis'],
-        'completed' => ['label' => 'Selesai',          'class' => 'bg-primary-subtle text-primary-emphasis'],
-        'pending'   => ['label' => 'Menunggu Approval','class' => 'bg-warning-subtle text-warning-emphasis'],
-        'withdrawn' => ['label' => 'Dibatalkan',       'class' => 'bg-secondary-subtle text-secondary-emphasis'],
-        default     => ['label' => 'Ditolak',          'class' => 'bg-secondary-subtle text-secondary-emphasis'],
+        'active'    => ['label' => 'Aktif',            'class' => 'bg-success-subtle text-success-emphasis border-success-subtle'],
+        'completed' => ['label' => 'Selesai',          'class' => 'bg-primary-subtle text-primary-emphasis border-primary-subtle'],
+        'pending'   => ['label' => 'Menunggu Approval','class' => 'bg-warning-subtle text-warning-emphasis border-warning-subtle'],
+        'withdrawn' => ['label' => 'Dibatalkan',       'class' => 'bg-secondary-subtle text-secondary-emphasis border-secondary-subtle'],
+        default     => ['label' => 'Ditolak',          'class' => 'bg-danger-subtle text-danger-emphasis border-danger-subtle'],
+    };
+};
+
+$levelLabel = static function (?string $level): string {
+    return match (strtolower((string) $level)) {
+        'basic', '1'         => 'Tingkat Dasar',
+        'intermediate', '2'  => 'Tingkat Menengah',
+        'advanced', '3'      => 'Tingkat Lanjutan',
+        default              => 'Umum',
     };
 };
 ?>
 
-<div class="bg-white border rounded p-4 p-lg-5 mb-4">
-    <p class="text-uppercase text-muted small mb-2">Workspace</p>
-    <h1 class="mb-3">Kelas Saya</h1>
-    <p class="mb-0">Riwayat enrollment Anda: pending, aktif, selesai, dibatalkan, dan ditolak.</p>
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-md-3 col-sm-6">
-        <div class="bg-white border rounded p-3 h-100">
-            <p class="text-muted small mb-1">Menunggu Approval</p>
-            <strong class="display-6"><?= $fmt((int) ($summary['pending'] ?? 0)) ?></strong>
+<!-- 1. Header Section -->
+<div class="bg-white border rounded-4 p-4 p-lg-5 mb-4 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <p class="text-uppercase text-muted small fw-semibold mb-2"><?= esc($sectionContent['eyebrow'] ?? 'Arena Belajar & Kompetensi') ?></p>
+            <h1 class="h3 fw-bold mb-2" style="color: #082f5c;"><?= esc($pageTitle ?? 'Pembelajaran & Kelas Saya') ?></h1>
+            <p class="text-muted mb-0"><?= esc($sectionContent['description'] ?? 'Pantau progres belajar, akses ruang kelas interaktif, evaluasi materi & kuis, hingga perolehan sertifikat kelulusan resmi Anda.') ?></p>
         </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="bg-white border rounded p-3 h-100">
-            <p class="text-muted small mb-1">Aktif</p>
-            <strong class="display-6"><?= $fmt((int) ($summary['active'] ?? 0)) ?></strong>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="bg-white border rounded p-3 h-100">
-            <p class="text-muted small mb-1">Selesai</p>
-            <strong class="display-6"><?= $fmt((int) ($summary['completed'] ?? 0)) ?></strong>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="bg-white border rounded p-3 h-100">
-            <p class="text-muted small mb-1">Dibatalkan / Ditolak</p>
-            <strong class="display-6"><?= $fmt((int) (($summary['cancelled'] ?? 0) + ($summary['withdrawn'] ?? 0))) ?></strong>
+        <div class="d-flex flex-wrap gap-2">
+            <!-- Jelajahi Kelas Baru: HANYA eksplorasi yang diarahkan ke Katalog Kelas Publik -->
+            <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                <i class="fas fa-search me-1"></i> Cari Kelas Baru
+            </a>
+            <a href="<?= route_to('workspace.participant.certificates') ?>" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                <i class="fas fa-award me-1"></i> Sertifikat Saya
+            </a>
+            <a href="<?= route_to('workspace.participant.all-assignments') ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="fas fa-tasks me-1"></i> Tugas Saya
+            </a>
         </div>
     </div>
 </div>
 
-<div class="bg-white border rounded p-4">
-    <h2 class="h4 mb-3">Riwayat Enrollment</h2>
-    <?php if ($enrollments === []): ?>
-        <p class="text-muted mb-0">Anda belum memiliki enrollment. Buka Arena Belajar untuk mendaftar kelas.</p>
-    <?php else: ?>
-        <div class="row g-3">
-            <?php foreach ($enrollments as $item): ?>
-                <?php
-                    $status   = (string) ($item['enrollment_status'] ?? 'pending');
-                    $badge    = $statusBadge($status);
-                    $classId  = (int) ($item['class_id'] ?? 0);
-                    $ps       = $item['progress_summary'] ?? ['completed' => 0, 'total' => 0, 'percent' => 0.0];
-                ?>
-                <div class="col-lg-6">
-                    <article class="border rounded p-3 h-100 d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-                            <span class="badge <?= $badge['class'] ?>"><?= esc($badge['label']) ?></span>
-                            <small class="text-muted"><?= esc($item['class_code'] ?? '-') ?></small>
-                        </div>
-                        <h3 class="h5 mb-2"><?= esc($item['class_name'] ?? '-') ?></h3>
-                        <p class="mb-1"><?= esc($item['course_title'] ?? '-') ?></p>
-                        <?php if (! empty($item['program_title'])): ?>
-                            <p class="small text-muted mb-1">Program: <?= esc($item['program_title']) ?></p>
-                        <?php endif; ?>
-                        <p class="small text-muted mb-1">Periode: <?= esc(($item['start_at'] ?? '-') . ' &ndash; ' . ($item['end_at'] ?? '-')) ?></p>
-                        <p class="small text-muted mb-3">Didaftar: <?= esc($item['enrolled_at'] ?? '-') ?></p>
-                        <?php if ($status === 'active'): ?>
-                            <div class="mb-2">
-                                <div class="progress" role="progressbar" aria-label="Progress" aria-valuenow="<?= (int) $ps['percent'] ?>" aria-valuemin="0" aria-valuemax="100">
-                                    <div class="progress-bar bg-primary" style="width: <?= (float) $ps['percent'] ?>%"></div>
-                                </div>
-                                <small class="text-muted"><?= (int) $ps['completed'] ?> dari <?= (int) $ps['total'] ?> lesson selesai (<?= (float) $ps['percent'] ?>%)</small>
+<!-- 2. KPI Summary Cards -->
+<div class="row g-4 mb-4">
+    <?php if (! empty($sectionContent['cards'])): ?>
+        <?php foreach ($sectionContent['cards'] as $card): ?>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small fw-semibold text-uppercase"><?= esc($card['title']) ?></span>
+                        <?php if (! empty($card['icon'])): ?>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(8,47,92,0.06); color: #082f5c;">
+                                <i class="<?= esc($card['icon']) ?>"></i>
                             </div>
                         <?php endif; ?>
-                        <div class="mt-auto d-flex gap-8">
-                            <?php if ($status === 'active'): ?>
-                                <a class="btn btn-primary btn-sm" href="<?= route_to('workspace.participant.study', $classId) ?>">Masuk Kelas</a>
-                            <?php else: ?>
-                                <span class="btn btn-outline-secondary btn-sm disabled" aria-disabled="true">
-                                    <?= match ($status) {
-                                        'pending'   => 'Belum dapat masuk',
-                                        'completed' => 'Selesai',
-                                        'withdrawn' => 'Dibatalkan',
-                                        'cancelled' => 'Ditolak',
-                                        default     => 'Tidak dapat diikuti',
-                                    } ?>
-                                </span>
-                            <?php endif; ?>
-                            <a class="btn btn-outline-primary btn-sm" href="<?= route_to('workspace.participant.class.detail', $classId) ?>">Lihat Detail</a>
-                        </div>
-                    </article>
+                    </div>
+                    <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= esc($card['value']) ?></div>
+                    <small class="text-muted"><?= esc($card['meta'] ?? '') ?></small>
                 </div>
-            <?php endforeach; ?>
+            </div>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                <span class="text-muted small fw-semibold text-uppercase">Kelas Aktif</span>
+                <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= $fmt((int) ($summary['active'] ?? 0)) ?></div>
+                <small class="text-muted">sedang dipelajari</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                <span class="text-muted small fw-semibold text-uppercase">Kelas Selesai</span>
+                <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= $fmt((int) ($summary['completed'] ?? 0)) ?></div>
+                <small class="text-muted">tuntas & lulus</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                <span class="text-muted small fw-semibold text-uppercase">Sertifikat Terbit</span>
+                <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= $fmt((int) ($summary['issued_certificates'] ?? 0)) ?></div>
+                <small class="text-muted">resmi terverifikasi</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                <span class="text-muted small fw-semibold text-uppercase">Menunggu Approval</span>
+                <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= $fmt((int) ($summary['pending'] ?? 0)) ?></div>
+                <small class="text-muted">antrean verifikasi</small>
+            </div>
         </div>
     <?php endif; ?>
+</div>
+
+<!-- 3. Nav Tabs: 4 Fungsi Utama Siklus Belajar -->
+<div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+    <ul class="nav nav-pills gap-2 flex-wrap" id="kelasTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 py-2 small fw-semibold" id="tab-aktif-btn" data-bs-toggle="pill" data-bs-target="#tab-aktif" type="button" role="tab" aria-controls="tab-aktif" aria-selected="true">
+                <i class="fas fa-book-reader me-1"></i> 1. Kelas Aktif & Berjalan (<?= count($activeClasses) ?>)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 py-2 small fw-semibold" id="tab-selesai-btn" data-bs-toggle="pill" data-bs-target="#tab-selesai" type="button" role="tab" aria-controls="tab-selesai" aria-selected="false">
+                <i class="fas fa-graduation-cap me-1"></i> 2. Kelas Selesai & Sertifikat (<?= count($completedClasses) ?>)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 py-2 small fw-semibold" id="tab-pending-btn" data-bs-toggle="pill" data-bs-target="#tab-pending" type="button" role="tab" aria-controls="tab-pending" aria-selected="false">
+                <i class="fas fa-clock me-1"></i> 3. Menunggu Persetujuan (<?= count($pendingClasses) ?>)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 py-2 small fw-semibold" id="tab-riwayat-btn" data-bs-toggle="pill" data-bs-target="#tab-riwayat" type="button" role="tab" aria-controls="tab-riwayat" aria-selected="false">
+                <i class="fas fa-history me-1"></i> 4. Riwayat Semua Kelas (<?= count($enrollments) ?>)
+            </button>
+        </li>
+    </ul>
+</div>
+
+<!-- 4. Tab Content Areas -->
+<div class="tab-content" id="kelasTabContent">
+
+    <!-- TAB 1: KELAS AKTIF & BERJALAN -->
+    <div class="tab-pane fade show active" id="tab-aktif" role="tabpanel" aria-labelledby="tab-aktif-btn">
+        <?php if ($activeClasses === []): ?>
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
+                <div class="py-4">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px; background: rgba(8,47,92,0.06); color: #082f5c;">
+                        <i class="fas fa-book-reader fs-1 opacity-75"></i>
+                    </div>
+                    <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Kelas yang Sedang Berjalan</h2>
+                    <p class="text-muted mb-4 mx-auto" style="max-width: 540px;">
+                        Anda belum memiliki kelas aktif saat ini. Jelajahi katalog Arena Belajar untuk mendaftarkan diri pada program kompetensi pengadaan barang dan jasa.
+                    </p>
+                    <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                        <i class="fas fa-search me-1"></i> Eksplorasi Katalog Kelas
+                    </a>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="row g-4 ws-paginated-container" data-page-size="4">
+                <?php foreach ($activeClasses as $item): ?>
+                    <?php
+                        $classId     = (int) ($item['class_id'] ?? 0);
+                        $stateCode   = $item['state_code'] ?? 'in_learning';
+                        $pct         = (float) ($item['overall_percent'] ?? 0);
+                        $doneLessons = (int) ($item['completed_lessons_count'] ?? 0);
+                        $totalLessons= (int) ($item['all_lessons_count'] ?? 0);
+                        $cta         = $item['cta'] ?? [];
+                        $preTest     = $item['pre_test'] ?? [];
+                        $postTest    = $item['post_test'] ?? [];
+                        $trainers    = $item['trainers'] ?? [];
+                    ?>
+                    <div class="col-12 ws-paginated-item">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white">
+                            <!-- Card Header: Badges & Class Code -->
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-2 rounded-pill fw-bold">
+                                        <i class="fas fa-circle-play me-1"></i> Aktif
+                                    </span>
+                                    <?php if (! empty($item['program_title'])): ?>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                                            <i class="fas fa-layer-group me-1"></i> <?= esc($item['program_title']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2 rounded-pill">
+                                        <?= esc($levelLabel($item['course_level'] ?? 'basic')) ?>
+                                    </span>
+                                </div>
+                                <div class="text-muted small">
+                                    Kode Kelas: <code class="text-primary fw-bold font-monospace"><?= esc($item['class_code'] ?? '-') ?></code>
+                                </div>
+                            </div>
+
+                            <!-- Card Body: Title, Course, & Schedule -->
+                            <div class="row g-4 align-items-start mb-4">
+                                <div class="col-lg-8">
+                                    <h2 class="h4 fw-bold mb-2" style="color: #082f5c;"><?= esc($item['class_name'] ?? '-') ?></h2>
+                                    <p class="text-muted fs-6 mb-2">
+                                        <i class="fas fa-book-open text-primary me-1"></i> Course: <strong class="text-dark"><?= esc($item['course_title'] ?? '-') ?></strong>
+                                    </p>
+                                    <?php if (! empty($item['course_summary'])): ?>
+                                        <p class="text-muted small mb-3"><?= esc($item['course_summary']) ?></p>
+                                    <?php endif; ?>
+
+                                    <div class="d-flex flex-wrap gap-3 text-muted small">
+                                        <div>
+                                            <i class="far fa-calendar-alt text-primary me-1"></i>
+                                            Periode: <strong><?= ! empty($item['start_at']) ? date('d M Y', strtotime($item['start_at'])) : 'Fleksibel' ?></strong>
+                                            &ndash;
+                                            <strong><?= ! empty($item['end_at']) ? date('d M Y', strtotime($item['end_at'])) : 'Selesai' ?></strong>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-bullseye text-primary me-1"></i>
+                                            Passing Grade: <strong><?= (float) ($item['passing_grade'] ?? 70) ?>%</strong>
+                                        </div>
+                                        <?php if (! empty($trainers)): ?>
+                                            <div>
+                                                <i class="fas fa-chalkboard-teacher text-primary me-1"></i>
+                                                Pengajar: <strong><?= esc($trainers[0]['name'] ?? 'Trainer Begawi') ?></strong>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <!-- Progress Gauge / Stats Box -->
+                                <div class="col-lg-4">
+                                    <div class="p-3 bg-light rounded-4 border">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="small fw-semibold text-muted text-uppercase">Capaian Kurikulum</span>
+                                            <span class="fw-bold text-primary"><?= $pct ?>%</span>
+                                        </div>
+                                        <div class="progress mb-2" style="height: 10px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: <?= $pct ?>%" aria-valuenow="<?= $pct ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between small text-muted">
+                                            <span><i class="fas fa-check-circle text-success me-1"></i><?= $doneLessons ?> tuntas</span>
+                                            <span><?= $totalLessons ?> total materi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 5-Stage Roadmap Strip -->
+                            <div class="p-3 p-md-4 rounded-4 bg-light mb-4 border">
+                                <span class="d-block text-muted small fw-bold text-uppercase mb-3">
+                                    <i class="fas fa-route text-primary me-1"></i> Alur Tahapan Pembelajaran
+                                </span>
+                                <div class="row g-2 text-center">
+                                    <!-- Step 1: Pre-Test -->
+                                    <div class="col-6 col-md">
+                                        <div class="p-2 rounded-3 bg-white border h-100">
+                                            <small class="d-block text-muted text-truncate">1. Pre-Test</small>
+                                            <?php if (! empty($preTest['exists'])): ?>
+                                                <?php if (! empty($preTest['completed'])): ?>
+                                                    <span class="badge bg-success-subtle text-success mt-1"><i class="fas fa-check me-1"></i>Selesai (<?= (float) ($preTest['attempt']['score'] ?? 0) ?>)</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis mt-1"><i class="fas fa-exclamation-triangle me-1"></i>Wajib</span>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <span class="badge bg-light text-muted mt-1">Opsional</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <!-- Step 2: Modul & Lessons -->
+                                    <div class="col-6 col-md">
+                                        <div class="p-2 rounded-3 bg-white border h-100">
+                                            <small class="d-block text-muted text-truncate">2. Materi Modul</small>
+                                            <span class="badge bg-primary-subtle text-primary mt-1"><?= $doneLessons ?>/<?= $totalLessons ?> Materi</span>
+                                        </div>
+                                    </div>
+                                    <!-- Step 3: Quiz Modul -->
+                                    <div class="col-6 col-md">
+                                        <div class="p-2 rounded-3 bg-white border h-100">
+                                            <small class="d-block text-muted text-truncate">3. Kuis Modul</small>
+                                            <span class="badge bg-info-subtle text-info-emphasis mt-1"><i class="fas fa-question-circle me-1"></i>Tersedia</span>
+                                        </div>
+                                    </div>
+                                    <!-- Step 4: Tugas Mandiri -->
+                                    <div class="col-6 col-md">
+                                        <div class="p-2 rounded-3 bg-white border h-100">
+                                            <small class="d-block text-muted text-truncate">4. Tugas Praktik</small>
+                                            <span class="badge bg-secondary-subtle text-secondary mt-1"><i class="fas fa-tasks me-1"></i>Evaluasi</span>
+                                        </div>
+                                    </div>
+                                    <!-- Step 5: Post-Test -->
+                                    <div class="col-6 col-md">
+                                        <div class="p-2 rounded-3 bg-white border h-100">
+                                            <small class="d-block text-muted text-truncate">5. Post-Test</small>
+                                            <?php if (! empty($postTest['exists'])): ?>
+                                                <?php if (! empty($postTest['completed'])): ?>
+                                                    <span class="badge bg-success-subtle text-success mt-1"><i class="fas fa-check me-1"></i>Selesai</span>
+                                                <?php elseif (! empty($postTest['is_unlocked'])): ?>
+                                                    <span class="badge bg-primary-subtle text-primary mt-1"><i class="fas fa-trophy me-1"></i>Siap</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-light text-muted mt-1"><i class="fas fa-lock me-1"></i>Terkunci</span>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <span class="badge bg-light text-muted mt-1">Opsional</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Next Action Indicator & CTA Actions -->
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pt-3 border-top">
+                                <div>
+                                    <?php if ($stateCode === 'pre_test_required'): ?>
+                                        <span class="text-warning-emphasis small fw-bold d-block"><i class="fas fa-exclamation-triangle me-1"></i> Langkah Wajib Pertama:</span>
+                                        <span class="text-muted small">Kerjakan Pre-Test terlebih dahulu sebelum materi pembelajaran dibuka.</span>
+                                    <?php elseif ($stateCode === 'post_test_required'): ?>
+                                        <span class="text-primary small fw-bold d-block"><i class="fas fa-trophy me-1"></i> Tahap Kelulusan Akhir:</span>
+                                        <span class="text-muted small">Seluruh modul telah selesai! Kerjakan Post-Test sebagai penentu kelulusan Anda.</span>
+                                    <?php elseif ($stateCode === 'module_quiz_required'): ?>
+                                        <span class="text-warning-emphasis small fw-bold d-block"><i class="fas fa-clock me-1"></i> Evaluasi Modul:</span>
+                                        <span class="text-muted small">Materi modul telah diselesaikan. Kerjakan quiz modul untuk membuka bab berikutnya.</span>
+                                    <?php elseif ($stateCode === 'assignment_required'): ?>
+                                        <span class="text-info-emphasis small fw-bold d-block"><i class="fas fa-file-alt me-1"></i> Tugas Praktik Mandiri:</span>
+                                        <span class="text-muted small">Kumpulkan lembar kerja tugas mandiri untuk dinilai oleh instruktur pengampu.</span>
+                                    <?php elseif ($stateCode === 'waiting_certificate'): ?>
+                                        <span class="text-success small fw-bold d-block"><i class="fas fa-check-circle me-1"></i> Pembelajaran Selesai:</span>
+                                        <span class="text-muted small">Anda telah lulus! Menunggu verifikasi dan penerbitan sertifikat resmi oleh operator.</span>
+                                    <?php else: ?>
+                                        <span class="text-primary small fw-bold d-block"><i class="fas fa-play-circle me-1"></i> Lanjutkan Pembelajaran:</span>
+                                        <span class="text-muted small">Masuk ke ruang belajar interaktif dan tuntaskan kurikulum kelas Anda.</span>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="d-flex flex-wrap gap-2">
+                                    <!-- Dynamic Primary Action -->
+                                    <?php if (! empty($cta['url']) && empty($cta['disabled'])): ?>
+                                        <a href="<?= esc($cta['url']) ?>" class="<?= esc($cta['class'] ?? 'btn btn-primary') ?> px-4 fw-semibold rounded-3 shadow-sm">
+                                            <i class="fas fa-arrow-right me-1"></i> <?= esc($cta['label'] ?? 'Lanjutkan') ?>
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="<?= route_to('workspace.participant.study', $classId) ?>" class="btn btn-primary px-4 fw-semibold rounded-3 shadow-sm">
+                                            <i class="fas fa-chalkboard me-1"></i> Ruang Belajar
+                                        </a>
+                                    <?php endif; ?>
+
+                                    <!-- Secondary Actions -->
+                                    <a href="<?= route_to('workspace.participant.class.detail', $classId) ?>" class="btn btn-outline-secondary px-3 rounded-3">
+                                        <i class="fas fa-info-circle me-1"></i> Detail Kelas
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- TAB 2: KELAS SELESAI & SERTIFIKAT -->
+    <div class="tab-pane fade" id="tab-selesai" role="tabpanel" aria-labelledby="tab-selesai-btn">
+        <?php if ($completedClasses === []): ?>
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
+                <div class="py-4">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px; background: rgba(8,47,92,0.06); color: #082f5c;">
+                        <i class="fas fa-graduation-cap fs-1 opacity-75"></i>
+                    </div>
+                    <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Kelas yang Selesai</h2>
+                    <p class="text-muted mb-4 mx-auto" style="max-width: 540px;">
+                        Tuntaskan seluruh rangkaian materi, evaluasi kuis, tugas mandiri, dan ujian akhir pada kelas aktif Anda untuk memperoleh kelulusan dan sertifikat resmi.
+                    </p>
+                    <button class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold" onclick="document.getElementById('tab-aktif-btn').click()">
+                        <i class="fas fa-book-reader me-1"></i> Buka Kelas Aktif Saya
+                    </button>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="row g-4 ws-paginated-container" data-page-size="4">
+                <?php foreach ($completedClasses as $item): ?>
+                    <?php
+                        $classId     = (int) ($item['class_id'] ?? 0);
+                        $finalScore  = $item['final_score'] ?? null;
+                        $passingGrade= (float) ($item['passing_grade'] ?? 70);
+                        $certId      = $item['certificate_id'] ?? null;
+                        $certNumber  = $item['certificate_number'] ?? null;
+                        $certStatus  = $item['certificate_status'] ?? null;
+                        $certEnabled = (int) ($item['certificate_enabled'] ?? 0) === 1;
+                    ?>
+                    <div class="col-12 ws-paginated-item">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white border-start border-success border-4">
+                            <!-- Card Header -->
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold shadow-sm">
+                                        <i class="fas fa-check-circle me-1"></i> Lulus & Selesai
+                                    </span>
+                                    <?php if (! empty($item['program_title'])): ?>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                                            <i class="fas fa-layer-group me-1"></i> <?= esc($item['program_title']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2 rounded-pill">
+                                        <?= esc($levelLabel($item['course_level'] ?? 'basic')) ?>
+                                    </span>
+                                </div>
+                                <div class="text-muted small">
+                                    Kode Kelas: <code class="text-primary fw-bold font-monospace"><?= esc($item['class_code'] ?? '-') ?></code>
+                                </div>
+                            </div>
+
+                            <!-- Card Body: Title & Evaluation Highlights -->
+                            <div class="row g-4 align-items-start mb-4">
+                                <div class="col-lg-7">
+                                    <h2 class="h4 fw-bold mb-2" style="color: #082f5c;"><?= esc($item['class_name'] ?? '-') ?></h2>
+                                    <p class="text-muted fs-6 mb-2">
+                                        <i class="fas fa-book-open text-primary me-1"></i> Course: <strong class="text-dark"><?= esc($item['course_title'] ?? '-') ?></strong>
+                                    </p>
+                                    <p class="text-muted small mb-0">
+                                        <i class="far fa-calendar-check text-success me-1"></i>
+                                        Selesai pada: <strong><?= ! empty($item['completed_at']) ? date('d M Y H:i', strtotime($item['completed_at'])) : (! empty($item['passed_at']) ? date('d M Y H:i', strtotime($item['passed_at'])) : '-') ?></strong>
+                                    </p>
+                                </div>
+
+                                <!-- Evaluation & Final Score Box -->
+                                <div class="col-lg-5">
+                                    <div class="p-3 bg-success-subtle border border-success-subtle rounded-4">
+                                        <div class="row align-items-center g-2">
+                                            <div class="col-sm-6 text-center text-sm-start">
+                                                <span class="small text-muted text-uppercase d-block fw-semibold">Nilai Akhir</span>
+                                                <div class="display-6 fw-bold text-success my-1">
+                                                    <?= $finalScore !== null ? number_format((float) $finalScore, 1) : '-' ?>
+                                                </div>
+                                                <small class="text-muted">Passing Grade: <?= $passingGrade ?>%</small>
+                                            </div>
+                                            <div class="col-sm-6 text-center text-sm-end">
+                                                <span class="badge bg-success text-white py-2 px-3 rounded-pill fw-bold">
+                                                    <i class="fas fa-award me-1"></i> LULUS
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Certificate Panel -->
+                            <div class="p-3 p-md-4 rounded-4 bg-light mb-4 border">
+                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <i class="fas fa-certificate text-warning fs-5"></i>
+                                            <strong class="text-dark">Sertifikat Kelulusan Resmi</strong>
+                                        </div>
+                                        <?php if ($certStatus === 'issued' && ! empty($certNumber)): ?>
+                                            <div class="text-muted small">
+                                                Nomor Sertifikat: <code class="font-monospace text-primary fw-bold px-2 py-1 bg-white border rounded"><?= esc($certNumber) ?></code>
+                                                &middot; Terbit: <?= ! empty($item['certificate_issued_at']) ? date('d M Y', strtotime($item['certificate_issued_at'])) : date('d M Y') ?>
+                                            </div>
+                                        <?php elseif ($certEnabled): ?>
+                                            <div class="text-warning-emphasis small">
+                                                <i class="fas fa-hourglass-half me-1"></i> Data kelulusan telah diverifikasi. Sertifikat sedang dalam antrean penerbitan oleh Operator.
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="text-muted small">
+                                                Kelas ini dirancang sebagai program pengayaan tanpa penerbitan sertifikat formal.
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div>
+                                        <?php if ($certStatus === 'issued' && ! empty($certId)): ?>
+                                            <a href="<?= route_to('workspace.participant.certificate.download', (string) $certId) ?>" class="btn btn-success fw-semibold px-4 rounded-3 shadow-sm">
+                                                <i class="fas fa-file-download me-1"></i> Unduh Sertifikat (PDF)
+                                            </a>
+                                        <?php elseif ($certEnabled): ?>
+                                            <span class="btn btn-secondary disabled rounded-3 px-3">
+                                                <i class="fas fa-clock me-1"></i> Menunggu Terbit
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer Actions: Tetap Bisa Masuk Belajar & Review Materi Kapan Saja! -->
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-3 border-top">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i> Seluruh materi dan arsip pembelajaran tetap dapat Anda akses untuk ditinjau kembali.
+                                </small>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a href="<?= route_to('workspace.participant.study', $classId) ?>" class="btn btn-outline-primary px-3 rounded-3">
+                                        <i class="fas fa-book-reader me-1"></i> Buka Materi & Review
+                                    </a>
+                                    <a href="<?= route_to('workspace.participant.class.detail', $classId) ?>" class="btn btn-outline-secondary px-3 rounded-3">
+                                        <i class="fas fa-clipboard-list me-1"></i> Rincian Nilai & Kurikulum
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- TAB 3: MENUNGGU PERSETUJUAN -->
+    <div class="tab-pane fade" id="tab-pending" role="tabpanel" aria-labelledby="tab-pending-btn">
+        <?php if ($pendingClasses === []): ?>
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
+                <div class="py-4">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px; background: rgba(8,47,92,0.06); color: #082f5c;">
+                        <i class="fas fa-check-circle fs-1 opacity-75"></i>
+                    </div>
+                    <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Tidak Ada Pendaftaran Menunggu Persetujuan</h2>
+                    <p class="text-muted mb-0 mx-auto" style="max-width: 540px;">
+                        Seluruh pendaftaran kelas Anda telah diproses oleh Operator. Anda dapat memeriksa kelas pada tab Kelas Aktif atau Riwayat Semua Kelas.
+                    </p>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="row g-4 ws-paginated-container" data-page-size="4">
+                <?php foreach ($pendingClasses as $item): ?>
+                    <?php $classId = (int) ($item['class_id'] ?? 0); ?>
+                    <div class="col-12 ws-paginated-item">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white border-start border-warning border-4">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2 rounded-pill fw-bold">
+                                        <i class="fas fa-clock me-1"></i> Menunggu Verifikasi Operator
+                                    </span>
+                                    <?php if (! empty($item['program_title'])): ?>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                                            <i class="fas fa-layer-group me-1"></i> <?= esc($item['program_title']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="text-muted small">
+                                    Kode Kelas: <code class="text-primary fw-bold font-monospace"><?= esc($item['class_code'] ?? '-') ?></code>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 align-items-center mb-3">
+                                <div class="col-lg-8">
+                                    <h2 class="h4 fw-bold mb-2" style="color: #082f5c;"><?= esc($item['class_name'] ?? '-') ?></h2>
+                                    <p class="text-muted fs-6 mb-2">
+                                        <i class="fas fa-book-open text-primary me-1"></i> Course: <strong class="text-dark"><?= esc($item['course_title'] ?? '-') ?></strong>
+                                    </p>
+                                    <div class="d-flex flex-wrap gap-3 text-muted small">
+                                        <div>
+                                            <i class="fas fa-calendar-plus text-primary me-1"></i>
+                                            Didaftarkan: <strong><?= ! empty($item['enrolled_at']) ? date('d M Y H:i', strtotime($item['enrolled_at'])) : '-' ?></strong>
+                                        </div>
+                                        <div>
+                                            <i class="far fa-calendar-alt text-primary me-1"></i>
+                                            Jadwal: <strong><?= ! empty($item['start_at']) ? date('d M Y', strtotime($item['start_at'])) : 'Fleksibel' ?></strong>
+                                        </div>
+                                        <?php if (! empty($item['capacity'])): ?>
+                                            <div>
+                                                <i class="fas fa-users text-primary me-1"></i>
+                                                Kapasitas: <strong><?= (int) $item['capacity'] ?> peserta</strong>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-4 text-lg-end">
+                                    <a href="<?= route_to('workspace.participant.class.detail', $classId) ?>" class="btn btn-outline-primary px-3 rounded-3">
+                                        <i class="fas fa-info-circle me-1"></i> Lihat Rincian Kelas
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-light rounded-3 text-muted small">
+                                <i class="fas fa-info-circle text-primary me-1"></i> Permintaan pendaftaran Anda telah tersimpan di sistem BegawiPBJ. Operator akan memverifikasi kelengkapan profil serta alokasi kuota sebelum mengaktifkan kelas Anda.
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- TAB 4: RIWAYAT SEMUA KELAS -->
+    <div class="tab-pane fade" id="tab-riwayat" role="tabpanel" aria-labelledby="tab-riwayat-btn">
+        <?php if ($enrollments === []): ?>
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
+                <div class="py-4">
+                    <i class="fas fa-history fs-1 text-muted opacity-50 mb-3"></i>
+                    <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Riwayat Kelas</h2>
+                    <p class="text-muted mb-4">Anda belum pernah mendaftar pada kelas manapun di sistem BegawiPBJ.</p>
+                    <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                        <i class="fas fa-search me-1"></i> Buka Arena Belajar
+                    </a>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="row g-4 ws-paginated-container" data-page-size="6">
+                <?php foreach ($enrollments as $item): ?>
+                    <?php
+                        $status   = (string) ($item['enrollment_status'] ?? 'pending');
+                        $badge    = $statusBadge($status);
+                        $classId  = (int) ($item['class_id'] ?? 0);
+                        $pct      = (float) ($item['overall_percent'] ?? ($item['progress_summary']['percent'] ?? 0));
+                        $finalScore = $item['final_score'] ?? null;
+                    ?>
+                    <div class="col-lg-6 ws-paginated-item">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <span class="badge <?= $badge['class'] ?> border px-3 py-2 rounded-pill fw-semibold">
+                                    <?= esc($badge['label']) ?>
+                                </span>
+                                <small class="text-muted font-monospace"><?= esc($item['class_code'] ?? '-') ?></small>
+                            </div>
+
+                            <h3 class="h5 fw-bold mb-2" style="color: #082f5c;"><?= esc($item['class_name'] ?? '-') ?></h3>
+                            <p class="text-muted small mb-1"><i class="fas fa-book text-primary me-1"></i> <?= esc($item['course_title'] ?? '-') ?></p>
+                            <?php if (! empty($item['program_title'])): ?>
+                                <p class="text-muted small mb-2"><i class="fas fa-layer-group text-muted me-1"></i> <?= esc($item['program_title']) ?></p>
+                            <?php endif; ?>
+
+                            <div class="mt-auto pt-3 border-top">
+                                <?php if ($status === 'active'): ?>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                            <span>Progres Belajar</span>
+                                            <span class="fw-bold text-primary"><?= $pct ?>%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: <?= $pct ?>%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="<?= route_to('workspace.participant.study', $classId) ?>" class="btn btn-primary btn-sm rounded-3 px-3 fw-semibold">
+                                            <i class="fas fa-arrow-right me-1"></i> Masuk Kelas
+                                        </a>
+                                        <a href="<?= route_to('workspace.participant.class.detail', $classId) ?>" class="btn btn-outline-secondary btn-sm rounded-3 px-3">
+                                            Detail
+                                        </a>
+                                    </div>
+                                <?php elseif ($status === 'completed'): ?>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="small text-muted">Nilai Akhir: <strong class="text-success"><?= $finalScore !== null ? number_format((float) $finalScore, 1) : '-' ?></strong></span>
+                                        <?php if (! empty($item['certificate_number'])): ?>
+                                            <span class="badge bg-success-subtle text-success border"><i class="fas fa-award me-1"></i> Bersertifikat</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="<?= route_to('workspace.participant.study', $classId) ?>" class="btn btn-outline-primary btn-sm rounded-3 px-3">
+                                            <i class="fas fa-book-reader me-1"></i> Review Materi
+                                        </a>
+                                        <?php if (! empty($item['certificate_id'])): ?>
+                                            <a href="<?= route_to('workspace.participant.certificate.download', (string) $item['certificate_id']) ?>" class="btn btn-success btn-sm rounded-3 px-3">
+                                                <i class="fas fa-download me-1"></i> Sertifikat
+                                            </a>
+                                        <?php endif; ?>
+                                        <a href="<?= route_to('workspace.participant.class.detail', $classId) ?>" class="btn btn-outline-secondary btn-sm rounded-3 px-3">
+                                            Detail
+                                        </a>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="small text-muted">
+                                            <?= match ($status) {
+                                                'pending'   => 'Menunggu verifikasi operator',
+                                                'withdrawn' => 'Dibatalkan oleh pengguna',
+                                                'cancelled' => 'Pendaftaran ditolak',
+                                                default     => 'Status tidak aktif',
+                                            } ?>
+                                        </span>
+                                        <a href="<?= route_to('workspace.participant.class.detail', $classId) ?>" class="btn btn-outline-secondary btn-sm rounded-3 px-3">
+                                            Detail
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
 </div>
 <?= $this->endSection() ?>

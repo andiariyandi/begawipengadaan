@@ -48,6 +48,15 @@ class TrainerController extends BaseController
             ->orderBy('lc.start_at', 'DESC')
             ->get()->getResultArray();
 
+        if ($assignedClasses === [] && $this->isPrivilegedOperator()) {
+            $assignedClasses = $db->table('learning_classes lc')
+                ->select('lc.id AS class_id, lc.created_at AS assigned_at, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, courses.title AS course_title')
+                ->join('courses', 'courses.id = lc.course_id')
+                ->orderBy('lc.start_at', 'DESC')
+                ->limit(20)
+                ->get()->getResultArray();
+        }
+
         $classIds = array_map(static fn ($c): int => (int) $c['class_id'], $assignedClasses);
 
         if ($classIds === []) {
@@ -86,13 +95,29 @@ class TrainerController extends BaseController
             ->whereIn('s.status', ['submitted', 'in_review'])
             ->countAllResults();
 
+        // Total assessment / kuis di kelas pengajar
+        $totalQuizzes = (int) $db->table('quizzes')->whereIn('class_id', $classIds)->countAllResults();
+
+        // Submisi tugas menunggu evaluasi (Mendukung client-side pagination)
+        $pendingSubmissionsList = $db->table('assignment_submissions s')
+            ->select('s.id AS submission_id, s.submitted_at, s.status, u.name AS student_name, a.title AS assignment_title, a.class_id, lc.name AS class_name')
+            ->join('assignments a', 'a.id = s.assignment_id')
+            ->join('enrollments e', 'e.id = s.enrollment_id')
+            ->join('users u', 'u.id = e.user_id')
+            ->join('learning_classes lc', 'lc.id = a.class_id')
+            ->whereIn('a.class_id', $classIds)
+            ->whereIn('s.status', ['submitted', 'in_review'])
+            ->orderBy('s.submitted_at', 'DESC')
+            ->limit(15)->get()->getResultArray();
+
         // Kelas dengan metrik ringkas
         $classesWithMetrics = [];
         foreach ($assignedClasses as $ac) {
             $cid = (int) $ac['class_id'];
-            $pCount = (int) $db->table('enrollments')->where('class_id', $cid)->where('status', 'active')->countAllResults();
-            $mCount = (int) $db->table('learning_modules')->where('class_id', $cid)->countAllResults();
+            $pCount   = (int) $db->table('enrollments')->where('class_id', $cid)->where('status', 'active')->countAllResults();
+            $mCount   = (int) $db->table('learning_modules')->where('class_id', $cid)->countAllResults();
             $asgCount = (int) $db->table('assignments')->where('class_id', $cid)->countAllResults();
+            $qzCount  = (int) $db->table('quizzes')->where('class_id', $cid)->countAllResults();
             
             $clsAvgProg = (float) ($db->table('enrollments e')
                 ->selectAvg('lp.progress_percent', 'avg_p')
@@ -103,6 +128,7 @@ class TrainerController extends BaseController
             $ac['participant_count'] = $pCount;
             $ac['module_count']      = $mCount;
             $ac['assignment_count']  = $asgCount;
+            $ac['quiz_count']        = $qzCount;
             $ac['avg_progress']      = round($clsAvgProg, 1);
             $classesWithMetrics[]    = $ac;
         }
@@ -116,7 +142,7 @@ class TrainerController extends BaseController
             ->whereIn('e.class_id', $classIds)
             ->where('e.status', 'active')
             ->orderBy('e.enrolled_at', 'DESC')
-            ->limit(4)->get()->getResultArray();
+            ->limit(6)->get()->getResultArray();
 
         // 2. Peserta menyelesaikan materi (learning_progress)
         $recentLessons = $db->table('learning_progress lp')
@@ -129,7 +155,7 @@ class TrainerController extends BaseController
             ->where('lp.status', 'completed')
             ->where('lp.completed_at IS NOT NULL')
             ->orderBy('lp.completed_at', 'DESC')
-            ->limit(4)->get()->getResultArray();
+            ->limit(6)->get()->getResultArray();
 
         // 3. Submission baru (assignment_submissions)
         $recentSubmissions = $db->table('assignment_submissions s')
@@ -140,22 +166,37 @@ class TrainerController extends BaseController
             ->join('learning_classes lc', 'lc.id = a.class_id')
             ->whereIn('a.class_id', $classIds)
             ->orderBy('s.submitted_at', 'DESC')
-            ->limit(4)->get()->getResultArray();
+            ->limit(6)->get()->getResultArray();
 
-        $allActivities = array_merge($recentEnrollments, $recentLessons, $recentSubmissions);
+        // 4. Kuis selesai dikerjakan (quiz_attempts)
+        $recentQuizAttempts = $db->table('quiz_attempts qa')
+            ->select('qa.submitted_at AS time, u.name AS user_name, q.title AS quiz_title, lc.name AS class_name, "quiz_completed" AS type')
+            ->join('quizzes q', 'q.id = qa.quiz_id')
+            ->join('enrollments e', 'e.id = qa.enrollment_id')
+            ->join('users u', 'u.id = e.user_id')
+            ->join('learning_classes lc', 'lc.id = q.class_id')
+            ->whereIn('q.class_id', $classIds)
+            ->where('qa.status', 'completed')
+            ->where('qa.submitted_at IS NOT NULL')
+            ->orderBy('qa.submitted_at', 'DESC')
+            ->limit(6)->get()->getResultArray();
+
+        $allActivities = array_merge($recentEnrollments, $recentLessons, $recentSubmissions, $recentQuizAttempts);
         usort($allActivities, static fn ($a, $b) => strcmp((string) ($b['time'] ?? ''), (string) ($a['time'] ?? '')));
-        $allActivities = array_slice($allActivities, 0, 6);
+        $allActivities = array_slice($allActivities, 0, 16);
 
         return $this->render('Beranda Pengajar', 'trainer/home', [
-            'hasClasses'        => true,
-            'assignedClasses'   => $classesWithMetrics,
-            'stats'             => [
+            'hasClasses'            => true,
+            'assignedClasses'       => $classesWithMetrics,
+            'pendingSubmissionsList'=> $pendingSubmissionsList,
+            'stats'                 => [
                 'totalClasses'       => $totalClasses,
                 'activeParticipants' => $activeParticipants,
                 'avgProgress'        => $avgProgress,
                 'pendingReviews'     => $pendingReviews,
+                'totalQuizzes'       => $totalQuizzes,
             ],
-            'recentActivities'  => $allActivities,
+            'recentActivities'      => $allActivities,
         ], 'trainer');
     }
 
@@ -177,6 +218,15 @@ class TrainerController extends BaseController
             ->where('ct.status', 'active')
             ->orderBy('lc.start_at', 'DESC')
             ->get()->getResultArray();
+
+        if ($items === [] && $this->isPrivilegedOperator()) {
+            $items = $db->table('learning_classes lc')
+                ->select('lc.id AS class_id, lc.created_at AS assigned_at, lc.status AS ct_status, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, courses.title AS course_title, programs.title AS program_title')
+                ->join('courses', 'courses.id = lc.course_id')
+                ->join('programs', 'programs.id = courses.program_id', 'left')
+                ->orderBy('lc.start_at', 'DESC')
+                ->get()->getResultArray();
+        }
 
         foreach ($items as &$row) {
             $cid = (int) $row['class_id'];
@@ -776,8 +826,13 @@ class TrainerController extends BaseController
         }
         $module = (new LearningModuleModel())->find((int) $lesson['module_id']);
 
+        $fileAsset = null;
+        if (! empty($lesson['file_id'])) {
+            $fileAsset = db_connect()->table('file_assets')->where('id', (int) $lesson['file_id'])->get()->getRowArray();
+        }
+
         if ($this->request->getMethod() === 'POST') {
-            $payload = $this->lessonPayload((int) $lesson['module_id'], (int) $userId);
+            $payload = $this->lessonPayload((int) $lesson['module_id'], (int) $userId, $lesson);
             if (($msg = $payload['error'] ?? null) !== null) {
                 return redirect()->back()->withInput()->with('error', $msg);
             }
@@ -790,6 +845,7 @@ class TrainerController extends BaseController
             'module'    => $module,
             'mode'      => 'edit',
             'lesson'    => $lesson,
+            'fileAsset' => $fileAsset,
             'className' => $this->className((int) $classId),
         ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Ubah Materi'));
     }
@@ -987,6 +1043,83 @@ class TrainerController extends BaseController
         }
 
         return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, $quizId))->with('success', 'Soal dihapus.');
+    }
+
+    /**
+     * 5.b. REKAP HASIL QUIZ / UJIAN (Pre-Test, Quiz Modul, Post-Test)
+     */
+    public function quizAttempts(string $classId, string $quizId)
+    {
+        $userId     = $this->userId();
+        $classIdInt = (int) $classId;
+        $quizIdInt  = (int) $quizId;
+        $this->assertTrainerOf($userId, $classIdInt);
+
+        $db = db_connect();
+
+        $quiz = $db->table('quizzes')
+            ->where('id', $quizIdInt)
+            ->where('class_id', $classIdInt)
+            ->get()->getRowArray();
+
+        if (! $quiz) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Ujian atau kuis tidak ditemukan.');
+        }
+
+        $class = $db->table('learning_classes lc')
+            ->select('lc.*, courses.title AS course_title')
+            ->join('courses', 'courses.id = lc.course_id')
+            ->where('lc.id', $classIdInt)
+            ->get()->getRowArray();
+
+        $attempts = $db->table('quiz_attempts qa')
+            ->select('qa.*, e.user_id, e.class_id, u.name AS participant_name, u.email AS participant_email, u.username')
+            ->join('enrollments e', 'e.id = qa.enrollment_id')
+            ->join('users u', 'u.id = e.user_id')
+            ->where('qa.quiz_id', $quizIdInt)
+            ->orderBy('qa.submitted_at', 'DESC')
+            ->orderBy('qa.id', 'DESC')
+            ->get()->getResultArray();
+
+        $passingGrade       = (float) ($class['passing_grade'] ?? 70.0);
+        $totalAttempts      = count($attempts);
+        $uniqueUsers        = count(array_unique(array_column($attempts, 'user_id')));
+        $totalScore         = 0.0;
+        $maxScore           = 0.0;
+        $passedCount        = 0;
+        $completedAttempts  = 0;
+
+        foreach ($attempts as $att) {
+            $sc = (float) ($att['score'] ?? 0.0);
+            if ($att['status'] === 'graded' || $att['status'] === 'submitted') {
+                $totalScore += $sc;
+                $completedAttempts++;
+                if ($sc > $maxScore) {
+                    $maxScore = $sc;
+                }
+                if ($sc >= $passingGrade) {
+                    $passedCount++;
+                }
+            }
+        }
+
+        $avgScore = $completedAttempts > 0 ? round($totalScore / $completedAttempts, 1) : 0.0;
+
+        return $this->render('Hasil Pengerjaan Ujian', 'trainer/quiz_attempts', [
+            'classId'      => $classIdInt,
+            'className'    => $this->className($classIdInt),
+            'class'        => $class,
+            'quiz'         => $quiz,
+            'attempts'     => $attempts,
+            'passingGrade' => $passingGrade,
+            'stats'        => [
+                'totalAttempts' => $totalAttempts,
+                'uniqueUsers'   => $uniqueUsers,
+                'avgScore'      => $avgScore,
+                'maxScore'      => $maxScore,
+                'passedCount'   => $passedCount,
+            ],
+        ], 'trainer', $this->trainerBreadcrumb($classIdInt, 'Hasil Ujian'));
     }
 
     // =========================================================================
@@ -1268,7 +1401,7 @@ class TrainerController extends BaseController
 
     private function getTrainerClasses(int $userId): array
     {
-        return db_connect()->table('class_trainers ct')
+        $classes = db_connect()->table('class_trainers ct')
             ->select('lc.id, lc.name, lc.code, lc.status, courses.title AS course_title')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->join('courses', 'courses.id = lc.course_id')
@@ -1276,6 +1409,16 @@ class TrainerController extends BaseController
             ->where('ct.status', 'active')
             ->orderBy('lc.name', 'ASC')
             ->get()->getResultArray();
+
+        if ($classes === [] && $this->isPrivilegedOperator()) {
+            $classes = db_connect()->table('learning_classes lc')
+                ->select('lc.id, lc.name, lc.code, lc.status, courses.title AS course_title')
+                ->join('courses', 'courses.id = lc.course_id')
+                ->orderBy('lc.name', 'ASC')
+                ->get()->getResultArray();
+        }
+
+        return $classes;
     }
 
     private function loadLessonsForClass(int $classId): array
@@ -1289,7 +1432,7 @@ class TrainerController extends BaseController
             ->get()->getResultArray();
     }
 
-    private function lessonPayload(int $moduleId, int $actorId): array
+    private function lessonPayload(int $moduleId, int $actorId, ?array $existingLesson = null): array
     {
         $title = trim((string) $this->request->getPost('title'));
         if ($title === '') {
@@ -1302,12 +1445,62 @@ class TrainerController extends BaseController
 
         $content     = (string) $this->request->getPost('content');
         $externalUrl = null;
-        $fileId      = null;
+        $fileId      = $existingLesson ? ((int) ($existingLesson['file_id'] ?? 0) ?: null) : null;
+        $visibility  = (string) ($this->request->getPost('document_access') ?: ($existingLesson['visibility'] ?? 'internal'));
+        if (! in_array($visibility, ['preview_only', 'internal', 'restricted'], true)) {
+            $visibility = 'internal';
+        }
 
         if ($contentType === 'document') {
-            $fileId = (int) $this->request->getPost('file_id');
-            if ($fileId < 1) {
-                $fileId = $this->registerFileAsset((string) ($this->request->getPost('document_label') ?: $title), 'document');
+            // Cek apakah ada permintaan hapus file fisik yang tersambung
+            if ($this->request->getPost('remove_pdf') && $fileId) {
+                $fileId = null;
+            }
+
+            // Cek apakah ada berkas PDF baru yang diunggah
+            $pdfFile = $this->request->getFile('pdf_file');
+            if ($pdfFile && $pdfFile->isValid() && ! $pdfFile->hasMoved()) {
+                $ext  = strtolower($pdfFile->getClientExtension());
+                $mime = $pdfFile->getMimeType();
+                if ($ext !== 'pdf' && $mime !== 'application/pdf') {
+                    return ['error' => 'Berkas materi harus berupa dokumen berformat PDF (.pdf).'];
+                }
+
+                $uploadDir = WRITEPATH . 'uploads/lessons/';
+                if (! is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $storedName = $pdfFile->getRandomName();
+                $pdfFile->move($uploadDir, $storedName);
+
+                $now = date('Y-m-d H:i:s');
+                $fileRow = [
+                    'disk'             => 'local',
+                    'path'             => 'uploads/lessons/' . $storedName,
+                    'original_name'    => $pdfFile->getClientName(),
+                    'stored_name'      => $storedName,
+                    'extension'        => 'pdf',
+                    'mime_type'        => 'application/pdf',
+                    'size_bytes'       => $pdfFile->getSize(),
+                    'visibility'       => ($visibility === 'preview_only' ? 'restricted' : 'internal'),
+                    'lifecycle_status' => 'ready',
+                    'resource_type'    => 'lesson',
+                    'created_at'       => $now,
+                    'updated_at'       => $now,
+                ];
+                $fileId = (int) db_connect()->table('file_assets')->insert($fileRow, true);
+            } elseif ($fileId === null && $this->request->getPost('document_label')) {
+                // Fallback register placeholder jika nama dokumen diisi manual
+                $fileId = $this->registerFileAsset((string) $this->request->getPost('document_label'), 'document');
+            }
+
+            // Sinkronkan visibilitas aset berkas jika ada fileId
+            if ($fileId) {
+                db_connect()->table('file_assets')->where('id', $fileId)->update([
+                    'visibility' => ($visibility === 'preview_only' ? 'restricted' : 'internal'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
             }
         } elseif ($contentType === 'video' || $contentType === 'link') {
             $externalUrl = trim((string) $this->request->getPost('external_url'));
@@ -1321,14 +1514,14 @@ class TrainerController extends BaseController
             ->where('module_id', $moduleId)
             ->get()->getRowArray();
         $maxOrder = (int) ($maxRow['sort_order'] ?? 0);
-        $sortOrder = (int) $this->request->getPost('sort_order') ?: ($maxOrder + 1);
+        $sortOrder = (int) $this->request->getPost('sort_order') ?: ($existingLesson ? (int) $existingLesson['sort_order'] : ($maxOrder + 1));
 
         $status = (string) ($this->request->getPost('status') ?: 'published');
 
         return ['data' => [
             'module_id'    => $moduleId,
             'title'        => $title,
-            'slug'         => url_title($title, '-', true) . '-' . substr((string) time(), -4),
+            'slug'         => $existingLesson['slug'] ?? (url_title($title, '-', true) . '-' . substr((string) time(), -4)),
             'content_type' => $contentType,
             'content'      => $content,
             'file_id'      => $fileId,
@@ -1336,8 +1529,8 @@ class TrainerController extends BaseController
             'sort_order'   => $sortOrder,
             'is_required'  => $this->request->getPost('is_required') ? 1 : 0,
             'status'       => $status,
-            'visibility'   => 'internal',
-            'created_by'   => $actorId,
+            'visibility'   => $visibility,
+            'created_by'   => $existingLesson['created_by'] ?? $actorId,
             'updated_by'   => $actorId,
         ]];
     }
@@ -1367,8 +1560,17 @@ class TrainerController extends BaseController
         return (int) db_connect()->table('file_assets')->insert($row, true);
     }
 
+    private function isPrivilegedOperator(): bool
+    {
+        $roles = (array) session()->get('roles');
+        return array_intersect(['operator', 'admin', 'super_admin', 'administrator'], $roles) !== [];
+    }
+
     private function assertTrainerOf(int $userId, int $classId): void
     {
+        if ($this->isPrivilegedOperator()) {
+            return; // Operator/Admin memiliki hak setara/override untuk mengelola seluruh kelas
+        }
         $row = (new ClassTrainerModel())
             ->where('class_id', $classId)
             ->where('user_id', $userId)
@@ -1415,9 +1617,10 @@ class TrainerController extends BaseController
             redirect()->to('/dashboard/status-akun')->with('error', 'Akun Anda belum aktif.')->send();
             exit;
         }
-        $roles = (array) session()->get('roles');
-        if (! in_array('trainer', $roles, true)) {
-            redirect()->to('/dashboard/masuk')->with('error', 'Anda tidak memiliki akses Trainer.')->send();
+        $roles   = (array) session()->get('roles');
+        $allowed = ['trainer', 'operator', 'admin', 'super_admin', 'administrator'];
+        if (array_intersect($allowed, $roles) === []) {
+            redirect()->to('/dashboard/masuk')->with('error', 'Anda tidak memiliki akses Trainer/Operator.')->send();
             exit;
         }
         return $id;
@@ -1425,13 +1628,14 @@ class TrainerController extends BaseController
 
     private function render(string $pageTitle, string $viewPage, array $data, string $activeMenu = 'trainer', array $breadcrumbTail = []): string
     {
+        $roleLabel = $this->isPrivilegedOperator() ? 'Operator / Pengajar' : 'Pengajar';
         $data = array_merge($data, [
             'pageTitle'      => $pageTitle,
             'breadcrumbTail' => $breadcrumbTail,
             'activeMenu'     => $activeMenu,
             'activeSubmenu'  => '',
             'userName'       => session()->get('username') ?? 'Pengajar',
-            'roleLabel'      => 'Pengajar',
+            'roleLabel'      => $roleLabel,
             'innerView'      => 'main/workspace/pages/' . $viewPage,
         ]);
         return view('main/workspace/layouts/workspace_inner', $data);

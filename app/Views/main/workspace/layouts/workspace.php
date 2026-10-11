@@ -124,6 +124,7 @@
     <script src="<?= base_url('assets/main/js/bootstrap.bundle.min.js') ?>"></script>
     <script src="<?= base_url('assets/main/js/swiper.min.js') ?>"></script>
     <script src="<?= base_url('assets/main/js/script.js') ?>"></script>
+    <script src="<?= base_url('assets/main/js/workspace-pagination.js') ?>"></script>
 
     <?= $this->renderSection('pageScripts') ?>
 </body>

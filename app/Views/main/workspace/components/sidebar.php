@@ -5,16 +5,22 @@ $hasRole = static fn (string $role): bool => in_array($role, $roles, true);
 
 // Determine primary role priority
 $primaryRole = 'participant';
-if ($hasRole('operator') || $hasRole('admin') || $hasRole('super_admin') || $hasRole('administrator')) {
+if ($hasRole('super_admin') || $hasRole('super_administrator')) {
+    $primaryRole = 'super_admin';
+} elseif ($hasRole('admin') || $hasRole('administrator')) {
+    $primaryRole = 'admin';
+} elseif ($hasRole('operator')) {
     $primaryRole = 'operator';
 } elseif ($hasRole('trainer')) {
     $primaryRole = 'trainer';
 }
 
 $roleLabel = match ($primaryRole) {
-    'operator' => 'Operator',
-    'trainer'  => 'Pengajar (Trainer)',
-    default    => 'Peserta (Participant)',
+    'super_admin' => 'Super Administrator',
+    'admin'       => 'Administrator',
+    'operator'    => 'Operator',
+    'trainer'     => 'Pengajar (Trainer)',
+    default       => 'Peserta (Participant)',
 };
 
 $displayName = (string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna');
@@ -62,6 +68,17 @@ $quizzesUrl  = ($trainerClassId > 0) ? route_to('workspace.trainer.quizzes', $tr
 
 // Role-based menu definitions
 $menuItems = match ($primaryRole) {
+    'super_admin', 'admin' => [
+        ['Pusat Eksekutif', route_to('workspace.admin.home'), 'fas fa-crown'],
+        ['Pusat Operasional', route_to('workspace.operator.home'), 'fas fa-cogs'],
+        ['Antrean Approval', route_to('workspace.operator.approvals'), 'fas fa-stamp'],
+        ['Verifikasi User', route_to('workspace.operator.profile-verifications'), 'fas fa-id-card'],
+        ['Penugasan Trainer', route_to('workspace.operator.class-trainers'), 'fas fa-chalkboard-teacher'],
+        ['Monitoring Belajar', route_to('workspace.operator.learning-monitoring'), 'fas fa-chart-line'],
+        ['Verifikasi Sertifikat', route_to('workspace.operator.certificates'), 'fas fa-award'],
+        ['Audit Aktivitas', route_to('workspace.operator.activity-monitoring'), 'fas fa-history'],
+        ['Dashboard WowDash', site_url('dashboard'), 'fas fa-tachometer-alt'],
+    ],
     'trainer' => [
         ['Beranda', route_to('workspace.trainer.home'), 'fas fa-home'],
         ['Kelas Saya', route_to('workspace.trainer.classes'), 'fas fa-graduation-cap'],

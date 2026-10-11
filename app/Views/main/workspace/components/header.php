@@ -11,7 +11,12 @@ $isPrefixActive = static function (string $prefix) use ($currentPath): bool {
 $roles = (array) session()->get('roles');
 $userName = trim((string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna'));
 $userEmail = trim((string) session()->get('email'));
-$workspaceHome = route_to('workspace.home');
+$workspaceHome = match (true) {
+    in_array('super_admin', $roles, true) || in_array('admin', $roles, true) => route_to('workspace.admin.home'),
+    in_array('trainer', $roles, true)                                        => route_to('workspace.trainer.home'),
+    in_array('operator', $roles, true)                                       => route_to('workspace.operator.home'),
+    default                                                                  => route_to('workspace.home'),
+};
 $roleLabel = match (true) {
     in_array('super_admin', $roles, true) => 'Super Admin',
     in_array('admin', $roles, true)       => 'Admin',

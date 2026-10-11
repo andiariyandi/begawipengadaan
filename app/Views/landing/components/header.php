@@ -263,11 +263,11 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                             <li class="dropdown <?= $isPrefixActive('arena-belajar') ? 'current' : '' ?>">
                                 <a href="<?= site_url('arena-belajar') ?>">Arena Belajar</a>
                                 <ul class="shadow-box">
-                                    <li><a href="<?= site_url('arena-belajar') ?>">Beranda Arena Belajar</a></li>
+                                    <li><a href="<?= site_url('arena-belajar') ?>">Eksplorasi Pembelajaran</a></li>
                                     <li><a href="<?= site_url('arena-belajar/program') ?>">Program Pembelajaran</a></li>
-                                    <li><a href="<?= site_url('arena-belajar/course') ?>">Course</a></li>
-                                    <li><a href="<?= site_url('arena-belajar/kelas') ?>">Kelas</a></li>
-                                    <li><a href="<?= site_url('arena-belajar/pengajar') ?>">Pengajar</a></li>
+                                    <li><a href="<?= site_url('arena-belajar/course') ?>">Course PBJ</a></li>
+                                    <li><a href="<?= site_url('arena-belajar/kelas') ?>">Kelas &amp; Batch</a></li>
+                                    <li><a href="<?= site_url('arena-belajar/pengajar') ?>">Instruktur &amp; Pengajar</a></li>
                                 </ul>
                             </li>
                             <li class="dropdown <?= $isPrefixActive('bunga-rampai') ? 'current' : '' ?>">

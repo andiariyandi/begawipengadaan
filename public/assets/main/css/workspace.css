@@ -579,7 +579,7 @@ body.landing-internal .main-header,
     padding: 36px 0 72px !important;
     min-height: 520px !important;
     clear: both !important;
-    z-index: 1 !important;
+    z-index: auto !important;
 }
 
 .workspace-shell > .container > .row {
@@ -899,5 +899,372 @@ main.workspace-content {
 .timeline-item {
     padding-left: 8px;
 }
+
+/* ==========================================================================
+   10. WORKSPACE CLIENT-SIDE PAGINATION CONTROLS
+   ========================================================================== */
+.ws-pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 12px;
+    margin-top: 14px;
+    border-top: 1px solid #edf2f7;
+    width: 100%;
+}
+
+.ws-page-info {
+    font-size: 0.76rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.ws-page-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ws-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #334155;
+    min-width: 28px;
+    height: 28px;
+    padding: 2px 8px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1;
+    user-select: none;
+}
+
+.ws-page-btn:hover:not(:disabled) {
+    background: #082f5c;
+    color: #ffffff;
+    border-color: #082f5c;
+}
+
+.ws-page-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+}
+
+.ws-page-btn.active {
+    background: #082f5c !important;
+    color: #ffffff !important;
+    border-color: #082f5c !important;
+    box-shadow: 0 2px 6px rgba(8, 47, 92, 0.25);
+}
+
+.ws-page-btn-nav {
+    padding: 2px 10px;
+    font-size: 0.74rem;
+}
+
+.ws-paginated-item {
+    transition: opacity 0.2s ease;
+}
+
+/* ==========================================================================
+   11. WORKSPACE HOMEPAGE UNIFIED VISUAL DNA (FISTUDY ELEVATED DESIGN)
+   ========================================================================== */
+.ws-hero-card {
+    background: linear-gradient(135deg, #082f5c 0%, #052244 100%);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+}
+.ws-hero-card::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 107, 53, 0.22) 0%, rgba(255, 107, 53, 0) 70%);
+    pointer-events: none;
+}
+.ws-hero-glass-box {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+}
+.ws-stat-card {
+    border-radius: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #eef2f7;
+    background: #ffffff;
+}
+.ws-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(8, 47, 92, 0.08) !important;
+}
+.ws-stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+.ws-action-card {
+    border-radius: 14px;
+    border: 1px solid #edf2f7;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    text-decoration: none !important;
+}
+.ws-action-card:hover {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(8, 47, 92, 0.06);
+}
+.ws-class-card {
+    border-radius: 16px;
+    border: 1px solid #eef2f7;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+.ws-class-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 24px rgba(8, 47, 92, 0.08);
+    transform: translateY(-2px);
+}
+.ws-feed-card {
+    border-radius: 16px;
+    border: 1px solid #eef2f7;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+.ws-feed-item {
+    transition: background-color 0.15s ease;
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+}
+.ws-feed-item:hover {
+    background-color: #f8fafc;
+}
+
+/* ==========================================================================
+   12. ARENA BELAJAR PESERTA & QUIZ INTERACTIVE RUNTIME
+   ========================================================================== */
+.ws-learning-header-card {
+    background: linear-gradient(135deg, #082f5c 0%, #052244 100%);
+    border-radius: 20px;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    padding: 1.75rem 2rem;
+}
+.ws-learning-header-card::after {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 107, 53, 0.22) 0%, rgba(255, 107, 53, 0) 70%);
+    pointer-events: none;
+}
+.ws-learning-sidebar {
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 20px rgba(8, 47, 92, 0.05);
+    overflow: hidden;
+}
+.ws-curriculum-nav-item {
+    transition: all 0.2s ease;
+    border-radius: 10px;
+}
+.ws-curriculum-nav-item:hover {
+    background-color: #f8fafc;
+}
+.ws-quiz-card {
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(8, 47, 92, 0.06);
+    transition: all 0.2s ease;
+}
+.ws-quiz-palette-card {
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(8, 47, 92, 0.06);
+    position: sticky;
+    top: 90px;
+}
+.ws-quiz-palette-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+.ws-quiz-palette-btn {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 10px;
+    border: 1.5px solid #cbd5e1;
+    background: #f8fafc;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none !important;
+}
+.ws-quiz-palette-btn:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+.ws-quiz-palette-btn.answered {
+    background: #ecfdf5;
+    border-color: #10b981;
+    color: #047857;
+    font-weight: 800;
+}
+.ws-quiz-palette-btn.current {
+    border-color: #082f5c;
+    box-shadow: 0 0 0 2px rgba(8, 47, 92, 0.25);
+    background: #ffffff;
+    color: #082f5c;
+}
+.ws-quiz-palette-btn.answered.current {
+    background: #10b981;
+    border-color: #047857;
+    color: #ffffff;
+}
+.ws-quiz-q-card {
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+.ws-quiz-q-card.is-active-focus {
+    border-color: #082f5c;
+    box-shadow: 0 0 0 3px rgba(8, 47, 92, 0.12);
+}
+.ws-quiz-option {
+    display: flex;
+    align-items: flex-start;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    margin-bottom: 10px;
+    position: relative;
+}
+.ws-quiz-option:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+.ws-quiz-option.selected,
+.ws-quiz-option:has(input[type="radio"]:checked) {
+    border-color: #082f5c;
+    background: rgba(8, 47, 92, 0.04);
+    box-shadow: 0 2px 8px rgba(8, 47, 92, 0.06);
+}
+.ws-quiz-option input[type="radio"] {
+    margin-top: 3px;
+    margin-right: 12px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    accent-color: #082f5c;
+    flex-shrink: 0;
+}
+.ws-quiz-opt-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: #e2e8f0;
+    color: #334155;
+    font-weight: 700;
+    font-size: 0.8rem;
+    margin-right: 12px;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+.ws-quiz-option:has(input[type="radio"]:checked) .ws-quiz-opt-letter {
+    background: #082f5c;
+    color: #ffffff;
+}
+.ws-media-card {
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(8, 47, 92, 0.06);
+    overflow: hidden;
+}
+.ws-pdf-frame {
+    width: 100%;
+    height: 680px;
+    border: 0;
+    background: #334155;
+}
+.ws-file-upload-box {
+    border: 2px dashed #cbd5e1;
+    border-radius: 16px;
+    background: #f8fafc;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.ws-file-upload-box:hover {
+    border-color: #082f5c;
+    background: rgba(8, 47, 92, 0.02);
+}
+
+/* ==========================================================================
+   13. BOOTSTRAP MODAL & BACKDROP STACKING CONTEXT FIX
+   ========================================================================== */
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+.modal {
+    z-index: 1060 !important;
+}
+.modal-dialog {
+    z-index: 1065 !important;
+    position: relative !important;
+}
+.modal.fade .modal-dialog {
+    transform: translate(0, -20px);
+    transition: transform 0.25s ease-out;
+}
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+
+
 
 

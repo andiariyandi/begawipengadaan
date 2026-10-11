@@ -189,6 +189,7 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('kelas/(:segment)/quiz/(:segment)/soal/tambah', 'TrainerController::addQuestion/$1/$2', ['as' => 'workspace.trainer.question.create']);
         $routes->post('kelas/(:segment)/quiz/(:segment)/soal/tambah', 'TrainerController::addQuestion/$1/$2');
         $routes->post('kelas/(:segment)/quiz/(:segment)/soal/(:segment)/hapus', 'TrainerController::deleteQuestion/$1/$2/$3', ['as' => 'workspace.trainer.question.delete']);
+        $routes->get('kelas/(:segment)/quiz/(:segment)/hasil', 'TrainerController::quizAttempts/$1/$2', ['as' => 'workspace.trainer.quiz.attempts']);
         $routes->get('kelas/(:segment)/tugas', 'TrainerController::assignments/$1', ['as' => 'workspace.trainer.assignments']);
         $routes->get('kelas/(:segment)/tugas/tambah', 'TrainerController::createAssignment/$1', ['as' => 'workspace.trainer.assignment.create']);
         $routes->post('kelas/(:segment)/tugas/tambah', 'TrainerController::createAssignment/$1');
@@ -228,6 +229,10 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('evaluasi/submission/(:segment)', 'OperatorController::reviewSubmission/$1', ['as' => 'workspace.operator.submission.review']);
         $routes->post('evaluasi/submission/(:segment)/override', 'OperatorController::overrideSubmission/$1', ['as' => 'workspace.operator.submission.override']);
         $routes->get('monitoring-aktivitas', 'OperatorController::activityMonitoring', ['as' => 'workspace.operator.activity-monitoring']);
+    });
+
+    $routes->group('admin', static function ($routes) {
+        $routes->get('/', 'AdminWorkspaceController::index', ['as' => 'workspace.admin.home']);
     });
 });
 
@@ -416,6 +421,22 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('kurikulum/lesson/(:segment)/ubah', 'CurriculumController::updateLesson/$1', ['as' => 'dashboard.learning.curriculum.lesson.update']);
         $routes->post('kurikulum/lesson/(:segment)/hapus', 'CurriculumController::deleteLesson/$1', ['as' => 'dashboard.learning.curriculum.lesson.delete']);
 
+        // Quiz (Pre-Test, Post-Test, Module Quiz)
+        $routes->post('kurikulum/quiz', 'CurriculumController::storeQuiz', ['as' => 'dashboard.learning.curriculum.quiz.store']);
+        $routes->post('kurikulum/quiz/(:segment)/ubah', 'CurriculumController::updateQuiz/$1', ['as' => 'dashboard.learning.curriculum.quiz.update']);
+        $routes->post('kurikulum/quiz/(:segment)/toggle', 'CurriculumController::toggleQuizStatus/$1', ['as' => 'dashboard.learning.curriculum.quiz.toggle']);
+        $routes->post('kurikulum/quiz/(:segment)/hapus', 'CurriculumController::deleteQuiz/$1', ['as' => 'dashboard.learning.curriculum.quiz.delete']);
+
+        // Soal & Pilihan (Question & Options)
+        $routes->post('kurikulum/soal', 'CurriculumController::storeQuestion', ['as' => 'dashboard.learning.curriculum.question.store']);
+        $routes->post('kurikulum/soal/(:segment)/ubah', 'CurriculumController::updateQuestion/$1', ['as' => 'dashboard.learning.curriculum.question.update']);
+        $routes->post('kurikulum/soal/(:segment)/hapus', 'CurriculumController::deleteQuestion/$1', ['as' => 'dashboard.learning.curriculum.question.delete']);
+
+        // Assignment / Tugas
+        $routes->post('kurikulum/tugas', 'CurriculumController::storeAssignment', ['as' => 'dashboard.learning.curriculum.assignment.store']);
+        $routes->post('kurikulum/tugas/(:segment)/ubah', 'CurriculumController::updateAssignment/$1', ['as' => 'dashboard.learning.curriculum.assignment.update']);
+        $routes->post('kurikulum/tugas/(:segment)/hapus', 'CurriculumController::deleteAssignment/$1', ['as' => 'dashboard.learning.curriculum.assignment.delete']);
+
         // Legacy module and lesson routes
         $routes->get('materi-modul', 'ModuleController::index', ['as' => 'dashboard.learning.modules']);
         $routes->post('materi-modul', 'ModuleController::store', ['as' => 'dashboard.learning.modules.store']);
@@ -433,13 +454,20 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         // 8. Assessment
         $routes->get('assessment', 'AssessmentManagementController::index', ['as' => 'dashboard.learning.assessments']);
         $routes->post('assessment/quiz', 'AssessmentManagementController::storeQuiz', ['as' => 'dashboard.learning.assessments.quiz.store']);
+        $routes->post('assessment/quiz/(:segment)/ubah', 'AssessmentManagementController::updateQuiz/$1', ['as' => 'dashboard.learning.assessments.quiz.update']);
+        $routes->post('assessment/quiz/(:segment)/toggle', 'AssessmentManagementController::toggleQuizStatus/$1', ['as' => 'dashboard.learning.assessments.quiz.toggle']);
+        $routes->post('assessment/quiz/(:segment)/hapus', 'AssessmentManagementController::deleteQuiz/$1', ['as' => 'dashboard.learning.assessments.quiz.delete']);
         $routes->post('assessment/assignment', 'AssessmentManagementController::storeAssignment', ['as' => 'dashboard.learning.assessments.assignment.store']);
+        $routes->post('assessment/assignment/(:segment)/ubah', 'AssessmentManagementController::updateAssignment/$1', ['as' => 'dashboard.learning.assessments.assignment.update']);
+        $routes->post('assessment/assignment/(:segment)/hapus', 'AssessmentManagementController::deleteAssignment/$1', ['as' => 'dashboard.learning.assessments.assignment.delete']);
+        $routes->post('assessment/submission/(:segment)/nilai', 'AssessmentManagementController::gradeSubmission/$1', ['as' => 'dashboard.learning.assessments.submission.grade']);
         $routes->get('assessment/bank-soal', 'AssessmentManagementController::questionBank', ['as' => 'dashboard.learning.question-bank']);
         $routes->get('assessment/pre-test', 'PreTestController::index', ['as' => 'dashboard.learning.pre-tests']);
         $routes->get('assessment/quiz', 'QuizController::index', ['as' => 'dashboard.learning.quizzes']);
         $routes->get('assessment/post-test', 'PostTestController::index', ['as' => 'dashboard.learning.post-tests']);
         $routes->get('penilaian', 'GradingController::index', ['as' => 'dashboard.learning.gradings']);
         $routes->get('penilaian/(:segment)', 'GradingController::detail/$1', ['as' => 'dashboard.learning.gradings.detail']);
+        $routes->post('penilaian/(:segment)/nilai', 'GradingController::grade/$1', ['as' => 'dashboard.learning.gradings.grade']);
 
         // 9. Learning Progress
         $routes->get('progres', 'ProgressMonitoringController::index', ['as' => 'dashboard.learning.progress']);

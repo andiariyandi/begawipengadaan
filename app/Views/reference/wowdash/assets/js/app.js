@@ -291,14 +291,16 @@
   const savedColor = localStorage.getItem("templateColor");
   if (savedColor && colors[savedColor]) {
     applyColor(savedColor);
-    document
-      .querySelector(`.color-picker-btn[data-color="${savedColor}"]`)
-      .classList.add("active");
+    const activeColorBtn = document.querySelector(`.color-picker-btn[data-color="${savedColor}"]`);
+    if (activeColorBtn) {
+      activeColorBtn.classList.add("active");
+    }
   } else {
     // Default (blue)
-    document
-      .querySelector(`.color-picker-btn[data-color="blue"]`)
-      .classList.add("active");
+    const defaultColorBtn = document.querySelector(`.color-picker-btn[data-color="blue"]`);
+    if (defaultColorBtn) {
+      defaultColorBtn.classList.add("active");
+    }
   }
   // =========================== Color Schema js End ================================
 

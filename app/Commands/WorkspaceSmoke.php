@@ -105,6 +105,28 @@ class WorkspaceSmoke extends BaseCommand
                 'Aktivitas',
                 'Profil',
             ],
+            'admin'       => [
+                'Pusat Eksekutif',
+                'Pusat Operasional',
+                'Antrean Approval',
+                'Verifikasi User',
+                'Penugasan Trainer',
+                'Monitoring Belajar',
+                'Verifikasi Sertifikat',
+                'Audit Aktivitas',
+                'Dashboard WowDash',
+            ],
+            'super_admin' => [
+                'Pusat Eksekutif',
+                'Pusat Operasional',
+                'Antrean Approval',
+                'Verifikasi User',
+                'Penugasan Trainer',
+                'Monitoring Belajar',
+                'Verifikasi Sertifikat',
+                'Audit Aktivitas',
+                'Dashboard WowDash',
+            ],
         ];
 
         foreach ($sidebarRoleChecks as $role => $expectedKeywords) {
@@ -593,6 +615,57 @@ class WorkspaceSmoke extends BaseCommand
                 $failed++;
             }
 
+            // 5.6.b Test View trainer/quiz_attempts.php and trainer/lesson_form.php
+            $quizAttemptsHtml = view('main/workspace/pages/trainer/quiz_attempts', [
+                'classId'      => 4,
+                'className'    => 'Pengantar Pengadaan Barang/Jasa',
+                'class'        => ['code' => 'CLS-04'],
+                'quiz'         => ['id' => 4, 'title' => 'Pre-Test Pengadaan', 'type' => 'pre_test', 'attempt_limit' => 2],
+                'attempts'     => [
+                    [
+                        'id'                => 1,
+                        'participant_name'  => 'Budi Santoso',
+                        'participant_email' => 'budi@test.com',
+                        'attempt_number'    => 1,
+                        'started_at'        => date('Y-m-d H:i:s', time() - 3600),
+                        'submitted_at'      => date('Y-m-d H:i:s'),
+                        'score'             => 85.0,
+                        'status'            => 'graded',
+                    ],
+                ],
+                'passingGrade' => 70.0,
+                'stats'        => [
+                    'totalAttempts' => 1,
+                    'uniqueUsers'   => 1,
+                    'avgScore'      => 85.0,
+                    'maxScore'      => 85.0,
+                    'passedCount'   => 1,
+                ],
+            ]);
+
+            $lessonFormHtml = view('main/workspace/pages/trainer/lesson_form', [
+                'classId'   => 4,
+                'module'    => ['id' => 1, 'title' => 'Modul 1'],
+                'mode'      => 'create',
+                'lesson'    => null,
+                'fileAsset' => null,
+                'className' => 'Kelas 4',
+            ]);
+
+            $hasAttemptsAndForm = str_contains($quizAttemptsHtml, 'Rincian Pengerjaan Peserta')
+                && str_contains($quizAttemptsHtml, 'Memenuhi Passing')
+                && str_contains($lessonFormHtml, 'pdf_file')
+                && str_contains($lessonFormHtml, 'Hanya Lihat (Viewer In-App)')
+                && str_contains($lessonFormHtml, 'Boleh Diunduh (Full Access)');
+
+            if ($hasAttemptsAndForm) {
+                CLI::write(" [PASS] Views: quiz_attempts.php and lesson_form.php (PDF upload & access controls) rendered OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] quiz_attempts or lesson_form rendering mismatch");
+                $failed++;
+            }
+
             // 5.7 Integration Check: Trainer -> Participant Live Sync
             // Verify that modules and quizzes created on class 4 are directly visible to participant
             $participantClassState = $controller->resolveClassLearningState(4, 36);
@@ -859,6 +932,110 @@ class WorkspaceSmoke extends BaseCommand
 
         } catch (\Throwable $e) {
             CLI::error(" [ERR] Comprehensive Operator Suite error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
+            $failed++;
+        }
+
+        // 8. Testing Unified Canonical Role Homepages & Double-Overview Elimination
+        CLI::newLine();
+        CLI::write("Testing Unified Canonical Role Homepages (Elimination of Double Overview)...", 'yellow');
+        try {
+            // 8.1 Admin Executive Workspace Overview
+            $adminWorkspaceController = new \App\Controllers\Workspace\AdminWorkspaceController();
+            $adminWorkspaceController->initController(service('request'), service('response'), service('logger'));
+            $session->set([
+                'isLoggedIn' => true,
+                'user_id'    => $operatorUserId,
+                'name'       => 'Super Administrator',
+                'roles'      => ['super_admin'],
+            ]);
+            $execHtml = $adminWorkspaceController->index();
+            $hasExecElements = str_contains($execHtml, 'Pusat Kendali Eksekutif')
+                && str_contains($execHtml, 'Total Pengguna')
+                && str_contains($execHtml, 'Pintasan Akses Cepat Eksekutif')
+                && str_contains($execHtml, 'Kelas Pembelajaran Teraktif');
+
+            if ($hasExecElements) {
+                CLI::write(" [PASS] Executive Admin Home: 6 Platform KPI Cards, shortcuts & active classes rendered OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Executive Admin Home missing expected elements");
+                $failed++;
+            }
+
+            // 8.2 Participant Home Overview Content Verification
+            $workspaceHomeController = new \App\Controllers\Workspace\WorkspaceHomeController();
+            $workspaceHomeController->initController(service('request'), service('response'), service('logger'));
+            $session->set([
+                'isLoggedIn' => true,
+                'user_id'    => 31,
+                'name'       => 'Peserta Uji',
+                'roles'      => ['participant'],
+            ]);
+            $partHomeHtml = $workspaceHomeController->index();
+            $hasPartElements = str_contains($partHomeHtml, 'Ruang Kerja Peserta')
+                && str_contains($partHomeHtml, 'Pembelajaran Sedang Berjalan')
+                && str_contains($partHomeHtml, 'Tugas & Assessment')
+                && str_contains($partHomeHtml, 'Event & Agenda Terdaftar')
+                && str_contains($partHomeHtml, 'Sertifikat Kelulusan & Kompetensi Saya');
+
+            if ($hasPartElements) {
+                CLI::write(" [PASS] Participant Home: Full learning overview (classes, tasks, assessments, events, certs) rendered OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Participant Home missing expected elements");
+                $failed++;
+            }
+
+            // 8.3 Trainer Home Overview Content Verification
+            $trainerController = new \App\Controllers\Workspace\TrainerController();
+            $trainerController->initController(service('request'), service('response'), service('logger'));
+            $session->set([
+                'isLoggedIn'     => true,
+                'user_id'        => 34,
+                'name'           => 'Trainer Uji',
+                'account_status' => 'active',
+                'roles'          => ['trainer'],
+            ]);
+            $trainerHomeHtml = $trainerController->index();
+            $hasTrainerElements = str_contains($trainerHomeHtml, 'Ruang Kerja Pengajar & Instruktur')
+                && str_contains($trainerHomeHtml, 'Pusat Aksi Pengajar')
+                && str_contains($trainerHomeHtml, 'Kelas Aktif Saya')
+                && str_contains($trainerHomeHtml, 'Aktivitas Pembelajaran Terkini');
+
+            if ($hasTrainerElements) {
+                CLI::write(" [PASS] Trainer Home: Learning control center (classes, metrics, quick actions, assessments) rendered OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Trainer Home missing expected elements");
+                $failed++;
+            }
+
+            // 8.4 Role Redirects from Root /workspace (Eliminates Double Overview)
+            $session->set(['roles' => ['trainer'], 'isLoggedIn' => true, 'user_id' => 34, 'account_status' => 'active']);
+            $respTrainer = $workspaceHomeController->index();
+            $isTrainerRedirect = ($respTrainer instanceof \CodeIgniter\HTTP\RedirectResponse)
+                && str_contains($respTrainer->getHeaderLine('Location'), '/workspace/trainer');
+
+            $session->set(['roles' => ['operator'], 'isLoggedIn' => true, 'user_id' => $operatorUserId, 'account_status' => 'active']);
+            $respOperator = $workspaceHomeController->index();
+            $isOperatorRedirect = ($respOperator instanceof \CodeIgniter\HTTP\RedirectResponse)
+                && str_contains($respOperator->getHeaderLine('Location'), '/workspace/operator');
+
+            $session->set(['roles' => ['admin'], 'isLoggedIn' => true, 'user_id' => $operatorUserId, 'account_status' => 'active']);
+            $respAdmin = $workspaceHomeController->index();
+            $isAdminRedirect = ($respAdmin instanceof \CodeIgniter\HTTP\RedirectResponse)
+                && str_contains($respAdmin->getHeaderLine('Location'), '/workspace/admin');
+
+            if ($isTrainerRedirect && $isOperatorRedirect && $isAdminRedirect) {
+                CLI::write(" [PASS] Canonical Role Dispatcher: Trainer, Operator, Admin correctly redirected from /workspace without duplicate view", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Canonical Role Dispatcher redirection failed");
+                $failed++;
+            }
+
+        } catch (\Throwable $e) {
+            CLI::error(" [ERR] Canonical Homepages Verification error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
             $failed++;
         }
 

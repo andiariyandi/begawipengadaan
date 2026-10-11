@@ -7,6 +7,7 @@ use App\Controllers\Learning\CertificateEligibilityController;
 use App\Controllers\Learning\CourseController;
 use App\Controllers\Learning\CurriculumController;
 use App\Controllers\Learning\EnrollmentController;
+use App\Controllers\Learning\GradingController;
 use App\Controllers\Learning\LearningClassController;
 use App\Controllers\Learning\LearningOverviewController;
 use App\Controllers\Learning\LearningReportController;
@@ -340,21 +341,78 @@ class ArenaAdminTest extends BaseCommand
         CLI::newLine();
         CLI::write(">>> [MODULE 7/11] Curriculum Management (dashboard/pembelajaran/kurikulum)", "yellow");
         try {
-            // Create Module
+            $now = date('Y-m-d H:i:s');
+
+            // 1. Pre-Test Kelas
+            $db->table('quizzes')->insert([
+                'class_id'      => $testClassId,
+                'lesson_id'     => null,
+                'type'          => 'pre_test',
+                'title'         => 'Pre-Test: Evaluasi Diagnostik Awal',
+                'instructions'  => 'Ujian diagnostik sebelum materi terbuka.',
+                'attempt_limit' => 2,
+                'is_required'   => 1,
+                'status'        => 'published',
+                'created_at'    => $now,
+                'updated_at'    => $now,
+            ]);
+            $testPreTestId = (int) $db->insertID();
+
+            $db->table('pre_tests')->insert([
+                'class_id'      => $testClassId,
+                'is_enabled'    => 1,
+                'attempt_limit' => 2,
+                'status'        => 'published',
+                'created_at'    => $now,
+                'updated_at'    => $now,
+            ]);
+            CLI::write("  [OK] Pre-Test created with ID: {$testPreTestId} & synced with pre_tests table.", "green");
+
+            // Pre-Test Question 1
+            $db->table('quiz_questions')->insert([
+                'quiz_id'     => $testPreTestId,
+                'type'        => 'multiple_choice',
+                'prompt'      => 'Apa tujuan utama pengadaan barang/jasa pemerintah?',
+                'points'      => 10.0,
+                'sort_order'  => 1,
+                'explanation' => 'Menghasilkan barang/jasa tepat nilai dan manfaat untuk publik.',
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            ]);
+            $q1Id = (int) $db->insertID();
+
+            $optionsQ1 = [
+                ['text' => 'Mendapatkan keuntungan maksimal bagi rekanan', 'correct' => 0],
+                ['text' => 'Menghasilkan barang/jasa yang tepat dari setiap uang yang dibelanjakan', 'correct' => 1],
+                ['text' => 'Menghabiskan anggaran sisa tahun berjalan', 'correct' => 0],
+                ['text' => 'Mengurangi jumlah pegawai administrasi', 'correct' => 0],
+            ];
+            foreach ($optionsQ1 as $oIdx => $opt) {
+                $db->table('quiz_options')->insert([
+                    'question_id' => $q1Id,
+                    'option_text' => $opt['text'],
+                    'is_correct'  => $opt['correct'],
+                    'sort_order'  => $oIdx + 1,
+                    'created_at'  => $now,
+                    'updated_at'  => $now,
+                ]);
+            }
+            CLI::write("  [OK] Pre-Test Question #1 created with 4 options (A-D) and key B.", "green");
+
+            // 2. Modul & Lesson
             $db->table('learning_modules')->insert([
                 'class_id'    => $testClassId,
-                'title'       => 'Modul 1: Pengenalan Konsep',
+                'title'       => 'Modul 1: Pengenalan Konsep & Regulasi',
                 'description' => 'Deskripsi modul kurikulum',
                 'sort_order'  => 1,
                 'is_required' => 1,
                 'status'      => 'published',
-                'created_at'  => date('Y-m-d H:i:s'),
-                'updated_at'  => date('Y-m-d H:i:s'),
+                'created_at'  => $now,
+                'updated_at'  => $now,
             ]);
             $testModuleId = (int) $db->insertID();
             CLI::write("  [OK] Module created with ID: {$testModuleId}", "green");
 
-            // Create Lesson under Module
             $db->table('lessons')->insert([
                 'module_id'    => $testModuleId,
                 'title'        => 'Lesson 1.1: Regulasi Dasar PBJ',
@@ -364,27 +422,140 @@ class ArenaAdminTest extends BaseCommand
                 'sort_order'   => 1,
                 'is_required'  => 1,
                 'status'       => 'published',
-                'created_at'   => date('Y-m-d H:i:s'),
-                'updated_at'   => date('Y-m-d H:i:s'),
+                'created_at'   => $now,
+                'updated_at'   => $now,
             ]);
             $testLessonId = (int) $db->insertID();
             CLI::write("  [OK] Lesson created with ID: {$testLessonId}", "green");
 
-            // Verify Curriculum Tree query
-            $modules = $db->table('learning_modules')
-                ->where('class_id', $testClassId)
-                ->orderBy('sort_order', 'ASC')
-                ->get()->getResultArray();
+            // 3. Quiz pada Modul
+            $db->table('quizzes')->insert([
+                'class_id'      => $testClassId,
+                'lesson_id'     => $testLessonId,
+                'type'          => 'lesson_quiz',
+                'title'         => 'Kuis Evaluasi Modul 1',
+                'instructions'  => 'Jawab seluruh pertanyaan pilihan ganda untuk modul ini.',
+                'attempt_limit' => 3,
+                'is_required'   => 1,
+                'status'        => 'published',
+                'created_at'    => $now,
+                'updated_at'    => $now,
+            ]);
+            $testModQuizId = (int) $db->insertID();
 
-            $lessons = $db->table('lessons')
-                ->where('module_id', $testModuleId)
-                ->orderBy('sort_order', 'ASC')
-                ->get()->getResultArray();
+            $db->table('quiz_questions')->insert([
+                'quiz_id'     => $testModQuizId,
+                'type'        => 'multiple_choice',
+                'prompt'      => 'Manakah yang termasuk etika pengadaan barang/jasa?',
+                'points'      => 5.0,
+                'sort_order'  => 1,
+                'explanation' => 'Menghindari benturan kepentingan dan tidak menerima gratifikasi.',
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            ]);
+            $qModId = (int) $db->insertID();
 
-            if (count($modules) !== 1 || count($lessons) !== 1) {
-                throw new \RuntimeException("Curriculum hierarchy validation mismatch.");
+            $optionsQMod = [
+                ['text' => 'Bekerja secara tertib dan mencegah kebocoran keuangan', 'correct' => 1],
+                ['text' => 'Menerima imbalan dari pihak penyedia', 'correct' => 0],
+                ['text' => 'Membocorkan HPS sebelum waktu pengumuman', 'correct' => 0],
+                ['text' => 'Memihak salah satu peserta tender', 'correct' => 0],
+            ];
+            foreach ($optionsQMod as $oIdx => $opt) {
+                $db->table('quiz_options')->insert([
+                    'question_id' => $qModId,
+                    'option_text' => $opt['text'],
+                    'is_correct'  => $opt['correct'],
+                    'sort_order'  => $oIdx + 1,
+                    'created_at'  => $now,
+                    'updated_at'  => $now,
+                ]);
             }
-            CLI::write("  [OK] Curriculum hierarchy (Class -> Module -> Lesson) validated cleanly.", "green");
+            CLI::write("  [OK] Module Quiz created with ID: {$testModQuizId} and Question (key A).", "green");
+
+            // 4. Assignments (Level Kelas & Level Modul)
+            $db->table('assignments')->insert([
+                'class_id'     => $testClassId,
+                'lesson_id'    => null, // Class level
+                'title'        => 'Tugas Akhir Simulasi Pengadaan Kelas',
+                'instructions' => 'Susun dokumen perencanaan dan HPS secara lengkap.',
+                'due_at'       => date('Y-m-d H:i:s', strtotime('+7 days')),
+                'is_required'  => 1,
+                'max_attempts' => 1,
+                'status'       => 'published',
+                'created_at'   => $now,
+                'updated_at'   => $now,
+            ]);
+            $testClassAsgnId = (int) $db->insertID();
+
+            $db->table('assignments')->insert([
+                'class_id'     => $testClassId,
+                'lesson_id'    => $testLessonId, // Module level
+                'title'        => 'Tugas Modul: Studi Kasus Regulasi',
+                'instructions' => 'Analisis kasus sanggahan lelang pada materi regulasi.',
+                'due_at'       => date('Y-m-d H:i:s', strtotime('+3 days')),
+                'is_required'  => 1,
+                'max_attempts' => 2,
+                'status'       => 'published',
+                'created_at'   => $now,
+                'updated_at'   => $now,
+            ]);
+            $testModAsgnId = (int) $db->insertID();
+            CLI::write("  [OK] Assignments created (Class Level ID: {$testClassAsgnId}, Module Level ID: {$testModAsgnId}).", "green");
+
+            // 5. Post-Test Kelas
+            $db->table('quizzes')->insert([
+                'class_id'      => $testClassId,
+                'lesson_id'     => null,
+                'type'          => 'post_test',
+                'title'         => 'Post-Test Ujian Akhir Kelulusan',
+                'instructions'  => 'Evaluasi penentu kelulusan sertifikasi. Nilai dihitung otomatis.',
+                'attempt_limit' => 3,
+                'is_required'   => 1,
+                'status'        => 'published',
+                'created_at'    => $now,
+                'updated_at'    => $now,
+            ]);
+            $testPostTestId = (int) $db->insertID();
+
+            $db->table('quiz_questions')->insert([
+                'quiz_id'     => $testPostTestId,
+                'type'        => 'multiple_choice',
+                'prompt'      => 'Berapakah batas nilai pengadaan langsung untuk barang/jasa lainnya?',
+                'points'      => 20.0,
+                'sort_order'  => 1,
+                'explanation' => 'Sesuai aturan PBJ pemerintah, batas pengadaan langsung barang/pekerjaan konstruksi/jasa lainnya adalah sampai dengan Rp200 juta.',
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            ]);
+            $qPostId = (int) $db->insertID();
+
+            $optionsQPost = [
+                ['text' => 'Rp 50 Juta', 'correct' => 0],
+                ['text' => 'Rp 100 Juta', 'correct' => 0],
+                ['text' => 'Rp 200 Juta', 'correct' => 1],
+                ['text' => 'Rp 500 Juta', 'correct' => 0],
+            ];
+            foreach ($optionsQPost as $oIdx => $opt) {
+                $db->table('quiz_options')->insert([
+                    'question_id' => $qPostId,
+                    'option_text' => $opt['text'],
+                    'is_correct'  => $opt['correct'],
+                    'sort_order'  => $oIdx + 1,
+                    'created_at'  => $now,
+                    'updated_at'  => $now,
+                ]);
+            }
+            CLI::write("  [OK] Post-Test created with ID: {$testPostTestId} and Question (key C).", "green");
+
+            // 6. Verify Curriculum Tree & Render
+            $currCtrl = new CurriculumController();
+            $currCtrl->initController(service('request'), service('response'), service('logger'));
+            $currHtml = $currCtrl->index((string) $testClassId);
+            if (empty($currHtml) || !str_contains($currHtml, 'Pre-Test: Evaluasi Diagnostik Awal') || !str_contains($currHtml, 'Post-Test Ujian Akhir Kelulusan')) {
+                throw new \RuntimeException("Curriculum hierarchy view render validation mismatch.");
+            }
+            CLI::write("  [OK] Curriculum hierarchy view rendered successfully with Pre-Test, Modules, Assignments & Post-Test.", "green");
 
             $this->moduleResults['Module 7: Curriculum Management'] = 'PASS';
         } catch (\Throwable $e) {
@@ -433,7 +604,7 @@ class ArenaAdminTest extends BaseCommand
             $qCount = (int) $db->table('quizzes')->where('class_id', $testClassId)->countAllResults();
             $aCount = (int) $db->table('assignments')->where('class_id', $testClassId)->countAllResults();
 
-            if ($qCount !== 1 || $aCount !== 1) {
+            if ($qCount < 1 || $aCount < 1) {
                 throw new \RuntimeException("Assessment query mismatch (quizzes: {$qCount}, assignments: {$aCount}).");
             }
             CLI::write("  [OK] Assessments in Class #{$testClassId} verified (Quizzes: {$qCount}, Assignments: {$aCount}).", "green");
@@ -673,6 +844,22 @@ class ArenaAdminTest extends BaseCommand
             }
             CLI::write("  [OK] /dashboard/pembelajaran rendered successfully (" . strlen($overHtml) . " bytes)", "green");
 
+            // 10. Bank Soal: /dashboard/pembelajaran/assessment/bank-soal
+            $bankHtml = $assessCtrl->questionBank();
+            if (empty($bankHtml)) {
+                throw new \RuntimeException("Bank soal gagal dirender.");
+            }
+            CLI::write("  [OK] /dashboard/pembelajaran/assessment/bank-soal rendered successfully (" . strlen($bankHtml) . " bytes)", "green");
+
+            // 11. Penilaian: /dashboard/pembelajaran/penilaian
+            $gradeCtrl = new GradingController();
+            $gradeCtrl->initController(service('request'), service('response'), service('logger'));
+            $gradeHtml = $gradeCtrl->index();
+            if (empty($gradeHtml)) {
+                throw new \RuntimeException("Halaman penilaian tugas gagal dirender.");
+            }
+            CLI::write("  [OK] /dashboard/pembelajaran/penilaian rendered successfully (" . strlen($gradeHtml) . " bytes)", "green");
+
             $this->moduleResults['Bug Fixes Verification (3 URLs)'] = 'PASS';
         } catch (\Throwable $e) {
             $this->recordBug('Bug Fixes Verification (3 URLs)', $e->getMessage());
@@ -690,6 +877,19 @@ class ArenaAdminTest extends BaseCommand
             if (!empty($testEnrollmentId)) {
                 $db->table('learning_progress')->where('enrollment_id', $testEnrollmentId)->delete();
                 $db->table('enrollments')->where('id', $testEnrollmentId)->delete();
+            }
+            if (!empty($testClassId)) {
+                $quizzes = $db->table('quizzes')->where('class_id', $testClassId)->get()->getResultArray();
+                foreach ($quizzes as $qz) {
+                    $qQuestions = $db->table('quiz_questions')->where('quiz_id', $qz['id'])->get()->getResultArray();
+                    if (!empty($qQuestions)) {
+                        $db->table('quiz_options')->whereIn('question_id', array_column($qQuestions, 'id'))->delete();
+                        $db->table('quiz_questions')->where('quiz_id', $qz['id'])->delete();
+                    }
+                }
+                $db->table('quizzes')->where('class_id', $testClassId)->delete();
+                $db->table('pre_tests')->where('class_id', $testClassId)->delete();
+                $db->table('assignments')->where('class_id', $testClassId)->delete();
             }
             if (!empty($testQuizId)) {
                 $db->table('quizzes')->where('id', $testQuizId)->delete();

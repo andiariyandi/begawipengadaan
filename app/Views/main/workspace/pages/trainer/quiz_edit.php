@@ -21,7 +21,10 @@ $optionsByQuestion = $optionsByQuestion ?? [];
                 <h1 class="h3 fw-bold text-navy mb-1"><?= esc($quiz['title'] ?? 'Kelola Soal Ujian') ?></h1>
                 <p class="text-muted small mb-0">Kelas: <strong><?= esc($className) ?></strong> &middot; Total Soal: <strong><?= count($questions) ?></strong> Butir</p>
             </div>
-            <div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="<?= route_to('workspace.trainer.quiz.attempts', (string) $classId, (string) $quiz['id']) ?>" class="btn btn-outline-info rounded-pill px-3">
+                    <i class="fas fa-users-cog me-1"></i> Hasil Peserta
+                </a>
                 <a href="<?= route_to('workspace.trainer.class.detail', (string) $classId) ?>?tab=assessment" class="btn btn-outline-secondary rounded-pill px-3">
                     <i class="fas fa-arrow-left me-1"></i> Kembali ke Assessment
                 </a>

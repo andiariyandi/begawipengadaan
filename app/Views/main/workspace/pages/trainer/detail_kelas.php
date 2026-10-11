@@ -581,9 +581,14 @@ $stats       = $stats ?? [];
                                         </span>
                                     </td>
                                     <td class="text-end">
-                                        <a href="<?= route_to('workspace.trainer.quiz.edit', (string) $classId, (string) $q['id']) ?>" class="btn btn-sm btn-primary rounded-pill px-3">
-                                            <i class="fas fa-edit me-1"></i> Kelola Soal
-                                        </a>
+                                        <div class="d-inline-flex gap-2">
+                                            <a href="<?= route_to('workspace.trainer.quiz.attempts', (string) $classId, (string) $q['id']) ?>" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                                                <i class="fas fa-users-cog me-1"></i> Hasil Peserta
+                                            </a>
+                                            <a href="<?= route_to('workspace.trainer.quiz.edit', (string) $classId, (string) $q['id']) ?>" class="btn btn-sm btn-primary rounded-pill px-3">
+                                                <i class="fas fa-edit me-1"></i> Kelola Soal
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

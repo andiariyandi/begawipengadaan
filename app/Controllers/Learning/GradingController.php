@@ -13,7 +13,7 @@ class GradingController extends BaseController
         $status = trim((string) $this->request->getGet('status'));
 
         $builder = $db->table('assignment_submissions asub')
-            ->select('asub.*, a.title AS assignment_title, a.max_score, a.passing_score,
+            ->select('asub.*, a.title AS assignment_title,
                       u.name AS student_name, u.username, lc.name AS class_name, evaluator.name AS evaluator_name')
             ->join('assignments a', 'a.id = asub.assignment_id')
             ->join('enrollments e', 'e.id = asub.enrollment_id')
@@ -61,8 +61,7 @@ class GradingController extends BaseController
     {
         $db = db_connect();
         $submission = $db->table('assignment_submissions asub')
-            ->select('asub.*, a.title AS assignment_title, a.description AS assignment_description,
-                      a.max_score, a.passing_score,
+            ->select('asub.*, a.title AS assignment_title, a.instructions AS assignment_description,
                       u.name AS student_name, u.username, u.email AS student_email,
                       lc.name AS class_name, evaluator.name AS evaluator_name')
             ->join('assignments a', 'a.id = asub.assignment_id')
@@ -73,17 +72,44 @@ class GradingController extends BaseController
             ->where('asub.id', $id)
             ->get()->getRowArray();
 
-        if (! $submission) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Penilaian tidak ditemukan.');
-        }
+        $files = $db->table('assignment_submission_files asf')
+            ->select('asf.*, fa.original_name, fa.mime_type, fa.size_bytes, fa.path')
+            ->join('file_assets fa', 'fa.id = asf.file_id', 'left')
+            ->where('asf.submission_id', (int) $id)
+            ->get()->getResultArray();
 
         return view('dashboard/learning/gradings/detail', [
             'title'         => 'Detail Penilaian | Dashboard BegawiPBJ',
             'pageTitle'     => 'Detail Penilaian Tugas',
             'gradingId'     => $id,
             'submission'    => $submission,
+            'files'         => $files,
             'activeMenu'    => 'learning',
             'activeSubmenu' => 'gradings',
         ]);
+    }
+
+    public function grade(string $id)
+    {
+        $submissionId = (int) $id;
+        $score        = (float) $this->request->getPost('score');
+        $status       = (string) ($this->request->getPost('status') ?: 'graded');
+        $feedback     = trim((string) $this->request->getPost('feedback'));
+
+        if ($score < 0.0 || $score > 100.0) {
+            return redirect()->back()->withInput()->with('error', 'Nilai harus berada dalam rentang 0.00 hingga 100.00.');
+        }
+
+        $evaluatorId = (int) (session()->get('user_id') ?: 1);
+
+        try {
+            $evaluatorService = new \App\Services\EvaluatorService();
+            $evaluatorService->gradeSubmission($evaluatorId, $submissionId, $score, $status, $feedback ?: null);
+
+            return redirect()->to(site_url('dashboard/pembelajaran/penilaian/' . $submissionId))
+                ->with('success', "Penilaian submisi #{$submissionId} berhasil diperbarui dengan nilai {$score}.");
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan penilaian: ' . $e->getMessage());
+        }
     }
 }
