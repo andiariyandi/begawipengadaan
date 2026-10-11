@@ -2,78 +2,321 @@
 
 <?= $this->section('content') ?>
 
-<?= view('landing/components/page_header', ['page_title' => 'Bunga Rampai']) ?>
-
 <?php
+$stats = $stats ?? [
+    'total_articles'  => 0,
+    'total_faqs'      => 0,
+    'total_cases'     => 0,
+    'total_templates' => 0,
+    'total_media'     => 0,
+    'total_videos'    => 0,
+    'total_gallery'   => 0,
+    'total_all'       => 0,
+];
 $featured    = $featured ?? [];
 $articles    = $articles ?? [];
 $caseStudies = $caseStudies ?? [];
+$templates   = $templates ?? [];
+$faqs        = $faqs ?? [];
 $mediaItems  = $mediaItems ?? [];
+$isLoggedIn  = session()->get('isLoggedIn') === true;
 ?>
 
+<!-- =========================================================================
+     PAGE HERO BUNGA RAMPAI (UNIFIED FI-STUDY DNA)
+     ========================================================================= -->
+<section class="arena-hero position-relative">
+    <div class="arena-hero__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/page-header-bg.jpg') ?>);"></div>
+    <div class="arena-hero__overlay"></div>
+    <div class="container">
+        <div class="arena-hero__inner text-center pt-2 pt-md-4">
+            <span class="arena-section-head__tag text-white mb-3" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.32); backdrop-filter: blur(6px);">
+                <i class="fas fa-book-reader me-1"></i> Bunga Rampai BegawiPBJ Lampung
+            </span>
+            <h1 class="text-white mb-3" style="font-size: 38px; font-weight: 800; line-height: 1.25; text-shadow: 0 2px 10px rgba(0,0,0,0.4);">
+                Pusat Pengetahuan &amp; Praktik Baik Pengadaan
+            </h1>
+            <p class="mx-auto mb-4" style="max-width: 720px; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.92); text-shadow: 0 1px 5px rgba(0,0,0,0.35);">
+                Kompilasi artikel teknis, studi kasus lapangan, standar template dokumen siap pakai, tanya jawab (FAQ), dan konten multimedia Pengadaan Barang/Jasa Pemerintah.
+            </p>
+
+            <!-- Search Bar -->
+            <div class="arena-search-bar mb-4">
+                <form action="<?= site_url('bunga-rampai/artikel') ?>" method="get" class="d-flex align-items-center">
+                    <i class="fas fa-search text-muted me-2" style="font-size: 16px;"></i>
+                    <input type="text" name="q" placeholder="Cari artikel PBJ, format KAK, HPS, mitigasi risiko, studi kasus, atau FAQ..." autocomplete="off">
+                    <button type="submit">
+                        <i class="fas fa-search me-1"></i>
+                        <span>Cari</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Sub-Navigation Pills -->
+            <nav class="arena-nav-pills" aria-label="Kategori Bunga Rampai">
+                <a href="<?= site_url('bunga-rampai') ?>" class="arena-nav-pill active">
+                    <i class="fas fa-th-large"></i>
+                    <span>Semua Eksplorasi</span>
+                    <span class="badge"><?= (int) ($stats['total_all'] ?? 0) ?></span>
+                </a>
+                <a href="<?= site_url('bunga-rampai/artikel') ?>" class="arena-nav-pill">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Artikel PBJ</span>
+                    <span class="badge"><?= (int) ($stats['total_articles'] ?? 0) ?></span>
+                </a>
+                <a href="<?= site_url('bunga-rampai/faq') ?>" class="arena-nav-pill">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Tanya Jawab (FAQ)</span>
+                    <span class="badge"><?= (int) ($stats['total_faqs'] ?? 0) ?></span>
+                </a>
+                <a href="<?= site_url('bunga-rampai/studi-kasus') ?>" class="arena-nav-pill">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Studi Kasus</span>
+                    <span class="badge"><?= (int) ($stats['total_cases'] ?? 0) ?></span>
+                </a>
+                <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="arena-nav-pill">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>Template Dokumen</span>
+                    <span class="badge"><?= (int) ($stats['total_templates'] ?? 0) ?></span>
+                </a>
+                <a href="<?= site_url('bunga-rampai/media') ?>" class="arena-nav-pill">
+                    <i class="fas fa-photo-video"></i>
+                    <span>Media &amp; Infografik</span>
+                    <span class="badge"><?= (int) ($stats['total_media'] ?? 0) ?></span>
+                </a>
+                <a href="<?= site_url('bunga-rampai/video') ?>" class="arena-nav-pill">
+                    <i class="fas fa-video"></i>
+                    <span>Video PBJ</span>
+                    <span class="badge"><?= (int) ($stats['total_videos'] ?? 0) ?></span>
+                </a>
+                <a href="<?= site_url('bunga-rampai/galeri') ?>" class="arena-nav-pill">
+                    <i class="fas fa-images"></i>
+                    <span>Galeri Kegiatan</span>
+                    <span class="badge"><?= (int) ($stats['total_gallery'] ?? 0) ?></span>
+                </a>
+            </nav>
+        </div>
+    </div>
+</section>
+
+<!-- Flash Alerts -->
 <?php if ($msg = session()->getFlashdata('success')): ?>
-    <div class="alert alert-success radius-8 mb-3 container"><?= esc($msg) ?></div>
+    <div class="container mt-4"><div class="alert alert-success radius-8 mb-0"><?= esc($msg) ?></div></div>
 <?php endif; ?>
 <?php if ($msg = session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger radius-8 mb-3 container"><?= esc($msg) ?></div>
+    <div class="container mt-4"><div class="alert alert-danger radius-8 mb-0"><?= esc($msg) ?></div></div>
 <?php endif; ?>
 
-<section class="category-one knowledge-home">
-    <div class="category-one__bg-shape" style="background-image: url(<?= base_url('assets/main/images/shapes/category-one-bg-shape.png') ?>);"></div>
+<!-- =========================================================================
+     SECTION 1: PILAR EKSPLORASI BUNGA RAMPAI (CATEGORY GRID)
+     ========================================================================= -->
+<section class="py-5" style="background: #ffffff;">
     <div class="container">
-        <div class="section-title text-center">
-            <div class="section-title__tagline-box"><div class="section-title__tagline-shape"></div><p class="section-title__tagline">Pengetahuan PBJ Lampung</p></div>
-            <h2 class="section-title__title">Temukan Wawasan dan Referensi</h2>
-            <p class="text-muted">Artikel, studi kasus, FAQ, template, dan media untuk mendukung proses PBJ.</p>
+        <div class="section-title text-center mb-4">
+            <div class="section-title__tagline-box">
+                <div class="section-title__tagline-shape"></div>
+                <p class="section-title__tagline">Pilar Repositori Pengetahuan</p>
+            </div>
+            <h2 class="section-title__title" style="font-size: 30px; font-weight: 800; color: #082f5c;">Jelajahi Ekosistem Pengetahuan PBJ</h2>
+            <p class="text-muted mx-auto" style="max-width: 640px; font-size: 15px;">
+                Temukan referensi komprehensif mulai dari pemahaman regulasi, template berkas operasional, kajian risiko lapangan, hingga media visual interaktif.
+            </p>
         </div>
-        <div class="row">
-            <?php foreach ([
-                ['title' => 'Artikel PBJ', 'text' => 'Wawasan, regulasi, dan praktik baik pengadaan.', 'url' => 'bunga-rampai/artikel', 'icon' => 'why-choose-one-icon-1.png'],
-                ['title' => 'Tanya Jawab PBJ', 'text' => 'Jawaban singkat untuk pertanyaan yang sering muncul.', 'url' => 'bunga-rampai/faq', 'icon' => 'why-choose-one-icon-2.png'],
-                ['title' => 'Studi Kasus', 'text' => 'Belajar dari pengalaman dan tantangan di lapangan.', 'url' => 'bunga-rampai/studi-kasus', 'icon' => 'why-choose-one-icon-3.png'],
-                ['title' => 'Template Dokumen', 'text' => 'Contoh dokumen pendukung proses PBJ.', 'url' => 'bunga-rampai/template-dokumen', 'icon' => 'why-choose-one-icon-4.png'],
-                ['title' => 'Media PBJ', 'text' => 'Infografik dan materi visual yang mudah dipahami.', 'url' => 'bunga-rampai/media', 'icon' => 'why-choose-one-icon-1.png'],
-                ['title' => 'Video PBJ', 'text' => 'Sajian video pembelajaran dan diskusi.', 'url' => 'bunga-rampai/video', 'icon' => 'why-choose-one-icon-2.png'],
-                ['title' => 'Galeri Kegiatan', 'text' => 'Dokumentasi kolaborasi ekosistem PBJ Lampung.', 'url' => 'bunga-rampai/galeri', 'icon' => 'why-choose-one-icon-3.png'],
-            ] as $item): ?>
+
+        <div class="row g-4">
+            <?php
+            $pillars = [
+                [
+                    'title' => 'Artikel PBJ',
+                    'desc'  => 'Wawasan analisis regulasi LKPP, opini keahlian, dan praktik baik pengadaan.',
+                    'url'   => site_url('bunga-rampai/artikel'),
+                    'icon'  => 'fas fa-newspaper',
+                    'color' => '#0d6efd',
+                    'count' => (int) ($stats['total_articles'] ?? 0),
+                    'label' => 'Artikel',
+                ],
+                [
+                    'title' => 'Tanya Jawab (FAQ)',
+                    'desc'  => 'Solusi ringkas dan tepat sasaran atas problematika pengadaan sehari-hari.',
+                    'url'   => site_url('bunga-rampai/faq'),
+                    'icon'  => 'fas fa-question-circle',
+                    'color' => '#198754',
+                    'count' => (int) ($stats['total_faqs'] ?? 0),
+                    'label' => 'Tanya Jawab',
+                ],
+                [
+                    'title' => 'Studi Kasus Lapangan',
+                    'desc'  => 'Pelajaran berharga dari dinamika audit, kontrak kritis, dan sanggahan tender.',
+                    'url'   => site_url('bunga-rampai/studi-kasus'),
+                    'icon'  => 'fas fa-briefcase',
+                    'color' => '#d63384',
+                    'count' => (int) ($stats['total_cases'] ?? 0),
+                    'label' => 'Kasus PBJ',
+                ],
+                [
+                    'title' => 'Template Dokumen',
+                    'desc'  => 'Standar format KAK, HPS, SPK, kontrak, dan BAST siap unduh yang terstandardisasi.',
+                    'url'   => site_url('bunga-rampai/template-dokumen'),
+                    'icon'  => 'fas fa-file-invoice',
+                    'color' => '#fd7e14',
+                    'count' => (int) ($stats['total_templates'] ?? 0),
+                    'label' => 'Template Berkas',
+                ],
+                [
+                    'title' => 'Media & Infografik',
+                    'desc'  => 'Diagram alir, cheat sheet, dan infografik visual siklus pengadaan pemerintah.',
+                    'url'   => site_url('bunga-rampai/media'),
+                    'icon'  => 'fas fa-photo-video',
+                    'color' => '#0dcaf0',
+                    'count' => (int) ($stats['total_media'] ?? 0),
+                    'label' => 'Media Visual',
+                ],
+                [
+                    'title' => 'Video Pembelajaran',
+                    'desc'  => 'Tutorial aplikasi SPSE, rekaman webinar, dan sesi bimbingan teknis daring.',
+                    'url'   => site_url('bunga-rampai/video'),
+                    'icon'  => 'fas fa-video',
+                    'color' => '#dc3545',
+                    'count' => (int) ($stats['total_videos'] ?? 0),
+                    'label' => 'Video',
+                ],
+                [
+                    'title' => 'Galeri Dokumentasi',
+                    'desc'  => 'Rekam jejak kegiatan kolaboratif ekosistem pengadaan se-Provinsi Lampung.',
+                    'url'   => site_url('bunga-rampai/galeri'),
+                    'icon'  => 'fas fa-images',
+                    'color' => '#6f42c1',
+                    'count' => (int) ($stats['total_gallery'] ?? 0),
+                    'label' => 'Dokumentasi',
+                ],
+                [
+                    'title' => 'Regulasi Terkait',
+                    'desc'  => 'Basis peraturan perundang-undangan PBJ, Perpres, Perka LKPP, dan Pergub Lampung.',
+                    'url'   => site_url('regulasi'),
+                    'icon'  => 'fas fa-balance-scale',
+                    'color' => '#20c997',
+                    'count' => 'Resmi',
+                    'label' => 'Peraturan',
+                ],
+            ];
+            foreach ($pillars as $p): ?>
                 <div class="col-xl-3 col-lg-4 col-md-6">
-                    <article class="category-one__single">
-                        <div class="category-one__icon"><img src="<?= base_url('assets/main/images/icon/' . $item['icon']) ?>" alt=""></div>
-                        <h3 class="category-one__title"><a href="<?= site_url($item['url']) ?>"><?= esc($item['title']) ?></a></h3>
-                        <p class="category-one__text"><?= esc($item['text']) ?></p>
-                        <a class="category-one__btn" href="<?= site_url($item['url']) ?>"><span class="icon-angles-right"></span> Jelajahi</a>
-                    </article>
+                    <div class="card h-100 border-0 shadow-sm radius-16 p-4 d-flex flex-column transition-hover" style="background: #ffffff; border: 1px solid #edf2f7 !important;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-inline-flex align-items-center justify-content-center radius-12" style="width: 52px; height: 52px; background: <?= esc($p['color']) ?>15; color: <?= esc($p['color']) ?>; font-size: 22px;">
+                                <i class="<?= esc($p['icon']) ?>"></i>
+                            </div>
+                            <span class="badge radius-20 px-3 py-1 small fw-semibold" style="background: #f1f5f9; color: #475569;">
+                                <?= esc($p['count']) ?> <?= is_numeric($p['count']) ? 'Item' : '' ?>
+                            </span>
+                        </div>
+                        <h4 class="fw-bold mb-2" style="font-size: 17px; color: #082f5c;">
+                            <a href="<?= esc($p['url']) ?>" class="text-decoration-none text-reset hover-primary"><?= esc($p['title']) ?></a>
+                        </h4>
+                        <p class="text-muted small mb-4 flex-grow-1" style="line-height: 1.55;">
+                            <?= esc($p['desc']) ?>
+                        </p>
+                        <a href="<?= esc($p['url']) ?>" class="btn btn-sm btn-outline-primary radius-8 d-inline-flex align-items-center justify-content-between px-3 py-2 fw-semibold" style="margin-top: auto;">
+                            <span>Jelajahi <?= esc($p['label']) ?></span>
+                            <i class="fas fa-arrow-right ms-2" style="font-size: 12px;"></i>
+                        </a>
+                    </div>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
 </section>
 
+<!-- =========================================================================
+     SECTION 2: PILIHAN EDITOR (FEATURED CONTENT)
+     ========================================================================= -->
 <?php if (! empty($featured)): ?>
-<section class="featured-one knowledge-featured">
+<section class="py-5" style="background: #f8fafc; border-top: 1px solid #eef2f6;">
     <div class="container">
-        <div class="section-title text-left">
-            <div class="section-title__tagline-box"><div class="section-title__tagline-shape"></div><p class="section-title__tagline">Konten Unggulan</p></div>
-            <h2 class="section-title__title">Pilihan Editor</h2>
+        <div class="d-flex flex-wrap align-items-end justify-content-between mb-4">
+            <div class="arena-section-head mb-0">
+                <span class="arena-section-head__tag">
+                    <i class="fas fa-star me-1 text-warning"></i> Konten Pilihan Editor
+                </span>
+                <h3 class="arena-section-head__title">Rekomendasi Utama Pengetahuan</h3>
+                <p class="arena-section-head__desc mb-0">
+                    Materi esensial yang direkomendasikan langsung oleh fasilitator dan tim teknis pengadaan daerah.
+                </p>
+            </div>
+            <a href="<?= site_url('bunga-rampai/artikel?featured=1') ?>" class="btn btn-outline-primary radius-8 px-4 py-2 mt-3 mt-md-0 d-inline-flex align-items-center gap-2 fw-semibold">
+                <span>Lihat Semua Rekomendasi</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
         </div>
-        <div class="row">
-            <?php foreach ($featured as $feat):
-                $fRoute = match ($feat['type']) {
-                    'article'    => 'public.knowledge.article.detail',
+
+        <div class="row g-4">
+            <?php foreach ($featured as $index => $feat):
+                $fType = $feat['type'] ?? 'article';
+                $fRoute = match ($fType) {
                     'case_study' => 'public.knowledge.case-study.detail',
                     'template'   => 'public.knowledge.templates.detail',
-                    default      => 'public.knowledge.index',
+                    default      => 'public.knowledge.article.detail',
                 };
                 $fUrl = route_to($fRoute, $feat['slug']);
+                $fBookmarkType = match ($fType) {
+                    'case_study' => 'knowledge_case',
+                    'template'   => 'knowledge_template',
+                    default      => 'knowledge_article',
+                };
+                $typeLabel = match ($fType) {
+                    'case_study' => 'Studi Kasus',
+                    'template'   => 'Template Dokumen',
+                    default      => 'Artikel PBJ',
+                };
+                $badgeBg = match ($fType) {
+                    'case_study' => 'bg-danger text-white',
+                    'template'   => 'bg-warning text-dark',
+                    default      => 'bg-primary text-white',
+                };
+
+                $coverImg = ! empty($feat['cover_file_id'])
+                    ? site_url('file/' . (int) $feat['cover_file_id'])
+                    : base_url('assets/main/images/blog/blog-2-' . (((int) $feat['id'] % 4) + 1) . '.jpg');
             ?>
-                <div class="col-xl-3 col-lg-4 col-md-6">
-                    <article class="blog-two__single">
-                        <div class="blog-two__img"><img src="<?= base_url('assets/main/images/blog/blog-2-' . (((int) $feat['id']) % 4 + 1) . '.jpg') ?>" alt="<?= esc($feat['title']) ?>"></div>
-                        <div class="blog-two__content">
-                            <h4 class="blog-two__title"><a href="<?= esc($fUrl) ?>"><?= esc($feat['title']) ?></a></h4>
-                            <p class="blog-two__text"><?= esc($feat['summary'] ?? '') ?></p>
-                            <a class="thm-btn thm-btn--sm" href="<?= esc($fUrl) ?>"><span class="icon-angles-right"></span> Buka</a>
-                            <?= view('landing/components/bookmark_button', ['type' => 'knowledge_article', 'id' => (int) $feat['id'], 'title' => $feat['title'] ?? null, 'size' => 'sm']) ?>
+                <div class="col-xl-3 col-lg-6 col-md-6">
+                    <article class="card h-100 border-0 shadow-sm radius-16 overflow-hidden d-flex flex-column transition-hover" style="background: #ffffff;">
+                        <div class="position-relative" style="height: 180px; overflow: hidden; background: #082f5c;">
+                            <img src="<?= esc($coverImg) ?>" alt="<?= esc($feat['title']) ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/main/images/blog/blog-2-1.jpg') ?>';">
+                            <div class="position-absolute top-0 start-0 m-3">
+                                <span class="badge radius-6 px-2 py-1 small fw-semibold <?= esc($badgeBg) ?>">
+                                    <?= esc($typeLabel) ?>
+                                </span>
+                            </div>
+                            <div class="position-absolute top-0 end-0 m-3">
+                                <span class="badge bg-dark bg-opacity-75 text-white radius-6 px-2 py-1 small">
+                                    <i class="fas fa-star text-warning me-1"></i> Unggulan
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 text-muted small mb-2" style="font-size: 12px;">
+                                <span><i class="fas fa-user-circle me-1"></i> <?= esc($feat['author_name'] ?? 'Biro PBJ') ?></span>
+                                <span>&middot;</span>
+                                <span><i class="far fa-clock me-1"></i> <?= esc($feat['reading_time'] ?? 5) ?> mnt</span>
+                            </div>
+                            <h4 class="fw-bold mb-2" style="font-size: 16px; line-height: 1.45; color: #082f5c;">
+                                <a href="<?= esc($fUrl) ?>" class="text-decoration-none text-reset hover-primary"><?= esc($feat['title']) ?></a>
+                            </h4>
+                            <p class="text-muted small mb-4 flex-grow-1" style="line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                <?= esc($feat['summary'] ?? '') ?>
+                            </p>
+                            <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-auto">
+                                <a href="<?= esc($fUrl) ?>" class="btn btn-sm btn-primary radius-8 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+                                    <span>Buka</span>
+                                    <i class="fas fa-arrow-right" style="font-size: 11px;"></i>
+                                </a>
+                                <?= view('landing/components/bookmark_button', [
+                                    'type'  => $fBookmarkType,
+                                    'id'    => (int) $feat['id'],
+                                    'title' => $feat['title'] ?? null,
+                                    'size'  => 'sm',
+                                ]) ?>
+                            </div>
                         </div>
                     </article>
                 </div>
@@ -83,85 +326,71 @@ $mediaItems  = $mediaItems ?? [];
 </section>
 <?php endif; ?>
 
+<!-- =========================================================================
+     SECTION 3: ARTIKEL TERBARU
+     ========================================================================= -->
 <?php if (! empty($articles)): ?>
-<section class="knowledge-latest">
+<section class="py-5" style="background: #ffffff;">
     <div class="container">
-        <div class="section-title d-flex justify-content-between align-items-end flex-wrap">
-            <div>
-                <div class="section-title__tagline-box"><div class="section-title__tagline-shape"></div><p class="section-title__tagline">Artikel Terbaru</p></div>
-                <h2 class="section-title__title">Update Terbaru</h2>
+        <div class="d-flex flex-wrap align-items-end justify-content-between mb-4">
+            <div class="arena-section-head mb-0">
+                <span class="arena-section-head__tag">
+                    <i class="fas fa-newspaper me-1"></i> Wawasan &amp; Regulasi
+                </span>
+                <h3 class="arena-section-head__title">Artikel Pengetahuan Terbaru</h3>
+                <p class="arena-section-head__desc mb-0">
+                    Ulasan analisis, panduan teknis, dan praktik terbaik pengadaan barang/jasa terkini.
+                </p>
             </div>
-            <a class="thm-btn" href="<?= route_to('public.knowledge.articles') ?>"><span>Lihat semua</span><i class="icon-angles-right"></i></a>
+            <a href="<?= route_to('public.knowledge.articles') ?>" class="btn btn-outline-primary radius-8 px-4 py-2 mt-3 mt-md-0 d-inline-flex align-items-center gap-2 fw-semibold">
+                <span>Lihat Semua Artikel (<?= (int) ($stats['total_articles'] ?? 0) ?>)</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
         </div>
-        <div class="row">
-            <?php foreach (array_slice($articles, 0, 3) as $item): ?>
-                <div class="col-xl-4 col-lg-6 col-md-6">
-                    <article class="blog-two__single h-100">
-                        <div class="blog-two__img"><img src="<?= base_url('assets/main/images/blog/blog-2-' . (((int) $item['id']) % 4 + 1) . '.jpg') ?>" alt=""></div>
-                        <div class="blog-two__content">
-                            <h4 class="blog-two__title"><a href="<?= route_to('public.knowledge.article.detail', $item['slug']) ?>"><?= esc($item['title']) ?></a></h4>
-                            <p class="blog-two__text"><?= esc($item['summary'] ?? '') ?></p>
-                        </div>
-                    </article>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-</section>
-<?php endif; ?>
 
-<?php if (! empty($caseStudies)): ?>
-<section class="knowledge-latest knowledge-cases">
-    <div class="container">
-        <div class="section-title d-flex justify-content-between align-items-end flex-wrap">
-            <div>
-                <div class="section-title__tagline-box"><div class="section-title__tagline-shape"></div><p class="section-title__tagline">Studi Kasus</p></div>
-                <h2 class="section-title__title">Pelajaran dari Lapangan</h2>
-            </div>
-            <a class="thm-btn" href="<?= route_to('public.knowledge.case-studies') ?>"><span>Lihat semua</span><i class="icon-angles-right"></i></a>
-        </div>
-        <div class="row">
-            <?php foreach (array_slice($caseStudies, 0, 3) as $item): ?>
-                <div class="col-xl-4 col-lg-6 col-md-6">
-                    <article class="blog-two__single h-100">
-                        <div class="blog-two__img"><img src="<?= base_url('assets/main/images/blog/blog-2-' . (((int) $item['id']) % 4 + 1) . '.jpg') ?>" alt=""></div>
-                        <div class="blog-two__content">
-                            <h4 class="blog-two__title"><a href="<?= route_to('public.knowledge.case-study.detail', $item['slug']) ?>"><?= esc($item['title']) ?></a></h4>
-                            <p class="blog-two__text"><?= esc($item['summary'] ?? '') ?></p>
-                        </div>
-                    </article>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-</section>
-<?php endif; ?>
-
-<?php if (! empty($mediaItems)): ?>
-<section class="knowledge-media-latest">
-    <div class="container">
-        <div class="section-title d-flex justify-content-between align-items-end flex-wrap">
-            <div>
-                <div class="section-title__tagline-box"><div class="section-title__tagline-shape"></div><p class="section-title__tagline">Media &amp; Video</p></div>
-                <h2 class="section-title__title">Konten Visual Terbaru</h2>
-            </div>
-            <a class="thm-btn" href="<?= route_to('public.knowledge.media') ?>"><span>Lihat semua</span><i class="icon-angles-right"></i></a>
-        </div>
-        <div class="row">
-            <?php foreach (array_slice($mediaItems, 0, 6) as $item):
-                $type = (string) ($item['type'] ?? '');
-                $isVideo = $type === 'youtube' || $type === 'video_file';
-                $icon = $isVideo ? 'solar:video-outline' : 'solar:gallery-wide-outline';
+        <div class="row g-4">
+            <?php foreach (array_slice($articles, 0, 3) as $art):
+                $coverImg = ! empty($art['cover_file_id'])
+                    ? site_url('file/' . (int) $art['cover_file_id'])
+                    : base_url('assets/main/images/blog/blog-2-' . (((int) $art['id'] % 4) + 1) . '.jpg');
             ?>
                 <div class="col-xl-4 col-lg-6 col-md-6">
-                    <article class="category-one__single">
-                        <div class="category-one__icon"><iconify-icon icon="<?= esc($icon) ?>" class="text-4xl text-primary-600"></iconify-icon></div>
-                        <h3 class="category-one__title"><?= esc($item['title'] ?? '(Tanpa judul)') ?></h3>
-                        <p class="category-one__text"><?= esc($item['caption'] ?? '') ?></p>
-                        <?php if (! empty($item['external_url']) && $isVideo): ?>
-                            <a class="category-one__btn" href="<?= esc($item['external_url']) ?>" target="_blank" rel="noopener"><span class="icon-play"></span> Tonton</a>
-                        <?php endif; ?>
-                        <?= view('landing/components/bookmark_button', ['type' => 'knowledge_media', 'id' => (int) $item['id'], 'title' => $item['title'] ?? null, 'size' => 'sm']) ?>
+                    <article class="card h-100 border-0 shadow-sm radius-16 overflow-hidden d-flex flex-column transition-hover" style="background: #ffffff; border: 1px solid #edf2f7 !important;">
+                        <div class="position-relative" style="height: 190px; overflow: hidden; background: #082f5c;">
+                            <img src="<?= esc($coverImg) ?>" alt="<?= esc($art['title']) ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/main/images/blog/blog-2-2.jpg') ?>';">
+                            <div class="position-absolute top-0 start-0 m-3">
+                                <span class="badge bg-primary text-white radius-6 px-2 py-1 small fw-semibold">
+                                    <i class="fas fa-newspaper me-1"></i> Artikel PBJ
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 text-muted small mb-2" style="font-size: 12.5px;">
+                                <span><i class="far fa-calendar-alt me-1"></i> <?= ! empty($art['published_at']) ? esc(date('d M Y', strtotime($art['published_at']))) : 'Terbaru' ?></span>
+                                <span>&middot;</span>
+                                <span><i class="far fa-clock me-1"></i> <?= esc($art['reading_time'] ?? 5) ?> mnt baca</span>
+                            </div>
+                            <h4 class="fw-bold mb-2" style="font-size: 17px; line-height: 1.45; color: #082f5c;">
+                                <a href="<?= route_to('public.knowledge.article.detail', $art['slug']) ?>" class="text-decoration-none text-reset hover-primary">
+                                    <?= esc($art['title']) ?>
+                                </a>
+                            </h4>
+                            <p class="text-muted small mb-4 flex-grow-1" style="line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                <?= esc($art['summary'] ?? '') ?>
+                            </p>
+                            <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-auto">
+                                <a href="<?= route_to('public.knowledge.article.detail', $art['slug']) ?>" class="btn btn-sm btn-outline-primary radius-8 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+                                    <span>Baca Artikel</span>
+                                    <i class="fas fa-arrow-right" style="font-size: 11px;"></i>
+                                </a>
+                                <?= view('landing/components/bookmark_button', [
+                                    'type'  => 'knowledge_article',
+                                    'id'    => (int) $art['id'],
+                                    'title' => $art['title'] ?? null,
+                                    'size'  => 'sm',
+                                ]) ?>
+                            </div>
+                        </div>
                     </article>
                 </div>
             <?php endforeach; ?>
@@ -169,5 +398,339 @@ $mediaItems  = $mediaItems ?? [];
     </div>
 </section>
 <?php endif; ?>
+
+<!-- =========================================================================
+     SECTION 4: STUDI KASUS & TEMPLATE DOKUMEN (SPLIT SHOWCASE)
+     ========================================================================= -->
+<section class="py-5" style="background: #f8fafc; border-top: 1px solid #eef2f6;">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Studi Kasus -->
+            <div class="col-xl-6">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <span class="arena-section-head__tag text-danger" style="background: #fde8e8;">
+                            <i class="fas fa-briefcase me-1"></i> Pelajaran Nyata
+                        </span>
+                        <h3 class="fw-bold mt-2 mb-0" style="color: #082f5c; font-size: 22px;">Studi Kasus Lapangan</h3>
+                    </div>
+                    <a href="<?= route_to('public.knowledge.case-studies') ?>" class="btn btn-sm btn-outline-secondary radius-8 px-3 fw-semibold">
+                        Semua Kasus (<?= (int) ($stats['total_cases'] ?? 0) ?>)
+                    </a>
+                </div>
+
+                <div class="d-flex flex-column gap-3">
+                    <?php if (empty($caseStudies)): ?>
+                        <div class="p-4 text-center bg-white radius-12 text-muted">Belum ada studi kasus yang dipublikasikan.</div>
+                    <?php else: ?>
+                        <?php foreach (array_slice($caseStudies, 0, 3) as $cs): ?>
+                            <div class="card border-0 shadow-sm radius-12 p-3 transition-hover bg-white">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="d-flex align-items-center justify-content-center radius-10 flex-shrink-0" style="width: 44px; height: 44px; background: #fff1f2; color: #e11d48; font-size: 18px;">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="badge bg-light text-danger border px-2 py-0 small" style="font-size: 11px;">Studi Kasus</span>
+                                            <span class="text-muted small" style="font-size: 11.5px;"><i class="far fa-clock me-1"></i> <?= esc($cs['reading_time'] ?? 5) ?> mnt</span>
+                                        </div>
+                                        <h5 class="fw-bold mb-1" style="font-size: 15px; color: #082f5c; line-height: 1.4;">
+                                            <a href="<?= route_to('public.knowledge.case-study.detail', $cs['slug']) ?>" class="text-decoration-none text-reset hover-primary">
+                                                <?= esc($cs['title']) ?>
+                                            </a>
+                                        </h5>
+                                        <p class="text-muted small mb-2" style="font-size: 13px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                            <?= esc($cs['summary'] ?? '') ?>
+                                        </p>
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <a href="<?= route_to('public.knowledge.case-study.detail', $cs['slug']) ?>" class="small text-danger fw-semibold text-decoration-none hover-underline">
+                                                Pelajari Kasus &amp; Solusi <i class="fas fa-chevron-right ms-1" style="font-size: 10px;"></i>
+                                            </a>
+                                            <?= view('landing/components/bookmark_button', [
+                                                'type'  => 'knowledge_case',
+                                                'id'    => (int) $cs['id'],
+                                                'title' => $cs['title'] ?? null,
+                                                'size'  => 'sm',
+                                            ]) ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Template Dokumen -->
+            <div class="col-xl-6">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <span class="arena-section-head__tag text-warning" style="background: #fef3c7;">
+                            <i class="fas fa-file-invoice me-1"></i> Siap Unduh
+                        </span>
+                        <h3 class="fw-bold mt-2 mb-0" style="color: #082f5c; font-size: 22px;">Template Dokumen PBJ</h3>
+                    </div>
+                    <a href="<?= route_to('public.knowledge.templates') ?>" class="btn btn-sm btn-outline-secondary radius-8 px-3 fw-semibold">
+                        Semua Template (<?= (int) ($stats['total_templates'] ?? 0) ?>)
+                    </a>
+                </div>
+
+                <div class="d-flex flex-column gap-3">
+                    <?php if (empty($templates)): ?>
+                        <div class="p-4 text-center bg-white radius-12 text-muted">Belum ada template dokumen yang dipublikasikan.</div>
+                    <?php else: ?>
+                        <?php foreach (array_slice($templates, 0, 3) as $tpl):
+                            $ext = strtoupper($tpl['file_extension'] ?? 'DOCX');
+                            $extBadgeColor = match ($ext) {
+                                'XLSX', 'XLS' => 'background: #dcfce7; color: #166534;',
+                                'PDF'         => 'background: #fee2e2; color: #991b1b;',
+                                default       => 'background: #e0e7ff; color: #3730a3;',
+                            };
+                        ?>
+                            <div class="card border-0 shadow-sm radius-12 p-3 transition-hover bg-white">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="d-flex align-items-center justify-content-center radius-10 flex-shrink-0 fw-bold" style="width: 44px; height: 44px; <?= esc($extBadgeColor) ?>; font-size: 13px;">
+                                        <?= esc($ext) ?>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="badge bg-light text-primary border px-2 py-0 small" style="font-size: 11px;">Format Resmi</span>
+                                            <?php if (! empty($tpl['cover_file_id'])): ?>
+                                                <span class="text-success small" style="font-size: 11px;"><i class="fas fa-check-circle me-1"></i> Lampiran Siap</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <h5 class="fw-bold mb-1" style="font-size: 15px; color: #082f5c; line-height: 1.4;">
+                                            <a href="<?= route_to('public.knowledge.templates.detail', $tpl['slug']) ?>" class="text-decoration-none text-reset hover-primary">
+                                                <?= esc($tpl['title']) ?>
+                                            </a>
+                                        </h5>
+                                        <p class="text-muted small mb-2" style="font-size: 13px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                            <?= esc($tpl['summary'] ?? '') ?>
+                                        </p>
+                                        <div class="d-flex align-items-center justify-content-between pt-1">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <a href="<?= route_to('public.knowledge.templates.download', $tpl['slug']) ?>" class="btn btn-sm btn-primary radius-6 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 12px;">
+                                                    <i class="fas fa-download"></i> Unduh
+                                                </a>
+                                                <a href="<?= route_to('public.knowledge.templates.detail', $tpl['slug']) ?>" class="btn btn-sm btn-outline-secondary radius-6 px-2 py-1" style="font-size: 12px;">
+                                                    Petunjuk
+                                                </a>
+                                            </div>
+                                            <?= view('landing/components/bookmark_button', [
+                                                'type'  => 'knowledge_template',
+                                                'id'    => (int) $tpl['id'],
+                                                'title' => $tpl['title'] ?? null,
+                                                'size'  => 'sm',
+                                            ]) ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================================================
+     SECTION 5: MEDIA & VIDEO PBJ SHOWCASE
+     ========================================================================= -->
+<?php if (! empty($mediaItems)): ?>
+<section class="py-5" style="background: #ffffff;">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-end justify-content-between mb-4">
+            <div class="arena-section-head mb-0">
+                <span class="arena-section-head__tag">
+                    <i class="fas fa-photo-video me-1"></i> Visual &amp; Multimedia
+                </span>
+                <h3 class="arena-section-head__title">Media &amp; Video Pembelajaran</h3>
+                <p class="arena-section-head__desc mb-0">
+                    Infografik ringkas, alur diagram pengadaan, serta sajian video pembelajaran interaktif.
+                </p>
+            </div>
+            <div class="d-flex gap-2 mt-3 mt-md-0">
+                <a href="<?= route_to('public.knowledge.videos') ?>" class="btn btn-sm btn-outline-danger radius-8 px-3 py-2 fw-semibold">
+                    <i class="fab fa-youtube me-1"></i> Video PBJ (<?= (int) ($stats['total_videos'] ?? 0) ?>)
+                </a>
+                <a href="<?= route_to('public.knowledge.media') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3 py-2 fw-semibold">
+                    <i class="fas fa-images me-1"></i> Semua Media (<?= (int) ($stats['total_media'] ?? 0) ?>)
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <?php foreach (array_slice($mediaItems, 0, 3) as $med):
+                $mType = (string) ($med['type'] ?? '');
+                $isVideo = in_array($mType, ['youtube', 'video_file'], true);
+                $isGallery = in_array($mType, ['gallery', 'image'], true);
+            ?>
+                <div class="col-xl-4 col-lg-6 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm radius-16 overflow-hidden d-flex flex-column transition-hover" style="background: #ffffff; border: 1px solid #edf2f7 !important;">
+                        <div class="position-relative d-flex align-items-center justify-content-center text-white" style="height: 180px; background: linear-gradient(135deg, #082f5c 0%, #1e3a8a 100%);">
+                            <?php if ($isVideo): ?>
+                                <div class="d-flex align-items-center justify-content-center radius-50" style="width: 56px; height: 56px; background: rgba(220, 53, 69, 0.9); box-shadow: 0 0 20px rgba(220, 53, 69, 0.5);">
+                                    <i class="fas fa-play text-white ms-1" style="font-size: 20px;"></i>
+                                </div>
+                                <span class="position-absolute top-0 start-0 m-3 badge bg-danger text-white radius-6 px-2 py-1 small">
+                                    <i class="fab fa-youtube me-1"></i> Video Tutorial
+                                </span>
+                            <?php else: ?>
+                                <i class="fas fa-chart-pie" style="font-size: 48px; opacity: 0.35;"></i>
+                                <span class="position-absolute top-0 start-0 m-3 badge bg-info text-dark radius-6 px-2 py-1 small">
+                                    <i class="fas fa-image me-1"></i> Infografik
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+                            <h4 class="fw-bold mb-2" style="font-size: 16px; line-height: 1.45; color: #082f5c;">
+                                <?= esc($med['title'] ?? '(Tanpa judul)') ?>
+                            </h4>
+                            <p class="text-muted small mb-4 flex-grow-1" style="line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                <?= esc($med['caption'] ?? '') ?>
+                            </p>
+                            <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-auto">
+                                <?php if (! empty($med['external_url'])): ?>
+                                    <a href="<?= esc($med['external_url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-danger radius-8 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+                                        <i class="fas fa-play"></i> Tonton Video
+                                    </a>
+                                <?php else: ?>
+                                    <a href="<?= route_to('public.knowledge.media') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3 py-1 fw-semibold">
+                                        Lihat Media
+                                    </a>
+                                <?php endif; ?>
+                                <?= view('landing/components/bookmark_button', [
+                                    'type'  => 'knowledge_media',
+                                    'id'    => (int) $med['id'],
+                                    'title' => $med['title'] ?? null,
+                                    'size'  => 'sm',
+                                ]) ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- =========================================================================
+     SECTION 6: PREVIEW FAQ & TANYA JAWAB
+     ========================================================================= -->
+<?php if (! empty($faqs)): ?>
+<section class="py-5" style="background: #f8fafc; border-top: 1px solid #eef2f6;">
+    <div class="container">
+        <div class="section-title text-center mb-4">
+            <div class="section-title__tagline-box">
+                <div class="section-title__tagline-shape"></div>
+                <p class="section-title__tagline">Tanya Jawab Pengadaan</p>
+            </div>
+            <h2 class="section-title__title" style="font-size: 28px; font-weight: 800; color: #082f5c;">Pertanyaan Sering Muncul (FAQ)</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px; font-size: 14.5px;">
+                Dapatkan kepastian jawaban atas regulasi, tata cara pembuktian kualifikasi, dan penanganan kendala kontrak.
+            </p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-xl-9">
+                <div class="accordion d-flex flex-column gap-3" id="knowledgeFaqAccordion">
+                    <?php foreach (array_slice($faqs, 0, 4) as $index => $faq):
+                        $collapseId = 'faqCollapse' . (int) $faq['id'];
+                        $headingId  = 'faqHeading' . (int) $faq['id'];
+                    ?>
+                        <div class="card border-0 shadow-sm radius-12 overflow-hidden bg-white">
+                            <div class="card-header bg-white border-0 p-3 p-md-4" id="<?= esc($headingId) ?>">
+                                <button class="btn btn-link w-100 text-start text-decoration-none p-0 d-flex align-items-center justify-content-between collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#<?= esc($collapseId) ?>" aria-expanded="false" aria-controls="<?= esc($collapseId) ?>">
+                                    <span class="fw-bold pe-3" style="color: #082f5c; font-size: 16px; line-height: 1.4;">
+                                        <i class="fas fa-question-circle text-primary me-2"></i> <?= esc($faq['title']) ?>
+                                    </span>
+                                    <i class="fas fa-chevron-down text-muted" style="font-size: 14px;"></i>
+                                </button>
+                            </div>
+                            <div id="<?= esc($collapseId) ?>" class="collapse" aria-labelledby="<?= esc($headingId) ?>" data-bs-parent="#knowledgeFaqAccordion">
+                                <div class="card-body pt-0 px-3 px-md-4 pb-3 pb-md-4 text-muted" style="font-size: 14.5px; line-height: 1.65; border-top: 1px dashed #edf2f7;">
+                                    <?= nl2br(esc($faq['content'] ?? $faq['summary'] ?? '')) ?>
+                                    <div class="mt-3 pt-2 d-flex align-items-center justify-content-between">
+                                        <span class="text-muted small" style="font-size: 12px;">Sesuai regulasi PBJ terbaru</span>
+                                        <?= view('landing/components/bookmark_button', [
+                                            'type'  => 'knowledge_faq',
+                                            'id'    => (int) $faq['id'],
+                                            'title' => $faq['title'] ?? null,
+                                            'size'  => 'sm',
+                                        ]) ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="<?= route_to('public.knowledge.faqs') ?>" class="btn btn-outline-primary radius-8 px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2">
+                        <span>Lihat Seluruh Tanya Jawab (<?= (int) ($stats['total_faqs'] ?? 0) ?>)</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- =========================================================================
+     SECTION 7: PILAR NILAI EKOSISTEM PENGETAHUAN
+     ========================================================================= -->
+<section class="py-5" style="background: #082f5c; color: #ffffff;">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-xl-6">
+                <span class="arena-section-head__tag text-white mb-2" style="background: rgba(255,255,255,0.18);">
+                    <i class="fas fa-shield-alt me-1 text-warning"></i> Nilai Strategis Bunga Rampai
+                </span>
+                <h2 class="text-white mb-3" style="font-size: 32px; font-weight: 800; line-height: 1.3;">
+                    Membangun Budaya Pengadaan Berintegritas &amp; Akuntabel
+                </h2>
+                <p class="mb-4" style="font-size: 15px; line-height: 1.7; color: rgba(255,255,255,0.85);">
+                    Bunga Rampai BegawiPBJ hadir sebagai jembatan pengetahuan untuk menyamakan persepsi regulasi, mempercepat adopsi digitalisasi pengadaan, dan melindungi aparatur pelaksana dari risiko hukum melalui pertukaran praktik terbaik.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="<?= site_url('bunga-rampai/artikel') ?>" class="thm-btn">
+                        <i class="fas fa-search me-1"></i> Mulai Jelajahi Repositori
+                    </a>
+                    <a href="<?= site_url('arena-belajar') ?>" class="btn btn-outline-light radius-8 px-4 py-2 d-inline-flex align-items-center gap-2 fw-semibold">
+                        <i class="fas fa-graduation-cap"></i> Ikuti Arena Belajar
+                    </a>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <ul class="list-unstyled m-0 d-flex flex-column gap-3">
+                    <li class="d-flex gap-3 p-3 radius-12" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+                        <span class="text-warning" style="font-size: 24px; flex-shrink: 0;"><i class="fas fa-check-circle"></i></span>
+                        <div>
+                            <h4 class="text-white fw-bold mb-1" style="font-size: 16px;">Selaras Standar LKPP &amp; Ketentuan Perpres</h4>
+                            <p class="mb-0" style="font-size: 13px; color: rgba(255,255,255,0.75);">Setiap artikel, petunjuk teknis, dan formulir diverifikasi berdasarkan peraturan perundang-undangan PBJ mutakhir.</p>
+                        </div>
+                    </li>
+                    <li class="d-flex gap-3 p-3 radius-12" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+                        <span class="text-warning" style="font-size: 24px; flex-shrink: 0;"><i class="fas fa-check-circle"></i></span>
+                        <div>
+                            <h4 class="text-white fw-bold mb-1" style="font-size: 16px;">Template Dokumen Siap Pakai &amp; Bebas Akses</h4>
+                            <p class="mb-0" style="font-size: 13px; color: rgba(255,255,255,0.75);">Unduh berkas format KAK, HPS, SPK, dan BAST untuk mempercepat administrasi pengadaan di OPD masing-masing.</p>
+                        </div>
+                    </li>
+                    <li class="d-flex gap-3 p-3 radius-12" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+                        <span class="text-warning" style="font-size: 24px; flex-shrink: 0;"><i class="fas fa-check-circle"></i></span>
+                        <div>
+                            <h4 class="text-white fw-bold mb-1" style="font-size: 16px;">Pembelajaran Berkelanjutan Antar-OPD</h4>
+                            <p class="mb-0" style="font-size: 13px; color: rgba(255,255,255,0.75);">Media berbagi pengalaman antar Pejabat Pembuat Komitmen, Pokja Pemilihan, dan Pejabat Pengadaan se-Lampung.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
 
 <?= $this->endSection() ?>
