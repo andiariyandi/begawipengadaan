@@ -40,9 +40,10 @@ class TrainerController extends BaseController
         $db     = db_connect();
 
         $assignedClasses = $db->table('class_trainers ct')
-            ->select('ct.class_id, ct.assigned_at, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, courses.title AS course_title')
+            ->select('ct.class_id, ct.assigned_at, ct.role AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.learning_method, lc.location_or_link, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path, courses.level AS course_level')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->join('courses', 'courses.id = lc.course_id')
+            ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
             ->where('ct.user_id', $userId)
             ->where('ct.status', 'active')
             ->orderBy('lc.start_at', 'DESC')
@@ -50,8 +51,9 @@ class TrainerController extends BaseController
 
         if ($assignedClasses === [] && $this->isPrivilegedOperator()) {
             $assignedClasses = $db->table('learning_classes lc')
-                ->select('lc.id AS class_id, lc.created_at AS assigned_at, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, courses.title AS course_title')
+                ->select('lc.id AS class_id, lc.created_at AS assigned_at, "primary" AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.learning_method, lc.location_or_link, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path, courses.level AS course_level')
                 ->join('courses', 'courses.id = lc.course_id')
+                ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
                 ->orderBy('lc.start_at', 'DESC')
                 ->limit(20)
                 ->get()->getResultArray();
@@ -210,9 +212,10 @@ class TrainerController extends BaseController
         $db     = db_connect();
 
         $items = $db->table('class_trainers ct')
-            ->select('ct.class_id, ct.assigned_at, ct.status AS ct_status, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, courses.title AS course_title, programs.title AS program_title')
+            ->select('ct.class_id, ct.assigned_at, ct.status AS ct_status, ct.role AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, lc.learning_method, lc.location_or_link, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.summary AS course_summary, courses.level AS course_level, courses.cover_url AS course_cover_url, fa.path AS cover_path, programs.title AS program_title')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->join('courses', 'courses.id = lc.course_id')
+            ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
             ->join('programs', 'programs.id = courses.program_id', 'left')
             ->where('ct.user_id', $userId)
             ->where('ct.status', 'active')
@@ -221,8 +224,9 @@ class TrainerController extends BaseController
 
         if ($items === [] && $this->isPrivilegedOperator()) {
             $items = $db->table('learning_classes lc')
-                ->select('lc.id AS class_id, lc.created_at AS assigned_at, lc.status AS ct_status, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, courses.title AS course_title, programs.title AS program_title')
+                ->select('lc.id AS class_id, lc.created_at AS assigned_at, lc.status AS ct_status, "primary" AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, lc.learning_method, lc.location_or_link, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.summary AS course_summary, courses.level AS course_level, courses.cover_url AS course_cover_url, fa.path AS cover_path, programs.title AS program_title')
                 ->join('courses', 'courses.id = lc.course_id')
+                ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
                 ->join('programs', 'programs.id = courses.program_id', 'left')
                 ->orderBy('lc.start_at', 'DESC')
                 ->get()->getResultArray();
@@ -260,8 +264,9 @@ class TrainerController extends BaseController
         $db = db_connect();
 
         $class = $db->table('learning_classes lc')
-            ->select('lc.*, courses.title AS course_title, courses.description AS course_desc, programs.title AS program_title')
+            ->select('lc.*, courses.title AS course_title, courses.description AS course_desc, courses.summary AS course_summary, courses.level AS course_level, courses.duration_minutes, courses.learning_objectives AS course_learning_objectives, courses.prerequisites AS course_prerequisites, courses.target_audience AS course_target_audience, courses.cover_url AS course_cover_url, fa.path AS cover_path, programs.title AS program_title')
             ->join('courses', 'courses.id = lc.course_id')
+            ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
             ->join('programs', 'programs.id = courses.program_id', 'left')
             ->where('lc.id', $classIdInt)->get()->getRowArray();
         if (! $class) {
@@ -275,11 +280,19 @@ class TrainerController extends BaseController
 
         // Trainer pengampu kelas
         $trainers = $db->table('class_trainers ct')
-            ->select('ct.assigned_at, ct.status, u.id AS user_id, u.name, u.email')
+            ->select('ct.assigned_at, ct.status, ct.role AS trainer_role, u.id AS user_id, u.name, u.email')
             ->join('users u', 'u.id = ct.user_id')
             ->where('ct.class_id', $classIdInt)
             ->where('ct.status', 'active')
+            ->orderBy('u.name', 'ASC')
             ->get()->getResultArray();
+
+        usort($trainers, static function ($a, $b) {
+            $roleWeights = ['primary' => 1, 'co_trainer' => 2, 'guest' => 3];
+            $wA = $roleWeights[$a['trainer_role'] ?? ''] ?? 99;
+            $wB = $roleWeights[$b['trainer_role'] ?? ''] ?? 99;
+            return $wA <=> $wB;
+        });
 
         // 1. Modul & Lessons (Materi)
         $modules = $db->table('learning_modules')
@@ -1402,9 +1415,10 @@ class TrainerController extends BaseController
     private function getTrainerClasses(int $userId): array
     {
         $classes = db_connect()->table('class_trainers ct')
-            ->select('lc.id, lc.name, lc.code, lc.status, courses.title AS course_title')
+            ->select('lc.id, lc.name, lc.code, lc.status, lc.learning_method, lc.location_or_link, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->join('courses', 'courses.id = lc.course_id')
+            ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
             ->where('ct.user_id', $userId)
             ->where('ct.status', 'active')
             ->orderBy('lc.name', 'ASC')
@@ -1412,8 +1426,9 @@ class TrainerController extends BaseController
 
         if ($classes === [] && $this->isPrivilegedOperator()) {
             $classes = db_connect()->table('learning_classes lc')
-                ->select('lc.id, lc.name, lc.code, lc.status, courses.title AS course_title')
+                ->select('lc.id, lc.name, lc.code, lc.status, lc.learning_method, lc.location_or_link, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path')
                 ->join('courses', 'courses.id = lc.course_id')
+                ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
                 ->orderBy('lc.name', 'ASC')
                 ->get()->getResultArray();
         }

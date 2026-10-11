@@ -10,6 +10,44 @@ $pendingSubmissions = $pendingSubmissionsList ?? [];
 $activities         = $recentActivities ?? [];
 $firstClass         = !empty($classes) ? $classes[0] : null;
 $firstPending       = !empty($pendingSubmissions) ? $pendingSubmissions[0] : null;
+
+$fmtCover = static function ($row): string {
+    if (! empty($row['course_cover_url'])) {
+        return esc($row['course_cover_url']);
+    }
+    if (! empty($row['cover_path'])) {
+        return base_url(esc($row['cover_path']));
+    }
+    return base_url('assets/fistudy/images/resources/course-1-1.png');
+};
+
+$methodBadge = static function (?string $method): array {
+    return match (strtolower((string) $method)) {
+        'offline', 'tatap_muka' => [
+            'label' => 'Tatap Muka',
+            'class' => 'bg-success-subtle text-success border border-success-subtle',
+            'icon'  => 'fas fa-chalkboard-teacher',
+        ],
+        'hybrid' => [
+            'label' => 'Hybrid',
+            'class' => 'bg-purple-subtle text-purple border border-purple-subtle',
+            'icon'  => 'fas fa-shuffle',
+        ],
+        default => [
+            'label' => 'Online LMS',
+            'class' => 'bg-primary-subtle text-primary border border-primary-subtle',
+            'icon'  => 'fas fa-laptop',
+        ],
+    };
+};
+
+$trainerRoleLabel = static function (?string $role): string {
+    return match (strtolower((string) $role)) {
+        'co_trainer' => 'Co-Trainer',
+        'guest'      => 'Narasumber Tamu',
+        default      => 'Pengajar Utama',
+    };
+};
 ?>
 
 <div class="trainer-workspace-home">
@@ -59,9 +97,17 @@ $firstPending       = !empty($pendingSubmissions) ? $pendingSubmissions[0] : nul
                 <?php elseif (!empty($firstClass)): ?>
                     <div class="ws-hero-glass-box">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-warning small fw-bold text-uppercase">
-                                <i class="fas fa-layer-group me-1"></i> Kelas Utama Anda
-                            </span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="text-warning small fw-bold text-uppercase">
+                                    <i class="fas fa-layer-group me-1"></i> Kelas Utama Anda
+                                </span>
+                                <?php if (! empty($firstClass['learning_method'])): ?>
+                                    <?php $fmb = $methodBadge($firstClass['learning_method']); ?>
+                                    <span class="badge bg-white-50 text-white rounded-pill px-2 py-0" style="font-size: 0.68rem;">
+                                        <?= $fmb['label'] ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                             <span class="badge bg-success text-white small px-2 py-1 rounded-pill">
                                 <?= esc($firstClass['avg_progress'] ?? 0.0) ?>% Progres
                             </span>
@@ -69,8 +115,14 @@ $firstPending       = !empty($pendingSubmissions) ? $pendingSubmissions[0] : nul
                         <h3 class="h6 text-white fw-bold text-truncate mb-1">
                             <?= esc($firstClass['name'] ?? 'Kelas Pembelajaran') ?>
                         </h3>
-                        <p class="small text-white-50 text-truncate mb-3"><?= esc($firstClass['course_title'] ?? '') ?></p>
+                        <p class="small text-white-50 text-truncate mb-2"><?= esc($firstClass['course_title'] ?? '') ?></p>
                         
+                        <?php if (! empty($firstClass['location_or_link'])): ?>
+                            <p class="small text-white-50 text-truncate mb-2" style="font-size: 0.75rem;">
+                                <i class="fas fa-map-marker-alt text-warning me-1"></i> <?= esc($firstClass['location_or_link']) ?>
+                            </p>
+                        <?php endif; ?>
+
                         <div class="progress rounded-pill mb-3" style="height: 6px; background: rgba(255, 255, 255, 0.2);">
                             <div class="progress-bar bg-warning rounded-pill" role="progressbar" style="width: <?= esc($firstClass['avg_progress'] ?? 0.0) ?>%"></div>
                         </div>
@@ -303,43 +355,67 @@ $firstPending       = !empty($pendingSubmissions) ? $pendingSubmissions[0] : nul
                 <?php else: ?>
                     <div class="d-flex flex-column gap-3 ws-paginated-container" data-page-size="4">
                         <?php foreach ($classes as $c): ?>
-                            <div class="ws-class-card p-3 ws-paginated-item">
-                                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                                    <div>
-                                        <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 small fw-bold me-2">
-                                            <?= esc($c['code'] ?? 'KELAS') ?>
-                                        </span>
-                                        <span class="badge <?= ($c['class_status'] ?? '') === 'active' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' ?> rounded-pill px-2 py-1 small">
-                                            <?= esc(ucfirst($c['class_status'] ?? 'draft')) ?>
-                                        </span>
+                            <div class="ws-class-card p-3 ws-paginated-item rounded-4 border bg-white shadow-xs">
+                                <div class="row g-3 align-items-center">
+                                    <div class="col-12 col-sm-4 col-md-3">
+                                        <div class="rounded-3 overflow-hidden border bg-light position-relative" style="aspect-ratio: 16/10;">
+                                            <img src="<?= $fmtCover($c) ?>" alt="<?= esc($c['name'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                                            <?php $mb = $methodBadge($c['learning_method'] ?? null); ?>
+                                            <span class="badge position-absolute top-0 start-0 m-1 rounded-pill small px-2 py-0 <?= $mb['class'] ?>" style="font-size: 0.65rem;">
+                                                <i class="<?= $mb['icon'] ?> me-1"></i><?= $mb['label'] ?>
+                                            </span>
+                                        </div>
                                     </div>
-                                    <small class="text-muted">
-                                        <i class="fas fa-users me-1 text-primary"></i> <?= (int) ($c['participant_count'] ?? 0) ?> Peserta
-                                    </small>
-                                </div>
-                                <h3 class="h6 fw-bold text-navy mb-1"><?= esc($c['name'] ?? '-') ?></h3>
-                                <p class="small text-muted mb-3 text-truncate"><?= esc($c['course_title'] ?? '-') ?></p>
+                                    <div class="col-12 col-sm-8 col-md-9">
+                                        <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                            <div class="d-flex flex-wrap align-items-center gap-1">
+                                                <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 small fw-bold">
+                                                    <?= esc($c['code'] ?? 'KELAS') ?>
+                                                </span>
+                                                <span class="badge <?= ($c['class_status'] ?? '') === 'active' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' ?> rounded-pill px-2 py-1 small">
+                                                    <?= esc(ucfirst($c['class_status'] ?? 'draft')) ?>
+                                                </span>
+                                                <?php if (! empty($c['trainer_role'])): ?>
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1 small">
+                                                        <i class="fas fa-id-badge me-1"></i><?= $trainerRoleLabel($c['trainer_role']) ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <small class="text-muted text-nowrap">
+                                                <i class="fas fa-users me-1 text-primary"></i> <?= (int) ($c['participant_count'] ?? 0) ?> Peserta
+                                            </small>
+                                        </div>
+                                        <h3 class="h6 fw-bold text-navy mb-1"><?= esc($c['name'] ?? '-') ?></h3>
+                                        <p class="small text-muted mb-2 text-truncate"><?= esc($c['course_title'] ?? '-') ?></p>
 
-                                <!-- Progress Bar Ketuntasan -->
-                                <div class="d-flex justify-content-between align-items-center small text-muted mb-1" style="font-size: 0.75rem;">
-                                    <span>Rata-rata Progres Kelas</span>
-                                    <span class="fw-semibold text-navy"><?= esc($c['avg_progress'] ?? 0.0) ?>%</span>
-                                </div>
-                                <div class="progress rounded-pill mb-3" style="height: 6px; background: #eef2f7;">
-                                    <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: <?= esc($c['avg_progress'] ?? 0.0) ?>%"></div>
-                                </div>
+                                        <?php if (! empty($c['location_or_link'])): ?>
+                                            <div class="small text-muted mb-2 text-truncate" style="font-size: 0.72rem;">
+                                                <i class="fas fa-map-marker-alt text-danger me-1"></i> <?= esc($c['location_or_link']) ?>
+                                            </div>
+                                        <?php endif; ?>
 
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                    <small class="text-muted" style="font-size: 0.75rem;">
-                                        <span><i class="fas fa-layer-group me-1 text-primary"></i> <?= (int) ($c['module_count'] ?? 0) ?> Modul</span>
-                                        &nbsp;&middot;&nbsp;
-                                        <span><i class="fas fa-tasks me-1 text-warning"></i> <?= (int) ($c['assignment_count'] ?? 0) ?> Tugas</span>
-                                        &nbsp;&middot;&nbsp;
-                                        <span><i class="fas fa-check-double me-1 text-success"></i> <?= (int) ($c['quiz_count'] ?? 0) ?> Kuis</span>
-                                    </small>
-                                    <a href="<?= route_to('workspace.trainer.class.detail', $c['class_id']) ?>" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">
-                                        Ruang Kendali Kelas <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
+                                        <!-- Progress Bar Ketuntasan -->
+                                        <div class="d-flex justify-content-between align-items-center small text-muted mb-1" style="font-size: 0.72rem;">
+                                            <span>Rata-rata Progres Kelas</span>
+                                            <span class="fw-semibold text-navy"><?= esc($c['avg_progress'] ?? 0.0) ?>%</span>
+                                        </div>
+                                        <div class="progress rounded-pill mb-2" style="height: 5px; background: #eef2f7;">
+                                            <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: <?= esc($c['avg_progress'] ?? 0.0) ?>%"></div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-1">
+                                            <small class="text-muted" style="font-size: 0.72rem;">
+                                                <span><i class="fas fa-layer-group me-1 text-primary"></i> <?= (int) ($c['module_count'] ?? 0) ?> Modul</span>
+                                                &nbsp;&middot;&nbsp;
+                                                <span><i class="fas fa-tasks me-1 text-warning"></i> <?= (int) ($c['assignment_count'] ?? 0) ?> Tugas</span>
+                                                &nbsp;&middot;&nbsp;
+                                                <span><i class="fas fa-check-double me-1 text-success"></i> <?= (int) ($c['quiz_count'] ?? 0) ?> Kuis</span>
+                                            </small>
+                                            <a href="<?= route_to('workspace.trainer.class.detail', $c['class_id']) ?>" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">
+                                                Ruang Kendali Kelas <i class="fas fa-arrow-right ms-1"></i>
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>

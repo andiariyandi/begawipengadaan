@@ -27,6 +27,44 @@ $levelLabel = static function (?string $level): string {
         default              => 'Umum',
     };
 };
+
+$fmtCover = static function ($row): string {
+    if (! empty($row['course_cover_url'])) {
+        return esc($row['course_cover_url']);
+    }
+    if (! empty($row['cover_path'])) {
+        return base_url(esc($row['cover_path']));
+    }
+    return base_url('assets/fistudy/images/resources/course-1-1.png');
+};
+
+$methodBadge = static function (?string $method): array {
+    return match (strtolower((string) $method)) {
+        'offline', 'tatap_muka' => [
+            'label' => 'Tatap Muka',
+            'class' => 'bg-success-subtle text-success border border-success-subtle',
+            'icon'  => 'fas fa-chalkboard-teacher',
+        ],
+        'hybrid' => [
+            'label' => 'Hybrid',
+            'class' => 'bg-purple-subtle text-purple border border-purple-subtle',
+            'icon'  => 'fas fa-shuffle',
+        ],
+        default => [
+            'label' => 'Online LMS',
+            'class' => 'bg-primary-subtle text-primary border border-primary-subtle',
+            'icon'  => 'fas fa-laptop',
+        ],
+    };
+};
+
+$trainerRoleLabel = static function (?string $role): string {
+    return match (strtolower((string) $role)) {
+        'co_trainer' => 'Co-Trainer',
+        'guest'      => 'Narasumber Tamu',
+        default      => 'Pengajar Utama',
+    };
+};
 ?>
 
 <!-- 1. Header Section -->
@@ -171,6 +209,10 @@ $levelLabel = static function (?string $level): string {
                                     <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-2 rounded-pill fw-bold">
                                         <i class="fas fa-circle-play me-1"></i> Aktif
                                     </span>
+                                    <?php $mBadge = $methodBadge($item['learning_method'] ?? 'online'); ?>
+                                    <span class="badge <?= $mBadge['class'] ?> px-3 py-2 rounded-pill fw-semibold">
+                                        <i class="<?= $mBadge['icon'] ?> me-1"></i> <?= esc($mBadge['label']) ?>
+                                    </span>
                                     <?php if (! empty($item['program_title'])): ?>
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
                                             <i class="fas fa-layer-group me-1"></i> <?= esc($item['program_title']) ?>
@@ -187,7 +229,12 @@ $levelLabel = static function (?string $level): string {
 
                             <!-- Card Body: Title, Course, & Schedule -->
                             <div class="row g-4 align-items-start mb-4">
-                                <div class="col-lg-8">
+                                <div class="col-md-3 col-xl-2">
+                                    <div class="rounded-4 overflow-hidden shadow-xs border bg-light" style="aspect-ratio: 16/10;">
+                                        <img src="<?= $fmtCover($item) ?>" alt="<?= esc($item['course_title'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                                    </div>
+                                </div>
+                                <div class="col-md-9 col-xl-6">
                                     <h2 class="h4 fw-bold mb-2" style="color: #082f5c;"><?= esc($item['class_name'] ?? '-') ?></h2>
                                     <p class="text-muted fs-6 mb-2">
                                         <i class="fas fa-book-open text-primary me-1"></i> Course: <strong class="text-dark"><?= esc($item['course_title'] ?? '-') ?></strong>
@@ -207,17 +254,32 @@ $levelLabel = static function (?string $level): string {
                                             <i class="fas fa-bullseye text-primary me-1"></i>
                                             Passing Grade: <strong><?= (float) ($item['passing_grade'] ?? 70) ?>%</strong>
                                         </div>
+                                        <?php if (! empty($item['location_or_link'])): ?>
+                                            <div>
+                                                <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                                Akses/Lokasi: <strong class="text-dark"><?= esc($item['location_or_link']) ?></strong>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if (! empty($item['class_target_audience'])): ?>
+                                            <div>
+                                                <i class="fas fa-users text-info me-1"></i>
+                                                Sasaran: <strong><?= esc($item['class_target_audience']) ?></strong>
+                                            </div>
+                                        <?php endif; ?>
                                         <?php if (! empty($trainers)): ?>
                                             <div>
                                                 <i class="fas fa-chalkboard-teacher text-primary me-1"></i>
                                                 Pengajar: <strong><?= esc($trainers[0]['name'] ?? 'Trainer Begawi') ?></strong>
+                                                <span class="badge bg-light text-muted border rounded-pill ms-1" style="font-size: 10px;">
+                                                    <?= $trainerRoleLabel($trainers[0]['trainer_role'] ?? 'primary') ?>
+                                                </span>
                                             </div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
 
                                 <!-- Progress Gauge / Stats Box -->
-                                <div class="col-lg-4">
+                                <div class="col-lg-12 col-xl-4">
                                     <div class="p-3 bg-light rounded-4 border">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="small fw-semibold text-muted text-uppercase">Capaian Kurikulum</span>
@@ -382,6 +444,10 @@ $levelLabel = static function (?string $level): string {
                                     <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold shadow-sm">
                                         <i class="fas fa-check-circle me-1"></i> Lulus & Selesai
                                     </span>
+                                    <?php $mBadge = $methodBadge($item['learning_method'] ?? 'online'); ?>
+                                    <span class="badge <?= $mBadge['class'] ?> px-3 py-2 rounded-pill fw-semibold">
+                                        <i class="<?= $mBadge['icon'] ?> me-1"></i> <?= esc($mBadge['label']) ?>
+                                    </span>
                                     <?php if (! empty($item['program_title'])): ?>
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
                                             <i class="fas fa-layer-group me-1"></i> <?= esc($item['program_title']) ?>
@@ -398,19 +464,38 @@ $levelLabel = static function (?string $level): string {
 
                             <!-- Card Body: Title & Evaluation Highlights -->
                             <div class="row g-4 align-items-start mb-4">
-                                <div class="col-lg-7">
+                                <div class="col-md-3 col-xl-2">
+                                    <div class="rounded-4 overflow-hidden shadow-xs border bg-light" style="aspect-ratio: 16/10;">
+                                        <img src="<?= $fmtCover($item) ?>" alt="<?= esc($item['course_title'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                                    </div>
+                                </div>
+                                <div class="col-md-9 col-xl-6">
                                     <h2 class="h4 fw-bold mb-2" style="color: #082f5c;"><?= esc($item['class_name'] ?? '-') ?></h2>
                                     <p class="text-muted fs-6 mb-2">
                                         <i class="fas fa-book-open text-primary me-1"></i> Course: <strong class="text-dark"><?= esc($item['course_title'] ?? '-') ?></strong>
                                     </p>
-                                    <p class="text-muted small mb-0">
-                                        <i class="far fa-calendar-check text-success me-1"></i>
-                                        Selesai pada: <strong><?= ! empty($item['completed_at']) ? date('d M Y H:i', strtotime($item['completed_at'])) : (! empty($item['passed_at']) ? date('d M Y H:i', strtotime($item['passed_at'])) : '-') ?></strong>
-                                    </p>
+                                    <div class="d-flex flex-wrap gap-3 text-muted small mb-2">
+                                        <div>
+                                            <i class="far fa-calendar-check text-success me-1"></i>
+                                            Selesai pada: <strong><?= ! empty($item['completed_at']) ? date('d M Y H:i', strtotime($item['completed_at'])) : (! empty($item['passed_at']) ? date('d M Y H:i', strtotime($item['passed_at'])) : '-') ?></strong>
+                                        </div>
+                                        <?php if (! empty($item['location_or_link'])): ?>
+                                            <div>
+                                                <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                                <strong><?= esc($item['location_or_link']) ?></strong>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if (! empty($item['trainers'])): ?>
+                                            <div>
+                                                <i class="fas fa-chalkboard-teacher text-primary me-1"></i>
+                                                Pengajar: <strong><?= esc($item['trainers'][0]['name'] ?? 'Trainer') ?></strong>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
 
                                 <!-- Evaluation & Final Score Box -->
-                                <div class="col-lg-5">
+                                <div class="col-lg-12 col-xl-4">
                                     <div class="p-3 bg-success-subtle border border-success-subtle rounded-4">
                                         <div class="row align-items-center g-2">
                                             <div class="col-sm-6 text-center text-sm-start">
@@ -514,6 +599,10 @@ $levelLabel = static function (?string $level): string {
                                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2 rounded-pill fw-bold">
                                         <i class="fas fa-clock me-1"></i> Menunggu Verifikasi Operator
                                     </span>
+                                    <?php $mBadge = $methodBadge($item['learning_method'] ?? 'online'); ?>
+                                    <span class="badge <?= $mBadge['class'] ?> px-3 py-2 rounded-pill fw-semibold">
+                                        <i class="<?= $mBadge['icon'] ?> me-1"></i> <?= esc($mBadge['label']) ?>
+                                    </span>
                                     <?php if (! empty($item['program_title'])): ?>
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
                                             <i class="fas fa-layer-group me-1"></i> <?= esc($item['program_title']) ?>
@@ -526,7 +615,12 @@ $levelLabel = static function (?string $level): string {
                             </div>
 
                             <div class="row g-4 align-items-center mb-3">
-                                <div class="col-lg-8">
+                                <div class="col-md-3 col-xl-2">
+                                    <div class="rounded-4 overflow-hidden shadow-xs border bg-light" style="aspect-ratio: 16/10;">
+                                        <img src="<?= $fmtCover($item) ?>" alt="<?= esc($item['course_title'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                                    </div>
+                                </div>
+                                <div class="col-md-9 col-xl-6">
                                     <h2 class="h4 fw-bold mb-2" style="color: #082f5c;"><?= esc($item['class_name'] ?? '-') ?></h2>
                                     <p class="text-muted fs-6 mb-2">
                                         <i class="fas fa-book-open text-primary me-1"></i> Course: <strong class="text-dark"><?= esc($item['course_title'] ?? '-') ?></strong>
@@ -540,6 +634,12 @@ $levelLabel = static function (?string $level): string {
                                             <i class="far fa-calendar-alt text-primary me-1"></i>
                                             Jadwal: <strong><?= ! empty($item['start_at']) ? date('d M Y', strtotime($item['start_at'])) : 'Fleksibel' ?></strong>
                                         </div>
+                                        <?php if (! empty($item['location_or_link'])): ?>
+                                            <div>
+                                                <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                                <strong><?= esc($item['location_or_link']) ?></strong>
+                                            </div>
+                                        <?php endif; ?>
                                         <?php if (! empty($item['capacity'])): ?>
                                             <div>
                                                 <i class="fas fa-users text-primary me-1"></i>
@@ -549,7 +649,7 @@ $levelLabel = static function (?string $level): string {
                                     </div>
                                 </div>
 
-                                <div class="col-lg-4 text-lg-end">
+                                <div class="col-lg-12 col-xl-4 text-xl-end">
                                     <a href="<?= route_to('workspace.participant.class.detail', $classId) ?>" class="btn btn-outline-primary px-3 rounded-3">
                                         <i class="fas fa-info-circle me-1"></i> Lihat Rincian Kelas
                                     </a>
@@ -592,17 +692,32 @@ $levelLabel = static function (?string $level): string {
                     <div class="col-lg-6 ws-paginated-item">
                         <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                                <span class="badge <?= $badge['class'] ?> border px-3 py-2 rounded-pill fw-semibold">
-                                    <?= esc($badge['label']) ?>
-                                </span>
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="badge <?= $badge['class'] ?> border px-3 py-2 rounded-pill fw-semibold">
+                                        <?= esc($badge['label']) ?>
+                                    </span>
+                                    <?php $mBadge = $methodBadge($item['learning_method'] ?? 'online'); ?>
+                                    <span class="badge <?= $mBadge['class'] ?> px-2 py-1 rounded-pill small">
+                                        <i class="<?= $mBadge['icon'] ?> me-1"></i> <?= esc($mBadge['label']) ?>
+                                    </span>
+                                </div>
                                 <small class="text-muted font-monospace"><?= esc($item['class_code'] ?? '-') ?></small>
                             </div>
 
-                            <h3 class="h5 fw-bold mb-2" style="color: #082f5c;"><?= esc($item['class_name'] ?? '-') ?></h3>
-                            <p class="text-muted small mb-1"><i class="fas fa-book text-primary me-1"></i> <?= esc($item['course_title'] ?? '-') ?></p>
-                            <?php if (! empty($item['program_title'])): ?>
-                                <p class="text-muted small mb-2"><i class="fas fa-layer-group text-muted me-1"></i> <?= esc($item['program_title']) ?></p>
-                            <?php endif; ?>
+                            <div class="row g-3 align-items-start mb-2">
+                                <div class="col-3 col-sm-2 col-lg-3">
+                                    <div class="rounded-3 overflow-hidden border bg-light" style="aspect-ratio: 16/10;">
+                                        <img src="<?= $fmtCover($item) ?>" alt="<?= esc($item['course_title'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                                    </div>
+                                </div>
+                                <div class="col-9 col-sm-10 col-lg-9">
+                                    <h3 class="h6 fw-bold mb-1" style="color: #082f5c;"><?= esc($item['class_name'] ?? '-') ?></h3>
+                                    <p class="text-muted small mb-0"><i class="fas fa-book text-primary me-1"></i> <?= esc($item['course_title'] ?? '-') ?></p>
+                                    <?php if (! empty($item['program_title'])): ?>
+                                        <small class="text-muted d-block"><i class="fas fa-layer-group text-muted me-1"></i> <?= esc($item['program_title']) ?></small>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
 
                             <div class="mt-auto pt-3 border-top">
                                 <?php if ($status === 'active'): ?>

@@ -29,6 +29,26 @@ if (! empty($activeItem['external_url'])) {
         $embedUrl = 'https://player.vimeo.com/video/' . $matches[1];
     }
 }
+
+$methodBadge = static function (?string $method): array {
+    return match (strtolower((string) $method)) {
+        'offline', 'tatap_muka' => [
+            'label' => 'Tatap Muka',
+            'class' => 'bg-success text-white',
+            'icon'  => 'bi bi-person-video3',
+        ],
+        'hybrid' => [
+            'label' => 'Hybrid',
+            'class' => 'bg-info text-dark',
+            'icon'  => 'bi bi-arrow-repeat',
+        ],
+        default => [
+            'label' => 'Online LMS',
+            'class' => 'bg-white bg-opacity-25 text-white',
+            'icon'  => 'bi bi-laptop',
+        ],
+    };
+};
 ?>
 
 <!-- 1. LEARNING ROOM HERO HEADER (FISTUDY DNA) -->
@@ -42,6 +62,10 @@ if (! empty($activeItem['external_url'])) {
                 <span class="badge bg-white text-dark rounded-pill px-3 py-1 fw-bold">
                     <i class="bi bi-mortarboard-fill text-primary me-1"></i> Ruang Belajar Interaktif
                 </span>
+                <?php $mBadge = $methodBadge($ctx['learning_method'] ?? 'online'); ?>
+                <span class="badge <?= $mBadge['class'] ?> rounded-pill px-3 py-1 fw-semibold">
+                    <i class="<?= $mBadge['icon'] ?> me-1"></i> <?= esc($mBadge['label']) ?>
+                </span>
                 <span class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-1 font-monospace">
                     <?= esc($ctx['code'] ?? '-') ?>
                 </span>
@@ -49,6 +73,9 @@ if (! empty($activeItem['external_url'])) {
             <h1 class="h3 fw-bold text-white mb-1"><?= esc($ctx['name'] ?? 'Learning Room') ?></h1>
             <p class="text-white text-opacity-75 small mb-0">
                 Course: <strong class="text-white"><?= esc($ctx['course_title'] ?? '-') ?></strong>
+                <?php if (! empty($ctx['location_or_link'])): ?>
+                    &middot; <i class="bi bi-geo-alt-fill text-warning me-1"></i> <span class="text-white"><?= esc($ctx['location_or_link']) ?></span>
+                <?php endif; ?>
             </p>
         </div>
 

@@ -42,6 +42,11 @@ $quizzes       = $quizzes ?? [];
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 border-bottom pb-3">
                 <div>
                     <span class="badge bg-light text-navy border rounded-pill px-2 py-1 small me-2">Kode: <?= esc($selectedClass['code']) ?></span>
+                    <?php if (! empty($selectedClass['learning_method'])): ?>
+                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1 small me-2">
+                            <?= esc(strtoupper($selectedClass['learning_method'])) ?>
+                        </span>
+                    <?php endif; ?>
                     <h2 class="h5 fw-bold text-navy mb-0 d-inline"><?= esc($selectedClass['name']) ?></h2>
                 </div>
                 <div class="d-flex gap-2">

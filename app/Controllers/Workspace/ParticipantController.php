@@ -47,16 +47,28 @@ class ParticipantController extends BaseController
                 lc.code AS class_code,
                 lc.name AS class_name,
                 lc.status AS class_status,
+                lc.learning_method,
+                lc.location_or_link,
+                lc.description AS class_description,
+                lc.target_audience AS class_target_audience,
                 lc.start_at,
                 lc.end_at,
                 lc.capacity,
                 lc.passing_grade,
                 lc.certificate_enabled,
                 courses.title AS course_title,
+                courses.slug AS course_slug,
                 courses.level AS course_level,
                 courses.duration_minutes,
                 courses.summary AS course_summary,
+                courses.description AS course_description,
+                courses.cover_url AS course_cover_url,
+                courses.target_audience AS course_target_audience,
+                courses.learning_objectives AS course_learning_objectives,
+                courses.prerequisites AS course_prerequisites,
                 programs.title AS program_title,
+                programs.slug AS program_slug,
+                programs.cover_url AS program_cover_url,
                 fa.path AS cover_path,
                 cert.id AS certificate_id,
                 cert.certificate_number,
@@ -1362,9 +1374,10 @@ class ParticipantController extends BaseController
 
         // 1. Class & Course & Program Context
         $class = $db->table('learning_classes lc')
-            ->select('lc.*, courses.title AS course_title, courses.slug AS course_slug, courses.summary AS course_summary, courses.description AS course_description, courses.level AS course_level, courses.duration_minutes, programs.title AS program_title')
+            ->select('lc.*, courses.title AS course_title, courses.slug AS course_slug, courses.summary AS course_summary, courses.description AS course_description, courses.level AS course_level, courses.duration_minutes, courses.cover_url AS course_cover_url, courses.target_audience AS course_target_audience, courses.learning_objectives AS course_learning_objectives, courses.prerequisites AS course_prerequisites, programs.title AS program_title, programs.slug AS program_slug, programs.cover_url AS program_cover_url, fa.path AS cover_path')
             ->join('courses', 'courses.id = lc.course_id', 'left')
             ->join('programs', 'programs.id = courses.program_id', 'left')
+            ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
             ->where('lc.id', $classId)
             ->get()->getRowArray();
 
@@ -1374,7 +1387,7 @@ class ParticipantController extends BaseController
 
         // 2. Active Trainers
         $trainers = $db->table('class_trainers ct')
-            ->select('ct.user_id, ct.assigned_at, ct.status AS trainer_status, u.name, u.email, u.phone, u.profile_type')
+            ->select('ct.user_id, ct.assigned_at, ct.status AS trainer_status, ct.role AS trainer_role, u.name, u.email, u.phone, u.profile_type')
             ->join('users u', 'u.id = ct.user_id')
             ->where(['ct.class_id' => $classId, 'ct.status' => 'active'])
             ->get()->getResultArray();

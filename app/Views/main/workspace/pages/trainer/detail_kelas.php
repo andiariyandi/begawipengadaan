@@ -1,7 +1,7 @@
 <?php
 /**
  * Trainer Learning Management Room
- * Detail Kelas & Tab Navigation FiStudy UI DNA
+ * Detail Kelas & Tab Navigation FiStudy UI DNA - Elevated Unified Design
  */
 $c           = $classCtx ?? [];
 $classId     = (int) ($c['id'] ?? 0);
@@ -12,6 +12,53 @@ $participants= $participants ?? [];
 $quizzes     = $quizzes ?? [];
 $assignments = $assignments ?? [];
 $stats       = $stats ?? [];
+
+$fmtCover = static function ($row): string {
+    if (! empty($row['course_cover_url'])) {
+        return esc($row['course_cover_url']);
+    }
+    if (! empty($row['cover_path'])) {
+        return base_url(esc($row['cover_path']));
+    }
+    return base_url('assets/fistudy/images/resources/course-1-1.png');
+};
+
+$methodBadge = static function (?string $method): array {
+    return match (strtolower((string) $method)) {
+        'offline', 'tatap_muka' => [
+            'label' => 'Tatap Muka',
+            'class' => 'bg-success text-white',
+            'icon'  => 'fas fa-chalkboard-teacher',
+        ],
+        'hybrid' => [
+            'label' => 'Hybrid',
+            'class' => 'bg-purple text-white',
+            'icon'  => 'fas fa-shuffle',
+        ],
+        default => [
+            'label' => 'Online LMS',
+            'class' => 'bg-primary text-white',
+            'icon'  => 'fas fa-laptop',
+        ],
+    };
+};
+
+$trainerRoleLabel = static function (?string $role): string {
+    return match (strtolower((string) $role)) {
+        'co_trainer' => 'Co-Trainer',
+        'guest'      => 'Narasumber Tamu',
+        default      => 'Pengajar Utama',
+    };
+};
+
+$levelLabel = static function (?string $lvl): string {
+    return match (strtolower((string) $lvl)) {
+        'dasar', 'beginner', '1' => 'Tingkat Dasar',
+        'menengah', 'intermediate', '2' => 'Tingkat Menengah',
+        'lanjutan', 'advanced', '3' => 'Tingkat Lanjutan',
+        default => 'Semua Tingkat',
+    };
+};
 ?>
 
 <div class="trainer-room-wrapper">
@@ -27,6 +74,15 @@ $stats       = $stats ?? [];
                         <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 small fw-medium">
                             <?= esc(ucfirst($c['status'] ?? 'active')) ?>
                         </span>
+                        <?php $mb = $methodBadge($c['learning_method'] ?? null); ?>
+                        <span class="badge rounded-pill px-3 py-1 small fw-semibold <?= $mb['class'] ?>">
+                            <i class="<?= $mb['icon'] ?> me-1"></i><?= $mb['label'] ?>
+                        </span>
+                        <?php if (! empty($c['course_level'])): ?>
+                            <span class="badge bg-info-subtle text-info rounded-pill px-3 py-1 small">
+                                <?= $levelLabel($c['course_level']) ?>
+                            </span>
+                        <?php endif; ?>
                         <span class="badge bg-light text-navy border rounded-pill px-3 py-1 small">
                             Passing Grade: <?= esc($c['passing_grade'] ?? '70.00') ?>
                         </span>
@@ -46,6 +102,18 @@ $stats       = $stats ?? [];
                             <i class="far fa-calendar-alt text-primary me-1"></i>
                             Periode: <?= esc(! empty($c['start_at']) ? date('d M Y', strtotime($c['start_at'])) : '-') ?> &ndash; <?= esc(! empty($c['end_at']) ? date('d M Y', strtotime($c['end_at'])) : '-') ?>
                         </span>
+                        <?php if (! empty($c['location_or_link'])): ?>
+                            <span>
+                                <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                <?= esc($c['location_or_link']) ?>
+                            </span>
+                        <?php endif; ?>
+                        <?php if (! empty($c['duration_minutes'])): ?>
+                            <span>
+                                <i class="far fa-clock text-primary me-1"></i>
+                                Estimasi: <?= (int) $c['duration_minutes'] ?> Menit
+                            </span>
+                        <?php endif; ?>
                         <span>
                             <i class="fas fa-chalkboard-teacher text-warning me-1"></i>
                             Pengajar: 
@@ -58,7 +126,7 @@ $stats       = $stats ?? [];
                     </div>
                 </div>
 
-                <!-- Stats Summary Pill -->
+                <!-- Action Button -->
                 <div class="d-flex flex-row flex-lg-column gap-2 text-nowrap">
                     <a href="<?= route_to('workspace.trainer.classes') ?>" class="btn btn-outline-secondary rounded-pill px-3">
                         <i class="fas fa-arrow-left me-1"></i> Semua Kelas
@@ -126,7 +194,30 @@ $stats       = $stats ?? [];
     <?php if ($activeTab === 'overview'): ?>
         <div class="row g-4">
             <div class="col-12 col-lg-8">
-                <!-- Deskripsi & Bobot Penilaian -->
+                <!-- Cover Banner & Informasi Kelas -->
+                <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
+                    <div class="position-relative" style="height: 200px;">
+                        <img src="<?= $fmtCover($c) ?>" alt="<?= esc($c['name'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                        <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(180deg, rgba(8, 47, 92, 0.3) 0%, rgba(8, 47, 92, 0.85) 100%);"></div>
+                        <div class="position-absolute bottom-0 start-0 p-4 text-white">
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-1 small fw-bold mb-2">
+                                <?= esc($c['code'] ?? 'KELAS') ?> &middot; <?= $mb['label'] ?>
+                            </span>
+                            <h2 class="h4 fw-bold text-white mb-1"><?= esc($c['name'] ?? '-') ?></h2>
+                            <p class="small text-white-50 mb-0"><?= esc($c['course_title'] ?? '-') ?></p>
+                        </div>
+                    </div>
+                    <?php if (! empty($c['description'])): ?>
+                        <div class="p-4 border-bottom bg-light-subtle">
+                            <h3 class="h6 fw-bold text-navy mb-2"><i class="fas fa-info-circle text-primary me-2"></i>Deskripsi Kelas</h3>
+                            <div class="text-muted small lh-lg">
+                                <?= nl2br(esc($c['description'])) ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Bobot Penilaian & Passing Grade -->
                 <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
                     <h2 class="h5 fw-bold text-navy mb-3"><i class="fas fa-sliders-h text-primary me-2"></i>Bobot Penilaian & Passing Grade</h2>
                     <div class="row g-3 mb-4">
@@ -163,6 +254,51 @@ $stats       = $stats ?? [];
                         </div>
                     <?php endif; ?>
                 </div>
+
+                <!-- Kurikulum & Target Peserta Detail (Jika ada) -->
+                <?php if (! empty($c['course_learning_objectives']) || ! empty($c['course_prerequisites']) || ! empty($c['target_audience']) || ! empty($c['course_target_audience'])): ?>
+                    <div class="row g-3 mb-4">
+                        <?php if (! empty($c['course_learning_objectives'])): ?>
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+                                    <h3 class="h6 fw-bold text-navy mb-2">
+                                        <i class="fas fa-bullseye text-success me-2"></i>Tujuan Pembelajaran
+                                    </h3>
+                                    <div class="text-muted small lh-lg">
+                                        <?= nl2br(esc($c['course_learning_objectives'])) ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (! empty($c['course_prerequisites'])): ?>
+                            <div class="col-12 col-md-6">
+                                <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100">
+                                    <h3 class="h6 fw-bold text-navy mb-2">
+                                        <i class="fas fa-clipboard-list text-warning me-2"></i>Persyaratan & Prasyarat
+                                    </h3>
+                                    <div class="text-muted small lh-base">
+                                        <?= nl2br(esc($c['course_prerequisites'])) ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php $aud = $c['target_audience'] ?: ($c['course_target_audience'] ?? ''); ?>
+                        <?php if (! empty($aud)): ?>
+                            <div class="col-12 <?= ! empty($c['course_prerequisites']) ? 'col-md-6' : '' ?>">
+                                <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100">
+                                    <h3 class="h6 fw-bold text-navy mb-2">
+                                        <i class="fas fa-users text-primary me-2"></i>Sasaran Peserta
+                                    </h3>
+                                    <div class="text-muted small lh-base">
+                                        <?= nl2br(esc($aud)) ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Aksi Cepat Pengajar -->
                 <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
@@ -268,9 +404,16 @@ $stats       = $stats ?? [];
                                     <div class="avatar-circle bg-primary-subtle text-primary fw-bold" style="width: 40px; height: 40px;">
                                         <?= strtoupper(substr($t['name'] ?? 'U', 0, 1)) ?>
                                     </div>
-                                    <div>
-                                        <strong class="text-navy small d-block"><?= esc($t['name'] ?? '-') ?></strong>
-                                        <span class="text-muted" style="font-size: 0.78rem;"><?= esc($t['email'] ?? '-') ?></span>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong class="text-navy small d-block"><?= esc($t['name'] ?? '-') ?></strong>
+                                            <?php if (! empty($t['trainer_role'])): ?>
+                                                <span class="badge <?= ($t['trainer_role'] === 'primary') ? 'bg-primary text-white' : 'bg-secondary-subtle text-secondary' ?> rounded-pill px-2 py-0" style="font-size: 0.68rem;">
+                                                    <?= $trainerRoleLabel($t['trainer_role']) ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <span class="text-muted" style="font-size: 0.76rem;"><?= esc($t['email'] ?? '-') ?></span>
                                     </div>
                                 </div>
                             <?php endforeach; ?>

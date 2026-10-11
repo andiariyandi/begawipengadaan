@@ -77,6 +77,37 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php
+$fmtCover = static function ($row): string {
+    if (! empty($row['course_cover_url'])) {
+        return esc($row['course_cover_url']);
+    }
+    if (! empty($row['cover_path'])) {
+        return base_url(esc($row['cover_path']));
+    }
+    return base_url('assets/fistudy/images/resources/course-1-1.png');
+};
+
+$methodBadge = static function (?string $method): array {
+    return match (strtolower((string) $method)) {
+        'offline', 'tatap_muka' => [
+            'label' => 'Tatap Muka',
+            'class' => 'bg-success text-white',
+            'icon'  => 'fas fa-chalkboard-teacher',
+        ],
+        'hybrid' => [
+            'label' => 'Hybrid',
+            'class' => 'bg-info text-dark',
+            'icon'  => 'fas fa-shuffle',
+        ],
+        default => [
+            'label' => 'Online LMS',
+            'class' => 'bg-primary text-white',
+            'icon'  => 'fas fa-laptop',
+        ],
+    };
+};
+?>
 <div class="participant-workspace-home">
 
     <!-- 1. HERO WELCOME & RESUME LEARNING BANNER -->
@@ -114,7 +145,19 @@
                         <h3 class="h6 text-white fw-bold text-truncate mb-1">
                             <?= esc($resumeClass['course_title'] ?? $resumeClass['class_name'] ?? 'Kelas Pembelajaran') ?>
                         </h3>
-                        <p class="small text-white-50 text-truncate mb-3"><?= esc($resumeClass['class_name'] ?? '') ?></p>
+                        <p class="small text-white-50 text-truncate mb-2"><?= esc($resumeClass['class_name'] ?? '') ?></p>
+
+                        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                            <?php $mBadge = $methodBadge($resumeClass['learning_method'] ?? 'online'); ?>
+                            <span class="badge bg-white-50 text-white small px-2 py-1 rounded-pill">
+                                <i class="<?= $mBadge['icon'] ?> me-1"></i> <?= $mBadge['label'] ?>
+                            </span>
+                            <?php if (! empty($resumeClass['location_or_link'])): ?>
+                                <span class="badge bg-white-50 text-white small px-2 py-1 rounded-pill text-truncate" style="max-width: 200px;">
+                                    <i class="fas fa-map-marker-alt me-1"></i> <?= esc($resumeClass['location_or_link']) ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
                         
                         <div class="progress rounded-pill mb-3" style="height: 6px; background: rgba(255, 255, 255, 0.2);">
                             <div class="progress-bar bg-warning rounded-pill" role="progressbar" style="width: <?= (int) ($resumeClass['progress_percent'] ?? 0) ?>%"></div>
@@ -178,29 +221,49 @@
             <div class="row g-3 ws-paginated-container" data-page-size="4">
                 <?php foreach ($recentClasses as $cl): ?>
                     <div class="col-md-6 col-lg-3 ws-paginated-item">
-                        <div class="ws-class-card p-3 h-100 d-flex flex-column justify-content-between">
+                        <div class="ws-class-card h-100 d-flex flex-column justify-content-between overflow-hidden">
                             <div>
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <span class="badge bg-primary-subtle text-primary fw-bold small rounded-pill px-2 py-1">
-                                        <?= esc($cl['class_code'] ?? 'PBJ') ?>
-                                    </span>
-                                    <span class="badge <?= ($cl['enrollment_status'] ?? '') === 'completed' ? 'bg-success-subtle text-success' : 'bg-info-subtle text-info' ?> small rounded-pill">
-                                        <?= (int) ($cl['progress_percent'] ?? 0) ?>% Selesai
-                                    </span>
+                                <div class="position-relative" style="height: 125px; overflow: hidden; background: #082f5c;">
+                                    <img src="<?= $fmtCover($cl) ?>" alt="<?= esc($cl['course_title'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover opacity-90" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                                    <div class="position-absolute top-0 start-0 m-2">
+                                        <span class="badge bg-dark bg-opacity-75 text-white fw-bold small rounded-pill px-2 py-1">
+                                            <?= esc($cl['class_code'] ?? 'PBJ') ?>
+                                        </span>
+                                    </div>
+                                    <div class="position-absolute top-0 end-0 m-2">
+                                        <?php $mInfo = $methodBadge($cl['learning_method'] ?? 'online'); ?>
+                                        <span class="badge bg-white text-dark small rounded-pill px-2 py-1 fw-semibold shadow-sm">
+                                            <i class="<?= $mInfo['icon'] ?> me-1 text-primary"></i> <?= $mInfo['label'] ?>
+                                        </span>
+                                    </div>
                                 </div>
-                                <h3 class="h6 fw-bold text-navy mb-1" style="min-height: 2.4rem; line-height: 1.3;">
-                                    <?= esc($cl['course_title'] ?? $cl['class_name'] ?? 'Kelas Pembelajaran') ?>
-                                </h3>
-                                <p class="small text-muted mb-2 text-truncate"><?= esc($cl['class_name'] ?? '') ?></p>
+                                <div class="p-3">
+                                    <h3 class="h6 fw-bold text-navy mb-1" style="min-height: 2.4rem; line-height: 1.3;">
+                                        <?= esc($cl['course_title'] ?? $cl['class_name'] ?? 'Kelas Pembelajaran') ?>
+                                    </h3>
+                                    <p class="small text-muted mb-2 text-truncate"><?= esc($cl['class_name'] ?? '') ?></p>
 
-                                <div class="d-flex flex-wrap gap-2 text-muted small mb-3" style="font-size: 0.72rem;">
-                                    <span><i class="fas fa-layer-group me-1 text-primary"></i> <?= (int) ($cl['module_count'] ?? 0) ?> Modul</span>
-                                    <span>&middot;</span>
-                                    <span><i class="fas fa-check-circle me-1 text-success"></i> KKM <?= (int) ($cl['passing_grade'] ?? 70) ?>%</span>
+                                    <?php if (! empty($cl['location_or_link'])): ?>
+                                        <div class="text-muted small mb-2 text-truncate" style="font-size: 0.72rem;">
+                                            <i class="fas fa-map-marker-alt text-danger me-1"></i> <?= esc($cl['location_or_link']) ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <div class="d-flex flex-wrap gap-2 text-muted small mb-2" style="font-size: 0.72rem;">
+                                        <span><i class="fas fa-layer-group me-1 text-primary"></i> <?= (int) ($cl['module_count'] ?? 0) ?> Modul</span>
+                                        <span>&middot;</span>
+                                        <span><i class="fas fa-check-circle me-1 text-success"></i> KKM <?= (int) ($cl['passing_grade'] ?? 70) ?>%</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div>
+                            <div class="p-3 pt-0">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted" style="font-size: 0.72rem;">Progres</small>
+                                    <span class="badge <?= ($cl['enrollment_status'] ?? '') === 'completed' ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary' ?> small rounded-pill">
+                                        <?= (int) ($cl['progress_percent'] ?? 0) ?>% Selesai
+                                    </span>
+                                </div>
                                 <div class="progress rounded-pill mb-3" style="height: 6px; background: #eef2f7;">
                                     <div class="progress-bar bg-warning rounded-pill" role="progressbar" style="width: <?= (int) ($cl['progress_percent'] ?? 0) ?>%"></div>
                                 </div>

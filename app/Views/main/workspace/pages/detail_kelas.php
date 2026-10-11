@@ -13,17 +13,59 @@ $preTest     = $state['pre_test'] ?? [];
 $postTest    = $state['post_test'] ?? [];
 $pct         = (float) ($state['overall_percent'] ?? 0);
 $finalScore  = $enrollment['final_score'] ?? null;
+
+$fmtCover = static function ($row): string {
+    if (! empty($row['course_cover_url'])) {
+        return esc($row['course_cover_url']);
+    }
+    if (! empty($row['cover_path'])) {
+        return base_url(esc($row['cover_path']));
+    }
+    return base_url('assets/fistudy/images/resources/course-1-1.png');
+};
+
+$methodBadge = static function (?string $method): array {
+    return match (strtolower((string) $method)) {
+        'offline', 'tatap_muka' => [
+            'label' => 'Tatap Muka',
+            'class' => 'bg-success-subtle text-success border border-success-subtle',
+            'icon'  => 'bi bi-person-video3',
+        ],
+        'hybrid' => [
+            'label' => 'Hybrid',
+            'class' => 'bg-purple-subtle text-purple border border-purple-subtle',
+            'icon'  => 'bi bi-arrow-repeat',
+        ],
+        default => [
+            'label' => 'Online LMS',
+            'class' => 'bg-primary-subtle text-primary border border-primary-subtle',
+            'icon'  => 'bi bi-laptop',
+        ],
+    };
+};
+
+$trainerRoleLabel = static function (?string $role): string {
+    return match (strtolower((string) $role)) {
+        'co_trainer' => 'Co-Trainer',
+        'guest'      => 'Narasumber Tamu',
+        default      => 'Pengajar Utama',
+    };
+};
 ?>
 
 <!-- 1. Hero Card: Informasi Kelas & Konteks Pembelajaran (FiStudy DNA) -->
 <div class="card border-0 rounded-4 shadow-sm p-4 p-lg-5 mb-4 bg-white">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-        <div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
             <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2 rounded-pill text-uppercase">
                 <i class="bi bi-book-half me-1"></i> <?= esc($ctx['program_title'] ?? 'Program Pembelajaran') ?>
             </span>
+            <?php $mBadge = $methodBadge($ctx['learning_method'] ?? 'online'); ?>
+            <span class="badge <?= $mBadge['class'] ?> px-3 py-2 rounded-pill fw-semibold">
+                <i class="<?= $mBadge['icon'] ?> me-1"></i> <?= esc($mBadge['label']) ?>
+            </span>
             <?php if (! empty($ctx['course_level'])): ?>
-                <span class="badge bg-secondary-subtle text-secondary fw-semibold px-3 py-2 rounded-pill ms-1 text-capitalize">
+                <span class="badge bg-secondary-subtle text-secondary fw-semibold px-3 py-2 rounded-pill text-capitalize">
                     <?= esc($ctx['course_level']) ?>
                 </span>
             <?php endif; ?>
@@ -36,11 +78,40 @@ $finalScore  = $enrollment['final_score'] ?? null;
         </div>
     </div>
 
-    <h1 class="h2 fw-bold mb-2" style="color: #082f5c;"><?= esc($ctx['name'] ?? 'Detail Kelas') ?></h1>
-    <p class="text-muted fs-6 mb-3">
-        Course: <strong class="text-dark"><?= esc($ctx['course_title'] ?? '-') ?></strong> &middot; 
-        Kode Kelas: <code class="text-primary fw-bold font-monospace"><?= esc($ctx['code'] ?? '-') ?></code>
-    </p>
+    <div class="row g-4 align-items-center mb-3">
+        <div class="col-md-3 col-xl-2">
+            <div class="rounded-4 overflow-hidden shadow-xs border bg-light" style="aspect-ratio: 16/10;">
+                <img src="<?= $fmtCover($ctx) ?>" alt="<?= esc($ctx['course_title'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+            </div>
+        </div>
+        <div class="col-md-9 col-xl-10">
+            <h1 class="h2 fw-bold mb-2" style="color: #082f5c;"><?= esc($ctx['name'] ?? 'Detail Kelas') ?></h1>
+            <p class="text-muted fs-6 mb-2">
+                Course: <strong class="text-dark"><?= esc($ctx['course_title'] ?? '-') ?></strong> &middot; 
+                Kode Kelas: <code class="text-primary fw-bold font-monospace"><?= esc($ctx['code'] ?? '-') ?></code>
+            </p>
+            <div class="d-flex flex-wrap gap-3 text-muted small">
+                <?php if (! empty($ctx['location_or_link'])): ?>
+                    <div>
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                        Akses/Lokasi: <strong class="text-dark"><?= esc($ctx['location_or_link']) ?></strong>
+                    </div>
+                <?php endif; ?>
+                <?php if (! empty($ctx['target_audience'])): ?>
+                    <div>
+                        <i class="bi bi-people-fill text-info me-1"></i>
+                        Sasaran: <strong><?= esc($ctx['target_audience']) ?></strong>
+                    </div>
+                <?php endif; ?>
+                <?php if (! empty($ctx['duration_minutes'])): ?>
+                    <div>
+                        <i class="bi bi-clock-history text-primary me-1"></i>
+                        Estimasi: <strong><?= (int) $ctx['duration_minutes'] ?> Menit</strong>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 
     <!-- Component Evaluation Weights & Passing Grade -->
     <div class="row g-3 pt-3 border-top mt-3">
@@ -169,7 +240,9 @@ $finalScore  = $enrollment['final_score'] ?? null;
                         </div>
                         <div class="overflow-hidden">
                             <h3 class="h6 mb-0 text-dark fw-bold text-truncate"><?= esc($t['name'] ?? 'Trainer') ?></h3>
-                            <span class="badge bg-primary-subtle text-primary small rounded-pill mb-1">Pengajar Utama</span>
+                            <span class="badge bg-primary-subtle text-primary small rounded-pill mb-1">
+                                <?= $trainerRoleLabel($t['trainer_role'] ?? 'primary') ?>
+                            </span>
                             <?php if (! empty($t['email'])): ?>
                                 <p class="text-muted small mb-0 text-truncate"><?= esc($t['email']) ?></p>
                             <?php endif; ?>
@@ -186,16 +259,41 @@ $finalScore  = $enrollment['final_score'] ?? null;
     <h2 class="h5 mb-3 fw-bold d-flex align-items-center gap-2" style="color: #082f5c;">
         <i class="bi bi-card-text text-primary"></i> Deskripsi Kursus
     </h2>
+    <?php if (! empty($ctx['description'])): ?>
+        <div class="p-3 bg-light rounded-4 border mb-3">
+            <strong class="d-block small text-primary fw-bold text-uppercase mb-1">Tentang Batch Kelas Ini:</strong>
+            <div class="text-dark small lh-base"><?= nl2br(esc($ctx['description'])) ?></div>
+        </div>
+    <?php endif; ?>
+
     <?php if (! empty($ctx['course_description'])): ?>
-        <div class="text-muted lh-base mb-4">
+        <div class="text-muted lh-base mb-3">
             <?= nl2br(esc($ctx['course_description'])) ?>
         </div>
     <?php elseif (! empty($ctx['course_summary'])): ?>
-        <div class="text-muted lh-base mb-4">
+        <div class="text-muted lh-base mb-3">
             <?= nl2br(esc($ctx['course_summary'])) ?>
         </div>
     <?php else: ?>
-        <p class="text-muted mb-4 small">Deskripsi materi kursus belum tersedia.</p>
+        <p class="text-muted mb-3 small">Deskripsi materi kursus belum tersedia.</p>
+    <?php endif; ?>
+
+    <?php if (! empty($ctx['course_learning_objectives'])): ?>
+        <div class="p-3 bg-light rounded-4 border mb-3">
+            <h6 class="small text-uppercase fw-bold text-dark mb-2">
+                <i class="bi bi-check2-circle text-success me-1"></i> Tujuan Pembelajaran:
+            </h6>
+            <div class="text-muted small lh-base"><?= nl2br(esc($ctx['course_learning_objectives'])) ?></div>
+        </div>
+    <?php endif; ?>
+
+    <?php if (! empty($ctx['course_prerequisites'])): ?>
+        <div class="p-3 bg-light rounded-4 border mb-4">
+            <h6 class="small text-uppercase fw-bold text-dark mb-2">
+                <i class="bi bi-shield-check text-info me-1"></i> Prasyarat Kompetensi:
+            </h6>
+            <div class="text-muted small lh-base"><?= nl2br(esc($ctx['course_prerequisites'])) ?></div>
+        </div>
     <?php endif; ?>
 
     <h2 class="h5 mb-3 fw-bold d-flex align-items-center gap-2 pt-3 border-top" style="color: #082f5c;">
