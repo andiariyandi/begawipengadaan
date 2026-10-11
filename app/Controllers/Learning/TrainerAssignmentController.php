@@ -29,7 +29,7 @@ class TrainerAssignmentController extends BaseController
         $builder = $db->table('class_trainers ct')
             ->select('ct.*, lc.name AS class_name, lc.code AS class_code, lc.status AS class_status,
                       c.title AS course_title, u.name AS trainer_name, u.email AS trainer_email, u.username AS trainer_username,
-                      assigner.name AS assigner_name')
+                      u.profile_type AS trainer_profile_type, assigner.name AS assigner_name')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->join('courses c', 'c.id = lc.course_id', 'left')
             ->join('users u', 'u.id = ct.user_id')
@@ -131,6 +131,7 @@ class TrainerAssignmentController extends BaseController
                 'assigned_by' => $actorId > 0 ? $actorId : null,
                 'assigned_at' => date('Y-m-d H:i:s'),
                 'status'      => 'active',
+                'role'        => $this->request->getPost('role') ?: 'primary',
             ]);
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', 'Gagal menugaskan trainer: ' . $e->getMessage());

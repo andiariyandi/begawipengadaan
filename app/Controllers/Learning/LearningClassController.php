@@ -45,7 +45,15 @@ class LearningClassController extends BaseController
                 ->groupEnd();
         }
         if ($status !== '') {
-            $builder->where('learning_classes.status', $status);
+            if ($status === 'scheduled' || $status === 'open') {
+                $builder->whereIn('learning_classes.status', ['scheduled', 'open']);
+            } elseif ($status === 'active' || $status === 'ongoing') {
+                $builder->whereIn('learning_classes.status', ['active', 'ongoing']);
+            } elseif ($status === 'completed' || $status === 'closed') {
+                $builder->whereIn('learning_classes.status', ['completed', 'closed']);
+            } else {
+                $builder->where('learning_classes.status', $status);
+            }
         }
         if ($courseId > 0) {
             $builder->where('learning_classes.course_id', $courseId);
@@ -62,7 +70,7 @@ class LearningClassController extends BaseController
         $db = db_connect();
         $stats = [
             'total'     => (int) $db->table('learning_classes')->countAllResults(),
-            'open'      => (int) $db->table('learning_classes')->whereIn('status', ['open', 'active', 'ongoing'])->countAllResults(),
+            'open'      => (int) $db->table('learning_classes')->whereIn('status', ['open', 'scheduled', 'active', 'ongoing'])->countAllResults(),
             'completed' => (int) $db->table('learning_classes')->whereIn('status', ['completed', 'closed'])->countAllResults(),
             'draft'     => (int) $db->table('learning_classes')->where('status', 'draft')->countAllResults(),
         ];
@@ -178,6 +186,7 @@ class LearningClassController extends BaseController
                 'assigned_by' => $actorId > 0 ? $actorId : null,
                 'assigned_at' => date('Y-m-d H:i:s'),
                 'status'      => 'active',
+                'role'        => $this->request->getPost('role') ?: 'primary',
             ]);
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', 'Gagal assign trainer: ' . $e->getMessage());
@@ -209,7 +218,7 @@ class LearningClassController extends BaseController
     private function loadAssignedTrainers(int $classId): array
     {
         return db_connect()->table('class_trainers ct')
-            ->select('ct.user_id, ct.status, ct.assigned_at, users.name, users.email, users.username')
+            ->select('ct.user_id, ct.status, ct.role, ct.assigned_at, users.name, users.email, users.username')
             ->join('users', 'users.id = ct.user_id')
             ->where('ct.class_id', $classId)
             ->orderBy('users.name', 'ASC')
@@ -351,21 +360,33 @@ class LearningClassController extends BaseController
             return null;
         }
 
+        $rawStatus = (string) $this->request->getPost('status');
+        $status = match ($rawStatus) {
+            'open', 'scheduled'   => 'scheduled',
+            'active', 'ongoing'   => 'active',
+            'completed', 'closed' => 'completed',
+            default               => $rawStatus ?: 'draft',
+        };
+
         return [
-            'course_id' => (int) $this->request->getPost('course_id'),
-            'code' => trim((string) $this->request->getPost('code')),
-            'name' => trim((string) $this->request->getPost('name')),
-            'status' => $this->request->getPost('status') ?: 'draft',
-            'registration_open_at' => $this->request->getPost('registration_open_at') ?: null,
+            'course_id'             => (int) $this->request->getPost('course_id'),
+            'code'                  => trim((string) $this->request->getPost('code')),
+            'name'                  => trim((string) $this->request->getPost('name')),
+            'description'           => $this->request->getPost('description'),
+            'status'                => $status,
+            'learning_method'       => $this->request->getPost('learning_method') ?: 'online',
+            'location_or_link'      => trim((string) $this->request->getPost('location_or_link')) ?: null,
+            'target_audience'       => $this->request->getPost('target_audience'),
+            'registration_open_at'  => $this->request->getPost('registration_open_at') ?: null,
             'registration_close_at' => $this->request->getPost('registration_close_at') ?: null,
-            'start_at' => $this->request->getPost('start_at') ?: null,
-            'end_at' => $this->request->getPost('end_at') ?: null,
-            'capacity' => $this->request->getPost('capacity') ?: null,
-            'certificate_enabled' => $this->request->getPost('certificate_enabled') ? 1 : 0,
-            'passing_grade' => $this->request->getPost('passing_grade') ?: 70,
-            'quiz_weight' => $this->request->getPost('quiz_weight') ?: 40,
-            'assignment_weight' => $this->request->getPost('assignment_weight') ?: 0,
-            'post_test_weight' => $this->request->getPost('post_test_weight') ?: 60,
+            'start_at'              => $this->request->getPost('start_at') ?: null,
+            'end_at'                => $this->request->getPost('end_at') ?: null,
+            'capacity'              => $this->request->getPost('capacity') ?: null,
+            'certificate_enabled'   => $this->request->getPost('certificate_enabled') ? 1 : 0,
+            'passing_grade'         => $this->request->getPost('passing_grade') ?: 70,
+            'quiz_weight'           => $this->request->getPost('quiz_weight') ?: 40,
+            'assignment_weight'     => $this->request->getPost('assignment_weight') ?: 0,
+            'post_test_weight'      => $this->request->getPost('post_test_weight') ?: 60,
         ];
     }
 }

@@ -110,7 +110,10 @@ $isLoggedIn       = session()->get('isLoggedIn') === true;
                         'course-list-img-2.jpg',
                         'course-list-img-3.jpg',
                     ];
-                    $coverImg = base_url('assets/main/images/resources/' . $bgImages[($index % count($bgImages))]);
+                    $defaultCover = 'assets/main/images/resources/' . $bgImages[($index % count($bgImages))];
+                    $coverImg = ! empty($prog['cover_url'])
+                        ? (str_starts_with($prog['cover_url'], 'http') ? $prog['cover_url'] : base_url($prog['cover_url']))
+                        : base_url($defaultCover);
                     ?>
                     <div class="col-xl-3 col-lg-6 col-md-6">
                         <article class="arena-card arena-program-card h-100">
@@ -139,9 +142,16 @@ $isLoggedIn       = session()->get('isLoggedIn') === true;
                                         <?= esc($prog['title']) ?>
                                     </a>
                                 </h4>
-                                <p class="arena-card__text">
-                                    <?= esc(mb_strimwidth($prog['summary'] ?? 'Program pembelajaran kompetensi pengadaan barang dan jasa.', 0, 95, '…')) ?>
+                                <p class="arena-card__text mb-2">
+                                    <?= esc(mb_strimwidth($prog['summary'] ?: ($prog['target_audience'] ?: 'Program kurikulum kompetensi pengadaan barang dan jasa.'), 0, 95, '…')) ?>
                                 </p>
+                                <?php if (! empty($prog['target_audience'])): ?>
+                                    <div class="mb-2">
+                                        <span class="badge bg-light text-muted border text-truncate d-inline-block" style="max-width: 100%; font-size: 11px;" title="<?= esc($prog['target_audience']) ?>">
+                                            <i class="fas fa-users text-primary me-1"></i> <?= esc(mb_strimwidth($prog['target_audience'], 0, 32, '…')) ?>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="arena-card__meta">
                                     <span><i class="fas fa-book-open"></i> <?= (int) ($prog['course_count'] ?? 0) ?> Course</span>
                                     <span><i class="fas fa-shield-alt"></i> LKPP Ready</span>
@@ -195,15 +205,24 @@ $isLoggedIn       = session()->get('isLoggedIn') === true;
                 <?php foreach ($popularCourses as $index => $course): ?>
                     <?php
                     $imgIndex = ($index % 6) + 1;
-                    $imgPath  = "assets/main/images/resources/course-list-img-{$imgIndex}.jpg";
+                    $defaultImg = "assets/main/images/resources/course-list-img-{$imgIndex}.jpg";
+                    $coverImg = ! empty($course['cover_url'])
+                        ? (str_starts_with($course['cover_url'], 'http') ? $course['cover_url'] : base_url($course['cover_url']))
+                        : base_url($defaultImg);
+                    $levelVal = strtolower((string) ($course['level'] ?? 'basic'));
+                    $levelBadge = match ($levelVal) {
+                        'intermediate' => ['label' => 'Menengah', 'badge' => 'bg-warning text-dark', 'icon' => 'fa-chart-line'],
+                        'advanced'     => ['label' => 'Lanjutan', 'badge' => 'bg-danger text-white', 'icon' => 'fa-award'],
+                        default        => ['label' => 'Dasar', 'badge' => 'bg-info text-white', 'icon' => 'fa-shield-alt'],
+                    };
                     ?>
                     <div class="col-xl-4 col-lg-4 col-md-6">
                         <article class="arena-card">
                             <div class="arena-card__thumb">
-                                <img src="<?= base_url($imgPath) ?>" alt="<?= esc($course['title']) ?>" loading="lazy">
+                                <img src="<?= $coverImg ?>" alt="<?= esc($course['title']) ?>" loading="lazy" style="object-fit: cover; width: 100%; height: 100%;">
                                 <div class="arena-card__badge-row">
-                                    <span class="arena-pill-badge arena-pill-badge--primary">
-                                        <?= esc($course['level'] ?? 'PBJ') ?>
+                                    <span class="arena-pill-badge <?= $levelBadge['badge'] ?>">
+                                        <i class="fas <?= $levelBadge['icon'] ?> me-1"></i> <?= esc($levelBadge['label']) ?>
                                     </span>
                                 </div>
                                 <div class="arena-card-floating-bookmark">
@@ -223,16 +242,23 @@ $isLoggedIn       = session()->get('isLoggedIn') === true;
                                         <?= esc($course['title']) ?>
                                     </a>
                                 </h4>
-                                <p class="arena-card__text">
-                                    <?= esc(mb_strimwidth($course['summary'] ?? 'Pelajari topik regulasi dan penerapan praktis dalam pengadaan barang dan jasa pemerintah.', 0, 110, '…')) ?>
+                                <p class="arena-card__text mb-2">
+                                    <?= esc(mb_strimwidth($course['summary'] ?: ($course['target_audience'] ?: 'Pelajari topik regulasi dan penerapan praktis dalam pengadaan barang dan jasa pemerintah.'), 0, 110, '…')) ?>
                                 </p>
+                                <?php if (! empty($course['target_audience'])): ?>
+                                    <div class="mb-2">
+                                        <span class="badge bg-light text-muted border text-truncate d-inline-block" style="max-width: 100%; font-size: 11px;" title="<?= esc($course['target_audience']) ?>">
+                                            <i class="fas fa-users text-primary me-1"></i> <?= esc(mb_strimwidth($course['target_audience'], 0, 35, '…')) ?>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="arena-card__meta">
                                     <span>
                                         <i class="far fa-clock"></i>
                                         <?= ($course['duration_minutes'] ?? null) !== null ? esc((string) $course['duration_minutes']) . ' menit' : 'Belajar Mandiri' ?>
                                     </span>
                                     <span>
-                                        <i class="fas fa-signal"></i> <?= esc($course['level'] ?? 'Tingkat Dasar') ?>
+                                        <i class="fas fa-signal"></i> <?= esc($levelBadge['label']) ?>
                                     </span>
                                 </div>
                                 <div class="arena-card__actions">
@@ -284,12 +310,22 @@ $isLoggedIn       = session()->get('isLoggedIn') === true;
                 <?php foreach ($activeClasses as $index => $class): ?>
                     <?php
                     $imgIndex = (($index + 2) % 6) + 1;
-                    $imgPath  = "assets/main/images/resources/course-list-img-{$imgIndex}.jpg";
+                    $defaultImg = "assets/main/images/resources/course-list-img-{$imgIndex}.jpg";
+                    $coverImg = ! empty($class['course_cover_url'])
+                        ? (str_starts_with($class['course_cover_url'], 'http') ? $class['course_cover_url'] : base_url($class['course_cover_url']))
+                        : base_url($defaultImg);
+
+                    $method = strtolower((string) ($class['learning_method'] ?? 'online'));
+                    $methodBadge = match ($method) {
+                        'offline' => ['label' => 'Tatap Muka', 'badge' => 'bg-info text-white', 'icon' => 'fa-building'],
+                        'hybrid'  => ['label' => 'Hybrid', 'badge' => 'bg-purple text-white', 'icon' => 'fa-network-wired'],
+                        default   => ['label' => 'Online LMS', 'badge' => 'bg-primary text-white', 'icon' => 'fa-laptop'],
+                    };
                     ?>
                     <div class="col-xl-6 col-lg-6 col-md-12">
                         <article class="arena-card flex-md-row" style="min-height: 220px;">
                             <div class="arena-card__thumb flex-shrink-0" style="width: 220px; height: auto; min-height: 200px;">
-                                <img src="<?= base_url($imgPath) ?>" alt="<?= esc($class['name']) ?>" loading="lazy">
+                                <img src="<?= $coverImg ?>" alt="<?= esc($class['name']) ?>" loading="lazy" style="object-fit: cover; width: 100%; height: 100%;">
                                 <div class="arena-card__badge-row">
                                     <span class="arena-pill-badge arena-pill-badge--accent">
                                         <?= esc(ucfirst($class['status'] ?? 'Aktif')) ?>
@@ -308,15 +344,37 @@ $isLoggedIn       = session()->get('isLoggedIn') === true;
                             <div class="arena-card__body">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                     <span class="arena-card__category mb-0">Course: <?= esc($class['course_title'] ?? 'PBJ') ?></span>
-                                    <span class="badge bg-light text-dark border px-2 py-1 radius-4 font-monospace" style="font-size: 11px;">
-                                        <?= esc($class['code']) ?>
-                                    </span>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="badge <?= $methodBadge['badge'] ?> px-2 py-1 radius-4 small" style="font-size: 10.5px;">
+                                            <i class="fas <?= $methodBadge['icon'] ?> me-1"></i> <?= esc($methodBadge['label']) ?>
+                                        </span>
+                                        <span class="badge bg-light text-dark border px-2 py-1 radius-4 font-monospace" style="font-size: 11px;">
+                                            <?= esc($class['code']) ?>
+                                        </span>
+                                    </div>
                                 </div>
                                 <h4 class="arena-card__title" style="font-size: 17px;">
                                     <a href="<?= route_to('public.learning.class.detail', $class['code']) ?>">
                                         <?= esc($class['name']) ?>
                                     </a>
                                 </h4>
+
+                                <?php if (! empty($class['description'])): ?>
+                                    <p class="small text-muted mb-2 text-truncate" style="font-size: 12.5px;">
+                                        <?= esc(mb_strimwidth($class['description'], 0, 80, '…')) ?>
+                                    </p>
+                                <?php endif; ?>
+
+                                <?php if (! empty($class['trainers'])): ?>
+                                    <div class="d-flex align-items-center gap-1 mb-2 text-truncate" style="font-size: 11.5px;">
+                                        <i class="fas fa-user-tie text-primary me-1"></i>
+                                        <span class="text-muted">Fasilitator:</span>
+                                        <?php foreach (array_slice($class['trainers'], 0, 2) as $t): ?>
+                                            <span class="badge bg-light text-dark border"><?= esc($t['name'] ?? $t['username']) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+
                                 <div class="arena-card__meta py-2 my-2" style="font-size: 12px; border-top: 1px dashed #e2e8f0; border-bottom: 1px dashed #e2e8f0;">
                                     <span>
                                         <i class="far fa-calendar-alt"></i>
@@ -326,6 +384,11 @@ $isLoggedIn       = session()->get('isLoggedIn') === true;
                                         <i class="fas fa-users"></i>
                                         Kapasitas: <?= esc((string) ($class['capacity'] ?? '-')) ?>
                                     </span>
+                                    <?php if (! empty($class['location_or_link']) && $method !== 'online'): ?>
+                                        <span class="text-truncate" style="max-width: 140px;" title="<?= esc($class['location_or_link']) ?>">
+                                            <i class="fas fa-map-marker-alt text-danger"></i> <?= esc($class['location_or_link']) ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="arena-card__actions mt-auto">
                                     <a href="<?= route_to('public.learning.class.detail', $class['code']) ?>" class="arena-btn-primary">

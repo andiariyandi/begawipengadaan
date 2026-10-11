@@ -396,7 +396,10 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                     <?php if ($catalogType === 'courses'): ?>
                         <?php
                         $imgIdx = ($index % 6) + 1;
-                        $imgSrc = base_url("assets/main/images/resources/course-list-img-{$imgIdx}.jpg");
+                        $defaultImg = "assets/main/images/resources/course-list-img-{$imgIdx}.jpg";
+                        $imgSrc = ! empty($item['cover_url'])
+                            ? (str_starts_with($item['cover_url'], 'http') ? $item['cover_url'] : base_url($item['cover_url']))
+                            : base_url($defaultImg);
                         $levelVal = strtolower((string) ($item['level'] ?? 'basic'));
                         $levelConfig = [
                             'basic' => ['label' => 'Dasar', 'badge' => 'bg-info text-white', 'icon' => 'fa-shield-alt'],
@@ -407,7 +410,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                         <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
                             <article class="arena-card h-100">
                                 <div class="arena-card__thumb">
-                                    <img src="<?= $imgSrc ?>" alt="<?= esc($item['title'] ?? '') ?>" loading="lazy">
+                                    <img src="<?= $imgSrc ?>" alt="<?= esc($item['title'] ?? '') ?>" loading="lazy" style="object-fit: cover; width: 100%; height: 100%;">
                                     <div class="arena-card__badge-row">
                                         <span class="arena-pill-badge <?= $levelConfig['badge'] ?>">
                                             <i class="fas <?= $levelConfig['icon'] ?> me-1"></i> <?= esc($levelConfig['label']) ?>
@@ -437,9 +440,17 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                             <?= esc($item['title'] ?? '-') ?>
                                         </a>
                                     </h4>
-                                    <p class="arena-card__text">
-                                        <?= esc(mb_strimwidth($item['summary'] ?? $item['text'] ?? 'Materi pembelajaran pengadaan barang/jasa.', 0, 115, '…')) ?>
+                                    <p class="arena-card__text mb-2">
+                                        <?= esc(mb_strimwidth($item['summary'] ?: ($item['target_audience'] ?: 'Materi pembelajaran pengadaan barang/jasa.'), 0, 115, '…')) ?>
                                     </p>
+
+                                    <?php if (! empty($item['target_audience'])): ?>
+                                        <div class="mb-2">
+                                            <span class="badge bg-light text-muted border text-truncate d-inline-block" style="max-width: 100%; font-size: 11px;" title="<?= esc($item['target_audience']) ?>">
+                                                <i class="fas fa-users text-primary me-1"></i> <?= esc(mb_strimwidth($item['target_audience'], 0, 36, '…')) ?>
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
 
                                     <!-- Rich Meta Chips Row -->
                                     <div class="d-flex flex-wrap align-items-center gap-2 py-2 mb-3 border-top border-bottom" style="font-size: 12px;">
@@ -478,11 +489,20 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                     <?php elseif ($catalogType === 'classes'): ?>
                         <?php
                         $imgIdx = (($index + 2) % 6) + 1;
-                        $imgSrc = base_url("assets/main/images/resources/course-list-img-{$imgIdx}.jpg");
+                        $defaultImg = "assets/main/images/resources/course-list-img-{$imgIdx}.jpg";
+                        $imgSrc = ! empty($item['course_cover_url'])
+                            ? (str_starts_with($item['course_cover_url'], 'http') ? $item['course_cover_url'] : base_url($item['course_cover_url']))
+                            : base_url($defaultImg);
                         $classStatus = strtolower((string) ($item['status'] ?? 'scheduled'));
                         $statusBadge = $classStatus === 'active'
                             ? ['label' => 'Aktif Berjalan', 'badge' => 'bg-success text-white', 'icon' => 'fa-play-circle']
                             : ['label' => 'Jadwal Terbuka', 'badge' => 'bg-warning text-dark', 'icon' => 'fa-clock'];
+                        $method = strtolower((string) ($item['learning_method'] ?? 'online'));
+                        $methodBadge = match ($method) {
+                            'offline' => ['label' => 'Tatap Muka', 'badge' => 'bg-info text-white', 'icon' => 'fa-building'],
+                            'hybrid'  => ['label' => 'Hybrid', 'badge' => 'bg-purple text-white', 'icon' => 'fa-network-wired'],
+                            default   => ['label' => 'Online LMS', 'badge' => 'bg-primary text-white', 'icon' => 'fa-laptop'],
+                        };
                         ?>
                         <?php
                         $startDate = ! empty($item['start_at']) ? date('d M Y', strtotime($item['start_at'])) : '-';
@@ -491,7 +511,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                         <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
                             <article class="arena-card h-100">
                                 <div class="arena-card__thumb">
-                                    <img src="<?= $imgSrc ?>" alt="<?= esc($item['title'] ?? '') ?>" loading="lazy">
+                                    <img src="<?= $imgSrc ?>" alt="<?= esc($item['title'] ?? '') ?>" loading="lazy" style="object-fit: cover; width: 100%; height: 100%;">
                                     <div class="arena-card__badge-row">
                                         <span class="arena-pill-badge <?= $statusBadge['badge'] ?>">
                                             <i class="fas <?= $statusBadge['icon'] ?> me-1"></i> <?= esc($statusBadge['label']) ?>
@@ -512,11 +532,16 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                         <span class="arena-card__category mb-0">
                                             <i class="fas fa-hashtag text-primary me-1"></i> Batch: <?= esc($item['code'] ?? '') ?>
                                         </span>
-                                        <?php if (! empty($item['program_title'])): ?>
-                                            <span class="badge bg-light text-secondary border small text-truncate" style="max-width: 140px;" title="<?= esc($item['program_title']) ?>">
-                                                <?= esc($item['program_title']) ?>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="badge <?= $methodBadge['badge'] ?> px-2 py-1 radius-4 small" style="font-size: 10.5px;">
+                                                <i class="fas <?= $methodBadge['icon'] ?> me-1"></i> <?= esc($methodBadge['label']) ?>
                                             </span>
-                                        <?php endif; ?>
+                                            <?php if (! empty($item['program_title'])): ?>
+                                                <span class="badge bg-light text-secondary border small text-truncate" style="max-width: 120px;" title="<?= esc($item['program_title']) ?>">
+                                                    <?= esc($item['program_title']) ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
 
                                     <h4 class="arena-card__title">
@@ -529,6 +554,12 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                     <p class="learning-catalog__text mb-2 text-muted small">
                                         <i class="fas fa-book-open text-primary me-1"></i> Course: <a href="<?= ! empty($item['course_slug']) ? route_to('public.learning.course.detail', $item['course_slug']) : '#' ?>" class="text-secondary fw-semibold text-decoration-none hover-primary"><?= esc($item['course_title'] ?? '-') ?></a>
                                     </p>
+
+                                    <?php if (! empty($item['description'])): ?>
+                                        <p class="text-muted small mb-2 text-truncate" style="font-size: 12.5px;">
+                                            <?= esc(mb_strimwidth($item['description'], 0, 80, '…')) ?>
+                                        </p>
+                                    <?php endif; ?>
 
                                     <!-- Timeline & Quota Strip -->
                                     <div class="d-flex flex-wrap align-items-center gap-2 py-2 my-2 border-top border-bottom" style="font-size: 12px;">
@@ -545,6 +576,11 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                                 <i class="fas fa-user-check me-1"></i> Sisa <?= (int) $item['remaining_quota'] ?> Slot
                                             </span>
                                         <?php endif; ?>
+                                        <?php if (! empty($item['location_or_link']) && $method !== 'online'): ?>
+                                            <span class="text-truncate" style="max-width: 140px;" title="<?= esc($item['location_or_link']) ?>">
+                                                <i class="fas fa-map-marker-alt text-danger me-1"></i> <?= esc($item['location_or_link']) ?>
+                                            </span>
+                                        <?php endif; ?>
                                     </div>
 
                                     <!-- Trainers Preview if available -->
@@ -553,7 +589,12 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                             <i class="fas fa-user-tie text-primary me-1"></i>
                                             <span class="fw-semibold">Fasilitator:</span>
                                             <?php foreach (array_slice($item['trainers'], 0, 2) as $t): ?>
-                                                <span class="badge bg-light text-dark border"><?= esc($t['name'] ?? $t['username']) ?></span>
+                                                <span class="badge bg-light text-dark border">
+                                                    <?= esc($t['name'] ?? $t['username']) ?>
+                                                    <?php if (! empty($t['role']) && $t['role'] !== 'primary'): ?>
+                                                        <span class="text-muted" style="font-size: 9.5px;">(<?= $t['role'] === 'co_trainer' ? 'Co' : 'Tamu' ?>)</span>
+                                                    <?php endif; ?>
+                                                </span>
                                             <?php endforeach; ?>
                                         </div>
                                     <?php endif; ?>
@@ -673,7 +714,10 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                             'course-list-img-5.jpg',
                             'course-list-img-6.jpg',
                         ];
-                        $coverImg = base_url('assets/main/images/resources/' . $bgImages[($index % count($bgImages))]);
+                        $defaultCover = 'assets/main/images/resources/' . $bgImages[($index % count($bgImages))];
+                        $coverImg = ! empty($item['cover_url'])
+                            ? (str_starts_with($item['cover_url'], 'http') ? $item['cover_url'] : base_url($item['cover_url']))
+                            : base_url($defaultCover);
                         ?>
                         <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12">
                             <article class="arena-card arena-program-card h-100">
@@ -722,8 +766,16 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                     </h4>
 
                                     <p class="arena-card__text mb-2">
-                                        <?= esc(mb_strimwidth($item['summary'] ?? $item['text'] ?? 'Kurikulum terpadu pengadaan barang/jasa.', 0, 115, '…')) ?>
+                                        <?= esc(mb_strimwidth($item['summary'] ?: ($item['target_audience'] ?: 'Kurikulum terpadu pengadaan barang/jasa.'), 0, 115, '…')) ?>
                                     </p>
+
+                                    <?php if (! empty($item['target_audience'])): ?>
+                                        <div class="mb-2">
+                                            <span class="badge bg-light text-muted border text-truncate d-inline-block" style="max-width: 100%; font-size: 11px;" title="<?= esc($item['target_audience']) ?>">
+                                                <i class="fas fa-users text-primary me-1"></i> <?= esc(mb_strimwidth($item['target_audience'], 0, 36, '…')) ?>
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
 
                                     <!-- Curriculum Micro-Stats Strip -->
                                     <div class="d-flex flex-wrap align-items-center gap-2 py-2 mb-3 border-top border-bottom" style="font-size: 12px;">

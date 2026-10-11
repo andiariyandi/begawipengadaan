@@ -158,10 +158,15 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
         <div class="row g-4">
             <!-- Left Main Column (8 cols) -->
             <div class="col-xl-8 col-lg-7">
+                <?php
+                $courseCover = ! empty($item['cover_url'])
+                    ? (str_starts_with($item['cover_url'], 'http') ? $item['cover_url'] : base_url($item['cover_url']))
+                    : base_url('assets/main/images/resources/course-details-img-1.jpg');
+                ?>
                 <!-- 1. Cover Card -->
                 <div class="card border-0 shadow-sm radius-16 overflow-hidden mb-4 bg-white">
                     <div class="position-relative" style="max-height: 380px; overflow: hidden;">
-                        <img src="<?= base_url('assets/main/images/resources/course-details-img-1.jpg') ?>" alt="<?= esc($itemTitle) ?>" class="w-100" style="object-fit: cover; max-height: 380px;">
+                        <img src="<?= esc($courseCover) ?>" alt="<?= esc($itemTitle) ?>" class="w-100" style="object-fit: cover; max-height: 380px;">
                         <div class="position-absolute bottom-0 start-0 end-0 p-3" style="background: linear-gradient(to top, rgba(8,47,92,0.85), transparent);">
                             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-white">
                                 <span class="small fw-semibold"><i class="fas fa-shield-alt text-warning me-1"></i> Standar Akreditasi LKPP &amp; Pemprov Lampung</span>
@@ -195,52 +200,103 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                         <h5 class="fw-bold text-dark mb-3" style="font-size: 16px;">
                             <i class="fas fa-award text-primary me-2"></i> Capaian Pembelajaran &amp; Target Kompetensi
                         </h5>
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <div class="p-3 bg-light radius-10 border h-100">
-                                    <div class="d-flex align-items-start gap-2">
-                                        <i class="fas fa-check-circle text-success mt-1"></i>
-                                        <div>
-                                            <strong class="d-block text-dark small">Regulasi &amp; Etika PBJ</strong>
-                                            <span class="text-muted small" style="font-size: 12px;">Memahami prinsip pengadaan, etika, dan mitigasi benturan kepentingan sesuai Perpres.</span>
+                        <?php
+                        $customObjectives = ! empty($item['learning_objectives'])
+                            ? array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $item['learning_objectives'])))
+                            : [];
+                        ?>
+                        <?php if (! empty($customObjectives)): ?>
+                            <div class="row g-2">
+                                <?php foreach ($customObjectives as $obj): ?>
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light radius-10 border h-100">
+                                            <div class="d-flex align-items-start gap-2">
+                                                <i class="fas fa-check-circle text-success mt-1"></i>
+                                                <div>
+                                                    <span class="text-dark small fw-semibold"><?= esc($obj) ?></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light radius-10 border h-100">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="fas fa-check-circle text-success mt-1"></i>
+                                            <div>
+                                                <strong class="d-block text-dark small">Regulasi &amp; Etika PBJ</strong>
+                                                <span class="text-muted small" style="font-size: 12px;">Memahami prinsip pengadaan, etika, dan mitigasi benturan kepentingan sesuai Perpres.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light radius-10 border h-100">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="fas fa-check-circle text-success mt-1"></i>
+                                            <div>
+                                                <strong class="d-block text-dark small">Perencanaan &amp; HPS</strong>
+                                                <span class="text-muted small" style="font-size: 12px;">Penyusunan spesifikasi teknis, KAK, serta perhitungan harga perkiraan sendiri akuntabel.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="col-12 p-3 bg-light radius-10 border h-100">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="fas fa-check-circle text-success mt-1"></i>
+                                            <div>
+                                                <strong class="d-block text-dark small">Pemilihan &amp; E-Katalog</strong>
+                                                <span class="text-muted small" style="font-size: 12px;">Penguasaan alur tender/seleksi, negosiasi teknis, dan transaksi belanja katalog elektronik.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light radius-10 border h-100">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="fas fa-check-circle text-success mt-1"></i>
+                                            <div>
+                                                <strong class="d-block text-dark small">Manajemen Kontrak &amp; BAST</strong>
+                                                <span class="text-muted small" style="font-size: 12px;">Pengendalian mutu pekerjaan, mitigasi risiko sengketa, dan serah terima hasil pekerjaan.</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="p-3 bg-light radius-10 border h-100">
-                                    <div class="d-flex align-items-start gap-2">
-                                        <i class="fas fa-check-circle text-success mt-1"></i>
-                                        <div>
-                                            <strong class="d-block text-dark small">Perencanaan &amp; HPS</strong>
-                                            <span class="text-muted small" style="font-size: 12px;">Penyusunan spesifikasi teknis, KAK, serta perhitungan harga perkiraan sendiri akuntabel.</span>
+                        <?php endif; ?>
+
+                        <?php if (! empty($item['target_audience']) || ! empty($item['prerequisites'])): ?>
+                            <div class="row g-3 mt-2 pt-3 border-top">
+                                <?php if (! empty($item['target_audience'])): ?>
+                                    <div class="col-md-<?= ! empty($item['prerequisites']) ? '6' : '12' ?>">
+                                        <div class="p-3 radius-10 border bg-light h-100">
+                                            <h6 class="fw-bold text-dark mb-2" style="font-size: 13.5px;">
+                                                <i class="fas fa-user-tag text-primary me-2"></i> Sasaran &amp; Target Peserta
+                                            </h6>
+                                            <p class="text-muted small mb-0" style="line-height: 1.6;">
+                                                <?= nl2br(esc($item['target_audience'])) ?>
+                                            </p>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="col-12 p-3 bg-light radius-10 border h-100">
-                                    <div class="d-flex align-items-start gap-2">
-                                        <i class="fas fa-check-circle text-success mt-1"></i>
-                                        <div>
-                                            <strong class="d-block text-dark small">Pemilihan &amp; E-Katalog</strong>
-                                            <span class="text-muted small" style="font-size: 12px;">Penguasaan alur tender/seleksi, negosiasi teknis, dan transaksi belanja katalog elektronik.</span>
+                                <?php endif; ?>
+                                <?php if (! empty($item['prerequisites'])): ?>
+                                    <div class="col-md-<?= ! empty($item['target_audience']) ? '6' : '12' ?>">
+                                        <div class="p-3 radius-10 border bg-light h-100">
+                                            <h6 class="fw-bold text-dark mb-2" style="font-size: 13.5px;">
+                                                <i class="fas fa-clipboard-check text-warning me-2"></i> Persyaratan / Prasyarat
+                                            </h6>
+                                            <p class="text-muted small mb-0" style="line-height: 1.6;">
+                                                <?= nl2br(esc($item['prerequisites'])) ?>
+                                            </p>
                                         </div>
                                     </div>
-                                </div>
+                                <?php endif; ?>
                             </div>
-                            <div class="col-md-6">
-                                <div class="p-3 bg-light radius-10 border h-100">
-                                    <div class="d-flex align-items-start gap-2">
-                                        <i class="fas fa-check-circle text-success mt-1"></i>
-                                        <div>
-                                            <strong class="d-block text-dark small">Manajemen Kontrak &amp; BAST</strong>
-                                            <span class="text-muted small" style="font-size: 12px;">Pengendalian mutu pekerjaan, mitigasi risiko sengketa, dan serah terima hasil pekerjaan.</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -386,11 +442,26 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                             <?php foreach ($classes as $cls): ?>
                                 <article class="p-3 p-md-4 radius-12 border bg-light hover-border-primary transition">
                                     <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-2">
-                                        <div class="d-flex align-items-center gap-2">
+                                        <div class="d-flex align-items-center flex-wrap gap-2">
                                             <span class="badge bg-dark text-white px-2 py-1 radius-6 small fw-semibold">
                                                 Batch: <?= esc($cls['code'] ?? '-') ?>
                                             </span>
                                             <?= view('landing/components/status_badge', ['status' => $cls['status'] ?? '-']) ?>
+                                            <?php if (! empty($cls['learning_method'])): ?>
+                                                <?php
+                                                $methodConfig = match ($cls['learning_method']) {
+                                                    'online'  => ['label' => 'Online LMS', 'class' => 'bg-info-subtle text-info border border-info-subtle'],
+                                                    'offline' => ['label' => 'Tatap Muka', 'class' => 'bg-primary-subtle text-primary border border-primary-subtle'],
+                                                    'hybrid'  => ['label' => 'Hybrid', 'class' => 'bg-purple-subtle text-purple border border-purple-subtle', 'style' => 'background:#f3e8ff; color:#7e22ce; border:1px solid #d8b4fe;'],
+                                                    default   => null,
+                                                };
+                                                ?>
+                                                <?php if ($methodConfig): ?>
+                                                    <span class="badge radius-6 small fw-medium <?= $methodConfig['class'] ?>" <?= isset($methodConfig['style']) ? 'style="' . $methodConfig['style'] . '"' : '' ?>>
+                                                        <i class="fas fa-chalkboard me-1"></i><?= $methodConfig['label'] ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
                                         </div>
                                         <?= view('landing/components/bookmark_button', [
                                             'type'     => 'learning_class',
@@ -424,15 +495,27 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                                                 <i class="fas fa-user-check me-1"></i> Sisa <?= (int) $cls['remaining_quota'] ?> Slot
                                             </span>
                                         <?php endif; ?>
+                                        <?php if (! empty($cls['location_or_link'])): ?>
+                                            <span class="text-muted">&middot;</span>
+                                            <span class="text-muted" title="<?= esc($cls['location_or_link']) ?>">
+                                                <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                                <?= esc(character_limiter($cls['location_or_link'], 35)) ?>
+                                            </span>
+                                        <?php endif; ?>
                                     </div>
 
                                     <!-- Trainers Preview if any -->
                                     <?php if (! empty($cls['trainers'])): ?>
-                                        <div class="d-flex align-items-center gap-2 mb-3 small text-muted">
+                                        <div class="d-flex align-items-center flex-wrap gap-2 mb-3 small text-muted">
                                             <i class="fas fa-chalkboard-teacher text-primary"></i>
                                             <span>Fasilitator:</span>
                                             <?php foreach ($cls['trainers'] as $t): ?>
-                                                <span class="badge bg-white text-dark border"><?= esc($t['name'] ?? $t['username']) ?></span>
+                                                <span class="badge bg-white text-dark border">
+                                                    <?= esc($t['name'] ?? $t['username']) ?>
+                                                    <?php if (! empty($t['role']) && $t['role'] !== 'primary'): ?>
+                                                        <small class="text-muted ms-1">(<?= $t['role'] === 'co_trainer' ? 'Co-Trainer' : 'Narasumber' ?>)</small>
+                                                    <?php endif; ?>
+                                                </span>
                                             <?php endforeach; ?>
                                         </div>
                                     <?php endif; ?>
@@ -484,13 +567,14 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                         <div class="row g-3">
                             <?php foreach ($relatedCourses as $rcIdx => $rc): ?>
                                 <?php
-                                $rcImgIdx = ($rcIdx % 6) + 1;
-                                $rcImg = base_url("assets/main/images/resources/course-list-img-{$rcImgIdx}.jpg");
+                                $rcImg = ! empty($rc['cover_url'])
+                                    ? (str_starts_with($rc['cover_url'], 'http') ? $rc['cover_url'] : base_url($rc['cover_url']))
+                                    : base_url("assets/main/images/resources/course-list-img-" . (($rcIdx % 6) + 1) . ".jpg");
                                 ?>
                                 <div class="col-md-4">
                                     <div class="card h-100 border radius-12 overflow-hidden shadow-2xs hover-border-primary transition">
                                         <div style="height: 110px; overflow: hidden;">
-                                            <img src="<?= $rcImg ?>" alt="<?= esc($rc['title']) ?>" class="w-100 h-100" style="object-fit: cover;">
+                                            <img src="<?= esc($rcImg) ?>" alt="<?= esc($rc['title']) ?>" class="w-100 h-100" style="object-fit: cover;">
                                         </div>
                                         <div class="p-3 d-flex flex-column flex-grow-1">
                                             <span class="badge bg-light text-muted border radius-20 small align-self-start mb-1" style="font-size: 10px;">
@@ -554,7 +638,7 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                         </li>
                         <li class="d-flex align-items-center justify-content-between pb-2 border-bottom">
                             <span class="text-muted"><i class="fas fa-users text-primary me-2"></i> Akses Peserta</span>
-                            <span class="badge bg-light text-dark border">ASN &amp; Publik</span>
+                            <span class="badge bg-light text-dark border"><?= ! empty($item['target_audience']) ? esc(character_limiter($item['target_audience'], 25)) : 'ASN &amp; Publik' ?></span>
                         </li>
                         <li class="d-flex align-items-center justify-content-between">
                             <span class="text-muted"><i class="fas fa-certificate text-warning me-2"></i> Sertifikat Resmi</span>
@@ -791,44 +875,96 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                         <?= nl2br(esc($item['description'] ?? 'Kurikulum komprehensif ini dirancang untuk membekali aparatur sipil negara dan praktisi pengadaan dengan kompetensi teknis, manajerial, serta pemahaman regulasi terkini dalam Pengadaan Barang/Jasa Pemerintah.')) ?>
                     </div>
 
-                    <!-- 4 Competency Pillars for this Curriculum -->
-                    <div class="row g-3 mt-4 pt-3 border-top">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-start gap-3 p-3 radius-12 bg-light border">
-                                <span class="badge bg-primary text-white p-2 radius-8"><i class="fas fa-balance-scale"></i></span>
-                                <div>
-                                    <h6 class="fw-bold mb-1" style="font-size: 14px;">Kepatuhan Regulasi</h6>
-                                    <p class="text-muted small mb-0">Sesuai Perpres No. 16/2018 jo. Perpres No. 12/2021.</p>
+                    <!-- 4 Competency Pillars for this Curriculum or Custom Learning Objectives -->
+                    <div class="mt-4 pt-3 border-top">
+                        <h5 class="fw-bold text-dark mb-3" style="font-size: 16px;">
+                            <i class="fas fa-award text-primary me-2"></i> Capaian &amp; Target Kompetensi Program
+                        </h5>
+                        <?php
+                        $customProgObjectives = ! empty($item['learning_objectives'])
+                            ? array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $item['learning_objectives'])))
+                            : [];
+                        ?>
+                        <?php if (! empty($customProgObjectives)): ?>
+                            <div class="row g-2">
+                                <?php foreach ($customProgObjectives as $obj): ?>
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-start gap-2 p-3 radius-12 bg-light border h-100">
+                                            <i class="fas fa-check-circle text-success mt-1"></i>
+                                            <span class="small text-dark fw-semibold"><?= esc($obj) ?></span>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-start gap-3 p-3 radius-12 bg-light border">
+                                        <span class="badge bg-primary text-white p-2 radius-8"><i class="fas fa-balance-scale"></i></span>
+                                        <div>
+                                            <h6 class="fw-bold mb-1" style="font-size: 14px;">Kepatuhan Regulasi</h6>
+                                            <p class="text-muted small mb-0">Sesuai Perpres No. 16/2018 jo. Perpres No. 12/2021.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-start gap-3 p-3 radius-12 bg-light border">
+                                        <span class="badge bg-success text-white p-2 radius-8"><i class="fas fa-chart-line"></i></span>
+                                        <div>
+                                            <h6 class="fw-bold mb-1" style="font-size: 14px;">Studi Kasus &amp; Praktik</h6>
+                                            <p class="text-muted small mb-0">Latihan penyusunan HPS, spesifikasi, dan dokumen pemilihan.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-start gap-3 p-3 radius-12 bg-light border">
+                                        <span class="badge bg-warning text-dark p-2 radius-8"><i class="fas fa-file-contract"></i></span>
+                                        <div>
+                                            <h6 class="fw-bold mb-1" style="font-size: 14px;">Manajemen Kontrak</h6>
+                                            <p class="text-muted small mb-0">Pengendalian SPK, mitigasi sengketa, dan serah terima BAST.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-start gap-3 p-3 radius-12 bg-light border">
+                                        <span class="badge bg-info text-white p-2 radius-8"><i class="fas fa-qrcode"></i></span>
+                                        <div>
+                                            <h6 class="fw-bold mb-1" style="font-size: 14px;">Sertifikat Terverifikasi</h6>
+                                            <p class="text-muted small mb-0">Sertifikat digital terverifikasi QR-Code resmi BegawiPBJ.</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-start gap-3 p-3 radius-12 bg-light border">
-                                <span class="badge bg-success text-white p-2 radius-8"><i class="fas fa-chart-line"></i></span>
-                                <div>
-                                    <h6 class="fw-bold mb-1" style="font-size: 14px;">Studi Kasus &amp; Praktik</h6>
-                                    <p class="text-muted small mb-0">Latihan penyusunan HPS, spesifikasi, dan dokumen pemilihan.</p>
-                                </div>
+                        <?php endif; ?>
+
+                        <?php if (! empty($item['target_audience']) || ! empty($item['prerequisites'])): ?>
+                            <div class="row g-3 mt-2 pt-3 border-top">
+                                <?php if (! empty($item['target_audience'])): ?>
+                                    <div class="col-md-<?= ! empty($item['prerequisites']) ? '6' : '12' ?>">
+                                        <div class="p-3 radius-10 border bg-light h-100">
+                                            <h6 class="fw-bold text-dark mb-2" style="font-size: 13.5px;">
+                                                <i class="fas fa-user-tag text-primary me-2"></i> Sasaran &amp; Target Peserta
+                                            </h6>
+                                            <p class="text-muted small mb-0" style="line-height: 1.6;">
+                                                <?= nl2br(esc($item['target_audience'])) ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (! empty($item['prerequisites'])): ?>
+                                    <div class="col-md-<?= ! empty($item['target_audience']) ? '6' : '12' ?>">
+                                        <div class="p-3 radius-10 border bg-light h-100">
+                                            <h6 class="fw-bold text-dark mb-2" style="font-size: 13.5px;">
+                                                <i class="fas fa-clipboard-check text-warning me-2"></i> Prasyarat Mengikuti Kurikulum
+                                            </h6>
+                                            <p class="text-muted small mb-0" style="line-height: 1.6;">
+                                                <?= nl2br(esc($item['prerequisites'])) ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-start gap-3 p-3 radius-12 bg-light border">
-                                <span class="badge bg-warning text-dark p-2 radius-8"><i class="fas fa-file-contract"></i></span>
-                                <div>
-                                    <h6 class="fw-bold mb-1" style="font-size: 14px;">Manajemen Kontrak</h6>
-                                    <p class="text-muted small mb-0">Pengendalian SPK, mitigasi sengketa, dan serah terima BAST.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-start gap-3 p-3 radius-12 bg-light border">
-                                <span class="badge bg-info text-white p-2 radius-8"><i class="fas fa-qrcode"></i></span>
-                                <div>
-                                    <h6 class="fw-bold mb-1" style="font-size: 14px;">Sertifikat Terverifikasi</h6>
-                                    <p class="text-muted small mb-0">Sertifikat digital terverifikasi QR-Code resmi BegawiPBJ.</p>
-                                </div>
-                            </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -874,13 +1010,14 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                         <div class="row g-3">
                             <?php foreach ($courses as $index => $course): ?>
                                 <?php
-                                $imgIdx = ($index % 6) + 1;
-                                $coverCourse = base_url("assets/main/images/resources/course-list-img-{$imgIdx}.jpg");
+                                $coverCourse = ! empty($course['cover_url'])
+                                    ? (str_starts_with($course['cover_url'], 'http') ? $course['cover_url'] : base_url($course['cover_url']))
+                                    : base_url("assets/main/images/resources/course-list-img-" . (($index % 6) + 1) . ".jpg");
                                 ?>
                                 <div class="col-12">
                                     <article class="p-3 radius-14 border bg-white shadow-2xs hover-border-primary transition-all d-flex flex-column flex-md-row gap-3 align-items-md-center">
                                         <div class="radius-10 overflow-hidden flex-shrink-0 position-relative" style="width: 100%; max-width: 160px; height: 110px;">
-                                            <img src="<?= $coverCourse ?>" alt="<?= esc($course['title']) ?>" class="w-100 h-100" style="object-fit: cover;" loading="lazy">
+                                            <img src="<?= esc($coverCourse) ?>" alt="<?= esc($course['title']) ?>" class="w-100 h-100" style="object-fit: cover;" loading="lazy">
                                             <span class="badge bg-primary text-white position-absolute top-0 start-0 m-2" style="font-size: 10px;">
                                                 <?= esc(ucfirst($course['level'] ?? 'PBJ')) ?>
                                             </span>
@@ -960,9 +1097,24 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                             <?php foreach ($classes as $cl): ?>
                                 <div class="p-3 p-md-4 radius-14 border bg-light d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                                     <div>
-                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                             <span class="badge bg-primary text-white radius-6" style="font-size: 11px;"><?= esc($cl['code']) ?></span>
                                             <span class="badge bg-success text-white radius-6" style="font-size: 11px;"><?= esc(ucfirst($cl['status'])) ?></span>
+                                            <?php if (! empty($cl['learning_method'])): ?>
+                                                <?php
+                                                $clMethod = match ($cl['learning_method']) {
+                                                    'online'  => ['label' => 'Online LMS', 'class' => 'bg-info-subtle text-info border border-info-subtle'],
+                                                    'offline' => ['label' => 'Tatap Muka', 'class' => 'bg-primary-subtle text-primary border border-primary-subtle'],
+                                                    'hybrid'  => ['label' => 'Hybrid', 'class' => 'bg-purple-subtle text-purple border border-purple-subtle', 'style' => 'background:#f3e8ff; color:#7e22ce; border:1px solid #d8b4fe;'],
+                                                    default   => null,
+                                                };
+                                                ?>
+                                                <?php if ($clMethod): ?>
+                                                    <span class="badge radius-6 small <?= $clMethod['class'] ?>" style="font-size: 11px; <?= $clMethod['style'] ?? '' ?>">
+                                                        <i class="fas fa-chalkboard me-1"></i><?= $clMethod['label'] ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
                                         </div>
                                         <h5 class="fw-bold mb-1" style="font-size: 17px; color: #0f172a;">
                                             <?= esc($cl['name']) ?>
@@ -973,6 +1125,9 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                                         <div class="d-flex flex-wrap gap-3 small text-muted">
                                             <span><i class="far fa-calendar-alt text-primary me-1"></i> <?= esc($cl['start_at']) ?> s/d <?= esc($cl['end_at']) ?></span>
                                             <span><i class="fas fa-users text-primary me-1"></i> Kapasitas: <?= esc((string) ($cl['capacity'] ?? '30')) ?> Peserta</span>
+                                            <?php if (! empty($cl['location_or_link'])): ?>
+                                                <span title="<?= esc($cl['location_or_link']) ?>"><i class="fas fa-map-marker-alt text-danger me-1"></i> <?= esc(character_limiter($cl['location_or_link'], 30)) ?></span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     <div class="flex-shrink-0 d-flex flex-column gap-2">
@@ -1021,9 +1176,14 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
             <div class="col-xl-4 col-lg-4">
                 <!-- 1. Sticky Program Info Card -->
                 <div class="card border-0 shadow-sm radius-16 p-4 mb-4 sticky-top bg-white" style="top: 100px;">
+                    <?php
+                    $progCover = ! empty($item['cover_url'])
+                        ? (str_starts_with($item['cover_url'], 'http') ? $item['cover_url'] : base_url($item['cover_url']))
+                        : base_url('assets/main/images/resources/course-details-img-1.jpg');
+                    ?>
                     <!-- Cover Image -->
                     <div class="radius-12 overflow-hidden mb-3 position-relative" style="height: 180px;">
-                        <img src="<?= base_url('assets/main/images/resources/course-details-img-1.jpg') ?>" alt="<?= esc($itemTitle) ?>" class="w-100 h-100" style="object-fit: cover;">
+                        <img src="<?= esc($progCover) ?>" alt="<?= esc($itemTitle) ?>" class="w-100 h-100" style="object-fit: cover;">
                         <div class="position-absolute top-0 end-0 p-3">
                             <?= view('landing/components/bookmark_button', [
                                 'type'     => 'program',
@@ -1058,7 +1218,7 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                         </div>
                         <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
                             <span class="text-muted small"><i class="fas fa-globe text-secondary me-2"></i> Akses</span>
-                            <span class="fw-semibold small text-success">Publik &amp; Terbuka</span>
+                            <span class="fw-semibold small text-success"><?= ! empty($item['target_audience']) ? esc(character_limiter($item['target_audience'], 20)) : 'Publik &amp; Terbuka' ?></span>
                         </div>
                         <div class="d-flex align-items-center justify-content-between py-2">
                             <span class="text-muted small"><i class="fas fa-certificate text-warning me-2"></i> Sertifikat</span>
@@ -1185,6 +1345,21 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                         <span class="badge bg-white text-dark fw-bold font-monospace px-3 py-1 radius-20 shadow-sm" style="font-size: 11px;">
                             <i class="fas fa-hashtag text-primary me-1"></i> Batch: <?= esc($item['code'] ?? '-') ?>
                         </span>
+                        <?php if (! empty($item['learning_method'])): ?>
+                            <?php
+                            $methodBadge = match ($item['learning_method']) {
+                                'online'  => ['label' => 'Online LMS', 'class' => 'bg-info-subtle text-info border border-info-subtle'],
+                                'offline' => ['label' => 'Tatap Muka', 'class' => 'bg-primary-subtle text-primary border border-primary-subtle'],
+                                'hybrid'  => ['label' => 'Hybrid', 'class' => 'bg-purple-subtle text-purple border border-purple-subtle', 'style' => 'background:#f3e8ff; color:#7e22ce; border:1px solid #d8b4fe;'],
+                                default   => null,
+                            };
+                            ?>
+                            <?php if ($methodBadge): ?>
+                                <span class="badge radius-20 px-3 py-1 fw-bold <?= $methodBadge['class'] ?>" style="font-size: 11px; <?= $methodBadge['style'] ?? '' ?>">
+                                    <i class="fas fa-chalkboard me-1"></i> <?= $methodBadge['label'] ?>
+                                </span>
+                            <?php endif; ?>
+                        <?php endif; ?>
                         <?php if (! empty($item['course_slug'])): ?>
                             <a href="<?= route_to('public.learning.course.detail', $item['course_slug']) ?>" class="badge bg-primary text-white fw-bold px-3 py-1 radius-20 shadow-sm text-decoration-none" style="font-size: 11px;">
                                 <i class="fas fa-book-open me-1"></i> Course: <?= esc($item['course_title'] ?? '-') ?>
@@ -1323,9 +1498,20 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                     </div>
 
                     <h5 class="fw-bold text-dark mb-2" style="font-size: 16px;">Deskripsi &amp; Sasaran Pelaksanaan</h5>
-                    <p class="text-secondary mb-4" style="line-height: 1.7; font-size: 14.5px;">
-                        Kelas <strong><?= esc($item['name']) ?></strong> (Kode Batch: <code class="fw-bold text-primary"><?= esc($item['code']) ?></code>) dirancang khusus untuk memfasilitasi pendalaman materi pengadaan barang dan jasa secara terstruktur. Peserta akan mengikuti tahapan pembelajaran terarah, diskusi kasus nyata pengadaan di lingkungan Provinsi Lampung, serta uji kompetensi evaluatif.
-                    </p>
+                    <div class="text-secondary mb-4" style="line-height: 1.7; font-size: 14.5px;">
+                        <?= ! empty($item['description']) ? nl2br(esc($item['description'])) : 'Kelas <strong>' . esc($item['name']) . '</strong> (Kode Batch: <code class="fw-bold text-primary">' . esc($item['code']) . '</code>) dirancang khusus untuk memfasilitasi pendalaman materi pengadaan barang dan jasa secara terstruktur. Peserta akan mengikuti tahapan pembelajaran terarah, diskusi kasus nyata pengadaan di lingkungan Provinsi Lampung, serta uji kompetensi evaluatif.' ?>
+                    </div>
+
+                    <?php if (! empty($item['target_audience'])): ?>
+                        <div class="p-3 radius-10 border bg-light mb-4">
+                            <h6 class="fw-bold text-dark mb-1" style="font-size: 13.5px;">
+                                <i class="fas fa-user-tag text-primary me-2"></i> Sasaran &amp; Target Peserta Batch Ini
+                            </h6>
+                            <p class="text-muted small mb-0" style="line-height: 1.6;">
+                                <?= nl2br(esc($item['target_audience'])) ?>
+                            </p>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- Key Metrics Grid -->
                     <div class="row g-3">
@@ -1349,8 +1535,8 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                             <div class="p-3 radius-12 bg-light border text-center h-100">
                                 <i class="fas fa-laptop text-success fs-4 mb-2"></i>
                                 <span class="d-block text-muted small">Metode Belajar</span>
-                                <strong class="text-dark small d-block">Online LMS &amp; Hybrid</strong>
-                                <small class="text-muted">Asynchronous &amp; Sesi</small>
+                                <strong class="text-dark small d-block"><?= ! empty($item['learning_method']) ? match($item['learning_method']) { 'online' => 'Online LMS', 'offline' => 'Tatap Muka', 'hybrid' => 'Hybrid', default => 'Online / Hybrid' } : 'Online LMS &amp; Hybrid' ?></strong>
+                                <small class="text-muted"><?= ! empty($item['location_or_link']) ? esc(character_limiter($item['location_or_link'], 20)) : 'Asynchronous &amp; Sesi' ?></small>
                             </div>
                         </div>
                         <div class="col-sm-6 col-md-3">
@@ -1598,6 +1784,15 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                         </span>
                     </div>
 
+                    <?php if (! empty($item['course_cover_url'])): ?>
+                        <?php
+                        $classCover = str_starts_with($item['course_cover_url'], 'http') ? $item['course_cover_url'] : base_url($item['course_cover_url']);
+                        ?>
+                        <div class="radius-12 overflow-hidden mb-3" style="max-height: 160px;">
+                            <img src="<?= esc($classCover) ?>" alt="<?= esc($item['name']) ?>" class="w-100" style="object-fit: cover; max-height: 160px;">
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($success): ?><div class="alert alert-success small radius-8 p-2 mb-3"><?= esc($success) ?></div><?php endif; ?>
                     <?php if ($err): ?><div class="alert alert-danger small radius-8 p-2 mb-3"><?= esc($err) ?></div><?php endif; ?>
 
@@ -1634,6 +1829,18 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                             <span class="text-muted"><i class="fas fa-barcode text-secondary me-2"></i> Kode Batch</span>
                             <span class="fw-bold font-monospace text-primary"><?= esc($item['code'] ?? '-') ?></span>
                         </li>
+                        <li class="d-flex justify-content-between pb-2 border-bottom">
+                            <span class="text-muted"><i class="fas fa-chalkboard text-info me-2"></i> Metode Belajar</span>
+                            <span class="fw-semibold text-end">
+                                <?= match($item['learning_method'] ?? 'online') { 'offline' => 'Tatap Muka', 'hybrid' => 'Hybrid', default => 'Online LMS' } ?>
+                            </span>
+                        </li>
+                        <?php if (! empty($item['location_or_link'])): ?>
+                            <li class="d-flex justify-content-between pb-2 border-bottom">
+                                <span class="text-muted"><i class="fas fa-map-marker-alt text-danger me-2"></i> Lokasi / Media</span>
+                                <span class="fw-semibold text-end" style="max-width: 170px;"><?= esc($item['location_or_link']) ?></span>
+                            </li>
+                        <?php endif; ?>
                         <li class="d-flex justify-content-between pb-2 border-bottom">
                             <span class="text-muted"><i class="fas fa-award text-warning me-2"></i> Passing Grade</span>
                             <span class="fw-semibold"><?= (int) $passingGrade ?> / 100</span>
@@ -1716,7 +1923,22 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                                                 <?= esc($trn['name'] ?? $trn['username']) ?>
                                             </a>
                                         </h6>
-                                        <span class="text-muted small" style="font-size: 12px;"><?= esc($trn['profile_type'] ?? 'Fasilitator Kelas PBJ') ?></span>
+                                        <div class="d-flex align-items-center flex-wrap gap-1 mt-1">
+                                            <span class="text-muted small" style="font-size: 12px;"><?= esc($trn['profile_type'] ?? 'Fasilitator Kelas PBJ') ?></span>
+                                            <?php if (! empty($trn['role'])): ?>
+                                                <?php
+                                                $roleBadge = match ($trn['role']) {
+                                                    'primary'    => ['text' => 'Utama', 'badge' => 'bg-primary-subtle text-primary border border-primary-subtle'],
+                                                    'co_trainer' => ['text' => 'Co-Trainer', 'badge' => 'bg-info-subtle text-info border border-info-subtle'],
+                                                    'guest'      => ['text' => 'Narasumber', 'badge' => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle'],
+                                                    default      => null,
+                                                };
+                                                ?>
+                                                <?php if ($roleBadge): ?>
+                                                    <span class="badge radius-6 small <?= $roleBadge['badge'] ?>" style="font-size: 10px;"><?= $roleBadge['text'] ?></span>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -2029,13 +2251,44 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                                 ?>
                                 <div class="p-3 p-md-4 radius-16 border bg-light transition-all hover-shadow-sm">
                                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-                                        <div class="d-flex align-items-center gap-2">
+                                        <div class="d-flex align-items-center flex-wrap gap-2">
                                             <span class="badge bg-white text-dark border font-monospace px-3 py-1 radius-20 fw-bold" style="font-size: 11px;">
                                                 <i class="fas fa-hashtag text-primary me-1"></i> Batch: <?= esc($cls['code']) ?>
                                             </span>
                                             <span class="badge <?= $clsStatusBadge['badge'] ?> px-3 py-1 radius-20" style="font-size: 11px;">
                                                 <i class="fas <?= $clsStatusBadge['icon'] ?> me-1"></i> <?= esc($clsStatusBadge['label']) ?>
                                             </span>
+                                            <?php if (! empty($cls['trainer_role'] ?? $cls['role'])): ?>
+                                                <?php
+                                                $tRole = $cls['trainer_role'] ?? $cls['role'];
+                                                $roleLabel = match ($tRole) {
+                                                    'primary'    => ['text' => 'Instruktur Utama', 'badge' => 'bg-primary-subtle text-primary border border-primary-subtle'],
+                                                    'co_trainer' => ['text' => 'Co-Trainer', 'badge' => 'bg-info-subtle text-info border border-info-subtle'],
+                                                    'guest'      => ['text' => 'Narasumber Tamu', 'badge' => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle'],
+                                                    default      => null,
+                                                };
+                                                ?>
+                                                <?php if ($roleLabel): ?>
+                                                    <span class="badge radius-20 small <?= $roleLabel['badge'] ?>" style="font-size: 11px;">
+                                                        <i class="fas fa-user-tie me-1"></i><?= $roleLabel['text'] ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                            <?php if (! empty($cls['learning_method'])): ?>
+                                                <?php
+                                                $methodLabel = match ($cls['learning_method']) {
+                                                    'online'  => ['label' => 'Online LMS', 'class' => 'bg-info-subtle text-info border border-info-subtle'],
+                                                    'offline' => ['label' => 'Tatap Muka', 'class' => 'bg-primary-subtle text-primary border border-primary-subtle'],
+                                                    'hybrid'  => ['label' => 'Hybrid', 'class' => 'bg-purple-subtle text-purple border border-purple-subtle', 'style' => 'background:#f3e8ff; color:#7e22ce; border:1px solid #d8b4fe;'],
+                                                    default   => null,
+                                                };
+                                                ?>
+                                                <?php if ($methodLabel): ?>
+                                                    <span class="badge radius-20 small <?= $methodLabel['class'] ?>" style="font-size: 11px; <?= $methodLabel['style'] ?? '' ?>">
+                                                        <i class="fas fa-chalkboard me-1"></i><?= $methodLabel['label'] ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
                                         </div>
                                         <?php if (! empty($cls['program_title'])): ?>
                                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 radius-8 small text-truncate" style="max-width: 200px;">
@@ -2072,6 +2325,12 @@ $durationFormatted = ($item['duration_minutes'] ?? null) !== null
                                             <?php if ($remaining > 0 && $clsStatus !== 'completed'): ?>
                                                 <span class="badge bg-success-subtle text-success border border-success-subtle">
                                                     Sisa <?= $remaining ?> Kursi
+                                                </span>
+                                            <?php endif; ?>
+                                            <?php if (! empty($cls['location_or_link'])): ?>
+                                                <span>&middot;</span>
+                                                <span title="<?= esc($cls['location_or_link']) ?>">
+                                                    <i class="fas fa-map-marker-alt text-danger me-1"></i> <?= esc(character_limiter($cls['location_or_link'], 28)) ?>
                                                 </span>
                                             <?php endif; ?>
                                         </div>

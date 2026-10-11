@@ -129,6 +129,7 @@ $trainers    = $trainers ?? [];
                 <thead>
                     <tr>
                         <th>Trainer</th>
+                        <th>Peran</th>
                         <th>Kelas & Batch</th>
                         <th>Course Induk</th>
                         <th>Ditugaskan Oleh</th>
@@ -140,7 +141,7 @@ $trainers    = $trainers ?? [];
                 <tbody>
                     <?php if (empty($assignments)): ?>
                         <tr>
-                            <td colspan="7" class="text-center text-secondary-light py-32">
+                            <td colspan="8" class="text-center text-secondary-light py-32">
                                 <?= view('dashboard/components/empty_state', [
                                     'title'   => 'Belum Ada Penugasan Trainer',
                                     'message' => 'Silakan klik tombol "Tugaskan Trainer" di atas untuk menghubungkan trainer dengan kelas pembelajaran.',
@@ -150,6 +151,14 @@ $trainers    = $trainers ?? [];
                         </tr>
                     <?php else: ?>
                         <?php foreach ($assignments as $row): ?>
+                            <?php
+                            $tRole = match ($row['role'] ?? 'primary') {
+                                'co_trainer' => ['label' => 'Co-Trainer', 'badge' => 'bg-info-50 text-info-600 border border-info-200'],
+                                'guest'      => ['label' => 'Narasumber Tamu', 'badge' => 'bg-neutral-100 text-neutral-800 border'],
+                                default      => ['label' => 'Instruktur Utama', 'badge' => 'bg-primary-50 text-primary-600 border border-primary-200'],
+                            };
+                            $profLabel = ($row['trainer_profile_type'] ?? '') === 'asn' ? 'ASN Pemda' : 'Praktisi PBJ';
+                            ?>
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center gap-12">
@@ -158,9 +167,12 @@ $trainers    = $trainers ?? [];
                                         </div>
                                         <div>
                                             <h6 class="text-sm fw-semibold mb-1"><?= esc($row['trainer_name']) ?></h6>
-                                            <span class="text-xs text-secondary-light"><?= esc($row['trainer_email']) ?></span>
+                                            <span class="text-xs text-secondary-light"><?= esc($row['trainer_email']) ?> &middot; <span class="badge bg-neutral-100 text-neutral-600 p-0 px-4 text-2xs"><?= esc($profLabel) ?></span></span>
                                         </div>
                                     </div>
+                                </td>
+                                <td>
+                                    <span class="badge <?= $tRole['badge'] ?> px-8 py-2 radius-12 text-xs"><?= esc($tRole['label']) ?></span>
                                 </td>
                                 <td>
                                     <a href="<?= site_url('dashboard/pembelajaran/kelas/' . $row['class_id']) ?>" class="fw-semibold text-primary-600">
@@ -249,6 +261,14 @@ $trainers    = $trainers ?? [];
                             <?php endforeach; ?>
                         </select>
                         <small class="text-secondary-light mt-4 d-block">Hanya user aktif dengan role trainer yang ditampilkan.</small>
+                    </div>
+                    <div class="mb-20">
+                        <label class="form-label fw-semibold text-sm mb-8" for="modal_role">Peran Penugasan</label>
+                        <select id="modal_role" name="role" class="form-select radius-8">
+                            <option value="primary">Instruktur Utama (Lead Facilitator)</option>
+                            <option value="co_trainer">Asisten Instruktur / Co-Trainer</option>
+                            <option value="guest">Narasumber Tamu (Guest Speaker)</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer border-top py-16 px-24">

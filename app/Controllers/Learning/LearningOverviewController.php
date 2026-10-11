@@ -14,7 +14,7 @@ class LearningOverviewController extends BaseController
         $totalPrograms = (int) $db->table('programs')->countAllResults();
         $totalCourses  = (int) $db->table('courses')->countAllResults();
         $activeClasses = (int) $db->table('learning_classes')
-            ->whereIn('status', ['open', 'active', 'ongoing'])
+            ->whereIn('status', ['open', 'active', 'ongoing', 'scheduled'])
             ->countAllResults();
 
         $activeTrainers = (int) $db->table('class_trainers')

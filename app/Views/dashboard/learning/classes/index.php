@@ -118,10 +118,10 @@ $stats = $stats ?? [
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Status</label>
                     <select class="form-select radius-8" name="status">
                         <option value="">Semua Status</option>
-                        <option value="open" <?= ($filters['status'] ?? '') === 'open' ? 'selected' : '' ?>>Buka / Open</option>
-                        <option value="ongoing" <?= ($filters['status'] ?? '') === 'ongoing' ? 'selected' : '' ?>>Berjalan</option>
+                        <option value="scheduled" <?= in_array($filters['status'] ?? '', ['scheduled', 'open'], true) ? 'selected' : '' ?>>Terjadwal / Pendaftaran Buka</option>
+                        <option value="active" <?= in_array($filters['status'] ?? '', ['active', 'ongoing'], true) ? 'selected' : '' ?>>Sedang Berjalan / Aktif</option>
                         <option value="completed" <?= ($filters['status'] ?? '') === 'completed' ? 'selected' : '' ?>>Selesai</option>
-                        <option value="closed" <?= ($filters['status'] ?? '') === 'closed' ? 'selected' : '' ?>>Tutup</option>
+                        <option value="closed" <?= ($filters['status'] ?? '') === 'closed' ? 'selected' : '' ?>>Ditutup</option>
                         <option value="draft" <?= ($filters['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Draft</option>
                     </select>
                 </div>

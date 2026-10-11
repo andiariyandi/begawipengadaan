@@ -46,6 +46,9 @@ class ArenaE2ETest extends BaseCommand
         $unauthTrainerId = 33; // Budi Santoso (unassigned for Class 4)
         $testOperatorId  = 32; // Operator BegawiPBJ
 
+        // Ensure test class has sufficient capacity for repeated automated test runs
+        $db->table('learning_classes')->where('id', $testClassId)->update(['capacity' => 1000]);
+
         $createdUserId = 0;
         $verificationId = 0;
         $enrollmentId = 0;

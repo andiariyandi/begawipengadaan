@@ -11,6 +11,6 @@ class ClassTrainerModel extends Model
     protected $returnType    = 'array';
     protected $useTimestamps = false;
     protected $allowedFields = [
-        'class_id', 'user_id', 'assigned_by', 'assigned_at', 'status',
+        'class_id', 'user_id', 'assigned_by', 'assigned_at', 'status', 'role',
     ];
 }

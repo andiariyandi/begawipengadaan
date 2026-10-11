@@ -84,16 +84,20 @@ class ArenaAdminTest extends BaseCommand
             $testCode = 'TEST-PROG-' . time();
             $testTitle = 'Program Uji Otomatis ' . time();
 
-            // Create program
+            // Create program with enhanced landing-page customizable fields
             $inserted = $progModel->insert([
-                'title'       => $testTitle,
-                'slug'        => 'program-uji-' . time(),
-                'code'        => $testCode,
-                'description' => 'Program uji coba lifecycle admin',
-                'category'    => 'pelatihan',
-                'status'      => 'active',
-                'created_at'  => date('Y-m-d H:i:s'),
-                'updated_at'  => date('Y-m-d H:i:s'),
+                'title'               => $testTitle,
+                'slug'                => 'program-uji-' . time(),
+                'code'                => $testCode,
+                'description'         => 'Program uji coba lifecycle admin',
+                'category'            => 'pelatihan',
+                'target_audience'     => "PPK, Pokja Pemilihan, dan Pejabat Pengadaan\nPelaku Usaha Penyedia Jasa",
+                'prerequisites'       => "Memahami regulasi pengadaan barang dan jasa dasar",
+                'learning_objectives' => "Mampu menyusun dokumen HPS dan rancangan kontrak\nMemahami mitigasi risiko pengadaan",
+                'cover_url'           => 'https://images.unsplash.com/photo-test-program.jpg',
+                'status'              => 'active',
+                'created_at'          => date('Y-m-d H:i:s'),
+                'updated_at'          => date('Y-m-d H:i:s'),
             ], true);
 
             if (!$inserted) {
@@ -101,6 +105,13 @@ class ArenaAdminTest extends BaseCommand
             }
             $testProgramId = (int) $inserted;
             CLI::write("  [OK] Program created successfully with ID: {$testProgramId}", "green");
+
+            // Verify enhancement fields persisted
+            $savedProg = $progModel->find($testProgramId);
+            if (empty($savedProg['target_audience']) || empty($savedProg['prerequisites']) || empty($savedProg['learning_objectives']) || empty($savedProg['cover_url'])) {
+                throw new \RuntimeException("Field enhancement program (target_audience, prerequisites, learning_objectives, cover_url) gagal disimpan.");
+            }
+            CLI::write("  [OK] Program enhancement fields verified (target_audience, prerequisites, learning_objectives, cover_url).", "green");
 
             // Query with course_count & class_count subqueries
             $progWithCounts = $db->table('programs p')
@@ -137,19 +148,23 @@ class ArenaAdminTest extends BaseCommand
             $testCourseCode = 'TEST-CRS-' . time();
             $testCourseTitle = 'Kursus Uji Otomatis ' . time();
 
-            // Create Course
+            // Create Course with enhanced landing-page customizable fields
             $courseId = $courseModel->insert([
-                'program_id'        => $testProgramId,
-                'title'             => $testCourseTitle,
-                'slug'              => 'kursus-uji-' . time(),
-                'code'              => $testCourseCode,
-                'description'       => 'Deskripsi kursus uji',
-                'delivery_mode'     => 'online',
-                'level'             => 'dasar',
-                'status'            => 'active',
-                'estimated_duration'=> 120,
-                'created_at'        => date('Y-m-d H:i:s'),
-                'updated_at'        => date('Y-m-d H:i:s'),
+                'program_id'         => $testProgramId,
+                'title'              => $testCourseTitle,
+                'slug'               => 'kursus-uji-' . time(),
+                'code'               => $testCourseCode,
+                'description'        => 'Deskripsi kursus uji',
+                'delivery_mode'      => 'online',
+                'level'              => 'dasar',
+                'status'             => 'active',
+                'estimated_duration' => 120,
+                'target_audience'    => "PPK, Pokja Pemilihan, dan Auditor Pengadaan",
+                'prerequisites'      => "Pengenalan PBJ Pemerintah Tingkat Dasar",
+                'learning_objectives'=> "Memahami tata cara evaluasi penawaran\nMampu menyusun laporan evaluasi pengadaan",
+                'cover_url'          => 'https://images.unsplash.com/photo-test-course.jpg',
+                'created_at'         => date('Y-m-d H:i:s'),
+                'updated_at'         => date('Y-m-d H:i:s'),
             ], true);
 
             if (!$courseId) {
@@ -157,6 +172,13 @@ class ArenaAdminTest extends BaseCommand
             }
             $testCourseId = (int) $courseId;
             CLI::write("  [OK] Course created successfully with ID: {$testCourseId}", "green");
+
+            // Verify enhancement fields persisted
+            $savedCourse = $courseModel->find($testCourseId);
+            if (empty($savedCourse['target_audience']) || empty($savedCourse['learning_objectives']) || empty($savedCourse['cover_url'])) {
+                throw new \RuntimeException("Field enhancement course (target_audience, learning_objectives, cover_url) gagal disimpan.");
+            }
+            CLI::write("  [OK] Course enhancement fields verified (target_audience, prerequisites, learning_objectives, cover_url).", "green");
 
             // Query with class_count, student_count, completed_count
             $courseWithCounts = $db->table('courses c')
@@ -188,12 +210,15 @@ class ArenaAdminTest extends BaseCommand
             $testClassCode = 'TEST-CLS-' . time();
             $testClassName = 'Batch Uji Otomatis ' . time();
 
-            // Create Class
+            // Create Class with enhanced fields
             $classId = $classModel->insert([
                 'course_id'             => $testCourseId,
                 'code'                  => $testClassCode,
                 'name'                  => $testClassName,
-                'description'           => 'Deskripsi batch uji',
+                'description'           => 'Deskripsi batch uji komprehensif',
+                'learning_method'       => 'online',
+                'location_or_link'      => 'https://meet.google.com/abc-defg-hij',
+                'target_audience'       => 'Seluruh ASN Pengelola Pengadaan Barang/Jasa',
                 'capacity'              => 30,
                 'status'                => 'open',
                 'registration_open_at'  => date('Y-m-d H:i:s', strtotime('-1 day')),
@@ -214,6 +239,13 @@ class ArenaAdminTest extends BaseCommand
             }
             $testClassId = (int) $classId;
             CLI::write("  [OK] Class / Batch created with ID: {$testClassId} (Passing Grade: 75, Weights: 30/70)", "green");
+
+            // Verify enhancement fields persisted
+            $savedClass = $classModel->find($testClassId);
+            if ($savedClass['learning_method'] !== 'online' || empty($savedClass['location_or_link']) || empty($savedClass['target_audience'])) {
+                throw new \RuntimeException("Field enhancement class (learning_method, location_or_link, target_audience) gagal disimpan.");
+            }
+            CLI::write("  [OK] Class enhancement fields verified (learning_method: {$savedClass['learning_method']}, location_or_link, target_audience).", "green");
 
             // Verify detail query with trainer & enrollment aggregations
             $classDetail = $db->table('learning_classes lc')
@@ -261,27 +293,28 @@ class ArenaAdminTest extends BaseCommand
             }
             $testTrainerId = (int) $trainerUser['id'];
 
-            // Assign trainer
+            // Assign trainer with role
             $db->table('class_trainers')->insert([
                 'class_id'    => $testClassId,
                 'user_id'     => $testTrainerId,
                 'assigned_by' => $testTrainerId,
+                'role'        => 'primary',
                 'status'      => 'active',
                 'assigned_at' => date('Y-m-d H:i:s'),
             ]);
             CLI::write("  [OK] Trainer #{$testTrainerId} assigned to Class #{$testClassId} as primary.", "green");
 
-            // Verify active assignment exists
-            $assigned = $db->table('class_trainers')
+            // Verify active assignment exists with role
+            $assignedRow = $db->table('class_trainers')
                 ->where('class_id', $testClassId)
                 ->where('user_id', $testTrainerId)
                 ->where('status', 'active')
-                ->countAllResults();
+                ->get()->getRowArray();
 
-            if ($assigned !== 1) {
-                throw new \RuntimeException("Penugasan trainer tidak ditemukan di database.");
+            if (!$assignedRow || ($assignedRow['role'] ?? '') !== 'primary') {
+                throw new \RuntimeException("Penugasan trainer atau field role tidak ditemukan di database.");
             }
-            CLI::write("  [OK] Active trainer assignment confirmed in class_trainers.", "green");
+            CLI::write("  [OK] Active trainer assignment confirmed in class_trainers with role 'primary'.", "green");
 
             $this->moduleResults['Module 5: Trainer Assignment'] = 'PASS';
         } catch (\Throwable $e) {

@@ -134,11 +134,12 @@ class ProgramController extends BaseController
 
     public function update(string $id)
     {
-        if ($this->programModel->find($id) === null) {
+        $existing = $this->programModel->find($id);
+        if ($existing === null) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Program tidak ditemukan.');
         }
 
-        $data = $this->validatedProgramData();
+        $data = $this->validatedProgramData($existing['cover_url'] ?? null, $existing['cover_file_id'] ?? null);
 
         if ($data === null) {
             return redirect()->back()->withInput();
@@ -172,12 +173,12 @@ class ProgramController extends BaseController
         return redirect()->to(route_to('dashboard.learning.programs'))->with('success', 'Program berhasil dihapus.');
     }
 
-    private function validatedProgramData(): ?array
+    private function validatedProgramData(?string $existingCoverUrl = null, ?int $existingCoverFileId = null): ?array
     {
         $rules = [
-            'title' => 'required',
-            'slug' => 'required',
-            'status' => 'permit_empty',
+            'title'      => 'required',
+            'slug'       => 'required',
+            'status'     => 'permit_empty',
             'visibility' => 'permit_empty',
         ];
 
@@ -185,15 +186,76 @@ class ProgramController extends BaseController
             return null;
         }
 
+        // Handle uploaded cover image file
+        $file = $this->request->getFile('cover_image');
+        $uploadedUrl = null;
+        $uploadedFileId = null;
+
+        if ($file && $file->isValid() && ! $file->hasMoved()) {
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            $mime = $file->getMimeType();
+            if (! in_array($mime, $allowedMimes, true)) {
+                session()->setFlashdata('error', 'Format file gambar harus JPG, PNG, atau WEBP.');
+                return null;
+            }
+            if ($file->getSize() > 2097152) {
+                session()->setFlashdata('error', 'Ukuran file gambar maksimal 2 MB.');
+                return null;
+            }
+
+            $targetDir = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'learning' . DIRECTORY_SEPARATOR . 'programs';
+            if (! is_dir($targetDir)) {
+                @mkdir($targetDir, 0755, true);
+            }
+
+            $storedName = $file->getRandomName();
+            if ($file->move($targetDir, $storedName)) {
+                $uploadedUrl = 'uploads/learning/programs/' . $storedName;
+
+                try {
+                    $now = date('Y-m-d H:i:s');
+                    $db = db_connect();
+                    $db->table('file_assets')->insert([
+                        'disk'             => 'local',
+                        'path'             => $uploadedUrl,
+                        'original_name'    => $file->getClientName() ?: $storedName,
+                        'stored_name'      => $storedName,
+                        'extension'        => $file->getClientExtension() ?: 'jpg',
+                        'mime_type'        => $mime,
+                        'size_bytes'       => (int) ($file->getSize() ?: 0),
+                        'visibility'       => 'public',
+                        'lifecycle_status' => 'available',
+                        'resource_type'    => 'program_cover',
+                        'resource_id'      => null,
+                        'uploaded_by'      => (int) session()->get('user_id'),
+                        'available_at'     => $now,
+                        'created_at'       => $now,
+                        'updated_at'       => $now,
+                    ]);
+                    $uploadedFileId = (int) $db->insertID();
+                } catch (\Throwable $e) {
+                    log_message('error', 'File asset registration failed: ' . $e->getMessage());
+                }
+            }
+        }
+
+        $urlPost = $this->request->getPost('cover_url');
+        $coverUrl = $uploadedUrl ?: (trim((string) $urlPost) ?: $existingCoverUrl);
+        $coverFileId = $uploadedFileId ?: ($this->request->getPost('cover_file_id') ? (int) $this->request->getPost('cover_file_id') : $existingCoverFileId);
+
         return [
-            'title' => trim((string) $this->request->getPost('title')),
-            'slug' => trim((string) $this->request->getPost('slug')),
-            'summary' => $this->request->getPost('summary'),
-            'description' => $this->request->getPost('description'),
-            'status' => $this->request->getPost('status') ?: 'draft',
-            'visibility' => $this->request->getPost('visibility') ?: 'public',
-            'cover_file_id' => $this->request->getPost('cover_file_id') ?: null,
-            'featured' => $this->request->getPost('featured') ? 1 : 0,
+            'title'               => trim((string) $this->request->getPost('title')),
+            'slug'                => trim((string) $this->request->getPost('slug')),
+            'summary'             => $this->request->getPost('summary'),
+            'description'         => $this->request->getPost('description'),
+            'target_audience'     => $this->request->getPost('target_audience'),
+            'prerequisites'       => $this->request->getPost('prerequisites'),
+            'learning_objectives' => $this->request->getPost('learning_objectives'),
+            'status'              => $this->request->getPost('status') ?: 'draft',
+            'visibility'          => $this->request->getPost('visibility') ?: 'public',
+            'cover_file_id'       => $coverFileId,
+            'cover_url'           => $coverUrl,
+            'featured'            => $this->request->getPost('featured') ? 1 : 0,
         ];
     }
 }

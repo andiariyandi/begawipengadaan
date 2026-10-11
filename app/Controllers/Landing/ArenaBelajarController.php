@@ -60,7 +60,7 @@ class ArenaBelajarController extends BaseController
 
         // 4. Active & Scheduled Classes Ready to Enroll (limit 4)
         $activeClasses = $classModel
-            ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, programs.title AS program_title')
+            ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, courses.cover_url AS course_cover_url, programs.title AS program_title')
             ->join('courses', 'courses.id = learning_classes.course_id')
             ->join('programs', 'programs.id = courses.program_id', 'left')
             ->whereIn('learning_classes.status', ['scheduled', 'active'])
@@ -71,7 +71,7 @@ class ArenaBelajarController extends BaseController
 
         foreach ($activeClasses as &$cl) {
             $cl['trainers'] = $db->table('class_trainers ct')
-                ->select('users.name, users.username')
+                ->select('users.name, users.username, ct.role')
                 ->join('users', 'users.id = ct.user_id')
                 ->where('ct.class_id', (int) $cl['id'])
                 ->where('ct.status', 'active')
@@ -284,7 +284,7 @@ class ArenaBelajarController extends BaseController
         }
 
         $builder = $model
-            ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, courses.level AS course_level, courses.duration_minutes AS course_duration, programs.title AS program_title, programs.slug AS program_slug')
+            ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, courses.level AS course_level, courses.duration_minutes AS course_duration, courses.cover_url AS course_cover_url, programs.title AS program_title, programs.slug AS program_slug')
             ->join('courses', 'courses.id = learning_classes.course_id')
             ->join('programs', 'programs.id = courses.program_id', 'left')
             ->whereIn('learning_classes.status', ['scheduled', 'active'])
@@ -322,7 +322,7 @@ class ArenaBelajarController extends BaseController
             $item['icon']  = 'why-choose-one-icon-1.png';
 
             $item['trainers'] = $db->table('class_trainers ct')
-                ->select('users.id, users.name, users.username, users.profile_type')
+                ->select('users.id, users.name, users.username, users.profile_type, ct.role')
                 ->join('users', 'users.id = ct.user_id')
                 ->where('ct.class_id', (int) $item['id'])
                 ->where('ct.status', 'active')
@@ -374,7 +374,7 @@ class ArenaBelajarController extends BaseController
 
         $db = db_connect();
         $builder = $db->table('class_trainers')
-            ->select('users.id, users.name, users.username, users.profile_type, users.email, learning_classes.id AS class_id, learning_classes.name AS class_name, learning_classes.code AS class_code, learning_classes.status AS class_status, courses.id AS course_id, courses.title AS course_title, courses.slug AS course_slug')
+            ->select('users.id, users.name, users.username, users.profile_type, users.email, class_trainers.role AS trainer_role, learning_classes.id AS class_id, learning_classes.name AS class_name, learning_classes.code AS class_code, learning_classes.status AS class_status, learning_classes.learning_method, learning_classes.location_or_link, courses.id AS course_id, courses.title AS course_title, courses.slug AS course_slug, courses.cover_url AS course_cover_url')
             ->join('users', 'users.id = class_trainers.user_id')
             ->join('learning_classes', 'learning_classes.id = class_trainers.class_id')
             ->join('courses', 'courses.id = learning_classes.course_id')
@@ -421,10 +421,13 @@ class ArenaBelajarController extends BaseController
                 ];
             }
             $items[$key]['classes'][] = [
-                'id'     => $row['class_id'],
-                'name'   => $row['class_name'],
-                'code'   => $row['class_code'],
-                'status' => $row['class_status'],
+                'id'              => $row['class_id'],
+                'name'            => $row['class_name'],
+                'code'            => $row['class_code'],
+                'status'          => $row['class_status'],
+                'learning_method' => $row['learning_method'] ?? 'online',
+                'location_or_link'=> $row['location_or_link'] ?? null,
+                'role'            => $row['trainer_role'] ?? 'primary',
             ];
             $cKey = (string) $row['course_id'];
             if (! isset($items[$key]['courses'][$cKey])) {
@@ -518,7 +521,7 @@ class ArenaBelajarController extends BaseController
 
         $db = \Config\Database::connect();
         $classes = $db->table('learning_classes lc')
-            ->select('lc.*, c.title AS course_title')
+            ->select('lc.*, c.title AS course_title, c.slug AS course_slug, c.cover_url AS course_cover_url')
             ->join('courses c', 'c.id = lc.course_id')
             ->where('c.program_id', (int) $program['id'])
             ->whereIn('lc.status', ['scheduled', 'active'])
@@ -534,7 +537,7 @@ class ArenaBelajarController extends BaseController
 
         // Trainers assigned to classes under this program
         $trainers = $db->table('class_trainers ct')
-            ->select('u.id, u.name, u.username, u.profile_type, COUNT(DISTINCT ct.class_id) as total_classes')
+            ->select('u.id, u.name, u.username, u.profile_type, ct.role, COUNT(DISTINCT ct.class_id) as total_classes')
             ->join('users u', 'u.id = ct.user_id')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->join('courses c', 'c.id = lc.course_id')
@@ -542,7 +545,7 @@ class ArenaBelajarController extends BaseController
             ->where('ct.status', 'active')
             ->where('u.account_status', 'active')
             ->where('u.deleted_at IS NULL', null, false)
-            ->groupBy('u.id, u.name, u.username, u.profile_type')
+            ->groupBy('u.id, u.name, u.username, u.profile_type, ct.role')
             ->orderBy('total_classes', 'DESC')
             ->limit(4)
             ->get()->getResultArray();
@@ -589,7 +592,7 @@ class ArenaBelajarController extends BaseController
 
         $classModel = new LearningClassModel();
         $classBuilder = $classModel
-            ->select('learning_classes.*, courses.title AS course_title')
+            ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, courses.cover_url AS course_cover_url')
             ->join('courses', 'courses.id = learning_classes.course_id')
             ->where('learning_classes.course_id', (int) $course['id'])
             ->whereIn('learning_classes.status', ['scheduled', 'active'])
@@ -619,7 +622,7 @@ class ArenaBelajarController extends BaseController
             $class['title'] = $class['name'];
 
             $class['trainers'] = $db->table('class_trainers ct')
-                ->select('users.id, users.name, users.username, users.profile_type')
+                ->select('users.id, users.name, users.username, users.profile_type, ct.role')
                 ->join('users', 'users.id = ct.user_id')
                 ->where('ct.class_id', (int) $class['id'])
                 ->where('ct.status', 'active')
@@ -644,14 +647,14 @@ class ArenaBelajarController extends BaseController
 
         // Trainers teaching classes under this course
         $trainers = $db->table('class_trainers ct')
-            ->select('u.id, u.name, u.username, u.profile_type, COUNT(DISTINCT ct.class_id) as total_classes')
+            ->select('u.id, u.name, u.username, u.profile_type, ct.role, COUNT(DISTINCT ct.class_id) as total_classes')
             ->join('users u', 'u.id = ct.user_id')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->where('lc.course_id', (int) $course['id'])
             ->where('ct.status', 'active')
             ->where('u.account_status', 'active')
             ->where('u.deleted_at IS NULL', null, false)
-            ->groupBy('u.id, u.name, u.username, u.profile_type')
+            ->groupBy('u.id, u.name, u.username, u.profile_type, ct.role')
             ->orderBy('total_classes', 'DESC')
             ->limit(4)
             ->get()->getResultArray();
@@ -702,7 +705,7 @@ class ArenaBelajarController extends BaseController
     public function classDetail(string $slug): string
     {
         $item = (new LearningClassModel())
-            ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, courses.level AS course_level, courses.duration_minutes AS course_duration, programs.title AS program_title, programs.slug AS program_slug')
+            ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, courses.level AS course_level, courses.duration_minutes AS course_duration, courses.cover_url AS course_cover_url, programs.title AS program_title, programs.slug AS program_slug')
             ->join('courses', 'courses.id = learning_classes.course_id')
             ->join('programs', 'programs.id = courses.program_id', 'left')
             ->where('learning_classes.code', $slug)
@@ -718,7 +721,7 @@ class ArenaBelajarController extends BaseController
 
         $db = \Config\Database::connect();
         $trainers = $db->table('class_trainers ct')
-            ->select('users.id, users.name, users.username, users.profile_type, users.email')
+            ->select('users.id, users.name, users.username, users.profile_type, users.email, ct.role')
             ->join('users', 'users.id = ct.user_id')
             ->where('ct.class_id', (int) $item['id'])
             ->where('ct.status', 'active')
@@ -763,7 +766,7 @@ class ArenaBelajarController extends BaseController
 
         // Other batch classes for the same course
         $otherClasses = (new LearningClassModel())
-            ->select('learning_classes.*, courses.title AS course_title')
+            ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, courses.cover_url AS course_cover_url')
             ->join('courses', 'courses.id = learning_classes.course_id')
             ->where('learning_classes.course_id', (int) $item['course_id'])
             ->where('learning_classes.id !=', (int) $item['id'])
@@ -861,7 +864,7 @@ class ArenaBelajarController extends BaseController
 
         // Fetch detailed classes taught by this trainer
         $classes = $db->table('class_trainers ct')
-            ->select('lc.*, c.title AS course_title, c.slug AS course_slug, c.level AS course_level, c.duration_minutes AS course_duration, p.title AS program_title, p.slug AS program_slug')
+            ->select('lc.*, c.title AS course_title, c.slug AS course_slug, c.level AS course_level, c.duration_minutes AS course_duration, c.cover_url AS course_cover_url, p.title AS program_title, p.slug AS program_slug, ct.role')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->join('courses c', 'c.id = lc.course_id')
             ->join('programs p', 'p.id = c.program_id', 'left')
