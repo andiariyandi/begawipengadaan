@@ -100,6 +100,7 @@ $trainerCandidates = $trainerCandidates ?? [];
                                     <iconify-icon icon="solar:user-cross-linear"></iconify-icon>
                                     Cabut
                                 </button>
+                            <?php else: ?>
                                 <span class="text-muted small">Tidak aktif</span>
                             <?php endif; ?>
                         </td>

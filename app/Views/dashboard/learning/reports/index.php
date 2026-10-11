@@ -232,7 +232,7 @@ $filters        = $filters ?? [];
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
                                                 <span class="fw-semibold text-primary-light"><?= number_format($cr['total_enrolled']) ?></span>
-                                                <span class="text-xs text-secondary-light">/ <?= $cr['quota'] > 0 ? number_format($cr['quota']) : '∞' ?> kuota</span>
+                                                <span class="text-xs text-secondary-light">/ <?= ((int)($cr['capacity'] ?? 0) > 0) ? number_format($cr['capacity']) : '∞' ?> kuota</span>
                                             </div>
                                         </td>
                                         <td style="min-width: 140px;">
@@ -295,6 +295,12 @@ $filters        = $filters ?? [];
                         </tbody>
                     </table>
                 </div>
+
+                <?php if (isset($pager)): ?>
+                    <div class="pt-16 pb-0">
+                        <?= $pager->links('classes_report', 'default_full') ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <!-- TAB 2: Kinerja Trainer -->
@@ -388,7 +394,7 @@ $filters        = $filters ?? [];
                         <thead>
                             <tr class="text-secondary-light">
                                 <th>Program Pembelajaran</th>
-                                <th>Kategori</th>
+                                <th>Ringkasan</th>
                                 <th>Total Kursus</th>
                                 <th>Total Kelas / Batch</th>
                                 <th>Total Peserta</th>
@@ -411,11 +417,11 @@ $filters        = $filters ?? [];
                                         <td>
                                             <div class="d-flex flex-column">
                                                 <span class="fw-semibold text-primary-light"><?= esc($pr['title']) ?></span>
-                                                <span class="text-xs text-secondary-light">Kode: <?= esc($pr['code'] ?? '-') ?></span>
+                                                <span class="text-xs text-secondary-light">Slug: <?= esc($pr['slug'] ?? '-') ?></span>
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="text-sm text-secondary-light"><?= esc(ucfirst($pr['category'] ?? '-')) ?></span>
+                                            <span class="text-sm text-secondary-light"><?= esc($pr['summary'] ?? '-') ?></span>
                                         </td>
                                         <td>
                                             <span class="badge bg-cyan-focus text-cyan radius-4 px-10 py-4 fw-semibold text-xs">

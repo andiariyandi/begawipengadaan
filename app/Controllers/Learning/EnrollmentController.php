@@ -27,7 +27,19 @@ class EnrollmentController extends BaseController
         $status = trim((string) $this->request->getGet('status'));
         $classId = (int) $this->request->getGet('class_id');
 
-        $builder = $this->enrollmentModel->withClassDetail()->orderBy('enrollments.enrolled_at', 'DESC');
+        $builder = $db->table('enrollments')
+            ->select('enrollments.*, 
+                      learning_classes.name AS class_name, 
+                      learning_classes.code AS class_code, 
+                      courses.title AS course_title, 
+                      users.name AS user_name, 
+                      users.username,
+                      users.email AS user_email')
+            ->join('learning_classes', 'learning_classes.id = enrollments.class_id', 'left')
+            ->join('courses', 'courses.id = learning_classes.course_id', 'left')
+            ->join('users', 'users.id = enrollments.user_id', 'left')
+            ->orderBy('enrollments.enrolled_at', 'DESC');
+
         if ($keyword !== '') {
             $builder->groupStart()
                 ->like('users.name', $keyword)
@@ -45,9 +57,9 @@ class EnrollmentController extends BaseController
         }
 
         $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
-        $page = max(1, (int) ($this->request->getGet('page_enrollments') ?: 1));
-        $total = $this->enrollmentModel->countAllResults(false);
-        $enrollments = $this->enrollmentModel->findAll($perPage, ($page - 1) * $perPage);
+        $page = max(1, (int) ($this->request->getGet('page_enrollments') ?: $this->request->getGet('page') ?: 1));
+        $total = (clone $builder)->countAllResults();
+        $enrollments = $builder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
 
         $pager = service('pager');
         $pager->store('enrollments', $page, $perPage, $total, 0);

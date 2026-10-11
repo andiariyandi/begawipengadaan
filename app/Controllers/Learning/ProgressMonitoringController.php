@@ -45,7 +45,13 @@ class ProgressMonitoringController extends BaseController
             $builder->where('e.class_id', $classId);
         }
 
-        $participants = $builder->get()->getResultArray();
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
+        $page = max(1, (int) ($this->request->getGet('page_progress') ?: $this->request->getGet('page') ?: 1));
+        $total = (clone $builder)->countAllResults();
+        $participants = $builder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
+
+        $pager = service('pager');
+        $pager->store('progress', $page, $perPage, $total, 0);
 
         // Calculate progress & assessment metrics per participant
         foreach ($participants as &$p) {
@@ -75,9 +81,10 @@ class ProgressMonitoringController extends BaseController
             $attemptedQuizzes = (int) $db->table('quiz_attempts qa')
                 ->join('quizzes q', 'q.id = qa.quiz_id')
                 ->where('q.class_id', $clsId)
-                ->where('qa.user_id', $usrId)
-                ->where('qa.status', 'completed')
-                ->countAllResults();
+                ->where('qa.enrollment_id', $enrId)
+                ->where('qa.status', 'graded')
+                ->select('COUNT(DISTINCT qa.quiz_id) as cnt')
+                ->get()->getRow()->cnt ?? 0;
             $p['total_quizzes'] = $totalQuizzes;
             $p['attempted_quizzes'] = $attemptedQuizzes;
 
@@ -119,6 +126,7 @@ class ProgressMonitoringController extends BaseController
             'participants' => $participants,
             'stats'        => $stats,
             'classes'      => $classes,
+            'pager'        => $pager,
             'filters'      => [
                 'keyword'  => $keyword,
                 'status'   => $status,

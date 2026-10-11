@@ -51,7 +51,13 @@ class TrainerAssignmentController extends BaseController
             $builder->where('ct.class_id', $classId);
         }
 
-        $assignments = $builder->get()->getResultArray();
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
+        $page = max(1, (int) ($this->request->getGet('page_trainers') ?: $this->request->getGet('page') ?: 1));
+        $total = (clone $builder)->countAllResults();
+        $assignments = $builder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
+
+        $pager = service('pager');
+        $pager->store('trainers', $page, $perPage, $total, 0);
 
         $stats = [
             'total'          => (int) $db->table('class_trainers')->countAllResults(),
@@ -81,6 +87,7 @@ class TrainerAssignmentController extends BaseController
             'stats'         => $stats,
             'classes'       => $classes,
             'trainers'      => $trainers,
+            'pager'         => $pager,
             'filters'       => [
                 'keyword'  => $keyword,
                 'status'   => $status,

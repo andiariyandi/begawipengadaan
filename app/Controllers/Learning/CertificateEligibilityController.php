@@ -82,6 +82,14 @@ class CertificateEligibilityController extends BaseController
             $filteredRows = array_filter($allRows, static fn($r) => $r['calculated_status'] === $eligibilityFilter);
         }
 
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
+        $page = max(1, (int) ($this->request->getGet('page_eligibility') ?: $this->request->getGet('page') ?: 1));
+        $total = count($filteredRows);
+        $paginatedRecords = array_slice(array_values($filteredRows), ($page - 1) * $perPage, $perPage);
+
+        $pager = service('pager');
+        $pager->store('eligibility', $page, $perPage, $total, 0);
+
         $stats = [
             'total'        => count($allRows),
             'eligible'     => $eligibleCount,
@@ -94,9 +102,10 @@ class CertificateEligibilityController extends BaseController
         return view('dashboard/learning/certificate_eligibility/index', [
             'title'        => 'Kelayakan Sertifikat | Dashboard BegawiPBJ',
             'pageTitle'    => 'Kelayakan Penerbitan Sertifikat Pembelajaran',
-            'records'      => $filteredRows,
+            'records'      => $paginatedRecords,
             'stats'        => $stats,
             'classes'      => $classes,
+            'pager'        => $pager,
             'filters'      => [
                 'keyword'            => $keyword,
                 'class_id'           => $classId,

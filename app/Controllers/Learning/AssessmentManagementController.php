@@ -42,8 +42,6 @@ class AssessmentManagementController extends BaseController
                 ->orLike('c.title', $keyword)
                 ->groupEnd();
         }
-        $quizzes = $quizBuilder->get()->getResultArray();
-
         // 2. Assignments Query
         $assignBuilder = $db->table('assignments a')
             ->select('a.*, lc.name AS class_name, lc.code AS class_code, c.title AS course_title, l.title AS lesson_title,
@@ -63,7 +61,6 @@ class AssessmentManagementController extends BaseController
                 ->orLike('lc.name', $keyword)
                 ->groupEnd();
         }
-        $assignments = $assignBuilder->get()->getResultArray();
 
         // 3. Submissions Query
         $subBuilder = $db->table('assignment_submissions asub')
@@ -74,13 +71,41 @@ class AssessmentManagementController extends BaseController
             ->join('users u', 'u.id = e.user_id')
             ->join('learning_classes lc', 'lc.id = e.class_id')
             ->join('users evaluator', 'evaluator.id = asub.graded_by', 'left')
-            ->orderBy('asub.created_at', 'DESC')
-            ->limit(30);
+            ->orderBy('asub.created_at', 'DESC');
 
         if ($classId > 0) {
             $subBuilder->where('lc.id', $classId);
         }
-        $submissions = $subBuilder->get()->getResultArray();
+        if ($keyword !== '') {
+            $subBuilder->groupStart()
+                ->like('a.title', $keyword)
+                ->orLike('u.name', $keyword)
+                ->orLike('u.username', $keyword)
+                ->groupEnd();
+        }
+
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
+        $page = max(1, (int) ($this->request->getGet('page') ?: 1));
+
+        if ($tab === 'quizzes') {
+            $total = (clone $quizBuilder)->countAllResults();
+            $quizzes = $quizBuilder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
+            $assignments = $assignBuilder->limit(10)->get()->getResultArray();
+            $submissions = $subBuilder->limit(10)->get()->getResultArray();
+        } elseif ($tab === 'assignments') {
+            $total = (clone $assignBuilder)->countAllResults();
+            $assignments = $assignBuilder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
+            $quizzes = $quizBuilder->limit(10)->get()->getResultArray();
+            $submissions = $subBuilder->limit(10)->get()->getResultArray();
+        } else {
+            $total = (clone $subBuilder)->countAllResults();
+            $submissions = $subBuilder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
+            $quizzes = $quizBuilder->limit(10)->get()->getResultArray();
+            $assignments = $assignBuilder->limit(10)->get()->getResultArray();
+        }
+
+        $pager = service('pager');
+        $pager->store('assessments', $page, $perPage, $total, 0);
 
         // Stats
         $stats = [
@@ -101,6 +126,7 @@ class AssessmentManagementController extends BaseController
             'submissions'   => $submissions,
             'stats'         => $stats,
             'classes'       => $classes,
+            'pager'         => $pager,
             'filters'       => [
                 'class_id' => $classId,
                 'keyword'  => $keyword,

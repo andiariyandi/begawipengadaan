@@ -132,7 +132,7 @@ class LearningClassController extends BaseController
 
         $db = db_connect();
         $enrollmentsCount = (int) $db->table('enrollments')->where('class_id', $id)->countAllResults();
-        $modulesCount = ! empty($class['course_id']) ? (int) $db->table('course_modules')->where('course_id', $class['course_id'])->countAllResults() : 0;
+        $modulesCount = (int) $db->table('learning_modules')->where('class_id', $id)->countAllResults();
 
         return view('dashboard/learning/classes/detail', [
             'title'             => 'Detail Kelas | Dashboard BegawiPBJ',

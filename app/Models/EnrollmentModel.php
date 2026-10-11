@@ -32,9 +32,9 @@ class EnrollmentModel extends Model
     public function withClassDetail(): self
     {
         return $this->select('enrollments.*, learning_classes.name AS class_name, learning_classes.code AS class_code, courses.title AS course_title, users.name AS user_name, users.username')
-            ->join('learning_classes', 'learning_classes.id = enrollments.class_id')
-            ->join('courses', 'courses.id = learning_classes.course_id')
-            ->join('users', 'users.id = enrollments.user_id');
+            ->join('learning_classes', 'learning_classes.id = enrollments.class_id', 'left')
+            ->join('courses', 'courses.id = learning_classes.course_id', 'left')
+            ->join('users', 'users.id = enrollments.user_id', 'left');
     }
 
     public function pendingList(): array

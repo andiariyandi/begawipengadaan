@@ -64,7 +64,7 @@ class LearningReportController extends BaseController
 
         // 2. Class Performance Analytics
         $classBuilder = $db->table('learning_classes lc')
-            ->select('lc.id, lc.name, lc.code, lc.quota, lc.passing_grade, lc.status, lc.start_date, lc.end_date,
+            ->select('lc.id, lc.name, lc.code, lc.capacity, lc.passing_grade, lc.status, lc.start_at, lc.end_at,
                       c.title AS course_title, p.title AS program_title,
                       COUNT(e.id) AS total_enrolled,
                       SUM(CASE WHEN e.status IN ("completed", "passed") THEN 1 ELSE 0 END) AS completed_count,
@@ -73,7 +73,7 @@ class LearningReportController extends BaseController
             ->join('courses c', 'c.id = lc.course_id', 'left')
             ->join('programs p', 'p.id = c.program_id', 'left')
             ->join('enrollments e', 'e.class_id = lc.id', 'left')
-            ->groupBy('lc.id, lc.name, lc.code, lc.quota, lc.passing_grade, lc.status, lc.start_date, lc.end_date, c.title, p.title')
+            ->groupBy('lc.id, lc.name, lc.code, lc.capacity, lc.passing_grade, lc.status, lc.start_at, lc.end_at, c.title, p.title')
             ->orderBy('lc.created_at', 'DESC');
 
         if ($keyword !== '') {
@@ -90,7 +90,28 @@ class LearningReportController extends BaseController
             $classBuilder->where('lc.status', $status);
         }
 
-        $classReports = $classBuilder->get()->getResultArray();
+        // Handle CSV Export before pagination
+        if ($export === 'classes') {
+            $allClassReports = (clone $classBuilder)->get()->getResultArray();
+            foreach ($allClassReports as &$cr) {
+                $enrolled = (int) $cr['total_enrolled'];
+                $completed = (int) $cr['completed_count'];
+                $passed = (int) $cr['passed_count'];
+                $cr['completion_rate'] = $enrolled > 0 ? round(($completed / $enrolled) * 100, 1) : 0.0;
+                $cr['passing_rate']    = $enrolled > 0 ? round(($passed / $enrolled) * 100, 1) : 0.0;
+                $cr['avg_final_score'] = $cr['avg_final_score'] !== null ? round((float) $cr['avg_final_score'], 1) : 0.0;
+            }
+            unset($cr);
+            return $this->exportClassesCsv($allClassReports);
+        }
+
+        $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 10)));
+        $page = max(1, (int) ($this->request->getGet('page_classes') ?: $this->request->getGet('page') ?: 1));
+        $totalClassesCount = (clone $classBuilder)->countAllResults();
+        $classReports = $classBuilder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
+
+        $pager = service('pager');
+        $pager->store('classes_report', $page, $perPage, $totalClassesCount, 0);
 
         foreach ($classReports as &$cr) {
             $enrolled = (int) $cr['total_enrolled'];
@@ -128,15 +149,15 @@ class LearningReportController extends BaseController
 
         // 4. Program Popularity & Stats
         $programReports = $db->table('programs p')
-            ->select('p.id, p.title, p.code, p.category, p.status,
+            ->select('p.id, p.title, p.slug, p.summary, p.status,
                       COUNT(DISTINCT c.id) AS total_courses,
                       COUNT(DISTINCT lc.id) AS total_classes,
                       COUNT(DISTINCT e.id) AS total_enrollments,
                       COUNT(DISTINCT CASE WHEN e.status IN ("completed", "passed") THEN e.id END) AS total_completed')
-            ->join('courses c', 'c.id = p.id OR c.program_id = p.id', 'left')
+            ->join('courses c', 'c.program_id = p.id', 'left')
             ->join('learning_classes lc', 'lc.course_id = c.id', 'left')
             ->join('enrollments e', 'e.class_id = lc.id', 'left')
-            ->groupBy('p.id, p.title, p.code, p.category, p.status')
+            ->groupBy('p.id, p.title, p.slug, p.summary, p.status')
             ->orderBy('total_enrollments', 'DESC')
             ->get()->getResultArray();
 
@@ -148,9 +169,6 @@ class LearningReportController extends BaseController
         unset($pr);
 
         // Handle CSV Export
-        if ($export === 'classes') {
-            return $this->exportClassesCsv($classReports);
-        }
         if ($export === 'trainers') {
             return $this->exportTrainersCsv($trainerReports);
         }
@@ -165,6 +183,7 @@ class LearningReportController extends BaseController
             'trainerReports' => $trainerReports,
             'programReports' => $programReports,
             'programs'       => $programs,
+            'pager'          => $pager,
             'filters'        => [
                 'keyword'    => $keyword,
                 'program_id' => $programId,
@@ -203,7 +222,7 @@ class LearningReportController extends BaseController
                 $row['course_title'] ?? '-',
                 $row['program_title'] ?? '-',
                 $row['status'] ?? '-',
-                $row['quota'] ?? 0,
+                $row['capacity'] ?? 0,
                 $row['total_enrolled'],
                 $row['completed_count'],
                 $row['passed_count'],

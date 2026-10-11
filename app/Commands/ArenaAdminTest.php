@@ -193,16 +193,17 @@ class ArenaAdminTest extends BaseCommand
                 'code'                  => $testClassCode,
                 'name'                  => $testClassName,
                 'description'           => 'Deskripsi batch uji',
-                'quota'                 => 30,
+                'capacity'              => 30,
                 'status'                => 'open',
-                'registration_start_at' => date('Y-m-d H:i:s', strtotime('-1 day')),
-                'registration_end_at'   => date('Y-m-d H:i:s', strtotime('+30 days')),
-                'start_date'            => date('Y-m-d', strtotime('+2 days')),
-                'end_date'              => date('Y-m-d', strtotime('+40 days')),
+                'registration_open_at'  => date('Y-m-d H:i:s', strtotime('-1 day')),
+                'registration_close_at' => date('Y-m-d H:i:s', strtotime('+30 days')),
+                'start_at'              => date('Y-m-d H:i:s', strtotime('+2 days')),
+                'end_at'                => date('Y-m-d H:i:s', strtotime('+40 days')),
                 'passing_grade'         => 75,
-                'weight_quiz'           => 30,
-                'weight_assignment'     => 70,
-                'is_certificate_enabled'=> 1,
+                'quiz_weight'           => 40.00,
+                'assignment_weight'     => 0.00,
+                'post_test_weight'      => 60.00,
+                'certificate_enabled'   => 1,
                 'created_at'            => date('Y-m-d H:i:s'),
                 'updated_at'            => date('Y-m-d H:i:s'),
             ], true);
@@ -576,6 +577,105 @@ class ArenaAdminTest extends BaseCommand
             $this->moduleResults['Module 11: Reports & Analytics'] = 'PASS';
         } catch (\Throwable $e) {
             $this->recordBug('Module 11: Reports & Analytics', $e->getMessage());
+        }
+
+        // -------------------------------------------------------------
+        // VERIFY SPECIFIC REPORTED BUG URLS RENDERING
+        // -------------------------------------------------------------
+        CLI::newLine();
+        CLI::write(">>> [VERIFY FIXES] Testing Direct Render of Reported Bug URLs", "yellow");
+        try {
+            // 1. Detail Kelas: /dashboard/pembelajaran/kelas/{id}
+            $existingClass = $db->table('learning_classes')->select('id')->orderBy('id', 'ASC')->limit(1)->get()->getRowArray();
+            $checkClassId = (string) ($existingClass['id'] ?? 4);
+
+            $classCtrl = new LearningClassController();
+            $classCtrl->initController(service('request'), service('response'), service('logger'));
+            $classHtml = $classCtrl->detail($checkClassId);
+            if (empty($classHtml) || str_contains($classHtml, 'course_modules')) {
+                throw new \RuntimeException("Detail kelas gagal dirender.");
+            }
+            CLI::write("  [OK] /dashboard/pembelajaran/kelas/{$checkClassId} rendered successfully (" . strlen($classHtml) . " bytes)", "green");
+
+            // 2. Monitoring Progres: /dashboard/pembelajaran/progres
+            $progCtrl = new ProgressMonitoringController();
+            $progCtrl->initController(service('request'), service('response'), service('logger'));
+            $progHtml = $progCtrl->index();
+            if (empty($progHtml) || str_contains($progHtml, 'qa.user_id')) {
+                throw new \RuntimeException("Monitoring progres gagal dirender.");
+            }
+            CLI::write("  [OK] /dashboard/pembelajaran/progres rendered successfully (" . strlen($progHtml) . " bytes)", "green");
+
+            // 3. Laporan: /dashboard/pembelajaran/laporan
+            $reportCtrl = new LearningReportController();
+            $reportCtrl->initController(service('request'), service('response'), service('logger'));
+            $reportHtml = $reportCtrl->index();
+            if (empty($reportHtml) || str_contains($reportHtml, 'lc.quota')) {
+                throw new \RuntimeException("Laporan pembelajaran gagal dirender.");
+            }
+            CLI::write("  [OK] /dashboard/pembelajaran/laporan rendered successfully (" . strlen($reportHtml) . " bytes)", "green");
+
+            // 4. Assessment Management: /dashboard/pembelajaran/assessment
+            $assessCtrl = new AssessmentManagementController();
+            $assessCtrl->initController(service('request'), service('response'), service('logger'));
+            $assessHtml = $assessCtrl->index();
+            if (empty($assessHtml)) {
+                throw new \RuntimeException("Assessment management gagal dirender.");
+            }
+            CLI::write("  [OK] /dashboard/pembelajaran/assessment rendered successfully (" . strlen($assessHtml) . " bytes)", "green");
+
+            // 5. Kurikulum: /dashboard/pembelajaran/kurikulum
+            $currCtrl = new CurriculumController();
+            $currCtrl->initController(service('request'), service('response'), service('logger'));
+            $currHtml = $currCtrl->index();
+            if (empty($currHtml)) {
+                throw new \RuntimeException("Kurikulum management gagal dirender.");
+            }
+            CLI::write("  [OK] /dashboard/pembelajaran/kurikulum rendered successfully (" . strlen($currHtml) . " bytes)", "green");
+
+            // 6. Trainer Assignment: /dashboard/pembelajaran/trainer
+            $trainerCtrl = new TrainerAssignmentController();
+            $trainerCtrl->initController(service('request'), service('response'), service('logger'));
+            $trainerHtml = $trainerCtrl->index();
+            if (empty($trainerHtml)) {
+                throw new \RuntimeException("Trainer assignment gagal dirender.");
+            }
+            CLI::write("  [OK] /dashboard/pembelajaran/trainer rendered successfully (" . strlen($trainerHtml) . " bytes)", "green");
+
+            // 7. Enrollment: /dashboard/pembelajaran/enrollment
+            $enrCtrl = new EnrollmentController();
+            $enrCtrl->initController(service('request'), service('response'), service('logger'));
+            $enrHtml = $enrCtrl->index();
+            if (empty($enrHtml)) {
+                throw new \RuntimeException("Enrollment gagal dirender.");
+            }
+            // Verify table row is not blank (contains user and class details, not just placeholders)
+            if (str_contains($enrHtml, '<td>-</td>') && !str_contains($enrHtml, 'text-primary-600')) {
+                throw new \RuntimeException("Enrollment data kolom peserta / kelas kosong.");
+            }
+            CLI::write("  [OK] /dashboard/pembelajaran/enrollment rendered successfully with populated columns (" . strlen($enrHtml) . " bytes)", "green");
+
+            // 8. Kelayakan Sertifikat: /dashboard/pembelajaran/kelayakan-sertifikat
+            $certEligCtrl = new CertificateEligibilityController();
+            $certEligCtrl->initController(service('request'), service('response'), service('logger'));
+            $certEligHtml = $certEligCtrl->index();
+            if (empty($certEligHtml)) {
+                throw new \RuntimeException("Certificate eligibility gagal dirender.");
+            }
+            CLI::write("  [OK] /dashboard/pembelajaran/kelayakan-sertifikat rendered successfully (" . strlen($certEligHtml) . " bytes)", "green");
+
+            // 9. Overview: /dashboard/pembelajaran
+            $overCtrl = new LearningOverviewController();
+            $overCtrl->initController(service('request'), service('response'), service('logger'));
+            $overHtml = $overCtrl->index();
+            if (empty($overHtml)) {
+                throw new \RuntimeException("Overview gagal dirender.");
+            }
+            CLI::write("  [OK] /dashboard/pembelajaran rendered successfully (" . strlen($overHtml) . " bytes)", "green");
+
+            $this->moduleResults['Bug Fixes Verification (3 URLs)'] = 'PASS';
+        } catch (\Throwable $e) {
+            $this->recordBug('Bug Fixes Verification (3 URLs)', $e->getMessage());
         }
 
         // -------------------------------------------------------------

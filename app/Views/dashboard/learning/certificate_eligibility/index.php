@@ -254,6 +254,12 @@ $filters = $filters ?? [];
                 </tbody>
             </table>
         </div>
+
+        <?php if (isset($pager)): ?>
+            <div class="card-footer border-top bg-transparent pt-16 pb-0 px-24">
+                <?= $pager->links('eligibility', 'default_full') ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
