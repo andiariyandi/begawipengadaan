@@ -20,78 +20,219 @@
         --card-border: #e2e8f0;
     }
 
-    /* Hero Section */
-    .hero-begawi {
+    /* Fix Header Menu Overlapping */
+    .landing-home .main-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+    }
+
+    /* Hero Slider Paling Atas */
+    .main-slider {
         position: relative;
-        background: linear-gradient(135deg, #052244 0%, #082f5c 55%, #0c5aa6 100%);
-        color: #ffffff;
-        padding: 140px 0 90px;
+        display: block;
+        background-color: var(--bg-navy-dark);
+        z-index: 1;
         overflow: hidden;
     }
 
-    .hero-begawi::before {
-        content: '';
+    .main-slider .item {
+        position: relative;
+        padding-top: 200px !important;
+        padding-bottom: 120px !important;
+        min-height: 680px;
+        display: flex;
+        align-items: center;
+        background-color: var(--bg-navy-dark);
+        overflow: hidden;
+    }
+
+    /* Full Gambar Latar Belakang Terlihat Jelas */
+    .main-slider__bg {
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: radial-gradient(circle at 85% 20%, rgba(245, 158, 11, 0.12) 0%, transparent 45%),
-                    radial-gradient(circle at 10% 80%, rgba(14, 165, 233, 0.15) 0%, transparent 50%);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+        opacity: 0.95 !important;
+        filter: brightness(0.85) contrast(1.05) !important;
+        transform: none !important;
+        transition: none !important;
+        z-index: 1;
+    }
+
+    /* Soft directional gradient scrim so full photo is visible while text is protected */
+    .main-slider .item::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(180deg, rgba(5, 34, 68, 0.45) 0%, rgba(5, 34, 68, 0.25) 100%);
+        z-index: 2;
         pointer-events: none;
     }
 
-    .hero-begawi__badge {
-        display: inline-flex;
+    /* Glass Content Card for Crisp Readable Typography */
+    .main-slider__content-glass {
+        position: relative;
+        z-index: 10;
+        background: rgba(5, 34, 68, 0.82);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 24px;
+        padding: 40px 44px;
+        box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+        max-width: 720px;
+    }
+
+    .main-slider__content-glass--center {
+        max-width: 820px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .main-slider__content-glass--center .main-slider__sub-title-box {
+        margin: 0 auto 14px;
+    }
+
+    .main-slider__content-glass--center .main-slider__text {
+        margin: 0 auto 28px;
+    }
+
+    .main-slider__content-glass--center .main-slider__btn-box {
+        justify-content: center;
+    }
+
+    /* Reset All Broken 3D Transforms from Theme */
+    .main-slider__content,
+    .main-slider__content-glass,
+    .main-slider__sub-title-box,
+    .main-slider__title,
+    .main-slider__text,
+    .main-slider__btn-box {
+        opacity: 1 !important;
+        transform: none !important;
+        -webkit-transform: none !important;
+        transition: opacity 0.4s ease !important;
+        visibility: visible !important;
+    }
+
+    .main-slider__sub-title-box {
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 6px 18px;
+        border-radius: 999px;
+        display: inline-flex !important;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.24);
-        padding: 8px 18px;
-        border-radius: 999px;
-        font-size: 13px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        color: #fde68a;
-        margin-bottom: 24px;
+        margin-bottom: 14px;
+    }
+
+    .main-slider__sub-title {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        font-style: normal !important;
+        color: #fde68a !important;
         text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-family: inherit !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
     }
 
-    .hero-begawi__title {
-        font-size: 46px;
-        font-weight: 800;
-        line-height: 1.22;
-        color: #ffffff;
-        margin-bottom: 20px;
+    .main-slider__sub-title-shape {
+        background-color: #f59e0b !important;
+        width: 8px !important;
+        height: 8px !important;
+        border-radius: 50%;
+    }
+
+    .main-slider__title {
+        font-size: 44px !important;
+        line-height: 1.22 !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        margin-top: 10px !important;
+        margin-bottom: 18px !important;
+        text-transform: none !important;
         letter-spacing: -0.5px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7) !important;
     }
 
-    .hero-begawi__title span {
-        background: linear-gradient(90deg, #fcd34d 0%, #fbbf24 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+    .main-slider__title span {
+        color: #fbbf24 !important;
+        -webkit-text-fill-color: #fbbf24 !important;
+        background: none !important;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7) !important;
     }
 
-    .hero-begawi__desc {
-        font-size: 17px;
-        line-height: 1.7;
-        color: #cbd5e1;
-        max-width: 640px;
-        margin-bottom: 32px;
+    .main-slider__text {
+        font-size: 16px !important;
+        line-height: 1.65 !important;
+        color: #f1f5f9 !important;
+        margin-bottom: 26px !important;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7) !important;
+    }
+
+    .main-slider__btn-box {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .thm-btn-alt {
+        background: transparent !important;
+        border: 2px solid rgba(255, 255, 255, 0.85) !important;
+        color: #ffffff !important;
+    }
+
+    .thm-btn-alt:hover {
+        background: #ffffff !important;
+        color: var(--bg-navy-dark) !important;
+        border-color: #ffffff !important;
+    }
+
+    /* Floating Portal Gateway (Search & KPI Ribbon) */
+    .portal-gateway-section {
+        position: relative;
+        z-index: 25;
+        margin-top: -55px;
+        margin-bottom: 30px;
+    }
+
+    .portal-gateway-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 30px 36px;
+        box-shadow: 0 18px 40px rgba(8, 47, 92, 0.12);
     }
 
     /* Global Search Box */
     .hero-search-box {
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 8px 12px 8px 20px;
-        box-shadow: 0 20px 40px rgba(5, 34, 68, 0.35);
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 14px;
+        padding: 6px 10px 6px 18px;
         display: flex;
         align-items: center;
         gap: 12px;
-        max-width: 680px;
-        margin-bottom: 24px;
+        width: 100%;
+        margin-bottom: 16px;
+        transition: all 0.25s ease;
+    }
+
+    .hero-search-box:focus-within {
+        background: #ffffff;
+        border-color: var(--bg-navy-light);
+        box-shadow: 0 0 0 3px rgba(12, 90, 166, 0.15);
     }
 
     .hero-search-box input {
@@ -107,20 +248,29 @@
         color: #94a3b8;
     }
 
-    .hero-search-box select {
-        border: none;
-        outline: none;
-        background: #f1f5f9;
-        font-size: 13px;
-        font-weight: 600;
-        color: #334155;
-        padding: 8px 14px;
-        border-radius: 8px;
-        cursor: pointer;
+    /* Hero Search Dropdown Style (Single Native Dropdown, Class 'ignore') */
+    .hero-search-target-select {
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #1e293b !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        padding: 9px 14px !important;
+        border-radius: 8px !important;
+        outline: none !important;
+        cursor: pointer !important;
+        display: block !important;
+        height: auto !important;
+        line-height: 1.4 !important;
+    }
+
+    /* Prevent nice-select from appearing if somehow initialized */
+    .hero-search-box .nice-select {
+        display: none !important;
     }
 
     .hero-search-box .btn-search {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        background: linear-gradient(135deg, #0c5aa6 0%, #082f5c 100%);
         color: #ffffff;
         border: none;
         border-radius: 10px;
@@ -134,8 +284,9 @@
     }
 
     .hero-search-box .btn-search:hover {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         transform: translateY(-1px);
-        box-shadow: 0 8px 18px rgba(245, 158, 11, 0.35);
+        box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
     }
 
     .hero-quick-tags {
@@ -144,17 +295,12 @@
         gap: 8px;
         flex-wrap: wrap;
         font-size: 13px;
-        color: #94a3b8;
-    }
-
-    .hero-quick-tags span {
-        font-weight: 600;
-        color: #cbd5e1;
+        color: #64748b;
     }
 
     .hero-quick-tags a {
-        background: rgba(255, 255, 255, 0.1);
-        color: #f1f5f9;
+        background: #f1f5f9;
+        color: #0f172a;
         padding: 4px 12px;
         border-radius: 999px;
         text-decoration: none;
@@ -164,60 +310,47 @@
     }
 
     .hero-quick-tags a:hover {
-        background: rgba(245, 158, 11, 0.25);
-        color: #fde68a;
+        background: #e0f2fe;
+        color: #0369a1;
     }
 
-    /* KPI Glass Counter */
-    .kpi-ribbon {
-        margin-top: 50px;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-        padding-top: 40px;
-    }
-
-    .kpi-card {
-        background: rgba(255, 255, 255, 0.07);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        border-radius: 16px;
-        padding: 20px 24px;
+    /* KPI Items */
+    .gateway-kpi-item {
         display: flex;
         align-items: center;
-        gap: 16px;
-        transition: all 0.3s ease;
-    }
-
-    .kpi-card:hover {
-        background: rgba(255, 255, 255, 0.12);
-        transform: translateY(-4px);
-        border-color: rgba(245, 158, 11, 0.4);
-    }
-
-    .kpi-icon {
-        width: 52px;
-        height: 52px;
+        gap: 14px;
+        padding: 8px 10px;
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.12);
+        transition: all 0.2s ease;
+    }
+
+    .gateway-kpi-item:hover {
+        background: #f8fafc;
+    }
+
+    .gateway-kpi-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 26px;
+        font-size: 24px;
         flex-shrink: 0;
     }
 
-    .kpi-num {
-        font-size: 28px;
+    .gateway-kpi-num {
+        font-size: 24px;
         font-weight: 800;
-        color: #ffffff;
+        color: var(--bg-navy-dark);
         line-height: 1.1;
-        margin-bottom: 2px;
     }
 
-    .kpi-label {
+    .gateway-kpi-label {
         font-size: 13px;
         font-weight: 500;
-        color: #94a3b8;
-        line-height: 1.3;
+        color: var(--text-slate-500);
+        line-height: 1.25;
     }
 
     /* Section Styling */
@@ -777,17 +910,51 @@
     }
 
     @media (max-width: 991px) {
-        .hero-begawi {
-            padding: 120px 0 60px;
+        .main-slider .item {
+            padding-top: 170px !important;
+            padding-bottom: 90px !important;
+            min-height: auto;
         }
-        .hero-begawi__title {
-            font-size: 34px;
+        .main-slider__title {
+            font-size: 34px !important;
+        }
+        .main-slider__content-glass {
+            padding: 28px 24px;
         }
         .section-title-main {
             font-size: 26px;
         }
+        .portal-gateway-section {
+            margin-top: -30px;
+        }
+        .portal-gateway-card {
+            padding: 24px 20px;
+        }
         .cta-banner-modern {
             padding: 40px 24px;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .main-slider .item {
+            padding-top: 150px !important;
+            padding-bottom: 70px !important;
+        }
+        .main-slider__title {
+            font-size: 28px !important;
+        }
+        .hero-search-box {
+            flex-wrap: wrap;
+        }
+        .hero-search-box input {
+            width: 100%;
+        }
+        .hero-search-target-select {
+            width: 100%;
+        }
+        .hero-search-box .btn-search {
+            width: 100%;
+            justify-content: center;
         }
     }
 </style>
@@ -809,101 +976,100 @@ $upcomingEvents = $upcomingEvents ?? [];
 ?>
 
 <!-- =========================================================
-     1. HERO SECTION: PORTAL UTAMA PBJ LAMPUNG
+     1. HEADER HERO SLIDER PALING ATAS (FULL GAMBAR & VARIASI KOMPOSISI)
      ========================================================= -->
-<section class="hero-begawi">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <div class="hero-begawi__badge">
-                    <iconify-icon icon="solar:shield-check-bold"></iconify-icon>
-                    <span>Pemerintah Provinsi Lampung &middot; Biro PBJ Setda</span>
-                </div>
-                <h1 class="hero-begawi__title">
-                    Ekosistem Digital Terpadu <br>
-                    <span>Pengadaan Barang & Jasa</span>
-                </h1>
-                <p class="hero-begawi__desc">
-                    Selamat datang di BegawiPBJ — platform satu pintu yang mengintegrasikan pembelajaran aparatur <strong>(Arena Belajar)</strong>, repositori literasi dan template dokumen <strong>(Bunga Rampai)</strong>, serta bank payung hukum dan silsilah aturan <strong>(Regulasi PBJ)</strong> di Provinsi Lampung.
-                </p>
-
-                <!-- Unified Portal Search -->
-                <form action="<?= site_url('regulasi') ?>" method="get" id="heroSearchForm" class="hero-search-box">
-                    <iconify-icon icon="solar:magnifer-linear" class="text-slate-400 text-xl"></iconify-icon>
-                    <input type="text" name="q" id="heroSearchInput" placeholder="Cari materi kursus, regulasi perpres, template KAK/HPS, atau artikel..." required>
-                    <select id="heroSearchTarget" class="d-none d-sm-block">
-                        <option value="regulasi">Regulasi PBJ</option>
-                        <option value="arena-belajar/course">Arena Belajar</option>
-                        <option value="bunga-rampai/artikel">Bunga Rampai</option>
-                    </select>
-                    <button type="submit" class="btn-search">
-                        <span>Cari</span>
-                        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
-                    </button>
-                </form>
-
-                <!-- Quick Keywords -->
-                <div class="hero-quick-tags">
-                    <span>Pencarian Cepat:</span>
-                    <a href="<?= site_url('regulasi?category=peraturan-presiden') ?>">Perpres 12/2021</a>
-                    <a href="<?= site_url('regulasi?category=peraturan-lkpp') ?>">Peraturan LKPP</a>
-                    <a href="<?= site_url('bunga-rampai/template-dokumen') ?>">Template HPS &amp; KAK</a>
-                    <a href="<?= site_url('arena-belajar/course') ?>">Course PBJ</a>
-                    <a href="<?= site_url('bunga-rampai/studi-kasus') ?>">Studi Kasus Audit</a>
-                </div>
-            </div>
-
-            <div class="col-lg-4 d-none d-lg-block text-center">
-                <div class="position-relative">
-                    <img src="<?= base_url('assets/main/images/resources/category-one-img-1.png') ?>" alt="BegawiPBJ Lampung" class="img-fluid" style="max-height: 420px; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.35));">
+<section class="main-slider">
+    <div class="main-slider__carousel owl-carousel owl-theme">
+        <!-- Slide 1: Ekosistem Utama PBJ (Variasi Kiri / Left-Aligned Glass Panel) -->
+        <div class="item">
+            <div class="main-slider__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/slider-1-1.jpg') ?>);"></div>
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-8 col-xl-7">
+                        <div class="main-slider__content-glass">
+                            <div class="main-slider__sub-title-box">
+                                <div class="main-slider__sub-title-shape"></div>
+                                <h5 class="main-slider__sub-title">Pemerintah Provinsi Lampung &middot; Biro PBJ Setda</h5>
+                            </div>
+                            <h2 class="main-slider__title">
+                                Ekosistem Digital Terpadu <br>
+                                <span>Pengadaan Barang &amp; Jasa</span>
+                            </h2>
+                            <p class="main-slider__text">
+                                Platform satu pintu yang mengintegrasikan pembelajaran aparatur (Arena Belajar), pusat literasi dan template dokumen (Bunga Rampai), serta bank payung hukum dan silsilah aturan (Regulasi PBJ) di Provinsi Lampung.
+                            </p>
+                            <div class="main-slider__btn-box">
+                                <a href="<?= site_url('regulasi') ?>" class="thm-btn">
+                                    <span class="icon-angles-right"></span>Pusat Regulasi PBJ
+                                </a>
+                                <a href="<?= site_url('arena-belajar') ?>" class="thm-btn thm-btn-alt">
+                                    <span class="icon-angles-right"></span>Mulai Belajar di Arena
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Live KPI Ribbon Counter -->
-        <div class="kpi-ribbon">
-            <div class="row g-3">
-                <div class="col-md-3 col-6">
-                    <div class="kpi-card">
-                        <div class="kpi-icon text-warning">
-                            <iconify-icon icon="solar:diploma-verified-bold"></iconify-icon>
-                        </div>
-                        <div>
-                            <div class="kpi-num"><?= number_format($stats['total_regulations'] > 0 ? $stats['total_regulations'] : 24) ?></div>
-                            <div class="kpi-label">Regulasi PBJ Terbit</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="kpi-card">
-                        <div class="kpi-icon text-info">
-                            <iconify-icon icon="solar:mortarboard-bold"></iconify-icon>
-                        </div>
-                        <div>
-                            <div class="kpi-num"><?= number_format($stats['total_courses'] > 0 ? $stats['total_courses'] : 18) ?>+</div>
-                            <div class="kpi-label">Kursus &amp; Materi Belajar</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="kpi-card">
-                        <div class="kpi-icon text-success">
-                            <iconify-icon icon="solar:book-bookmark-bold"></iconify-icon>
-                        </div>
-                        <div>
-                            <div class="kpi-num"><?= number_format($stats['total_knowledge'] > 0 ? $stats['total_knowledge'] : 45) ?>+</div>
-                            <div class="kpi-label">Artikel &amp; Template Dokumen</div>
+        <!-- Slide 2: Arena Belajar (Variasi Tengah / Centered Glass Panel) -->
+        <div class="item">
+            <div class="main-slider__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/slider-1-2.jpg') ?>);"></div>
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-xl-9">
+                        <div class="main-slider__content-glass main-slider__content-glass--center">
+                            <div class="main-slider__sub-title-box">
+                                <div class="main-slider__sub-title-shape"></div>
+                                <h5 class="main-slider__sub-title">Arena Belajar &middot; Sertifikasi Kompetensi PBJ</h5>
+                            </div>
+                            <h2 class="main-slider__title">
+                                Tingkatkan Keahlian PBJ <br>
+                                <span>Bersama Instruktur Ahli LKPP</span>
+                            </h2>
+                            <p class="main-slider__text">
+                                Akses modul pembelajaran interaktif berjenjang, silabus terakreditasi, kelas batch terjadwal, dan raih sertifikat kompetensi resmi terverifikasi dari Pemerintah Provinsi Lampung.
+                            </p>
+                            <div class="main-slider__btn-box">
+                                <a href="<?= site_url('arena-belajar/course') ?>" class="thm-btn">
+                                    <span class="icon-angles-right"></span>Katalog Kursus PBJ
+                                </a>
+                                <a href="<?= site_url('arena-belajar/program') ?>" class="thm-btn thm-btn-alt">
+                                    <span class="icon-angles-right"></span>Program Sertifikasi
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="kpi-card">
-                        <div class="kpi-icon text-primary">
-                            <iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon>
-                        </div>
-                        <div>
-                            <div class="kpi-num"><?= number_format($stats['total_users'] > 0 ? $stats['total_users'] : 150) ?>+</div>
-                            <div class="kpi-label">Aparatur &amp; Peserta Terdaftar</div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Bunga Rampai & Regulasi (Variasi Kanan / Right-Aligned Glass Panel) -->
+        <div class="item">
+            <div class="main-slider__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/slider-1-3.jpg') ?>);"></div>
+            <div class="container">
+                <div class="row justify-content-end">
+                    <div class="col-lg-8 col-xl-7">
+                        <div class="main-slider__content-glass ms-auto">
+                            <div class="main-slider__sub-title-box">
+                                <div class="main-slider__sub-title-shape"></div>
+                                <h5 class="main-slider__sub-title">Bunga Rampai &middot; Dokumen &amp; Praktik Baik</h5>
+                            </div>
+                            <h2 class="main-slider__title">
+                                Template Dokumen KAK, HPS <br>
+                                <span>&amp; Mitigasi Risiko Audit Pengadaan</span>
+                            </h2>
+                            <p class="main-slider__text">
+                                Unduh format dokumen kerja siap pakai (DOCX/XLSX), pelajari solusi nyata sengketa pemilihan dan sanggahan, serta telusuri infografis alur tata kelola kepengadaan.
+                            </p>
+                            <div class="main-slider__btn-box">
+                                <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="thm-btn">
+                                    <span class="icon-angles-right"></span>Unduh Template Dokumen
+                                </a>
+                                <a href="<?= site_url('bunga-rampai/studi-kasus') ?>" class="thm-btn thm-btn-alt">
+                                    <span class="icon-angles-right"></span>Studi Kasus Lapangan
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -913,7 +1079,90 @@ $upcomingEvents = $upcomingEvents ?? [];
 </section>
 
 <!-- =========================================================
-     2. PILAR EKOSISTEM BEGAWIPBJ (THE 5 CORE PILLARS)
+     2. GATEWAY PENCARIAN TERPADU & LIVE KPI COUNTER
+     ========================================================= -->
+<section class="portal-gateway-section">
+    <div class="container">
+        <div class="portal-gateway-card">
+            <!-- Search Form -->
+            <form action="<?= site_url('regulasi') ?>" method="get" id="heroSearchForm" class="hero-search-box">
+                <iconify-icon icon="solar:magnifer-linear" class="text-slate-400 text-xl"></iconify-icon>
+                <input type="text" name="q" id="heroSearchInput" placeholder="Cari regulasi perpres, materi kursus, template KAK/HPS, atau artikel..." required>
+                <!-- Class 'ignore' prevents niceSelect plugin from duplicating this dropdown -->
+                <select id="heroSearchTarget" class="ignore hero-search-target-select">
+                    <option value="regulasi">Regulasi PBJ</option>
+                    <option value="arena-belajar/course">Arena Belajar</option>
+                    <option value="bunga-rampai/artikel">Bunga Rampai</option>
+                </select>
+                <button type="submit" class="btn-search">
+                    <span>Cari</span>
+                    <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+                </button>
+            </form>
+
+            <!-- Quick Keyword Tags -->
+            <div class="hero-quick-tags mb-3">
+                <span class="text-dark fw-bold">Pencarian Cepat:</span>
+                <a href="<?= site_url('regulasi?category=peraturan-presiden') ?>">Perpres 12/2021</a>
+                <a href="<?= site_url('regulasi?category=peraturan-lkpp') ?>">Peraturan LKPP</a>
+                <a href="<?= site_url('bunga-rampai/template-dokumen') ?>">Template HPS &amp; KAK</a>
+                <a href="<?= site_url('arena-belajar/course') ?>">Course PBJ</a>
+                <a href="<?= site_url('bunga-rampai/studi-kasus') ?>">Studi Kasus Audit</a>
+            </div>
+
+            <!-- Live KPI Counter Ribbon (4 Cards) -->
+            <div class="row g-3 pt-3 border-top">
+                <div class="col-lg-3 col-6">
+                    <div class="gateway-kpi-item">
+                        <div class="gateway-kpi-icon text-warning bg-warning-subtle">
+                            <iconify-icon icon="solar:diploma-verified-bold"></iconify-icon>
+                        </div>
+                        <div>
+                            <div class="gateway-kpi-num"><?= number_format($stats['total_regulations'] > 0 ? $stats['total_regulations'] : 24) ?></div>
+                            <div class="gateway-kpi-label">Regulasi PBJ Terbit</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="gateway-kpi-item">
+                        <div class="gateway-kpi-icon text-info bg-info-subtle">
+                            <iconify-icon icon="solar:mortarboard-bold"></iconify-icon>
+                        </div>
+                        <div>
+                            <div class="gateway-kpi-num"><?= number_format($stats['total_courses'] > 0 ? $stats['total_courses'] : 18) ?>+</div>
+                            <div class="gateway-kpi-label">Kursus &amp; Materi Belajar</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="gateway-kpi-item">
+                        <div class="gateway-kpi-icon text-success bg-success-subtle">
+                            <iconify-icon icon="solar:book-bookmark-bold"></iconify-icon>
+                        </div>
+                        <div>
+                            <div class="gateway-kpi-num"><?= number_format($stats['total_knowledge'] > 0 ? $stats['total_knowledge'] : 45) ?>+</div>
+                            <div class="gateway-kpi-label">Artikel &amp; Template Dokumen</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="gateway-kpi-item">
+                        <div class="gateway-kpi-icon text-primary bg-primary-subtle">
+                            <iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon>
+                        </div>
+                        <div>
+                            <div class="gateway-kpi-num"><?= number_format($stats['total_users'] > 0 ? $stats['total_users'] : 150) ?>+</div>
+                            <div class="gateway-kpi-label">Aparatur &amp; Peserta Terdaftar</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================================
+     3. PILAR EKOSISTEM BEGAWIPBJ (THE 5 CORE PILLARS)
      ========================================================= -->
 <section class="section-spacious bg-white">
     <div class="container">
@@ -1006,7 +1255,7 @@ $upcomingEvents = $upcomingEvents ?? [];
 </section>
 
 <!-- =========================================================
-     3. ARENA BELAJAR: KURSUS & KELAS TERPILIH
+     4. ARENA BELAJAR: KURSUS & KELAS TERPILIH
      ========================================================= -->
 <section class="section-spacious bg-light">
     <div class="container">
@@ -1027,7 +1276,6 @@ $upcomingEvents = $upcomingEvents ?? [];
 
         <div class="row g-4">
             <?php if (empty($courses)): ?>
-                <!-- Fallback Mock Courses jika DB belum terisi -->
                 <?php
                 $mockCourses = [
                     ['title' => 'Dasar-Dasar Pengadaan Barang/Jasa Pemerintah (Level-1)', 'level' => 'Pemula', 'hours' => '24 JP', 'program' => 'Sertifikasi PBJ', 'slug' => 'dasar-dasar-pengadaan-level-1'],
@@ -1101,7 +1349,7 @@ $upcomingEvents = $upcomingEvents ?? [];
 </section>
 
 <!-- =========================================================
-     4. TAHAPAN SIKLUS PENGADAAN INTERAKTIF
+     5. TAHAPAN SIKLUS PENGADAAN INTERAKTIF
      ========================================================= -->
 <section class="section-spacious bg-white">
     <div class="container">
@@ -1169,7 +1417,7 @@ $upcomingEvents = $upcomingEvents ?? [];
 </section>
 
 <!-- =========================================================
-     5. PUSAT REGULASI PBJ TERBARU & UNGGULAN
+     6. PUSAT REGULASI PBJ TERBARU & UNGGULAN
      ========================================================= -->
 <section class="section-spacious bg-light">
     <div class="container">
@@ -1190,7 +1438,6 @@ $upcomingEvents = $upcomingEvents ?? [];
 
         <div class="row g-4">
             <?php if (empty($regulations)): ?>
-                <!-- Fallback Mock Regulations -->
                 <?php
                 $mockRegs = [
                     ['num' => 'Perpres No. 12 Tahun 2021', 'issuer' => 'Presiden RI', 'title' => 'Perubahan atas Peraturan Presiden Nomor 16 Tahun 2018 tentang Pengadaan Barang/Jasa Pemerintah', 'status' => 'active', 'year' => '2021', 'slug' => 'perpres-12-tahun-2021'],
@@ -1259,7 +1506,7 @@ $upcomingEvents = $upcomingEvents ?? [];
 </section>
 
 <!-- =========================================================
-     6. BUNGA RAMPAI: MULTI-TAB KNOWLEDGE HUB
+     7. BUNGA RAMPAI: MULTI-TAB KNOWLEDGE HUB
      ========================================================= -->
 <section class="section-spacious bg-white">
     <div class="container">
@@ -1473,7 +1720,7 @@ $upcomingEvents = $upcomingEvents ?? [];
 </section>
 
 <!-- =========================================================
-     7. AGENDA & EVENT PBJ MENDATANG
+     8. AGENDA & EVENT PBJ MENDATANG
      ========================================================= -->
 <section class="section-spacious bg-light">
     <div class="container">
@@ -1501,7 +1748,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                             <span class="event-date-month">Okt</span>
                         </div>
                         <div>
-                            <span class="badge bg-success-50 text-success-700 text-xs fw-bold mb-1">Online &middot; Zoom</span>
+                            <span class="badge bg-success-subtle text-success text-xs fw-bold mb-1">Online &middot; Zoom</span>
                             <h4 class="text-base fw-bold mb-1">Webinar Nasional: Optimalisasi E-Katalog V6 bagi Pelaku Usaha Mikro &amp; Kecil</h4>
                             <p class="text-xs text-muted mb-3">Sosialisasi teknis pendaftaran etalase dan transaksi e-purchasing Pemprov Lampung.</p>
                             <a href="<?= site_url('event') ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Daftar Gratis</a>
@@ -1515,7 +1762,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                             <span class="event-date-month">Nov</span>
                         </div>
                         <div>
-                            <span class="badge bg-primary-50 text-primary-700 text-xs fw-bold mb-1">Tatap Muka &middot; Bandar Lampung</span>
+                            <span class="badge bg-primary-subtle text-primary text-xs fw-bold mb-1">Tatap Muka &middot; Bandar Lampung</span>
                             <h4 class="text-base fw-bold mb-1">Bimbingan Teknis: Penyusunan Dokumen Pemilihan &amp; Mitigasi Risiko Sanggah</h4>
                             <p class="text-xs text-muted mb-3">Pelatihan intensif khusus Pokja Pemilihan UKPBJ Kabupaten/Kota se-Lampung.</p>
                             <a href="<?= site_url('event') ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Daftar Peserta</a>
@@ -1529,7 +1776,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                             <span class="event-date-month">Nov</span>
                         </div>
                         <div>
-                            <span class="badge bg-warning-50 text-warning-700 text-xs fw-bold mb-1">Hybrid &middot; Gedung Pusiban</span>
+                            <span class="badge bg-warning-subtle text-warning text-xs fw-bold mb-1">Hybrid &middot; Gedung Pusiban</span>
                             <h4 class="text-base fw-bold mb-1">Sosialisasi Surat Edaran Pencegahan Korupsi &amp; Gratifikasi Pengadaan</h4>
                             <p class="text-xs text-muted mb-3">Kolaborasi bersama Inspektorat Daerah Provinsi Lampung dan APIP.</p>
                             <a href="<?= site_url('event') ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Detail Acara</a>
@@ -1548,7 +1795,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                                 <span class="event-date-month"><?= date('M', $eventTime) ?></span>
                             </div>
                             <div>
-                                <span class="badge bg-primary-50 text-primary-700 text-xs fw-bold mb-1 text-capitalize">
+                                <span class="badge bg-primary-subtle text-primary text-xs fw-bold mb-1 text-capitalize">
                                     <?= esc($evt['mode'] ?? 'Online') ?> &middot; <?= esc($evt['type'] ?? 'Webinar') ?>
                                 </span>
                                 <h4 class="text-base fw-bold mb-1"><?= esc($evt['title']) ?></h4>
@@ -1564,7 +1811,7 @@ $upcomingEvents = $upcomingEvents ?? [];
 </section>
 
 <!-- =========================================================
-     8. BIRO PBJ SETDA PROVINSI LAMPUNG & TAUTAN EKOSISTEM
+     9. BIRO PBJ SETDA PROVINSI LAMPUNG & TAUTAN EKOSISTEM
      ========================================================= -->
 <section class="section-spacious biro-showcase-bg">
     <div class="container">
@@ -1642,7 +1889,7 @@ $upcomingEvents = $upcomingEvents ?? [];
 </section>
 
 <!-- =========================================================
-     9. CALL TO ACTION (CTA) BANNER
+     10. CALL TO ACTION (CTA) BANNER
      ========================================================= -->
 <section class="section-spacious bg-white">
     <div class="container">
