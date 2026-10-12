@@ -33,31 +33,46 @@ class RegulationPublicController extends BaseController
 {
     public function __construct(
         private readonly RegulationPublicService $svc = new RegulationPublicService(),
-    ) {}
+    ) {
+        $this->request = service('request');
+    }
 
     public function index()
     {
-        $page       = max(1, (int) ($this->request->getGet('page') ?: 1));
-        $categoryId = (int) ($this->request->getGet('category_id') ?: 0) ?: null;
-        $keyword    = trim((string) ($this->request->getGet('q') ?: '')) ?: null;
+        $page        = max(1, (int) ($this->request->getGet('page') ?: 1));
+        $categoryId  = (int) ($this->request->getGet('category_id') ?: 0) ?: null;
+        $keyword     = trim((string) ($this->request->getGet('q') ?: '')) ?: null;
+        $legalStatus = trim((string) ($this->request->getGet('status') ?: $this->request->getGet('legal_status') ?: '')) ?: null;
+        $year        = (int) ($this->request->getGet('year') ?: 0) ?: null;
+        $stageId     = (int) ($this->request->getGet('stage_id') ?: 0) ?: null;
+        $sort        = trim((string) ($this->request->getGet('sort') ?: 'newest'));
+        $activeTab   = trim((string) ($this->request->getGet('tab') ?: 'katalog'));
 
-        $result = $this->svc->list($page, 9, $categoryId, $keyword);
+        $result = $this->svc->list($page, 9, $categoryId, $keyword, $legalStatus, $year, $stageId, $sort);
 
         return view('landing/pages/regulation', [
-            'title'            => 'Regulasi PBJ | BegawiPBJ',
-            'pageTitle'        => 'Regulasi PBJ',
-            'regulations'      => $result['items'],
-            'totalRegulations' => $result['total'],
-            'currentPage'      => $result['page'],
-            'totalPages'       => $result['totalPages'],
-            'perPage'          => $result['perPage'],
-            'categories'       => $this->svc->categoriesWithCount(),
-            'stages'           => $this->svc->stages(),
-            'competencies'     => $this->svc->competencies(),
-            'stats'            => $this->svc->stats(),
-            'popular'          => $this->svc->popular(),
-            'keyword'          => $keyword,
-            'selectedCategory' => $categoryId,
+            'title'               => 'Pusat Regulasi & Tata Kelola PBJ Lampung | BegawiPBJ',
+            'metaDescription'     => 'Kompilasi regulasi Pengadaan Barang/Jasa Pemerintah terlengkap: Perpres 12/2021, Peraturan LKPP, Peraturan Daerah Lampung, status keberlakuan hukum, riwayat versi, dan unduh dokumen resmi.',
+            'pageTitle'           => 'Pusat Regulasi PBJ',
+            'regulations'         => $result['items'],
+            'totalRegulations'    => $result['total'],
+            'currentPage'         => $result['page'],
+            'totalPages'          => $result['totalPages'],
+            'perPage'             => $result['perPage'],
+            'categories'          => $this->svc->categoriesWithCount(),
+            'stages'              => $this->svc->stages(),
+            'competencies'        => $this->svc->competencies(),
+            'stats'               => $this->svc->stats(),
+            'popular'             => $this->svc->popular(4),
+            'years'               => $this->svc->distinctYears(),
+            'keyword'             => $keyword,
+            'selectedCategory'    => $categoryId,
+            'selectedCategoryObj' => null,
+            'selectedStatus'      => $legalStatus,
+            'selectedYear'        => $year,
+            'selectedStage'       => $stageId,
+            'selectedSort'        => $sort,
+            'activeTab'           => $activeTab,
         ]);
     }
 
@@ -69,26 +84,39 @@ class RegulationPublicController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kategori regulasi tidak ditemukan.');
         }
 
-        $page    = max(1, (int) ($this->request->getGet('page') ?: 1));
-        $keyword = trim((string) ($this->request->getGet('q') ?: '')) ?: null;
+        $page        = max(1, (int) ($this->request->getGet('page') ?: 1));
+        $keyword     = trim((string) ($this->request->getGet('q') ?: '')) ?: null;
+        $legalStatus = trim((string) ($this->request->getGet('status') ?: $this->request->getGet('legal_status') ?: '')) ?: null;
+        $year        = (int) ($this->request->getGet('year') ?: 0) ?: null;
+        $stageId     = (int) ($this->request->getGet('stage_id') ?: 0) ?: null;
+        $sort        = trim((string) ($this->request->getGet('sort') ?: 'newest'));
+        $activeTab   = trim((string) ($this->request->getGet('tab') ?: 'katalog'));
 
-        $result = $this->svc->list($page, 9, (int) $category['id'], $keyword);
+        $result = $this->svc->list($page, 9, (int) $category['id'], $keyword, $legalStatus, $year, $stageId, $sort);
 
         return view('landing/pages/regulation', [
-            'title'            => 'Kategori ' . $category['name'] . ' | Regulasi PBJ',
-            'pageTitle'        => 'Regulasi · ' . $category['name'],
-            'regulations'      => $result['items'],
-            'totalRegulations' => $result['total'],
-            'currentPage'      => $result['page'],
-            'totalPages'       => $result['totalPages'],
-            'perPage'          => $result['perPage'],
-            'categories'       => $this->svc->categoriesWithCount(),
-            'stages'           => $this->svc->stages(),
-            'competencies'     => $this->svc->competencies(),
-            'stats'            => $this->svc->stats(),
-            'popular'          => $this->svc->popular(),
-            'keyword'          => $keyword,
-            'selectedCategory' => (int) $category['id'],
+            'title'               => 'Kategori ' . $category['name'] . ' | Regulasi PBJ Lampung',
+            'metaDescription'     => 'Kumpulan dokumen ' . $category['name'] . ' Pengadaan Barang/Jasa Pemerintah Provinsi Lampung dengan filter status hukum dan unduh berkas.',
+            'pageTitle'           => 'Regulasi · ' . $category['name'],
+            'regulations'         => $result['items'],
+            'totalRegulations'    => $result['total'],
+            'currentPage'         => $result['page'],
+            'totalPages'          => $result['totalPages'],
+            'perPage'             => $result['perPage'],
+            'categories'          => $this->svc->categoriesWithCount(),
+            'stages'              => $this->svc->stages(),
+            'competencies'        => $this->svc->competencies(),
+            'stats'               => $this->svc->stats(),
+            'popular'             => $this->svc->popular(4),
+            'years'               => $this->svc->distinctYears(),
+            'keyword'             => $keyword,
+            'selectedCategory'    => (int) $category['id'],
+            'selectedCategoryObj' => $category,
+            'selectedStatus'      => $legalStatus,
+            'selectedYear'        => $year,
+            'selectedStage'       => $stageId,
+            'selectedSort'        => $sort,
+            'activeTab'           => $activeTab,
         ]);
     }
 
@@ -103,13 +131,16 @@ class RegulationPublicController extends BaseController
         $regId = (int) $regulation['id'];
 
         return view('landing/pages/regulation_detail', [
-            'title'         => ($regulation['document_number'] ?? 'Detail') . ' | BegawiPBJ',
+            'title'         => ($regulation['document_number'] ?? 'Detail') . ' | JDIH PBJ Lampung',
             'pageTitle'     => $regulation['document_number'] ?? 'Detail Regulasi',
             'regulation'    => $regulation,
             'versions'      => $this->svc->versions($regId),
             'relations'     => $this->svc->relations($regId),
             'competencies'  => $this->svc->competenciesForRegulation($regId),
             'related'       => $this->svc->relatedRegulations($regId, (int) $regulation['category_id']),
+            'categories'    => $this->svc->categoriesWithCount(),
+            'stats'         => $this->svc->stats(),
+            'viewMode'      => 'detail',
         ]);
     }
 
@@ -125,12 +156,15 @@ class RegulationPublicController extends BaseController
 
         return view('landing/pages/regulation_detail', [
             'title'         => 'Riwayat Versi ' . ($regulation['document_number'] ?? '') . ' | BegawiPBJ',
-            'pageTitle'     => 'Riwayat Versi',
+            'pageTitle'     => 'Riwayat Versi · ' . ($regulation['document_number'] ?? ''),
             'regulation'    => $regulation,
             'versions'      => $versions,
-            'relations'     => [],
-            'competencies'  => [],
-            'related'       => [],
+            'relations'     => $this->svc->relations($regId),
+            'competencies'  => $this->svc->competenciesForRegulation($regId),
+            'related'       => $this->svc->relatedRegulations($regId, (int) $regulation['category_id']),
+            'categories'    => $this->svc->categoriesWithCount(),
+            'stats'         => $this->svc->stats(),
+            'viewMode'      => 'versions',
         ]);
     }
 
@@ -145,13 +179,16 @@ class RegulationPublicController extends BaseController
         $relations = $this->svc->relations($regId);
 
         return view('landing/pages/regulation_detail', [
-            'title'         => 'Relasi ' . ($regulation['document_number'] ?? '') . ' | BegawiPBJ',
-            'pageTitle'     => 'Relasi Regulasi',
+            'title'         => 'Relasi & Keterkaitan ' . ($regulation['document_number'] ?? '') . ' | BegawiPBJ',
+            'pageTitle'     => 'Matriks Relasi · ' . ($regulation['document_number'] ?? ''),
             'regulation'    => $regulation,
-            'versions'      => [],
+            'versions'      => $this->svc->versions($regId),
             'relations'     => $relations,
-            'competencies'  => [],
-            'related'       => [],
+            'competencies'  => $this->svc->competenciesForRegulation($regId),
+            'related'       => $this->svc->relatedRegulations($regId, (int) $regulation['category_id']),
+            'categories'    => $this->svc->categoriesWithCount(),
+            'stats'         => $this->svc->stats(),
+            'viewMode'      => 'relations',
         ]);
     }
 

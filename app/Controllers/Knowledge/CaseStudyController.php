@@ -72,14 +72,24 @@ class CaseStudyController extends BaseKnowledgeController
             'summary'          => (string) $this->request->getPost('summary'),
             'content'          => (string) $this->request->getPost('content'),
             'workflow_status'  => $status,
-            'visibility'       => (string) ($this->request->getPost('visibility') ?: 'internal'),
-            'author_id'        => $this->currentUserId(),
-            'created_at'       => $now,
-            'updated_at'       => $now,
+            'reading_time'       => (int) ($this->request->getPost('reading_time') ?: 5),
+            'organization_unit'  => trim((string) $this->request->getPost('organization_unit')) ?: null,
+            'procurement_stage'  => trim((string) $this->request->getPost('procurement_stage')) ?: null,
+            'case_severity'      => trim((string) $this->request->getPost('case_severity')) ?: 'medium',
+            'resolution_summary' => (string) $this->request->getPost('resolution_summary'),
+            'featured'           => $this->request->getPost('featured') ? 1 : 0,
+            'author_id'          => $this->currentUserId(),
+            'created_at'         => $now,
+            'updated_at'         => $now,
         ];
         if ($status === 'published') {
             $payload['published_at'] = $now;
             $payload['published_by'] = $this->currentUserId();
+        }
+        $file = $this->request->getFile('cover');
+        $fileId = $this->uploadFileAsset($file, 'case_study_cover', 'public');
+        if ($fileId !== null) {
+            $payload['cover_file_id'] = $fileId;
         }
         $model->insert($payload);
         $id = (int) $model->getInsertID();
@@ -148,13 +158,24 @@ class CaseStudyController extends BaseKnowledgeController
             'slug'            => $model->generateUniqueSlug($title, (int) $id),
             'summary'         => (string) $this->request->getPost('summary'),
             'content'         => (string) $this->request->getPost('content'),
-            'workflow_status' => $status,
-            'visibility'      => (string) ($this->request->getPost('visibility') ?: 'internal'),
-            'updated_at'      => $now,
+            'workflow_status'    => $status,
+            'visibility'         => (string) ($this->request->getPost('visibility') ?: 'public'),
+            'reading_time'       => (int) ($this->request->getPost('reading_time') ?: 5),
+            'organization_unit'  => trim((string) $this->request->getPost('organization_unit')) ?: null,
+            'procurement_stage'  => trim((string) $this->request->getPost('procurement_stage')) ?: null,
+            'case_severity'      => trim((string) $this->request->getPost('case_severity')) ?: 'medium',
+            'resolution_summary' => (string) $this->request->getPost('resolution_summary'),
+            'featured'           => $this->request->getPost('featured') ? 1 : 0,
+            'updated_at'         => $now,
         ];
         if ($status === 'published' && empty($row['published_at'])) {
             $payload['published_at'] = $now;
             $payload['published_by'] = $this->currentUserId();
+        }
+        $file = $this->request->getFile('cover');
+        $fileId = $this->uploadFileAsset($file, 'case_study_cover', 'public');
+        if ($fileId !== null) {
+            $payload['cover_file_id'] = $fileId;
         }
         $model->update((int) $id, $payload);
         $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn ($v) => $v > 0));

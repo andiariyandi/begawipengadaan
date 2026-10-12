@@ -12,7 +12,7 @@ class RegulationCategoryModel extends Model
     protected $useTimestamps = true;
 
     protected $allowedFields = [
-        'name', 'slug', 'description', 'is_active',
+        'name', 'slug', 'icon_class', 'icon_file_id', 'description', 'is_active',
     ];
 
     public function listActiveWithCount(): array

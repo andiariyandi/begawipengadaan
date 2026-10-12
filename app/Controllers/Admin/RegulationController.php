@@ -39,12 +39,16 @@ class RegulationController extends BaseController
             'category_id'      => $this->request->getGet('category_id') ?: null,
             'keyword'          => $this->request->getGet('keyword') ?: null,
             'workflow_status'  => $this->request->getGet('workflow_status') ?: null,
+            'legal_status'     => $this->request->getGet('legal_status') ?: null,
+            'is_featured'      => $this->request->getGet('is_featured') !== null && $this->request->getGet('is_featured') !== '' ? (int) $this->request->getGet('is_featured') : null,
         ];
 
         $allRegulations = (new RegulationModel())->listForAdmin(
             $filters['category_id'] ? (int) $filters['category_id'] : null,
             $filters['keyword'],
             $filters['workflow_status'],
+            $filters['legal_status'],
+            $filters['is_featured']
         );
 
         $perPage = max(5, min(100, (int) ($this->request->getGet('per_page') ?: 15)));
@@ -56,11 +60,32 @@ class RegulationController extends BaseController
         $pager->store('regulations', $page, $perPage, $total, 0);
 
         $db = db_connect();
+
+        // Attach stages & competencies to each displayed regulation
+        if (! empty($regulations)) {
+            $regIds = array_column($regulations, 'id');
+            $stageRows = $db->table('regulation_procurement_stages rps')
+                ->select('rps.regulation_id, ps.id AS stage_id, ps.name AS stage_name, ps.key AS stage_key')
+                ->join('procurement_stages ps', 'ps.id = rps.procurement_stage_id')
+                ->whereIn('rps.regulation_id', $regIds)
+                ->orderBy('ps.sort_order', 'ASC')
+                ->get()->getResultArray();
+            $stageMap = [];
+            foreach ($stageRows as $sr) {
+                $stageMap[(int) $sr['regulation_id']][] = $sr;
+            }
+
+            foreach ($regulations as &$r) {
+                $r['stages'] = $stageMap[(int) $r['id']] ?? [];
+            }
+            unset($r);
+        }
+
         $stats = [
-            'total'       => (int) $db->table('regulations')->countAllResults(),
-            'active'      => (int) $db->table('regulations')->whereIn('legal_status', ['active', 'berlaku'])->countAllResults(),
-            'published'   => (int) $db->table('regulations')->where('workflow_status', 'published')->countAllResults(),
-            'in_review'   => (int) $db->table('regulations')->whereIn('workflow_status', ['in_review', 'submitted', 'draft'])->countAllResults(),
+            'total'       => (int) $db->table('regulations')->where('deleted_at', null)->countAllResults(),
+            'active'      => (int) $db->table('regulations')->where('deleted_at', null)->whereIn('legal_status', ['active', 'berlaku'])->countAllResults(),
+            'published'   => (int) $db->table('regulations')->where('deleted_at', null)->where('workflow_status', 'published')->countAllResults(),
+            'in_review'   => (int) $db->table('regulations')->where('deleted_at', null)->whereIn('workflow_status', ['in_review', 'submitted', 'draft'])->countAllResults(),
         ];
 
         return view('dashboard/regulation/regulations/index', [
@@ -75,21 +100,26 @@ class RegulationController extends BaseController
             'categories'       => (new RegulationCategoryModel())->listAll(),
             'filters'          => $filters,
             'workflowStatuses' => RegulationService::ALLOWED_WORKFLOW_STATUSES,
+            'legalStatuses'    => ['active', 'amended', 'revoked', 'expired'],
         ]);
     }
 
     public function create()
     {
         return view('dashboard/regulation/regulations/form', [
-            'title'         => 'Tambah Regulasi | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Tambah Regulasi',
-            'formMode'      => 'create',
-            'activeMenu'    => 'regulations',
-            'activeSubmenu' => 'regulations',
-            'categories'    => (new RegulationCategoryModel())->listAll(),
-            'workflowStatuses' => RegulationService::ALLOWED_WORKFLOW_STATUSES,
-            'legalStatuses'    => ['active', 'amended', 'revoked', 'expired'],
-            'visibilities'     => ['public', 'internal', 'restricted'],
+            'title'                => 'Tambah Regulasi | Dashboard BegawiPBJ',
+            'pageTitle'            => 'Tambah Regulasi',
+            'formMode'             => 'create',
+            'activeMenu'           => 'regulations',
+            'activeSubmenu'        => 'regulations',
+            'categories'           => (new RegulationCategoryModel())->listAll(),
+            'stages'               => (new ProcurementStageModel())->orderBy('sort_order, name')->findAll(),
+            'competencies'         => (new CompetencyModel())->orderBy('name')->findAll(),
+            'selectedStages'       => [],
+            'selectedCompetencies' => [],
+            'workflowStatuses'     => RegulationService::ALLOWED_WORKFLOW_STATUSES,
+            'legalStatuses'        => ['active', 'amended', 'revoked', 'expired'],
+            'visibilities'         => ['public', 'internal', 'restricted'],
         ]);
     }
 
@@ -102,6 +132,7 @@ class RegulationController extends BaseController
             'document_year'   => 'required|numeric|exact_length[4]',
             'issuer_name'     => 'permit_empty|max_length[255]',
             'summary'         => 'permit_empty',
+            'cover_image'     => 'permit_empty|is_image[cover_image]|max_size[cover_image,3072]',
         ];
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
@@ -109,35 +140,46 @@ class RegulationController extends BaseController
 
         $svc = new RegulationService();
         $post = $this->request->getPost();
+        
+        $coverFile = $this->request->getFile('cover_image');
+        $coverFileId = $this->uploadCoverImage($coverFile);
+
         try {
             $id = $svc->create([
-                'category_id'      => (int) $post['category_id'],
-                'title'            => $post['title'],
-                'document_number'   => $post['document_number'],
-                'document_year'    => (int) $post['document_year'],
-                'issuer_name'      => $post['issuer_name'] ?? null,
-                'official_date'    => $this->parseDate($post['official_date'] ?? null),
-                'effective_date'   => $this->parseDate($post['effective_date'] ?? null),
-                'summary'          => $post['summary'] ?? null,
+                'category_id'         => (int) $post['category_id'],
+                'title'               => $post['title'],
+                'document_number'     => $post['document_number'],
+                'document_year'       => (int) $post['document_year'],
+                'issuer_name'         => $post['issuer_name'] ?? null,
+                'official_date'       => $this->parseDate($post['official_date'] ?? null),
+                'effective_date'      => $this->parseDate($post['effective_date'] ?? null),
+                'summary'             => $post['summary'] ?? null,
+                'keywords'            => $post['keywords'] ?? null,
                 'official_source_url' => $post['official_source_url'] ?? null,
-                'workflow_status'  => 'draft',
-                'legal_status'     => $post['legal_status'] ?? 'active',
-                'visibility'       => $post['visibility'] ?? 'internal',
+                'workflow_status'     => 'draft',
+                'legal_status'        => $post['legal_status'] ?? 'active',
+                'visibility'          => $post['visibility'] ?? 'internal',
+                'is_featured'         => isset($post['is_featured']) && $post['is_featured'] ? 1 : 0,
+                'cover_file_id'       => $coverFileId,
             ], (int) session()->get('user_id'));
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', 'Gagal membuat regulasi: ' . $e->getMessage());
         }
 
+        // Sync procurement stages & competencies
+        $this->syncRegulationStages($id, (array) ($this->request->getPost('stages') ?? []));
+        $this->syncRegulationCompetencies($id, (array) ($this->request->getPost('competencies') ?? []));
+
         // Attach optional file as version 1
         $file = $this->request->getFile('file');
         if ($file && $file->isValid() && ! $file->hasMoved()) {
             try {
-                $stored = (new FileStorageService())->storeUpload($file, 'regulations', $id, (int) session()->get('user_id'));
+                $stored = (new FileStorageService())->storeUpload($file, 'regulations', $id, (int) session()->get('user_id'), 'public');
                 if ($stored) {
-                    $svc->addVersion($id, (int) $stored['id'], 'Unggahan awal.', (int) session()->get('user_id'));
+                    $svc->addVersion($id, (int) $stored['id'], 'Unggahan naskah awal resmi.', (int) session()->get('user_id'));
                 }
             } catch (\Throwable $e) {
-                return redirect()->to('dashboard/regulasi/dokumen/' . $id)->with('warning', 'Regulasi dibuat tetapi file gagal diunggah: ' . $e->getMessage());
+                return redirect()->to('dashboard/regulasi/dokumen/' . $id)->with('warning', 'Regulasi dibuat tetapi file berkas gagal diunggah: ' . $e->getMessage());
             }
         }
 
@@ -171,14 +213,14 @@ class RegulationController extends BaseController
             ->orderBy('created_at', 'DESC')->get()->getResultArray();
 
         return view('dashboard/regulation/regulations/detail', [
-            'title'         => 'Detail Regulasi | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Detail Regulasi',
-            'activeMenu'    => 'regulations',
-            'activeSubmenu' => 'regulations',
-            'regulation'    => $regulation,
-            'relations'     => $relations,
-            'competencies'  => $competencies,
-            'transitions'   => $transitions,
+            'title'            => 'Detail Regulasi | Dashboard BegawiPBJ',
+            'pageTitle'        => 'Detail Regulasi',
+            'activeMenu'       => 'regulations',
+            'activeSubmenu'    => 'regulations',
+            'regulation'       => $regulation,
+            'relations'        => $relations,
+            'competencies'     => $competencies,
+            'transitions'      => $transitions,
             'workflowStatuses' => RegulationService::ALLOWED_WORKFLOW_STATUSES,
         ]);
     }
@@ -191,18 +233,33 @@ class RegulationController extends BaseController
             return redirect()->to('dashboard/regulasi/dokumen')->with('error', 'Regulasi tidak ditemukan.');
         }
 
+        $selectedStages = array_column(
+            db_connect()->table('regulation_procurement_stages')->where('regulation_id', $regId)->get()->getResultArray(),
+            'procurement_stage_id'
+        );
+        $selectedCompetencies = array_column(
+            db_connect()->table('regulation_competencies')->where('regulation_id', $regId)->get()->getResultArray(),
+            'competency_id'
+        );
+        $coverImgUrl = ! empty($regulation['cover_file_id']) ? base_url('file/' . (int) $regulation['cover_file_id']) : null;
+
         return view('dashboard/regulation/regulations/form', [
-            'title'         => 'Ubah Regulasi | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Ubah Regulasi',
-            'formMode'      => 'edit',
-            'activeMenu'    => 'regulations',
-            'activeSubmenu' => 'regulations',
-            'regulation'    => $regulation,
-            'regId'         => $regId,
-            'categories'    => (new RegulationCategoryModel())->listAll(),
-            'workflowStatuses' => RegulationService::ALLOWED_WORKFLOW_STATUSES,
-            'legalStatuses'    => ['active', 'amended', 'revoked', 'expired'],
-            'visibilities'     => ['public', 'internal', 'restricted'],
+            'title'                => 'Ubah Regulasi | Dashboard BegawiPBJ',
+            'pageTitle'            => 'Ubah Regulasi',
+            'formMode'             => 'edit',
+            'activeMenu'           => 'regulations',
+            'activeSubmenu'        => 'regulations',
+            'regulation'           => $regulation,
+            'regId'                => $regId,
+            'categories'           => (new RegulationCategoryModel())->listAll(),
+            'stages'               => (new ProcurementStageModel())->orderBy('sort_order, name')->findAll(),
+            'competencies'         => (new CompetencyModel())->orderBy('name')->findAll(),
+            'selectedStages'       => $selectedStages,
+            'selectedCompetencies' => $selectedCompetencies,
+            'coverImgUrl'          => $coverImgUrl,
+            'workflowStatuses'     => RegulationService::ALLOWED_WORKFLOW_STATUSES,
+            'legalStatuses'        => ['active', 'amended', 'revoked', 'expired'],
+            'visibilities'         => ['public', 'internal', 'restricted'],
         ]);
     }
 
@@ -210,37 +267,76 @@ class RegulationController extends BaseController
     {
         $regId = ctype_digit($id) ? (int) $id : 0;
         $svc   = new RegulationService();
+        $regulation = (new RegulationModel())->find($regId);
+        if (! $regulation) {
+            return redirect()->to('dashboard/regulasi/dokumen')->with('error', 'Regulasi tidak ditemukan.');
+        }
 
         $rules = [
             'title'           => 'required|max_length[255]',
             'category_id'     => 'required|is_natural_no_zero',
             'document_number' => 'required|max_length[255]',
             'document_year'   => 'required|numeric|exact_length[4]',
+            'cover_image'     => 'permit_empty|is_image[cover_image]|max_size[cover_image,3072]',
         ];
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
         $post = $this->request->getPost();
+        
+        $updateData = [
+            'category_id'         => (int) $post['category_id'],
+            'title'               => $post['title'],
+            'document_number'     => $post['document_number'],
+            'document_year'       => (int) $post['document_year'],
+            'issuer_name'         => $post['issuer_name'] ?? null,
+            'official_date'       => $this->parseDate($post['official_date'] ?? null),
+            'effective_date'      => $this->parseDate($post['effective_date'] ?? null),
+            'summary'             => $post['summary'] ?? null,
+            'keywords'            => $post['keywords'] ?? null,
+            'official_source_url' => $post['official_source_url'] ?? null,
+            'legal_status'        => $post['legal_status'] ?? 'active',
+            'visibility'          => $post['visibility'] ?? 'internal',
+            'is_featured'         => isset($post['is_featured']) && $post['is_featured'] ? 1 : 0,
+        ];
+
+        // Handle cover image
+        if ($this->request->getPost('remove_cover')) {
+            $updateData['cover_file_id'] = null;
+        } else {
+            $coverFile = $this->request->getFile('cover_image');
+            $newCoverId = $this->uploadCoverImage($coverFile, $regId);
+            if ($newCoverId !== null) {
+                $updateData['cover_file_id'] = $newCoverId;
+            }
+        }
+
         try {
-            $svc->update($regId, [
-                'category_id'      => (int) $post['category_id'],
-                'title'            => $post['title'],
-                'document_number'   => $post['document_number'],
-                'document_year'    => (int) $post['document_year'],
-                'issuer_name'      => $post['issuer_name'] ?? null,
-                'official_date'    => $this->parseDate($post['official_date'] ?? null),
-                'effective_date'   => $this->parseDate($post['effective_date'] ?? null),
-                'summary'          => $post['summary'] ?? null,
-                'official_source_url' => $post['official_source_url'] ?? null,
-                'legal_status'     => $post['legal_status'] ?? 'active',
-                'visibility'       => $post['visibility'] ?? 'internal',
-            ], (int) session()->get('user_id'));
+            $svc->update($regId, $updateData, (int) session()->get('user_id'));
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', 'Gagal mengubah regulasi: ' . $e->getMessage());
         }
 
-        return redirect()->to('dashboard/regulasi/dokumen/' . $regId)->with('success', 'Regulasi diperbarui.');
+        // Sync stages & competencies
+        $this->syncRegulationStages($regId, (array) ($this->request->getPost('stages') ?? []));
+        $this->syncRegulationCompetencies($regId, (array) ($this->request->getPost('competencies') ?? []));
+
+        // Optional new version file upload
+        $docFile = $this->request->getFile('file');
+        if ($docFile && $docFile->isValid() && ! $docFile->hasMoved()) {
+            try {
+                $stored = (new FileStorageService())->storeUpload($docFile, 'regulations', $regId, (int) session()->get('user_id'), 'public');
+                if ($stored) {
+                    $changelog = trim((string) $this->request->getPost('changelog')) ?: 'Pembaruan naskah dokumen resmi.';
+                    $svc->addVersion($regId, (int) $stored['id'], $changelog, (int) session()->get('user_id'));
+                }
+            } catch (\Throwable $e) {
+                return redirect()->to('dashboard/regulasi/dokumen/' . $regId)->with('warning', 'Data disimpan tetapi berkas versi gagal diunggah: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->to('dashboard/regulasi/dokumen/' . $regId)->with('success', 'Regulasi berhasil diperbarui.');
     }
 
     public function delete(string $id)
@@ -401,19 +497,25 @@ class RegulationController extends BaseController
             'name'        => 'required|max_length[255]',
             'slug'        => 'required|max_length[255]|is_unique[regulation_categories.slug]',
             'description' => 'permit_empty',
-            'is_active'   => 'permit_empty',
+            'icon_class'  => 'permit_empty|max_length[100]',
+            'icon_image'  => 'permit_empty|is_image[icon_image]|max_size[icon_image,2048]',
         ];
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
         $post = $this->request->getPost();
+        $iconFile = $this->request->getFile('icon_image');
+        $iconFileId = $this->uploadCategoryIcon($iconFile);
+
         try {
             $id = (new RegulationCategoryModel())->insert([
-                'name'        => $post['name'],
-                'slug'        => $post['slug'],
-                'description' => $post['description'] ?? null,
-                'is_active'   => isset($post['is_active']) ? 1 : 1,
+                'name'         => $post['name'],
+                'slug'         => $post['slug'],
+                'description'  => $post['description'] ?? null,
+                'icon_class'   => ! empty($post['icon_class']) ? $post['icon_class'] : 'solar:document-outline',
+                'icon_file_id' => $iconFileId,
+                'is_active'    => isset($post['is_active']) ? 1 : 1,
             ], true);
             (new AuditService())->log((int) session()->get('user_id'), 'regulation_category.create', 'regulation_categories', 'regulation_category', $id);
             return redirect()->to('dashboard/regulasi/kategori/' . $id)->with('success', 'Kategori dibuat.');
@@ -447,6 +549,7 @@ class RegulationController extends BaseController
         if (! $category) {
             return redirect()->to('dashboard/regulasi/kategori')->with('error', 'Kategori tidak ditemukan.');
         }
+        $iconUrl = ! empty($category['icon_file_id']) ? base_url('file/' . (int) $category['icon_file_id']) : null;
         return view('dashboard/regulation/categories/form', [
             'title'         => 'Ubah Kategori | Dashboard BegawiPBJ',
             'pageTitle'     => 'Ubah Kategori',
@@ -455,28 +558,49 @@ class RegulationController extends BaseController
             'activeSubmenu' => 'categories',
             'category'      => $category,
             'catId'         => $catId,
+            'iconUrl'       => $iconUrl,
         ]);
     }
 
     public function categoryUpdate(string $id)
     {
         $catId = ctype_digit($id) ? (int) $id : 0;
+        $category = (new RegulationCategoryModel())->find($catId);
+        if (! $category) {
+            return redirect()->to('dashboard/regulasi/kategori')->with('error', 'Kategori tidak ditemukan.');
+        }
+
         $rules = [
             'name'        => 'required|max_length[255]',
             'slug'        => "required|max_length[255]|is_unique[regulation_categories.slug,id,{$catId}]",
             'description' => 'permit_empty',
+            'icon_class'  => 'permit_empty|max_length[100]',
+            'icon_image'  => 'permit_empty|is_image[icon_image]|max_size[icon_image,2048]',
         ];
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
+
         $post = $this->request->getPost();
+        $iconFile = $this->request->getFile('icon_image');
+        $newIconId = $this->uploadCategoryIcon($iconFile, $catId);
+
+        $updateData = [
+            'name'        => $post['name'],
+            'slug'        => $post['slug'],
+            'description' => $post['description'] ?? null,
+            'icon_class'  => ! empty($post['icon_class']) ? $post['icon_class'] : ($category['icon_class'] ?? 'solar:document-outline'),
+            'is_active'   => isset($post['is_active']) ? 1 : 0,
+        ];
+
+        if ($this->request->getPost('remove_icon')) {
+            $updateData['icon_file_id'] = null;
+        } elseif ($newIconId !== null) {
+            $updateData['icon_file_id'] = $newIconId;
+        }
+
         try {
-            (new RegulationCategoryModel())->update($catId, [
-                'name'        => $post['name'],
-                'slug'        => $post['slug'],
-                'description' => $post['description'] ?? null,
-                'is_active'   => isset($post['is_active']) ? 1 : 1,
-            ]);
+            (new RegulationCategoryModel())->update($catId, $updateData);
             (new AuditService())->log((int) session()->get('user_id'), 'regulation_category.update', 'regulation_categories', 'regulation_category', $catId);
             return redirect()->to('dashboard/regulasi/kategori/' . $catId)->with('success', 'Kategori diperbarui.');
         } catch (\Throwable $e) {
@@ -915,6 +1039,118 @@ class RegulationController extends BaseController
     }
 
     // ============== HELPERS ==============
+
+    protected function uploadCoverImage(?\CodeIgniter\HTTP\Files\UploadedFile $file, ?int $regulationId = null): ?int
+    {
+        if ($file === null || ! $file->isValid() || $file->hasMoved()) {
+            return null;
+        }
+        $mime = $file->getMimeType();
+        if (! in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) {
+            return null;
+        }
+        $uploadDir = WRITEPATH . 'uploads/regulations/covers';
+        if (! is_dir($uploadDir) && ! @mkdir($uploadDir, 0755, true)) {
+            return null;
+        }
+        $storedName = $file->getRandomName();
+        $file->move($uploadDir, $storedName);
+        $relativePath = 'uploads/regulations/covers/' . $storedName;
+        $now = date('Y-m-d H:i:s');
+        $db = db_connect();
+        $db->table('file_assets')->insert([
+            'disk'             => 'local',
+            'path'             => $relativePath,
+            'original_name'    => $file->getClientName() ?: $storedName,
+            'stored_name'      => $storedName,
+            'extension'        => $file->getClientExtension() ?: 'jpg',
+            'mime_type'        => $mime,
+            'size_bytes'       => (int) ($file->getSize() ?: 0),
+            'visibility'       => 'public',
+            'lifecycle_status' => 'available',
+            'resource_type'    => 'regulation_cover',
+            'resource_id'      => $regulationId,
+            'uploaded_by'      => (int) session()->get('user_id'),
+            'available_at'     => $now,
+            'created_at'       => $now,
+            'updated_at'       => $now,
+        ]);
+        return (int) $db->insertID();
+    }
+
+    protected function uploadCategoryIcon(?\CodeIgniter\HTTP\Files\UploadedFile $file, ?int $categoryId = null): ?int
+    {
+        if ($file === null || ! $file->isValid() || $file->hasMoved()) {
+            return null;
+        }
+        $mime = $file->getMimeType();
+        if (! in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'], true)) {
+            return null;
+        }
+        $uploadDir = WRITEPATH . 'uploads/regulations/categories';
+        if (! is_dir($uploadDir) && ! @mkdir($uploadDir, 0755, true)) {
+            return null;
+        }
+        $storedName = $file->getRandomName();
+        $file->move($uploadDir, $storedName);
+        $relativePath = 'uploads/regulations/categories/' . $storedName;
+        $now = date('Y-m-d H:i:s');
+        $db = db_connect();
+        $db->table('file_assets')->insert([
+            'disk'             => 'local',
+            'path'             => $relativePath,
+            'original_name'    => $file->getClientName() ?: $storedName,
+            'stored_name'      => $storedName,
+            'extension'        => $file->getClientExtension() ?: 'png',
+            'mime_type'        => $mime,
+            'size_bytes'       => (int) ($file->getSize() ?: 0),
+            'visibility'       => 'public',
+            'lifecycle_status' => 'available',
+            'resource_type'    => 'regulation_category_icon',
+            'resource_id'      => $categoryId,
+            'uploaded_by'      => (int) session()->get('user_id'),
+            'available_at'     => $now,
+            'created_at'       => $now,
+            'updated_at'       => $now,
+        ]);
+        return (int) $db->insertID();
+    }
+
+    protected function syncRegulationStages(int $regulationId, array $stageIds): void
+    {
+        $db = db_connect();
+        $db->table('regulation_procurement_stages')->where('regulation_id', $regulationId)->delete();
+        $now = date('Y-m-d H:i:s');
+        foreach ($stageIds as $stgId) {
+            $sid = (int) $stgId;
+            if ($sid > 0) {
+                $db->table('regulation_procurement_stages')->insert([
+                    'regulation_id'        => $regulationId,
+                    'procurement_stage_id' => $sid,
+                    'relevance'            => 'high',
+                    'created_at'           => $now,
+                ]);
+            }
+        }
+    }
+
+    protected function syncRegulationCompetencies(int $regulationId, array $competencyIds): void
+    {
+        $db = db_connect();
+        $db->table('regulation_competencies')->where('regulation_id', $regulationId)->delete();
+        $now = date('Y-m-d H:i:s');
+        foreach ($competencyIds as $cId) {
+            $cid = (int) $cId;
+            if ($cid > 0) {
+                $db->table('regulation_competencies')->insert([
+                    'regulation_id' => $regulationId,
+                    'competency_id' => $cid,
+                    'relevance'     => 'high',
+                    'created_at'    => $now,
+                ]);
+            }
+        }
+    }
 
     private function parseDate(?string $value): ?string
     {

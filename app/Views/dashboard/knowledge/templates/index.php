@@ -140,13 +140,22 @@ $stats       = $stats ?? ['total' => count($items), 'published' => 0, 'draft' =>
                 $hasFile = !empty($row['cover_file_id']);
             ?>
             <div class="col-xxl-4 col-md-6">
-                <div class="card h-100 p-0 radius-12 border overflow-hidden bg-base d-flex flex-column">
+                <div class="card h-100 p-0 radius-12 border overflow-hidden bg-base d-flex flex-column shadow-sm">
                     <div class="card-body p-20 d-flex flex-column flex-grow-1">
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-16">
-                            <span class="px-12 py-4 bg-primary-50 text-primary-600 rounded-pill text-xs fw-medium d-flex align-items-center gap-1">
-                                <iconify-icon icon="solar:document-outline"></iconify-icon>
-                                <?= $hasFile ? 'File Terlampir' : 'Naskah Teks' ?>
-                            </span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="px-10 py-3 bg-primary-50 text-primary-700 rounded-pill text-2xs fw-semibold text-uppercase">
+                                    <?= esc($row['document_category'] ?? 'Template') ?>
+                                </span>
+                                <span class="px-8 py-3 bg-neutral-100 text-neutral-700 rounded-pill text-2xs font-monospace">
+                                    <?= esc($row['document_version'] ?? 'v1.0') ?>
+                                </span>
+                                <?php if ($hasFile): ?>
+                                    <span class="badge bg-success-50 text-success-700 radius-4 px-6 py-2 text-2xs">
+                                        <i class="fas fa-check-circle me-1"></i> File Siap
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                             <div>
                                 <?= view('dashboard/components/status_badge', ['status' => $statusKey]) ?>
                             </div>

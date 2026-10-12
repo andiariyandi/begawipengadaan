@@ -6,119 +6,263 @@ $items = $items ?? [];
 $type = $filterType ?? null;
 $status = $filterStatus ?? null;
 $keyword = $filterKeyword ?? null;
+$scope = $scope ?? 'all';
+$stats = $stats ?? [];
+
 $typeOptions = [
-    'image' => 'Gambar', 'poster' => 'Poster', 'flyer' => 'Flyer',
-    'infographic' => 'Infografis', 'gallery' => 'Galeri',
-    'video_file' => 'Video File', 'youtube' => 'YouTube',
-    'social_link' => 'Social Link', 'external_link' => 'External Link',
+    'infographic'   => 'Infografis',
+    'image'         => 'Gambar',
+    'poster'        => 'Poster',
+    'flyer'         => 'Flyer',
+    'youtube'       => 'Video YouTube',
+    'video_file'    => 'Video File',
+    'gallery'       => 'Galeri Kegiatan',
+    'social_link'   => 'Social Link',
+    'external_link' => 'External Link',
 ];
+
 $statusLabels = [
-    'draft' => 'Draft', 'published' => 'Dipublikasikan', 'archived' => 'Diarsipkan',
-    'submitted' => 'Diajukan', 'in_review' => 'Ditinjau', 'approved' => 'Disetujui',
-    'revision_required' => 'Perlu Revisi', 'rejected' => 'Ditolak',
+    'published'         => 'Dipublikasikan',
+    'draft'             => 'Draft',
+    'in_review'         => 'Ditinjau',
+    'submitted'         => 'Diajukan',
+    'approved'          => 'Disetujui',
+    'revision_required' => 'Perlu Revisi',
+    'rejected'          => 'Ditolak',
+    'archived'          => 'Diarsipkan',
 ];
+
+$createParam = match ($scope) {
+    'infographics' => '?type=infographic',
+    'videos'       => '?type=youtube',
+    'gallery'      => '?type=gallery',
+    default        => '',
+};
 ?>
+
+<!-- Header Toolbar -->
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
-        <h6 class="fw-semibold mb-1">Media dan Galeri</h6>
-        <p class="text-secondary-light mb-0">Kelola konten media visual dan galeri Bunga Rampai.</p>
+        <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Media & Galeri') ?></h6>
+        <p class="text-secondary-light mb-0">Kelola kurasi visual, infografik, video edukasi pengadaan, dan album kegiatan resmi.</p>
     </div>
-    <a href="<?= route_to('dashboard.knowledge.media-gallery.create') ?>" class="btn btn-primary-600 radius-8 px-20 py-11">Tambah Media</a>
+    <div class="d-flex align-items-center gap-2">
+        <a href="<?= site_url('bunga-rampai/' . ($scope === 'infographics' ? 'media' : ($scope === 'videos' ? 'video' : ($scope === 'gallery' ? 'galeri' : 'media')))) ?>" target="_blank" class="btn btn-outline-primary radius-8 px-16 py-11 text-xs d-inline-flex align-items-center gap-1">
+            <iconify-icon icon="solar:eye-bold"></iconify-icon>
+            Pratinjau Publik
+        </a>
+        <a href="<?= site_url('dashboard/bunga-rampai/media-galeri/tambah' . $createParam) ?>" class="btn btn-primary-600 radius-8 px-20 py-11 d-inline-flex align-items-center gap-2">
+            <iconify-icon icon="solar:add-circle-bold" class="text-lg"></iconify-icon>
+            <span>+ Tambah Media</span>
+        </a>
+    </div>
 </div>
-<form method="get" action="<?= route_to('dashboard.knowledge.media-gallery') ?>" class="card mb-3">
-    <div class="card-body p-16">
-        <div class="row g-2 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label small mb-1">Pencarian</label>
-                <input type="text" name="q" class="form-control radius-8" value="<?= esc($keyword ?? '') ?>" placeholder="Judul/caption/alt">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small mb-1">Tipe</label>
-                <select name="type" class="form-select radius-8">
-                    <option value="">— Semua —</option>
-                    <?php foreach ($typeOptions as $k => $l): ?>
-                        <option value="<?= $k ?>" <?= $type === $k ? 'selected' : '' ?>><?= esc($l) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small mb-1">Status</label>
-                <select name="status" class="form-select radius-8">
-                    <option value="">— Semua —</option>
-                    <?php foreach ($statusLabels as $k => $l): ?>
-                        <option value="<?= $k ?>" <?= $status === $k ? 'selected' : '' ?>><?= esc($l) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary-600 radius-8 flex-grow-1">Filter</button>
-                <a href="<?= route_to('dashboard.knowledge.media-gallery') ?>" class="btn btn-outline-neutral-300 radius-8">Reset</a>
-            </div>
-        </div>
+
+<!-- Sub-Nav Filter Pills -->
+<div class="card border-0 radius-12 shadow-sm mb-24 bg-white p-12">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <a href="<?= site_url('dashboard/bunga-rampai/media-galeri') ?>" class="btn btn-sm <?= $scope === 'all' ? 'btn-primary-600 text-white' : 'btn-outline-neutral-300 text-dark' ?> radius-8 px-16 py-8 text-xs fw-semibold">
+            <iconify-icon icon="solar:gallery-wide-bold" class="me-1"></iconify-icon>
+            Semua Media &amp; Galeri (<?= (int) ($stats['total'] ?? count($items)) ?>)
+        </a>
+        <a href="<?= site_url('dashboard/bunga-rampai/media') ?>" class="btn btn-sm <?= $scope === 'infographics' ? 'btn-primary-600 text-white' : 'btn-outline-neutral-300 text-dark' ?> radius-8 px-16 py-8 text-xs fw-semibold">
+            <iconify-icon icon="solar:gallery-bold" class="me-1"></iconify-icon>
+            Media &amp; Infografik
+        </a>
+        <a href="<?= site_url('dashboard/bunga-rampai/video') ?>" class="btn btn-sm <?= $scope === 'videos' ? 'btn-primary-600 text-white' : 'btn-outline-neutral-300 text-dark' ?> radius-8 px-16 py-8 text-xs fw-semibold">
+            <iconify-icon icon="solar:play-circle-bold" class="me-1"></iconify-icon>
+            Video PBJ
+        </a>
+        <a href="<?= site_url('dashboard/bunga-rampai/galeri') ?>" class="btn btn-sm <?= $scope === 'gallery' ? 'btn-primary-600 text-white' : 'btn-outline-neutral-300 text-dark' ?> radius-8 px-16 py-8 text-xs fw-semibold">
+            <iconify-icon icon="solar:camera-bold" class="me-1"></iconify-icon>
+            Galeri Kegiatan
+        </a>
     </div>
-</form>
-<div class="row gy-4">
-    <?php if (empty($items)): ?>
-        <div class="col-12"><div class="card"><div class="card-body p-24"><p class="text-secondary-light mb-0">Belum ada media. Klik "Tambah Media".</p></div></div></div>
-    <?php else: foreach ($items as $m): ?>
-        <?php
-            // Resolve thumbnail → file → external url, in priority order.
-            $thumbSrc = null;
-            if (! empty($m['thumb_path'])) {
-                $thumbSrc = base_url('file/' . (int) $m['thumbnail_file_id']);
-            } elseif (! empty($m['file_path'])) {
-                $thumbSrc = base_url('file/' . (int) $m['file_id']);
-            } elseif (! empty($m['external_url'])) {
-                $thumbSrc = $m['external_url'];
-            }
-            $isImage = ! empty($m['file_mime_type']) && str_starts_with((string) $m['file_mime_type'], 'image/');
-            $isVideo = ($m['type'] ?? '') === 'video_file' && $isImage === false;
-        ?>
-        <div class="col-xl-4 col-md-6">
-            <div class="card h-100">
-                <div class="card-body p-0">
-                    <div class="h-180-px bg-neutral-100 d-flex align-items-center justify-content-center overflow-hidden">
+</div>
+
+<!-- Search & Filter Card -->
+<div class="card radius-12 mb-24 border bg-white shadow-sm">
+    <div class="card-body p-20">
+        <form method="get" action="<?= current_url() ?>">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label text-xs fw-semibold text-secondary-light mb-1">Pencarian Kata Kunci</label>
+                    <div class="position-relative">
+                        <input type="text" name="q" class="form-control radius-8 ps-40" value="<?= esc($keyword ?? '') ?>" placeholder="Cari judul, keterangan, lokasi...">
+                        <iconify-icon icon="solar:magnifer-linear" class="position-absolute top-50 start-0 translate-middle-y ms-16 text-secondary-light text-lg"></iconify-icon>
+                    </div>
+                </div>
+
+                <?php if ($scope === 'all'): ?>
+                    <div class="col-md-3">
+                        <label class="form-label text-xs fw-semibold text-secondary-light mb-1">Tipe Format</label>
+                        <select name="type" class="form-select radius-8">
+                            <option value="">— Semua Tipe —</option>
+                            <?php foreach ($typeOptions as $k => $l): ?>
+                                <option value="<?= $k ?>" <?= $type === $k ? 'selected' : '' ?>><?= esc($l) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                <?php endif; ?>
+
+                <div class="<?= $scope === 'all' ? 'col-md-2' : 'col-md-4' ?>">
+                    <label class="form-label text-xs fw-semibold text-secondary-light mb-1">Status Publikasi</label>
+                    <select name="status" class="form-select radius-8">
+                        <option value="">— Semua Status —</option>
+                        <?php foreach ($statusLabels as $k => $l): ?>
+                            <option value="<?= $k ?>" <?= $status === $k ? 'selected' : '' ?>><?= esc($l) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="<?= $scope === 'all' ? 'col-md-2' : 'col-md-3' ?> d-flex gap-2">
+                    <button type="submit" class="btn btn-primary-600 radius-8 flex-grow-1 d-flex align-items-center justify-content-center gap-1">
+                        <iconify-icon icon="solar:filter-outline"></iconify-icon> Filter
+                    </button>
+                    <a href="<?= current_url() ?>" class="btn btn-outline-neutral-300 radius-8" title="Reset">
+                        <iconify-icon icon="solar:restart-outline"></iconify-icon>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Visual Cards Grid -->
+<?php if (empty($items)): ?>
+    <?= view('dashboard/components/empty_state', [
+        'icon'        => 'solar:gallery-broken',
+        'title'       => 'Belum Ada Konten Media',
+        'message'     => 'Belum ada konten media atau galeri yang sesuai dengan kriteria filter saat ini.',
+        'actionUrl'   => site_url('dashboard/bunga-rampai/media-galeri/tambah' . $createParam),
+        'actionText'  => 'Tambah Media Baru',
+    ]) ?>
+<?php else: ?>
+    <div class="row g-4 mb-24">
+        <?php foreach ($items as $m): ?>
+            <?php
+                // Resolve preview thumbnail
+                $thumbSrc = null;
+                if (! empty($m['thumb_path'])) {
+                    $thumbSrc = base_url('file/' . (int) $m['thumbnail_file_id']);
+                } elseif (! empty($m['file_path'])) {
+                    $thumbSrc = base_url('file/' . (int) $m['file_id']);
+                } elseif (! empty($m['external_url'])) {
+                    // Check if YouTube
+                    if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $m['external_url'], $matches)) {
+                        $thumbSrc = 'https://img.youtube.com/vi/' . $matches[1] . '/hqdefault.jpg';
+                    } else {
+                        $thumbSrc = $m['external_url'];
+                    }
+                }
+
+                $isVideo = in_array($m['type'] ?? '', ['youtube', 'video_file', 'video'], true);
+                $isGallery = ($m['type'] ?? '') === 'gallery';
+                $statusKey = $m['workflow_status'] ?? 'draft';
+
+                $typeBadge = match ($m['type']) {
+                    'youtube', 'video_file', 'video' => 'bg-danger text-white',
+                    'gallery'                        => 'bg-dark text-white',
+                    'infographic'                    => 'bg-info text-dark',
+                    default                          => 'bg-primary-50 text-primary-700',
+                };
+            ?>
+            <div class="col-xxl-4 col-lg-6 col-md-6">
+                <div class="card h-100 border border-neutral-200 radius-16 overflow-hidden bg-white shadow-sm d-flex flex-column">
+                    <!-- Media Showcase Container -->
+                    <div class="position-relative" style="height: 200px; background: #082f5c; overflow: hidden;">
                         <?php if ($thumbSrc): ?>
-                            <img src="<?= esc($thumbSrc) ?>" alt="<?= esc($m['alt_text'] ?? $m['title'] ?? '') ?>"
-                                 style="width:100%;height:100%;object-fit:cover;">
+                            <img src="<?= esc($thumbSrc) ?>" alt="<?= esc($m['alt_text'] ?? $m['title'] ?? '') ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/main/images/gallery/gallery-page-1-1.jpg') ?>';">
                         <?php else: ?>
-                            <iconify-icon icon="solar:gallery-wide-outline" class="text-primary-600 text-5xl"></iconify-icon>
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white-50">
+                                <iconify-icon icon="solar:gallery-broken" class="text-5xl"></iconify-icon>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Top Badges -->
+                        <div class="position-absolute top-0 start-0 m-3 z-1">
+                            <span class="badge <?= esc($typeBadge) ?> radius-6 px-8 py-4 text-2xs fw-bold">
+                                <?= $isVideo ? '<i class="fab fa-youtube me-1"></i> Video' : ($isGallery ? '<i class="fas fa-camera me-1"></i> Galeri' : '<i class="fas fa-image me-1"></i> ' . esc($typeOptions[$m['type']] ?? $m['type'])) ?>
+                            </span>
+                        </div>
+
+                        <div class="position-absolute top-0 end-0 m-3 z-1">
+                            <?= view('dashboard/components/status_badge', ['status' => $statusKey]) ?>
+                        </div>
+
+                        <!-- Video Play Indicator -->
+                        <?php if ($isVideo): ?>
+                            <div class="position-absolute top-50 start-50 translate-middle z-1">
+                                <div class="w-44-px h-44-px radius-50 bg-danger text-white d-flex align-items-center justify-content-center shadow-lg">
+                                    <iconify-icon icon="solar:play-bold" class="text-xl ms-1"></iconify-icon>
+                                </div>
+                            </div>
                         <?php endif; ?>
                     </div>
-                    <div class="p-24">
-                        <div class="d-flex align-items-start justify-content-between gap-3">
-                            <div>
-                                    <h6 class="text-md mb-6"><?= esc($m['title'] ?: '(Tanpa judul)') ?></h6>
-                                    <p class="text-secondary-light text-sm mb-12"><?= esc($typeOptions[$m['type']] ?? $m['type']) ?> · <?= esc($m['updated_at'] ?? '-') ?></p>
+
+                    <!-- Card Body -->
+                    <div class="p-20 d-flex flex-column flex-grow-1">
+                        <!-- Engagement & Location Bar -->
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-12 text-xs text-secondary-light">
+                            <div class="d-flex align-items-center gap-3">
+                                <span><i class="fas fa-heart text-danger me-1"></i><?= (int) ($m['likes_count'] ?? 0) ?> Suka</span>
+                                <span><i class="fas fa-eye text-primary me-1"></i><?= (int) ($m['views_count'] ?? 0) ?> Tayangan</span>
                             </div>
-                            <span class="badge bg-primary-subtle text-primary-emphasis"><?= esc($statusLabels[$m['workflow_status'] ?? 'draft'] ?? ucfirst($m['workflow_status'] ?? 'draft')) ?></span>
+                            <?php if (! empty($m['location'])): ?>
+                                <span class="text-truncate" style="max-width: 140px;" title="<?= esc($m['location']) ?>">
+                                    <i class="fas fa-map-marker-alt text-danger me-1"></i><?= esc($m['location']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
-                        <div class="d-flex align-items-center justify-content-between gap-2 mt-16 pt-16 border-top">
-                            <a href="<?= route_to('dashboard.knowledge.media-gallery.detail', (string) $m['id']) ?>" class="btn btn-outline-primary-600 btn-sm radius-6 px-12 py-4 text-xs d-flex align-items-center gap-1">
-                                <iconify-icon icon="solar:eye-outline"></iconify-icon> Detail
+
+                        <!-- Title -->
+                        <h6 class="fw-bold mb-8 text-primary-900" style="font-size: 15px; line-height: 1.4;">
+                            <a href="<?= route_to('dashboard.knowledge.media-gallery.detail', (string) $m['id']) ?>" class="text-decoration-none text-reset text-line-2 hover-primary">
+                                <?= esc($m['title'] ?: '(Tanpa Judul)') ?>
                             </a>
+                        </h6>
+
+                        <!-- Caption Excerpt -->
+                        <p class="text-secondary-light text-xs mb-16 text-line-2 flex-grow-1" style="line-height: 1.5;">
+                            <?= esc($m['caption'] ?: 'Tidak ada keterangan caption teks.') ?>
+                        </p>
+
+                        <!-- Hashtags -->
+                        <?php if (! empty($m['hashtags'])): ?>
+                            <div class="mb-16 text-truncate text-2xs text-primary-700 fw-semibold">
+                                <?= esc($m['hashtags']) ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Footer Actions -->
+                        <div class="pt-16 border-top d-flex align-items-center justify-content-between mt-auto">
+                            <a href="<?= route_to('dashboard.knowledge.media-gallery.detail', (string) $m['id']) ?>" class="btn btn-sm btn-outline-primary radius-6 px-12 py-5 text-xs fw-semibold d-inline-flex align-items-center gap-1">
+                                <iconify-icon icon="solar:eye-bold"></iconify-icon> Detail Preview
+                            </a>
+
                             <div class="d-flex align-items-center gap-2">
-                                <a href="<?= route_to('dashboard.knowledge.media-gallery.edit', (string) $m['id']) ?>" class="btn btn-outline-warning-main btn-sm radius-6 px-12 py-4 text-xs d-flex align-items-center gap-1">
-                                    <iconify-icon icon="solar:pen-2-outline"></iconify-icon> Ubah
+                                <a href="<?= route_to('dashboard.knowledge.media-gallery.edit', (string) $m['id']) ?>" class="btn btn-sm btn-outline-warning text-dark radius-6 px-12 py-5 text-xs fw-semibold d-inline-flex align-items-center gap-1">
+                                    <iconify-icon icon="solar:pen-bold"></iconify-icon> Ubah
                                 </a>
-                                <button type="button" class="btn btn-outline-danger-600 btn-sm radius-6 px-12 py-4 text-xs d-flex align-items-center gap-1"
+                                <button type="button" class="btn btn-sm btn-outline-danger radius-6 px-10 py-5 text-xs"
                                     data-bs-toggle="modal" data-bs-target="#confirmationActionModal"
                                     data-action="<?= route_to('dashboard.knowledge.media-gallery.delete', (string) $m['id']) ?>"
                                     data-method="POST"
                                     data-title="Hapus Media"
-                                    data-message="Apakah Anda yakin ingin menghapus media ini?"
+                                    data-message="Apakah Anda yakin ingin menghapus media &quot;<?= esc($m['title'] ?: 'media ini') ?>&quot;?"
                                     data-btn-text="Hapus Media"
                                     data-btn-class="btn-danger-600"
-                                    data-icon="fluent:delete-24-regular"
+                                    data-icon="solar:trash-bin-trash-outline"
                                     data-icon-color="danger">
-                                    <iconify-icon icon="solar:trash-bin-trash-outline"></iconify-icon> Hapus
+                                    <iconify-icon icon="solar:trash-bin-trash-outline"></iconify-icon>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    <?php endforeach; endif; ?>
-</div>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
 <?= $this->endSection() ?>

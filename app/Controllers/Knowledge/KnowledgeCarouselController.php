@@ -51,15 +51,16 @@ class KnowledgeCarouselController extends BaseKnowledgeController
         if ($forbid = $this->assertCanManage()) {
             return $forbid;
         }
-        $rules = [
-            'target_type' => 'required|in_list[article,media]',
-            'target_id'   => 'required|is_natural_no_zero',
-        ];
-        if (! $this->validate($rules)) {
-            return redirect()->back()->withInput()->with('error', 'Pilih target carousel (artikel atau media).');
-        }
         $type = (string) $this->request->getPost('target_type');
-        $id   = (int) $this->request->getPost('target_id');
+        $rawId = $this->request->getPost('target_id');
+        if (empty($rawId)) {
+            $rawId = $type === 'article' ? $this->request->getPost('target_id_article') : $this->request->getPost('target_id_media');
+        }
+        $id = (int) $rawId;
+
+        if (empty($type) || $id <= 0) {
+            return redirect()->back()->withInput()->with('error', 'Pilih target konten (artikel atau media) yang valid.');
+        }
         $order = (int) ($this->request->getPost('order') ?: 0);
         $now = date('Y-m-d H:i:s');
         if ($type === 'article') {

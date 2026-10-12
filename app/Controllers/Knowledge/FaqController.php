@@ -71,8 +71,10 @@ class FaqController extends BaseKnowledgeController
             'type'             => 'faq',
             'title'            => $title,
             'slug'             => $model->generateUniqueSlug($title),
-            'summary'          => '',
+            'summary'          => (string) $this->request->getPost('summary'),
             'content'          => (string) $this->request->getPost('content'),
+            'legal_basis'      => trim((string) $this->request->getPost('legal_basis')) ?: null,
+            'sort_order'       => (int) ($this->request->getPost('sort_order') ?: 0),
             'workflow_status'  => $status,
             'visibility'       => 'public',
             'author_id'        => $this->currentUserId(),
@@ -150,8 +152,12 @@ class FaqController extends BaseKnowledgeController
         $payload = [
             'title'            => $title,
             'slug'             => $model->generateUniqueSlug($title, (int) $id),
+            'summary'          => (string) $this->request->getPost('summary'),
             'content'          => (string) $this->request->getPost('content'),
+            'legal_basis'      => trim((string) $this->request->getPost('legal_basis')) ?: null,
+            'sort_order'       => (int) ($this->request->getPost('sort_order') ?: 0),
             'workflow_status'  => $status,
+            'visibility'       => 'public',
             'updated_at'       => $now,
         ];
         if ($status === 'published' && empty($faq['published_at'])) {

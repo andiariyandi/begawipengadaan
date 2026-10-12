@@ -151,13 +151,32 @@ $stats       = $stats ?? ['total' => count($items), 'published' => 0, 'draft' =>
                 $initials = strtoupper(substr($authorName, 0, 2));
             ?>
             <div class="col-xxl-4 col-md-6">
-                <div class="card h-100 p-0 radius-12 border overflow-hidden bg-base d-flex flex-column">
+                <div class="card h-100 p-0 radius-12 border overflow-hidden bg-base d-flex flex-column shadow-sm">
+                    <?php if (! empty($article['cover_file_id'])): ?>
+                        <div class="position-relative" style="height: 150px; overflow: hidden; background: #082f5c;">
+                            <img src="<?= base_url('file/' . (int) $article['cover_file_id']) ?>" alt="<?= esc($article['title']) ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/main/images/blog/blog-2-1.jpg') ?>';">
+                            <?php if ((int) ($article['featured'] ?? 0) === 1): ?>
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge bg-warning text-dark radius-4 px-8 py-3 text-2xs fw-bold">
+                                        <i class="fas fa-star me-1"></i> Unggulan
+                                    </span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                     <div class="card-body p-20 d-flex flex-column flex-grow-1">
                         <!-- Top Meta & Status -->
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-16">
-                            <span class="px-12 py-4 bg-neutral-100 rounded-pill text-neutral-600 text-xs fw-medium">
-                                <?= esc(!empty($catNames) ? $catNames[0] : 'Umum') ?>
-                            </span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="px-12 py-4 bg-neutral-100 rounded-pill text-neutral-600 text-xs fw-medium">
+                                    <?= esc(!empty($catNames) ? $catNames[0] : 'Umum') ?>
+                                </span>
+                                <?php if (! empty($article['reading_time'])): ?>
+                                    <span class="px-8 py-4 bg-primary-50 rounded-pill text-primary-600 text-2xs fw-semibold">
+                                        <i class="far fa-clock me-1"></i><?= (int) $article['reading_time'] ?> mnt
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                             <div>
                                 <?= view('dashboard/components/status_badge', ['status' => $statusKey]) ?>
                             </div>

@@ -141,16 +141,55 @@ $stats       = $stats ?? ['total' => count($items), 'published' => 0, 'draft' =>
                 $initials = strtoupper(substr($authorName, 0, 2));
             ?>
             <div class="col-xxl-4 col-md-6">
-                <div class="card h-100 p-0 radius-12 border overflow-hidden bg-base d-flex flex-column">
+                <div class="card h-100 p-0 radius-12 border overflow-hidden bg-base d-flex flex-column shadow-sm">
+                    <?php if (! empty($row['cover_file_id'])): ?>
+                        <div class="position-relative" style="height: 150px; overflow: hidden; background: #082f5c;">
+                            <img src="<?= base_url('file/' . (int) $row['cover_file_id']) ?>" alt="<?= esc($row['title']) ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/main/images/blog/blog-2-2.jpg') ?>';">
+                            <?php if ((int) ($row['featured'] ?? 0) === 1): ?>
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge bg-warning text-dark radius-4 px-8 py-3 text-2xs fw-bold">
+                                        <i class="fas fa-star me-1"></i> Unggulan
+                                    </span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                     <div class="card-body p-20 d-flex flex-column flex-grow-1">
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-16">
-                            <span class="px-12 py-4 bg-info-50 text-info-600 rounded-pill text-xs fw-medium">
-                                Studi Kasus #<?= (int) $row['id'] ?>
-                            </span>
+                            <div class="d-flex align-items-center gap-1">
+                                <?php
+                                    $sevBadge = match ($row['case_severity'] ?? 'medium') {
+                                        'critical' => 'bg-danger text-white',
+                                        'high'     => 'bg-danger-50 text-danger-700 border-danger-200',
+                                        'low'      => 'bg-success-50 text-success-700 border-success-200',
+                                        default    => 'bg-warning-50 text-warning-700 border-warning-200',
+                                    };
+                                    $sevLabel = match ($row['case_severity'] ?? 'medium') {
+                                        'critical' => 'Risiko Kritis',
+                                        'high'     => 'Risiko Tinggi',
+                                        'low'      => 'Risiko Rendah',
+                                        default    => 'Risiko Sedang',
+                                    };
+                                ?>
+                                <span class="badge <?= esc($sevBadge) ?> rounded-pill px-8 py-3 text-2xs fw-semibold">
+                                    <?= esc($sevLabel) ?>
+                                </span>
+                                <?php if (! empty($row['procurement_stage'])): ?>
+                                    <span class="badge bg-neutral-100 text-neutral-700 rounded-pill px-8 py-3 text-2xs fw-medium text-capitalize">
+                                        <?= esc(str_replace('_', ' ', $row['procurement_stage'])) ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                             <div>
                                 <?= view('dashboard/components/status_badge', ['status' => $statusKey]) ?>
                             </div>
                         </div>
+
+                        <?php if (! empty($row['organization_unit'])): ?>
+                            <small class="text-primary-600 text-xs fw-semibold d-block mb-1 text-truncate">
+                                <i class="fas fa-building me-1"></i> <?= esc($row['organization_unit']) ?>
+                            </small>
+                        <?php endif; ?>
 
                         <h6 class="mb-12">
                             <a href="<?= route_to('dashboard.knowledge.case-studies.detail', (string) $row['id']) ?>" class="text-line-2 text-hover-primary-600 text-lg fw-semibold transition-2">

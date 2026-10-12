@@ -9,16 +9,20 @@ class BookmarkController extends BaseKnowledgeController
     public function index(): string
     {
         $userId = $this->currentUserId();
-        $items = (new BookmarkModel())
-            ->where('user_id', $userId)
-            ->orderBy('created_at', 'DESC')
-            ->findAll();
+        $bookmarkModel = new BookmarkModel();
+        $groupedBookmarks = $bookmarkModel->myBookmarks($userId);
+        $totalBookmarks = 0;
+        foreach ($groupedBookmarks as $grp) {
+            $totalBookmarks += count($grp['items']);
+        }
+
         return view('dashboard/knowledge/bookmarks/index', [
-            'title'        => 'Bookmark | Dashboard BegawiPBJ',
-            'pageTitle'    => 'Bookmark',
-            'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'bookmarks',
-            'items'        => $items,
+            'title'            => 'Bookmark Koleksi PBJ | Dashboard BegawiPBJ',
+            'pageTitle'        => 'Bookmark Saya',
+            'activeMenu'       => 'knowledge',
+            'activeSubmenu'    => 'bookmarks',
+            'groupedBookmarks' => $groupedBookmarks,
+            'totalBookmarks'   => $totalBookmarks,
         ]);
     }
 }

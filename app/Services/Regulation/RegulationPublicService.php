@@ -27,26 +27,34 @@ class RegulationPublicService
     ) {}
 
     /**
-     * Public listing with search + category filter + pagination.
+     * Public listing with search + category filter + facets + sorting + pagination.
      */
-    public function list(int $page = 1, int $perPage = 9, ?int $categoryId = null, ?string $keyword = null): array
-    {
-        // Use raw query builder — RegulationModel auto-injects soft-delete
-        // and other select fields via getCompiledSelect() which conflicts
-        // with our explicit scope when chaining Model->select()->where().
+    public function list(
+        int $page = 1,
+        int $perPage = 9,
+        ?int $categoryId = null,
+        ?string $keyword = null,
+        ?string $legalStatus = null,
+        ?int $year = null,
+        ?int $stageId = null,
+        string $sort = 'newest'
+    ): array {
         $db = db_connect();
         $builder = $db->table('regulations r')
             ->select('r.id, r.title, r.slug, r.document_number, r.document_year,
-                      r.issuer_name, r.summary, r.workflow_status, r.visibility,
+                      r.issuer_name, r.official_date, r.effective_date, r.summary,
+                      r.official_source_url, r.legal_status, r.workflow_status, r.visibility,
                       r.published_at, r.published_by, r.created_at,
-                      rc.name AS category_name,
-                      v.version_number AS current_version_number')
+                      rc.id AS category_id, rc.name AS category_name, rc.slug AS category_slug,
+                      v.version_number AS current_version_number, v.file_id AS current_file_id,
+                      fa.size_bytes AS file_size, fa.extension AS file_ext, fa.mime_type AS file_mime,
+                      (SELECT COUNT(rd.id) FROM regulation_downloads rd WHERE rd.regulation_id = r.id) AS download_count')
             ->join('regulation_categories rc', 'rc.id = r.category_id', 'left')
             ->join('regulation_versions v', 'v.id = r.current_version_id', 'left')
+            ->join('file_assets fa', 'fa.id = v.file_id', 'left')
             ->where('r.workflow_status', 'published')
             ->where('r.visibility', 'public')
-            ->where('r.deleted_at', null)
-            ->orderBy('r.published_at', 'DESC');
+            ->where('r.deleted_at', null);
 
         if ($categoryId) {
             $builder->where('r.category_id', $categoryId);
@@ -61,11 +69,64 @@ class RegulationPublicService
                 ->groupEnd();
         }
 
+        if ($legalStatus !== null && $legalStatus !== '') {
+            if ($legalStatus === 'active') {
+                $builder->whereIn('r.legal_status', ['active', 'berlaku']);
+            } elseif ($legalStatus === 'amended') {
+                $builder->whereIn('r.legal_status', ['amended', 'diubah']);
+            } elseif ($legalStatus === 'revoked') {
+                $builder->whereIn('r.legal_status', ['revoked', 'dicabut']);
+            } elseif ($legalStatus === 'expired') {
+                $builder->whereIn('r.legal_status', ['expired', 'kedaluwarsa']);
+            } else {
+                $builder->where('r.legal_status', $legalStatus);
+            }
+        }
+
+        if ($year !== null && $year > 0) {
+            $builder->where('r.document_year', $year);
+        }
+
+        if ($stageId !== null && $stageId > 0) {
+            $builder->where("EXISTS (SELECT 1 FROM regulation_procurement_stages rps WHERE rps.regulation_id = r.id AND rps.procurement_stage_id = " . (int) $stageId . ")", null, false);
+        }
+
+        // Sorting
+        match ($sort) {
+            'year_desc' => $builder->orderBy('r.document_year', 'DESC')->orderBy('r.document_number', 'DESC'),
+            'downloads' => $builder->orderBy('download_count', 'DESC')->orderBy('r.published_at', 'DESC'),
+            'title'     => $builder->orderBy('r.title', 'ASC'),
+            default     => $builder->orderBy('r.published_at', 'DESC')->orderBy('r.created_at', 'DESC'),
+        };
+
         $total = (clone $builder)->countAllResults();
         $totalPages = max(1, (int) ceil($total / $perPage));
         $page = max(1, min($page, $totalPages));
 
         $items = $builder->limit($perPage, ($page - 1) * $perPage)->get()->getResultArray();
+
+        // Attach procurement stages to each regulation item
+        if (! empty($items)) {
+            $regIds = array_column($items, 'id');
+            $stagesRows = $db->table('regulation_procurement_stages rps')
+                ->select('rps.regulation_id, ps.id AS stage_id, ps.name AS stage_name')
+                ->join('procurement_stages ps', 'ps.id = rps.procurement_stage_id')
+                ->whereIn('rps.regulation_id', $regIds)
+                ->get()->getResultArray();
+
+            $stageMap = [];
+            foreach ($stagesRows as $sr) {
+                $stageMap[(int) $sr['regulation_id']][] = [
+                    'id'   => (int) $sr['stage_id'],
+                    'name' => $sr['stage_name'],
+                ];
+            }
+
+            foreach ($items as &$it) {
+                $it['stages'] = $stageMap[(int) $it['id']] ?? [];
+            }
+            unset($it);
+        }
 
         return [
             'items'      => $items,
@@ -83,18 +144,43 @@ class RegulationPublicService
     public function stats(): array
     {
         $db = db_connect();
-        $totalPublished = (int) $db->table('regulations r')
+        $base = $db->table('regulations r')
+            ->where('r.workflow_status', 'published')
+            ->where('r.visibility', 'public')
+            ->where('r.deleted_at', null);
+
+        $totalPublished = (clone $base)->countAllResults();
+        $activeCount = (clone $base)->whereIn('r.legal_status', ['active', 'berlaku'])->countAllResults();
+        $amendedCount = (clone $base)->whereIn('r.legal_status', ['amended', 'diubah'])->countAllResults();
+        $revokedCount = (clone $base)->whereIn('r.legal_status', ['revoked', 'dicabut'])->countAllResults();
+
+        return [
+            'total'         => $totalPublished,
+            'categories'    => (clone $this->categories)->where('is_active', 1)->countAllResults(),
+            'published'     => $totalPublished,
+            'downloaded'    => (int) $db->table('regulation_downloads')->countAllResults(),
+            'active_count'  => $activeCount,
+            'amended_count' => $amendedCount,
+            'revoked_count' => $revokedCount,
+        ];
+    }
+
+    /**
+     * Distinct document years for the filter dropdown.
+     */
+    public function distinctYears(): array
+    {
+        $rows = db_connect()->table('regulations r')
+            ->select('r.document_year')
+            ->distinct()
             ->where('r.workflow_status', 'published')
             ->where('r.visibility', 'public')
             ->where('r.deleted_at', null)
-            ->countAllResults();
+            ->where('r.document_year IS NOT NULL', null, false)
+            ->orderBy('r.document_year', 'DESC')
+            ->get()->getResultArray();
 
-        return [
-            'total'      => $totalPublished,
-            'categories' => (clone $this->categories)->where('is_active', 1)->countAllResults(),
-            'published'  => $totalPublished,
-            'downloaded' => (int) $db->table('regulation_downloads')->countAllResults(),
-        ];
+        return array_values(array_filter(array_column($rows, 'document_year')));
     }
 
     /**
@@ -127,10 +213,10 @@ class RegulationPublicService
     /**
      * Top N regulations by download count (BUG-006 supportive data).
      */
-    public function popular(int $limit = 3): array
+    public function popular(int $limit = 4): array
     {
         return db_connect()->table('regulations r')
-            ->select('r.id, r.slug, r.title, r.document_number, r.document_year,
+            ->select('r.id, r.slug, r.title, r.document_number, r.document_year, r.legal_status,
                       rc.name AS category_name, COUNT(rd.id) AS download_count')
             ->join('regulation_downloads rd', 'rd.regulation_id = r.id', 'left')
             ->join('regulation_categories rc', 'rc.id = r.category_id', 'left')
@@ -165,6 +251,19 @@ class RegulationPublicService
             ->where('regulations.visibility', 'public')
             ->where('regulations.deleted_at', null)
             ->first();
+
+        if ($regulation) {
+            $regId = (int) $regulation['id'];
+            $db = db_connect();
+            $regulation['stages'] = $db->table('regulation_procurement_stages rps')
+                ->select('ps.id, ps.name, ps.description')
+                ->join('procurement_stages ps', 'ps.id = rps.procurement_stage_id')
+                ->where('rps.regulation_id', $regId)
+                ->get()->getResultArray();
+            $regulation['download_count'] = (int) $db->table('regulation_downloads')
+                ->where('regulation_id', $regId)
+                ->countAllResults();
+        }
 
         return $regulation ?: null;
     }

@@ -68,7 +68,7 @@ $readingTime = $item['reading_time'] ?? 5;
                 <article class="card border-0 shadow-sm radius-16 p-4 p-md-5 bg-white">
                     <!-- Category & Meta Tags -->
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-3 border-bottom">
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
                             <span class="badge bg-primary text-white radius-6 px-3 py-1 small fw-semibold">
                                 <?= esc($catalogTitle) ?>
                             </span>
@@ -76,6 +76,42 @@ $readingTime = $item['reading_time'] ?? 5;
                                 <span class="badge bg-warning text-dark radius-6 px-2 py-1 small">
                                     <i class="fas fa-star me-1"></i> Pilihan Editor
                                 </span>
+                            <?php endif; ?>
+                            <?php if (! empty($item['procurement_stage'])): ?>
+                                <span class="badge radius-6 px-2 py-1 small border" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd;">
+                                    <i class="fas fa-layer-group me-1"></i> <?= esc($item['procurement_stage']) ?>
+                                </span>
+                            <?php endif; ?>
+                            <?php if ($catalogType === 'cases' && ! empty($item['case_severity'])):
+                                $sev = strtolower((string) $item['case_severity']);
+                                $sevClass = match ($sev) {
+                                    'critical' => 'background: #fee2e2; color: #b91c1c; border-color: #fca5a5;',
+                                    'high'     => 'background: #ffedd5; color: #c2410c; border-color: #fdba74;',
+                                    'low'      => 'background: #e0f2fe; color: #0369a1; border-color: #7dd3fc;',
+                                    default    => 'background: #fef9c3; color: #854d0e; border-color: #fde047;',
+                                };
+                                $sevText = match ($sev) {
+                                    'critical' => 'Risiko Kritis',
+                                    'high'     => 'Risiko Tinggi',
+                                    'low'      => 'Risiko Rendah',
+                                    default    => 'Risiko Sedang',
+                                };
+                            ?>
+                                <span class="badge radius-6 px-2 py-1 small border" style="<?= $sevClass ?>">
+                                    <i class="fas fa-shield-alt me-1"></i> <?= $sevText ?>
+                                </span>
+                            <?php endif; ?>
+                            <?php if ($catalogType === 'templates'): ?>
+                                <?php if (! empty($item['document_category'])): ?>
+                                    <span class="badge radius-6 px-2 py-1 small border" style="background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;">
+                                        <i class="fas fa-tag me-1"></i> <?= esc($item['document_category']) ?>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if (! empty($item['document_version'])): ?>
+                                    <span class="badge bg-light text-dark border px-2 py-1 small">
+                                        <i class="fas fa-code-branch me-1 text-primary"></i> <?= esc($item['document_version']) ?>
+                                    </span>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </div>
                         <div class="d-flex align-items-center gap-3 text-muted small">
@@ -104,7 +140,9 @@ $readingTime = $item['reading_time'] ?? 5;
                             </div>
                             <div>
                                 <strong class="d-block text-dark" style="font-size: 13.5px;"><?= esc($item['author_name'] ?? 'Biro Pengadaan Barang & Jasa') ?></strong>
-                                <span style="font-size: 12px;">Pemerintah Provinsi Lampung</span>
+                                <span style="font-size: 12px;">
+                                    <?= ! empty($item['organization_unit']) ? esc($item['organization_unit']) . ' &middot; ' : '' ?>Pemerintah Provinsi Lampung
+                                </span>
                             </div>
                         </div>
                         <span class="text-muted">&middot;</span>
@@ -142,6 +180,45 @@ $readingTime = $item['reading_time'] ?? 5;
                         <?php endif; ?>
                     </div>
 
+                    <!-- Callout: Case Study Pelajaran Berharga -->
+                    <?php if ($catalogType === 'cases' && ! empty($item['resolution_summary'])): ?>
+                        <div class="card border-0 radius-16 p-4 mb-4 shadow-sm" style="background: #fff7ed; border-left: 5px solid #f97316 !important;">
+                            <div class="d-flex align-items-center gap-2 mb-2" style="color: #c2410c;">
+                                <i class="fas fa-lightbulb" style="font-size: 20px;"></i>
+                                <h5 class="fw-bold mb-0 text-uppercase" style="font-size: 14px; letter-spacing: 0.5px;">Pelajaran Berharga &amp; Solusi Rekomendasi</h5>
+                            </div>
+                            <p class="mb-0" style="font-size: 15px; line-height: 1.7; color: #7c2d12;">
+                                <?= nl2br(esc($item['resolution_summary'])) ?>
+                            </p>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Callout: Dasar Hukum & Rujukan Regulasi -->
+                    <?php if (! empty($item['legal_basis'])): ?>
+                        <div class="card border-0 radius-12 p-3 mb-4 bg-light border-start border-primary border-4 shadow-sm">
+                            <div class="d-flex align-items-center gap-2 text-primary fw-bold small mb-1">
+                                <i class="fas fa-balance-scale"></i>
+                                <span>Dasar Hukum &amp; Rujukan Regulasi Terkait</span>
+                            </div>
+                            <div class="text-secondary small" style="line-height: 1.6;">
+                                <?= nl2br(esc($item['legal_basis'])) ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Callout: External Source Reference URL -->
+                    <?php if (! empty($item['source_url'])): ?>
+                        <div class="alert alert-light border radius-12 d-flex flex-wrap align-items-center justify-content-between p-3 mb-4 gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-external-link-alt text-primary"></i>
+                                <span class="small text-muted">Rujukan Dokumen Eksternal / Sumber:</span>
+                            </div>
+                            <a href="<?= esc($item['source_url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary radius-6 fw-semibold">
+                                Buka Dokumen / Sumber Asli <i class="fas fa-arrow-up-right-from-square ms-1" style="font-size: 11px;"></i>
+                            </a>
+                        </div>
+                    <?php endif; ?>
+
                     <!-- Template Specific: High-End Download Card Widget -->
                     <?php if ($catalogType === 'templates'): ?>
                         <div class="card border-0 radius-16 p-4 mb-4 text-white shadow-sm" style="background: linear-gradient(135deg, #082f5c 0%, #1e3a8a 100%);">
@@ -151,7 +228,15 @@ $readingTime = $item['reading_time'] ?? 5;
                                         <i class="fas fa-file-download"></i>
                                     </div>
                                     <div>
-                                        <span class="badge bg-warning text-dark radius-6 px-2 py-0 small mb-1">Dokumen Resmi PBJ</span>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="badge bg-warning text-dark radius-6 px-2 py-0 small">Dokumen Resmi PBJ</span>
+                                            <?php if (! empty($item['document_category'])): ?>
+                                                <span class="badge bg-white bg-opacity-25 text-white radius-6 px-2 py-0 small"><?= esc($item['document_category']) ?></span>
+                                            <?php endif; ?>
+                                            <?php if (! empty($item['document_version'])): ?>
+                                                <span class="badge bg-info bg-opacity-25 text-white radius-6 px-2 py-0 small"><?= esc($item['document_version']) ?></span>
+                                            <?php endif; ?>
+                                        </div>
                                         <h5 class="text-white fw-bold mb-1" style="font-size: 17px;"><?= esc($itemTitle) ?></h5>
                                         <small class="text-white-80" style="color: rgba(255,255,255,0.85);">
                                             <?php if (! empty($fileMeta)): ?>
@@ -216,6 +301,62 @@ $readingTime = $item['reading_time'] ?? 5;
                                 <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
                                     <i class="fas fa-check-circle me-1"></i> Terverifikasi Publik
                                 </span>
+                            </div>
+                            <?php if (! empty($item['procurement_stage'])): ?>
+                                <div>
+                                    <span class="text-muted d-block mb-1">Tahapan PBJ:</span>
+                                    <span class="badge radius-6 px-2 py-1 small border" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd;">
+                                        <i class="fas fa-layer-group me-1"></i> <?= esc($item['procurement_stage']) ?>
+                                    </span>
+                                </div>
+                            <?php endif; ?>
+                            <?php if (! empty($item['organization_unit'])): ?>
+                                <div>
+                                    <span class="text-muted d-block mb-1">Unit Kerja / OPD:</span>
+                                    <strong class="text-dark fw-semibold"><i class="fas fa-building text-primary me-1"></i> <?= esc($item['organization_unit']) ?></strong>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($catalogType === 'cases' && ! empty($item['case_severity'])):
+                                $sev = strtolower((string) $item['case_severity']);
+                                $sevClass = match ($sev) {
+                                    'critical' => 'background: #fee2e2; color: #b91c1c; border-color: #fca5a5;',
+                                    'high'     => 'background: #ffedd5; color: #c2410c; border-color: #fdba74;',
+                                    'low'      => 'background: #e0f2fe; color: #0369a1; border-color: #7dd3fc;',
+                                    default    => 'background: #fef9c3; color: #854d0e; border-color: #fde047;',
+                                };
+                                $sevText = match ($sev) {
+                                    'critical' => 'Risiko Kritis',
+                                    'high'     => 'Risiko Tinggi',
+                                    'low'      => 'Risiko Rendah',
+                                    default    => 'Risiko Sedang',
+                                };
+                            ?>
+                                <div>
+                                    <span class="text-muted d-block mb-1">Tingkat Risiko:</span>
+                                    <span class="badge radius-6 px-2 py-1 small border" style="<?= $sevClass ?>">
+                                        <i class="fas fa-shield-alt me-1"></i> <?= $sevText ?>
+                                    </span>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($catalogType === 'templates'): ?>
+                                <?php if (! empty($item['document_category'])): ?>
+                                    <div>
+                                        <span class="text-muted d-block mb-1">Kategori Format:</span>
+                                        <span class="badge radius-6 px-2 py-1 small border" style="background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;">
+                                            <i class="fas fa-tag me-1"></i> <?= esc($item['document_category']) ?>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (! empty($item['document_version'])): ?>
+                                    <div>
+                                        <span class="text-muted d-block mb-1">Versi Dokumen:</span>
+                                        <strong class="text-dark fw-semibold"><i class="fas fa-code-branch text-primary me-1"></i> <?= esc($item['document_version']) ?></strong>
+                                    </div>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                            <div>
+                                <span class="text-muted d-block mb-1">Estimasi Membaca:</span>
+                                <strong class="text-dark fw-semibold"><i class="far fa-clock text-primary me-1"></i> <?= esc($readingTime) ?> Menit</strong>
                             </div>
                             <?php if (! empty($item['author_name'])): ?>
                                 <div>

@@ -145,41 +145,54 @@ class KnowledgeSeed extends BaseCommand
             ]);
             $fileId = $db->insertID();
 
+            // Category & version mapping
+            $category = match ($tpl['slug']) {
+                'template-kak-pengadaan-barang-jasa-lainnya' => 'KAK & Spesifikasi',
+                'template-kertas-kerja-hps-analisis-pasar'    => 'HPS & Analisis Pasar',
+                'standar-surat-perintah-kerja-kontrak-konstruksi' => 'SPK & Kontrak',
+                'format-berita-acara-serah-terima-bast-pekerjaan' => 'BAST & Pembayaran',
+                'template-form-evaluasi-kualifikasi-penawaran-pokja' => 'Evaluasi Pokja',
+                'template-surat-peringatan-berita-acara-scm' => 'SCM & Kontrak Kritis',
+                'format-pakta-integritas-pengadaan-pbj'      => 'Integritas & Kepatuhan',
+                default                                       => 'Kendali Administrasi',
+            };
+            $version = match ($tpl['slug']) {
+                'template-kak-pengadaan-barang-jasa-lainnya' => 'v2.1',
+                'template-kertas-kerja-hps-analisis-pasar'    => '2026 Rev',
+                'format-berita-acara-serah-terima-bast-pekerjaan' => 'v2.2',
+                'standar-surat-perintah-kerja-kontrak-konstruksi' => 'v1.8',
+                default                                       => 'v1.5',
+            };
+
             // Insert or update knowledge_articles
             $existing = $db->table('knowledge_articles')->where('slug', $tpl['slug'])->get()->getRowArray();
+            $artData = [
+                'title'             => $tpl['title'],
+                'summary'           => $tpl['summary'],
+                'content'           => $tpl['content'],
+                'type'              => 'template',
+                'document_category' => $category,
+                'document_version'  => $version,
+                'reading_time'      => 5,
+                'organization_unit' => 'Biro Pengadaan Barang dan Jasa Prov. Lampung',
+                'workflow_status'   => 'published',
+                'visibility'        => 'public',
+                'featured'          => $tpl['featured'],
+                'carousel_enabled'  => $tpl['featured'],
+                'cover_file_id'     => $fileId,
+                'author_id'         => $adminId,
+                'published_by'      => $adminId,
+                'published_at'      => $now,
+                'deleted_at'        => null,
+                'updated_at'        => $now,
+            ];
+
             if ($existing) {
-                $db->table('knowledge_articles')->where('id', $existing['id'])->update([
-                    'title'           => $tpl['title'],
-                    'summary'         => $tpl['summary'],
-                    'content'         => $tpl['content'],
-                    'type'            => 'template',
-                    'workflow_status' => 'published',
-                    'visibility'      => 'public',
-                    'featured'        => $tpl['featured'],
-                    'cover_file_id'   => $fileId,
-                    'author_id'       => $adminId,
-                    'published_by'    => $adminId,
-                    'published_at'    => $now,
-                    'deleted_at'      => null,
-                    'updated_at'      => $now,
-                ]);
+                $db->table('knowledge_articles')->where('id', $existing['id'])->update($artData);
             } else {
-                $db->table('knowledge_articles')->insert([
-                    'type'            => 'template',
-                    'title'           => $tpl['title'],
-                    'slug'            => $tpl['slug'],
-                    'summary'         => $tpl['summary'],
-                    'content'         => $tpl['content'],
-                    'workflow_status' => 'published',
-                    'visibility'      => 'public',
-                    'featured'        => $tpl['featured'],
-                    'cover_file_id'   => $fileId,
-                    'author_id'       => $adminId,
-                    'published_by'    => $adminId,
-                    'published_at'    => $now,
-                    'created_at'      => $now,
-                    'updated_at'      => $now,
-                ]);
+                $artData['slug']       = $tpl['slug'];
+                $artData['created_at'] = $now;
+                $db->table('knowledge_articles')->insert($artData);
             }
         }
         CLI::write('  [OK] Templates seeded with real physical downloads', 'green');
@@ -246,39 +259,111 @@ class KnowledgeSeed extends BaseCommand
             ],
         ];
 
+        $articleMetaMap = [
+            'panduan-komprehensif-penyusunan-hps-perpres-12-2021' => [
+                'reading_time'      => 6,
+                'organization_unit' => 'Biro Pengadaan Barang dan Jasa Prov. Lampung',
+                'procurement_stage' => 'Persiapan Pengadaan',
+                'source_url'        => 'https://jdih.lkpp.go.id/dokumen/perpres-nomor-12-tahun-2021',
+                'carousel_enabled'  => 1,
+                'carousel_order'    => 1,
+            ],
+            'optimalisasi-pengadaan-melalui-e-katalog-versi-6' => [
+                'reading_time'      => 5,
+                'organization_unit' => 'Biro Pengadaan Barang dan Jasa Prov. Lampung',
+                'procurement_stage' => 'Pemilihan Penyedia',
+                'source_url'        => 'https://katalog.lkpp.go.id/',
+                'carousel_enabled'  => 1,
+                'carousel_order'    => 2,
+            ],
+            'strategi-mitigasi-risiko-fraud-tahap-perencanaan' => [
+                'reading_time'      => 7,
+                'organization_unit' => 'Inspektorat Provinsi Lampung',
+                'procurement_stage' => 'Perencanaan Pengadaan',
+                'source_url'        => 'https://jdih.lkpp.go.id/',
+                'carousel_enabled'  => 1,
+                'carousel_order'    => 3,
+            ],
+            'peran-ppk-dalam-pengendalian-kontrak-kritis-scm' => [
+                'reading_time'      => 8,
+                'organization_unit' => 'Dinas Bina Marga & Bina Konstruksi',
+                'procurement_stage' => 'Pelaksanaan Kontrak',
+                'source_url'        => 'https://jdih.lkpp.go.id/',
+                'carousel_enabled'  => 0,
+                'carousel_order'    => null,
+            ],
+            'peningkatan-penggunaan-produk-dalam-negeri-p3dn-pemda' => [
+                'reading_time'      => 6,
+                'organization_unit' => 'Dinas Perindustrian dan Perdagangan',
+                'procurement_stage' => 'Perencanaan Pengadaan',
+                'source_url'        => 'https://tkdn.kemenperin.go.id/',
+                'carousel_enabled'  => 0,
+                'carousel_order'    => null,
+            ],
+            'tips-sukses-menghadapi-audit-pengadaan-apip-bpk' => [
+                'reading_time'      => 7,
+                'organization_unit' => 'Inspektorat Provinsi Lampung',
+                'procurement_stage' => 'Serah Terima Pekerjaan',
+                'source_url'        => 'https://bpk.go.id/',
+                'carousel_enabled'  => 0,
+                'carousel_order'    => null,
+            ],
+            'tata-cara-tender-cepat-sikap-lpse' => [
+                'reading_time'      => 5,
+                'organization_unit' => 'Biro Pengadaan Barang dan Jasa Prov. Lampung',
+                'procurement_stage' => 'Pemilihan Penyedia',
+                'source_url'        => 'https://inaproc.id/',
+                'carousel_enabled'  => 0,
+                'carousel_order'    => null,
+            ],
+            'penerapan-best-value-for-money-pengadaan-publik' => [
+                'reading_time'      => 6,
+                'organization_unit' => 'Biro Pengadaan Barang dan Jasa Prov. Lampung',
+                'procurement_stage' => 'Perencanaan Pengadaan',
+                'source_url'        => 'https://lkpp.go.id/',
+                'carousel_enabled'  => 0,
+                'carousel_order'    => null,
+            ],
+        ];
+
         foreach ($articlesData as $art) {
             $existing = $db->table('knowledge_articles')->where('slug', $art['slug'])->get()->getRowArray();
+            $meta = $articleMetaMap[$art['slug']] ?? [
+                'reading_time'      => 5,
+                'organization_unit' => 'Biro Pengadaan Barang dan Jasa Prov. Lampung',
+                'procurement_stage' => 'Umum',
+                'source_url'        => 'https://jdih.lkpp.go.id/',
+                'carousel_enabled'  => 0,
+                'carousel_order'    => null,
+            ];
+
+            $artData = [
+                'title'             => $art['title'],
+                'summary'           => $art['summary'],
+                'content'           => $art['content'],
+                'type'              => 'article',
+                'reading_time'      => $meta['reading_time'],
+                'organization_unit' => $meta['organization_unit'],
+                'procurement_stage' => $meta['procurement_stage'],
+                'source_url'        => $meta['source_url'],
+                'carousel_enabled'  => $meta['carousel_enabled'],
+                'carousel_order'    => $meta['carousel_order'],
+                'workflow_status'   => 'published',
+                'visibility'        => 'public',
+                'featured'          => $art['featured'],
+                'author_id'         => $adminId,
+                'published_by'      => $adminId,
+                'published_at'      => $now,
+                'deleted_at'        => null,
+                'updated_at'        => $now,
+            ];
+
             if ($existing) {
-                $db->table('knowledge_articles')->where('id', $existing['id'])->update([
-                    'title'           => $art['title'],
-                    'summary'         => $art['summary'],
-                    'content'         => $art['content'],
-                    'type'            => 'article',
-                    'workflow_status' => 'published',
-                    'visibility'      => 'public',
-                    'featured'        => $art['featured'],
-                    'author_id'       => $adminId,
-                    'published_by'    => $adminId,
-                    'published_at'    => $now,
-                    'deleted_at'      => null,
-                    'updated_at'      => $now,
-                ]);
+                $db->table('knowledge_articles')->where('id', $existing['id'])->update($artData);
             } else {
-                $db->table('knowledge_articles')->insert([
-                    'type'            => 'article',
-                    'title'           => $art['title'],
-                    'slug'            => $art['slug'],
-                    'summary'         => $art['summary'],
-                    'content'         => $art['content'],
-                    'workflow_status' => 'published',
-                    'visibility'      => 'public',
-                    'featured'        => $art['featured'],
-                    'author_id'       => $adminId,
-                    'published_by'    => $adminId,
-                    'published_at'    => $now,
-                    'created_at'      => $now,
-                    'updated_at'      => $now,
-                ]);
+                $artData['slug']       = $art['slug'];
+                $artData['created_at'] = $now;
+                $db->table('knowledge_articles')->insert($artData);
             }
         }
         CLI::write('  [OK] Articles seeded successfully', 'green');
@@ -331,39 +416,96 @@ class KnowledgeSeed extends BaseCommand
             ],
         ];
 
+        $caseMetaMap = [
+            'penyelesaian-sanggahan-banding-pengadaan-gedung-rsud' => [
+                'case_severity'      => 'high',
+                'procurement_stage'  => 'Pemilihan Penyedia',
+                'organization_unit'  => 'RSUD Dr. H. Abdul Moeloek',
+                'resolution_summary' => 'Klarifikasi faktual dan audit forensik IP Address membuktikan penawaran sah; sanggahan dijawab transparan sehingga tidak berlanjut ke sanggahan banding.',
+                'legal_basis'        => 'Perpres No. 12 Tahun 2021 Pasal 50; Perlem LKPP No. 12 Tahun 2021 tentang Pedoman Pengadaan',
+                'reading_time'       => 8,
+            ],
+            'penanganan-kontrak-kritis-pembangunan-jembatan' => [
+                'case_severity'      => 'critical',
+                'procurement_stage'  => 'Pelaksanaan Kontrak',
+                'organization_unit'  => 'Dinas Bina Marga & Bina Konstruksi',
+                'resolution_summary' => 'Penerapan SCM Tingkat I dan kesepakatan uji coba penambahan shift kerja serta alat berat berhasil memulihkan deviasi kritis menjadi deviasi positif.',
+                'legal_basis'        => 'Syarat-Syarat Umum Kontrak (SSUK) Standar LKPP; Perpres No. 12 Tahun 2021 Pasal 54',
+                'reading_time'       => 7,
+            ],
+            'evaluasi-kualifikasi-sipp-klarifikasi-harga-pengadaan-it' => [
+                'case_severity'      => 'medium',
+                'procurement_stage'  => 'Pemilihan Penyedia',
+                'organization_unit'  => 'Dinas Kominfotik Prov. Lampung',
+                'resolution_summary' => 'Verifikasi Manufacturer Authorization Form (MAF) dan garansi 5 tahun membuktikan penawaran 76% HPS realistis dan berkualitas prima.',
+                'legal_basis'        => 'Perlem LKPP No. 12/2021 Klausul Evaluasi Kewajaran Harga Di Bawah 80% HPS',
+                'reading_time'       => 6,
+            ],
+            'manajemen-pengadaan-tanggap-darurat-bencana-banjir' => [
+                'case_severity'      => 'high',
+                'procurement_stage'  => 'Pelaksanaan Kontrak',
+                'organization_unit'  => 'BPBD Provinsi Lampung',
+                'resolution_summary' => 'Penerapan status tanggap darurat penunjukan langsung dengan pendampingan APIP dan audit BPKP pos-bencana menjamin transparansi akuntabel.',
+                'legal_basis'        => 'Perlem LKPP No. 13 Tahun 2018 tentang Pengadaan Barang/Jasa Dalam Penanganan Keadaan Darurat',
+                'reading_time'       => 7,
+            ],
+            'negosiasi-harga-e-purchasing-obat-alkes-rs' => [
+                'case_severity'      => 'low',
+                'procurement_stage'  => 'Pemilihan Penyedia',
+                'organization_unit'  => 'RSUD Dr. H. Abdul Moeloek',
+                'resolution_summary' => 'Konsolidasi pengadaan obat tahunan menghasilkan volume purchasing power yang memberikan diskon tambahan 8% menghemat Rp 420 Juta.',
+                'legal_basis'        => 'Surat Edaran Kepala LKPP tentang Konsolidasi Pengadaan Obat dan Alat Kesehatan',
+                'reading_time'       => 5,
+            ],
+            'mitigasi-sengketa-uang-muka-kendaraan-khusus' => [
+                'case_severity'      => 'medium',
+                'procurement_stage'  => 'Persiapan Pengadaan',
+                'organization_unit'  => 'Badan Pengelola Keuangan dan Aset Daerah (BPKAD)',
+                'resolution_summary' => 'Verifikasi keaslian warkat Advance Payment Bond langsung ke penjamin BUMN mencegah potensi kerugian kas daerah.',
+                'legal_basis'        => 'Perpres No. 12/2021 Pasal 30 tentang Jaminan Pengadaan Barang/Jasa',
+                'reading_time'       => 6,
+            ],
+        ];
+
         foreach ($casesData as $cs) {
             $existing = $db->table('knowledge_articles')->where('slug', $cs['slug'])->get()->getRowArray();
+            $meta = $caseMetaMap[$cs['slug']] ?? [
+                'case_severity'      => 'medium',
+                'procurement_stage'  => 'Pelaksanaan Kontrak',
+                'organization_unit'  => 'Biro Pengadaan Barang dan Jasa Prov. Lampung',
+                'resolution_summary' => 'Mitigasi risiko secara proaktif bersama APIP dan seluruh pemangku kepentingan.',
+                'legal_basis'        => 'Perpres No. 12 Tahun 2021',
+                'reading_time'       => 6,
+            ];
+
+            $csData = [
+                'title'              => $cs['title'],
+                'summary'            => $cs['summary'],
+                'content'            => $cs['content'],
+                'type'               => 'case_study',
+                'case_severity'      => $meta['case_severity'],
+                'procurement_stage'  => $meta['procurement_stage'],
+                'organization_unit'  => $meta['organization_unit'],
+                'resolution_summary' => $meta['resolution_summary'],
+                'legal_basis'        => $meta['legal_basis'],
+                'reading_time'       => $meta['reading_time'],
+                'workflow_status'    => 'published',
+                'visibility'         => 'public',
+                'featured'           => $cs['featured'],
+                'carousel_enabled'   => $cs['featured'],
+                'author_id'          => $adminId,
+                'published_by'       => $adminId,
+                'published_at'       => $now,
+                'deleted_at'         => null,
+                'updated_at'         => $now,
+            ];
+
             if ($existing) {
-                $db->table('knowledge_articles')->where('id', $existing['id'])->update([
-                    'title'           => $cs['title'],
-                    'summary'         => $cs['summary'],
-                    'content'         => $cs['content'],
-                    'type'            => 'case_study',
-                    'workflow_status' => 'published',
-                    'visibility'      => 'public',
-                    'featured'        => $cs['featured'],
-                    'author_id'       => $adminId,
-                    'published_by'    => $adminId,
-                    'published_at'    => $now,
-                    'deleted_at'      => null,
-                    'updated_at'      => $now,
-                ]);
+                $db->table('knowledge_articles')->where('id', $existing['id'])->update($csData);
             } else {
-                $db->table('knowledge_articles')->insert([
-                    'type'            => 'case_study',
-                    'title'           => $cs['title'],
-                    'slug'            => $cs['slug'],
-                    'summary'         => $cs['summary'],
-                    'content'         => $cs['content'],
-                    'workflow_status' => 'published',
-                    'visibility'      => 'public',
-                    'featured'        => $cs['featured'],
-                    'author_id'       => $adminId,
-                    'published_by'    => $adminId,
-                    'published_at'    => $now,
-                    'created_at'      => $now,
-                    'updated_at'      => $now,
-                ]);
+                $csData['slug']       = $cs['slug'];
+                $csData['created_at'] = $now;
+                $db->table('knowledge_articles')->insert($csData);
             }
         }
         CLI::write('  [OK] Case studies seeded successfully', 'green');
@@ -422,37 +564,72 @@ class KnowledgeSeed extends BaseCommand
             ],
         ];
 
+        $faqMetaMap = [
+            'perbedaan-hps-dan-pagu-anggaran' => [
+                'legal_basis'        => 'Perpres No. 12/2021 Pasal 26 tentang Penyusunan dan Penetapan HPS',
+                'resolution_summary' => 'HPS disusun oleh PPK paling lambat 28 hari kerja sebelum batas akhir penawaran, tidak boleh melebihi pagu DPA.',
+            ],
+            'kapan-ppk-wajib-menggelar-scm' => [
+                'legal_basis'        => 'Standar Dokumen Pemilihan (SDP) Konstruksi LKPP & Perlem 12/2021',
+                'resolution_summary' => 'Ambang batas deviasi kritis: >10% pada periode 0-70% masa kontrak, dan >5% pada periode 70-100% masa kontrak.',
+            ],
+            'ketentuan-pemberian-kesempatan-melewati-tahun-anggaran' => [
+                'legal_basis'        => 'Perpres No. 12 Tahun 2021 Pasal 56 tentang Pemberian Kesempatan',
+                'resolution_summary' => 'Maksimal 50 hari kalender, dapat melampaui tahun anggaran dengan denda 1/1000 per hari.',
+            ],
+            'apakah-boleh-menggugurkan-karena-format-surat-berbeda' => [
+                'legal_basis'        => 'Perlem LKPP No. 12 Tahun 2021 Lampiran Evaluasi Penawaran',
+                'resolution_summary' => 'Pokja dilarang menggugurkan karena alasan redaksional format selama substansi sah dan mengikat.',
+            ],
+            'kriteria-pengadaan-langsung' => [
+                'legal_basis'        => 'Perpres No. 12/2021 Pasal 38 ayat (1) dan (2)',
+                'resolution_summary' => 'Pengadaan langsung maksimal 200 juta untuk barang/konstruksi/jasa lainnya, 100 juta untuk konsultansi.',
+            ],
+            'cara-menghitung-tkdn' => [
+                'legal_basis'        => 'Peraturan Menteri Perindustrian No. 16/2011 & Perpres 12/2021 Pasal 67',
+                'resolution_summary' => 'Wajib produk lokal jika TKDN + BMP minimal 40%, preferensi harga maksimal 25% untuk tender > 1 Miliar.',
+            ],
+            'tindakan-pokja-jika-hanya-1-peserta-tender' => [
+                'legal_basis'        => 'Perlem LKPP No. 12 Tahun 2021 Bagian Evaluasi Penawaran Tender',
+                'resolution_summary' => 'Jika hanya 1 peserta memasukkan dokumen, tender tetap dilanjutkan evaluasi dan negosiasi teknis-harga.',
+            ],
+            'apakah-penyedia-blacklist-otomatis-ditolak' => [
+                'legal_basis'        => 'Perlem LKPP No. 4 Tahun 2021 tentang Pembinaan Pelaku Usaha PBJ',
+                'resolution_summary' => 'Status sanksi daftar hitam di portal Inaproc LKPP berlaku nasional di seluruh K/L/Pemda.',
+            ],
+        ];
+
         foreach ($faqsData as $faq) {
             $existing = $db->table('knowledge_articles')->where('slug', $faq['slug'])->get()->getRowArray();
+            $meta = $faqMetaMap[$faq['slug']] ?? [
+                'legal_basis'        => 'Perpres No. 12 Tahun 2021',
+                'resolution_summary' => 'Panduan resmi pengadaan barang dan jasa pemerintah.',
+            ];
+
+            $faqData = [
+                'title'              => $faq['title'],
+                'summary'            => $faq['summary'],
+                'content'            => $faq['content'],
+                'type'               => 'faq',
+                'legal_basis'        => $meta['legal_basis'],
+                'resolution_summary' => $meta['resolution_summary'],
+                'reading_time'       => 3,
+                'organization_unit'  => 'Biro Pengadaan Barang dan Jasa Prov. Lampung',
+                'workflow_status'    => 'published',
+                'visibility'         => 'public',
+                'author_id'          => $adminId,
+                'published_by'       => $adminId,
+                'published_at'       => $now,
+                'deleted_at'         => null,
+                'updated_at'         => $now,
+            ];
+
             if ($existing) {
-                $db->table('knowledge_articles')->where('id', $existing['id'])->update([
-                    'title'           => $faq['title'],
-                    'summary'         => $faq['summary'],
-                    'content'         => $faq['content'],
-                    'type'            => 'faq',
-                    'workflow_status' => 'published',
-                    'visibility'      => 'public',
-                    'author_id'       => $adminId,
-                    'published_by'    => $adminId,
-                    'published_at'    => $now,
-                    'deleted_at'      => null,
-                    'updated_at'      => $now,
-                ]);
+                $db->table('knowledge_articles')->where('id', $existing['id'])->update($faqData);
             } else {
-                $db->table('knowledge_articles')->insert([
-                    'type'            => 'faq',
-                    'title'           => $faq['title'],
-                    'slug'            => $faq['slug'],
-                    'summary'         => $faq['summary'],
-                    'content'         => $faq['content'],
-                    'workflow_status' => 'published',
-                    'visibility'      => 'public',
-                    'author_id'       => $adminId,
-                    'published_by'    => $adminId,
-                    'published_at'    => $now,
-                    'created_at'      => $now,
-                    'updated_at'      => $now,
-                ]);
+                $faqData['slug']       = $faq['slug'];
+                $faqData['created_at'] = $now;
+                $db->table('knowledge_articles')->insert($faqData);
             }
         }
         CLI::write('  [OK] FAQs seeded successfully', 'green');
@@ -564,40 +741,170 @@ class KnowledgeSeed extends BaseCommand
             ],
         ];
 
+        $mediaMetaMap = [
+            'Infografik: Alur Siklus Pengadaan Barang/Jasa Pemerintah (Perpres 12/2021)' => [
+                'hashtags'     => '#PBJLampung #SiklusPengadaan #Perpres12 #RegulasiPBJ #Akuntabel',
+                'likes_count'  => 148,
+                'views_count'  => 890,
+                'shares_count' => 34,
+                'location'     => 'Biro Pengadaan Barang & Jasa Prov. Lampung',
+                'event_date'   => '2026-02-10',
+                'duration'     => null,
+                'order'        => 1,
+            ],
+            'Infografik: 5 Langkah Menghitung TKDN Pengadaan Barang' => [
+                'hashtags'     => '#TKDN #P3DN #BanggaBuatanIndonesia #PengadaanLokal #LampungMaju',
+                'likes_count'  => 125,
+                'views_count'  => 760,
+                'shares_count' => 29,
+                'location'     => 'Dinas Perindustrian dan Perdagangan Lampung',
+                'event_date'   => '2026-02-25',
+                'duration'     => null,
+                'order'        => 2,
+            ],
+            'Infografik: Skema Kontrak Kritis dan Uji Coba Show Cause Meeting (SCM)' => [
+                'hashtags'     => '#KontrakKritis #ShowCauseMeeting #SCM #KonstruksiLampung #ManajemenProyek',
+                'likes_count'  => 92,
+                'views_count'  => 640,
+                'shares_count' => 18,
+                'location'     => 'Dinas Bina Marga & Bina Konstruksi Lampung',
+                'event_date'   => '2026-03-02',
+                'duration'     => null,
+                'order'        => 3,
+            ],
+            'Infografik: Diagram Alir e-Purchasing Melalui Katalog Elektronik V6' => [
+                'hashtags'     => '#eKatalogV6 #DigitalisasiPBJ #BelanjaCepat #Transparan #PBJLampung',
+                'likes_count'  => 165,
+                'views_count'  => 1120,
+                'shares_count' => 42,
+                'location'     => 'Gedung LPSE Provinsi Lampung',
+                'event_date'   => '2026-03-12',
+                'duration'     => null,
+                'order'        => 4,
+            ],
+            'Tutorial Praktis: Pengoperasian Aplikasi SPSE 4.5 bagi Pejabat Pengadaan' => [
+                'hashtags'     => '#TutorialSPSE #PejabatPengadaan #LPSEProvLampung #PanduanPengadaan',
+                'likes_count'  => 210,
+                'views_count'  => 1840,
+                'shares_count' => 56,
+                'location'     => 'Studio Pembelajaran LPSE Prov. Lampung',
+                'event_date'   => '2026-01-20',
+                'duration'     => '16:45',
+                'order'        => 5,
+            ],
+            'Webinar Bedah Kasus: Strategi Mitigasi Risiko Hukum Pengadaan Barang/Jasa' => [
+                'hashtags'     => '#WebinarPBJ #MitigasiRisiko #AuditorPBJ #IntegritasPengadaan',
+                'likes_count'  => 184,
+                'views_count'  => 1490,
+                'shares_count' => 48,
+                'location'     => 'Aula Utama Kantor Gubernur Lampung',
+                'event_date'   => '2026-02-15',
+                'duration'     => '42:15',
+                'order'        => 6,
+            ],
+            'Video Pembelajaran: Manajemen Kontrak & Serah Terima Konstruksi' => [
+                'hashtags'     => '#ManajemenKontrak #BAST #PengawasanKonstruksi #PBJLampung',
+                'likes_count'  => 138,
+                'views_count'  => 980,
+                'shares_count' => 31,
+                'location'     => 'Dinas Bina Marga & Bina Konstruksi Lampung',
+                'event_date'   => '2026-03-01',
+                'duration'     => '24:30',
+                'order'        => 7,
+            ],
+            'Simulasi Negosiasi Harga e-Katalog V6 Bersama Fasilitator Biro PBJ' => [
+                'hashtags'     => '#SimulasiKatalog #NegosiasiHarga #FasilitatorPBJ #UMKMLampung',
+                'likes_count'  => 175,
+                'views_count'  => 1350,
+                'shares_count' => 39,
+                'location'     => 'Lab Komputer Pusdiklat Prov. Lampung',
+                'event_date'   => '2026-03-18',
+                'duration'     => '19:10',
+                'order'        => 8,
+            ],
+            'Bimtek Peningkatan Kompetensi PPK dan PPTK Lingkup Pemprov Lampung' => [
+                'hashtags'     => '#BimtekPPK #SertifikasiPBJ #GedungPusiban #KompetensiAparatur',
+                'likes_count'  => 195,
+                'views_count'  => 1240,
+                'shares_count' => 41,
+                'location'     => 'Gedung Pusiban Setda Prov. Lampung',
+                'event_date'   => '2026-02-18',
+                'duration'     => null,
+                'order'        => 9,
+            ],
+            'Workshop Onboarding e-Katalog Lokal Bersama Ratusan Pelaku UMKM Lampung' => [
+                'hashtags'     => '#UMKMLampung #KatalogLokal #PemberdayaanEkonomi #BiroPBJ',
+                'likes_count'  => 240,
+                'views_count'  => 1680,
+                'shares_count' => 63,
+                'location'     => 'Hotel Novotel Bandar Lampung',
+                'event_date'   => '2026-03-05',
+                'duration'     => null,
+                'order'        => 10,
+            ],
+            'Forum Koordinasi Pejabat Pengadaan se-Provinsi Lampung' => [
+                'hashtags'     => '#ForumPBJ #SinergiPengadaan #LampungKompak #BelanjaBerkualitas',
+                'likes_count'  => 160,
+                'views_count'  => 980,
+                'shares_count' => 27,
+                'location'     => 'Ruang Rapat Utama Setda Prov. Lampung',
+                'event_date'   => '2026-03-15',
+                'duration'     => null,
+                'order'        => 11,
+            ],
+            'Sosialisasi Pencegahan Tipikor Pengadaan Bersama KPK & Inspektorat' => [
+                'hashtags'     => '#IntegritasPBJ #CegahKorupsi #KPKRI #InspektoratLampung',
+                'likes_count'  => 220,
+                'views_count'  => 1520,
+                'shares_count' => 58,
+                'location'     => 'Aula Gedung Inspektorat Provinsi Lampung',
+                'event_date'   => '2026-03-22',
+                'duration'     => null,
+                'order'        => 12,
+            ],
+        ];
+
         foreach ($mediaData as $med) {
             $existing = $db->table('knowledge_media')->where('title', $med['title'])->get()->getRowArray();
+            $meta = $mediaMetaMap[$med['title']] ?? [
+                'hashtags'     => '#PBJLampung #PengadaanPemerintah',
+                'likes_count'  => 50,
+                'views_count'  => 300,
+                'shares_count' => 10,
+                'location'     => 'Provinsi Lampung',
+                'event_date'   => '2026-01-01',
+                'duration'     => null,
+                'order'        => 1,
+            ];
+
+            $kmData = [
+                'type'             => $med['type'],
+                'caption'          => $med['caption'],
+                'external_url'     => $med['external_url'],
+                'hashtags'         => $meta['hashtags'],
+                'likes_count'      => $meta['likes_count'],
+                'views_count'      => $meta['views_count'],
+                'shares_count'     => $meta['shares_count'],
+                'location'         => $meta['location'],
+                'event_date'       => $meta['event_date'],
+                'duration'         => $meta['duration'],
+                'workflow_status'  => 'published',
+                'visibility'       => 'public',
+                'sort_order'       => $med['sort_order'],
+                'featured'         => $med['featured'],
+                'carousel_enabled' => 1,
+                'created_by'       => $adminId,
+                'published_by'     => $adminId,
+                'published_at'     => $now,
+                'updated_at'       => $now,
+            ];
+
             if ($existing) {
-                $db->table('knowledge_media')->where('id', $existing['id'])->update([
-                    'type'             => $med['type'],
-                    'caption'          => $med['caption'],
-                    'external_url'     => $med['external_url'],
-                    'workflow_status'  => 'published',
-                    'visibility'       => 'public',
-                    'sort_order'       => $med['sort_order'],
-                    'featured'         => $med['featured'],
-                    'carousel_enabled' => 1,
-                    'created_by'       => $adminId,
-                    'published_by'     => $adminId,
-                    'published_at'     => $now,
-                    'updated_at'       => $now,
-                ]);
+                $db->table('knowledge_media')->where('id', $existing['id'])->update($kmData);
             } else {
-                $db->table('knowledge_media')->insert([
-                    'type'             => $med['type'],
-                    'title'            => $med['title'],
-                    'caption'          => $med['caption'],
-                    'external_url'     => $med['external_url'],
-                    'workflow_status'  => 'published',
-                    'visibility'       => 'public',
-                    'sort_order'       => $med['sort_order'],
-                    'featured'         => $med['featured'],
-                    'carousel_enabled' => 1,
-                    'created_by'       => $adminId,
-                    'published_by'     => $adminId,
-                    'published_at'     => $now,
-                    'created_at'       => $now,
-                    'updated_at'       => $now,
-                ]);
+                $kmData['title']      = $med['title'];
+                $kmData['created_at'] = $now;
+                $db->table('knowledge_media')->insert($kmData);
             }
         }
         CLI::write('  [OK] Media, Videos, and Gallery seeded successfully', 'green');

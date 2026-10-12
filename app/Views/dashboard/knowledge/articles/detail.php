@@ -28,7 +28,19 @@ $tags = array_column($article['tags'] ?? [], 'name');
 </div>
 
 <!-- Header Info Card -->
-<div class="card radius-12 border mb-24">
+<div class="card radius-12 border mb-24 overflow-hidden">
+    <?php if (! empty($article['cover_file_id'])): ?>
+        <div class="position-relative" style="max-height: 280px; overflow: hidden; background: #082f5c;">
+            <img src="<?= base_url('file/' . (int) $article['cover_file_id']) ?>" alt="<?= esc($article['title']) ?>" class="w-100 object-fit-cover" style="max-height: 280px;">
+            <?php if ((int) ($article['featured'] ?? 0) === 1): ?>
+                <div class="position-absolute top-0 end-0 m-3">
+                    <span class="badge bg-warning text-dark radius-6 px-12 py-6 text-xs fw-bold shadow-sm">
+                        <i class="fas fa-star me-1"></i> Konten Unggulan (Pilihan Editor)
+                    </span>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
     <div class="card-body p-24">
         <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-20">
             <div class="d-flex align-items-center gap-3">
@@ -40,6 +52,8 @@ $tags = array_column($article['tags'] ?? [], 'name');
                     <div class="d-flex flex-wrap align-items-center gap-3 text-secondary-light text-sm">
                         <span><iconify-icon icon="solar:user-outline" class="me-1"></iconify-icon><?= esc($authorName) ?></span>
                         <span>•</span>
+                        <span><iconify-icon icon="solar:clock-circle-outline" class="me-1"></iconify-icon><?= (int) ($article['reading_time'] ?? 5) ?> Menit Baca</span>
+                        <span>•</span>
                         <span><iconify-icon icon="solar:calendar-date-outline" class="me-1"></iconify-icon>Diperbarui: <?= esc(date('d M Y, H:i', strtotime($article['updated_at'] ?? 'now'))) ?></span>
                         <span>•</span>
                         <span><iconify-icon icon="solar:eye-outline" class="me-1"></iconify-icon>Visibilitas: <?= ucfirst(esc($article['visibility'] ?? 'public')) ?></span>
@@ -50,14 +64,23 @@ $tags = array_column($article['tags'] ?? [], 'name');
                 <?= view('dashboard/components/status_badge', ['status' => $statusKey]) ?>
             </div>
         </div>
-        <div class="d-flex flex-wrap gap-2 pt-16 border-top">
-            <span class="text-secondary-light text-sm me-2 align-self-center">Kategori:</span>
-            <?php if (!empty($cats)): ?>
-                <?php foreach ($cats as $cat): ?>
-                    <span class="badge bg-neutral-100 text-neutral-800 radius-6 px-12 py-6"><?= esc($cat) ?></span>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <span class="text-secondary-light text-sm align-self-center">Umum</span>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-16 border-top">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="text-secondary-light text-sm me-2">Kategori:</span>
+                <?php if (!empty($cats)): ?>
+                    <?php foreach ($cats as $cat): ?>
+                        <span class="badge bg-neutral-100 text-neutral-800 radius-6 px-12 py-6"><?= esc($cat) ?></span>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <span class="text-secondary-light text-sm">Umum</span>
+                <?php endif; ?>
+            </div>
+            <?php if (! empty($article['source_url'])): ?>
+                <div>
+                    <a href="<?= esc($article['source_url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary radius-6 px-12 py-6 text-xs d-inline-flex align-items-center gap-1">
+                        <iconify-icon icon="solar:link-bold"></iconify-icon> Buka Sumber Referensi
+                    </a>
+                </div>
             <?php endif; ?>
         </div>
     </div>

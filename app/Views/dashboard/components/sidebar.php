@@ -86,14 +86,19 @@ $isSuperAdmin = $auth->isSuperAdmin();
                     <span>Bunga Rampai</span>
                 </a>
                 <ul class="sidebar-submenu">
-                    <li><a class="<?= $activeClass('knowledge', 'articles') ?>" href="<?= site_url('dashboard/bunga-rampai/artikel') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Artikel</a></li>
-                    <li><a class="<?= $activeClass('knowledge', 'faqs') ?>" href="<?= site_url('dashboard/bunga-rampai/faq') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> FAQ</a></li>
+                    <li><a class="<?= $activeClass('knowledge', 'overview') ?>" href="<?= site_url('dashboard/bunga-rampai') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Ringkasan Overview</a></li>
+                    <li><a class="<?= $activeClass('knowledge', 'articles') ?>" href="<?= site_url('dashboard/bunga-rampai/artikel') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Artikel PBJ</a></li>
+                    <li><a class="<?= $activeClass('knowledge', 'faqs') ?>" href="<?= site_url('dashboard/bunga-rampai/faq') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Tanya Jawab (FAQ)</a></li>
                     <li><a class="<?= $activeClass('knowledge', 'case-studies') ?>" href="<?= site_url('dashboard/bunga-rampai/studi-kasus') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Studi Kasus</a></li>
                     <li><a class="<?= $activeClass('knowledge', 'document-templates') ?>" href="<?= site_url('dashboard/bunga-rampai/template-dokumen') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Template Dokumen</a></li>
-                    <li><a class="<?= $activeClass('knowledge', 'media-gallery') ?>" href="<?= site_url('dashboard/bunga-rampai/media-galeri') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Media dan Galeri</a></li>
-                    <li><a class="<?= $activeClass('knowledge', 'carousel') ?>" href="<?= site_url('dashboard/bunga-rampai/carousel-konten-unggulan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Carousel dan Konten Unggulan</a></li>
+                    <li><a class="<?= $activeClass('knowledge', 'media') ?>" href="<?= site_url('dashboard/bunga-rampai/media') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Media &amp; Infografik</a></li>
+                    <li><a class="<?= $activeClass('knowledge', 'videos') ?>" href="<?= site_url('dashboard/bunga-rampai/video') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Video PBJ</a></li>
+                    <li><a class="<?= $activeClass('knowledge', 'gallery') ?>" href="<?= site_url('dashboard/bunga-rampai/galeri') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Galeri Kegiatan</a></li>
+                    <li><a class="<?= $activeClass('knowledge', 'media-gallery') ?>" href="<?= site_url('dashboard/bunga-rampai/media-galeri') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Semua Media &amp; Galeri</a></li>
+                    <li><a class="<?= $activeClass('knowledge', 'carousel') ?>" href="<?= site_url('dashboard/bunga-rampai/carousel-konten-unggulan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Carousel &amp; Unggulan</a></li>
                     <li><a class="<?= $activeClass('knowledge', 'categories') ?>" href="<?= site_url('dashboard/bunga-rampai/kategori') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Kategori</a></li>
-                    <li><a class="<?= $activeClass('knowledge', 'tags') ?>" href="<?= site_url('dashboard/bunga-rampai/tag') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Tag</a></li>
+                    <li><a class="<?= $activeClass('knowledge', 'tags') ?>" href="<?= site_url('dashboard/bunga-rampai/tag') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Tagar &amp; Topik</a></li>
+                    <li><a class="<?= $activeClass('knowledge', 'bookmarks') ?>" href="<?= site_url('dashboard/bunga-rampai/bookmark') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Bookmark Koleksi</a></li>
                 </ul>
             </li>
 

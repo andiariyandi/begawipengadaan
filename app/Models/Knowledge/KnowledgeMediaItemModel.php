@@ -13,6 +13,8 @@ class KnowledgeMediaItemModel extends Model
     protected $allowedFields = [
         'article_id', 'type', 'title', 'caption', 'alt_text',
         'file_id', 'external_url', 'thumbnail_file_id',
+        'hashtags', 'likes_count', 'views_count', 'shares_count',
+        'location', 'event_date', 'duration',
         'workflow_status', 'visibility', 'sort_order',
         'featured', 'carousel_enabled',
         'created_by', 'published_by', 'published_at',

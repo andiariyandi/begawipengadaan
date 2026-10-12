@@ -83,6 +83,8 @@ class ArticleController extends BaseKnowledgeController
             'carousel_enabled' => $this->request->getPost('carousel_enabled') ? 1 : 0,
             'carousel_order'   => $this->request->getPost('carousel_order') !== null && $this->request->getPost('carousel_order') !== ''
                 ? (int) $this->request->getPost('carousel_order') : null,
+            'reading_time'     => (int) ($this->request->getPost('reading_time') ?: 5),
+            'source_url'       => trim((string) $this->request->getPost('source_url')) ?: null,
             'author_id'        => $this->currentUserId(),
             'created_at'       => $now,
             'updated_at'       => $now,
@@ -173,6 +175,8 @@ class ArticleController extends BaseKnowledgeController
             'carousel_enabled' => $this->request->getPost('carousel_enabled') ? 1 : 0,
             'carousel_order'   => $this->request->getPost('carousel_order') !== null && $this->request->getPost('carousel_order') !== ''
                 ? (int) $this->request->getPost('carousel_order') : null,
+            'reading_time'     => (int) ($this->request->getPost('reading_time') ?: 5),
+            'source_url'       => trim((string) $this->request->getPost('source_url')) ?: null,
             'updated_at'       => $now,
         ];
         if ($status === 'published' && empty($article['published_at'])) {

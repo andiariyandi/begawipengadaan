@@ -485,6 +485,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     });
 
     $routes->group('bunga-rampai', ['namespace' => 'App\Controllers\Knowledge'], static function ($routes) {
+        $routes->get('', 'KnowledgeOverviewController::index', ['as' => 'dashboard.knowledge.overview']);
+
         $routes->get('artikel', 'ArticleController::index', ['as' => 'dashboard.knowledge.articles']);
         $routes->get('artikel/tambah', 'ArticleController::create', ['as' => 'dashboard.knowledge.articles.create']);
         $routes->post('artikel/tambah', 'ArticleController::store');
@@ -518,6 +520,9 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('template-dokumen/(:segment)/hapus', 'DocumentTemplateController::delete/$1', ['as' => 'dashboard.knowledge.document-templates.delete']);
 
         $routes->get('media-galeri', 'KnowledgeMediaController::index', ['as' => 'dashboard.knowledge.media-gallery']);
+        $routes->get('media', 'KnowledgeMediaController::infographics', ['as' => 'dashboard.knowledge.media']);
+        $routes->get('video', 'KnowledgeMediaController::videos', ['as' => 'dashboard.knowledge.videos']);
+        $routes->get('galeri', 'KnowledgeMediaController::gallery', ['as' => 'dashboard.knowledge.gallery']);
         $routes->get('media-galeri/tambah', 'KnowledgeMediaController::create', ['as' => 'dashboard.knowledge.media-gallery.create']);
         $routes->post('media-galeri/tambah', 'KnowledgeMediaController::store');
         $routes->get('media-galeri/(:segment)/ubah', 'KnowledgeMediaController::edit/$1', ['as' => 'dashboard.knowledge.media-gallery.edit']);
@@ -547,9 +552,14 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('tag/(:segment)/ubah', 'TagController::edit/$1', ['as' => 'dashboard.knowledge.tags.edit']);
         $routes->post('tag/(:segment)/ubah', 'TagController::update/$1');
         $routes->post('tag/(:segment)/hapus', 'TagController::delete/$1', ['as' => 'dashboard.knowledge.tags.delete']);
+
+        $routes->get('bookmark', 'BookmarkController::index', ['as' => 'dashboard.knowledge.bookmarks']);
     });
 
     $routes->group('regulasi', ['namespace' => 'App\Controllers\Admin'], static function ($routes) {
+        $routes->get('', 'RegulationController::index', ['as' => 'dashboard.regulations.root']);
+        $routes->get('/', 'RegulationController::index');
+
         // CRUD Regulation
         $routes->get('dokumen', 'RegulationController::index', ['as' => 'dashboard.regulations.index']);
         $routes->get('dokumen/tambah', 'RegulationController::create', ['as' => 'dashboard.regulations.create']);

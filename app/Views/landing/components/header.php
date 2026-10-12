@@ -274,16 +274,26 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                                 <a href="<?= site_url('bunga-rampai') ?>">Bunga Rampai</a>
                                 <ul class="shadow-box">
                                     <li><a href="<?= site_url('bunga-rampai') ?>">Beranda Bunga Rampai</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/artikel') ?>">Artikel</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/faq') ?>">FAQ</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/studi-kasus') ?>">Studi Kasus</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/template-dokumen') ?>">Template Dokumen</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/media') ?>">Media</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/video') ?>">Video</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/galeri') ?>">Galeri</a></li>
+                                    <li><a href="<?= site_url('bunga-rampai/artikel') ?>">Artikel PBJ</a></li>
+                                    <li><a href="<?= site_url('bunga-rampai/faq') ?>">Tanya Jawab (FAQ)</a></li>
+                                    <li><a href="<?= site_url('bunga-rampai/studi-kasus') ?>">Studi Kasus Lapangan</a></li>
+                                    <li><a href="<?= site_url('bunga-rampai/template-dokumen') ?>">Template Dokumen Kerja</a></li>
+                                    <li><a href="<?= site_url('bunga-rampai/media') ?>">Media &amp; Infografis</a></li>
+                                    <li><a href="<?= site_url('bunga-rampai/video') ?>">Video Edukasi PBJ</a></li>
+                                    <li><a href="<?= site_url('bunga-rampai/galeri') ?>">Galeri Kegiatan</a></li>
                                 </ul>
                             </li>
-                            <li class="<?= $isPrefixActive('regulasi') ? 'current' : '' ?>"><a href="<?= site_url('regulasi') ?>">Regulasi</a></li>
+                            <li class="dropdown <?= $isPrefixActive('regulasi') ? 'current' : '' ?>">
+                                <a href="<?= site_url('regulasi') ?>">Regulasi</a>
+                                <ul class="shadow-box">
+                                    <li><a href="<?= site_url('regulasi') ?>">Pusat Regulasi PBJ</a></li>
+                                    <li><a href="<?= site_url('regulasi?category=peraturan-presiden') ?>">Peraturan Presiden (Perpres)</a></li>
+                                    <li><a href="<?= site_url('regulasi?category=peraturan-lkpp') ?>">Peraturan LKPP (PerLKPP)</a></li>
+                                    <li><a href="<?= site_url('regulasi?category=peraturan-daerah-gubernur') ?>">Peraturan Daerah &amp; Pergub</a></li>
+                                    <li><a href="<?= site_url('regulasi?category=standar-dokumen-pemilihan') ?>">Standar Dokumen Pemilihan (SDP)</a></li>
+                                    <li><a href="<?= site_url('regulasi?category=surat-edaran') ?>">Surat Edaran (SE) PBJ</a></li>
+                                </ul>
+                            </li>
                             <li class="<?= $isPrefixActive('berita') ? 'current' : '' ?>"><a href="<?= site_url('berita') ?>">Berita</a></li>
                             <li class="<?= $isPrefixActive('event') ? 'current' : '' ?>"><a href="<?= site_url('event') ?>">Event</a></li>
                             <li class="dropdown <?= $isPrefixActive('statistik') || $isPrefixActive('verifikasi-sertifikat') || $isActive('kontak') ? 'current' : '' ?>">

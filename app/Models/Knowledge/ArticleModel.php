@@ -16,6 +16,9 @@ class ArticleModel extends Model
         'workflow_status', 'visibility',
         'featured', 'carousel_enabled', 'carousel_order',
         'cover_file_id',
+        'reading_time', 'source_url', 'organization_unit', 'procurement_stage',
+        'case_severity', 'resolution_summary', 'legal_basis', 'sort_order',
+        'document_category', 'document_version',
         'author_id', 'reviewed_by', 'published_by',
         'published_at', 'archived_at',
     ];

@@ -157,6 +157,11 @@ $stats       = $stats ?? ['total' => count($items), 'published' => 0, 'draft' =>
                                 <div class="text-secondary-light text-sm mb-16">
                                     <?= nl2br(esc($faq['content'] ?? '(Tidak ada isi jawaban)')) ?>
                                 </div>
+                                <?php if (! empty($faq['legal_basis'])): ?>
+                                    <div class="p-12 radius-6 bg-primary-50 border border-primary-100 text-xs text-primary-800 mb-12">
+                                        <i class="fas fa-book-reader me-1 text-primary"></i> <strong>Dasar Hukum:</strong> <?= esc($faq['legal_basis']) ?>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="d-flex align-items-center justify-content-between pt-12 border-top">
                                     <span class="text-xs text-secondary-light">
                                         <iconify-icon icon="solar:calendar-date-outline" class="me-1"></iconify-icon>

@@ -69,13 +69,15 @@ class DocumentTemplateController extends BaseKnowledgeController
             'type'             => 'template',
             'title'            => $title,
             'slug'             => $model->generateUniqueSlug($title),
-            'summary'          => (string) $this->request->getPost('summary'),
-            'content'          => (string) $this->request->getPost('content'),
-            'workflow_status'  => $status,
-            'visibility'       => 'public',
-            'author_id'        => $this->currentUserId(),
-            'created_at'       => $now,
-            'updated_at'       => $now,
+            'summary'           => (string) $this->request->getPost('summary'),
+            'content'           => (string) $this->request->getPost('content'),
+            'document_category' => trim((string) $this->request->getPost('document_category')) ?: 'kak',
+            'document_version'  => trim((string) $this->request->getPost('document_version')) ?: 'v1.0',
+            'workflow_status'   => $status,
+            'visibility'        => 'public',
+            'author_id'         => $this->currentUserId(),
+            'created_at'        => $now,
+            'updated_at'        => $now,
         ];
         if ($status === 'published') {
             $payload['published_at'] = $now;
@@ -154,12 +156,14 @@ class DocumentTemplateController extends BaseKnowledgeController
         $title = trim((string) $this->request->getPost('title'));
         $status = (string) $this->request->getPost('status');
         $payload = [
-            'title'           => $title,
-            'slug'            => $model->generateUniqueSlug($title, (int) $id),
-            'summary'         => (string) $this->request->getPost('summary'),
-            'content'         => (string) $this->request->getPost('content'),
-            'workflow_status' => $status,
-            'updated_at'      => $now,
+            'title'             => $title,
+            'slug'              => $model->generateUniqueSlug($title, (int) $id),
+            'summary'           => (string) $this->request->getPost('summary'),
+            'content'           => (string) $this->request->getPost('content'),
+            'document_category' => trim((string) $this->request->getPost('document_category')) ?: 'kak',
+            'document_version'  => trim((string) $this->request->getPost('document_version')) ?: 'v1.0',
+            'workflow_status'   => $status,
+            'updated_at'        => $now,
         ];
         if ($status === 'published' && empty($row['published_at'])) {
             $payload['published_at'] = $now;
