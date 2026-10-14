@@ -14,7 +14,7 @@ Dokumen ini tidak menggantikan isi dokumen yang diregistrasi. Untuk aturan subst
 - Satu file memiliki satu fungsi utama dan satu path kanonis.
 - Dokumen tidak boleh diduplikasi pada path lain tanpa alasan, status, dan aturan sinkronisasi yang eksplisit.
 - Perubahan file yang berdampak pada arsitektur, route, database, workflow, privacy, atau storage harus memperbarui dokumen terkait dan register ini.
-- Status “Sudah dibuat” hanya berarti artefak dokumentasi tersedia; status implementasi kode/database dicatat terpisah pada `docs/project/implementation-status.md`.
+- Status “Sudah dibuat” hanya berarti artefak dokumentasi tersedia; status implementasi kode/database dicatat terpisah pada `dokumen/implementation-status.md`.
 - Dokumen yang belum dibuat dapat dicatat sebagai target, tetapi tidak boleh dipakai sebagai sumber aturan sebelum tersedia.
 
 ---
@@ -34,12 +34,12 @@ Dokumen ini tidak menggantikan isi dokumen yang diregistrasi. Untuk aturan subst
 
 | Prioritas | Artefak | Fungsi |
 |---:|---|---|
-| 1 | `README.md` | Acuan utama scope, arsitektur, boundary, domain, security, dan arah implementasi |
-| 2 | `directory-tree.md` | Struktur target direktori dan file final |
-| 3 | Dokumen `docs/architecture/` | Kontrak implementasi antarmuka, route, auth/RBAC, workflow, dan storage |
-| 4 | Dokumen `docs/database/` | Kontrak struktur database, relasi, kolom, dan schema fresh |
-| 5 | Dokumen `docs/domain/` | Policy bisnis/domain yang detail |
-| 6 | Dokumen `docs/project/` | Register dokumentasi dan status implementasi |
+| 1 | `README.md` / `dokumen/README.md` | Acuan utama scope, arsitektur, boundary, domain, security, dan arah implementasi |
+| 2 | `dokumen/directory-tree.md` | Struktur target direktori dan file final |
+| 3 | Dokumen Arsitektur (`dokumen/route-contract.md`, `ui-boundary.md`, dll.) | Kontrak implementasi antarmuka, route, auth/RBAC, workflow, dan storage |
+| 4 | Dokumen Database (`dokumen/database-blueprint.md`, `schema-fresh-v4-1.sql`, dll.) | Kontrak struktur database, relasi, kolom, dan schema fresh (74 tabel) |
+| 5 | Dokumen Domain (`dokumen/registration-policy.md`, `regulation-policy.md`, dll.) | Policy bisnis/domain yang detail |
+| 6 | Dokumen Project (`dokumen/documentation-and-database-file-register.md`, `implementation-status.md`) | Register dokumentasi dan status implementasi |
 
 Jika terjadi konflik, perubahan tidak boleh diputuskan hanya dengan memilih satu dokumen. Dokumen pada level yang terdampak harus diperbarui bersama sehingga kembali konsisten.
 
@@ -56,10 +56,10 @@ Jika terjadi konflik, perubahan tidak boleh diputuskan hanya dengan memilih satu
 
 | Jika berubah | Dokumen minimal yang diperbarui |
 |---|---|
-| Scope/domain utama | `README.md`, `directory-tree.md`, policy domain terkait |
-| Boundary UI/controller/view/asset | `README.md`, `directory-tree.md`, `ui-boundary.md`, `route-contract.md` |
-| Path file/folder target | `directory-tree.md`, register ini, dokumen yang merujuk path tersebut |
-| Status implementasi modul | `docs/project/implementation-status.md` |
+| Scope/domain utama | `README.md` / `dokumen/README.md`, `dokumen/directory-tree.md`, policy domain terkait |
+| Boundary UI/controller/view/asset | `README.md`, `dokumen/ui-boundary.md`, `dokumen/route-contract.md` |
+| Path file/folder target | `dokumen/directory-tree.md`, register ini, dokumen yang merujuk path tersebut |
+| Status implementasi modul | `dokumen/implementation-status.md` |
 
 ---
 
@@ -67,11 +67,11 @@ Jika terjadi konflik, perubahan tidak boleh diputuskan hanya dengan memilih satu
 
 | No. | Path kanonis | Jenis | Status | Fungsi utama | Bergantung pada |
 |---:|---|---|---|---|---|
-| 3 | `docs/architecture/route-contract.md` | Markdown | Sudah dibuat | Route HTTP, method, controller, filter, permission, route name, view/response | README, directory tree |
-| 4 | `docs/architecture/ui-boundary.md` | Markdown | Sudah dibuat | Boundary Landing/Public, Auth, Workspace, Dashboard, Error, Reference, layout, dan asset | README, directory tree, route contract |
-| 5 | `docs/architecture/auth-and-rbac.md` | Markdown | Sudah dibuat | Auth, session, account status, role, permission, filter, ownership, assignment, redirect, audit akses | README, directory tree, route contract, UI boundary |
-| 6 | `docs/architecture/workflow-contract.md` | Markdown | Sudah dibuat | State machine, transisi, actor, approval, side effect, audit, dan lifecycle domain | README, route contract, auth/RBAC |
-| 7 | `docs/architecture/file-storage-policy.md` | Markdown | Sudah dibuat | Storage root, upload, file lifecycle, visibility, preview/download, export, retention, audit | README, directory tree, workflow, auth/RBAC |
+| 3 | `dokumen/route-contract.md` | Markdown | Sudah dibuat | Route HTTP, method, controller, filter, permission, route name, view/response | README, directory tree |
+| 4 | `dokumen/ui-boundary.md` | Markdown | Sudah dibuat | Boundary Landing/Public, Auth, Workspace, Dashboard, Error, Reference, layout, dan asset | README, directory tree, route contract |
+| 5 | `dokumen/auth-and-rbac.md` | Markdown | Sudah dibuat | Auth, session, account status, role, permission, filter, ownership, assignment, redirect, audit akses | README, directory tree, route contract, UI boundary |
+| 6 | `dokumen/workflow-contract.md` | Markdown | Sudah dibuat | State machine, transisi, actor, approval, side effect, audit, dan lifecycle domain | README, route contract, auth/RBAC |
+| 7 | `dokumen/file-storage-policy.md` | Markdown | Sudah dibuat | Storage root, upload, file lifecycle, visibility, preview/download, export, retention, audit | README, directory tree, workflow, auth/RBAC |
 
 ### Aturan perubahan arsitektur
 
@@ -89,16 +89,16 @@ Jika terjadi konflik, perubahan tidak boleh diputuskan hanya dengan memilih satu
 
 | No. | Path kanonis | Jenis | Status | Fungsi utama | Bergantung pada |
 |---:|---|---|---|---|---|
-| 8 | `docs/database/database-blueprint.md` | Markdown | Sudah dibuat | Tabel, PK/FK, status, constraint, index, migration order, seeder strategy | Architecture contracts |
-| 9 | `docs/database/database-erd.md` | Markdown | Sudah dibuat | ERD konseptual dan relasional serta kardinalitas | Database blueprint |
-| 10 | `docs/database/data-dictionary.md` | Markdown | Sudah dibuat | Definisi tabel/kolom, tipe, nullability, default, klasifikasi data, validasi | Blueprint, ERD, domain/architecture contracts |
-| 11 | `docs/database/schema-fresh-v4.sql` | SQL | Sudah dibuat | Schema fresh executable: create table, index, constraint, foreign key | Blueprint, ERD, data dictionary |
+| 8 | `dokumen/database-blueprint.md` | Markdown | Sudah dibuat | Tabel, PK/FK, status, constraint, index, migration order, seeder strategy | Architecture contracts |
+| 9 | `dokumen/database-erd.md` | Markdown | Sudah dibuat | ERD konseptual dan relasional serta kardinalitas | Database blueprint |
+| 10 | `dokumen/data-dictionary.md` | Markdown | Sudah dibuat | Definisi tabel/kolom, tipe, nullability, default, klasifikasi data, validasi | Blueprint, ERD, domain/architecture contracts |
+| 11 | `dokumen/schema-fresh-v4-1.sql` | SQL | Sudah dibuat | Schema fresh executable V4.1 (74 tabel, 1:1 match live database): create table, index, constraint, foreign key | Blueprint, ERD, data dictionary |
 
 ### Tabel master wilayah
 
 | Artefak | Path | Status | Fungsi |
 |---|---|---|---|
-| Struktur tabel master wilayah | `docs/database/schema-fresh-v4.sql` | Sudah dibuat | Membuat tabel `wilayah` tanpa data seed |
+| Struktur tabel master wilayah | `dokumen/schema-fresh-v4-1.sql` | Sudah dibuat | Membuat tabel `wilayah` tanpa data seed |
 | Data master wilayah resmi | `database/reference/wilayah.sql` | Required external import | Mengisi tabel `wilayah` setelah schema dibuat |
 
 Kontrak `wilayah`:
@@ -114,8 +114,8 @@ CREATE TABLE wilayah (
 
 Aturan:
 
-- `schema-fresh-v4.sql` membuat tabel `wilayah`.
-- `schema-fresh-v4.sql` tidak mengisi data master wilayah.
+- `schema-fresh-v4-1.sql` membuat tabel `wilayah`.
+- `schema-fresh-v4-1.sql` tidak mengisi data master wilayah.
 - `database/reference/wilayah.sql` diimpor manual setelah schema fresh dijalankan.
 - Aplikasi memperlakukan data `wilayah` sebagai master read-only.
 - `user_profiles.province_code`, `regency_code`, `district_code`, dan `village_code` mengacu ke `wilayah.kode`.
@@ -124,7 +124,7 @@ Aturan:
 
 ```text
 1. Buat database kosong dengan charset utf8mb4.
-2. Jalankan docs/database/schema-fresh-v4.sql.
+2. Jalankan dokumen/schema-fresh-v4-1.sql.
 3. Import database/reference/wilayah.sql secara manual.
 4. Jalankan migration/seed sesuai environment ketika implementasi tersedia.
 5. Jalankan database test untuk constraint, FK, index, dan lifecycle kritis.
@@ -146,11 +146,11 @@ Aturan:
 
 | No. | Path kanonis | Jenis | Status | Fungsi utama | Bergantung pada |
 |---:|---|---|---|---|---|
-| 12 | `docs/domain/registration-policy.md` | Markdown | Sudah dibuat | Registrasi, tipe profil, verifikasi, wilayah, profile change, role request | Auth/RBAC, workflow, storage, database |
-| 13 | `docs/domain/assessment-and-certification-rules.md` | Markdown | Sudah dibuat | Enrollment, assessment, grading, final score, eligibility, certificate issue/revoke/verification | Workflow, storage, route, database |
-| 14 | `docs/domain/regulation-policy.md` | Markdown | Sudah dibuat | Metadata regulasi, legal status, workflow, versioning, relation, file, preview/download | Workflow, storage, privacy, database |
-| 15 | `docs/domain/privacy-and-data-classification.md` | Markdown | Sudah dibuat | Klasifikasi P/I/R/S, masking, disclosure, logging, export, retention, incident | Auth/RBAC, storage, database |
-| 16 | `docs/domain/public-statistics-policy.md` | Markdown | Sudah dibuat | Indikator publik, agregasi, suppression, threshold, disclosure control | Privacy policy, database, route/UI boundary |
+| 12 | `dokumen/registration-policy.md` | Markdown | Sudah dibuat | Registrasi, tipe profil, verifikasi, wilayah, profile change, role request | Auth/RBAC, workflow, storage, database |
+| 13 | `dokumen/assessment-and-certification-rules.md` | Markdown | Sudah dibuat | Enrollment, assessment, grading, final score, eligibility, certificate issue/revoke/verification | Workflow, storage, route, database |
+| 14 | `dokumen/regulation-policy.md` | Markdown | Sudah dibuat | Metadata regulasi, legal status, workflow, versioning, relation, file, preview/download | Workflow, storage, privacy, database |
+| 15 | `dokumen/privacy-and-data-classification.md` | Markdown | Sudah dibuat | Klasifikasi P/I/R/S, masking, disclosure, logging, export, retention, incident | Auth/RBAC, storage, database |
+| 16 | `dokumen/public-statistics-policy.md` | Markdown | Sudah dibuat | Indikator publik, agregasi, suppression, threshold, disclosure control | Privacy policy, database, route/UI boundary |
 
 ### Aturan perubahan domain
 
@@ -167,10 +167,11 @@ Aturan:
 
 | No. | Path kanonis | Jenis | Status | Fungsi utama | Bergantung pada |
 |---:|---|---|---|---|---|
-| 17 | `docs/project/documentation-and-database-file-register.md` | Markdown | Sudah dibuat | Register seluruh dokumentasi kontrak dan artefak database | Semua dokumen/artefak terdaftar |
-| 18 | `docs/project/implementation-status.md` | Markdown | Belum dibuat | Register status Planned/UI Implemented/Backend Ready/Production Ready per area | README, directory tree, seluruh kontrak implementasi |
+| 17 | `dokumen/documentation-and-database-file-register.md` | Markdown | Sudah dibuat | Register seluruh dokumentasi kontrak dan artefak database | Semua dokumen/artefak terdaftar |
+| 18 | `dokumen/implementation-status.md` | Markdown | Sudah dibuat | Register status Planned/UI Implemented/Backend Ready/Production Ready per area | README, directory tree, seluruh kontrak implementasi |
+| 19 | `dokumen/auth-migration-plan.md` | Markdown | Archived | Rencana migrasi auth terpadu (Selesai diimplementasikan) | Auth/RBAC, schema-fresh-v4-1.sql |
 
-`docs/project/directory-tree.md` tidak dibuat karena `directory-tree.md` pada root adalah satu-satunya dokumen kanonis struktur direktori/file target.
+`dokumen/directory-tree.md` adalah satu-satunya dokumen kanonis struktur direktori/file target.
 
 ---
 
@@ -277,4 +278,4 @@ Sebelum artefak baru dinyatakan resmi, pastikan:
 - [ ] Jika database terkait, blueprint, ERD, data dictionary, schema fresh, migration, dan test terdampak telah ditinjau.
 - [ ] Jika route/akses terkait, route contract, auth/RBAC, UI boundary, workflow, dan test terdampak telah ditinjau.
 - [ ] Jika privacy/file terkait, privacy policy dan file storage policy terdampak telah ditinjau.
-- [ ] Status implementasi tercatat pada `docs/project/implementation-status.md` ketika file tersebut tersedia.
+- [ ] Status implementasi tercatat pada `dokumen/implementation-status.md` ketika file tersebut tersedia.

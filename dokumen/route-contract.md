@@ -36,11 +36,11 @@ Kontrak ini mengikuti arsitektur yang ditetapkan dalam `README.md` dan lokasi fi
 
 | Area | Prefix nama route | Contoh |
 |---|---|---|
-| Landing/Public | `landing.*` | `landing.home`, `landing.regulations.index` |
-| Auth | `dashboard.auth.*` | `dashboard.auth.login`, `dashboard.auth.register.account` |
-| Workspace | `workspace.*` | `workspace.home`, `workspace.participant.study` |
-| Dashboard Back-office | `dashboard.*` | `dashboard.home`, `dashboard.users.index` |
-| Shared file | `shared.file.*` | `shared.file.preview`, `shared.file.download` |
+| Landing/Public | `public.*` | `public.home`, `public.regulations.index`, `public.news.index`, `public.events.index` |
+| Auth | `dashboard.auth.*` | `dashboard.auth.login`, `dashboard.auth.register`, `dashboard.auth.register.address` |
+| Workspace | `workspace.*` | `workspace.home`, `workspace.participant.classes`, `workspace.participant.attendance` |
+| Dashboard Back-office | `dashboard.*` | `dashboard.home`, `dashboard.communication.events`, `dashboard.learning.classes` |
+| Shared file | `public.file.*` / `shared.file.*` | `public.file.show`, `shared.file.preview`, `shared.file.download` |
 | Shared export | `shared.export.*` | `shared.export.download` |
 
 Route name `dashboard.auth.*` secara eksplisit membedakan Auth UI dari route Back-office `dashboard.*`.
@@ -84,39 +84,45 @@ Seluruh route pada bagian ini dirender menggunakan FiStudy di `app/Views/landing
 
 | Method | Path | Route name | Controller | Filter | View/response |
 |---|---|---|---|---|---|
-| GET | `/` | `landing.home` | `Landing\HomeController::index` | — | `landing/home/index` |
-| GET | `/tentang` | `landing.pages.about` | `Landing\PublicPageController::about` | — | `landing/pages/about` |
-| GET | `/kontak` | `landing.pages.contact` | `Landing\PublicPageController::contact` | — | `landing/pages/contact` |
-| POST | `/kontak` | `landing.pages.contact.send` | `Landing\PublicPageController::sendContact` | `rateLimit:contact` | Redirect + flash message; notification/log bila diperlukan |
-| GET | `/privasi` | `landing.pages.privacy` | `Landing\PublicPageController::privacy` | — | `landing/pages/privacy` |
-| GET | `/syarat-ketentuan` | `landing.pages.terms` | `Landing\PublicPageController::terms` | — | `landing/pages/terms` |
-| GET | `/aksesibilitas` | `landing.pages.accessibility` | `Landing\PublicPageController::accessibility` | — | `landing/pages/accessibility` |
+| GET | `/` | `public.home` | `Landing\HomeController::index` | — | `landing/home/index` |
+| GET | `/tentang` | `public.about` | `Landing\HomeController::about` | — | `landing/pages/about` |
+| GET | `/kontak` | `public.contact` | `Landing\HomeController::contact` | — | `landing/pages/contact` |
+| POST | `/kontak` | `public.contact.send` | `Landing\HomeController::sendContact` | `rateLimit:contact` | Redirect + flash message; notification/log |
+| GET | `/file/{segment}` | `public.file.show` | `Landing\FileController::show/$1` | — | Inline/download file publik terverifikasi |
 
 ### Arena Belajar publik
 
 | Method | Path | Route name | Controller | Filter | View/response |
 |---|---|---|---|---|---|
-| GET | `/arena-belajar` | `landing.learning.index` | `Landing\ArenaBelajarController::index` | — | `landing/learning/program_list` |
-| GET | `/arena-belajar/program/{slug}` | `landing.learning.program.show` | `Landing\ArenaBelajarController::program` | — | Public program detail/list response |
-| GET | `/arena-belajar/course` | `landing.learning.courses.index` | `Landing\ArenaBelajarController::courses` | — | `landing/learning/course_list` |
-| GET | `/arena-belajar/course/{slug}` | `landing.learning.courses.show` | `Landing\ArenaBelajarController::course` | — | `landing/learning/course_detail` |
-| GET | `/arena-belajar/instruktur` | `landing.learning.instructors.index` | `Landing\ArenaBelajarController::instructors` | — | `landing/learning/instructor_list` |
-| GET | `/arena-belajar/instruktur/{slug}` | `landing.learning.instructors.show` | `Landing\ArenaBelajarController::instructor` | — | `landing/learning/instructor_detail` |
+| GET | `/arena-belajar` | `public.learning.index` | `Landing\ArenaBelajarController::index` | — | `landing/learning/index` |
+| GET | `/arena-belajar/program` | `public.learning.programs` | `Landing\ArenaBelajarController::programs` | — | `landing/learning/programs` |
+| GET | `/arena-belajar/program/{slug}` | `public.learning.program.detail` | `Landing\ArenaBelajarController::programDetail` | — | `landing/learning/program_detail` |
+| GET | `/arena-belajar/course` | `public.learning.courses` | `Landing\ArenaBelajarController::courses` | — | `landing/learning/courses` |
+| GET | `/arena-belajar/course/{slug}` | `public.learning.course.detail` | `Landing\ArenaBelajarController::courseDetail` | — | `landing/learning/course_detail` |
+| GET | `/arena-belajar/kelas` | `public.learning.classes` | `Landing\ArenaBelajarController::classes` | — | `landing/learning/classes` |
+| GET | `/arena-belajar/kelas/{slug}` | `public.learning.class.detail` | `Landing\ArenaBelajarController::classDetail` | — | `landing/learning/class_detail` |
+| POST | `/arena-belajar/kelas/{slug}/daftar` | — | `Landing\ArenaBelajarController::enroll` | `auth` | Redirect pendaftaran kelas |
+| GET | `/arena-belajar/pengajar` | `public.learning.trainers` | `Landing\ArenaBelajarController::trainers` | — | `landing/learning/trainers` |
+| GET | `/arena-belajar/pengajar/{slug}` | `public.learning.trainer.detail` | `Landing\ArenaBelajarController::trainerDetail` | — | `landing/learning/trainer_detail` |
 
-Hanya program, course, class, atau profil instruktur yang memenuhi kebijakan visibility/publikasi yang boleh dirender pada route publik.
+Hanya program, course, class, atau profil pengajar yang memenuhi kebijakan visibility/publikasi yang boleh dirender pada route publik.
 
-### Bunga Rampai
+### Bunga Rampai publik
 
 | Method | Path | Route name | Controller | Filter | View/response |
 |---|---|---|---|---|---|
-| GET | `/bunga-rampai` | `landing.knowledge.index` | `Landing\BungaRampaiController::index` | — | `landing/knowledge/index` |
-| GET | `/bunga-rampai/artikel` | `landing.knowledge.articles.index` | `Landing\BungaRampaiController::articles` | — | `landing/knowledge/article_list` |
-| GET | `/bunga-rampai/artikel/{slug}` | `landing.knowledge.articles.show` | `Landing\BungaRampaiController::article` | — | `landing/knowledge/article_detail` |
-| GET | `/bunga-rampai/faq` | `landing.knowledge.faq` | `Landing\BungaRampaiController::faq` | — | `landing/knowledge/faq` |
-| GET | `/bunga-rampai/studi-kasus` | `landing.knowledge.case-studies.index` | `Landing\BungaRampaiController::caseStudies` | — | `landing/knowledge/case_study_list` |
-| GET | `/bunga-rampai/template` | `landing.knowledge.templates.index` | `Landing\BungaRampaiController::templates` | — | `landing/knowledge/template_list` |
-| GET | `/bunga-rampai/media` | `landing.knowledge.media.index` | `Landing\BungaRampaiController::media` | — | `landing/knowledge/media_gallery` |
-| GET | `/bunga-rampai/cari` | `landing.knowledge.search` | `Landing\BungaRampaiController::search` | `rateLimit:public-search` | `landing/knowledge/search_result` |
+| GET | `/bunga-rampai` | `public.knowledge.index` | `Landing\BungaRampaiController::index` | — | `landing/knowledge/index` |
+| GET | `/bunga-rampai/artikel` | `public.knowledge.articles` | `Landing\BungaRampaiController::articles` | — | `landing/knowledge/articles` |
+| GET | `/bunga-rampai/artikel/{slug}` | `public.knowledge.article.detail` | `Landing\BungaRampaiController::articleDetail` | — | `landing/knowledge/article_detail` |
+| GET | `/bunga-rampai/faq` | `public.knowledge.faqs` | `Landing\BungaRampaiController::faqs` | — | `landing/knowledge/faqs` |
+| GET | `/bunga-rampai/studi-kasus` | `public.knowledge.case-studies` | `Landing\BungaRampaiController::caseStudies` | — | `landing/knowledge/case_studies` |
+| GET | `/bunga-rampai/studi-kasus/{slug}` | `public.knowledge.case-study.detail` | `Landing\BungaRampaiController::caseStudyDetail` | — | `landing/knowledge/case_study_detail` |
+| GET | `/bunga-rampai/template-dokumen` | `public.knowledge.templates` | `Landing\BungaRampaiController::templates` | — | `landing/knowledge/templates` |
+| GET | `/bunga-rampai/template-dokumen/{slug}` | `public.knowledge.templates.detail` | `Landing\BungaRampaiController::templateDetail` | — | `landing/knowledge/template_detail` |
+| GET | `/bunga-rampai/template-dokumen/{slug}/unduh` | `public.knowledge.templates.download` | `Landing\BungaRampaiController::templateDownload` | `rateLimit:download` | Download template publik |
+| GET | `/bunga-rampai/media` | `public.knowledge.media` | `Landing\BungaRampaiController::media` | — | `landing/knowledge/media` |
+| GET | `/bunga-rampai/video` | `public.knowledge.videos` | `Landing\BungaRampaiController::videos` | — | `landing/knowledge/videos` |
+| GET | `/bunga-rampai/galeri` | `public.knowledge.gallery` | `Landing\BungaRampaiController::gallery` | — | `landing/knowledge/gallery` |
 
 Route publik hanya boleh menampilkan konten dengan publication status dan visibility yang diizinkan.
 
@@ -124,11 +130,13 @@ Route publik hanya boleh menampilkan konten dengan publication status dan visibi
 
 | Method | Path | Route name | Controller | Filter | View/response |
 |---|---|---|---|---|---|
-| GET | `/regulasi` | `landing.regulations.index` | `Landing\RegulationPublicController::index` | — | `landing/regulations/index` |
-| GET | `/regulasi/{slug}` | `landing.regulations.show` | `Landing\RegulationPublicController::show` | — | `landing/regulations/detail` |
-| GET | `/regulasi/{slug}/versi` | `landing.regulations.versions` | `Landing\RegulationPublicController::versions` | — | `landing/regulations/version_list` |
-| GET | `/regulasi/{slug}/relasi` | `landing.regulations.relations` | `Landing\RegulationPublicController::relations` | — | `landing/regulations/relation_list` |
-| GET | `/regulasi/cari` | `landing.regulations.search` | `Landing\RegulationPublicController::search` | `rateLimit:public-search` | Public filtered response |
+| GET | `/regulasi` | `public.regulations.index` | `Landing\RegulationPublicController::index` | — | `landing/regulations/index` |
+| GET | `/regulasi/kategori/{slug}` | `public.regulations.category` | `Landing\RegulationPublicController::category` | — | `landing/regulations/index` (filtered) |
+| GET | `/regulasi/{slug}/versi` | `public.regulations.versions` | `Landing\RegulationPublicController::versions` | — | `landing/regulations/versions` |
+| GET | `/regulasi/{slug}/relasi` | `public.regulations.relations` | `Landing\RegulationPublicController::relations` | — | `landing/regulations/relations` |
+| GET | `/regulasi/{slug}/preview` | `public.regulations.preview` | `Landing\RegulationPublicController::preview` | — | Inline PDF/Dokumen preview |
+| GET | `/regulasi/{slug}/unduh` | `public.regulations.download` | `Landing\RegulationPublicController::download` | `rateLimit:download` | Download dokumen regulasi + increment counter |
+| GET | `/regulasi/{slug}` | `public.regulations.detail` | `Landing\RegulationPublicController::detail` | — | `landing/regulations/detail` |
 
 Hanya regulasi yang memenuhi `workflow_status = published` dan visibility publik dapat ditampilkan. Legal status `active`, `amended`, `revoked`, atau `expired` tidak dengan sendirinya menyembunyikan regulasi yang sudah dipublikasikan.
 
@@ -136,30 +144,43 @@ Hanya regulasi yang memenuhi `workflow_status = published` dan visibility publik
 
 | Method | Path | Route name | Controller | Filter | View/response |
 |---|---|---|---|---|---|
-| GET | `/berita` | `landing.news.index` | `Landing\NewsPublicController::index` | — | `landing/news/index` |
-| GET | `/berita/{slug}` | `landing.news.show` | `Landing\NewsPublicController::show` | — | `landing/news/detail` |
+| GET | `/berita` | `public.news.index` | `Landing\NewsPublicController::index` | — | `landing/news/index` (Top 5 Featured carousel, hit counter +1) |
+| GET | `/berita/kategori/{slug}` | `public.news.category` | `Landing\NewsPublicController::category` | — | `landing/news/index` (kategori filter) |
+| GET | `/berita/{slug}` | `public.news.detail` | `Landing\NewsPublicController::detail` | — | `landing/news/detail` (view counter increment) |
 
 ### Agenda dan event publik
 
 | Method | Path | Route name | Controller | Filter | View/response |
 |---|---|---|---|---|---|
-| GET | `/event` | `landing.events.index` | `Landing\EventPublicController::index` | — | `landing/events/index` |
-| GET | `/event/{slug}` | `landing.events.show` | `Landing\EventPublicController::show` | — | `landing/events/detail` |
+| GET | `/event` | `public.events.index` | `Landing\EventPublicController::index` | — | `landing/events/index` |
+| GET | `/event/agenda` | `public.events.agenda` | `Landing\EventPublicController::agenda` | — | `landing/events/agenda` |
+| GET | `/event/kalender` | `public.events.calendar` | `Landing\EventPublicController::calendar` | — | `landing/events/calendar` |
+| GET | `/event/{slug}` | `public.events.detail` | `Landing\EventPublicController::detail` | — | `landing/events/detail` |
+| POST | `/event/{slug}/daftar` | `public.events.register` | `Landing\EventPublicController::register` | `auth` | Registrasi event (registered/waitlist) |
 
 ### Statistik publik
 
 | Method | Path | Route name | Controller | Filter | View/response |
 |---|---|---|---|---|---|
-| GET | `/statistik` | `landing.statistics.index` | `Landing\StatisticPublicController::index` | — | `landing/statistics/index` |
-| GET | `/statistik/data` | `landing.statistics.data` | `Landing\StatisticPublicController::data` | `rateLimit:public-statistics` | JSON agregat tanpa data restricted |
+| GET | `/statistik` | `public.statistics.index` | `Landing\StatisticPublicController::index` | — | `landing/statistics/index` |
+| GET | `/statistik/pembelajaran` | `public.statistics.learning` | `Landing\StatisticPublicController::learning` | — | `landing/statistics/learning` |
+| GET | `/statistik/event` | `public.statistics.events` | `Landing\StatisticPublicController::events` | — | `landing/statistics/events` |
+| GET | `/statistik/kompetensi` | `public.statistics.competency` | `Landing\StatisticPublicController::competency` | — | `landing/statistics/competency` |
 
 ### Verifikasi sertifikat publik
 
 | Method | Path | Route name | Controller | Filter | View/response |
 |---|---|---|---|---|---|
-| GET | `/sertifikat/verifikasi` | `landing.certificates.verify.form` | `Landing\CertificateVerificationController::form` | — | `landing/certificates/verify` |
-| POST | `/sertifikat/verifikasi` | `landing.certificates.verify.submit` | `Landing\CertificateVerificationController::verify` | `rateLimit:certificate-verify` | `landing/certificates/verify` + hasil minimum aman |
-| GET | `/sertifikat/verifikasi/{token}` | `landing.certificates.verify.token` | `Landing\CertificateVerificationController::verifyToken` | `rateLimit:certificate-verify` | `landing/certificates/verify` + hasil minimum aman |
+| GET | `/verifikasi-sertifikat` | `public.certificate.verify` | `Landing\CertificateVerificationController::index` | — | `landing/certificates/verify` (form cari nomor / hash) |
+| GET/POST | `/verifikasi-sertifikat/hasil` | `public.certificate.verify.result` | `Landing\CertificateVerificationController::result` | `rateLimit:certificate-verify` | `landing/certificates/result` |
+| GET | `/verifikasi-sertifikat/{token}` | `public.certificate.verify.detail` | `Landing\CertificateVerificationController::detail` | `rateLimit:certificate-verify` | `landing/certificates/detail` |
+| GET | `/verify/certificate/{token}` | `public.certificate.verify.qr` | `Landing\CertificateVerificationController::detail` | `rateLimit:certificate-verify` | Quick QR scan verification lookup via SHA-256 hash |
+
+### Bookmark Publik
+
+| Method | Path | Route name | Controller | Filter | View/response |
+|---|---|---|---|---|---|
+| POST | `/bookmark/toggle` | `public.bookmark.toggle` | `BookmarkController::toggle` | `auth` | JSON toggle response (pembelajaran, berita, event, regulasi, dokumen) |
 
 ---
 
@@ -462,18 +483,36 @@ auth
 
 | Method | Path | Route name | Controller | Permission minimum | View/response |
 |---|---|---|---|---|---|
-| GET | `/dashboard/komunikasi/berita` | `dashboard.communication.news.index` | `Communication\NewsController::index` | `news.view` | `dashboard/communication/news` |
-| GET | `/dashboard/komunikasi/berita/baru` | `dashboard.communication.news.create` | `Communication\NewsController::create` | `news.create` | `dashboard/communication/news_form` |
-| POST | `/dashboard/komunikasi/berita` | `dashboard.communication.news.store` | `Communication\NewsController::store` | `news.create` | Redirect + audit |
+| GET | `/dashboard/komunikasi/berita` | `dashboard.communication.news` | `Communication\NewsController::index` | `news.view` | `dashboard/communication/news` |
+| GET | `/dashboard/komunikasi/berita/tambah` | `dashboard.communication.news.create` | `Communication\NewsController::create` | `news.create` | `dashboard/communication/news_form` |
+| POST | `/dashboard/komunikasi/berita/tambah` | — | `Communication\NewsController::store` | `news.create` | Redirect + audit |
 | GET | `/dashboard/komunikasi/berita/{newsId}/ubah` | `dashboard.communication.news.edit` | `Communication\NewsController::edit` | `news.update` | `dashboard/communication/news_form` |
-| PATCH | `/dashboard/komunikasi/berita/{newsId}` | `dashboard.communication.news.update` | `Communication\NewsController::update` | `news.update` | Redirect + audit |
-| GET | `/dashboard/komunikasi/event` | `dashboard.communication.events.index` | `Communication\EventController::index` | `event.view` | `dashboard/communication/events` |
-| GET | `/dashboard/komunikasi/event/baru` | `dashboard.communication.events.create` | `Communication\EventController::create` | `event.create` | `dashboard/communication/event_form` |
-| POST | `/dashboard/komunikasi/event` | `dashboard.communication.events.store` | `Communication\EventController::store` | `event.create` | Redirect + audit |
-| GET | `/dashboard/komunikasi/event/{eventId}/ubah` | `dashboard.communication.events.edit` | `Communication\EventController::edit` | `event.update` | `dashboard/communication/event_form` |
-| PATCH | `/dashboard/komunikasi/event/{eventId}` | `dashboard.communication.events.update` | `Communication\EventController::update` | `event.update` | Redirect + audit |
-| GET | `/dashboard/komunikasi/event/registrasi` | `dashboard.communication.events.registrations` | `Communication\EventRegistrationController::index` | `event.registration.view` | `dashboard/communication/registrations` |
-| GET | `/dashboard/komunikasi/event/absensi` | `dashboard.communication.events.attendance` | `Communication\AttendanceController::index` | `event.attendance.view` | `dashboard/communication/attendance` |
+| POST | `/dashboard/komunikasi/berita/{newsId}/ubah` | — | `Communication\NewsController::update` | `news.update` | Redirect + audit |
+| GET | `/dashboard/komunikasi/berita/{newsId}` | `dashboard.communication.news.detail` | `Communication\NewsController::detail` | `news.view` | `dashboard/communication/news_detail` |
+| POST | `/dashboard/komunikasi/berita/{newsId}/hapus` | `dashboard.communication.news.delete` | `Communication\NewsController::delete` | `news.delete` | Redirect + audit |
+| GET | `/dashboard/komunikasi/kategori-berita` | `dashboard.communication.news-categories` | `Communication\NewsController::categories` | `news.view` | `dashboard/communication/categories` |
+| GET | `/dashboard/komunikasi/kategori-berita/tambah` | `dashboard.communication.news-categories.create` | `Communication\NewsController::categoryCreate` | `news.create` | `dashboard/communication/category_form` |
+| POST | `/dashboard/komunikasi/kategori-berita/tambah` | — | `Communication\NewsController::categoryStore` | `news.create` | Redirect + audit |
+| GET | `/dashboard/komunikasi/kategori-berita/{id}/ubah` | `dashboard.communication.news-categories.edit` | `Communication\NewsController::categoryEdit` | `news.update` | `dashboard/communication/category_form` |
+| POST | `/dashboard/komunikasi/kategori-berita/{id}/ubah` | — | `Communication\NewsController::categoryUpdate` | `news.update` | Redirect + audit |
+| POST | `/dashboard/komunikasi/kategori-berita/{id}/hapus` | — | `Communication\NewsController::categoryDelete` | `news.delete` | Redirect + audit |
+| GET | `/dashboard/komunikasi/event-agenda` | `dashboard.communication.events` | `Communication\EventController::index` | `event.view` | `dashboard/communication/events` |
+| GET | `/dashboard/komunikasi/event-agenda/tambah` | `dashboard.communication.events.create` | `Communication\EventController::create` | `event.create` | `dashboard/communication/event_form` |
+| POST | `/dashboard/komunikasi/event-agenda/tambah` | — | `Communication\EventController::store` | `event.create` | Redirect + audit |
+| GET | `/dashboard/komunikasi/event-agenda/{eventId}/ubah` | `dashboard.communication.events.edit` | `Communication\EventController::edit` | `event.update` | `dashboard/communication/event_form` |
+| POST | `/dashboard/komunikasi/event-agenda/{eventId}/ubah` | — | `Communication\EventController::update` | `event.update` | Redirect + audit |
+| GET | `/dashboard/komunikasi/event-agenda/{eventId}` | `dashboard.communication.events.detail` | `Communication\EventController::detail` | `event.view` | `dashboard/communication/event_detail` |
+| POST | `/dashboard/komunikasi/event-agenda/{eventId}/generate-kode-presensi` | `dashboard.communication.events.generate-attendance-code` | `Communication\EventController::generateAttendanceCode` | `event.update` | JSON / Redirect (kode 6 digit + hash) |
+| POST | `/dashboard/komunikasi/event-agenda/{eventId}/buka-presensi` | `dashboard.communication.events.open-attendance` | `Communication\EventController::openAttendance` | `event.update` | Redirect + audit |
+| POST | `/dashboard/komunikasi/event-agenda/{eventId}/tutup-presensi` | `dashboard.communication.events.close-attendance` | `Communication\EventController::closeAttendance` | `event.update` | Redirect + audit |
+| POST | `/dashboard/komunikasi/event-agenda/{eventId}/batch-certificates` | `dashboard.communication.events.batch-certificates` | `Communication\EventController::batchCertificates` | `certificate.create` | JSON / Redirect (atomic issue attended) |
+| POST | `/dashboard/komunikasi/event-agenda/{eventId}/hapus` | `dashboard.communication.events.delete` | `Communication\EventController::delete` | `event.delete` | Redirect + audit |
+| GET | `/dashboard/komunikasi/registrasi-event` | `dashboard.communication.event-registrations` | `Communication\EventRegistrationController::index` | `event.registration.view` | `dashboard/communication/registrations` |
+| GET | `/dashboard/komunikasi/registrasi-event/{id}` | `dashboard.communication.event-registrations.detail` | `Communication\EventRegistrationController::detail` | `event.registration.view` | `dashboard/communication/registration_detail` |
+| POST | `/dashboard/komunikasi/registrasi-event/{id}/status` | — | `Communication\EventRegistrationController::updateStatus` | `event.registration.manage` | Redirect status change |
+| GET | `/dashboard/komunikasi/kehadiran` | `dashboard.communication.attendance` | `Communication\AttendanceController::index` | `event.attendance.view` | `dashboard/communication/attendance` |
+| POST | `/dashboard/komunikasi/kehadiran/{id}/catatan` | — | `Communication\AttendanceController::record` | `event.attendance.manage` | Redirect attendance record update |
+| GET | `/dashboard/komunikasi/waitlist-pembatalan` | `dashboard.communication.waitlist-cancellations` | `Communication\EventRegistrationController::waitlistAndCancellation` | `event.registration.view` | `dashboard/communication/waitlist_cancellations` |
 
 ### Sertifikat Back-office
 
@@ -553,7 +592,7 @@ Untuk resource restricted, sistem boleh mengembalikan 404 alih-alih 403 jika pen
 
 ## Status Implementasi Route
 
-Status route harus dicatat di `docs/project/implementation-status.md` dengan definisi berikut:
+Status route harus dicatat di `dokumen/implementation-status.md` dengan definisi berikut:
 
 | Status | Kriteria route |
 |---|---|

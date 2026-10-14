@@ -4,7 +4,7 @@
 
 Dokumen ini menetapkan batas antarmuka pengguna BegawiPBJ: pemilihan template, root controller, root view, layout, asset, pengguna, tujuan akses, dan aturan perpindahan antar-area.
 
-Dokumen ini melengkapi `README.md`, `directory-tree.md`, dan `docs/architecture/route-contract.md`. Dokumen ini tidak menetapkan route baru, permission baru, atau domain baru; seluruh path dan boundary di bawah mengikuti ketiga dokumen tersebut.
+Dokumen ini melengkapi `README.md`, `dokumen/directory-tree.md`, dan `dokumen/route-contract.md`. Dokumen ini tidak menetapkan route baru, permission baru, atau domain baru; seluruh path dan boundary di bawah mengikuti ketiga dokumen tersebut.
 
 ---
 
@@ -561,7 +561,7 @@ public/assets/dashboard/
 Sebelum sebuah halaman dinyatakan `UI Implemented`, pastikan:
 
 - [ ] Controller berada pada boundary yang benar.
-- [ ] Route terdaftar pada `docs/architecture/route-contract.md`.
+- [ ] Route terdaftar pada `dokumen/route-contract.md`.
 - [ ] View berada pada root yang benar.
 - [ ] Layout sesuai boundary: `public.php`, `workspace.php`, `auth.php`, atau `dashboard.php`.
 - [ ] Asset hanya berasal dari root asset template yang benar.

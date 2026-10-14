@@ -4,17 +4,17 @@
 
 Dokumen ini menyajikan Entity Relationship Diagram (ERD) konseptual dan relasional untuk BegawiPBJ. ERD ini menjelaskan entitas, hubungan, kardinalitas, ownership, pivot table, serta batas domain database.
 
-Dokumen ini merupakan visualisasi dan penjelasan relasi dari `docs/database/database-blueprint.md`. Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
+Dokumen ini merupakan visualisasi dan penjelasan relasi dari `dokumen/database-blueprint.md`. Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 
 ```text
 README.md
-directory-tree.md
-docs/architecture/route-contract.md
-docs/architecture/ui-boundary.md
-docs/architecture/auth-and-rbac.md
-docs/architecture/workflow-contract.md
-docs/architecture/file-storage-policy.md
-docs/database/database-blueprint.md
+dokumen/directory-tree.md
+dokumen/route-contract.md
+dokumen/ui-boundary.md
+dokumen/auth-and-rbac.md
+dokumen/workflow-contract.md
+dokumen/file-storage-policy.md
+dokumen/database-blueprint.md
 ```
 
 Nama tabel, status, constraint, tipe kolom, index, dan migration order yang bersifat definitif mengikuti Database Blueprint. ERD berfokus pada hubungan dan struktur konseptual agar implementasi migration, model, service, dan query memiliki pemahaman relasional yang sama.

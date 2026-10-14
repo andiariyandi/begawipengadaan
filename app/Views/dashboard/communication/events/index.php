@@ -2,9 +2,43 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
+/* Bulletproof Jitter-Free & Shake-Free Scroll at Viewport Extremities */
+html {
+    scroll-behavior: auto !important;
+    overflow-x: clip !important;
+    overflow-y: scroll !important;
+    overscroll-behavior: none !important;
+    overscroll-behavior-y: none !important;
+    overflow-anchor: none !important;
+}
+body {
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    overscroll-behavior: none !important;
+    overscroll-behavior-y: none !important;
+    overflow-anchor: none !important;
+    min-height: 100vh;
+}
+.dashboard-main {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: margin-inline-start 0.3s ease, margin-left 0.3s ease !important;
+}
+.dashboard-main-body {
+    flex: 1 0 auto;
+}
+.d-footer {
+    margin-block-start: 24px !important;
+    position: relative;
+    z-index: 1;
+}
+
 /* Scoped Events Dashboard Styling for Maximum Contrast, Clean Alignment & Legibility */
 .events-dashboard-container {
     color: #0f172a !important;
+    overflow-x: clip;
+    padding-bottom: 24px;
 }
 .events-dashboard-container * {
     box-sizing: border-box;
@@ -49,7 +83,7 @@
     letter-spacing: 0.3px;
 }
 
-/* KPI Cards */
+/* KPI Cards - Jitter-Free Solid Alignment */
 .kpi-event-card {
     background: #ffffff;
     border: 1px solid #e2e8f0 !important;
@@ -60,11 +94,11 @@
     flex-direction: column;
     justify-content: space-between;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .kpi-event-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px -2px rgba(0,0,0,0.06);
+    border-color: #93c5fd !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 
 /* Action Dropdown Button */
@@ -96,7 +130,7 @@
     color: #ffffff !important;
 }
 
-/* Event Grid Card */
+/* Event Grid Card - Jitter-Free Solid Alignment */
 .event-grid-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -106,12 +140,11 @@
     display: flex;
     flex-direction: column;
     box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .event-grid-card:hover {
-    border-color: #93c5fd;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px -3px rgba(0,0,0,0.07);
+    border-color: #0284c7;
+    box-shadow: 0 6px 16px -2px rgba(2, 132, 199, 0.12);
 }
 .event-cover-wrapper {
     position: relative;
@@ -125,10 +158,10 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: opacity 0.2s ease;
 }
 .event-grid-card:hover .event-cover-img {
-    transform: scale(1.02);
+    opacity: 0.94;
 }
 .event-cover-placeholder {
     width: 100%;
@@ -880,4 +913,23 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
     <?php endif; ?>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('pageScripts') ?>
+<script>
+(function() {
+    // Bulletproof zero-jitter clamping at scroll extremities (especially for Windows mouse wheel)
+    var isClamping = false;
+    window.addEventListener('scroll', function() {
+        var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        if (window.scrollY > maxScroll) {
+            if (!isClamping) {
+                isClamping = true;
+                window.scrollTo(0, maxScroll);
+                requestAnimationFrame(function() { isClamping = false; });
+            }
+        }
+    }, { passive: true });
+})();
+</script>
 <?= $this->endSection() ?>

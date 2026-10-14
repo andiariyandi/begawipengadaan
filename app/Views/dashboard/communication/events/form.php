@@ -2,6 +2,38 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
+/* Bulletproof Jitter-Free & Shake-Free Scroll at Viewport Extremities */
+html {
+    scroll-behavior: auto !important;
+    overflow-x: clip !important;
+    overflow-y: scroll !important;
+    overscroll-behavior: none !important;
+    overscroll-behavior-y: none !important;
+    overflow-anchor: none !important;
+}
+body {
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    overscroll-behavior: none !important;
+    overscroll-behavior-y: none !important;
+    overflow-anchor: none !important;
+    min-height: 100vh;
+}
+.dashboard-main {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: margin-inline-start 0.3s ease, margin-left 0.3s ease !important;
+}
+.dashboard-main-body {
+    flex: 1 0 auto;
+}
+.d-footer {
+    margin-block-start: 24px !important;
+    position: relative;
+    z-index: 1;
+}
+
 /* High-contrast and legibility overrides for Admin Dashboard */
 .text-secondary-light, .text-muted, .text-neutral-500 {
     color: #475569 !important;
@@ -566,4 +598,23 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('pageScripts') ?>
+<script>
+(function() {
+    // Bulletproof zero-jitter clamping at scroll extremities (especially for Windows mouse wheel)
+    var isClamping = false;
+    window.addEventListener('scroll', function() {
+        var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        if (window.scrollY > maxScroll) {
+            if (!isClamping) {
+                isClamping = true;
+                window.scrollTo(0, maxScroll);
+                requestAnimationFrame(function() { isClamping = false; });
+            }
+        }
+    }, { passive: true });
+})();
+</script>
 <?= $this->endSection() ?>
