@@ -2,11 +2,34 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
-    /* Hero Banner */
+    html {
+        scroll-behavior: smooth;
+    }
+    #visi-misi, #pilar, #struktur, #maklumat {
+        scroll-margin-top: 130px;
+    }
+
+    /* Universal high-contrast text utilities */
+    .text-slate-900 { color: #0f172a !important; }
+    .text-slate-800 { color: #1e293b !important; }
+    .text-slate-700 { color: #334155 !important; }
+    .text-slate-600 { color: #475569 !important; }
+    .text-slate-500 { color: #64748b !important; }
+
+    /* Reliable Iconify display */
+    iconify-icon {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 1;
+        width: 1.15em;
+        height: 1.15em;
+    }
+
+    /* Hero Banner - 215px padding top gives 55px+ safe clearance below 160px absolute menu bar */
     .about-hero {
         position: relative;
         background: linear-gradient(135deg, #052244 0%, #0a3a6b 55%, #0c5aa6 100%);
-        padding: 150px 0 90px;
+        padding: 215px 0 90px;
         color: #ffffff;
         overflow: hidden;
     }
@@ -14,39 +37,41 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.15) 0%, transparent 45%),
-                    radial-gradient(circle at 10% 85%, rgba(16, 185, 129, 0.12) 0%, transparent 50%);
+        background: radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.18) 0%, transparent 45%),
+                    radial-gradient(circle at 10% 85%, rgba(16, 185, 129, 0.14) 0%, transparent 50%);
         pointer-events: none;
     }
     .about-badge-pill {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(245, 158, 11, 0.18);
-        border: 1px solid rgba(245, 158, 11, 0.45);
-        color: #fcd34d;
-        padding: 7px 18px;
+        background: rgba(245, 158, 11, 0.22);
+        border: 1px solid rgba(245, 158, 11, 0.55);
+        color: #fef3c7;
+        padding: 8px 20px;
         border-radius: 50px;
         font-size: 13px;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.5px;
         text-transform: uppercase;
-        margin-bottom: 20px;
+        margin-bottom: 22px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
     }
     .about-hero__title {
-        font-size: 2.75rem;
+        font-size: 2.85rem;
         font-weight: 800;
         line-height: 1.25;
         color: #ffffff;
         margin-bottom: 18px;
+        letter-spacing: -0.5px;
     }
     .about-hero__title span {
         color: #f59e0b;
     }
     .about-hero__subtitle {
         font-size: 1.15rem;
-        color: #cbd5e1;
-        line-height: 1.7;
+        color: #e2e8f0;
+        line-height: 1.75;
         max-width: 820px;
         margin: 0 auto;
     }
@@ -65,8 +90,8 @@
         align-items: center;
         gap: 6px;
         color: #0c5aa6;
-        font-size: 0.875rem;
-        font-weight: 700;
+        font-size: 0.885rem;
+        font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.8px;
         margin-bottom: 10px;
@@ -82,7 +107,7 @@
         color: #0c5aa6;
     }
     .abt-sec-desc {
-        color: #475569;
+        color: #334155;
         font-size: 1.05rem;
         line-height: 1.75;
     }
@@ -342,8 +367,13 @@
         margin: 0;
     }
 
+    @media (max-width: 991px) {
+        .about-hero { padding: 185px 0 75px; }
+        .about-hero__title { font-size: 2.35rem; }
+    }
+
     @media (max-width: 768px) {
-        .about-hero { padding: 130px 0 70px; }
+        .about-hero { padding: 165px 0 65px; }
         .about-hero__title { font-size: 2rem; }
         .abt-sec-title { font-size: 1.75rem; }
         .abt-philo-card { padding: 28px 20px; }
@@ -784,4 +814,24 @@
     </div>
 </section>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('pageScripts') ?>
+<script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
+<script>
+    (function() {
+        // Bulletproof zero-jitter clamping at scroll extremities for ultra-smooth scrolling
+        var isClamping = false;
+        window.addEventListener('scroll', function() {
+            var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+            if (window.scrollY > maxScroll) {
+                if (!isClamping) {
+                    isClamping = true;
+                    window.scrollTo(0, maxScroll);
+                    requestAnimationFrame(function() { isClamping = false; });
+                }
+            }
+        }, { passive: true });
+    })();
+</script>
 <?= $this->endSection() ?>

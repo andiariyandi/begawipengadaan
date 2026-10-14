@@ -360,7 +360,7 @@ class LearningService
     public function evaluateCompletion(int $enrollmentId): bool
     {
         $enrollment = $this->db->table('enrollments')->where('id', $enrollmentId)->get()->getRowArray();
-        if (! $enrollment || $enrollment['status'] !== 'active') {
+        if (! $enrollment || ! in_array($enrollment['status'], ['active', 'completed'], true)) {
             return false;
         }
 
@@ -370,11 +370,14 @@ class LearningService
             return false;
         }
 
-        // 1. Cek Lessons Wajib
+        // 1. Cek Lessons Wajib (Hanya yang berstatus 'published' di dalam modul 'published')
         $requiredLessons = $this->db->query(
             'SELECT lessons.id FROM lessons
              JOIN learning_modules ON learning_modules.id = lessons.module_id
-             WHERE learning_modules.class_id = ? AND lessons.is_required = 1',
+             WHERE learning_modules.class_id = ? 
+               AND lessons.is_required = 1 
+               AND lessons.status = "published" 
+               AND learning_modules.status = "published"',
             [$classId]
         )->getResultArray();
 
@@ -388,75 +391,115 @@ class LearningService
             }
         }
 
-        // 2. Cek Lesson Quizzes Wajib
-        $lessonQuizzes = $this->db->table('quizzes')
-            ->select('id')
-            ->where(['class_id' => $classId, 'type' => 'lesson_quiz', 'is_required' => 1])
-            ->get()->getResultArray();
-
-        $quizScore = $this->gradedAverage($enrollmentId, $lessonQuizzes);
-        if (! empty($lessonQuizzes) && $quizScore === null) {
-            return false; // Ada quiz wajib yang belum dikerjakan
-        }
-        $quizScore = $quizScore ?? 100.0; // Default jika tidak ada quiz
-
-        // 3. Cek Assignments (Tugas Mandiri) Wajib
-        $requiredAssignments = $this->db->table('assignments')
-            ->where(['class_id' => $classId, 'is_required' => 1])
-            ->get()->getResultArray();
-
-        $assignmentScore = 0.0;
-        if (! empty($requiredAssignments)) {
-            $asgIds = array_column($requiredAssignments, 'id');
-            $submissions = $this->db->table('assignment_submissions')
-                ->where('enrollment_id', $enrollmentId)
-                ->whereIn('assignment_id', $asgIds)
-                ->where('status', 'graded')
-                ->get()->getResultArray();
-
-            $gradedMap = [];
-            foreach ($submissions as $sub) {
-                $aid = (int) $sub['assignment_id'];
-                if (! isset($gradedMap[$aid]) || (float) $sub['score'] > (float) $gradedMap[$aid]) {
-                    $gradedMap[$aid] = (float) $sub['score'];
-                }
-            }
-
-            // Pastikan setiap tugas wajib telah memiliki nilai evaluator
-            foreach ($asgIds as $aid) {
-                if (! isset($gradedMap[$aid])) {
-                    return false; // Tugas wajib belum dinilai atau belum dikumpulkan
-                }
-            }
-
-            $assignmentScore = round(array_sum($gradedMap) / count($gradedMap), 2);
-        }
-
-        // 4. Cek Post-Test Wajib
+        // 2. Cek Post-Test (Satu-satunya asesmen WAJIB jika diterbitkan di kelas)
         $postTest = $this->db->table('quizzes')
-            ->where(['class_id' => $classId, 'type' => 'post_test', 'is_required' => 1])
+            ->where(['class_id' => $classId, 'type' => 'post_test', 'status' => 'published'])
+            ->orderBy('id', 'ASC')
             ->get()->getRowArray();
 
-        $postScore = 0.0;
+        $postScore = null;
         if ($postTest) {
             $postAvg = $this->gradedAverage($enrollmentId, [$postTest]);
             if ($postAvg === null) {
-                return false; // Post-test wajib belum dikerjakan
+                return false; // Post-test wajib belum dikerjakan atau belum dinilai
             }
             $postScore = $postAvg;
         }
 
-        // 5. Hitung Nilai Akhir Sesuai Bobot Kelas
-        $quizWeight = (float) ($class['quiz_weight'] ?? 40.00);
-        $assignmentWeight = (float) ($class['assignment_weight'] ?? 0.00);
-        $postTestWeight = (float) ($class['post_test_weight'] ?? 60.00);
+        // 3. Cek Lesson Quizzes (Bersifat Opsional)
+        // Jika ada quiz yang telah dikerjakan peserta, masukkan ke penilaian rata-rata quiz
+        $publishedQuizzes = $this->db->table('quizzes')
+            ->where(['class_id' => $classId, 'type' => 'lesson_quiz', 'status' => 'published'])
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
 
-        $final = round(
-            ($quizScore * $quizWeight / 100) +
-            ($assignmentScore * $assignmentWeight / 100) +
-            ($postScore * $postTestWeight / 100),
-            2
-        );
+        $quizScore = null;
+        if (! empty($publishedQuizzes)) {
+            $attemptedScores = [];
+            foreach ($publishedQuizzes as $q) {
+                $bestAttempt = $this->db->table('quiz_attempts')
+                    ->where(['quiz_id' => (int) $q['id'], 'enrollment_id' => $enrollmentId])
+                    ->whereIn('status', ['graded', 'submitted', 'passed', 'completed'])
+                    ->where('score IS NOT NULL', null, false)
+                    ->orderBy('score', 'DESC')
+                    ->get()->getRowArray();
+                if ($bestAttempt && $bestAttempt['score'] !== null) {
+                    $attemptedScores[] = (float) $bestAttempt['score'];
+                }
+            }
+            if (! empty($attemptedScores)) {
+                $quizScore = round(array_sum($attemptedScores) / count($attemptedScores), 2);
+            }
+        }
+
+        // 4. Cek Assignments (Bersifat Opsional)
+        // Jika ada tugas yang dikumpulkan dan telah dinilai instruktur, masukkan ke penilaian tugas
+        $publishedAssignments = $this->db->table('assignments')
+            ->where(['class_id' => $classId, 'status' => 'published'])
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
+
+        $assignmentScore = null;
+        if (! empty($publishedAssignments)) {
+            $asgScores = [];
+            foreach ($publishedAssignments as $asg) {
+                $sub = $this->db->table('assignment_submissions')
+                    ->where(['assignment_id' => (int) $asg['id'], 'enrollment_id' => $enrollmentId, 'status' => 'graded'])
+                    ->where('score IS NOT NULL', null, false)
+                    ->orderBy('score', 'DESC')
+                    ->get()->getRowArray();
+                if ($sub && $sub['score'] !== null) {
+                    $asgScores[] = (float) $sub['score'];
+                }
+            }
+            if (! empty($asgScores)) {
+                $assignmentScore = round(array_sum($asgScores) / count($asgScores), 2);
+            }
+        }
+
+        // 5. Cabang Penilaian Dinamis (Berdasarkan ketersediaan komponen asesmen & pengerjaan)
+        $components = [];
+
+        if ($postScore !== null) {
+            $rawWeight = (float) ($class['post_test_weight'] ?? 60.00);
+            $components['post_test'] = [
+                'score'  => $postScore,
+                'weight' => $rawWeight > 0 ? $rawWeight : 60.00,
+            ];
+        }
+
+        if ($quizScore !== null) {
+            $rawWeight = (float) ($class['quiz_weight'] ?? 40.00);
+            $components['quiz'] = [
+                'score'  => $quizScore,
+                'weight' => $rawWeight > 0 ? $rawWeight : 40.00,
+            ];
+        }
+
+        if ($assignmentScore !== null) {
+            $rawWeight = (float) ($class['assignment_weight'] ?? 0.00);
+            $components['assignment'] = [
+                'score'  => $assignmentScore,
+                'weight' => $rawWeight > 0 ? $rawWeight : 20.00,
+            ];
+        }
+
+        if (empty($components)) {
+            // Cabang: Kelas tanpa komponen asesmen (atau materi kurikulum penuh)
+            $final = 100.00;
+        } else {
+            $totalWeight = array_sum(array_column($components, 'weight'));
+            if ($totalWeight <= 0) {
+                $avgScore = array_sum(array_column($components, 'score')) / count($components);
+                $final = round($avgScore, 2);
+            } else {
+                $weightedSum = 0.0;
+                foreach ($components as $comp) {
+                    $weightedSum += ($comp['score'] * ($comp['weight'] / $totalWeight));
+                }
+                $final = round($weightedSum, 2);
+            }
+        }
 
         $passingGrade = (float) ($class['passing_grade'] ?? 70.00);
         $isPassed = $final >= $passingGrade;
@@ -465,10 +508,10 @@ class LearningService
         $now = date('Y-m-d H:i:s');
         $this->db->table('enrollments')->where('id', $enrollmentId)->update([
             'status'                  => 'completed',
-            'completed_at'            => $now,
+            'completed_at'            => $enrollment['completed_at'] ?: $now,
             'final_score'             => $final,
-            'passed_at'               => $isPassed ? $now : null,
-            'certificate_eligible_at' => $isCertEligible ? $now : null,
+            'passed_at'               => $isPassed ? ($enrollment['passed_at'] ?: $now) : null,
+            'certificate_eligible_at' => $isCertEligible ? ($enrollment['certificate_eligible_at'] ?: $now) : null,
             'updated_at'              => $now,
         ]);
 
@@ -518,7 +561,8 @@ class LearningService
             ->countAllResults();
 
         $completedQuizzes = $this->db->table('quiz_attempts')
-            ->where(['enrollment_id' => $enrollmentId, 'status' => 'graded'])
+            ->where(['enrollment_id' => $enrollmentId])
+            ->whereIn('status', ['graded', 'submitted', 'passed', 'completed'])
             ->select('DISTINCT(quiz_id)')
             ->countAllResults();
 
@@ -563,10 +607,12 @@ class LearningService
         $scores = [];
         foreach ($quizzes as $quiz) {
             $latest = $this->db->table('quiz_attempts')
-                ->where(['quiz_id' => (int) $quiz['id'], 'enrollment_id' => $enrollmentId, 'status' => 'graded'])
+                ->where(['quiz_id' => (int) $quiz['id'], 'enrollment_id' => $enrollmentId])
+                ->whereIn('status', ['graded', 'submitted', 'passed', 'completed'])
+                ->where('score IS NOT NULL', null, false)
                 ->orderBy('score', 'DESC')
                 ->get()->getRowArray();
-            if (! $latest) {
+            if (! $latest || $latest['score'] === null) {
                 return null;
             }
             $scores[] = (float) $latest['score'];

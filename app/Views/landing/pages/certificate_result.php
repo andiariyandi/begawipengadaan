@@ -2,10 +2,18 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
+    /* Universal high-contrast text utilities */
+    .text-slate-900 { color: #0f172a !important; }
+    .text-slate-800 { color: #1e293b !important; }
+    .text-slate-700 { color: #334155 !important; }
+    .text-slate-600 { color: #475569 !important; }
+    .text-slate-500 { color: #64748b !important; }
+
+    /* Hero Banner - 205px padding top gives 45px+ safe breathing room under the 160px absolute menu bar */
     .result-hero {
         position: relative;
         background: linear-gradient(135deg, #052244 0%, #0a3a6b 55%, #0c5aa6 100%);
-        padding: 140px 0 70px;
+        padding: 205px 0 75px;
         color: #ffffff;
         text-align: center;
     }
@@ -290,7 +298,12 @@
         .cert-action-bar, .main-header, .site-footer { display: none !ns; }
     }
 
+    @media (max-width: 991px) {
+        .result-hero { padding: 175px 0 65px; }
+    }
+
     @media (max-width: 768px) {
+        .result-hero { padding: 155px 0 55px; }
         .cert-official-header { flex-direction: column; text-align: center; }
         .cert-official-body { padding: 24px 18px; }
         .cert-recipient-name { font-size: 1.65rem; }
@@ -502,5 +515,20 @@
             alert('Tautan verifikasi resmi berhasil disalin ke papan klip!');
         });
     }
+
+    (function() {
+        // Bulletproof zero-jitter clamping at scroll extremities for ultra-smooth scrolling
+        var isClamping = false;
+        window.addEventListener('scroll', function() {
+            var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+            if (window.scrollY > maxScroll) {
+                if (!isClamping) {
+                    isClamping = true;
+                    window.scrollTo(0, maxScroll);
+                    requestAnimationFrame(function() { isClamping = false; });
+                }
+            }
+        }, { passive: true });
+    })();
 </script>
 <?= $this->endSection() ?>

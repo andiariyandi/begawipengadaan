@@ -2,11 +2,34 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
-    /* Hero Banner */
+    html {
+        scroll-behavior: smooth;
+    }
+    #form-pesan {
+        scroll-margin-top: 130px;
+    }
+
+    /* Universal high-contrast text utilities */
+    .text-slate-900 { color: #0f172a !important; }
+    .text-slate-800 { color: #1e293b !important; }
+    .text-slate-700 { color: #334155 !important; }
+    .text-slate-600 { color: #475569 !important; }
+    .text-slate-500 { color: #64748b !important; }
+
+    /* Reliable Iconify display */
+    iconify-icon {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 1;
+        width: 1.15em;
+        height: 1.15em;
+    }
+
+    /* Hero Banner - 215px padding top gives 55px+ safe breathing room under the 160px absolute menu bar */
     .contact-hero {
         position: relative;
         background: linear-gradient(135deg, #052244 0%, #0a3a6b 55%, #0c5aa6 100%);
-        padding: 150px 0 90px;
+        padding: 215px 0 90px;
         color: #ffffff;
         overflow: hidden;
     }
@@ -14,39 +37,41 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.15) 0%, transparent 45%),
-                    radial-gradient(circle at 10% 85%, rgba(16, 185, 129, 0.12) 0%, transparent 50%);
+        background: radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.18) 0%, transparent 45%),
+                    radial-gradient(circle at 10% 85%, rgba(16, 185, 129, 0.14) 0%, transparent 50%);
         pointer-events: none;
     }
     .contact-badge-pill {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(245, 158, 11, 0.18);
-        border: 1px solid rgba(245, 158, 11, 0.45);
-        color: #fcd34d;
-        padding: 7px 18px;
+        background: rgba(245, 158, 11, 0.22);
+        border: 1px solid rgba(245, 158, 11, 0.55);
+        color: #fef3c7;
+        padding: 8px 20px;
         border-radius: 50px;
         font-size: 13px;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.5px;
         text-transform: uppercase;
-        margin-bottom: 20px;
+        margin-bottom: 22px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
     }
     .contact-hero__title {
-        font-size: 2.75rem;
+        font-size: 2.85rem;
         font-weight: 800;
         line-height: 1.25;
         color: #ffffff;
         margin-bottom: 18px;
+        letter-spacing: -0.5px;
     }
     .contact-hero__title span {
         color: #f59e0b;
     }
     .contact-hero__subtitle {
         font-size: 1.15rem;
-        color: #cbd5e1;
-        line-height: 1.7;
+        color: #e2e8f0;
+        line-height: 1.75;
         max-width: 820px;
         margin: 0 auto;
     }
@@ -76,8 +101,8 @@
         border-color: #0c5aa6;
     }
     .contact-info-icon {
-        width: 58px;
-        height: 58px;
+        width: 60px;
+        height: 60px;
         border-radius: 14px;
         display: flex;
         align-items: center;
@@ -85,26 +110,26 @@
         font-size: 24px;
         margin-bottom: 20px;
     }
-    .contact-info-icon--blue { background: rgba(12, 90, 166, 0.12); color: #0c5aa6; }
-    .contact-info-icon--green { background: rgba(16, 185, 129, 0.12); color: #059669; }
-    .contact-info-icon--amber { background: rgba(245, 158, 11, 0.12); color: #d97706; }
-    .contact-info-icon--purple { background: rgba(124, 58, 237, 0.12); color: #7c3aed; }
+    .contact-info-icon--blue { background: #eff6ff; color: #0c5aa6; border: 1px solid #bfdbfe; }
+    .contact-info-icon--green { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    .contact-info-icon--amber { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .contact-info-icon--purple { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
 
     .contact-info-title {
-        font-size: 1.15rem;
+        font-size: 1.2rem;
         font-weight: 800;
         color: #052244;
         margin-bottom: 8px;
     }
     .contact-info-desc {
-        color: #475569;
-        font-size: 0.925rem;
-        line-height: 1.6;
+        color: #334155;
+        font-size: 0.935rem;
+        line-height: 1.65;
         margin-bottom: 20px;
     }
     .contact-info-link {
         font-weight: 700;
-        font-size: 0.875rem;
+        font-size: 0.885rem;
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -121,40 +146,44 @@
         border-radius: 20px;
         padding: 40px;
         border: 1px solid #e2e8f0;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 10px 30px rgba(5, 34, 68, 0.05);
     }
     .contact-form-title {
-        font-size: 1.75rem;
+        font-size: 1.85rem;
         font-weight: 800;
         color: #052244;
         margin-bottom: 8px;
     }
     .contact-form-subtitle {
-        color: #64748b;
-        font-size: 0.95rem;
+        color: #475569;
+        font-size: 0.975rem;
         margin-bottom: 28px;
+        line-height: 1.6;
     }
     .contact-label {
         font-weight: 700;
-        font-size: 0.875rem;
-        color: #1e293b;
-        margin-bottom: 6px;
+        font-size: 0.885rem;
+        color: #0f172a;
+        margin-bottom: 7px;
         display: block;
     }
     .contact-input {
         width: 100%;
-        padding: 12px 16px;
+        padding: 13px 16px;
         border: 1.5px solid #cbd5e1;
         border-radius: 10px;
         font-size: 0.95rem;
         color: #0f172a;
-        background-color: #f8fafc;
+        background-color: #ffffff;
         transition: all 0.2s ease;
+    }
+    .contact-input::placeholder {
+        color: #94a3b8;
     }
     .contact-input:focus {
         border-color: #0c5aa6;
         background-color: #ffffff;
-        box-shadow: 0 0 0 3px rgba(12, 90, 166, 0.12);
+        box-shadow: 0 0 0 3.5px rgba(12, 90, 166, 0.15);
         outline: none;
     }
     .contact-submit-btn {
@@ -186,7 +215,7 @@
         border-radius: 20px;
         padding: 24px;
         border: 1px solid #e2e8f0;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 10px 30px rgba(5, 34, 68, 0.05);
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -211,12 +240,16 @@
         border-radius: 12px;
         margin-bottom: 14px;
         overflow: hidden;
+        transition: border-color 0.2s ease;
+    }
+    .contact-faq-card:hover {
+        border-color: #cbd5e1;
     }
     .contact-faq-header {
         padding: 18px 24px;
         cursor: pointer;
         font-weight: 700;
-        color: #052244;
+        color: #0f172a;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -225,13 +258,18 @@
     }
     .contact-faq-body {
         padding: 0 24px 20px;
-        color: #475569;
+        color: #334155;
         font-size: 0.95rem;
-        line-height: 1.65;
+        line-height: 1.7;
+    }
+
+    @media (max-width: 991px) {
+        .contact-hero { padding: 185px 0 75px; }
+        .contact-hero__title { font-size: 2.35rem; }
     }
 
     @media (max-width: 768px) {
-        .contact-hero { padding: 130px 0 70px; }
+        .contact-hero { padding: 165px 0 65px; }
         .contact-hero__title { font-size: 2rem; }
         .contact-info-section { margin-top: -30px; }
         .contact-form-box { padding: 24px 18px; }
@@ -544,6 +582,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
+<script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
     function toggleFaq(header) {
         const body = header.nextElementSibling;
@@ -558,5 +597,20 @@
             icon.classList.add('fa-chevron-down');
         }
     }
+
+    (function() {
+        // Bulletproof zero-jitter clamping at scroll extremities for ultra-smooth scrolling
+        var isClamping = false;
+        window.addEventListener('scroll', function() {
+            var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+            if (window.scrollY > maxScroll) {
+                if (!isClamping) {
+                    isClamping = true;
+                    window.scrollTo(0, maxScroll);
+                    requestAnimationFrame(function() { isClamping = false; });
+                }
+            }
+        }, { passive: true });
+    })();
 </script>
 <?= $this->endSection() ?>

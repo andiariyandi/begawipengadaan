@@ -2,11 +2,31 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
-    /* Hero & Base Styling */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Universal high-contrast text utilities */
+    .text-slate-900 { color: #0f172a !important; }
+    .text-slate-800 { color: #1e293b !important; }
+    .text-slate-700 { color: #334155 !important; }
+    .text-slate-600 { color: #475569 !important; }
+    .text-slate-500 { color: #64748b !important; }
+
+    /* Reliable Iconify display */
+    iconify-icon {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 1;
+        width: 1.15em;
+        height: 1.15em;
+    }
+
+    /* Hero & Base Styling - 215px padding top gives 55px+ safe clearance below 160px absolute menu bar */
     .cert-hero {
         position: relative;
         background: linear-gradient(135deg, #052244 0%, #0a3a6b 55%, #0c5aa6 100%);
-        padding: 150px 0 90px;
+        padding: 215px 0 90px;
         color: #ffffff;
         overflow: hidden;
     }
@@ -14,39 +34,41 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: radial-gradient(circle at 85% 20%, rgba(245, 158, 11, 0.15) 0%, transparent 45%),
-                    radial-gradient(circle at 15% 80%, rgba(16, 185, 129, 0.12) 0%, transparent 50%);
+        background: radial-gradient(circle at 85% 20%, rgba(245, 158, 11, 0.18) 0%, transparent 45%),
+                    radial-gradient(circle at 15% 80%, rgba(16, 185, 129, 0.14) 0%, transparent 50%);
         pointer-events: none;
     }
     .cert-badge-pill {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(245, 158, 11, 0.18);
-        border: 1px solid rgba(245, 158, 11, 0.45);
-        color: #fcd34d;
-        padding: 7px 18px;
+        background: rgba(245, 158, 11, 0.22);
+        border: 1px solid rgba(245, 158, 11, 0.55);
+        color: #fef3c7;
+        padding: 8px 20px;
         border-radius: 50px;
         font-size: 13px;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.5px;
         text-transform: uppercase;
-        margin-bottom: 20px;
+        margin-bottom: 22px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
     }
     .cert-hero__title {
-        font-size: 2.75rem;
+        font-size: 2.85rem;
         font-weight: 800;
         line-height: 1.25;
         color: #ffffff;
         margin-bottom: 18px;
+        letter-spacing: -0.5px;
     }
     .cert-hero__title span {
         color: #f59e0b;
     }
     .cert-hero__subtitle {
-        font-size: 1.125rem;
-        color: #cbd5e1;
-        line-height: 1.7;
+        font-size: 1.15rem;
+        color: #e2e8f0;
+        line-height: 1.75;
         max-width: 820px;
         margin: 0 auto 35px;
     }
@@ -56,8 +78,8 @@
         background: #ffffff;
         border-radius: 18px;
         padding: 36px 32px;
-        box-shadow: 0 20px 45px rgba(5, 34, 68, 0.15);
-        border: 1px solid rgba(226, 232, 240, 0.9);
+        box-shadow: 0 20px 45px rgba(5, 34, 68, 0.14);
+        border: 1px solid #e2e8f0;
         margin-top: -50px;
         position: relative;
         z-index: 10;
@@ -80,18 +102,21 @@
     .cert-search-input {
         width: 100%;
         padding: 16px 20px 16px 56px;
-        border: 2px solid #e2e8f0;
+        border: 2px solid #cbd5e1;
         border-radius: 12px;
         font-size: 1.05rem;
-        font-weight: 500;
+        font-weight: 600;
         color: #0f172a;
         transition: all 0.25s ease;
-        background-color: #f8fafc;
+        background-color: #ffffff;
+    }
+    .cert-search-input::placeholder {
+        color: #94a3b8;
     }
     .cert-search-input:focus {
         border-color: #0c5aa6;
         background-color: #ffffff;
-        box-shadow: 0 0 0 4px rgba(12, 90, 166, 0.12);
+        box-shadow: 0 0 0 4px rgba(12, 90, 166, 0.15);
         outline: none;
     }
     .cert-btn-verify {
@@ -130,20 +155,20 @@
         font-size: 0.875rem;
     }
     .cert-quick-label {
-        color: #64748b;
-        font-weight: 600;
+        color: #475569;
+        font-weight: 700;
     }
     .cert-sample-pill {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 5px 12px;
+        padding: 6px 14px;
         background: #f1f5f9;
         border: 1px solid #cbd5e1;
-        border-radius: 6px;
+        border-radius: 8px;
         color: #0f172a;
         font-family: monospace;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
         transition: all 0.2s ease;
         text-decoration: none;
@@ -167,37 +192,37 @@
         align-items: center;
         gap: 18px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 4px 15px rgba(5, 34, 68, 0.04);
     }
     .cert-stat-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 10px 25px rgba(5, 34, 68, 0.08);
+        box-shadow: 0 10px 25px rgba(5, 34, 68, 0.1);
         border-color: #cbd5e1;
     }
     .cert-stat-icon {
-        width: 58px;
-        height: 58px;
-        border-radius: 12px;
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 24px;
         flex-shrink: 0;
     }
-    .cert-stat-icon--blue { background: rgba(12, 90, 166, 0.12); color: #0c5aa6; }
-    .cert-stat-icon--amber { background: rgba(245, 158, 11, 0.12); color: #d97706; }
-    .cert-stat-icon--emerald { background: rgba(16, 185, 129, 0.12); color: #059669; }
-    .cert-stat-icon--purple { background: rgba(139, 92, 246, 0.12); color: #7c3aed; }
+    .cert-stat-icon--blue { background: #eff6ff; color: #0c5aa6; border: 1px solid #bfdbfe; }
+    .cert-stat-icon--amber { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .cert-stat-icon--emerald { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    .cert-stat-icon--purple { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
     .cert-stat-number {
-        font-size: 1.85rem;
+        font-size: 1.95rem;
         font-weight: 800;
         color: #0f172a;
         line-height: 1.1;
         margin-bottom: 4px;
     }
     .cert-stat-label {
-        font-size: 0.875rem;
-        color: #64748b;
+        font-size: 0.9rem;
+        color: #334155;
         font-weight: 600;
         margin: 0;
     }
@@ -224,15 +249,15 @@
         margin-top: 2px;
     }
     .cert-trust-item__title {
-        font-size: 1.05rem;
-        font-weight: 700;
+        font-size: 1.1rem;
+        font-weight: 800;
         color: #0f172a;
         margin-bottom: 6px;
     }
     .cert-trust-item__desc {
-        font-size: 0.875rem;
-        color: #475569;
-        line-height: 1.6;
+        font-size: 0.9rem;
+        color: #334155;
+        line-height: 1.65;
         margin: 0;
     }
 
@@ -429,8 +454,13 @@
     }
 
     /* Responsive */
+    @media (max-width: 991px) {
+        .cert-hero { padding: 185px 0 75px; }
+        .cert-hero__title { font-size: 2.35rem; }
+    }
+
     @media (max-width: 768px) {
-        .cert-hero { padding: 130px 0 70px; }
+        .cert-hero { padding: 165px 0 65px; }
         .cert-hero__title { font-size: 2rem; }
         .cert-search-input-wrap { flex-direction: column; }
         .cert-btn-verify { width: 100%; }
@@ -735,6 +765,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
+<script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Quick sample fill handler
@@ -752,5 +783,20 @@
             });
         });
     });
+
+    (function() {
+        // Bulletproof zero-jitter clamping at scroll extremities for ultra-smooth scrolling
+        var isClamping = false;
+        window.addEventListener('scroll', function() {
+            var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+            if (window.scrollY > maxScroll) {
+                if (!isClamping) {
+                    isClamping = true;
+                    window.scrollTo(0, maxScroll);
+                    requestAnimationFrame(function() { isClamping = false; });
+                }
+            }
+        }, { passive: true });
+    })();
 </script>
 <?= $this->endSection() ?>

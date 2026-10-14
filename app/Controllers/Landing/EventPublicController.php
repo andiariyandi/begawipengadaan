@@ -122,38 +122,45 @@ class EventPublicController extends BaseController
 
             $regCount = $this->db->table('event_registrations')
                 ->where('event_id', $row['id'])
-                ->whereIn('status', ['registered', 'confirmed'])
+                ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
                 ->countAllResults();
 
-            $capacity  = (int) ($row['capacity'] ?? 100);
-            $remaining = max(0, $capacity - $regCount);
-            $isPast    = strtotime($row['end_at']) < strtotime($now);
+            $capacity    = (int) ($row['capacity'] ?? 0);
+            $isUnlimited = ($capacity <= 0);
+            $remaining   = $isUnlimited ? null : max(0, $capacity - $regCount);
+            $isPast      = strtotime($row['end_at']) < strtotime($now);
 
             return [
-                'id'            => (int) $row['id'],
-                'title'         => $row['title'],
-                'slug'          => $row['slug'],
-                'type'          => $row['type'],
-                'type_label'    => $this->formatTypeLabel($row['type']),
-                'mode'          => $row['mode'],
-                'mode_label'    => $this->formatModeLabel($row['mode']),
-                'status'        => $row['status'],
-                'status_label'  => $this->formatStatusLabel($row['status'], $isPast),
-                'summary'       => $row['summary'] ?: mb_strimwidth(strip_tags((string) $row['description']), 0, 150, '...'),
-                'description'   => $row['description'],
-                'start_at'      => $row['start_at'],
-                'end_at'        => $row['end_at'],
-                'start_date'    => date('d M Y', $start),
-                'start_day'     => date('d', $start),
-                'start_month'   => date('M', $start),
-                'start_year'    => date('Y', $start),
-                'time_range'    => date('H:i', $start) . ' - ' . date('H:i', $end) . ' WIB',
-                'location'      => $row['location'] ?: ($row['mode'] === 'online' ? 'Daring via Zoom' : 'Bandar Lampung'),
-                'capacity'      => $capacity,
-                'registered'    => $regCount,
-                'remaining'     => $remaining,
-                'is_past'       => $isPast,
-                'cover_url'     => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
+                'id'                   => (int) $row['id'],
+                'title'                => $row['title'],
+                'slug'                 => $row['slug'],
+                'type'                 => $row['type'],
+                'type_label'           => $this->formatTypeLabel($row['type']),
+                'mode'                 => $row['mode'],
+                'mode_label'           => $this->formatModeLabel($row['mode']),
+                'status'               => $row['status'],
+                'status_label'         => $this->formatStatusLabel($row['status'], $isPast),
+                'summary'              => $row['summary'] ?: mb_strimwidth(strip_tags((string) $row['description']), 0, 150, '...'),
+                'description'          => $row['description'],
+                'start_at'             => $row['start_at'],
+                'end_at'               => $row['end_at'],
+                'start_date'           => date('d M Y', $start),
+                'start_day'            => date('d', $start),
+                'start_month'          => date('M', $start),
+                'start_year'           => date('Y', $start),
+                'time_range'           => date('H:i', $start) . ' - ' . date('H:i', $end) . ' WIB',
+                'location'             => $row['location'] ?: ($row['mode'] === 'online' ? 'Daring via Zoom / Platform Online' : 'Bandar Lampung'),
+                'meeting_url'          => $row['meeting_url'] ?? '',
+                'capacity'             => $capacity,
+                'is_unlimited'         => $isUnlimited,
+                'registered'           => $regCount,
+                'remaining'            => $remaining,
+                'is_past'              => $isPast,
+                'waitlist_enabled'     => (int) ($row['waitlist_enabled'] ?? 0),
+                'certificate_enabled'  => (int) ($row['certificate_enabled'] ?? 0),
+                'registration_open_at' => $row['registration_open_at'],
+                'registration_close_at'=> $row['registration_close_at'],
+                'cover_url'            => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
             ];
         }, $rawItems);
 
@@ -162,7 +169,7 @@ class EventPublicController extends BaseController
         if ($currentPage === 1 && empty($keyword) && empty($type) && empty($mode) && ! empty($items)) {
             // Find first upcoming open event
             foreach ($items as $idx => $it) {
-                if (! $it['is_past'] && in_array($it['status'], ['open_registration', 'coming_soon'])) {
+                if (! $it['is_past'] && in_array($it['status'], ['open_registration', 'coming_soon', 'published'])) {
                     $spotlightEvent = $it;
                     // Remove spotlight from list so it doesn't duplicate
                     array_splice($items, $idx, 1);
@@ -171,27 +178,28 @@ class EventPublicController extends BaseController
             }
         }
 
-        // Live KPI Metrics
+        // Live KPI Metrics (strictly authentic database counts, zero dummy data)
         $stats = [
             'total_events'      => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->countAllResults(),
             'upcoming_events'   => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('end_at >=', $now)->countAllResults(),
             'open_registration' => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('status', 'open_registration')->countAllResults(),
-            'total_attendees'   => (int) $this->db->table('event_registrations')->whereIn('status', ['registered', 'confirmed'])->countAllResults(),
+            'total_attendees'   => (int) $this->db->table('event_registrations')->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])->countAllResults(),
         ];
 
-        // Type counts for sidebar/pills
-        $typeCounts = [
-            'webinar'     => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('type', 'webinar')->countAllResults(),
-            'bimtek'      => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('type', 'bimtek')->countAllResults(),
-            'workshop'    => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('type', 'workshop')->countAllResults(),
-            'sosialisasi' => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('type', 'sosialisasi')->countAllResults(),
-            'rakor'       => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('type', 'rakor')->countAllResults(),
-            'klinik'      => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('type', 'klinik')->countAllResults(),
-        ];
+        // Type counts for all 8 supported dashboard event types
+        $allEventTypes = ['webinar', 'bimtek', 'workshop', 'sosialisasi', 'seminar', 'pelatihan', 'rakor', 'klinik'];
+        $typeCounts = [];
+        foreach ($allEventTypes as $tKey) {
+            $typeCounts[$tKey] = (int) $this->db->table('events')
+                ->where('deleted_at', null)
+                ->where('visibility', 'public')
+                ->where('type', $tKey)
+                ->countAllResults();
+        }
 
         // Upcoming Top 3 Events for Sidebar
         $upcomingSidebar = $this->db->table('events e')
-            ->select('e.title, e.slug, e.start_at, e.mode, e.type, e.location')
+            ->select('e.title, e.slug, e.start_at, e.mode, e.type, e.location, e.certificate_enabled')
             ->where('e.deleted_at', null)
             ->where('e.visibility', 'public')
             ->where('e.end_at >=', $now)
@@ -203,7 +211,7 @@ class EventPublicController extends BaseController
         $calendarGrouped = [];
         if ($viewMode === 'calendar') {
             $allCalendarEvents = $this->db->table('events e')
-                ->select('e.id, e.title, e.slug, e.start_at, e.end_at, e.type, e.mode, e.location, e.status')
+                ->select('e.id, e.title, e.slug, e.start_at, e.end_at, e.type, e.mode, e.location, e.status, e.certificate_enabled')
                 ->where('e.deleted_at', null)
                 ->where('e.visibility', 'public')
                 ->orderBy('e.start_at', 'ASC')
@@ -260,30 +268,39 @@ class EventPublicController extends BaseController
             throw PageNotFoundException::forPageNotFound('Event atau agenda tidak ditemukan: ' . esc($slug));
         }
 
-        $now = time();
-        $startTime = strtotime($event['start_at']);
-        $endTime   = strtotime($event['end_at']);
+        $now       = time();
+        $startTime = ! empty($event['start_at']) ? strtotime($event['start_at']) : $now;
+        $endTime   = ! empty($event['end_at']) ? strtotime($event['end_at']) : $startTime;
         $isPast    = $endTime < $now;
         $isOngoing = ($startTime <= $now && $endTime >= $now);
 
-        // Registration status
+        // Registration count
         $regCount = $this->db->table('event_registrations')
             ->where('event_id', $event['id'])
-            ->whereIn('status', ['registered', 'confirmed'])
+            ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
             ->countAllResults();
 
-        $capacity  = (int) ($event['capacity'] ?? 100);
-        $remaining = max(0, $capacity - $regCount);
+        $capacity    = (int) ($event['capacity'] ?? 0);
+        $isUnlimited = ($capacity <= 0);
+        $remaining   = $isUnlimited ? null : max(0, $capacity - $regCount);
 
         // Check if user is logged in and already registered
-        $userId       = (int) session()->get('user_id');
-        $isRegistered = false;
-        $userRegData  = null;
+        $userId         = (int) session()->get('user_id');
+        $isRegistered   = false;
+        $userRegData    = null;
+        $userAttendance = null;
+
         if ($userId > 0) {
             $userRegData = $this->db->table('event_registrations')
                 ->where(['event_id' => $event['id'], 'user_id' => $userId])
                 ->get()->getRowArray();
-            $isRegistered = ! empty($userRegData) && in_array($userRegData['status'], ['registered', 'confirmed', 'waitlist']);
+            $isRegistered = ! empty($userRegData) && in_array($userRegData['status'], ['registered', 'attended', 'confirmed', 'promoted', 'waitlist']);
+
+            if ($userRegData) {
+                $userAttendance = $this->db->table('attendances')
+                    ->where('event_registration_id', $userRegData['id'])
+                    ->get()->getRowArray();
+            }
         }
 
         // Registration window checks
@@ -301,9 +318,19 @@ class EventPublicController extends BaseController
             $isRegOpen = false;
         }
 
+        // Attendance / Presensi session active check
+        $attOpenAt      = ! empty($event['attendance_open_at']) ? strtotime($event['attendance_open_at']) : null;
+        $attCloseAt     = ! empty($event['attendance_close_at']) ? strtotime($event['attendance_close_at']) : null;
+        $isPresensiOpen = false;
+        if (! empty($event['attendance_code']) && $attOpenAt !== null) {
+            if ($attOpenAt <= $now && ($attCloseAt === null || $attCloseAt > $now)) {
+                $isPresensiOpen = true;
+            }
+        }
+
         // Related upcoming events
         $relatedEvents = $this->db->table('events e')
-            ->select('e.id, e.title, e.slug, e.start_at, e.end_at, e.type, e.mode, e.location, fa.path AS cover_path')
+            ->select('e.id, e.title, e.slug, e.start_at, e.end_at, e.type, e.mode, e.location, e.certificate_enabled, fa.path AS cover_path')
             ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
             ->where('e.deleted_at', null)
             ->where('e.visibility', 'public')
@@ -327,10 +354,17 @@ class EventPublicController extends BaseController
             'isOngoing'       => $isOngoing,
             'registeredCount' => $regCount,
             'capacity'        => $capacity,
+            'isUnlimited'     => $isUnlimited,
             'remainingSeats'  => $remaining,
             'isRegistered'    => $isRegistered,
             'userRegData'     => $userRegData,
+            'userAttendance'  => $userAttendance,
             'isRegOpen'       => $isRegOpen,
+            'regOpenAt'       => $regOpenAt,
+            'regCloseAt'      => $regCloseAt,
+            'isPresensiOpen'  => $isPresensiOpen,
+            'attOpenAt'       => $attOpenAt,
+            'attCloseAt'      => $attCloseAt,
             'relatedEvents'   => $relatedEvents,
             'shareUrl'        => site_url('event/' . $event['slug']),
         ]);
@@ -356,6 +390,9 @@ class EventPublicController extends BaseController
         if (! empty($event['registration_close_at']) && strtotime($event['registration_close_at']) < time()) {
             return redirect()->back()->with('error', 'Pendaftaran event ini sudah ditutup.');
         }
+        if (! empty($event['registration_open_at']) && strtotime($event['registration_open_at']) > time()) {
+            return redirect()->back()->with('error', 'Pendaftaran event ini belum dibuka.');
+        }
         if (strtotime($event['end_at']) < time()) {
             return redirect()->back()->with('error', 'Kegiatan ini telah selesai diselenggarakan.');
         }
@@ -369,14 +406,23 @@ class EventPublicController extends BaseController
             return redirect()->back()->with('error', 'Anda sudah terdaftar pada kegiatan ini.');
         }
 
-        // Check capacity
+        // Check capacity & waitlist
         $currentCount = $this->db->table('event_registrations')
             ->where('event_id', $event['id'])
-            ->whereIn('status', ['registered', 'confirmed'])
+            ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
             ->countAllResults();
 
-        $capacity = (int) ($event['capacity'] ?? 100);
-        $status   = ($currentCount >= $capacity) ? 'waitlist' : 'registered';
+        $capacity    = (int) ($event['capacity'] ?? 0);
+        $isUnlimited = ($capacity <= 0);
+
+        if (! $isUnlimited && $currentCount >= $capacity) {
+            if (empty($event['waitlist_enabled'])) {
+                return redirect()->back()->with('error', 'Mohon maaf, kuota peserta telah terpenuhi dan antrian waitlist tidak dibuka untuk kegiatan ini.');
+            }
+            $status = 'waitlist';
+        } else {
+            $status = 'registered';
+        }
 
         $now = date('Y-m-d H:i:s');
         $this->db->table('event_registrations')->insert([
@@ -398,8 +444,8 @@ class EventPublicController extends BaseController
         );
 
         $msg = ($status === 'waitlist')
-            ? 'Kuota utama telah terpenuhi. Anda otomatis tercatat dalam daftar tunggu (waitlist).'
-            : 'Selamat! Pendaftaran Anda berhasil tercatat. Simpan tanggal acara pada kalender Anda.';
+            ? 'Kuota utama telah terpenuhi. Anda otomatis tercatat dalam antrian tunggu (waitlist) resmi.'
+            : 'Selamat! Pendaftaran Anda berhasil dikonfirmasi. Simpan jadwal pada kalender Anda.';
 
         return redirect()->back()->with('message', $msg);
     }
@@ -410,9 +456,11 @@ class EventPublicController extends BaseController
             'webinar'     => 'Webinar',
             'bimtek'      => 'Bimtek',
             'workshop'    => 'Workshop',
-            'sosialisasi' => 'Sosialisasi',
+            'sosialisasi' => 'Sosialisasi Regulasi',
+            'seminar'     => 'Seminar',
+            'pelatihan'   => 'Pelatihan',
             'rakor'       => 'Rapat Koordinasi',
-            'klinik'      => 'Klinik Konsultasi',
+            'klinik'      => 'Klinik Pengadaan',
             default       => ucfirst($type),
         };
     }
@@ -435,6 +483,7 @@ class EventPublicController extends BaseController
         return match (strtolower($status)) {
             'open_registration' => 'Pendaftaran Dibuka',
             'coming_soon'       => 'Segera Dibuka',
+            'published'         => 'Terjadwal',
             'full'              => 'Kuota Penuh',
             'finished'          => 'Selesai',
             'cancelled'         => 'Dibatalkan',
