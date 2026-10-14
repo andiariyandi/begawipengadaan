@@ -4,32 +4,35 @@
 <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
 <style>
     /* =========================================================
-       BEGAWIPBJ HOMEPAGE REFINED DESIGN DNA
+       BEGAWIPBJ HOMEPAGE ELEVATED DESIGN DNA & ACCESSIBLE STYLING
        ========================================================= */
     :root {
         --bg-navy-dark: #052244;
         --bg-navy-main: #082f5c;
         --bg-navy-light: #0c5aa6;
+        --bg-navy-soft: #f0f7ff;
         --bg-amber: #f59e0b;
         --bg-amber-dark: #d97706;
         --bg-emerald: #10b981;
         --bg-sky: #0ea5e9;
         --text-slate-900: #0f172a;
+        --text-slate-800: #1e293b;
         --text-slate-700: #334155;
+        --text-slate-600: #475569;
         --text-slate-500: #64748b;
         --card-border: #e2e8f0;
     }
 
-    /* Fix Header Menu Overlapping */
+    /* Menu Bar Natural Flow — Sits cleanly above Hero Slider without Overlapping */
     .landing-home .main-header {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
+        position: relative !important;
         z-index: 999;
+        background: linear-gradient(180deg, rgba(5, 34, 68, 1) 0%, rgba(8, 47, 92, 1) 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
     }
 
-    /* Hero Slider Paling Atas */
+    /* Hero Slider Container — Text Placed at the Bottom so Background Image is 100% Uncovered */
     .main-slider {
         position: relative;
         display: block;
@@ -38,18 +41,27 @@
         overflow: hidden;
     }
 
+    /* Aligned to Bottom with Clear Image View Above */
     .main-slider .item {
         position: relative;
-        padding-top: 200px !important;
-        padding-bottom: 120px !important;
+        padding-top: 120px !important;
+        padding-bottom: 70px !important;
         min-height: 680px;
-        display: flex;
-        align-items: center;
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-end !important;
         background-color: var(--bg-navy-dark);
         overflow: hidden;
     }
 
-    /* Full Gambar Latar Belakang Terlihat Jelas */
+    .main-slider .item > .container {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        margin-top: auto;
+    }
+
+    /* Slider Background with Enhanced Contrast & Sharp Filter */
     .main-slider__bg {
         position: absolute;
         top: 0;
@@ -57,36 +69,36 @@
         right: 0;
         bottom: 0;
         background-repeat: no-repeat;
-        background-position: center;
+        background-position: center top;
         background-size: cover;
-        opacity: 0.95 !important;
-        filter: brightness(0.85) contrast(1.05) !important;
+        opacity: 0.96 !important;
+        filter: brightness(0.92) contrast(1.05) !important;
         transform: none !important;
         transition: none !important;
         z-index: 1;
     }
 
-    /* Soft directional gradient scrim so full photo is visible while text is protected */
+    /* Bottom-focused Scrim Gradient: Crystal clear top so hero image is unobstructed, darker bottom for high text contrast */
     .main-slider .item::before {
         content: '';
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(180deg, rgba(5, 34, 68, 0.45) 0%, rgba(5, 34, 68, 0.25) 100%);
+        background: linear-gradient(180deg, rgba(5, 34, 68, 0.02) 0%, rgba(5, 34, 68, 0.12) 35%, rgba(5, 34, 68, 0.65) 68%, rgba(5, 34, 68, 0.94) 100%);
         z-index: 2;
         pointer-events: none;
     }
 
-    /* Glass Content Card for Crisp Readable Typography */
+    /* High-Legibility Glass Content Cards */
     .main-slider__content-glass {
         position: relative;
         z-index: 10;
         background: rgba(5, 34, 68, 0.82);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         border: 1px solid rgba(255, 255, 255, 0.22);
-        border-radius: 24px;
-        padding: 40px 44px;
-        box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+        border-radius: 20px;
+        padding: 26px 36px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.40);
         max-width: 720px;
     }
 
@@ -97,18 +109,18 @@
     }
 
     .main-slider__content-glass--center .main-slider__sub-title-box {
-        margin: 0 auto 14px;
+        margin: 0 auto 12px;
     }
 
     .main-slider__content-glass--center .main-slider__text {
-        margin: 0 auto 28px;
+        margin: 0 auto 20px;
     }
 
     .main-slider__content-glass--center .main-slider__btn-box {
         justify-content: center;
     }
 
-    /* Reset All Broken 3D Transforms from Theme */
+    /* Reset Broken Theme Transforms */
     .main-slider__content,
     .main-slider__content-glass,
     .main-slider__sub-title-box,
@@ -118,14 +130,14 @@
         opacity: 1 !important;
         transform: none !important;
         -webkit-transform: none !important;
-        transition: opacity 0.4s ease !important;
+        transition: opacity 0.3s ease !important;
         visibility: visible !important;
     }
 
     .main-slider__sub-title-box {
         background: rgba(255, 255, 255, 0.16);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 6px 18px;
+        border: 1px solid rgba(255, 255, 255, 0.32);
+        padding: 7px 18px;
         border-radius: 999px;
         display: inline-flex !important;
         align-items: center;
@@ -143,7 +155,7 @@
         font-family: inherit !important;
         margin: 0 !important;
         line-height: 1.2 !important;
-        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     }
 
     .main-slider__sub-title-shape {
@@ -151,33 +163,34 @@
         width: 8px !important;
         height: 8px !important;
         border-radius: 50%;
+        box-shadow: 0 0 10px #f59e0b;
     }
 
     .main-slider__title {
-        font-size: 44px !important;
-        line-height: 1.22 !important;
+        font-size: 32px !important;
+        line-height: 1.25 !important;
         font-weight: 800 !important;
         color: #ffffff !important;
-        margin-top: 10px !important;
-        margin-bottom: 18px !important;
+        margin-top: 6px !important;
+        margin-bottom: 12px !important;
         text-transform: none !important;
         letter-spacing: -0.5px;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7) !important;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75) !important;
     }
 
     .main-slider__title span {
         color: #fbbf24 !important;
         -webkit-text-fill-color: #fbbf24 !important;
         background: none !important;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7) !important;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75) !important;
     }
 
     .main-slider__text {
-        font-size: 16px !important;
-        line-height: 1.65 !important;
+        font-size: 15px !important;
+        line-height: 1.6 !important;
         color: #f1f5f9 !important;
-        margin-bottom: 26px !important;
-        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7) !important;
+        margin-bottom: 18px !important;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.75) !important;
     }
 
     .main-slider__btn-box {
@@ -191,6 +204,7 @@
         background: transparent !important;
         border: 2px solid rgba(255, 255, 255, 0.85) !important;
         color: #ffffff !important;
+        backdrop-filter: blur(4px);
     }
 
     .thm-btn-alt:hover {
@@ -199,11 +213,48 @@
         border-color: #ffffff !important;
     }
 
+    /* Owl Carousel Navigation Arrows */
+    .main-slider .owl-nav {
+        position: absolute;
+        top: 40%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        pointer-events: none;
+        z-index: 15;
+    }
+
+    .main-slider .owl-nav button {
+        pointer-events: auto;
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 50% !important;
+        background: rgba(255, 255, 255, 0.22) !important;
+        backdrop-filter: blur(8px);
+        color: #ffffff !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        transition: all 0.25s ease !important;
+        font-size: 18px !important;
+    }
+
+    .main-slider .owl-nav button:hover {
+        background: #f59e0b !important;
+        color: #052244 !important;
+        border-color: #f59e0b !important;
+        transform: scale(1.08);
+    }
+
+    .main-slider .owl-nav .owl-prev { margin-left: 24px; }
+    .main-slider .owl-nav .owl-next { margin-right: 24px; float: right; }
+
     /* Floating Portal Gateway (Search & KPI Ribbon) */
     .portal-gateway-section {
         position: relative;
         z-index: 25;
-        margin-top: -55px;
+        margin-top: -30px;
         margin-bottom: 30px;
     }
 
@@ -212,13 +263,13 @@
         border: 1px solid #e2e8f0;
         border-radius: 20px;
         padding: 30px 36px;
-        box-shadow: 0 18px 40px rgba(8, 47, 92, 0.12);
+        box-shadow: 0 18px 45px rgba(8, 47, 92, 0.14);
     }
 
     /* Global Search Box */
     .hero-search-box {
         background: #f8fafc;
-        border: 1px solid #cbd5e1;
+        border: 1.5px solid #cbd5e1;
         border-radius: 14px;
         padding: 6px 10px 6px 18px;
         display: flex;
@@ -232,23 +283,23 @@
     .hero-search-box:focus-within {
         background: #ffffff;
         border-color: var(--bg-navy-light);
-        box-shadow: 0 0 0 3px rgba(12, 90, 166, 0.15);
+        box-shadow: 0 0 0 3px rgba(12, 90, 166, 0.16);
     }
 
     .hero-search-box input {
         border: none;
         outline: none;
         font-size: 15px;
-        color: #1e293b;
+        color: #0f172a;
         flex: 1;
         background: transparent;
     }
 
     .hero-search-box input::placeholder {
-        color: #94a3b8;
+        color: #64748b;
     }
 
-    /* Hero Search Dropdown Style (Single Native Dropdown, Class 'ignore') */
+    /* Native Target Select (Class 'ignore' disables theme nice-select) */
     .hero-search-target-select {
         background: #f1f5f9 !important;
         border: 1px solid #cbd5e1 !important;
@@ -264,7 +315,6 @@
         line-height: 1.4 !important;
     }
 
-    /* Prevent nice-select from appearing if somehow initialized */
     .hero-search-box .nice-select {
         display: none !important;
     }
@@ -305,13 +355,15 @@
         border-radius: 999px;
         text-decoration: none;
         font-size: 12px;
-        font-weight: 500;
+        font-weight: 600;
         transition: all 0.2s ease;
+        border: 1px solid #e2e8f0;
     }
 
     .hero-quick-tags a:hover {
         background: #e0f2fe;
         color: #0369a1;
+        border-color: #bae6fd;
     }
 
     /* KPI Items */
@@ -329,8 +381,8 @@
     }
 
     .gateway-kpi-icon {
-        width: 46px;
-        height: 46px;
+        width: 48px;
+        height: 48px;
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -340,7 +392,7 @@
     }
 
     .gateway-kpi-num {
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 800;
         color: var(--bg-navy-dark);
         line-height: 1.1;
@@ -348,8 +400,8 @@
 
     .gateway-kpi-label {
         font-size: 13px;
-        font-weight: 500;
-        color: var(--text-slate-500);
+        font-weight: 600;
+        color: var(--text-slate-600);
         line-height: 1.25;
     }
 
@@ -385,9 +437,9 @@
 
     .section-title-desc {
         font-size: 16px;
-        color: var(--text-slate-500);
-        max-width: 680px;
-        line-height: 1.6;
+        color: var(--text-slate-600);
+        max-width: 720px;
+        line-height: 1.65;
     }
 
     /* Ecosystem Pillars Grid */
@@ -395,7 +447,7 @@
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 18px;
-        padding: 32px 24px;
+        padding: 32px 26px;
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         height: 100%;
         display: flex;
@@ -418,7 +470,7 @@
 
     .pillar-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 20px 35px rgba(8, 47, 92, 0.08);
+        box-shadow: 0 20px 35px rgba(8, 47, 92, 0.10);
         border-color: #cbd5e1;
     }
 
@@ -449,8 +501,8 @@
 
     .pillar-desc {
         font-size: 14px;
-        color: var(--text-slate-500);
-        line-height: 1.6;
+        color: var(--text-slate-600);
+        line-height: 1.65;
         margin-bottom: 20px;
         flex-grow: 1;
     }
@@ -485,7 +537,7 @@
 
     .course-card-modern:hover {
         transform: translateY(-5px);
-        box-shadow: 0 16px 32px rgba(8, 47, 92, 0.09);
+        box-shadow: 0 16px 32px rgba(8, 47, 92, 0.10);
         border-color: #cbd5e1;
     }
 
@@ -511,7 +563,7 @@
         position: absolute;
         top: 14px;
         left: 14px;
-        background: rgba(15, 23, 42, 0.75);
+        background: rgba(15, 23, 42, 0.82);
         backdrop-filter: blur(6px);
         color: #ffffff;
         font-size: 11px;
@@ -526,16 +578,17 @@
         position: absolute;
         bottom: 14px;
         right: 14px;
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(6px);
         color: #0f172a;
         font-size: 12px;
-        font-weight: 600;
+        font-weight: 700;
         padding: 4px 10px;
         border-radius: 6px;
         display: flex;
         align-items: center;
         gap: 4px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     }
 
     .course-body-modern {
@@ -559,7 +612,7 @@
         font-weight: 700;
         line-height: 1.4;
         color: var(--bg-navy-dark);
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -575,9 +628,20 @@
         color: var(--bg-navy-light);
     }
 
+    .course-summary-snippet {
+        font-size: 13px;
+        color: var(--text-slate-600);
+        line-height: 1.55;
+        margin-bottom: 16px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
     .course-meta-row {
         margin-top: auto;
-        padding-top: 16px;
+        padding-top: 14px;
         border-top: 1px solid #f1f5f9;
         display: flex;
         align-items: center;
@@ -598,7 +662,7 @@
 
     .reg-card-modern:hover {
         transform: translateY(-4px);
-        box-shadow: 0 14px 30px rgba(8, 47, 92, 0.08);
+        box-shadow: 0 14px 30px rgba(8, 47, 92, 0.10);
         border-color: #cbd5e1;
     }
 
@@ -663,7 +727,7 @@
 
     .reg-summary-text {
         font-size: 13px;
-        color: var(--text-slate-500);
+        color: var(--text-slate-600);
         line-height: 1.6;
         margin-bottom: 16px;
         display: -webkit-box;
@@ -700,12 +764,12 @@
     .stage-card-step:hover {
         transform: translateY(-5px);
         border-color: #0c5aa6;
-        box-shadow: 0 16px 30px rgba(8, 47, 92, 0.08);
+        box-shadow: 0 16px 30px rgba(8, 47, 92, 0.10);
     }
 
     .stage-number-badge {
-        width: 44px;
-        height: 44px;
+        width: 46px;
+        height: 46px;
         border-radius: 50%;
         background: linear-gradient(135deg, #0c5aa6 0%, #082f5c 100%);
         color: #ffffff;
@@ -715,7 +779,7 @@
         align-items: center;
         justify-content: center;
         margin-bottom: 16px;
-        box-shadow: 0 6px 14px rgba(12, 90, 166, 0.25);
+        box-shadow: 0 6px 14px rgba(12, 90, 166, 0.28);
     }
 
     .stage-step-title {
@@ -728,7 +792,7 @@
 
     .stage-step-desc {
         font-size: 13px;
-        color: var(--text-slate-500);
+        color: var(--text-slate-600);
         line-height: 1.55;
         margin-bottom: 16px;
         flex-grow: 1;
@@ -751,7 +815,7 @@
         padding: 10px 22px;
         font-size: 14px;
         font-weight: 600;
-        color: #475569;
+        color: #334155;
         cursor: pointer;
         transition: all 0.25s ease;
         display: inline-flex;
@@ -769,7 +833,7 @@
         background: #082f5c;
         color: #ffffff;
         border-color: #082f5c;
-        box-shadow: 0 6px 16px rgba(8, 47, 92, 0.2);
+        box-shadow: 0 6px 16px rgba(8, 47, 92, 0.25);
     }
 
     /* Article Modern Card */
@@ -786,7 +850,7 @@
 
     .article-card-modern:hover {
         transform: translateY(-4px);
-        box-shadow: 0 14px 28px rgba(8, 47, 92, 0.08);
+        box-shadow: 0 14px 28px rgba(8, 47, 92, 0.10);
     }
 
     .article-thumb-modern {
@@ -799,6 +863,11 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .article-card-modern:hover .article-thumb-modern img {
+        transform: scale(1.05);
     }
 
     /* Template Modern Card */
@@ -818,11 +887,12 @@
         border-color: #0c5aa6;
         background: #f8fafc;
         transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(8, 47, 92, 0.08);
     }
 
     .template-file-icon {
-        width: 50px;
-        height: 50px;
+        width: 52px;
+        height: 52px;
         border-radius: 12px;
         background: #eff6ff;
         color: #0284c7;
@@ -833,7 +903,12 @@
         flex-shrink: 0;
     }
 
-    /* Event Card */
+    .template-file-icon.excel {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    /* Event Card Modern */
     .event-card-modern {
         background: #ffffff;
         border: 1px solid #e2e8f0;
@@ -849,7 +924,7 @@
     .event-card-modern:hover {
         transform: translateY(-4px);
         border-color: #0c5aa6;
-        box-shadow: 0 14px 28px rgba(8, 47, 92, 0.08);
+        box-shadow: 0 14px 28px rgba(8, 47, 92, 0.10);
     }
 
     .event-date-badge {
@@ -859,11 +934,11 @@
         padding: 12px 14px;
         text-align: center;
         flex-shrink: 0;
-        min-width: 68px;
+        min-width: 72px;
     }
 
     .event-date-day {
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 800;
         color: #0c5aa6;
         line-height: 1;
@@ -873,7 +948,7 @@
     .event-date-month {
         font-size: 12px;
         font-weight: 700;
-        color: #475569;
+        color: #334155;
         text-transform: uppercase;
         margin-top: 4px;
         display: block;
@@ -894,7 +969,7 @@
         color: #ffffff;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 20px 40px rgba(5, 34, 68, 0.2);
+        box-shadow: 0 20px 45px rgba(5, 34, 68, 0.25);
     }
 
     .cta-banner-modern::before {
@@ -902,30 +977,43 @@
         position: absolute;
         top: -50%;
         right: -10%;
-        width: 400px;
-        height: 400px;
+        width: 420px;
+        height: 420px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(245, 158, 11, 0.18) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.22) 0%, transparent 70%);
         pointer-events: none;
+    }
+
+    /* Responsive Breakpoints & Bottom Alignment Guarantee */
+    @media (max-width: 1199px) {
+        .main-slider .item {
+            padding-top: 80px !important;
+            padding-bottom: 60px !important;
+            min-height: 600px;
+        }
+        .main-slider__title {
+            font-size: 28px !important;
+        }
     }
 
     @media (max-width: 991px) {
         .main-slider .item {
-            padding-top: 170px !important;
-            padding-bottom: 90px !important;
-            min-height: auto;
+            padding-top: 60px !important;
+            padding-bottom: 50px !important;
+            min-height: 540px;
         }
         .main-slider__title {
-            font-size: 34px !important;
+            font-size: 24px !important;
         }
         .main-slider__content-glass {
-            padding: 28px 24px;
+            padding: 20px 22px;
+            border-radius: 16px;
         }
         .section-title-main {
             font-size: 26px;
         }
         .portal-gateway-section {
-            margin-top: -30px;
+            margin-top: -25px;
         }
         .portal-gateway-card {
             padding: 24px 20px;
@@ -937,11 +1025,19 @@
 
     @media (max-width: 767px) {
         .main-slider .item {
-            padding-top: 150px !important;
-            padding-bottom: 70px !important;
+            padding-top: 40px !important;
+            padding-bottom: 45px !important;
+            min-height: auto;
         }
         .main-slider__title {
-            font-size: 28px !important;
+            font-size: 20px !important;
+        }
+        .main-slider__content-glass {
+            padding: 16px 16px;
+            border-radius: 14px;
+        }
+        .main-slider .owl-nav {
+            display: none !important;
         }
         .hero-search-box {
             flex-wrap: wrap;
@@ -955,6 +1051,10 @@
         .hero-search-box .btn-search {
             width: 100%;
             justify-content: center;
+        }
+        .event-card-modern {
+            flex-direction: column;
+            gap: 14px;
         }
     }
 </style>
@@ -973,6 +1073,12 @@ $faqs           = $faqs ?? [];
 $mediaItems     = $mediaItems ?? [];
 $stages         = $stages ?? [];
 $upcomingEvents = $upcomingEvents ?? [];
+
+// Indonesian month mapping helper
+$bulanIndo = [
+    1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
+    7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'
+];
 ?>
 
 <!-- =========================================================
@@ -984,7 +1090,7 @@ $upcomingEvents = $upcomingEvents ?? [];
         <div class="item">
             <div class="main-slider__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/slider-1-1.jpg') ?>);"></div>
             <div class="container">
-                <div class="row align-items-center">
+                <div class="row align-items-end">
                     <div class="col-lg-8 col-xl-7">
                         <div class="main-slider__content-glass">
                             <div class="main-slider__sub-title-box">
@@ -1016,7 +1122,7 @@ $upcomingEvents = $upcomingEvents ?? [];
         <div class="item">
             <div class="main-slider__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/slider-1-2.jpg') ?>);"></div>
             <div class="container">
-                <div class="row justify-content-center">
+                <div class="row justify-content-center align-items-end">
                     <div class="col-lg-10 col-xl-9">
                         <div class="main-slider__content-glass main-slider__content-glass--center">
                             <div class="main-slider__sub-title-box">
@@ -1048,7 +1154,7 @@ $upcomingEvents = $upcomingEvents ?? [];
         <div class="item">
             <div class="main-slider__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/slider-1-3.jpg') ?>);"></div>
             <div class="container">
-                <div class="row justify-content-end">
+                <div class="row justify-content-end align-items-end">
                     <div class="col-lg-8 col-xl-7">
                         <div class="main-slider__content-glass ms-auto">
                             <div class="main-slider__sub-title-box">
@@ -1093,6 +1199,8 @@ $upcomingEvents = $upcomingEvents ?? [];
                     <option value="regulasi">Regulasi PBJ</option>
                     <option value="arena-belajar/course">Arena Belajar</option>
                     <option value="bunga-rampai/artikel">Bunga Rampai</option>
+                    <option value="event">Event &amp; Agenda</option>
+                    <option value="verifikasi-sertifikat">Cek Sertifikat</option>
                 </select>
                 <button type="submit" class="btn-search">
                     <span>Cari</span>
@@ -1103,11 +1211,12 @@ $upcomingEvents = $upcomingEvents ?? [];
             <!-- Quick Keyword Tags -->
             <div class="hero-quick-tags mb-3">
                 <span class="text-dark fw-bold">Pencarian Cepat:</span>
-                <a href="<?= site_url('regulasi?category=peraturan-presiden') ?>">Perpres 12/2021</a>
-                <a href="<?= site_url('regulasi?category=peraturan-lkpp') ?>">Peraturan LKPP</a>
-                <a href="<?= site_url('bunga-rampai/template-dokumen') ?>">Template HPS &amp; KAK</a>
+                <a href="<?= site_url('regulasi?q=Perpres+12+Tahun+2021') ?>">Perpres 12/2021</a>
+                <a href="<?= site_url('regulasi?q=Peraturan+LKPP') ?>">Peraturan LKPP</a>
+                <a href="<?= site_url('bunga-rampai/template-dokumen') ?>">Template KAK &amp; HPS</a>
                 <a href="<?= site_url('arena-belajar/course') ?>">Course PBJ</a>
-                <a href="<?= site_url('bunga-rampai/studi-kasus') ?>">Studi Kasus Audit</a>
+                <a href="<?= site_url('event') ?>">Agenda Bimtek &amp; Webinar</a>
+                <a href="<?= site_url('verifikasi-sertifikat') ?>">Verifikasi Sertifikat</a>
             </div>
 
             <!-- Live KPI Counter Ribbon (4 Cards) -->
@@ -1266,7 +1375,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                     <span>Arena Belajar PBJ</span>
                 </div>
                 <h2 class="section-title-main mb-1">Materi &amp; Kursus Terpopuler</h2>
-                <p class="section-title-desc mb-0">Tingkatkan kompetensi Anda melalui modul belajar terstandar nasional.</p>
+                <p class="section-title-desc mb-0">Tingkatkan kompetensi Anda melalui kurikulum berjenjang terstandar LKPP dan instruktur ahli.</p>
             </div>
             <a href="<?= site_url('arena-belajar/course') ?>" class="btn btn-outline-primary px-20 py-10 radius-8 fw-semibold d-inline-flex align-items-center gap-2">
                 <span>Lihat Seluruh Kursus</span>
@@ -1298,7 +1407,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                                 <h3 class="course-title-modern">
                                     <a href="<?= site_url('arena-belajar/course') ?>"><?= esc($c['title']) ?></a>
                                 </h3>
-                                <p class="text-slate-500 text-sm mb-3">Panduan komprehensif bagi PPK dan Pokja dalam menerapkan regulasi terbaru.</p>
+                                <p class="course-summary-snippet">Panduan komprehensif bagi PPK dan Pokja dalam menerapkan regulasi terbaru.</p>
                                 <div class="course-meta-row">
                                     <span class="text-xs text-muted d-flex align-items-center gap-1">
                                         <iconify-icon icon="solar:users-group-rounded-linear"></iconify-icon> 120+ Peserta
@@ -1311,31 +1420,45 @@ $upcomingEvents = $upcomingEvents ?? [];
                 <?php endforeach; ?>
             <?php else: ?>
                 <?php foreach ($courses as $c): ?>
+                    <?php
+                    $lvl = strtolower((string) ($c['level'] ?? 'basic'));
+                    $lvlText = match ($lvl) {
+                        'basic', 'pemula' => 'Pemula',
+                        'intermediate', 'menengah' => 'Menengah',
+                        'advanced', 'lanjutan' => 'Lanjutan',
+                        default => 'Semua Tingkat'
+                    };
+                    $durationJp = 4;
+                    if (! empty($c['duration_minutes'])) {
+                        $durationJp = max(1, round((int) $c['duration_minutes'] / 45));
+                    } elseif (! empty($c['duration_hours'])) {
+                        $durationJp = (int) $c['duration_hours'];
+                    }
+                    $enrolled = (int) ($c['enrollments_count'] ?? 0);
+                    $thumbImg = ! empty($c['cover_asset_path'])
+                        ? base_url('file/' . (int) ($c['cover_file_id'] ?? 0))
+                        : (! empty($c['cover_url']) ? $c['cover_url'] : base_url('assets/main/images/resources/courses-1-1.jpg'));
+                    ?>
                     <div class="col-lg-4 col-md-6">
                         <div class="course-card-modern">
                             <div class="course-thumb-wrap">
-                                <?php
-                                $thumbImg = ! empty($c['cover_asset_path'])
-                                    ? base_url('file/' . (int) ($c['cover_file_id'] ?? 0))
-                                    : (! empty($c['cover_url']) ? $c['cover_url'] : base_url('assets/main/images/resources/courses-1-1.jpg'));
-                                ?>
                                 <img src="<?= esc($thumbImg) ?>" alt="<?= esc($c['title']) ?>" onerror="this.src='<?= base_url('assets/main/images/resources/courses-1-1.jpg') ?>'">
-                                <span class="course-level-badge"><?= esc($c['level'] ?? 'Umum') ?></span>
-                                <?php if (! empty($c['duration_hours'])): ?>
-                                    <span class="course-duration-badge">
-                                        <iconify-icon icon="solar:clock-circle-linear"></iconify-icon>
-                                        <?= (int) $c['duration_hours'] ?> JP
-                                    </span>
-                                <?php endif; ?>
+                                <span class="course-level-badge"><?= esc($lvlText) ?></span>
+                                <span class="course-duration-badge">
+                                    <iconify-icon icon="solar:clock-circle-linear"></iconify-icon>
+                                    <?= $durationJp ?> JP
+                                </span>
                             </div>
                             <div class="course-body-modern">
                                 <span class="course-program-tag"><?= esc($c['program_title'] ?? 'Arena Belajar') ?></span>
                                 <h3 class="course-title-modern">
                                     <a href="<?= site_url('arena-belajar/course/' . esc($c['slug'])) ?>"><?= esc($c['title']) ?></a>
                                 </h3>
+                                <p class="course-summary-snippet"><?= esc(! empty($c['summary']) ? $c['summary'] : 'Materi pembelajaran terstruktur berbasis silabus standar kompetensi LKPP.') ?></p>
                                 <div class="course-meta-row">
                                     <span class="text-xs text-muted d-flex align-items-center gap-1">
-                                        <iconify-icon icon="solar:book-linear"></iconify-icon> Modul Terstruktur
+                                        <iconify-icon icon="solar:users-group-rounded-linear"></iconify-icon>
+                                        <?= $enrolled > 0 ? $enrolled . ' Peserta' : 'Modul Mandiri' ?>
                                     </span>
                                     <a href="<?= site_url('arena-belajar/course/' . esc($c['slug'])) ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Buka Materi</a>
                                 </div>
@@ -1485,13 +1608,23 @@ $upcomingEvents = $upcomingEvents ?? [];
                             </div>
 
                             <span class="reg-doc-num"><?= esc($r['document_number'] ?? 'Naskah PBJ') ?></span>
+                            
+                            <?php if (! empty($r['category_name'])): ?>
+                                <span class="badge bg-light text-primary border text-2xs fw-bold px-2 py-1 radius-4 mb-2 d-inline-block" style="width: fit-content;">
+                                    <?= esc($r['category_name']) ?>
+                                </span>
+                            <?php endif; ?>
+
                             <h3 class="reg-title-modern">
                                 <a href="<?= site_url('regulasi/' . esc($r['slug'])) ?>"><?= esc($r['title']) ?></a>
                             </h3>
                             <p class="reg-summary-text"><?= esc(! empty($r['summary']) ? $r['summary'] : 'Dokumen regulasi resmi pengadaan barang/jasa Pemerintah Provinsi Lampung.') ?></p>
                             
                             <div class="reg-actions-row">
-                                <span class="text-xs text-muted"><?= esc($r['issuer_name'] ?? 'Biro PBJ') ?></span>
+                                <span class="text-xs text-muted d-flex align-items-center gap-1">
+                                    <iconify-icon icon="solar:shield-check-linear"></iconify-icon>
+                                    <?= esc($r['issuer_name'] ?? 'Biro PBJ') ?>
+                                </span>
                                 <div class="d-flex align-items-center gap-1">
                                     <a href="<?= site_url('regulasi/' . esc($r['slug'])) ?>" class="btn btn-sm btn-outline-primary px-2 py-1 radius-6" title="Lihat Detail &amp; Silsilah">Naskah</a>
                                     <a href="<?= site_url('regulasi/' . esc($r['slug']) . '/unduh') ?>" class="btn btn-sm btn-primary px-2 py-1 radius-6" title="Unduh PDF">Unduh</a>
@@ -1557,14 +1690,20 @@ $upcomingEvents = $upcomingEvents ?? [];
                                         <img src="<?= ! empty($art['cover_path']) ? base_url('file/' . (int) ($art['cover_file_id'] ?? 0)) : base_url('assets/main/images/blog/blog-1-1.jpg') ?>" alt="<?= esc($art['title']) ?>" onerror="this.src='<?= base_url('assets/main/images/blog/blog-1-1.jpg') ?>'">
                                     </div>
                                     <div class="p-3 d-flex flex-column flex-grow-1">
-                                        <span class="text-xs text-primary fw-bold text-uppercase mb-1">Artikel PBJ</span>
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <span class="text-xs text-primary fw-bold text-uppercase">Artikel PBJ</span>
+                                            <span class="text-xs text-muted"><?= (int) ($art['reading_time'] ?? 5) ?> mnt</span>
+                                        </div>
                                         <h4 class="text-sm fw-bold mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                                             <a href="<?= site_url('bunga-rampai/artikel/' . esc($art['slug'])) ?>" class="text-dark text-decoration-none"><?= esc($art['title']) ?></a>
                                         </h4>
                                         <p class="text-xs text-slate-500 mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"><?= esc($art['summary'] ?? '') ?></p>
-                                        <a href="<?= site_url('bunga-rampai/artikel/' . esc($art['slug'])) ?>" class="mt-auto text-xs text-primary fw-bold text-decoration-none d-flex align-items-center gap-1">
-                                            Baca Selengkapnya <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
-                                        </a>
+                                        <div class="mt-auto d-flex align-items-center justify-content-between pt-2 border-top">
+                                            <small class="text-xs text-muted"><?= esc($art['author_name'] ?? 'Biro PBJ') ?></small>
+                                            <a href="<?= site_url('bunga-rampai/artikel/' . esc($art['slug'])) ?>" class="text-xs text-primary fw-bold text-decoration-none d-flex align-items-center gap-1">
+                                                Baca <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1592,7 +1731,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                         </div>
                         <div class="col-md-6">
                             <div class="template-item-card">
-                                <div class="template-file-icon"><iconify-icon icon="solar:document-bold"></iconify-icon></div>
+                                <div class="template-file-icon excel"><iconify-icon icon="solar:file-spreadsheet-bold"></iconify-icon></div>
                                 <div class="flex-grow-1">
                                     <h5 class="text-sm fw-bold mb-1">Kertas Kerja Rincian Perhitungan HPS Pekerjaan Konstruksi</h5>
                                     <span class="text-xs text-muted">Format XLSX &middot; Dilengkapi formula analisa</span>
@@ -1602,14 +1741,29 @@ $upcomingEvents = $upcomingEvents ?? [];
                         </div>
                     <?php else: ?>
                         <?php foreach ($templates as $tpl): ?>
+                            <?php
+                            $isExcel = str_contains(strtolower($tpl['title'] . ($tpl['mime_type'] ?? '')), 'xlsx')
+                                || str_contains(strtolower($tpl['title']), 'kertas kerja')
+                                || str_contains(strtolower($tpl['title']), 'hps');
+                            ?>
                             <div class="col-md-6">
                                 <div class="template-item-card">
-                                    <div class="template-file-icon"><iconify-icon icon="solar:file-text-bold"></iconify-icon></div>
+                                    <div class="template-file-icon <?= $isExcel ? 'excel' : '' ?>">
+                                        <iconify-icon icon="<?= $isExcel ? 'solar:file-spreadsheet-bold' : 'solar:document-bold' ?>"></iconify-icon>
+                                    </div>
                                     <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="badge <?= $isExcel ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary' ?> text-2xs fw-bold px-2 py-0">
+                                                <?= $isExcel ? 'Spreadsheet (XLSX)' : 'Dokumen (DOCX)' ?>
+                                            </span>
+                                        </div>
                                         <h5 class="text-sm fw-bold mb-1"><?= esc($tpl['title']) ?></h5>
                                         <span class="text-xs text-muted"><?= esc($tpl['summary'] ?? 'Template Dokumen Kerja SPSE') ?></span>
                                     </div>
-                                    <a href="<?= site_url('bunga-rampai/template-dokumen/' . esc($tpl['slug'])) ?>" class="btn btn-sm btn-outline-primary">Lihat &amp; Unduh</a>
+                                    <div class="d-flex flex-column gap-1">
+                                        <a href="<?= site_url('bunga-rampai/template-dokumen/' . esc($tpl['slug']) . '/unduh') ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Unduh</a>
+                                        <a href="<?= site_url('bunga-rampai/template-dokumen/' . esc($tpl['slug'])) ?>" class="btn btn-sm btn-outline-secondary px-2 py-0 text-2xs radius-6">Detail</a>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -1644,10 +1798,17 @@ $upcomingEvents = $upcomingEvents ?? [];
                         <?php foreach ($caseStudies as $cs): ?>
                             <div class="col-md-6">
                                 <div class="card p-24 radius-12 border bg-light h-100">
-                                    <span class="badge bg-info-50 text-info-700 px-2 py-1 text-xs fw-bold mb-2" style="width: fit-content;">Studi Kasus</span>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <span class="badge bg-info-subtle text-info px-2 py-1 text-xs fw-bold">
+                                            <?= esc($cs['procurement_stage'] ?? 'Mitigasi Risiko PBJ') ?>
+                                        </span>
+                                        <span class="text-xs text-muted">Studi Kasus</span>
+                                    </div>
                                     <h5 class="text-base fw-bold mb-2"><?= esc($cs['title']) ?></h5>
-                                    <p class="text-sm text-slate-500 mb-3"><?= esc($cs['summary'] ?? '') ?></p>
-                                    <a href="<?= site_url('bunga-rampai/studi-kasus/' . esc($cs['slug'])) ?>" class="text-primary text-sm fw-bold text-decoration-none">Pelajari Solusi &rarr;</a>
+                                    <p class="text-sm text-slate-600 mb-3"><?= esc($cs['summary'] ?? '') ?></p>
+                                    <a href="<?= site_url('bunga-rampai/studi-kasus/' . esc($cs['slug'])) ?>" class="text-primary text-sm fw-bold text-decoration-none d-flex align-items-center gap-1 mt-auto">
+                                        Pelajari Solusi Kasus <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                                    </a>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -1702,7 +1863,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                                         </h2>
                                         <div id="hfaq_<?= $i ?>" class="accordion-collapse collapse <?= $i === 0 ? 'show' : '' ?>" data-bs-parent="#homeFaqAccordion">
                                             <div class="accordion-body text-slate-600 text-sm">
-                                                <?= esc($fq['summary'] ?? 'Informasi tanya jawab regulasi pengadaan.') ?>
+                                                <?= esc(! empty($fq['content']) ? strip_tags($fq['content']) : ($fq['summary'] ?? 'Informasi tanya jawab regulasi pengadaan.')) ?>
                                             </div>
                                         </div>
                                     </div>
@@ -1785,22 +1946,52 @@ $upcomingEvents = $upcomingEvents ?? [];
                 </div>
             <?php else: ?>
                 <?php foreach ($upcomingEvents as $evt): ?>
+                    <?php
+                    $eventTime = ! empty($evt['start_at']) && $evt['start_at'] !== '0000-00-00 00:00:00' ? strtotime($evt['start_at']) : time();
+                    $dayNum    = date('d', $eventTime);
+                    $monthNum  = (int) date('n', $eventTime);
+                    $monthText = $bulanIndo[$monthNum] ?? date('M', $eventTime);
+                    $mode      = strtolower((string) ($evt['mode'] ?? 'online'));
+                    $modeBadge = match ($mode) {
+                        'online' => ['class' => 'bg-success-subtle text-success', 'label' => 'Online • Zoom'],
+                        'offline' => ['class' => 'bg-primary-subtle text-primary', 'label' => 'Tatap Muka • Luring'],
+                        'hybrid' => ['class' => 'bg-warning-subtle text-warning-emphasis', 'label' => 'Hybrid • Luring & Daring'],
+                        default => ['class' => 'bg-secondary-subtle text-secondary', 'label' => ucfirst($mode)]
+                    };
+                    $typeLabel = ucfirst((string) ($evt['type'] ?? 'Webinar'));
+                    ?>
                     <div class="col-lg-4 col-md-6">
                         <div class="event-card-modern">
                             <div class="event-date-badge">
-                                <?php
-                                $eventTime = ! empty($evt['start_at']) ? strtotime($evt['start_at']) : time();
-                                ?>
-                                <span class="event-date-day"><?= date('d', $eventTime) ?></span>
-                                <span class="event-date-month"><?= date('M', $eventTime) ?></span>
+                                <span class="event-date-day"><?= $dayNum ?></span>
+                                <span class="event-date-month"><?= $monthText ?></span>
                             </div>
-                            <div>
-                                <span class="badge bg-primary-subtle text-primary text-xs fw-bold mb-1 text-capitalize">
-                                    <?= esc($evt['mode'] ?? 'Online') ?> &middot; <?= esc($evt['type'] ?? 'Webinar') ?>
-                                </span>
-                                <h4 class="text-base fw-bold mb-1"><?= esc($evt['title']) ?></h4>
-                                <p class="text-xs text-muted mb-3"><?= esc($evt['summary'] ?? ($evt['location'] ?? 'Informasi kegiatan PBJ.')) ?></p>
-                                <a href="<?= site_url('event/' . esc($evt['slug'])) ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Detail Acara</a>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-1 mb-1 flex-wrap">
+                                    <span class="badge <?= $modeBadge['class'] ?> text-2xs fw-bold">
+                                        <?= $modeBadge['label'] ?>
+                                    </span>
+                                    <span class="badge bg-light text-dark border text-2xs">
+                                        <?= esc($typeLabel) ?>
+                                    </span>
+                                </div>
+                                <h4 class="text-base fw-bold mb-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    <a href="<?= site_url('event/' . esc($evt['slug'])) ?>" class="text-dark text-decoration-none">
+                                        <?= esc($evt['title']) ?>
+                                    </a>
+                                </h4>
+                                <p class="text-xs text-muted mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    <?= esc(! empty($evt['summary']) ? $evt['summary'] : ($evt['location'] ?? 'Kegiatan peningkatan kapasitas pengadaan Provinsi Lampung.')) ?>
+                                </p>
+                                <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                                    <span class="text-xs text-muted">
+                                        <?= ! empty($evt['capacity']) ? 'Kuota: ' . (int) $evt['capacity'] : 'Terbuka' ?>
+                                    </span>
+                                    <a href="<?= site_url('event/' . esc($evt['slug'])) ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6 d-inline-flex align-items-center gap-1">
+                                        <span>Detail Acara</span>
+                                        <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1823,7 +2014,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                 </div>
                 <h2 class="section-title-main">Biro Pengadaan Barang &amp; Jasa Sekretariat Daerah Provinsi Lampung</h2>
                 <p class="text-slate-600 mb-4" style="line-height: 1.7;">
-                    Sebagai Unit Kerja Pengadaan Barang/Jasa (UKPBJ) Pemerintah Provinsi Lampung, kami berkomitmen mewujudkan pengadaan yang <strong>kredibel, transparan, akuntabel, dan bebas gratifikasi</strong>. BegawiPBJ dihadirkan guna mempermudah transfer pengetahuan, peningkatan SDM pengadaan, dan kepatuhan terhadap regulasi LKPP.
+                    Sebagai Unit Kerja Pengadaan Barang/Jasa (UKPBJ) Pemerintah Provinsi Lampung, kami berkomitmen mewujudkan pengadaan yang <strong>kredibel, transparan, akuntabel, dan bebas gratifikasi</strong> berlandaskan budaya kerja PATIK (Profesional, Akuntabel, Transparan, Integritas, Kredibel).
                 </p>
                 <div class="row g-3">
                     <div class="col-sm-6">
@@ -1851,7 +2042,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                     <h4 class="text-lg fw-bold mb-3 text-dark">Portal Mitra Ekosistem Nasional &amp; Daerah</h4>
                     <p class="text-sm text-slate-500 mb-4">Akses langsung ke sistem layanan pengadaan resmi pemerintah:</p>
                     <div class="d-grid gap-2">
-                        <a href="https://lpse.lampungprov.go.id" target="_blank" class="btn btn-outline-neutral-300 p-3 d-flex align-items-center justify-content-between radius-10 text-dark text-decoration-none">
+                        <a href="https://lpse.lampungprov.go.id" target="_blank" rel="noopener noreferrer" class="btn btn-outline-neutral-300 p-3 d-flex align-items-center justify-content-between radius-10 text-dark text-decoration-none">
                             <div class="d-flex align-items-center gap-3">
                                 <iconify-icon icon="solar:server-bold" class="text-primary text-xl"></iconify-icon>
                                 <div>
@@ -1861,7 +2052,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                             </div>
                             <iconify-icon icon="solar:arrow-right-up-linear" class="text-muted"></iconify-icon>
                         </a>
-                        <a href="https://sirup.lkpp.go.id" target="_blank" class="btn btn-outline-neutral-300 p-3 d-flex align-items-center justify-content-between radius-10 text-dark text-decoration-none">
+                        <a href="https://sirup.lkpp.go.id" target="_blank" rel="noopener noreferrer" class="btn btn-outline-neutral-300 p-3 d-flex align-items-center justify-content-between radius-10 text-dark text-decoration-none">
                             <div class="d-flex align-items-center gap-3">
                                 <iconify-icon icon="solar:document-add-bold" class="text-success text-xl"></iconify-icon>
                                 <div>
@@ -1871,7 +2062,7 @@ $upcomingEvents = $upcomingEvents ?? [];
                             </div>
                             <iconify-icon icon="solar:arrow-right-up-linear" class="text-muted"></iconify-icon>
                         </a>
-                        <a href="https://e-katalog.lkpp.go.id" target="_blank" class="btn btn-outline-neutral-300 p-3 d-flex align-items-center justify-content-between radius-10 text-dark text-decoration-none">
+                        <a href="https://e-katalog.lkpp.go.id" target="_blank" rel="noopener noreferrer" class="btn btn-outline-neutral-300 p-3 d-flex align-items-center justify-content-between radius-10 text-dark text-decoration-none">
                             <div class="d-flex align-items-center gap-3">
                                 <iconify-icon icon="solar:cart-large-4-bold" class="text-warning text-xl"></iconify-icon>
                                 <div>
@@ -1938,6 +2129,12 @@ $upcomingEvents = $upcomingEvents ?? [];
                 } else if (this.value === 'arena-belajar/course') {
                     searchInput.name = 'keyword';
                     searchInput.placeholder = 'Cari topik kursus, kelas, atau silabus PBJ...';
+                } else if (this.value === 'event') {
+                    searchInput.name = 'q';
+                    searchInput.placeholder = 'Cari webinar, bimtek, atau agenda PBJ...';
+                } else if (this.value === 'verifikasi-sertifikat') {
+                    searchInput.name = 'search';
+                    searchInput.placeholder = 'Masukkan nomor sertifikat (BGW-...) atau NIK...';
                 } else {
                     searchInput.name = 'q';
                     searchInput.placeholder = 'Cari artikel, template KAK/HPS, atau studi kasus...';

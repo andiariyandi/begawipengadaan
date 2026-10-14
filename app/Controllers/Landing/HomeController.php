@@ -65,12 +65,15 @@ class HomeController extends BaseController
         $courses = [];
         try {
             $courses = $db->table('courses c')
-                ->select('c.*, p.title AS program_title, p.slug AS program_slug, fa.path AS cover_asset_path')
+                ->select('c.*, p.title AS program_title, p.slug AS program_slug, fa.path AS cover_asset_path,
+                         (SELECT COUNT(*) FROM course_enrollments ce WHERE ce.course_id = c.id AND ce.status != "cancelled") AS enrollments_count')
                 ->join('programs p', 'p.id = c.program_id', 'left')
                 ->join('file_assets fa', 'fa.id = c.cover_file_id', 'left')
                 ->where('c.status', 'published')
                 ->where('c.visibility', 'public')
                 ->where('c.deleted_at', null)
+                ->where('c.title NOT LIKE', '%bbbb%')
+                ->where('c.title NOT LIKE', '%Fixture%')
                 ->orderBy('c.featured', 'DESC')
                 ->orderBy('c.id', 'DESC')
                 ->limit(6)
@@ -81,12 +84,15 @@ class HomeController extends BaseController
         $regulations = [];
         try {
             $regulations = $db->table('regulations r')
-                ->select('r.*, rc.name AS category_name, rc.slug AS category_slug, fa.path AS cover_asset_path')
+                ->select('r.*, rc.name AS category_name, rc.slug AS category_slug, fa.path AS cover_asset_path,
+                         (SELECT COUNT(*) FROM regulation_downloads rd WHERE rd.regulation_id = r.id) AS downloads_count')
                 ->join('regulation_categories rc', 'rc.id = r.category_id', 'left')
                 ->join('file_assets fa', 'fa.id = r.cover_file_id', 'left')
                 ->where('r.workflow_status', 'published')
                 ->where('r.visibility', 'public')
                 ->where('r.deleted_at', null)
+                ->where('r.title NOT LIKE', '%Test%')
+                ->where('r.title NOT LIKE', '%Regulasi A UI%')
                 ->orderBy('r.is_featured', 'DESC')
                 ->orderBy('r.document_year', 'DESC')
                 ->orderBy('r.id', 'DESC')
@@ -110,6 +116,8 @@ class HomeController extends BaseController
                 ->where('ka.visibility', 'public')
                 ->where('ka.deleted_at', null)
                 ->where('ka.type', 'article')
+                ->where('ka.title NOT LIKE', '%bbbnjmnm%')
+                ->where('ka.title NOT LIKE', '%Test Artikel%')
                 ->orderBy('ka.featured', 'DESC')
                 ->orderBy('ka.published_at', 'DESC')
                 ->orderBy('ka.id', 'DESC')
@@ -125,6 +133,7 @@ class HomeController extends BaseController
                 ->where('ka.visibility', 'public')
                 ->where('ka.deleted_at', null)
                 ->where('ka.type', 'template')
+                ->where('ka.title NOT LIKE', '%zfdfdfsdfd%')
                 ->orderBy('ka.download_count', 'DESC')
                 ->orderBy('ka.id', 'DESC')
                 ->limit(4)
@@ -139,6 +148,8 @@ class HomeController extends BaseController
                 ->where('ka.visibility', 'public')
                 ->where('ka.deleted_at', null)
                 ->where('ka.type', 'case_study')
+                ->where('ka.title NOT LIKE', '%xvxxb%')
+                ->where('ka.title NOT LIKE', '%QA AUDIT%')
                 ->orderBy('ka.id', 'DESC')
                 ->limit(4)
                 ->get()->getResultArray();
@@ -150,6 +161,8 @@ class HomeController extends BaseController
                 ->where('ka.visibility', 'public')
                 ->where('ka.deleted_at', null)
                 ->where('ka.type', 'faq')
+                ->where('ka.title NOT LIKE', '%zccsass%')
+                ->where('ka.title NOT LIKE', '%QA AUDIT%')
                 ->orderBy('ka.id', 'ASC')
                 ->limit(5)
                 ->get()->getResultArray();
@@ -173,6 +186,7 @@ class HomeController extends BaseController
         try {
             $stages = $db->table('procurement_stages')
                 ->where('is_active', 1)
+                ->where('name NOT LIKE', '%QA AUDIT%')
                 ->orderBy('sort_order', 'ASC')
                 ->get()->getResultArray();
         } catch (\Throwable) {}
@@ -180,11 +194,18 @@ class HomeController extends BaseController
         // 6. Upcoming Events / Bimtek
         $upcomingEvents = [];
         try {
-            $upcomingEvents = $db->table('events')
-                ->where('deleted_at', null)
-                ->where('visibility', 'public')
-                ->whereIn('status', ['open_registration', 'scheduled', 'ongoing'])
-                ->orderBy('start_at', 'ASC')
+            $upcomingEvents = $db->table('events e')
+                ->select('e.*, fa.path AS cover_path, COALESCE(u.name, u.username, "Biro PBJ Setda Lampung") AS creator_name')
+                ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
+                ->join('users u', 'u.id = e.created_by', 'left')
+                ->where('e.deleted_at', null)
+                ->where('e.visibility', 'public')
+                ->whereIn('e.status', ['open_registration', 'scheduled', 'ongoing'])
+                ->where('e.start_at >', '2026-01-01')
+                ->where('e.title NOT LIKE', '%QA AUDIT%')
+                ->where('e.title NOT LIKE', '%Simulasi pengujian%')
+                ->where('e.title NOT LIKE', '%Pengujian serti%')
+                ->orderBy('e.start_at', 'ASC')
                 ->limit(3)
                 ->get()->getResultArray();
         } catch (\Throwable) {}

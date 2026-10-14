@@ -100,6 +100,40 @@ class HomeLandingTest extends BaseCommand
             $this->assert(str_contains($html, 'Katalog Elektronik (E-Katalog LKPP)'), "E-Katalog link present");
         });
 
+        // Test 9: Upcoming Events & Agenda PBJ Integration
+        $this->testModule("Upcoming Events & Agenda Integration", function () use ($html) {
+            $this->assert(str_contains($html, 'Event, Webinar &amp; Bimtek Mendatang'), "Event section heading present");
+            $this->assert(str_contains($html, 'event-card-modern'), "Modern event card class present");
+            $this->assert(str_contains($html, 'event-date-badge'), "Event date badge present");
+            $this->assert(str_contains($html, 'site_url(\'event') || str_contains($html, '/event'), "Event detail route link present");
+        });
+
+        // Test 10: Regulation & Course Badges and Actions
+        $this->testModule("Card Metadata (JP Duration, Legal Status & Downloads)", function () use ($html) {
+            $this->assert(str_contains($html, 'JP'), "JP duration badge present on courses");
+            $this->assert(str_contains($html, 'reg-status-badge'), "Legal status badge present on regulations");
+            $this->assert(str_contains($html, '/unduh'), "Direct download links present");
+        });
+
+        // Test 11: Unified Search Targets Alignment
+        $this->testModule("Search Gateway 5-Module Targeting", function () use ($html) {
+            $this->assert(str_contains($html, 'value="event"'), "Event search option present");
+            $this->assert(str_contains($html, 'value="verifikasi-sertifikat"'), "Certificate verification search option present");
+            $this->assert(str_contains($html, 'value="regulasi"'), "Regulasi search option present");
+            $this->assert(str_contains($html, 'value="arena-belajar/course"'), "Course search option present");
+        });
+
+        // Test 12: Zero Dummy & Warning Integrity
+        $this->testModule("Content Integrity & Zero Dummy", function () use ($html) {
+            $this->assert(! str_contains(strtolower($html), 'lorem ipsum'), "Zero lorem ipsum in rendered HTML");
+            $this->assert(! str_contains($html, 'bbbbbbb'), "Zero test dummy 'bbbbbbb' in rendered HTML");
+            $this->assert(! str_contains($html, 'zfdfdfsdfd'), "Zero test dummy 'zfdfdfsdfd' in rendered HTML");
+            $this->assert(! str_contains($html, 'xvxxb'), "Zero test dummy 'xvxxb' in rendered HTML");
+            $this->assert(! str_contains($html, 'Warning:'), "Zero PHP warnings in rendered HTML");
+            $this->assert(! str_contains($html, 'Notice:'), "Zero PHP notices in rendered HTML");
+            $this->assert(! str_contains($html, 'Fatal error:'), "Zero Fatal errors in rendered HTML");
+        });
+
         // Summary
         CLI::newLine();
         CLI::write("==================================================================", "cyan");
