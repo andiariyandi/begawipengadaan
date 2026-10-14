@@ -2,6 +2,19 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
+/* High-contrast and legibility overrides for Admin Dashboard */
+.text-secondary-light, .text-muted, .text-neutral-500 {
+    color: #475569 !important;
+}
+.text-neutral-600 {
+    color: #334155 !important;
+}
+.text-neutral-700 {
+    color: #1e293b !important;
+}
+.text-neutral-800, .text-neutral-900 {
+    color: #0f172a !important;
+}
 .waitlist-container {
     color: #1e293b;
 }
@@ -232,8 +245,8 @@ $totalPromoted  = count($promoted);
                                         <?= ! empty($r['registered_at']) ? esc(date('d M Y, H:i', strtotime($r['registered_at']))) : '-' ?> WIB
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-warning-50 text-warning-700 border border-warning-200 px-10 py-5 radius-6 text-xs fw-bold">
-                                            <i class="fas fa-clock me-1"></i> Waitlist
+                                        <span class="badge bg-warning-50 text-warning-700 border border-warning-200 px-10 py-5 radius-6 text-xs fw-bold d-inline-flex align-items-center gap-1">
+                                            <iconify-icon icon="solar:clock-circle-bold"></iconify-icon> Waitlist
                                         </span>
                                     </td>
                                     <td class="text-center">
@@ -297,8 +310,8 @@ $totalPromoted  = count($promoted);
                                         <?= esc($r['status_reason'] ?? '-') ?: '<span class="text-neutral-400">Tidak ada catatan</span>' ?>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-danger-50 text-danger-700 border border-danger-200 px-10 py-5 radius-6 text-xs fw-bold">
-                                            <i class="fas fa-times-circle me-1"></i> Dibatalkan
+                                        <span class="badge bg-danger-50 text-danger-700 border border-danger-200 px-10 py-5 radius-6 text-xs fw-bold d-inline-flex align-items-center gap-1">
+                                            <iconify-icon icon="solar:close-circle-bold"></iconify-icon> Dibatalkan
                                         </span>
                                     </td>
                                     <td class="text-center">
@@ -350,8 +363,8 @@ $totalPromoted  = count($promoted);
                                         <?= ! empty($r['promoted_at']) ? esc(date('d M Y, H:i', strtotime($r['promoted_at']))) : (! empty($r['updated_at']) ? esc(date('d M Y, H:i', strtotime($r['updated_at']))) : '-') ?> WIB
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-teal-50 text-teal-700 border border-teal-200 px-10 py-5 radius-6 text-xs fw-bold">
-                                            <i class="fas fa-check-circle me-1"></i> Promoted
+                                        <span class="badge bg-teal-50 text-teal-700 border border-teal-200 px-10 py-5 radius-6 text-xs fw-bold d-inline-flex align-items-center gap-1">
+                                            <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Promoted
                                         </span>
                                     </td>
                                     <td class="text-center">

@@ -2,6 +2,19 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
+/* High-contrast and legibility overrides for Admin Dashboard */
+.text-secondary-light, .text-muted, .text-neutral-500 {
+    color: #475569 !important;
+}
+.text-neutral-600 {
+    color: #334155 !important;
+}
+.text-neutral-700 {
+    color: #1e293b !important;
+}
+.text-neutral-800, .text-neutral-900 {
+    color: #0f172a !important;
+}
 .form-section-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -89,13 +102,13 @@ $now = time();
 
 if (empty($openAt) || empty($code)) {
     $presensiStatus = 'belum_dibuka';
-    $presensiBadge = '<span class="badge bg-neutral-200 text-neutral-800 px-12 py-6 radius-6 fw-bold border border-neutral-300"><i class="fas fa-clock me-1"></i> Belum Dibuka</span>';
+    $presensiBadge = '<span class="badge bg-neutral-200 text-neutral-800 px-12 py-6 radius-6 fw-bold border border-neutral-300 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:clock-circle-bold"></iconify-icon> Belum Dibuka</span>';
 } elseif ($closeAt !== null && $closeAt <= $now) {
     $presensiStatus = 'ditutup';
-    $presensiBadge = '<span class="badge bg-danger-50 text-danger-700 px-12 py-6 radius-6 fw-bold border border-danger-200"><i class="fas fa-times-circle me-1"></i> Sesi Ditutup</span>';
+    $presensiBadge = '<span class="badge bg-danger-50 text-danger-700 px-12 py-6 radius-6 fw-bold border border-danger-200 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:close-circle-bold"></iconify-icon> Sesi Ditutup</span>';
 } else {
     $presensiStatus = 'aktif';
-    $presensiBadge = '<span class="badge bg-success-50 text-success-700 px-12 py-6 radius-6 fw-bold border border-success-200"><i class="fas fa-check-circle me-1"></i> Sesi Aktif</span>';
+    $presensiBadge = '<span class="badge bg-success-50 text-success-700 px-12 py-6 radius-6 fw-bold border border-success-200 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:check-circle-bold"></iconify-icon> Sesi Aktif</span>';
 }
 ?>
 

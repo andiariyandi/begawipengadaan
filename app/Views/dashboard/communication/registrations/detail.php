@@ -1,5 +1,23 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
+<?= $this->section('pageStyles') ?>
+<style>
+/* High-contrast and legibility overrides for Admin Dashboard */
+.text-secondary-light, .text-muted, .text-neutral-500 {
+    color: #475569 !important;
+}
+.text-neutral-600 {
+    color: #334155 !important;
+}
+.text-neutral-700 {
+    color: #1e293b !important;
+}
+.text-neutral-800, .text-neutral-900 {
+    color: #0f172a !important;
+}
+</style>
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <?php
 $item = $item ?? [];
@@ -184,20 +202,20 @@ $attStatus = $item['attendance_status'] ?? null;
                 <div class="p-14 radius-8 border mb-16" style="background: #f8fafc; border-color: #e2e8f0;">
                     <span class="text-xs fw-bold text-neutral-600 text-uppercase d-block mb-1" style="color: #64748b;">STATUS KEHADIRAN SAAT INI:</span>
                     <?php if ($attStatus === 'present'): ?>
-                        <span class="badge bg-success-50 text-success-700 border border-success-200 px-10 py-5 radius-6 text-xs fw-bold">
-                            <i class="fas fa-check-circle me-1"></i> Hadir Sah
+                        <span class="badge bg-success-50 text-success-700 border border-success-200 px-10 py-5 radius-6 text-xs fw-bold d-inline-flex align-items-center gap-1">
+                            <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Hadir Sah
                         </span>
                     <?php elseif ($attStatus === 'excused'): ?>
-                        <span class="badge bg-info-50 text-info-700 border border-info-200 px-10 py-5 radius-6 text-xs fw-bold">
-                            <i class="fas fa-info-circle me-1"></i> Izin Sah
+                        <span class="badge bg-info-50 text-info-700 border border-info-200 px-10 py-5 radius-6 text-xs fw-bold d-inline-flex align-items-center gap-1">
+                            <iconify-icon icon="solar:info-circle-bold"></iconify-icon> Izin Sah
                         </span>
                     <?php elseif ($attStatus === 'absent'): ?>
-                        <span class="badge bg-danger-50 text-danger-700 border border-danger-200 px-10 py-5 radius-6 text-xs fw-bold">
-                            <i class="fas fa-times-circle me-1"></i> Tidak Hadir (Alfa)
+                        <span class="badge bg-danger-50 text-danger-700 border border-danger-200 px-10 py-5 radius-6 text-xs fw-bold d-inline-flex align-items-center gap-1">
+                            <iconify-icon icon="solar:close-circle-bold"></iconify-icon> Tidak Hadir (Alfa)
                         </span>
                     <?php else: ?>
-                        <span class="badge bg-neutral-100 text-neutral-600 border border-neutral-300 px-10 py-5 radius-6 text-xs fw-medium">
-                            <i class="far fa-clock me-1"></i> Belum Presensi
+                        <span class="badge bg-neutral-100 text-neutral-700 border border-neutral-300 px-10 py-5 radius-6 text-xs fw-medium d-inline-flex align-items-center gap-1">
+                            <iconify-icon icon="solar:clock-circle-bold"></iconify-icon> Belum Presensi
                         </span>
                     <?php endif; ?>
 

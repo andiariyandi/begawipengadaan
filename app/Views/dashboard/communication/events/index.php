@@ -2,9 +2,51 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
-/* Scoped Events Dashboard Styling for Crystal-Clear Readability & Polished UI */
+/* Scoped Events Dashboard Styling for Maximum Contrast, Clean Alignment & Legibility */
 .events-dashboard-container {
-    color: #1e293b;
+    color: #0f172a !important;
+}
+.events-dashboard-container * {
+    box-sizing: border-box;
+}
+
+/* Force high-contrast on faint text classes */
+.events-dashboard-container .text-secondary-light,
+.events-dashboard-container .text-muted,
+.events-dashboard-container .text-neutral-500 {
+    color: #475569 !important;
+}
+.events-dashboard-container .text-neutral-600 {
+    color: #334155 !important;
+}
+.events-dashboard-container .text-neutral-700 {
+    color: #1e293b !important;
+}
+.events-dashboard-container .text-neutral-800,
+.events-dashboard-container .text-neutral-900 {
+    color: #0f172a !important;
+}
+
+/* Form Controls Contrast */
+.events-dashboard-container .form-control,
+.events-dashboard-container .form-select {
+    color: #0f172a !important;
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    font-size: 13.5px;
+    font-weight: 500;
+}
+.events-dashboard-container .form-control:focus,
+.events-dashboard-container .form-select:focus {
+    border-color: #0284c7 !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
+}
+.events-dashboard-container label {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 /* KPI Cards */
@@ -29,13 +71,14 @@
 .btn-action-dropdown {
     background: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
-    color: #1e293b !important;
+    color: #0f172a !important;
     border-radius: 8px !important;
     padding: 6px 10px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     transition: all 0.2s ease !important;
 }
 .btn-action-dropdown:hover,
@@ -44,13 +87,13 @@
     border-color: #0284c7 !important;
     color: #ffffff !important;
 }
+.btn-action-dropdown iconify-icon {
+    color: #0f172a !important;
+    font-size: 18px !important;
+}
 .btn-action-dropdown:hover iconify-icon,
 .btn-action-dropdown:focus iconify-icon {
     color: #ffffff !important;
-}
-.btn-action-dropdown iconify-icon {
-    color: #1e293b !important;
-    font-size: 18px !important;
 }
 
 /* Event Grid Card */
@@ -63,12 +106,12 @@
     display: flex;
     flex-direction: column;
     box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .event-grid-card:hover {
     border-color: #93c5fd;
-    transform: translateY(-3px);
-    box-shadow: 0 10px 22px -4px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -3px rgba(0,0,0,0.07);
 }
 .event-cover-wrapper {
     position: relative;
@@ -76,6 +119,7 @@
     aspect-ratio: 16 / 9;
     background: #f1f5f9;
     overflow: hidden;
+    flex-shrink: 0;
 }
 .event-cover-img {
     width: 100%;
@@ -84,7 +128,7 @@
     transition: transform 0.3s ease;
 }
 .event-grid-card:hover .event-cover-img {
-    transform: scale(1.03);
+    transform: scale(1.02);
 }
 .event-cover-placeholder {
     width: 100%;
@@ -94,52 +138,80 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #64748b;
+    color: #475569;
+}
+.event-grid-title-wrap {
+    height: 48px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+.event-grid-info-box {
+    min-height: 74px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 14px;
 }
 
 /* Type & Mode Badges */
 .badge-type-pill {
-    background: #e0f2fe;
+    background: #ffffff;
     color: #0369a1;
     font-size: 11px;
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 20px;
     border: 1px solid #bae6fd;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 .badge-mode-online {
-    background: #ecfdf5;
+    background: #ffffff;
     color: #047857;
     font-size: 11px;
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 20px;
     border: 1px solid #a7f3d0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 .badge-mode-offline {
-    background: #fff7ed;
+    background: #ffffff;
     color: #c2410c;
     font-size: 11px;
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 20px;
-    border: 1px solid #ffedd5;
+    border: 1px solid #fed7aa;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 .badge-mode-hybrid {
-    background: #fdf4ff;
+    background: #ffffff;
     color: #a21caf;
     font-size: 11px;
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 20px;
     border: 1px solid #f5d0fe;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
-/* Status Badges Override for Maximum Readability */
+/* Status Badges Override for High Legibility */
 .events-dashboard-container .status-badge-custom {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 11px;
@@ -167,7 +239,7 @@
 }
 .status-badge-finished {
     background-color: #f1f5f9 !important;
-    color: #475569 !important;
+    color: #334155 !important;
     border: 1px solid #cbd5e1 !important;
 }
 .status-badge-cancelled {
@@ -177,8 +249,8 @@
 }
 .status-badge-draft {
     background-color: #f8fafc !important;
-    color: #64748b !important;
-    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    border: 1px solid #cbd5e1 !important;
 }
 
 /* Table Style Polish */
@@ -191,7 +263,7 @@
 }
 .events-table th {
     background: #f8fafc !important;
-    color: #334155 !important;
+    color: #0f172a !important;
     font-size: 12px !important;
     font-weight: 700 !important;
     text-transform: uppercase;
@@ -203,7 +275,7 @@
     padding: 14px 16px !important;
     vertical-align: middle;
     border-bottom: 1px solid #f1f5f9;
-    color: #1e293b;
+    color: #0f172a;
 }
 .events-table tbody tr:hover {
     background-color: #f8fafc;
@@ -220,7 +292,7 @@
     padding: 6px 12px;
     font-size: 13px;
     font-weight: 600;
-    color: #334155;
+    color: #0f172a;
     border: 1px solid #cbd5e1;
     background: #ffffff;
     transition: all 0.2s ease;
@@ -277,12 +349,12 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
         </div>
         <div class="d-flex align-items-center gap-2">
             <a href="<?= site_url('dashboard/komunikasi/registrasi-event') ?>" class="btn btn-outline-neutral-300 radius-8 px-16 py-10 d-flex align-items-center gap-2 text-sm fw-semibold text-neutral-700" style="background:#ffffff; border-color:#cbd5e1;">
-                <iconify-icon icon="solar:users-group-rounded-outline" class="text-lg text-primary-600"></iconify-icon>
-                Data Pendaftar
+                <iconify-icon icon="solar:users-group-rounded-bold" class="text-lg text-primary-600"></iconify-icon>
+                <span>Data Pendaftar</span>
             </a>
             <a href="<?= route_to('dashboard.communication.events.create') ?>" class="btn btn-primary-600 radius-8 px-20 py-11 d-flex align-items-center gap-2 fw-bold text-sm shadow-sm">
-                <iconify-icon icon="solar:add-circle-outline" class="text-xl"></iconify-icon>
-                Tambah Event Baru
+                <iconify-icon icon="solar:add-circle-bold" class="text-xl"></iconify-icon>
+                <span>Tambah Event Baru</span>
             </a>
         </div>
     </div>
@@ -364,15 +436,15 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                 <input type="hidden" name="view" value="<?= esc($viewMode) ?>">
                 <div class="row g-3 align-items-end">
                     <div class="col-xl-4 col-lg-3 col-md-6">
-                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#1e293b;">Cari Agenda</label>
+                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#0f172a;">Cari Agenda</label>
                         <div class="position-relative">
                             <input type="text" name="q" class="form-control radius-8 ps-40 font-medium" value="<?= esc($keyword ?? '') ?>" placeholder="Cari judul agenda, lokasi, materi..." style="border-color: #cbd5e1; color: #0f172a;">
                             <iconify-icon icon="solar:magnifer-linear" class="position-absolute top-50 start-0 translate-middle-y ms-16 text-neutral-500 text-lg"></iconify-icon>
                         </div>
                     </div>
                     <div class="col-xl-2 col-lg-2 col-md-6">
-                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#1e293b;">Status</label>
-                        <select name="status" class="form-select radius-8 fw-semibold text-neutral-800" style="border-color: #cbd5e1;">
+                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#0f172a;">Status</label>
+                        <select name="status" class="form-select radius-8 fw-semibold text-neutral-900" style="border-color: #cbd5e1;">
                             <option value="">Semua Status</option>
                             <option value="open_registration" <?= $status === 'open_registration' ? 'selected' : '' ?>>Pendaftaran Dibuka</option>
                             <option value="coming_soon" <?= $status === 'coming_soon' ? 'selected' : '' ?>>Segera Hadir</option>
@@ -384,8 +456,8 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                         </select>
                     </div>
                     <div class="col-xl-2 col-lg-2 col-md-6">
-                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#1e293b;">Mode Pelaksanaan</label>
-                        <select name="mode" class="form-select radius-8 fw-semibold text-neutral-800" style="border-color: #cbd5e1;">
+                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#0f172a;">Mode Pelaksanaan</label>
+                        <select name="mode" class="form-select radius-8 fw-semibold text-neutral-900" style="border-color: #cbd5e1;">
                             <option value="">Semua Mode</option>
                             <option value="online" <?= $mode === 'online' ? 'selected' : '' ?>>Online (Daring)</option>
                             <option value="offline" <?= $mode === 'offline' ? 'selected' : '' ?>>Offline (Tatap Muka)</option>
@@ -393,8 +465,8 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                         </select>
                     </div>
                     <div class="col-xl-2 col-lg-2 col-md-6">
-                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#1e293b;">Tipe Kegiatan</label>
-                        <select name="type" class="form-select radius-8 fw-semibold text-neutral-800" style="border-color: #cbd5e1;">
+                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#0f172a;">Tipe Kegiatan</label>
+                        <select name="type" class="form-select radius-8 fw-semibold text-neutral-900" style="border-color: #cbd5e1;">
                             <option value="">Semua Tipe</option>
                             <option value="webinar" <?= $type === 'webinar' ? 'selected' : '' ?>>Webinar</option>
                             <option value="workshop" <?= $type === 'workshop' ? 'selected' : '' ?>>Workshop</option>
@@ -455,7 +527,7 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                                 <th style="width: 220px;">Jadwal &amp; Lokasi</th>
                                 <th style="width: 180px;">Kapasitas &amp; Pendaftar</th>
                                 <th class="text-center" style="width: 140px;">Status</th>
-                                <th class="text-center" style="width: 100px;">Presensi</th>
+                                <th class="text-center" style="width: 110px;">Presensi</th>
                                 <th class="text-center" style="width: 80px;">Aksi</th>
                             </tr>
                         </thead>
@@ -476,7 +548,7 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                                             <?php if ($coverUrl): ?>
                                                 <img src="<?= esc($coverUrl) ?>" alt="Cover" style="width:100%;height:100%;object-fit:cover;">
                                             <?php else: ?>
-                                                <iconify-icon icon="solar:gallery-wide-outline" class="text-neutral-500 text-xl"></iconify-icon>
+                                                <iconify-icon icon="solar:gallery-wide-bold" class="text-neutral-500 text-xl"></iconify-icon>
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -486,14 +558,14 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                                                 <?= esc(ucfirst($e['type'] ?? 'Webinar')) ?>
                                             </span>
                                             <?php if ($modeKey === 'online'): ?>
-                                                <span class="badge-mode-online"><i class="fas fa-video me-1"></i> Online</span>
+                                                <span class="badge-mode-online"><iconify-icon icon="solar:videocamera-record-bold" class="text-xs"></iconify-icon> Online</span>
                                             <?php elseif ($modeKey === 'offline'): ?>
-                                                <span class="badge-mode-offline"><i class="fas fa-map-marker-alt me-1"></i> Offline</span>
+                                                <span class="badge-mode-offline"><iconify-icon icon="solar:map-point-bold" class="text-xs"></iconify-icon> Offline</span>
                                             <?php else: ?>
-                                                <span class="badge-mode-hybrid"><i class="fas fa-satellite-dish me-1"></i> Hybrid</span>
+                                                <span class="badge-mode-hybrid"><iconify-icon icon="solar:transmission-bold" class="text-xs"></iconify-icon> Hybrid</span>
                                             <?php endif; ?>
                                             <?php if (! empty($e['certificate_enabled'])): ?>
-                                                <span class="badge bg-success-50 text-success-700 text-xs px-6 py-2 rounded border border-success-200" title="Tersedia E-Sertifikat">
+                                                <span class="badge bg-success-50 text-success-800 text-xs px-6 py-2 rounded border border-success-200" title="Tersedia E-Sertifikat">
                                                     <iconify-icon icon="solar:diploma-bold"></iconify-icon> Sertifikat
                                                 </span>
                                             <?php endif; ?>
@@ -508,15 +580,15 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                                             <iconify-icon icon="solar:calendar-date-bold" class="text-primary-600 text-sm"></iconify-icon>
                                             <?= ! empty($e['start_at']) ? esc(date('d M Y, H:i', strtotime($e['start_at']))) : 'Belum ditentukan' ?>
                                         </div>
-                                        <div class="text-xs text-neutral-600 line-clamp-1 d-flex align-items-center gap-1" style="color: #475569;">
+                                        <div class="text-xs text-neutral-700 line-clamp-1 d-flex align-items-center gap-1" style="color: #475569;">
                                             <iconify-icon icon="solar:map-point-bold" class="text-danger-600 text-xs flex-shrink-0"></iconify-icon>
                                             <span><?= esc($e['location'] ?: ($e['meeting_url'] ?: 'Daring / Online')) ?></span>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-between align-items-center text-xs mb-1">
-                                            <span class="fw-bold text-neutral-800" style="color:#1e293b;"><?= number_format($registered) ?> Peserta</span>
-                                            <span class="text-neutral-500 font-medium">/ <?= $capacity > 0 ? number_format($capacity) : '&infin;' ?></span>
+                                            <span class="fw-bold text-neutral-900" style="color:#0f172a;"><?= number_format($registered) ?> Peserta</span>
+                                            <span class="text-neutral-600 font-medium">/ <?= $capacity > 0 ? number_format($capacity) : '&infin;' ?></span>
                                         </div>
                                         <?php if ($capacity > 0): ?>
                                             <div class="progress progress-xs rounded-pill bg-neutral-200" style="height: 6px;">
@@ -528,23 +600,23 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                                     </td>
                                     <td class="text-center">
                                         <?php if ($statusKey === 'open_registration'): ?>
-                                            <span class="status-badge-custom status-badge-open"><i class="fas fa-check-circle text-xs"></i> Buka</span>
+                                            <span class="status-badge-custom status-badge-open"><iconify-icon icon="solar:check-circle-bold" class="text-xs"></iconify-icon> Buka</span>
                                         <?php elseif ($statusKey === 'coming_soon'): ?>
-                                            <span class="status-badge-custom status-badge-coming-soon"><i class="fas fa-clock text-xs"></i> Segera</span>
+                                            <span class="status-badge-custom status-badge-coming-soon"><iconify-icon icon="solar:clock-circle-bold" class="text-xs"></iconify-icon> Segera</span>
                                         <?php elseif ($statusKey === 'published'): ?>
-                                            <span class="status-badge-custom status-badge-published"><i class="fas fa-globe text-xs"></i> Publik</span>
+                                            <span class="status-badge-custom status-badge-published"><iconify-icon icon="solar:global-bold" class="text-xs"></iconify-icon> Publik</span>
                                         <?php elseif ($statusKey === 'full'): ?>
-                                            <span class="status-badge-custom status-badge-full"><i class="fas fa-ban text-xs"></i> Penuh</span>
+                                            <span class="status-badge-custom status-badge-full"><iconify-icon icon="solar:forbidden-circle-bold" class="text-xs"></iconify-icon> Penuh</span>
                                         <?php elseif ($statusKey === 'finished'): ?>
-                                            <span class="status-badge-custom status-badge-finished"><i class="fas fa-flag-checkered text-xs"></i> Selesai</span>
+                                            <span class="status-badge-custom status-badge-finished"><iconify-icon icon="solar:flag-bold" class="text-xs"></iconify-icon> Selesai</span>
                                         <?php elseif ($statusKey === 'cancelled'): ?>
-                                            <span class="status-badge-custom status-badge-cancelled"><i class="fas fa-times-circle text-xs"></i> Batal</span>
+                                            <span class="status-badge-custom status-badge-cancelled"><iconify-icon icon="solar:close-circle-bold" class="text-xs"></iconify-icon> Batal</span>
                                         <?php else: ?>
-                                            <span class="status-badge-custom status-badge-draft"><i class="fas fa-pencil-alt text-xs"></i> Draft</span>
+                                            <span class="status-badge-custom status-badge-draft"><iconify-icon icon="solar:pen-2-bold" class="text-xs"></iconify-icon> Draft</span>
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-teal-50 text-teal-700 border border-teal-200 fw-bold px-8 py-3 text-xs" style="background: #f0fdfa; color: #0f766e; border-color: #99f6e4;">
+                                        <span class="badge bg-teal-50 text-teal-800 border border-teal-200 fw-bold px-8 py-3 text-xs" style="background: #f0fdfa; color: #0f766e; border-color: #99f6e4;">
                                             <iconify-icon icon="solar:check-circle-bold" class="text-xs"></iconify-icon> <?= number_format($present) ?> Hadir
                                         </span>
                                     </td>
@@ -595,7 +667,7 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
 
         <?php else: ?>
 
-            <!-- GRID VIEW (Cards Layout) -->
+            <!-- GRID VIEW (Cards Layout with Uniform Heights) -->
             <div class="row row-cols-xxl-3 row-cols-md-2 row-cols-1 g-4 mb-24">
                 <?php foreach ($items as $e): ?>
                     <?php
@@ -615,57 +687,57 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                                     <img src="<?= esc($coverUrl) ?>" alt="Cover" class="event-cover-img">
                                 <?php else: ?>
                                     <div class="event-cover-placeholder">
-                                        <iconify-icon icon="solar:calendar-mark-bold-duotone" class="text-4xl text-primary-400 mb-1"></iconify-icon>
-                                        <span class="text-xs fw-bold text-neutral-600">BegawiPBJ Agenda</span>
+                                        <iconify-icon icon="solar:calendar-mark-bold-duotone" class="text-4xl text-primary-500 mb-1"></iconify-icon>
+                                        <span class="text-xs fw-bold text-neutral-800">BegawiPBJ Agenda</span>
                                     </div>
                                 <?php endif; ?>
 
                                 <!-- Floating Status Badge -->
                                 <div class="position-absolute top-0 end-0 m-12">
                                     <?php if ($statusKey === 'open_registration'): ?>
-                                        <span class="status-badge-custom status-badge-open shadow-sm"><i class="fas fa-check-circle text-xs"></i> Buka</span>
+                                        <span class="status-badge-custom status-badge-open shadow-sm"><iconify-icon icon="solar:check-circle-bold" class="text-xs"></iconify-icon> Buka</span>
                                     <?php elseif ($statusKey === 'coming_soon'): ?>
-                                        <span class="status-badge-custom status-badge-coming-soon shadow-sm"><i class="fas fa-clock text-xs"></i> Segera</span>
+                                        <span class="status-badge-custom status-badge-coming-soon shadow-sm"><iconify-icon icon="solar:clock-circle-bold" class="text-xs"></iconify-icon> Segera</span>
                                     <?php elseif ($statusKey === 'published'): ?>
-                                        <span class="status-badge-custom status-badge-published shadow-sm"><i class="fas fa-globe text-xs"></i> Publik</span>
+                                        <span class="status-badge-custom status-badge-published shadow-sm"><iconify-icon icon="solar:global-bold" class="text-xs"></iconify-icon> Publik</span>
                                     <?php elseif ($statusKey === 'full'): ?>
-                                        <span class="status-badge-custom status-badge-full shadow-sm"><i class="fas fa-ban text-xs"></i> Penuh</span>
+                                        <span class="status-badge-custom status-badge-full shadow-sm"><iconify-icon icon="solar:forbidden-circle-bold" class="text-xs"></iconify-icon> Penuh</span>
                                     <?php elseif ($statusKey === 'finished'): ?>
-                                        <span class="status-badge-custom status-badge-finished shadow-sm"><i class="fas fa-flag-checkered text-xs"></i> Selesai</span>
+                                        <span class="status-badge-custom status-badge-finished shadow-sm"><iconify-icon icon="solar:flag-bold" class="text-xs"></iconify-icon> Selesai</span>
                                     <?php elseif ($statusKey === 'cancelled'): ?>
-                                        <span class="status-badge-custom status-badge-cancelled shadow-sm"><i class="fas fa-times-circle text-xs"></i> Batal</span>
+                                        <span class="status-badge-custom status-badge-cancelled shadow-sm"><iconify-icon icon="solar:close-circle-bold" class="text-xs"></iconify-icon> Batal</span>
                                     <?php else: ?>
-                                        <span class="status-badge-custom status-badge-draft shadow-sm"><i class="fas fa-pencil-alt text-xs"></i> Draft</span>
+                                        <span class="status-badge-custom status-badge-draft shadow-sm"><iconify-icon icon="solar:pen-2-bold" class="text-xs"></iconify-icon> Draft</span>
                                     <?php endif; ?>
                                 </div>
 
                                 <!-- Floating Mode & Type Badge -->
                                 <div class="position-absolute bottom-0 start-0 m-12 d-flex gap-1 flex-wrap">
-                                    <span class="badge-type-pill shadow-sm" style="background:#ffffff; border-color:#cbd5e1; color:#0369a1;">
+                                    <span class="badge-type-pill shadow-sm">
                                         <?= esc(ucfirst($e['type'] ?? 'Workshop')) ?>
                                     </span>
                                     <?php if ($modeKey === 'online'): ?>
-                                        <span class="badge-mode-online shadow-sm" style="background:#ffffff; border-color:#a7f3d0;"><i class="fas fa-video me-1"></i> Online</span>
+                                        <span class="badge-mode-online shadow-sm"><iconify-icon icon="solar:videocamera-record-bold" class="text-xs"></iconify-icon> Online</span>
                                     <?php elseif ($modeKey === 'offline'): ?>
-                                        <span class="badge-mode-offline shadow-sm" style="background:#ffffff; border-color:#ffedd5;"><i class="fas fa-map-marker-alt me-1"></i> Offline</span>
+                                        <span class="badge-mode-offline shadow-sm"><iconify-icon icon="solar:map-point-bold" class="text-xs"></iconify-icon> Offline</span>
                                     <?php else: ?>
-                                        <span class="badge-mode-hybrid shadow-sm" style="background:#ffffff; border-color:#f5d0fe;"><i class="fas fa-satellite-dish me-1"></i> Hybrid</span>
+                                        <span class="badge-mode-hybrid shadow-sm"><iconify-icon icon="solar:transmission-bold" class="text-xs"></iconify-icon> Hybrid</span>
                                     <?php endif; ?>
                                 </div>
                             </div>
 
                             <!-- Card Body -->
                             <div class="card-body p-20 d-flex flex-column flex-grow-1">
-                                <!-- Title -->
-                                <h6 class="mb-12">
-                                    <a href="<?= route_to('dashboard.communication.events.detail', (string) $e['id']) ?>" class="fw-bold text-neutral-900 text-hover-primary-600 text-base line-clamp-2 transition-2" style="color: #0f172a; line-height: 1.45; min-height: 44px;">
+                                <!-- Title with clamped height -->
+                                <div class="event-grid-title-wrap">
+                                    <a href="<?= route_to('dashboard.communication.events.detail', (string) $e['id']) ?>" class="fw-bold text-neutral-900 text-hover-primary-600 text-base line-clamp-2 transition-2" style="color: #0f172a; line-height: 1.45;">
                                         <?= esc($e['title'] ?? '(Tanpa judul event)') ?>
                                     </a>
-                                </h6>
+                                </div>
 
-                                <!-- Schedule & Venue Details -->
-                                <div class="p-12 rounded-8 mb-16" style="background:#f8fafc; border: 1px solid #f1f5f9;">
-                                    <div class="d-flex align-items-center gap-2 text-xs fw-semibold text-neutral-900 mb-2" style="color: #0f172a;">
+                                <!-- Schedule & Venue Details (Fixed uniform box) -->
+                                <div class="event-grid-info-box">
+                                    <div class="d-flex align-items-center gap-2 text-xs fw-bold text-neutral-900 mb-1" style="color: #0f172a;">
                                         <iconify-icon icon="solar:calendar-date-bold" class="text-primary-600 text-base flex-shrink-0"></iconify-icon>
                                         <span><?= ! empty($e['start_at']) ? esc(date('d M Y, H:i', strtotime($e['start_at']))) : 'Jadwal belum ditentukan' ?> WIB</span>
                                     </div>
@@ -680,8 +752,8 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                                 <!-- Registration Quota Progress -->
                                 <div class="mb-16">
                                     <div class="d-flex justify-content-between align-items-center text-xs mb-1">
-                                        <span class="text-neutral-700 font-medium" style="color:#475569;">Pendaftar: <strong class="text-neutral-900" style="color:#0f172a;"><?= number_format($registered) ?></strong></span>
-                                        <span class="text-neutral-600 font-medium" style="color:#64748b;">Kuota: <strong><?= $capacity > 0 ? number_format($capacity) : '&infin;' ?></strong></span>
+                                        <span class="text-neutral-700 font-semibold" style="color:#334155;">Pendaftar: <strong class="text-neutral-900" style="color:#0f172a;"><?= number_format($registered) ?></strong></span>
+                                        <span class="text-neutral-600 font-medium" style="color:#475569;">Kuota: <strong><?= $capacity > 0 ? number_format($capacity) : '&infin;' ?></strong></span>
                                     </div>
                                     <?php if ($capacity > 0): ?>
                                         <div class="progress progress-xs rounded-pill bg-neutral-200" style="height: 6px;">
@@ -767,14 +839,11 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                 </span>
                 <nav aria-label="Navigasi Halaman Event">
                     <ul class="pagination events-pagination mb-0">
-                        <!-- Prev Button -->
                         <li class="page-item <?= $pagination['page'] <= 1 ? 'disabled' : '' ?>">
                             <a class="page-link" href="<?= $pagination['page'] > 1 ? $buildFilterUrl(['page' => $pagination['page'] - 1]) : '#' ?>" aria-label="Sebelumnya">
                                 <iconify-icon icon="solar:alt-arrow-left-linear" class="align-middle"></iconify-icon>
                             </a>
                         </li>
-
-                        <!-- Page Numbers -->
                         <?php
                         $startPage = max(1, $pagination['page'] - 2);
                         $endPage   = min($pagination['totalPages'], $pagination['page'] + 2);
@@ -798,8 +867,6 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                             echo '<li class="page-item"><a class="page-link" href="' . $buildFilterUrl(['page' => $pagination['totalPages']]) . '">' . $pagination['totalPages'] . '</a></li>';
                         }
                         ?>
-
-                        <!-- Next Button -->
                         <li class="page-item <?= $pagination['page'] >= $pagination['totalPages'] ? 'disabled' : '' ?>">
                             <a class="page-link" href="<?= $pagination['page'] < $pagination['totalPages'] ? $buildFilterUrl(['page' => $pagination['page'] + 1]) : '#' ?>" aria-label="Berikutnya">
                                 <iconify-icon icon="solar:alt-arrow-right-linear" class="align-middle"></iconify-icon>

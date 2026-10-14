@@ -2,6 +2,19 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
+/* High-contrast and legibility overrides for Admin Dashboard */
+.text-secondary-light, .text-muted, .text-neutral-500 {
+    color: #475569 !important;
+}
+.text-neutral-600 {
+    color: #334155 !important;
+}
+.text-neutral-700 {
+    color: #1e293b !important;
+}
+.text-neutral-800, .text-neutral-900 {
+    color: #0f172a !important;
+}
 .event-detail-banner {
     position: relative;
     border-radius: 12px;
@@ -49,13 +62,13 @@ $coverUrl = ! empty($item['cover_file_id']) ? base_url('file/' . (int) $item['co
 
 if (empty($openAt) || empty($code)) {
     $presensiStatus = 'belum_dibuka';
-    $presensiBadge = '<span class="badge bg-neutral-200 text-neutral-800 px-12 py-6 radius-6 fw-bold border border-neutral-300"><i class="fas fa-clock me-1"></i> Belum Dibuka</span>';
+    $presensiBadge = '<span class="badge bg-neutral-200 text-neutral-800 px-12 py-6 radius-6 fw-bold border border-neutral-300 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:clock-circle-bold"></iconify-icon> Belum Dibuka</span>';
 } elseif ($closeAt !== null && $closeAt <= $now) {
     $presensiStatus = 'ditutup';
-    $presensiBadge = '<span class="badge bg-danger-50 text-danger-700 px-12 py-6 radius-6 fw-bold border border-danger-200"><i class="fas fa-times-circle me-1"></i> Sesi Ditutup</span>';
+    $presensiBadge = '<span class="badge bg-danger-50 text-danger-700 px-12 py-6 radius-6 fw-bold border border-danger-200 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:close-circle-bold"></iconify-icon> Sesi Ditutup</span>';
 } else {
     $presensiStatus = 'aktif';
-    $presensiBadge = '<span class="badge bg-success-50 text-success-700 px-12 py-6 radius-6 fw-bold border border-success-200"><i class="fas fa-check-circle me-1"></i> Sesi Aktif</span>';
+    $presensiBadge = '<span class="badge bg-success-50 text-success-700 px-12 py-6 radius-6 fw-bold border border-success-200 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:check-circle-bold"></iconify-icon> Sesi Aktif</span>';
 }
 
 $statusKey = $item['status'] ?? 'draft';
@@ -97,8 +110,8 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
             <span class="badge bg-primary-500 text-white px-10 py-4 radius-6 text-xs fw-bold">
                 <?= esc(ucfirst($item['type'] ?? 'Webinar')) ?>
             </span>
-            <span class="badge bg-white text-neutral-900 px-10 py-4 radius-6 text-xs fw-bold">
-                <i class="fas fa-satellite-dish me-1"></i> <?= esc(ucfirst($modeKey)) ?>
+            <span class="badge bg-white text-neutral-900 px-10 py-4 radius-6 text-xs fw-bold d-inline-flex align-items-center gap-1">
+                <iconify-icon icon="solar:videocamera-record-bold" class="text-primary-600"></iconify-icon> <?= esc(ucfirst($modeKey)) ?>
             </span>
             <span class="badge bg-neutral-800 text-white px-10 py-4 radius-6 text-xs fw-medium border border-neutral-600">
                 <?= esc(ucfirst($item['visibility'] ?? 'public')) ?>
@@ -106,9 +119,9 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
         </div>
         <h4 class="fw-bold text-white mb-2"><?= esc($item['title'] ?? '-') ?></h4>
         <div class="d-flex flex-wrap align-items-center gap-3 text-xs text-neutral-200">
-            <span><i class="far fa-calendar-alt me-1 text-primary-300"></i> <?= ! empty($item['start_at']) ? esc(date('d M Y, H:i', strtotime($item['start_at']))) : '-' ?> WIB</span>
+            <span class="d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:calendar-date-bold" class="text-primary-300"></iconify-icon> <?= ! empty($item['start_at']) ? esc(date('d M Y, H:i', strtotime($item['start_at']))) : '-' ?> WIB</span>
             <span>&bull;</span>
-            <span><i class="fas fa-map-marker-alt me-1 text-danger-400"></i> <?= esc($item['location'] ?: ($item['meeting_url'] ?: 'Online / Daring')) ?></span>
+            <span class="d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:map-point-bold" class="text-danger-400"></iconify-icon> <?= esc($item['location'] ?: ($item['meeting_url'] ?: 'Online / Daring')) ?></span>
         </div>
     </div>
 </div>
@@ -372,12 +385,12 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
                                         </td>
                                         <td>
                                             <?php if (($p['attendance_status'] ?? '') === 'present'): ?>
-                                                <span class="badge bg-success-50 text-success-700 radius-6 px-8 py-4 text-xs fw-bold border border-success-200">
-                                                    <i class="fas fa-check-circle me-1"></i> Hadir
+                                                <span class="badge bg-success-50 text-success-700 radius-6 px-8 py-4 text-xs fw-bold border border-success-200 d-inline-flex align-items-center gap-1">
+                                                    <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Hadir
                                                 </span>
                                             <?php else: ?>
-                                                <span class="badge bg-neutral-100 text-neutral-700 radius-6 px-8 py-4 text-xs fw-semibold border border-neutral-300">
-                                                    <i class="far fa-clock me-1"></i> Belum Hadir
+                                                <span class="badge bg-neutral-100 text-neutral-700 radius-6 px-8 py-4 text-xs fw-semibold border border-neutral-300 d-inline-flex align-items-center gap-1">
+                                                    <iconify-icon icon="solar:clock-circle-bold"></iconify-icon> Belum Hadir
                                                 </span>
                                             <?php endif; ?>
                                         </td>
@@ -400,8 +413,8 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
                                                     <input type="hidden" name="status" value="present">
                                                     <input type="hidden" name="notes" value="Check-in manual oleh Admin">
                                                     <input type="hidden" name="redirect_to" value="<?= current_url() ?>">
-                                                    <button type="submit" class="btn btn-outline-success btn-sm radius-6 px-8 py-4 text-xs fw-bold" title="Tandai Hadir Manual">
-                                                        <i class="fas fa-check me-1"></i> Hadir
+                                                    <button type="submit" class="btn btn-outline-success btn-sm radius-6 px-8 py-4 text-xs fw-bold d-inline-flex align-items-center gap-1" title="Tandai Hadir Manual">
+                                                        <iconify-icon icon="solar:check-square-bold"></iconify-icon> Hadir
                                                     </button>
                                                 </form>
                                             <?php else: ?>
