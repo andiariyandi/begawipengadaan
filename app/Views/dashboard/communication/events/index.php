@@ -1,219 +1,816 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
+<?= $this->section('pageStyles') ?>
+<style>
+/* Scoped Events Dashboard Styling for Crystal-Clear Readability & Polished UI */
+.events-dashboard-container {
+    color: #1e293b;
+}
+
+/* KPI Cards */
+.kpi-event-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px;
+    padding: 16px 18px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.kpi-event-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px -2px rgba(0,0,0,0.06);
+}
+
+/* Action Dropdown Button */
+.btn-action-dropdown {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+    border-radius: 8px !important;
+    padding: 6px 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+.btn-action-dropdown:hover,
+.btn-action-dropdown:focus {
+    background: #0284c7 !important;
+    border-color: #0284c7 !important;
+    color: #ffffff !important;
+}
+.btn-action-dropdown:hover iconify-icon,
+.btn-action-dropdown:focus iconify-icon {
+    color: #ffffff !important;
+}
+.btn-action-dropdown iconify-icon {
+    color: #1e293b !important;
+    font-size: 18px !important;
+}
+
+/* Event Grid Card */
+.event-grid-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.event-grid-card:hover {
+    border-color: #93c5fd;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 22px -4px rgba(0,0,0,0.08);
+}
+.event-cover-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #f1f5f9;
+    overflow: hidden;
+}
+.event-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+.event-grid-card:hover .event-cover-img {
+    transform: scale(1.03);
+}
+.event-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 50%, #eff6ff 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+}
+
+/* Type & Mode Badges */
+.badge-type-pill {
+    background: #e0f2fe;
+    color: #0369a1;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid #bae6fd;
+}
+.badge-mode-online {
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid #a7f3d0;
+}
+.badge-mode-offline {
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid #ffedd5;
+}
+.badge-mode-hybrid {
+    background: #fdf4ff;
+    color: #a21caf;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid #f5d0fe;
+}
+
+/* Status Badges Override for Maximum Readability */
+.events-dashboard-container .status-badge-custom {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.status-badge-open {
+    background-color: #dcfce7 !important;
+    color: #15803d !important;
+    border: 1px solid #bbf7d0 !important;
+}
+.status-badge-coming-soon {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    border: 1px solid #fde68a !important;
+}
+.status-badge-published {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+}
+.status-badge-full {
+    background-color: #f3e8ff !important;
+    color: #7e22ce !important;
+    border: 1px solid #e9d5ff !important;
+}
+.status-badge-finished {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+.status-badge-cancelled {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fecaca !important;
+}
+.status-badge-draft {
+    background-color: #f8fafc !important;
+    color: #64748b !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* Table Style Polish */
+.events-table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.events-table th {
+    background: #f8fafc !important;
+    color: #334155 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 16px !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+}
+.events-table td {
+    padding: 14px 16px !important;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+}
+.events-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Pagination Bar */
+.events-pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.events-pagination .page-link {
+    border-radius: 8px !important;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+.events-pagination .page-link:hover {
+    background: #f1f5f9;
+    color: #0284c7;
+    border-color: #93c5fd;
+}
+.events-pagination .page-item.active .page-link {
+    background: #0284c7 !important;
+    border-color: #0284c7 !important;
+    color: #ffffff !important;
+}
+.events-pagination .page-item.disabled .page-link {
+    color: #94a3b8;
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+</style>
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <?php
 $items       = $items ?? [];
 $status      = $filterStatus ?? null;
 $keyword     = $filterKeyword ?? null;
-$stats       = $stats ?? ['total' => count($items), 'open' => 0, 'coming_soon' => 0, 'finished' => 0];
+$mode        = $filterMode ?? null;
+$type        = $filterType ?? null;
+$viewMode    = $viewMode ?? 'grid';
+$pagination  = $pagination ?? ['page' => 1, 'perPage' => 12, 'total' => count($items), 'totalPages' => 1, 'from' => 1, 'to' => count($items)];
+$stats       = $stats ?? ['total' => count($items), 'open' => 0, 'coming_soon' => 0, 'finished' => 0, 'total_registered' => 0, 'total_attended' => 0];
+
+$buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode, $type, $viewMode, $pagination): string {
+    $params = [
+        'q'      => $keyword,
+        'status' => $status,
+        'mode'   => $mode,
+        'type'   => $type,
+        'view'   => $viewMode,
+        'page'   => $pagination['page'],
+    ];
+    $merged = array_filter(array_merge($params, $overrides), fn($v) => $v !== null && $v !== '');
+    return site_url('dashboard/komunikasi/event-agenda') . (! empty($merged) ? '?' . http_build_query($merged) : '');
+};
 ?>
 
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-    <div>
-        <h6 class="fw-semibold mb-1">Event & Agenda PBJ</h6>
-        <p class="text-secondary-light mb-0">Kelola agenda seminar, workshop pengadaan, sosialisasi regulasi, dan bimbingan teknis.</p>
+<div class="events-dashboard-container">
+    <!-- Header Title & Action Toolbar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+        <div>
+            <h6 class="fw-bold text-neutral-900 mb-1" style="color: #0f172a;">Event &amp; Agenda PBJ</h6>
+            <p class="text-neutral-600 mb-0 font-medium" style="color: #475569;">Kelola seminar pengadaan, bimbingan teknis, workshop regulasi, presensi kehadiran, dan batch sertifikat.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="<?= site_url('dashboard/komunikasi/registrasi-event') ?>" class="btn btn-outline-neutral-300 radius-8 px-16 py-10 d-flex align-items-center gap-2 text-sm fw-semibold text-neutral-700" style="background:#ffffff; border-color:#cbd5e1;">
+                <iconify-icon icon="solar:users-group-rounded-outline" class="text-lg text-primary-600"></iconify-icon>
+                Data Pendaftar
+            </a>
+            <a href="<?= route_to('dashboard.communication.events.create') ?>" class="btn btn-primary-600 radius-8 px-20 py-11 d-flex align-items-center gap-2 fw-bold text-sm shadow-sm">
+                <iconify-icon icon="solar:add-circle-outline" class="text-xl"></iconify-icon>
+                Tambah Event Baru
+            </a>
+        </div>
     </div>
-    <div class="d-flex align-items-center gap-2">
-        <a href="<?= route_to('dashboard.communication.events.create') ?>" class="btn btn-primary-600 radius-8 px-20 py-11 d-flex align-items-center gap-2">
-            <iconify-icon icon="solar:add-circle-outline" class="text-xl"></iconify-icon>
-            Tambah Event
-        </a>
-    </div>
-</div>
 
-<!-- KPI Cards -->
-<div class="row row-cols-xxl-4 row-cols-md-2 row-cols-1 g-3 mb-24">
-    <div class="col">
-        <div class="card p-20 radius-12 border bg-base shadow-none">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-secondary-light text-sm mb-1 d-block">Total Agenda</span>
-                    <h5 class="fw-semibold mb-0"><?= number_format($stats['total'] ?? 0) ?></h5>
-                </div>
-                <div class="w-48-px h-48-px bg-info-50 text-info-600 rounded-circle d-flex align-items-center justify-content-center text-2xl">
-                    <iconify-icon icon="solar:calendar-outline"></iconify-icon>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card p-20 radius-12 border bg-base shadow-none">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-secondary-light text-sm mb-1 d-block">Pendaftaran Dibuka</span>
-                    <h5 class="fw-semibold text-success-main mb-0"><?= number_format($stats['open'] ?? 0) ?></h5>
-                </div>
-                <div class="w-48-px h-48-px bg-success-50 text-success-600 rounded-circle d-flex align-items-center justify-content-center text-2xl">
-                    <iconify-icon icon="solar:user-plus-outline"></iconify-icon>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card p-20 radius-12 border bg-base shadow-none">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-secondary-light text-sm mb-1 d-block">Segera Hadir</span>
-                    <h5 class="fw-semibold text-warning-main mb-0"><?= number_format($stats['coming_soon'] ?? 0) ?></h5>
-                </div>
-                <div class="w-48-px h-48-px bg-warning-50 text-warning-600 rounded-circle d-flex align-items-center justify-content-center text-2xl">
-                    <iconify-icon icon="solar:clock-circle-outline"></iconify-icon>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card p-20 radius-12 border bg-base shadow-none">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-secondary-light text-sm mb-1 d-block">Telah Selesai</span>
-                    <h5 class="fw-semibold text-neutral-600 mb-0"><?= number_format($stats['finished'] ?? 0) ?></h5>
-                </div>
-                <div class="w-48-px h-48-px bg-neutral-100 text-neutral-600 rounded-circle d-flex align-items-center justify-content-center text-2xl">
-                    <iconify-icon icon="solar:check-read-outline"></iconify-icon>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Filter Toolbar -->
-<div class="card radius-12 mb-24 border">
-    <div class="card-body p-20">
-        <form method="get" action="<?= route_to('dashboard.communication.events') ?>">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-6">
-                    <label class="form-label text-sm fw-medium mb-1">Cari Agenda</label>
-                    <div class="position-relative">
-                        <input type="text" name="q" class="form-control radius-8 ps-40" value="<?= esc($keyword ?? '') ?>" placeholder="Cari judul kegiatan atau seminar...">
-                        <iconify-icon icon="solar:magnifer-linear" class="position-absolute top-50 start-0 translate-middle-y ms-16 text-secondary-light text-lg"></iconify-icon>
+    <!-- KPI Metrics Ribbon (6 Uniform Equal-Height Cards) -->
+    <div class="row row-cols-xxl-6 row-cols-md-3 row-cols-2 g-3 mb-24">
+        <div class="col">
+            <div class="kpi-event-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-xs fw-semibold text-neutral-700" style="color: #475569;">Total Agenda</span>
+                    <div class="w-36-px h-36-px rounded-circle d-flex align-items-center justify-content-center text-lg" style="background: #e0f2fe; color: #0284c7;">
+                        <iconify-icon icon="solar:calendar-bold"></iconify-icon>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label text-sm fw-medium mb-1">Status Kegiatan</label>
-                    <select name="status" class="form-select radius-8">
-                        <option value="">Semua Status</option>
-                        <option value="open_registration" <?= $status === 'open_registration' ? 'selected' : '' ?>>Pendaftaran Dibuka</option>
-                        <option value="coming_soon" <?= $status === 'coming_soon' ? 'selected' : '' ?>>Akan Datang</option>
-                        <option value="published" <?= $status === 'published' ? 'selected' : '' ?>>Dipublikasikan</option>
-                        <option value="full" <?= $status === 'full' ? 'selected' : '' ?>>Kuota Penuh</option>
-                        <option value="finished" <?= $status === 'finished' ? 'selected' : '' ?>>Selesai</option>
-                        <option value="cancelled" <?= $status === 'cancelled' ? 'selected' : '' ?>>Dibatalkan</option>
-                        <option value="draft" <?= $status === 'draft' ? 'selected' : '' ?>>Draft</option>
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary-600 radius-8 flex-grow-1 d-flex align-items-center justify-content-center gap-1">
-                        <iconify-icon icon="solar:filter-outline"></iconify-icon> Filter
-                    </button>
-                    <a href="<?= route_to('dashboard.communication.events') ?>" class="btn btn-outline-neutral-300 radius-8" title="Reset">
-                        <iconify-icon icon="solar:restart-outline"></iconify-icon>
-                    </a>
-                </div>
+                <h4 class="fw-bold mb-0 text-neutral-900" style="color: #0f172a;"><?= number_format($stats['total'] ?? 0) ?></h4>
             </div>
-        </form>
+        </div>
+        <div class="col">
+            <div class="kpi-event-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-xs fw-semibold text-neutral-700" style="color: #475569;">Pendaftaran Buka</span>
+                    <div class="w-36-px h-36-px rounded-circle d-flex align-items-center justify-content-center text-lg" style="background: #dcfce7; color: #16a34a;">
+                        <iconify-icon icon="solar:user-plus-bold"></iconify-icon>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-0" style="color: #15803d;"><?= number_format($stats['open'] ?? 0) ?></h4>
+            </div>
+        </div>
+        <div class="col">
+            <div class="kpi-event-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-xs fw-semibold text-neutral-700" style="color: #475569;">Segera Hadir</span>
+                    <div class="w-36-px h-36-px rounded-circle d-flex align-items-center justify-content-center text-lg" style="background: #fef3c7; color: #d97706;">
+                        <iconify-icon icon="solar:clock-circle-bold"></iconify-icon>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-0" style="color: #b45309;"><?= number_format($stats['coming_soon'] ?? 0) ?></h4>
+            </div>
+        </div>
+        <div class="col">
+            <div class="kpi-event-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-xs fw-semibold text-neutral-700" style="color: #475569;">Telah Selesai</span>
+                    <div class="w-36-px h-36-px rounded-circle d-flex align-items-center justify-content-center text-lg" style="background: #f1f5f9; color: #475569;">
+                        <iconify-icon icon="solar:check-read-bold"></iconify-icon>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-0 text-neutral-700" style="color: #334155;"><?= number_format($stats['finished'] ?? 0) ?></h4>
+            </div>
+        </div>
+        <div class="col">
+            <div class="kpi-event-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-xs fw-semibold text-neutral-700" style="color: #475569;">Total Pendaftar</span>
+                    <div class="w-36-px h-36-px rounded-circle d-flex align-items-center justify-content-center text-lg" style="background: #ede9fe; color: #7c3aed;">
+                        <iconify-icon icon="solar:users-group-two-rounded-bold"></iconify-icon>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-0" style="color: #6d28d9;"><?= number_format($stats['total_registered'] ?? 0) ?></h4>
+            </div>
+        </div>
+        <div class="col">
+            <div class="kpi-event-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-xs fw-semibold text-neutral-700" style="color: #475569;">Presensi Sah</span>
+                    <div class="w-36-px h-36-px rounded-circle d-flex align-items-center justify-content-center text-lg" style="background: #ccfbf1; color: #0d9488;">
+                        <iconify-icon icon="solar:verified-check-bold"></iconify-icon>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-0" style="color: #0f766e;"><?= number_format($stats['total_attended'] ?? 0) ?></h4>
+            </div>
+        </div>
     </div>
-</div>
 
-
-<!-- Event Cards Grid -->
-<?php if (empty($items)): ?>
-    <?= view('dashboard/components/empty_state', [
-        'icon'        => 'solar:calendar-outline',
-        'title'       => 'Belum Ada Event',
-        'message'     => 'Belum ada agenda seminar atau bimbingan teknis yang sesuai kriteria pencarian.',
-        'actionUrl'   => route_to('dashboard.communication.events.create'),
-        'actionText'  => 'Tambah Event Baru',
-    ]) ?>
-<?php else: ?>
-    <div class="row gy-4 mb-24">
-        <?php foreach ($items as $e): ?>
-            <?php
-                $statusKey = $e['status'] ?? 'draft';
-                $modeKey = strtolower($e['mode'] ?? 'online');
-            ?>
-            <div class="col-xxl-4 col-md-6">
-                <div class="card h-100 p-0 radius-12 border overflow-hidden bg-base d-flex flex-column">
-                    <div class="card-body p-20 d-flex flex-column flex-grow-1">
-                        <!-- Top Badges -->
-                        <div class="d-flex align-items-center justify-content-between gap-2 mb-16">
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="px-10 py-4 bg-primary-50 text-primary-600 rounded-pill text-xs fw-semibold">
-                                    <?= esc(ucfirst($e['type'] ?? 'Workshop')) ?>
-                                </span>
-                                <span class="px-10 py-4 bg-neutral-100 text-neutral-800 rounded-pill text-xs fw-medium">
-                                    <?= esc(ucfirst($modeKey)) ?>
-                                </span>
-                            </div>
-                            <div>
-                                <?= view('dashboard/components/status_badge', ['status' => $statusKey]) ?>
-                            </div>
+    <!-- Filter & Search Toolbar Card -->
+    <div class="card radius-12 mb-24 border shadow-none" style="background:#ffffff; border-color:#e2e8f0;">
+        <div class="card-body p-20">
+            <form method="get" action="<?= site_url('dashboard/komunikasi/event-agenda') ?>">
+                <input type="hidden" name="view" value="<?= esc($viewMode) ?>">
+                <div class="row g-3 align-items-end">
+                    <div class="col-xl-4 col-lg-3 col-md-6">
+                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#1e293b;">Cari Agenda</label>
+                        <div class="position-relative">
+                            <input type="text" name="q" class="form-control radius-8 ps-40 font-medium" value="<?= esc($keyword ?? '') ?>" placeholder="Cari judul agenda, lokasi, materi..." style="border-color: #cbd5e1; color: #0f172a;">
+                            <iconify-icon icon="solar:magnifer-linear" class="position-absolute top-50 start-0 translate-middle-y ms-16 text-neutral-500 text-lg"></iconify-icon>
                         </div>
-
-                        <!-- Title -->
-                        <h6 class="mb-12">
-                            <a href="<?= route_to('dashboard.communication.events.detail', (string) $e['id']) ?>" class="text-line-2 text-hover-primary-600 text-lg fw-semibold transition-2">
-                                <?= esc($e['title'] ?? '(Tanpa judul event)') ?>
+                    </div>
+                    <div class="col-xl-2 col-lg-2 col-md-6">
+                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#1e293b;">Status</label>
+                        <select name="status" class="form-select radius-8 fw-semibold text-neutral-800" style="border-color: #cbd5e1;">
+                            <option value="">Semua Status</option>
+                            <option value="open_registration" <?= $status === 'open_registration' ? 'selected' : '' ?>>Pendaftaran Dibuka</option>
+                            <option value="coming_soon" <?= $status === 'coming_soon' ? 'selected' : '' ?>>Segera Hadir</option>
+                            <option value="published" <?= $status === 'published' ? 'selected' : '' ?>>Dipublikasikan</option>
+                            <option value="full" <?= $status === 'full' ? 'selected' : '' ?>>Kuota Penuh</option>
+                            <option value="finished" <?= $status === 'finished' ? 'selected' : '' ?>>Selesai</option>
+                            <option value="cancelled" <?= $status === 'cancelled' ? 'selected' : '' ?>>Dibatalkan</option>
+                            <option value="draft" <?= $status === 'draft' ? 'selected' : '' ?>>Draft</option>
+                        </select>
+                    </div>
+                    <div class="col-xl-2 col-lg-2 col-md-6">
+                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#1e293b;">Mode Pelaksanaan</label>
+                        <select name="mode" class="form-select radius-8 fw-semibold text-neutral-800" style="border-color: #cbd5e1;">
+                            <option value="">Semua Mode</option>
+                            <option value="online" <?= $mode === 'online' ? 'selected' : '' ?>>Online (Daring)</option>
+                            <option value="offline" <?= $mode === 'offline' ? 'selected' : '' ?>>Offline (Tatap Muka)</option>
+                            <option value="hybrid" <?= $mode === 'hybrid' ? 'selected' : '' ?>>Hybrid</option>
+                        </select>
+                    </div>
+                    <div class="col-xl-2 col-lg-2 col-md-6">
+                        <label class="form-label text-xs fw-bold text-neutral-800 text-uppercase mb-1" style="color:#1e293b;">Tipe Kegiatan</label>
+                        <select name="type" class="form-select radius-8 fw-semibold text-neutral-800" style="border-color: #cbd5e1;">
+                            <option value="">Semua Tipe</option>
+                            <option value="webinar" <?= $type === 'webinar' ? 'selected' : '' ?>>Webinar</option>
+                            <option value="workshop" <?= $type === 'workshop' ? 'selected' : '' ?>>Workshop</option>
+                            <option value="seminar" <?= $type === 'seminar' ? 'selected' : '' ?>>Seminar</option>
+                            <option value="bimtek" <?= $type === 'bimtek' ? 'selected' : '' ?>>Bimtek</option>
+                            <option value="sosialisasi" <?= $type === 'sosialisasi' ? 'selected' : '' ?>>Sosialisasi</option>
+                            <option value="pelatihan" <?= $type === 'pelatihan' ? 'selected' : '' ?>>Pelatihan</option>
+                            <option value="rakor" <?= $type === 'rakor' ? 'selected' : '' ?>>Rakor</option>
+                            <option value="klinik" <?= $type === 'klinik' ? 'selected' : '' ?>>Klinik</option>
+                        </select>
+                    </div>
+                    <div class="col-xl-2 col-lg-3 col-md-12 d-flex align-items-center gap-2">
+                        <button type="submit" class="btn btn-primary-600 radius-8 flex-grow-1 d-flex align-items-center justify-content-center gap-2 fw-bold text-sm">
+                            <iconify-icon icon="solar:filter-bold"></iconify-icon> Filter
+                        </button>
+                        <a href="<?= site_url('dashboard/komunikasi/event-agenda?view=' . esc($viewMode)) ?>" class="btn btn-outline-neutral-300 radius-8 text-neutral-700" title="Reset Filter" style="border-color: #cbd5e1; background:#ffffff;">
+                            <iconify-icon icon="solar:restart-bold" class="text-lg"></iconify-icon>
+                        </a>
+                        <!-- View Mode Switcher -->
+                        <div class="btn-group border radius-8 overflow-hidden" style="border-color:#cbd5e1 !important;">
+                            <a href="<?= $buildFilterUrl(['view' => 'grid']) ?>" class="btn btn-sm <?= $viewMode === 'grid' ? 'btn-primary-600 text-white' : 'btn-light text-neutral-700 bg-white' ?>" title="Tampilan Grid">
+                                <iconify-icon icon="solar:widget-4-bold"></iconify-icon>
                             </a>
-                        </h6>
-
-                        <!-- Schedule & Venue info -->
-                        <div class="mb-16">
-                            <div class="d-flex align-items-center gap-2 text-sm text-secondary-light mb-2">
-                                <iconify-icon icon="solar:calendar-date-outline" class="text-primary-600 text-lg flex-shrink-0"></iconify-icon>
-                                <span><?= ! empty($e['start_at']) ? esc(date('d M Y, H:i', strtotime($e['start_at']))) : 'Jadwal belum ditentukan' ?></span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2 text-sm text-secondary-light">
-                                <iconify-icon icon="solar:map-point-outline" class="text-primary-600 text-lg flex-shrink-0"></iconify-icon>
-                                <span class="text-line-1"><?= esc($e['location'] ?: ($e['meeting_url'] ?: 'Daring / Online Platform')) ?></span>
-                            </div>
-                        </div>
-
-                        <!-- Footer Actions -->
-                        <div class="pt-16 border-top mt-auto d-flex align-items-center justify-content-between">
-                            <span class="text-xs text-secondary-light">
-                                Kuota: <strong><?= (int) ($e['quota'] ?? 0) > 0 ? number_format($e['quota']) . ' Peserta' : 'Tak Terbatas' ?></strong>
-                            </span>
-                            <div class="dropdown">
-                                <button type="button" class="btn btn-outline-neutral-200 btn-sm radius-8 px-8 py-4 text-secondary-light" data-bs-toggle="dropdown">
-                                    <iconify-icon icon="solar:menu-dots-bold"></iconify-icon>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm radius-8">
-                                    <li>
-                                        <a class="dropdown-item text-sm d-flex align-items-center gap-2" href="<?= route_to('dashboard.communication.events.detail', (string) $e['id']) ?>">
-                                            <iconify-icon icon="solar:eye-outline"></iconify-icon> Lihat Detail & Peserta
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item text-sm d-flex align-items-center gap-2" href="<?= route_to('dashboard.communication.events.edit', (string) $e['id']) ?>">
-                                            <iconify-icon icon="solar:pen-2-outline"></iconify-icon> Ubah Event
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider my-1"></li>
-                                    <li>
-                                        <button type="button" class="dropdown-item text-sm text-danger-main d-flex align-items-center gap-2 border-0 bg-transparent w-100 text-start"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#confirmationActionModal"
-                                                data-action="<?= route_to('dashboard.communication.events.delete', (string) $e['id']) ?>"
-                                                data-method="POST"
-                                                data-title="Hapus Event / Agenda"
-                                                data-message="Apakah Anda yakin ingin menghapus agenda &quot;<?= esc($e['title'] ?? '') ?>&quot;?"
-                                                data-btn-text="Ya, Hapus"
-                                                data-btn-class="btn-danger-600"
-                                                data-icon="fluent:delete-24-regular"
-                                                data-icon-color="danger">
-                                            <iconify-icon icon="solar:trash-bin-trash-outline"></iconify-icon>
-                                            <span>Hapus</span>
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
+                            <a href="<?= $buildFilterUrl(['view' => 'table']) ?>" class="btn btn-sm <?= $viewMode === 'table' ? 'btn-primary-600 text-white' : 'btn-light text-neutral-700 bg-white' ?>" title="Tampilan Tabel">
+                                <iconify-icon icon="solar:list-bold"></iconify-icon>
+                            </a>
                         </div>
                     </div>
                 </div>
-            </div>
-        <?php endforeach; ?>
+            </form>
+        </div>
     </div>
-<?php endif; ?>
+
+    <!-- Main Content Area -->
+    <?php if (empty($items)): ?>
+        <div class="card p-40 text-center radius-12 border bg-base shadow-none">
+            <div class="w-64-px h-64-px rounded-circle bg-primary-50 text-primary-600 d-flex align-items-center justify-content-center mx-auto mb-16 text-3xl">
+                <iconify-icon icon="solar:calendar-outline"></iconify-icon>
+            </div>
+            <h5 class="fw-bold text-neutral-900 mb-2" style="color: #0f172a;">Belum Ada Event / Agenda</h5>
+            <p class="text-neutral-600 mb-20 max-w-500-px mx-auto" style="color: #475569;">Tidak ada kegiatan yang sesuai dengan kriteria filter pencarian Anda. Silakan ubah kata kunci atau tambahkan kegiatan baru.</p>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="<?= site_url('dashboard/komunikasi/event-agenda') ?>" class="btn btn-outline-neutral-300 radius-8 px-16 py-8 text-sm fw-semibold">Reset Filter</a>
+                <a href="<?= route_to('dashboard.communication.events.create') ?>" class="btn btn-primary-600 radius-8 px-20 py-8 text-sm fw-bold">Tambah Event Baru</a>
+            </div>
+        </div>
+    <?php else: ?>
+
+        <?php if ($viewMode === 'table'): ?>
+            <!-- TABLE VIEW -->
+            <div class="events-table-card mb-24">
+                <div class="table-responsive">
+                    <table class="table bordered-table sm-table mb-0 align-middle events-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 100px;">Cover</th>
+                                <th>Judul &amp; Tipe Kegiatan</th>
+                                <th style="width: 220px;">Jadwal &amp; Lokasi</th>
+                                <th style="width: 180px;">Kapasitas &amp; Pendaftar</th>
+                                <th class="text-center" style="width: 140px;">Status</th>
+                                <th class="text-center" style="width: 100px;">Presensi</th>
+                                <th class="text-center" style="width: 80px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($items as $e): ?>
+                                <?php
+                                    $coverUrl = ! empty($e['cover_file_id']) ? base_url('file/' . (int) $e['cover_file_id']) : null;
+                                    $modeKey = strtolower($e['mode'] ?? 'online');
+                                    $statusKey = $e['status'] ?? 'draft';
+                                    $capacity = (int) ($e['capacity'] ?? 0);
+                                    $registered = (int) ($e['registered_count'] ?? 0);
+                                    $present = (int) ($e['present_count'] ?? 0);
+                                    $pct = $capacity > 0 ? min(100, round(($registered / $capacity) * 100)) : 0;
+                                ?>
+                                <tr>
+                                    <td>
+                                        <div class="w-80-px h-48-px rounded-8 overflow-hidden bg-neutral-100 border d-flex align-items-center justify-content-center" style="border-color: #cbd5e1 !important;">
+                                            <?php if ($coverUrl): ?>
+                                                <img src="<?= esc($coverUrl) ?>" alt="Cover" style="width:100%;height:100%;object-fit:cover;">
+                                            <?php else: ?>
+                                                <iconify-icon icon="solar:gallery-wide-outline" class="text-neutral-500 text-xl"></iconify-icon>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                            <span class="badge-type-pill">
+                                                <?= esc(ucfirst($e['type'] ?? 'Webinar')) ?>
+                                            </span>
+                                            <?php if ($modeKey === 'online'): ?>
+                                                <span class="badge-mode-online"><i class="fas fa-video me-1"></i> Online</span>
+                                            <?php elseif ($modeKey === 'offline'): ?>
+                                                <span class="badge-mode-offline"><i class="fas fa-map-marker-alt me-1"></i> Offline</span>
+                                            <?php else: ?>
+                                                <span class="badge-mode-hybrid"><i class="fas fa-satellite-dish me-1"></i> Hybrid</span>
+                                            <?php endif; ?>
+                                            <?php if (! empty($e['certificate_enabled'])): ?>
+                                                <span class="badge bg-success-50 text-success-700 text-xs px-6 py-2 rounded border border-success-200" title="Tersedia E-Sertifikat">
+                                                    <iconify-icon icon="solar:diploma-bold"></iconify-icon> Sertifikat
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <a href="<?= route_to('dashboard.communication.events.detail', (string) $e['id']) ?>" class="fw-bold text-neutral-900 text-hover-primary-600 text-sm line-clamp-1 mb-1 d-block" style="color: #0f172a;">
+                                            <?= esc($e['title'] ?? '(Tanpa judul event)') ?>
+                                        </a>
+                                        <small class="text-neutral-600 font-monospace text-xs" style="color: #64748b;">/event/<?= esc($e['slug']) ?></small>
+                                    </td>
+                                    <td>
+                                        <div class="text-xs fw-bold text-neutral-900 mb-1 d-flex align-items-center gap-1" style="color: #0f172a;">
+                                            <iconify-icon icon="solar:calendar-date-bold" class="text-primary-600 text-sm"></iconify-icon>
+                                            <?= ! empty($e['start_at']) ? esc(date('d M Y, H:i', strtotime($e['start_at']))) : 'Belum ditentukan' ?>
+                                        </div>
+                                        <div class="text-xs text-neutral-600 line-clamp-1 d-flex align-items-center gap-1" style="color: #475569;">
+                                            <iconify-icon icon="solar:map-point-bold" class="text-danger-600 text-xs flex-shrink-0"></iconify-icon>
+                                            <span><?= esc($e['location'] ?: ($e['meeting_url'] ?: 'Daring / Online')) ?></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-between align-items-center text-xs mb-1">
+                                            <span class="fw-bold text-neutral-800" style="color:#1e293b;"><?= number_format($registered) ?> Peserta</span>
+                                            <span class="text-neutral-500 font-medium">/ <?= $capacity > 0 ? number_format($capacity) : '&infin;' ?></span>
+                                        </div>
+                                        <?php if ($capacity > 0): ?>
+                                            <div class="progress progress-xs rounded-pill bg-neutral-200" style="height: 6px;">
+                                                <div class="progress-bar <?= $pct >= 90 ? 'bg-danger-600' : ($pct >= 70 ? 'bg-warning-600' : 'bg-primary-600') ?>" style="width: <?= $pct ?>%;"></div>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="text-xs text-neutral-500">Kuota Tak Terbatas</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($statusKey === 'open_registration'): ?>
+                                            <span class="status-badge-custom status-badge-open"><i class="fas fa-check-circle text-xs"></i> Buka</span>
+                                        <?php elseif ($statusKey === 'coming_soon'): ?>
+                                            <span class="status-badge-custom status-badge-coming-soon"><i class="fas fa-clock text-xs"></i> Segera</span>
+                                        <?php elseif ($statusKey === 'published'): ?>
+                                            <span class="status-badge-custom status-badge-published"><i class="fas fa-globe text-xs"></i> Publik</span>
+                                        <?php elseif ($statusKey === 'full'): ?>
+                                            <span class="status-badge-custom status-badge-full"><i class="fas fa-ban text-xs"></i> Penuh</span>
+                                        <?php elseif ($statusKey === 'finished'): ?>
+                                            <span class="status-badge-custom status-badge-finished"><i class="fas fa-flag-checkered text-xs"></i> Selesai</span>
+                                        <?php elseif ($statusKey === 'cancelled'): ?>
+                                            <span class="status-badge-custom status-badge-cancelled"><i class="fas fa-times-circle text-xs"></i> Batal</span>
+                                        <?php else: ?>
+                                            <span class="status-badge-custom status-badge-draft"><i class="fas fa-pencil-alt text-xs"></i> Draft</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-teal-50 text-teal-700 border border-teal-200 fw-bold px-8 py-3 text-xs" style="background: #f0fdfa; color: #0f766e; border-color: #99f6e4;">
+                                            <iconify-icon icon="solar:check-circle-bold" class="text-xs"></iconify-icon> <?= number_format($present) ?> Hadir
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="dropdown">
+                                            <button type="button" class="btn-action-dropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Menu Tindakan">
+                                                <iconify-icon icon="solar:menu-dots-bold"></iconify-icon>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm radius-8 border-neutral-200 py-6" style="min-width: 190px;">
+                                                <li>
+                                                    <a class="dropdown-item text-xs fw-semibold py-8 px-14 d-flex align-items-center gap-2 text-neutral-800" href="<?= route_to('dashboard.communication.events.detail', (string) $e['id']) ?>">
+                                                        <iconify-icon icon="solar:eye-bold" class="text-primary-600 text-sm"></iconify-icon>
+                                                        <span>Detail &amp; Peserta</span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item text-xs fw-semibold py-8 px-14 d-flex align-items-center gap-2 text-neutral-800" href="<?= route_to('dashboard.communication.events.edit', (string) $e['id']) ?>">
+                                                        <iconify-icon icon="solar:pen-2-bold" class="text-warning-600 text-sm"></iconify-icon>
+                                                        <span>Ubah Event</span>
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider my-4"></li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item text-xs fw-semibold py-8 px-14 d-flex align-items-center gap-2 text-danger-600 border-0 bg-transparent w-100 text-start"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#confirmationActionModal"
+                                                            data-action="<?= route_to('dashboard.communication.events.delete', (string) $e['id']) ?>"
+                                                            data-method="POST"
+                                                            data-title="Hapus Event / Agenda"
+                                                            data-message="Apakah Anda yakin ingin menghapus agenda &quot;<?= esc($e['title'] ?? '') ?>&quot;?"
+                                                            data-btn-text="Ya, Hapus"
+                                                            data-btn-class="btn-danger-600"
+                                                            data-icon="fluent:delete-24-regular"
+                                                            data-icon-color="danger">
+                                                        <iconify-icon icon="solar:trash-bin-trash-bold" class="text-sm"></iconify-icon>
+                                                        <span>Hapus Agenda</span>
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        <?php else: ?>
+
+            <!-- GRID VIEW (Cards Layout) -->
+            <div class="row row-cols-xxl-3 row-cols-md-2 row-cols-1 g-4 mb-24">
+                <?php foreach ($items as $e): ?>
+                    <?php
+                        $coverUrl = ! empty($e['cover_file_id']) ? base_url('file/' . (int) $e['cover_file_id']) : null;
+                        $modeKey = strtolower($e['mode'] ?? 'online');
+                        $statusKey = $e['status'] ?? 'draft';
+                        $capacity = (int) ($e['capacity'] ?? 0);
+                        $registered = (int) ($e['registered_count'] ?? 0);
+                        $present = (int) ($e['present_count'] ?? 0);
+                        $pct = $capacity > 0 ? min(100, round(($registered / $capacity) * 100)) : 0;
+                    ?>
+                    <div class="col">
+                        <div class="event-grid-card">
+                            <!-- Cover Banner (16:9) -->
+                            <div class="event-cover-wrapper">
+                                <?php if ($coverUrl): ?>
+                                    <img src="<?= esc($coverUrl) ?>" alt="Cover" class="event-cover-img">
+                                <?php else: ?>
+                                    <div class="event-cover-placeholder">
+                                        <iconify-icon icon="solar:calendar-mark-bold-duotone" class="text-4xl text-primary-400 mb-1"></iconify-icon>
+                                        <span class="text-xs fw-bold text-neutral-600">BegawiPBJ Agenda</span>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Floating Status Badge -->
+                                <div class="position-absolute top-0 end-0 m-12">
+                                    <?php if ($statusKey === 'open_registration'): ?>
+                                        <span class="status-badge-custom status-badge-open shadow-sm"><i class="fas fa-check-circle text-xs"></i> Buka</span>
+                                    <?php elseif ($statusKey === 'coming_soon'): ?>
+                                        <span class="status-badge-custom status-badge-coming-soon shadow-sm"><i class="fas fa-clock text-xs"></i> Segera</span>
+                                    <?php elseif ($statusKey === 'published'): ?>
+                                        <span class="status-badge-custom status-badge-published shadow-sm"><i class="fas fa-globe text-xs"></i> Publik</span>
+                                    <?php elseif ($statusKey === 'full'): ?>
+                                        <span class="status-badge-custom status-badge-full shadow-sm"><i class="fas fa-ban text-xs"></i> Penuh</span>
+                                    <?php elseif ($statusKey === 'finished'): ?>
+                                        <span class="status-badge-custom status-badge-finished shadow-sm"><i class="fas fa-flag-checkered text-xs"></i> Selesai</span>
+                                    <?php elseif ($statusKey === 'cancelled'): ?>
+                                        <span class="status-badge-custom status-badge-cancelled shadow-sm"><i class="fas fa-times-circle text-xs"></i> Batal</span>
+                                    <?php else: ?>
+                                        <span class="status-badge-custom status-badge-draft shadow-sm"><i class="fas fa-pencil-alt text-xs"></i> Draft</span>
+                                    <?php endif; ?>
+                                </div>
+
+                                <!-- Floating Mode & Type Badge -->
+                                <div class="position-absolute bottom-0 start-0 m-12 d-flex gap-1 flex-wrap">
+                                    <span class="badge-type-pill shadow-sm" style="background:#ffffff; border-color:#cbd5e1; color:#0369a1;">
+                                        <?= esc(ucfirst($e['type'] ?? 'Workshop')) ?>
+                                    </span>
+                                    <?php if ($modeKey === 'online'): ?>
+                                        <span class="badge-mode-online shadow-sm" style="background:#ffffff; border-color:#a7f3d0;"><i class="fas fa-video me-1"></i> Online</span>
+                                    <?php elseif ($modeKey === 'offline'): ?>
+                                        <span class="badge-mode-offline shadow-sm" style="background:#ffffff; border-color:#ffedd5;"><i class="fas fa-map-marker-alt me-1"></i> Offline</span>
+                                    <?php else: ?>
+                                        <span class="badge-mode-hybrid shadow-sm" style="background:#ffffff; border-color:#f5d0fe;"><i class="fas fa-satellite-dish me-1"></i> Hybrid</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- Card Body -->
+                            <div class="card-body p-20 d-flex flex-column flex-grow-1">
+                                <!-- Title -->
+                                <h6 class="mb-12">
+                                    <a href="<?= route_to('dashboard.communication.events.detail', (string) $e['id']) ?>" class="fw-bold text-neutral-900 text-hover-primary-600 text-base line-clamp-2 transition-2" style="color: #0f172a; line-height: 1.45; min-height: 44px;">
+                                        <?= esc($e['title'] ?? '(Tanpa judul event)') ?>
+                                    </a>
+                                </h6>
+
+                                <!-- Schedule & Venue Details -->
+                                <div class="p-12 rounded-8 mb-16" style="background:#f8fafc; border: 1px solid #f1f5f9;">
+                                    <div class="d-flex align-items-center gap-2 text-xs fw-semibold text-neutral-900 mb-2" style="color: #0f172a;">
+                                        <iconify-icon icon="solar:calendar-date-bold" class="text-primary-600 text-base flex-shrink-0"></iconify-icon>
+                                        <span><?= ! empty($e['start_at']) ? esc(date('d M Y, H:i', strtotime($e['start_at']))) : 'Jadwal belum ditentukan' ?> WIB</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 text-xs text-neutral-700 line-clamp-1" style="color: #475569;">
+                                        <iconify-icon icon="solar:map-point-bold" class="text-danger-600 text-base flex-shrink-0"></iconify-icon>
+                                        <span title="<?= esc($e['location'] ?: ($e['meeting_url'] ?: 'Online / Daring')) ?>">
+                                            <?= esc($e['location'] ?: ($e['meeting_url'] ?: 'Daring / Online Platform')) ?>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Registration Quota Progress -->
+                                <div class="mb-16">
+                                    <div class="d-flex justify-content-between align-items-center text-xs mb-1">
+                                        <span class="text-neutral-700 font-medium" style="color:#475569;">Pendaftar: <strong class="text-neutral-900" style="color:#0f172a;"><?= number_format($registered) ?></strong></span>
+                                        <span class="text-neutral-600 font-medium" style="color:#64748b;">Kuota: <strong><?= $capacity > 0 ? number_format($capacity) : '&infin;' ?></strong></span>
+                                    </div>
+                                    <?php if ($capacity > 0): ?>
+                                        <div class="progress progress-xs rounded-pill bg-neutral-200" style="height: 6px;">
+                                            <div class="progress-bar <?= $pct >= 90 ? 'bg-danger-600' : ($pct >= 70 ? 'bg-warning-600' : 'bg-primary-600') ?>" style="width: <?= $pct ?>%;"></div>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="progress progress-xs rounded-pill bg-neutral-200" style="height: 6px;">
+                                            <div class="progress-bar bg-success-600" style="width: 100%;"></div>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <!-- Card Footer Actions -->
+                                <div class="pt-14 border-top mt-auto d-flex align-items-center justify-content-between" style="border-color: #f1f5f9 !important;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-teal-50 text-teal-800 border border-teal-200 text-xs px-8 py-3 fw-bold" style="background:#f0fdfa; color:#0f766e; border-color:#99f6e4;">
+                                            <iconify-icon icon="solar:check-circle-bold"></iconify-icon> <?= number_format($present) ?> Hadir
+                                        </span>
+                                        <?php if (! empty($e['attendance_code'])): ?>
+                                            <span class="badge bg-neutral-100 text-neutral-800 font-monospace text-xs px-6 py-3 border" style="border-color:#cbd5e1;" title="Kode Presensi">
+                                                <?= esc($e['attendance_code']) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="d-flex align-items-center gap-1">
+                                        <a href="<?= route_to('dashboard.communication.events.detail', (string) $e['id']) ?>" class="btn btn-outline-primary-600 btn-sm radius-8 px-10 py-5 text-xs fw-bold d-inline-flex align-items-center gap-1">
+                                            <span>Detail</span>
+                                            <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                                        </a>
+
+                                        <div class="dropdown">
+                                            <button type="button" class="btn-action-dropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Menu Lainnya">
+                                                <iconify-icon icon="solar:menu-dots-bold"></iconify-icon>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm radius-8 border-neutral-200 py-6" style="min-width: 190px;">
+                                                <li>
+                                                    <a class="dropdown-item text-xs fw-semibold py-8 px-14 d-flex align-items-center gap-2 text-neutral-800" href="<?= route_to('dashboard.communication.events.edit', (string) $e['id']) ?>">
+                                                        <iconify-icon icon="solar:pen-2-bold" class="text-warning-600 text-sm"></iconify-icon>
+                                                        <span>Ubah Event</span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item text-xs fw-semibold py-8 px-14 d-flex align-items-center gap-2 text-neutral-800" href="<?= site_url('dashboard/komunikasi/registrasi-event?event_id=' . (int) $e['id']) ?>">
+                                                        <iconify-icon icon="solar:users-group-rounded-bold" class="text-primary-600 text-sm"></iconify-icon>
+                                                        <span>Daftar Peserta</span>
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider my-4"></li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item text-xs fw-semibold py-8 px-14 d-flex align-items-center gap-2 text-danger-600 border-0 bg-transparent w-100 text-start"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#confirmationActionModal"
+                                                            data-action="<?= route_to('dashboard.communication.events.delete', (string) $e['id']) ?>"
+                                                            data-method="POST"
+                                                            data-title="Hapus Event / Agenda"
+                                                            data-message="Apakah Anda yakin ingin menghapus agenda &quot;<?= esc($e['title'] ?? '') ?>&quot;?"
+                                                            data-btn-text="Ya, Hapus"
+                                                            data-btn-class="btn-danger-600"
+                                                            data-icon="fluent:delete-24-regular"
+                                                            data-icon-color="danger">
+                                                        <iconify-icon icon="solar:trash-bin-trash-bold" class="text-sm"></iconify-icon>
+                                                        <span>Hapus Agenda</span>
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+        <?php endif; ?>
+
+        <!-- Pagination Bar -->
+        <?php if (($pagination['totalPages'] ?? 1) > 1): ?>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-16 bg-white radius-12 border mb-24" style="border-color: #e2e8f0;">
+                <span class="text-xs fw-bold text-neutral-700" style="color: #475569;">
+                    Menampilkan <strong><?= $pagination['from'] ?></strong> - <strong><?= $pagination['to'] ?></strong> dari <strong><?= number_format($pagination['total']) ?></strong> event
+                </span>
+                <nav aria-label="Navigasi Halaman Event">
+                    <ul class="pagination events-pagination mb-0">
+                        <!-- Prev Button -->
+                        <li class="page-item <?= $pagination['page'] <= 1 ? 'disabled' : '' ?>">
+                            <a class="page-link" href="<?= $pagination['page'] > 1 ? $buildFilterUrl(['page' => $pagination['page'] - 1]) : '#' ?>" aria-label="Sebelumnya">
+                                <iconify-icon icon="solar:alt-arrow-left-linear" class="align-middle"></iconify-icon>
+                            </a>
+                        </li>
+
+                        <!-- Page Numbers -->
+                        <?php
+                        $startPage = max(1, $pagination['page'] - 2);
+                        $endPage   = min($pagination['totalPages'], $pagination['page'] + 2);
+                        if ($startPage > 1) {
+                            echo '<li class="page-item"><a class="page-link" href="' . $buildFilterUrl(['page' => 1]) . '">1</a></li>';
+                            if ($startPage > 2) {
+                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                            }
+                        }
+                        for ($p = $startPage; $p <= $endPage; $p++):
+                        ?>
+                            <li class="page-item <?= $p === $pagination['page'] ? 'active' : '' ?>">
+                                <a class="page-link" href="<?= $buildFilterUrl(['page' => $p]) ?>"><?= $p ?></a>
+                            </li>
+                        <?php endfor; ?>
+                        <?php
+                        if ($endPage < $pagination['totalPages']) {
+                            if ($endPage < $pagination['totalPages'] - 1) {
+                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                            }
+                            echo '<li class="page-item"><a class="page-link" href="' . $buildFilterUrl(['page' => $pagination['totalPages']]) . '">' . $pagination['totalPages'] . '</a></li>';
+                        }
+                        ?>
+
+                        <!-- Next Button -->
+                        <li class="page-item <?= $pagination['page'] >= $pagination['totalPages'] ? 'disabled' : '' ?>">
+                            <a class="page-link" href="<?= $pagination['page'] < $pagination['totalPages'] ? $buildFilterUrl(['page' => $pagination['page'] + 1]) : '#' ?>" aria-label="Berikutnya">
+                                <iconify-icon icon="solar:alt-arrow-right-linear" class="align-middle"></iconify-icon>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        <?php endif; ?>
+
+    <?php endif; ?>
+</div>
 
 <?= $this->endSection() ?>

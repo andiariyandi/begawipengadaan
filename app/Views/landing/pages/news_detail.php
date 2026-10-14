@@ -7,7 +7,7 @@
         --news-navy: #082f5c;
         --news-blue: #0c5aa6;
         --news-blue-light: #e0f2fe;
-        --news-gold: #f59e0b;
+        --news-gold: #d97706;
         --news-gold-light: #fef3c7;
         --news-slate-900: #0f172a;
         --news-slate-700: #1e293b;
@@ -19,7 +19,7 @@
     /* Detail Header Banner */
     .news-detail-header-section {
         background: linear-gradient(135deg, var(--news-navy-dark) 0%, var(--news-navy) 70%, var(--news-blue) 100%);
-        padding: 160px 0 60px;
+        padding: 175px 0 65px;
         color: #ffffff;
         position: relative;
     }
@@ -30,9 +30,9 @@
         gap: 8px;
         background: rgba(255, 255, 255, 0.16);
         backdrop-filter: blur(8px);
-        padding: 6px 16px;
+        padding: 6px 18px;
         border-radius: 999px;
-        font-size: 13px;
+        font-size: 13.5px;
         font-weight: 600;
         color: #ffffff;
         margin-bottom: 20px;
@@ -53,8 +53,8 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: var(--news-gold);
-        color: var(--news-navy-dark);
+        background: #f59e0b;
+        color: #052244;
         font-size: 12px;
         font-weight: 800;
         text-transform: uppercase;
@@ -80,7 +80,7 @@
         flex-wrap: wrap;
         font-size: 13.5px;
         color: #f1f5f9;
-        font-weight: 500;
+        font-weight: 600;
         padding-top: 18px;
         border-top: 1px solid rgba(255, 255, 255, 0.2);
     }
@@ -102,151 +102,135 @@
         justify-content: center;
         font-weight: 700;
         font-size: 13px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.4);
     }
 
-    /* Main Article Container */
+    /* Article Content Container */
     .news-article-wrap {
         background: #ffffff;
-        border: 1px solid var(--news-slate-200);
         border-radius: 20px;
         padding: 40px;
-        box-shadow: 0 10px 30px rgba(8, 47, 92, 0.05);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
         margin-top: -30px;
         position: relative;
-        z-index: 10;
-        margin-bottom: 40px;
+        z-index: 5;
     }
 
     .news-featured-img-wrap {
-        border-radius: 16px;
+        border-radius: 14px;
         overflow: hidden;
         margin-bottom: 30px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
         background: #f1f5f9;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     }
 
     .news-featured-img {
         width: 100%;
         max-height: 480px;
         object-fit: cover;
+        display: block;
     }
 
     .news-img-caption {
+        padding: 10px 16px;
         font-size: 12.5px;
-        color: var(--news-slate-500);
+        color: #64748b;
+        background: #f8fafc;
+        border-top: 1px solid #f1f5f9;
         font-style: italic;
-        padding: 10px 14px 4px;
-        text-align: center;
     }
 
     .news-lead-summary-box {
-        background: #f0f7ff;
-        border-left: 4px solid var(--news-blue);
-        border-radius: 0 14px 14px 0;
+        background: #f0f9ff;
+        border-left: 4px solid #0284c7;
+        border-radius: 0 12px 12px 0;
         padding: 22px 26px;
+        font-size: 16.5px;
+        line-height: 1.7;
+        color: #0c4a6e;
+        font-weight: 500;
         margin-bottom: 32px;
-        font-size: 17px;
-        font-weight: 600;
-        line-height: 1.65;
-        color: var(--news-navy-dark);
     }
 
     .news-article-body {
-        font-size: 16px;
+        font-size: 16.5px;
         line-height: 1.85;
-        color: #334155;
+        color: #1e293b;
+        margin-bottom: 36px;
     }
 
     .news-article-body p {
-        margin-bottom: 22px;
+        margin-bottom: 1.4rem;
     }
 
     .news-article-body h2,
     .news-article-body h3,
     .news-article-body h4 {
-        color: var(--news-navy-dark);
+        color: var(--news-slate-900);
         font-weight: 800;
-        margin-top: 36px;
-        margin-bottom: 16px;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
         line-height: 1.35;
-    }
-
-    .news-article-body h2 { font-size: 24px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
-    .news-article-body h3 { font-size: 20px; }
-
-    .news-article-body blockquote {
-        background: #f8fafc;
-        border-left: 4px solid var(--news-gold);
-        border-radius: 0 14px 14px 0;
-        padding: 22px 28px;
-        margin: 32px 0;
-        font-style: italic;
-        color: var(--news-navy-dark);
-        font-size: 16.5px;
-        line-height: 1.7;
-        position: relative;
-    }
-
-    .news-article-body blockquote::before {
-        content: '"';
-        font-size: 60px;
-        line-height: 1;
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        opacity: 0.15;
-        font-family: Georgia, serif;
     }
 
     .news-article-body ul,
     .news-article-body ol {
-        margin-bottom: 24px;
+        margin-bottom: 1.4rem;
         padding-left: 24px;
     }
 
     .news-article-body li {
-        margin-bottom: 10px;
-        line-height: 1.75;
+        margin-bottom: 0.5rem;
     }
 
-    /* Key Takeaways Card */
+    .news-article-body blockquote {
+        background: #f8fafc;
+        border-left: 4px solid #f59e0b;
+        padding: 18px 24px;
+        margin: 1.8rem 0;
+        font-style: italic;
+        color: #334155;
+        border-radius: 0 10px 10px 0;
+    }
+
+    /* Key Takeaways Callout */
     .news-keypoints-card {
-        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-        border: 1px solid #bbf7d0;
-        border-radius: 16px;
-        padding: 24px;
-        margin: 36px 0;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 14px;
+        padding: 22px 26px;
+        margin-bottom: 34px;
     }
 
     .news-keypoints-title {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 800;
-        color: #166534;
+        color: #92400e;
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
     }
 
-    /* Share Widget */
+    /* Social Share Bar */
     .news-share-bar {
         background: #f8fafc;
-        border: 1px solid var(--news-slate-200);
-        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
         padding: 18px 24px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
         flex-wrap: wrap;
-        margin: 36px 0;
+        margin-bottom: 34px;
     }
 
     .news-share-title {
         font-size: 14px;
         font-weight: 700;
-        color: var(--news-navy-dark);
+        color: var(--news-slate-900);
         display: flex;
         align-items: center;
         gap: 8px;
@@ -255,125 +239,126 @@
     .news-share-btn-group {
         display: flex;
         align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
+        gap: 10px;
     }
 
     .news-share-btn {
         width: 38px;
         height: 38px;
-        border-radius: 10px;
-        display: inline-flex;
+        border-radius: 50%;
+        display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 16px;
         color: #ffffff;
-        font-size: 18px;
         text-decoration: none;
         transition: transform 0.2s ease, opacity 0.2s ease;
+        border: none;
+        cursor: pointer;
     }
 
     .news-share-btn:hover {
         transform: translateY(-2px);
-        color: #ffffff;
         opacity: 0.9;
+        color: #ffffff;
     }
 
-    .news-share-wa { background: #25d366; }
+    .news-share-wa { background: #25D366; }
     .news-share-tg { background: #0088cc; }
     .news-share-tw { background: #000000; }
     .news-share-fb { background: #1877f2; }
     .news-share-in { background: #0077b5; }
-    .news-share-copy { background: #475569; cursor: pointer; border: none; }
+    .news-share-copy { background: #475569; }
 
-    /* Tags Cloud */
+    /* Tags Bar */
     .news-tags-bar {
         display: flex;
         align-items: center;
         gap: 8px;
         flex-wrap: wrap;
-        padding: 18px 0;
-        border-top: 1px solid #f1f5f9;
+        padding-bottom: 28px;
+        margin-bottom: 28px;
         border-bottom: 1px solid #f1f5f9;
-        margin-bottom: 36px;
     }
 
     .news-tag-pill {
         background: #f1f5f9;
-        color: #475569;
-        padding: 5px 12px;
-        border-radius: 999px;
+        color: #334155;
+        border: 1px solid #cbd5e1;
         font-size: 12.5px;
         font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 999px;
         text-decoration: none;
         transition: all 0.2s ease;
     }
 
     .news-tag-pill:hover {
-        background: var(--news-blue-light);
-        color: var(--news-blue);
+        background: #e2e8f0;
+        color: #0f172a;
     }
 
-    /* Redaksi / Author Box */
+    /* Redaksi / Biro PBJ Identity Box */
     .news-author-box {
-        background: #f8fafc;
-        border: 1px solid var(--news-slate-200);
-        border-radius: 16px;
-        padding: 26px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 24px;
         display: flex;
         gap: 20px;
         align-items: center;
-        margin-bottom: 40px;
+        margin-bottom: 34px;
     }
 
     .news-author-large-avatar {
-        width: 64px;
-        height: 64px;
+        width: 60px;
+        height: 60px;
         border-radius: 16px;
-        background: linear-gradient(135deg, var(--news-navy-dark), var(--news-blue));
+        background: #0284c7;
         color: #ffffff;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 30px;
+        font-size: 26px;
         flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
     }
 
     .news-author-box-name {
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 800;
-        color: var(--news-navy-dark);
-        margin-bottom: 4px;
+        color: var(--news-slate-900);
+        margin-bottom: 6px;
     }
 
     .news-author-box-desc {
-        font-size: 13px;
-        color: var(--news-slate-500);
+        font-size: 13.5px;
+        color: #475569;
         line-height: 1.6;
-        margin: 0;
+        margin-bottom: 0;
     }
 
-    /* Prev / Next Nav Cards */
+    /* Prev & Next Article Navigation */
     .news-nav-row {
         display: flex;
-        gap: 16px;
-        margin-bottom: 48px;
+        gap: 20px;
+        margin-bottom: 30px;
     }
 
     .news-nav-card {
         flex: 1;
         background: #ffffff;
-        border: 1px solid var(--news-slate-200);
-        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
         padding: 18px 22px;
         text-decoration: none;
-        transition: all 0.25s ease;
+        transition: border-color 0.2s ease, transform 0.2s ease;
         display: flex;
         flex-direction: column;
     }
 
     .news-nav-card:hover {
-        border-color: var(--news-blue);
-        box-shadow: 0 10px 24px rgba(8, 47, 92, 0.08);
+        border-color: #0284c7;
         transform: translateY(-2px);
     }
 
@@ -381,7 +366,7 @@
         font-size: 11.5px;
         font-weight: 700;
         text-transform: uppercase;
-        color: var(--news-slate-500);
+        color: #0284c7;
         margin-bottom: 6px;
         display: flex;
         align-items: center;
@@ -389,9 +374,9 @@
     }
 
     .news-nav-card-title {
-        font-size: 14px;
+        font-size: 14.5px;
         font-weight: 700;
-        color: var(--news-navy-dark);
+        color: var(--news-slate-900);
         line-height: 1.4;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -399,109 +384,25 @@
         overflow: hidden;
     }
 
-    /* Sidebar Widgets */
-    .news-sidebar-widget {
-        background: #ffffff;
-        border: 1px solid var(--news-slate-200);
-        border-radius: 18px;
-        padding: 26px;
-        margin-bottom: 28px;
-        box-shadow: 0 6px 20px rgba(8, 47, 92, 0.04);
-    }
-
-    .news-widget-title {
-        font-size: 17px;
-        font-weight: 800;
-        color: var(--news-navy-dark);
-        margin-bottom: 18px;
-        padding-bottom: 12px;
-        border-bottom: 2px solid #f1f5f9;
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .news-widget-title::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 36px;
-        height: 2px;
-        background: var(--news-blue);
-    }
-
-    .news-trending-item {
-        display: flex;
-        gap: 14px;
-        margin-bottom: 16px;
-        padding-bottom: 16px;
-        border-bottom: 1px dashed var(--news-slate-200);
-    }
-
-    .news-trending-item:last-child {
-        margin-bottom: 0;
-        padding-bottom: 0;
-        border-bottom: none;
-    }
-
-    .news-trending-num {
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        background: var(--news-blue-light);
-        color: var(--news-blue);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        font-weight: 800;
-        flex-shrink: 0;
-    }
-
-    .news-trending-content h5 {
-        font-size: 14px;
-        font-weight: 700;
-        line-height: 1.35;
-        margin-bottom: 4px;
-    }
-
-    .news-trending-content h5 a {
-        color: var(--news-navy-dark);
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-
-    .news-trending-content h5 a:hover {
-        color: var(--news-blue);
-    }
-
-    .news-trending-meta {
-        font-size: 12px;
-        color: var(--news-slate-500);
-    }
-
-    /* Related News Card */
+    /* Related News Cards */
     .related-news-card {
         background: #ffffff;
-        border: 1px solid var(--news-slate-200);
-        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
         overflow: hidden;
-        transition: all 0.3s ease;
         height: 100%;
         display: flex;
         flex-direction: column;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .related-news-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 28px rgba(8, 47, 92, 0.08);
-        border-color: #cbd5e1;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
     }
 
     .related-news-thumb {
-        height: 160px;
+        height: 150px;
         width: 100%;
         object-fit: cover;
     }
@@ -517,44 +418,122 @@
         font-size: 15px;
         font-weight: 700;
         line-height: 1.4;
-        color: var(--news-navy-dark);
-        margin-bottom: 8px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        margin-bottom: 12px;
     }
 
     .related-news-title a {
-        color: inherit;
+        color: var(--news-slate-900);
         text-decoration: none;
     }
 
     .related-news-title a:hover {
-        color: var(--news-blue);
+        color: #0284c7;
     }
 
-    /* Toast Notification for Copy Link */
-    #copyToast {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        background: var(--news-navy-dark);
-        color: #ffffff;
-        padding: 12px 22px;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 600;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        display: none;
-        z-index: 99999;
+    /* Sidebar Widgets */
+    .news-sidebar-widget {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 28px;
+    }
+
+    .news-widget-title {
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--news-slate-900);
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f1f5f9;
+        display: flex;
         align-items: center;
         gap: 8px;
     }
 
-    @media (max-width: 991px) {
+    .news-trending-item {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding-bottom: 14px;
+        margin-bottom: 14px;
+        border-bottom: 1px solid #f8fafc;
+    }
+
+    .news-trending-item:last-child {
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border-bottom: none;
+    }
+
+    .news-trending-num {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: #f1f5f9;
+        color: #334155;
+        font-weight: 800;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .news-trending-item:first-child .news-trending-num {
+        background: #fef3c7;
+        color: #b45309;
+        border: 1px solid #fde68a;
+    }
+
+    .news-trending-content h5 {
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.4;
+        margin-bottom: 4px;
+    }
+
+    .news-trending-content h5 a {
+        color: var(--news-slate-900);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .news-trending-content h5 a:hover {
+        color: #0284c7;
+    }
+
+    .news-trending-meta {
+        font-size: 11.5px;
+        color: #64748b;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Copy Toast */
+    #copyToast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: #0f172a;
+        color: #ffffff;
+        padding: 12px 22px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        z-index: 9999;
+    }
+
+    @media (max-width: 991.98px) {
         .news-detail-header-section {
-            padding: 130px 0 50px;
+            padding: 150px 0 50px;
         }
         .news-detail-title {
             font-size: 28px;
@@ -576,7 +555,7 @@
 <section class="news-detail-header-section">
     <div class="container">
         <div class="news-breadcrumb">
-            <a href="<?= site_url('/') ?>"><iconify-icon icon="solar:home-2-bold" class="align-middle"></iconify-icon> Beranda</a>
+            <a href="<?= site_url('/') ?>"><i class="fas fa-home me-1"></i> Beranda</a>
             <span>/</span>
             <a href="<?= site_url('berita') ?>">Berita PBJ</a>
             <?php if (! empty($news['category_name'])): ?>
@@ -588,7 +567,7 @@
         </div>
 
         <div class="news-detail-cat-badge">
-            <iconify-icon icon="solar:folder-with-files-bold"></iconify-icon>
+            <i class="fas fa-folder-open me-1"></i>
             <span><?= esc($news['category_name'] ?? 'Berita PBJ') ?></span>
         </div>
 
@@ -602,20 +581,20 @@
                 <strong><?= esc($news['author_name'] ?? 'Biro PBJ Setda Lampung') ?></strong>
             </div>
             <div class="news-detail-meta-item">
-                <iconify-icon icon="solar:calendar-date-bold" class="text-warning"></iconify-icon>
+                <i class="far fa-calendar-alt text-warning me-1"></i>
                 <span><?= date('d F Y', strtotime($news['published_at'] ?? $news['created_at'])) ?></span>
             </div>
             <div class="news-detail-meta-item">
-                <iconify-icon icon="solar:clock-circle-bold" class="text-info"></iconify-icon>
+                <i class="far fa-clock text-info me-1"></i>
                 <span><?= esc($readTime) ?> baca</span>
             </div>
             <div class="news-detail-meta-item">
-                <iconify-icon icon="solar:eye-bold" class="text-success"></iconify-icon>
+                <i class="far fa-eye text-success me-1"></i>
                 <span><?= number_format($news['view_count']) ?> views</span>
             </div>
             <div class="news-detail-meta-item ms-lg-auto">
-                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 radius-6">
-                    <iconify-icon icon="solar:check-circle-bold" class="align-middle"></iconify-icon> Publikasi Resmi
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 radius-6 fw-bold">
+                    <i class="fas fa-check-circle me-1"></i> Publikasi Resmi
                 </span>
             </div>
         </div>
@@ -635,13 +614,14 @@
                              alt="<?= esc($news['title']) ?>" 
                              class="news-featured-img">
                         <div class="news-img-caption">
-                            Foto: Dokumentasi Humas Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung
+                            <i class="fas fa-camera me-1"></i> Foto: Dokumentasi Humas Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung
                         </div>
                     </div>
 
                     <!-- Lead Executive Summary -->
                     <?php if (! empty($news['summary'])): ?>
                         <div class="news-lead-summary-box">
+                            <i class="fas fa-quote-left text-primary me-2"></i>
                             <?= esc($news['summary']) ?>
                         </div>
                     <?php endif; ?>
@@ -683,7 +663,7 @@
                     <!-- Key Takeaways Callout Box -->
                     <div class="news-keypoints-card">
                         <div class="news-keypoints-title">
-                            <iconify-icon icon="solar:shield-check-bold" class="text-xl"></iconify-icon>
+                            <i class="fas fa-shield-alt text-primary me-2"></i>
                             <span>Poin Penting untuk Pemangku Kepentingan:</span>
                         </div>
                         <ul class="mb-0 text-sm text-slate-700" style="padding-left: 20px;">
@@ -696,32 +676,32 @@
                     <!-- Social Share Bar -->
                     <div class="news-share-bar">
                         <div class="news-share-title">
-                            <iconify-icon icon="solar:share-circle-bold" class="text-primary text-xl"></iconify-icon>
+                            <i class="fas fa-share-alt text-primary me-2"></i>
                             <span>Bagikan Informasi Ini:</span>
                         </div>
                         <div class="news-share-btn-group">
                             <a href="https://api.whatsapp.com/send?text=<?= urlencode($news['title'] . ' ' . $shareUrl) ?>" 
                                target="_blank" class="news-share-btn news-share-wa" title="Bagikan ke WhatsApp">
-                                <iconify-icon icon="logos:whatsapp-icon"></iconify-icon>
+                                <i class="fab fa-whatsapp"></i>
                             </a>
                             <a href="https://telegram.me/share/url?url=<?= urlencode($shareUrl) ?>&text=<?= urlencode($news['title']) ?>" 
                                target="_blank" class="news-share-btn news-share-tg" title="Bagikan ke Telegram">
-                                <iconify-icon icon="logos:telegram"></iconify-icon>
+                                <i class="fab fa-telegram-plane"></i>
                             </a>
                             <a href="https://twitter.com/intent/tweet?text=<?= urlencode($news['title']) ?>&url=<?= urlencode($shareUrl) ?>" 
                                target="_blank" class="news-share-btn news-share-tw" title="Bagikan ke X (Twitter)">
-                                <iconify-icon icon="ri:twitter-x-fill"></iconify-icon>
+                                <i class="fab fa-twitter"></i>
                             </a>
                             <a href="https://www.facebook.com/sharer/sharer.php?u=<?= urlencode($shareUrl) ?>" 
                                target="_blank" class="news-share-btn news-share-fb" title="Bagikan ke Facebook">
-                                <iconify-icon icon="logos:facebook"></iconify-icon>
+                                <i class="fab fa-facebook-f"></i>
                             </a>
                             <a href="https://www.linkedin.com/sharing/share-offsite/?url=<?= urlencode($shareUrl) ?>" 
                                target="_blank" class="news-share-btn news-share-in" title="Bagikan ke LinkedIn">
-                                <iconify-icon icon="logos:linkedin-icon"></iconify-icon>
+                                <i class="fab fa-linkedin-in"></i>
                             </a>
                             <button type="button" class="news-share-btn news-share-copy" id="btnCopyLink" title="Salin Tautan">
-                                <iconify-icon icon="solar:copy-bold"></iconify-icon>
+                                <i class="fas fa-link"></i>
                             </button>
                         </div>
                     </div>
@@ -739,7 +719,7 @@
                     <!-- Redaksi / Biro PBJ Identity Box -->
                     <div class="news-author-box">
                         <div class="news-author-large-avatar">
-                            <iconify-icon icon="solar:shield-star-bold"></iconify-icon>
+                            <i class="fas fa-landmark"></i>
                         </div>
                         <div>
                             <h4 class="news-author-box-name">Biro Pengadaan Barang &amp; Jasa Sekretariat Daerah Provinsi Lampung</h4>
@@ -754,7 +734,7 @@
                         <?php if (! empty($prevNews)): ?>
                             <a href="<?= site_url('berita/' . $prevNews['slug']) ?>" class="news-nav-card">
                                 <div class="news-nav-card-label">
-                                    <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
+                                    <i class="fas fa-arrow-left me-1"></i>
                                     <span>Berita Sebelumnya</span>
                                 </div>
                                 <div class="news-nav-card-title"><?= esc($prevNews['title']) ?></div>
@@ -765,7 +745,7 @@
                             <a href="<?= site_url('berita/' . $nextNews['slug']) ?>" class="news-nav-card text-end">
                                 <div class="news-nav-card-label justify-content-end">
                                     <span>Berita Selanjutnya</span>
-                                    <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                                    <i class="fas fa-arrow-right ms-1"></i>
                                 </div>
                                 <div class="news-nav-card-title"><?= esc($nextNews['title']) ?></div>
                             </a>
@@ -774,8 +754,8 @@
 
                     <!-- Back to Catalog Button -->
                     <div class="text-center pt-3 border-top">
-                        <a href="<?= site_url('berita') ?>" class="btn btn-outline-primary px-4 py-2 radius-10 d-inline-flex align-items-center gap-2">
-                            <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
+                        <a href="<?= site_url('berita') ?>" class="btn btn-outline-primary px-4 py-2 radius-10 d-inline-flex align-items-center gap-2 fw-semibold">
+                            <i class="fas fa-arrow-left"></i>
                             <span>Kembali ke Indeks Berita</span>
                         </a>
                     </div>
@@ -790,7 +770,7 @@
                                 <h3 class="h4 fw-bold text-dark mb-0">Berita Terkait Lainnya</h3>
                             </div>
                             <a href="<?= site_url('berita') ?>" class="text-sm fw-bold text-primary text-decoration-none">
-                                Lihat Semua <iconify-icon icon="solar:arrow-right-linear" class="align-middle"></iconify-icon>
+                                Lihat Semua <i class="fas fa-arrow-right ms-1"></i>
                             </a>
                         </div>
                         <div class="row g-4">
@@ -828,12 +808,12 @@
                 <!-- Share & Actions Box -->
                 <div class="news-sidebar-widget text-center">
                     <h4 class="news-widget-title justify-content-center">
-                        <iconify-icon icon="solar:printer-bold" class="text-primary"></iconify-icon>
+                        <i class="fas fa-print text-primary me-2"></i>
                         <span>Aksi Dokumen</span>
                     </h4>
-                    <p class="text-xs text-slate-500 mb-3">Cetak artikel ini untuk arsip fisik atau lampiran bahan rapat:</p>
-                    <button type="button" onclick="window.print()" class="btn btn-outline-secondary w-100 py-2 radius-10 d-inline-flex align-items-center justify-content-center gap-2 mb-2">
-                        <iconify-icon icon="solar:printer-outline" class="text-lg"></iconify-icon>
+                    <p class="text-xs text-slate-500 mb-3" style="color: #64748b;">Cetak artikel ini untuk arsip fisik atau lampiran bahan rapat:</p>
+                    <button type="button" onclick="window.print()" class="btn btn-outline-secondary w-100 py-2 radius-10 d-inline-flex align-items-center justify-content-center gap-2 mb-2 fw-semibold">
+                        <i class="fas fa-print"></i>
                         <span>Cetak Halaman (Print)</span>
                     </button>
                 </div>
@@ -841,7 +821,7 @@
                 <!-- Popular News Widget -->
                 <div class="news-sidebar-widget">
                     <h4 class="news-widget-title">
-                        <iconify-icon icon="solar:fire-bold" class="text-danger"></iconify-icon>
+                        <i class="fas fa-fire text-danger me-2"></i>
                         <span>Berita Terpopuler</span>
                     </h4>
                     <?php foreach ($popularNews as $rank => $pop): ?>
@@ -856,7 +836,7 @@
                                 <div class="news-trending-meta">
                                     <span><?= date('d M Y', strtotime($pop['published_at'])) ?></span>
                                     <span>&middot;</span>
-                                    <span><iconify-icon icon="solar:eye-linear"></iconify-icon> <?= number_format($pop['view_count']) ?> views</span>
+                                    <span><i class="far fa-eye"></i> <?= number_format($pop['view_count']) ?> views</span>
                                 </div>
                             </div>
                         </div>
@@ -866,7 +846,7 @@
                 <!-- Categories Directory Widget -->
                 <div class="news-sidebar-widget">
                     <h4 class="news-widget-title">
-                        <iconify-icon icon="solar:folder-with-files-bold" class="text-warning"></iconify-icon>
+                        <i class="fas fa-folder-open text-warning me-2"></i>
                         <span>Kategori Liputan</span>
                     </h4>
                     <ul class="news-widget-categories" style="list-style: none; padding: 0; margin: 0;">
@@ -885,19 +865,19 @@
                 <!-- Ecosystem Navigation Banner -->
                 <div class="p-4 bg-light border radius-18 mb-4">
                     <h5 class="fw-bold text-dark mb-2">Jelajahi Ekosistem BegawiPBJ</h5>
-                    <p class="text-xs text-slate-500 mb-3">Tingkatkan pemahaman dan kapabilitas Anda melalui kanal lainnya:</p>
+                    <p class="text-xs text-slate-500 mb-3" style="color: #64748b;">Tingkatkan pemahaman dan kapabilitas Anda melalui kanal lainnya:</p>
                     <div class="d-grid gap-2">
-                        <a href="<?= site_url('regulasi') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark">
-                            <span><iconify-icon icon="solar:diploma-verified-bold" class="text-warning me-2"></iconify-icon> Pusat Regulasi PBJ</span>
-                            <iconify-icon icon="solar:arrow-right-linear" class="text-muted"></iconify-icon>
+                        <a href="<?= site_url('regulasi') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
+                            <span><i class="fas fa-balance-scale text-warning me-2"></i> Pusat Regulasi PBJ</span>
+                            <i class="fas fa-arrow-right text-muted"></i>
                         </a>
-                        <a href="<?= site_url('arena-belajar') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark">
-                            <span><iconify-icon icon="solar:mortarboard-bold" class="text-info me-2"></iconify-icon> Arena Belajar &amp; Sertifikasi</span>
-                            <iconify-icon icon="solar:arrow-right-linear" class="text-muted"></iconify-icon>
+                        <a href="<?= site_url('arena-belajar') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
+                            <span><i class="fas fa-graduation-cap text-info me-2"></i> Arena Belajar &amp; Sertifikasi</span>
+                            <i class="fas fa-arrow-right text-muted"></i>
                         </a>
-                        <a href="<?= site_url('bunga-rampai') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark">
-                            <span><iconify-icon icon="solar:book-bookmark-bold" class="text-success me-2"></iconify-icon> Bunga Rampai &amp; Template</span>
-                            <iconify-icon icon="solar:arrow-right-linear" class="text-muted"></iconify-icon>
+                        <a href="<?= site_url('bunga-rampai') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
+                            <span><i class="fas fa-book-reader text-success me-2"></i> Bunga Rampai &amp; Template</span>
+                            <i class="fas fa-arrow-right text-muted"></i>
                         </a>
                     </div>
                 </div>
@@ -908,13 +888,14 @@
 
 <!-- Copy Link Toast Feedback -->
 <div id="copyToast">
-    <iconify-icon icon="solar:check-circle-bold" class="text-success text-xl"></iconify-icon>
+    <i class="fas fa-check-circle text-success text-xl"></i>
     <span>Tautan berita berhasil disalin ke clipboard!</span>
 </div>
 
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
+<script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const btnCopy = document.getElementById('btnCopyLink');

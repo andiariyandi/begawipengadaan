@@ -331,6 +331,24 @@ class CommunicationService
             throw new \InvalidArgumentException('Status kehadiran tidak valid.');
         }
         $now = date('Y-m-d H:i:s');
+        $existing = $this->attendance->where('event_registration_id', $registrationId)->first();
+        if ($existing) {
+            $ok = (bool) $this->attendance->update($existing['id'], [
+                'status'      => $status,
+                'recorded_by' => $actorId,
+                'recorded_at' => $now,
+                'notes'       => $notes,
+                'updated_at'  => $now,
+            ]);
+            if ($ok) {
+                $this->audit->log($actorId, 'attendance.update', 'attendances', 'attendance', (int) $existing['id'], [
+                    'registration_id' => $registrationId,
+                    'status'          => $status,
+                ]);
+            }
+            return $ok;
+        }
+
         $ok = (bool) $this->attendance->insert([
             'event_registration_id' => $registrationId,
             'status'               => $status,

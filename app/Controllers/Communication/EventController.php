@@ -12,14 +12,39 @@ class EventController extends BaseController
     {
         $status   = $this->request->getGet('status') ?: null;
         $keyword  = $this->request->getGet('q') ?: null;
+        $mode     = $this->request->getGet('mode') ?: null;
+        $type     = $this->request->getGet('type') ?: null;
+        $viewMode = $this->request->getGet('view') === 'table' ? 'table' : 'grid';
 
-        $items = (new EventModel())->listEvents($status, $keyword);
+        $page     = max(1, (int) ($this->request->getGet('page') ?? 1));
+        $perPage  = 12;
+
+        $model    = new EventModel();
+        $total    = $model->countEvents($status, $keyword, $mode, $type);
+        $totalPages = max(1, (int) ceil($total / $perPage));
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+        $offset   = ($page - 1) * $perPage;
+        $items    = $model->listEvents($status, $keyword, $mode, $type, $perPage, $offset);
+
         $db = db_connect();
         $stats = [
-            'total'       => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->countAllResults(),
-            'open'        => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->where('status', 'open_registration')->countAllResults(),
-            'coming_soon' => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->whereIn('status', ['coming_soon', 'published'])->countAllResults(),
-            'finished'    => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->where('status', 'finished')->countAllResults(),
+            'total'            => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->countAllResults(),
+            'open'             => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->where('status', 'open_registration')->countAllResults(),
+            'coming_soon'      => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->whereIn('status', ['coming_soon', 'published'])->countAllResults(),
+            'finished'         => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->where('status', 'finished')->countAllResults(),
+            'total_registered' => (int) $db->table('event_registrations')->countAllResults(),
+            'total_attended'   => (int) $db->table('attendances')->where('status', 'present')->countAllResults(),
+        ];
+
+        $pagination = [
+            'page'       => $page,
+            'perPage'    => $perPage,
+            'total'      => $total,
+            'totalPages' => $totalPages,
+            'from'       => $total > 0 ? $offset + 1 : 0,
+            'to'         => min($offset + $perPage, $total),
         ];
 
         return view('dashboard/communication/events/index', [
@@ -31,6 +56,10 @@ class EventController extends BaseController
             'stats'         => $stats,
             'filterStatus'  => $status,
             'filterKeyword' => $keyword,
+            'filterMode'    => $mode,
+            'filterType'    => $type,
+            'viewMode'      => $viewMode,
+            'pagination'    => $pagination,
         ]);
     }
 
@@ -56,6 +85,7 @@ class EventController extends BaseController
         $rules = [
             'title' => 'required|max_length[255]',
             'mode'  => 'permit_empty|in_list[online,offline,hybrid]',
+            'cover' => 'permit_empty|is_image[cover]|max_size[cover,5120]|mime_in[cover,image/jpg,image/jpeg,image/png,image/webp]',
         ];
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('error', 'Validasi gagal: ' . implode(', ', $this->validator->getErrors()));
@@ -196,6 +226,7 @@ class EventController extends BaseController
         $rules = [
             'title' => 'required|max_length[255]',
             'mode'  => 'permit_empty|in_list[online,offline,hybrid]',
+            'cover' => 'permit_empty|is_image[cover]|max_size[cover,5120]|mime_in[cover,image/jpg,image/jpeg,image/png,image/webp]',
         ];
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('error', 'Validasi gagal: ' . implode(', ', $this->validator->getErrors()));

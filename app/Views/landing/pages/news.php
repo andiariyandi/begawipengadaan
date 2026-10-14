@@ -7,7 +7,7 @@
         --news-navy: #082f5c;
         --news-blue: #0c5aa6;
         --news-blue-light: #e0f2fe;
-        --news-gold: #f59e0b;
+        --news-gold: #d97706;
         --news-gold-light: #fef3c7;
         --news-slate-900: #0f172a;
         --news-slate-700: #1e293b;
@@ -16,10 +16,10 @@
         --news-slate-50: #f8fafc;
     }
 
-    /* Page Hero Banner */
+    /* Page Hero Banner - Optimized spacing to avoid header collision */
     .news-hero-banner {
         background: linear-gradient(135deg, var(--news-navy-dark) 0%, var(--news-navy) 60%, var(--news-blue) 100%);
-        padding: 160px 0 80px;
+        padding: 175px 0 85px;
         position: relative;
         overflow: hidden;
         color: #ffffff;
@@ -33,7 +33,7 @@
         width: 600px;
         height: 600px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(217, 119, 6, 0.15) 0%, transparent 70%);
         pointer-events: none;
     }
 
@@ -45,7 +45,7 @@
         width: 500px;
         height: 500px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(12, 90, 166, 0.25) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(12, 90, 166, 0.3) 0%, transparent 70%);
         pointer-events: none;
     }
 
@@ -55,12 +55,12 @@
         gap: 8px;
         background: rgba(255, 255, 255, 0.16);
         backdrop-filter: blur(8px);
-        padding: 6px 16px;
+        padding: 6px 18px;
         border-radius: 999px;
-        font-size: 13px;
+        font-size: 13.5px;
         font-weight: 600;
         color: #ffffff;
-        margin-bottom: 18px;
+        margin-bottom: 20px;
         border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
@@ -75,89 +75,99 @@
     }
 
     .news-hero-title {
-        font-size: 40px;
+        font-size: 42px;
         font-weight: 800;
         color: #ffffff;
         line-height: 1.25;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
         letter-spacing: -0.5px;
     }
 
     .news-hero-title span {
-        color: var(--news-gold);
+        color: #fbbf24;
     }
 
     .news-hero-desc {
         font-size: 16.5px;
         color: #f1f5f9;
-        line-height: 1.6;
-        max-width: 720px;
-        margin-bottom: 30px;
+        line-height: 1.65;
+        max-width: 740px;
+        margin-bottom: 32px;
         font-weight: 400;
     }
 
     /* Hero Search Bar */
     .news-search-box {
         background: #ffffff;
-        border-radius: 16px;
-        padding: 8px 10px 8px 20px;
+        border-radius: 999px;
+        padding: 8px 10px 8px 24px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
         display: flex;
         align-items: center;
-        gap: 12px;
-        max-width: 650px;
-        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
-        border: 1px solid rgba(255, 255, 255, 0.8);
+        max-width: 680px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .news-search-box:focus-within {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+    }
+
+    .news-search-box i.fa-search {
+        color: #64748b;
+        font-size: 18px;
+        margin-right: 12px;
     }
 
     .news-search-box input {
         border: none;
         outline: none;
+        width: 100%;
         font-size: 15px;
         color: var(--news-slate-900);
-        flex: 1;
         background: transparent;
-    }
-
-    .news-search-box input::placeholder {
-        color: #64748b;
         font-weight: 500;
     }
 
+    .news-search-box input::placeholder {
+        color: #94a3b8;
+    }
+
     .news-search-box button {
-        background: linear-gradient(135deg, var(--news-blue) 0%, var(--news-navy) 100%);
+        background: linear-gradient(135deg, #0284c7 0%, var(--news-blue) 100%);
         color: #ffffff;
         border: none;
-        border-radius: 12px;
-        padding: 12px 24px;
+        padding: 12px 28px;
+        border-radius: 999px;
         font-weight: 700;
-        font-size: 14px;
-        display: inline-flex;
+        font-size: 14.5px;
+        display: flex;
         align-items: center;
         gap: 8px;
-        transition: all 0.25s ease;
         cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
     }
 
     .news-search-box button:hover {
-        background: linear-gradient(135deg, var(--news-gold) 0%, #d97706 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
+        background: linear-gradient(135deg, var(--news-blue) 0%, #0369a1 100%);
+        transform: translateX(2px);
     }
 
-    /* Metrics Ribbon */
+    /* 2. Live KPI Metrics Ribbon */
     .news-metrics-section {
-        margin-top: -45px;
+        margin-top: -38px;
         position: relative;
         z-index: 10;
-        margin-bottom: 50px;
+        margin-bottom: 48px;
     }
 
     .news-metrics-card {
         background: #ffffff;
-        border: 1px solid var(--news-slate-200);
-        border-radius: 18px;
-        padding: 24px 28px;
-        box-shadow: 0 14px 35px rgba(8, 47, 92, 0.08);
+        border-radius: 16px;
+        padding: 24px 32px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
     }
 
     .news-kpi-item {
@@ -167,40 +177,38 @@
     }
 
     .news-kpi-icon {
-        width: 50px;
-        height: 50px;
+        width: 52px;
+        height: 52px;
         border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 26px;
+        font-size: 22px;
         flex-shrink: 0;
     }
 
     .news-kpi-num {
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 800;
-        color: var(--news-navy-dark);
+        color: var(--news-slate-900);
         line-height: 1.1;
+        margin-bottom: 2px;
     }
 
     .news-kpi-label {
-        font-size: 13.5px;
+        font-size: 13px;
+        color: #334155;
         font-weight: 600;
-        color: var(--news-slate-700);
-        margin-top: 3px;
     }
 
-    /* Filter & Category Pills */
+    /* 3. Category Filter Pills */
     .news-filter-wrapper {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
         flex-wrap: wrap;
-        margin-bottom: 36px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid var(--news-slate-200);
+        margin-bottom: 32px;
     }
 
     .news-category-pills {
@@ -211,146 +219,139 @@
     }
 
     .news-cat-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
         padding: 8px 18px;
         border-radius: 999px;
         font-size: 13.5px;
         font-weight: 600;
-        color: var(--news-slate-700);
-        background: #ffffff;
-        border: 1px solid var(--news-slate-200);
+        color: #334155;
+        background: #f1f5f9;
         text-decoration: none;
+        border: 1px solid #cbd5e1;
         transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
 
     .news-cat-pill:hover {
-        background: var(--news-blue-light);
-        color: var(--news-blue);
-        border-color: #bae6fd;
+        background: #e2e8f0;
+        color: #0f172a;
     }
 
     .news-cat-pill.active {
-        background: var(--news-navy-dark);
+        background: #0284c7;
         color: #ffffff;
-        border-color: var(--news-navy-dark);
-        box-shadow: 0 4px 14px rgba(5, 34, 68, 0.2);
+        border-color: #0284c7;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
     }
 
     .news-cat-pill .pill-badge {
         font-size: 11px;
-        font-weight: 700;
-        background: rgba(0, 0, 0, 0.08);
         padding: 2px 7px;
         border-radius: 999px;
+        background: rgba(0, 0, 0, 0.08);
+        color: inherit;
+        font-weight: 700;
     }
 
     .news-cat-pill.active .pill-badge {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.25);
         color: #ffffff;
     }
 
     .news-sort-select {
-        background: #ffffff;
-        border: 1px solid var(--news-slate-200);
-        border-radius: 10px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
         padding: 8px 14px;
-        font-size: 13px;
+        font-size: 13.5px;
         font-weight: 600;
-        color: var(--news-slate-700);
+        color: #0f172a;
+        background-color: #ffffff;
         outline: none;
         cursor: pointer;
     }
 
-    /* Headline / Featured Card & Carousel (Supports up to 5 Headlines) */
+    /* 4. Headline Showcase Carousel (Up to 5 Featured Articles) */
     .news-headline-carousel {
         position: relative;
+        margin-bottom: 40px;
     }
 
     .news-headline-card {
         background: #ffffff;
-        border: 1px solid var(--news-slate-200);
         border-radius: 20px;
         overflow: hidden;
-        margin-bottom: 40px;
-        box-shadow: 0 16px 36px rgba(8, 47, 92, 0.07);
-        transition: all 0.3s ease;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .news-headline-card:hover {
-        box-shadow: 0 22px 45px rgba(8, 47, 92, 0.12);
-        border-color: #cbd5e1;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.1);
     }
 
     .news-headline-img-wrap {
+        height: 380px;
         position: relative;
-        height: 100%;
-        min-height: 340px;
-        background: linear-gradient(135deg, var(--news-navy-dark), var(--news-blue));
         overflow: hidden;
+        background: #e2e8f0;
     }
 
     .news-headline-img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.6s ease;
+        transition: transform 0.4s ease;
     }
 
     .news-headline-card:hover .news-headline-img {
-        transform: scale(1.04);
+        transform: scale(1.03);
     }
 
     .news-badge-headline {
         position: absolute;
         top: 18px;
         left: 18px;
-        background: linear-gradient(135deg, var(--news-gold) 0%, #d97706 100%);
+        background: #d97706;
         color: #ffffff;
         font-size: 12px;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 6px 14px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+        letter-spacing: 0.6px;
+        padding: 7px 16px;
+        border-radius: 999px;
         display: inline-flex;
         align-items: center;
         gap: 6px;
+        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
     }
 
     .news-headline-content {
-        padding: 36px 32px;
+        padding: 40px 44px;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        height: 100%;
     }
 
     .news-cat-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
+        display: inline-block;
+        background: #e0f2fe;
+        color: #0284c7;
         font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--news-blue);
-        background: var(--news-blue-light);
         padding: 4px 12px;
         border-radius: 6px;
+        border: 1px solid #bae6fd;
         margin-bottom: 12px;
-        width: fit-content;
     }
 
     .news-headline-title {
         font-size: 26px;
         font-weight: 800;
-        line-height: 1.3;
-        color: var(--news-navy-dark);
+        line-height: 1.35;
         margin-bottom: 14px;
-        letter-spacing: -0.3px;
+        color: var(--news-slate-900);
     }
 
     .news-headline-title a {
@@ -360,25 +361,31 @@
     }
 
     .news-headline-title a:hover {
-        color: var(--news-blue);
+        color: #0284c7;
     }
 
     .news-headline-desc {
         font-size: 15px;
-        color: #1e293b;
+        color: #475569;
         line-height: 1.65;
         margin-bottom: 22px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .news-meta-row {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 20px;
         flex-wrap: wrap;
         font-size: 13px;
-        color: var(--news-slate-700);
+        color: #475569;
         font-weight: 600;
-        margin-bottom: 24px;
+        margin-bottom: 26px;
+        padding-top: 16px;
+        border-top: 1px solid #f1f5f9;
     }
 
     .news-meta-item {
@@ -387,124 +394,103 @@
         gap: 6px;
     }
 
-    /* Headline Carousel Controls & Indicators */
+    /* Carousel Indicators & Controls */
     .headline-carousel-indicators {
-        position: relative !important;
-        margin-top: 14px !important;
-        margin-bottom: 0 !important;
-        gap: 8px !important;
-        justify-content: flex-start !important;
-        padding: 0 4px 10px !important;
+        position: static;
+        margin: 16px 0 0;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
     }
 
     .headline-carousel-indicators button {
-        width: auto !important;
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 999px !important;
+        padding: 6px 14px !important;
         height: auto !important;
+        width: auto !important;
         text-indent: 0 !important;
-        border: 1px solid var(--news-slate-200) !important;
-        border-radius: 20px !important;
-        background: #ffffff !important;
-        padding: 5px 14px !important;
         display: inline-flex !important;
         align-items: center !important;
         gap: 6px !important;
-        opacity: 0.8 !important;
-        transition: all 0.25s ease !important;
-        cursor: pointer !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        color: #475569 !important;
+        opacity: 1 !important;
+        transition: all 0.2s ease !important;
     }
 
     .headline-carousel-indicators button.active {
-        background: var(--news-navy-dark) !important;
-        border-color: var(--news-navy-dark) !important;
-        opacity: 1 !important;
-        box-shadow: 0 4px 12px rgba(5, 34, 68, 0.25) !important;
-    }
-
-    .headline-carousel-indicators button .indicator-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--news-gold);
-        display: inline-block;
-    }
-
-    .headline-carousel-indicators button .indicator-text {
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--news-slate-700);
-    }
-
-    .headline-carousel-indicators button.active .indicator-text {
-        color: #ffffff;
+        background: #0284c7 !important;
+        border-color: #0284c7 !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25) !important;
     }
 
     .headline-carousel-ctrl {
         width: 44px;
         height: 44px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid #cbd5e1;
+        border-radius: 50%;
         top: 50%;
         transform: translateY(-50%);
-        opacity: 0.85;
+        opacity: 0.9;
         transition: all 0.2s ease;
-        z-index: 5;
-    }
-
-    .headline-carousel-ctrl:hover {
-        opacity: 1;
-        transform: translateY(-50%) scale(1.08);
-    }
-
-    .headline-carousel-ctrl.carousel-control-prev {
-        left: 12px;
-    }
-
-    .headline-carousel-ctrl.carousel-control-next {
-        right: 12px;
-    }
-
-    .headline-ctrl-icon {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.95);
-        color: var(--news-navy-dark);
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
-    }
+        color: #0f172a;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
-    /* Standard News Grid Card */
+    .headline-carousel-ctrl:hover {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0284c7;
+        opacity: 1;
+    }
+
+    .headline-carousel-ctrl.carousel-control-prev {
+        left: -18px;
+    }
+
+    .headline-carousel-ctrl.carousel-control-next {
+        right: -18px;
+    }
+
+    /* 5. News Grid Cards */
     .news-grid-card {
         background: #ffffff;
-        border: 1px solid var(--news-slate-200);
-        border-radius: 18px;
+        border-radius: 16px;
         overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
         height: 100%;
         display: flex;
         flex-direction: column;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
     .news-grid-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 18px 36px rgba(8, 47, 92, 0.1);
-        border-color: #cbd5e1;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+        border-color: #93c5fd;
     }
 
     .news-card-thumb-wrap {
-        position: relative;
         height: 200px;
-        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+        position: relative;
         overflow: hidden;
+        background: #e2e8f0;
     }
 
     .news-card-thumb {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.5s ease;
+        transition: transform 0.35s ease;
     }
 
     .news-grid-card:hover .news-card-thumb {
@@ -515,35 +501,34 @@
         position: absolute;
         top: 14px;
         left: 14px;
-        background: rgba(5, 34, 68, 0.85);
-        backdrop-filter: blur(8px);
-        color: #ffffff;
-        font-size: 11px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(4px);
+        color: #0f172a;
+        font-size: 11.5px;
         font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 6px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
     }
 
     .news-card-read-badge {
         position: absolute;
-        bottom: 14px;
-        right: 14px;
-        background: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(6px);
-        color: var(--news-slate-900);
-        font-size: 11.5px;
+        bottom: 12px;
+        right: 12px;
+        background: rgba(15, 23, 42, 0.85);
+        color: #ffffff;
+        font-size: 11px;
         font-weight: 600;
-        padding: 3px 9px;
+        padding: 4px 10px;
         border-radius: 6px;
+        backdrop-filter: blur(4px);
         display: inline-flex;
         align-items: center;
         gap: 4px;
     }
 
     .news-card-body {
-        padding: 22px;
+        padding: 24px;
         display: flex;
         flex-direction: column;
         flex-grow: 1;
@@ -551,20 +536,21 @@
 
     .news-card-date {
         font-size: 12.5px;
+        color: #64748b;
         font-weight: 600;
-        color: var(--news-slate-500);
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
     }
 
     .news-card-title {
         font-size: 17.5px;
         font-weight: 700;
         line-height: 1.4;
-        color: var(--news-navy-dark);
         margin-bottom: 10px;
+        color: var(--news-slate-900);
+        height: 48px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -578,102 +564,152 @@
     }
 
     .news-card-title a:hover {
-        color: var(--news-blue);
+        color: #0284c7;
     }
 
     .news-card-summary {
         font-size: 13.5px;
-        color: var(--news-slate-500);
+        color: #475569;
         line-height: 1.6;
         margin-bottom: 18px;
+        height: 64px;
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        flex-grow: 1;
     }
 
     .news-card-footer {
+        margin-top: auto;
         padding-top: 14px;
         border-top: 1px solid #f1f5f9;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-top: auto;
     }
 
     .news-card-author {
-        font-size: 12.5px;
-        font-weight: 600;
-        color: var(--news-slate-700);
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #0f172a;
     }
 
     .news-card-author-avatar {
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
-        background: #0284c7;
-        color: #ffffff;
-        display: inline-flex;
+        background: #e0f2fe;
+        color: #0284c7;
+        font-weight: 700;
+        display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 11px;
-        font-weight: 700;
+        font-size: 12px;
+        border: 1px solid #bae6fd;
     }
 
     .news-card-link {
         font-size: 13px;
         font-weight: 700;
-        color: var(--news-blue);
+        color: #0284c7;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        transition: gap 0.2s ease;
+        transition: gap 0.2s ease, color 0.2s ease;
     }
 
     .news-card-link:hover {
+        color: #0369a1;
         gap: 7px;
-        color: var(--news-navy-dark);
     }
 
-    /* Sidebar Widgets */
+    /* 6. Sidebar Widgets */
     .news-sidebar-widget {
         background: #ffffff;
-        border: 1px solid var(--news-slate-200);
-        border-radius: 18px;
-        padding: 26px;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
         margin-bottom: 28px;
-        box-shadow: 0 6px 20px rgba(8, 47, 92, 0.04);
     }
 
     .news-widget-title {
         font-size: 17px;
         font-weight: 800;
-        color: var(--news-navy-dark);
+        color: var(--news-slate-900);
         margin-bottom: 18px;
         padding-bottom: 12px;
         border-bottom: 2px solid #f1f5f9;
-        position: relative;
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
-    .news-widget-title::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 36px;
-        height: 2px;
-        background: var(--news-blue);
+    .news-trending-item {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding-bottom: 14px;
+        margin-bottom: 14px;
+        border-bottom: 1px solid #f8fafc;
     }
 
-    /* Category list in sidebar */
+    .news-trending-item:last-child {
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border-bottom: none;
+    }
+
+    .news-trending-num {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: #f1f5f9;
+        color: #334155;
+        font-weight: 800;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .news-trending-item:first-child .news-trending-num {
+        background: #fef3c7;
+        color: #b45309;
+        border: 1px solid #fde68a;
+    }
+
+    .news-trending-content h5 {
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.4;
+        margin-bottom: 4px;
+    }
+
+    .news-trending-content h5 a {
+        color: var(--news-slate-900);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .news-trending-content h5 a:hover {
+        color: #0284c7;
+    }
+
+    .news-trending-meta {
+        font-size: 11.5px;
+        color: #64748b;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
     .news-widget-categories {
         list-style: none;
         padding: 0;
@@ -688,182 +724,106 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 9px 14px;
-        border-radius: 10px;
-        color: var(--news-slate-700);
+        padding: 10px 14px;
+        border-radius: 8px;
         text-decoration: none;
+        color: #334155;
         font-size: 13.5px;
         font-weight: 600;
-        transition: all 0.2s ease;
         background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        transition: all 0.2s ease;
     }
 
     .news-widget-categories a:hover,
     .news-widget-categories a.active {
-        background: var(--news-blue-light);
-        color: var(--news-blue);
+        background: #e0f2fe;
+        color: #0284c7;
+        border-color: #bae6fd;
     }
 
     .news-widget-categories .cat-count {
-        font-size: 11.5px;
-        font-weight: 700;
         background: #ffffff;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 700;
         padding: 2px 8px;
         border-radius: 999px;
-        color: var(--news-slate-500);
-        border: 1px solid var(--news-slate-200);
+        border: 1px solid #e2e8f0;
     }
 
-    /* Trending List in sidebar */
-    .news-trending-item {
-        display: flex;
-        gap: 14px;
-        margin-bottom: 16px;
-        padding-bottom: 16px;
-        border-bottom: 1px dashed var(--news-slate-200);
-    }
-
-    .news-trending-item:last-child {
-        margin-bottom: 0;
-        padding-bottom: 0;
-        border-bottom: none;
-    }
-
-    .news-trending-num {
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        background: var(--news-blue-light);
-        color: var(--news-blue);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        font-weight: 800;
-        flex-shrink: 0;
-    }
-
-    .news-trending-content h5 {
-        font-size: 14px;
-        font-weight: 700;
-        line-height: 1.35;
-        margin-bottom: 4px;
-    }
-
-    .news-trending-content h5 a {
-        color: var(--news-navy-dark);
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-
-    .news-trending-content h5 a:hover {
-        color: var(--news-blue);
-    }
-
-    .news-trending-meta {
-        font-size: 12px;
-        color: var(--news-slate-500);
-    }
-
-    /* Official Notice Callout in sidebar */
     .news-official-banner {
         background: linear-gradient(135deg, var(--news-navy-dark) 0%, var(--news-navy) 100%);
-        border-radius: 18px;
-        padding: 24px;
+        border-radius: 16px;
+        padding: 26px;
         color: #ffffff;
-        position: relative;
-        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(5, 34, 68, 0.25);
     }
 
-    .news-official-banner::after {
-        content: '';
-        position: absolute;
-        top: -20px;
-        right: -20px;
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        background: rgba(245, 158, 11, 0.2);
-    }
-
-    /* Pagination */
+    /* 7. Clean Pagination Bar */
     .news-pagination-wrap {
-        margin-top: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
+        margin-top: 40px;
     }
 
     .news-page-btn {
+        min-width: 40px;
+        height: 40px;
+        padding: 0 12px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #1e293b;
+        font-size: 13.5px;
+        font-weight: 700;
+        text-decoration: none;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 42px;
-        height: 42px;
-        padding: 0 14px;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--news-slate-700);
-        background: #ffffff;
-        border: 1px solid var(--news-slate-200);
-        text-decoration: none;
         transition: all 0.2s ease;
     }
 
     .news-page-btn:hover {
-        background: var(--news-blue-light);
-        color: var(--news-blue);
-        border-color: #bae6fd;
+        background: #f1f5f9;
+        color: #0284c7;
+        border-color: #93c5fd;
     }
 
     .news-page-btn.active {
-        background: var(--news-navy-dark);
+        background: #0284c7;
+        border-color: #0284c7;
         color: #ffffff;
-        border-color: var(--news-navy-dark);
-        box-shadow: 0 4px 12px rgba(5, 34, 68, 0.25);
+        box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
     }
 
     .news-page-btn.disabled {
-        opacity: 0.4;
+        opacity: 0.5;
         pointer-events: none;
+        background: #f8fafc;
     }
 
-    /* Empty State */
-    .news-empty-state {
-        background: #ffffff;
-        border: 2px dashed var(--news-slate-200);
-        border-radius: 20px;
-        padding: 60px 30px;
-        text-align: center;
-    }
-
-    .news-empty-icon {
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        background: var(--news-blue-light);
-        color: var(--news-blue);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 32px;
-        margin-bottom: 20px;
-    }
-
-    @media (max-width: 991px) {
+    /* Responsive Queries */
+    @media (max-width: 991.98px) {
         .news-hero-banner {
-            padding: 130px 0 60px;
+            padding: 150px 0 65px;
         }
         .news-hero-title {
-            font-size: 30px;
+            font-size: 32px;
         }
         .news-headline-img-wrap {
-            min-height: 240px;
+            height: 260px;
         }
         .news-headline-content {
-            padding: 24px;
+            padding: 28px 24px;
+        }
+        .headline-carousel-ctrl.carousel-control-prev {
+            left: 8px;
+        }
+        .headline-carousel-ctrl.carousel-control-next {
+            right: 8px;
         }
     }
 </style>
@@ -875,7 +835,7 @@
 <section class="news-hero-banner">
     <div class="container">
         <div class="news-breadcrumb">
-            <a href="<?= site_url('/') ?>"><iconify-icon icon="solar:home-2-bold" class="align-middle"></iconify-icon> Beranda</a>
+            <a href="<?= site_url('/') ?>"><i class="fas fa-home me-1"></i> Beranda</a>
             <span>/</span>
             <span>Berita PBJ</span>
             <?php if (! empty($currentCategory)): ?>
@@ -894,14 +854,14 @@
 
         <!-- Search Form -->
         <form action="<?= site_url('berita') ?>" method="get" class="news-search-box">
-            <iconify-icon icon="solar:magnifer-linear" class="text-slate-400 text-xl"></iconify-icon>
+            <i class="fas fa-search text-slate-400"></i>
             <input type="text" name="q" value="<?= esc($keyword ?? '') ?>" placeholder="Cari judul berita, topik kebijakan, atau kata kunci...">
             <?php if (! empty($selectedCategory)): ?>
                 <input type="hidden" name="kategori" value="<?= esc($selectedCategory) ?>">
             <?php endif; ?>
             <button type="submit">
                 <span>Cari Berita</span>
-                <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+                <i class="fas fa-arrow-right"></i>
             </button>
         </form>
     </div>
@@ -914,44 +874,44 @@
             <div class="col-lg-3 col-6">
                 <div class="news-kpi-item">
                     <div class="news-kpi-icon" style="background:#e0f2fe; color:#0284c7;">
-                        <iconify-icon icon="solar:document-text-bold"></iconify-icon>
+                        <i class="fas fa-newspaper"></i>
                     </div>
                     <div>
                         <div class="news-kpi-num"><?= number_format($stats['total_news'] > 0 ? $stats['total_news'] : 12) ?></div>
-                        <div class="news-kpi-label" style="color: #334155; font-weight: 600;">Berita Publikasi Resmi</div>
+                        <div class="news-kpi-label">Berita Publikasi Resmi</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
                 <div class="news-kpi-item">
                     <div class="news-kpi-icon" style="background:#e0f7fa; color:#00838f;">
-                        <iconify-icon icon="solar:folder-with-files-bold"></iconify-icon>
+                        <i class="fas fa-folder-open"></i>
                     </div>
                     <div>
                         <div class="news-kpi-num"><?= number_format($stats['total_categories'] > 0 ? $stats['total_categories'] : 6) ?></div>
-                        <div class="news-kpi-label" style="color: #334155; font-weight: 600;">Kategori Liputan PBJ</div>
+                        <div class="news-kpi-label">Kategori Liputan PBJ</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
                 <div class="news-kpi-item">
                     <div class="news-kpi-icon" style="background:#fef3c7; color:#d97706;">
-                        <iconify-icon icon="solar:eye-bold"></iconify-icon>
+                        <i class="fas fa-eye"></i>
                     </div>
                     <div>
                         <div class="news-kpi-num"><?= number_format($stats['total_views'] > 0 ? $stats['total_views'] : 6800) ?>+</div>
-                        <div class="news-kpi-label" style="color: #334155; font-weight: 600;">Total Pembaca Terjangkau</div>
+                        <div class="news-kpi-label">Total Pembaca Terjangkau</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
                 <div class="news-kpi-item">
                     <div class="news-kpi-icon" style="background:#dcfce7; color:#16a34a;">
-                        <iconify-icon icon="solar:calendar-date-bold"></iconify-icon>
+                        <i class="fas fa-calendar-alt"></i>
                     </div>
                     <div>
                         <div class="news-kpi-num"><?= number_format($stats['this_month'] > 0 ? $stats['this_month'] : 5) ?></div>
-                        <div class="news-kpi-label" style="color: #334155; font-weight: 600;">Rilis Bulan Ini</div>
+                        <div class="news-kpi-label">Rilis Bulan Ini</div>
                     </div>
                 </div>
             </div>
@@ -994,12 +954,12 @@
 
         <?php if (! empty($keyword)): ?>
             <!-- Active Search Bar Notification -->
-            <div class="alert alert-info d-flex align-items-center justify-content-between mb-4 radius-12">
+            <div class="alert alert-info d-flex align-items-center justify-content-between mb-4 radius-12 border-0 shadow-sm" style="background:#e0f2fe; color:#0369a1;">
                 <div class="d-flex align-items-center gap-2">
-                    <iconify-icon icon="solar:magnifer-linear" class="text-xl"></iconify-icon>
+                    <i class="fas fa-search text-lg"></i>
                     <span>Menampilkan hasil pencarian untuk: <strong>"<?= esc($keyword) ?>"</strong> (<?= $totalItems ?> berita ditemukan)</span>
                 </div>
-                <a href="<?= site_url('berita') ?>" class="btn btn-sm btn-outline-primary radius-8">Reset Pencarian</a>
+                <a href="<?= site_url('berita') ?>" class="btn btn-sm btn-outline-primary radius-8 fw-semibold">Reset Pencarian</a>
             </div>
         <?php endif; ?>
 
@@ -1022,7 +982,7 @@
                                                      alt="<?= esc($hItem['title']) ?>" 
                                                      class="news-headline-img">
                                                 <div class="news-badge-headline">
-                                                    <iconify-icon icon="solar:star-fall-bold"></iconify-icon>
+                                                    <i class="fas fa-star me-1"></i>
                                                     <span>Berita Utama #<?= $hIndex + 1 ?></span>
                                                 </div>
                                             </div>
@@ -1031,7 +991,7 @@
                                             <div class="news-headline-content">
                                                 <div class="d-flex align-items-center gap-2 mb-2">
                                                     <span class="news-cat-badge mb-0"><?= esc($hItem['category_name']) ?></span>
-                                                    <span class="badge bg-warning text-dark px-8 py-4 radius-6 text-2xs fw-bold shadow-none" style="font-size: 11px;">
+                                                    <span class="badge px-8 py-4 radius-6 text-2xs fw-bold shadow-none" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-size: 11px;">
                                                         Headline <?= $hIndex + 1 ?> / <?= count($headlineList) ?>
                                                     </span>
                                                 </div>
@@ -1044,23 +1004,23 @@
 
                                                 <div class="news-meta-row">
                                                     <div class="news-meta-item">
-                                                        <iconify-icon icon="solar:calendar-linear" class="text-primary"></iconify-icon>
+                                                        <i class="far fa-calendar-alt text-primary"></i>
                                                         <span><?= esc($hItem['date_formatted']) ?></span>
                                                     </div>
                                                     <div class="news-meta-item">
-                                                        <iconify-icon icon="solar:clock-circle-linear" class="text-warning"></iconify-icon>
+                                                        <i class="far fa-clock text-warning"></i>
                                                         <span><?= esc($hItem['read_time']) ?> baca</span>
                                                     </div>
                                                     <div class="news-meta-item">
-                                                        <iconify-icon icon="solar:eye-linear" class="text-info"></iconify-icon>
+                                                        <i class="far fa-eye text-info"></i>
                                                         <span><?= number_format($hItem['view_count']) ?> views</span>
                                                     </div>
                                                 </div>
 
                                                 <div>
-                                                    <a href="<?= site_url('berita/' . $hItem['slug']) ?>" class="thm-btn">
+                                                    <a href="<?= site_url('berita/' . $hItem['slug']) ?>" class="btn btn-primary radius-999 px-24 py-11 d-inline-flex align-items-center gap-2 fw-bold text-sm" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none;">
                                                         <span>Baca Berita Lengkap</span>
-                                                        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+                                                        <i class="fas fa-arrow-right"></i>
                                                     </a>
                                                 </div>
                                             </div>
@@ -1078,23 +1038,22 @@
                                     class="<?= $hIndex === 0 ? 'active' : '' ?>" 
                                     aria-current="<?= $hIndex === 0 ? 'true' : 'false' ?>" 
                                     aria-label="Berita Utama <?= $hIndex + 1 ?>">
-                                <span class="indicator-dot"></span>
-                                <span class="indicator-text">Utama #<?= $hIndex + 1 ?></span>
+                                <span>Utama #<?= $hIndex + 1 ?></span>
                             </button>
                         <?php endforeach; ?>
                     </div>
 
                     <!-- Prev/Next Controls -->
                     <button class="carousel-control-prev headline-carousel-ctrl" type="button" data-bs-target="#headlineCarousel" data-bs-slide="prev" aria-label="Sebelumnya">
-                        <span class="headline-ctrl-icon"><iconify-icon icon="solar:alt-arrow-left-bold"></iconify-icon></span>
+                        <i class="fas fa-chevron-left"></i>
                     </button>
                     <button class="carousel-control-next headline-carousel-ctrl" type="button" data-bs-target="#headlineCarousel" data-bs-slide="next" aria-label="Selanjutnya">
-                        <span class="headline-ctrl-icon"><iconify-icon icon="solar:alt-arrow-right-bold"></iconify-icon></span>
+                        <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
             <?php else: ?>
                 <?php $singleArticle = $headlineList[0]; ?>
-                <div class="news-headline-card">
+                <div class="news-headline-card mb-40">
                     <div class="row g-0 align-items-center">
                         <div class="col-lg-6">
                             <div class="news-headline-img-wrap">
@@ -1102,7 +1061,7 @@
                                      alt="<?= esc($singleArticle['title']) ?>" 
                                      class="news-headline-img">
                                 <div class="news-badge-headline">
-                                    <iconify-icon icon="solar:star-fall-bold"></iconify-icon>
+                                    <i class="fas fa-star me-1"></i>
                                     <span>Berita Utama</span>
                                 </div>
                             </div>
@@ -1119,23 +1078,23 @@
 
                                 <div class="news-meta-row">
                                     <div class="news-meta-item">
-                                        <iconify-icon icon="solar:calendar-linear" class="text-primary"></iconify-icon>
+                                        <i class="far fa-calendar-alt text-primary"></i>
                                         <span><?= esc($singleArticle['date_formatted']) ?></span>
                                     </div>
                                     <div class="news-meta-item">
-                                        <iconify-icon icon="solar:clock-circle-linear" class="text-warning"></iconify-icon>
+                                        <i class="far fa-clock text-warning"></i>
                                         <span><?= esc($singleArticle['read_time']) ?> baca</span>
                                     </div>
                                     <div class="news-meta-item">
-                                        <iconify-icon icon="solar:eye-linear" class="text-info"></iconify-icon>
+                                        <i class="far fa-eye text-info"></i>
                                         <span><?= number_format($singleArticle['view_count']) ?> views</span>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <a href="<?= site_url('berita/' . $singleArticle['slug']) ?>" class="thm-btn">
+                                    <a href="<?= site_url('berita/' . $singleArticle['slug']) ?>" class="btn btn-primary radius-999 px-24 py-11 d-inline-flex align-items-center gap-2 fw-bold text-sm" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none;">
                                         <span>Baca Berita Lengkap</span>
-                                        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+                                        <i class="fas fa-arrow-right"></i>
                                     </a>
                                 </div>
                             </div>
@@ -1150,9 +1109,9 @@
             <!-- Left: News Grid -->
             <div class="col-lg-8">
                 <?php if (empty($items) && empty($headlineArticle)): ?>
-                    <div class="news-empty-state">
-                        <div class="news-empty-icon">
-                            <iconify-icon icon="solar:document-medicine-bold"></iconify-icon>
+                    <div class="news-empty-state text-center p-5 bg-white border radius-16">
+                        <div class="w-64-px h-64-px rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-3 text-2xl text-muted">
+                            <i class="fas fa-newspaper"></i>
                         </div>
                         <h4 class="fw-bold mb-2 text-dark">Belum Ada Berita yang Sesuai</h4>
                         <p class="text-slate-500 mb-4" style="max-width: 480px; margin: 0 auto;">
@@ -1182,16 +1141,16 @@
                                         <img src="<?= $thumbUrl ?>" alt="<?= esc($item['title']) ?>" class="news-card-thumb">
                                         <span class="news-card-cat-badge"><?= esc($item['category_name']) ?></span>
                                         <span class="news-card-read-badge">
-                                            <iconify-icon icon="solar:clock-circle-linear"></iconify-icon>
+                                            <i class="far fa-clock"></i>
                                             <?= esc($item['read_time']) ?>
                                         </span>
                                     </div>
                                     <div class="news-card-body">
                                         <div class="news-card-date">
-                                            <iconify-icon icon="solar:calendar-linear" class="text-primary"></iconify-icon>
+                                            <i class="far fa-calendar-alt text-primary"></i>
                                             <span><?= esc($item['date_formatted']) ?></span>
                                             <span class="text-slate-300">&middot;</span>
-                                            <span class="text-muted"><iconify-icon icon="solar:eye-linear" class="align-middle"></iconify-icon> <?= number_format($item['view_count']) ?></span>
+                                            <span class="text-muted"><i class="far fa-eye"></i> <?= number_format($item['view_count']) ?></span>
                                         </div>
                                         <h3 class="news-card-title">
                                             <a href="<?= site_url('berita/' . $item['slug']) ?>">
@@ -1208,7 +1167,7 @@
                                             </div>
                                             <a href="<?= site_url('berita/' . $item['slug']) ?>" class="news-card-link">
                                                 <span>Baca</span>
-                                                <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+                                                <i class="fas fa-arrow-right"></i>
                                             </a>
                                         </div>
                                     </div>
@@ -1232,7 +1191,7 @@
                             <a href="<?= $buildUrl(max(1, $currentPage - 1)) ?>" 
                                class="news-page-btn <?= $currentPage <= 1 ? 'disabled' : '' ?>" 
                                aria-label="Halaman Sebelumnya">
-                                <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
+                                <i class="fas fa-chevron-left"></i>
                                 <span class="ms-1 d-none d-sm-inline">Sebelumnya</span>
                             </a>
 
@@ -1253,7 +1212,7 @@
                                class="news-page-btn <?= $currentPage >= $totalPages ? 'disabled' : '' ?>" 
                                aria-label="Halaman Berikutnya">
                                 <span class="me-1 d-none d-sm-inline">Berikutnya</span>
-                                <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                                <i class="fas fa-chevron-right"></i>
                             </a>
                         </nav>
                     <?php endif; ?>
@@ -1265,14 +1224,14 @@
                 <!-- Search Box Widget -->
                 <div class="news-sidebar-widget">
                     <h4 class="news-widget-title">
-                        <iconify-icon icon="solar:magnifer-bold" class="text-primary"></iconify-icon>
+                        <i class="fas fa-search text-primary"></i>
                         <span>Cari Artikel Berita</span>
                     </h4>
                     <form action="<?= site_url('berita') ?>" method="get">
                         <div class="input-group">
                             <input type="text" name="q" class="form-control radius-8 border" placeholder="Kata kunci pengadaan..." value="<?= esc($keyword ?? '') ?>">
-                            <button class="btn btn-primary px-3 radius-8" type="submit">
-                                <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+                            <button class="btn btn-primary px-3 radius-8" type="submit" aria-label="Cari">
+                                <i class="fas fa-search"></i>
                             </button>
                         </div>
                     </form>
@@ -1281,7 +1240,7 @@
                 <!-- Category Directory Widget -->
                 <div class="news-sidebar-widget">
                     <h4 class="news-widget-title">
-                        <iconify-icon icon="solar:folder-with-files-bold" class="text-warning"></iconify-icon>
+                        <i class="fas fa-folder-open text-warning"></i>
                         <span>Kategori Liputan</span>
                     </h4>
                     <ul class="news-widget-categories">
@@ -1305,7 +1264,7 @@
                 <!-- Trending / Popular News Widget -->
                 <div class="news-sidebar-widget">
                     <h4 class="news-widget-title">
-                        <iconify-icon icon="solar:fire-bold" class="text-danger"></iconify-icon>
+                        <i class="fas fa-fire text-danger"></i>
                         <span>Berita Terpopuler</span>
                     </h4>
                     <?php foreach ($popularNews as $rank => $pop): ?>
@@ -1320,7 +1279,7 @@
                                 <div class="news-trending-meta">
                                     <span><?= date('d M Y', strtotime($pop['published_at'])) ?></span>
                                     <span>&middot;</span>
-                                    <span><iconify-icon icon="solar:eye-linear"></iconify-icon> <?= number_format($pop['view_count']) ?> views</span>
+                                    <span><i class="far fa-eye"></i> <?= number_format($pop['view_count']) ?> views</span>
                                 </div>
                             </div>
                         </div>
@@ -1331,11 +1290,11 @@
                 <div class="news-official-banner mb-4">
                     <span class="badge bg-warning text-dark px-3 py-1 radius-6 text-xs fw-bold mb-3 text-uppercase">Kanal Resmi</span>
                     <h4 class="text-lg fw-bold mb-2 text-white">Biro Pengadaan Barang &amp; Jasa Setda Provinsi Lampung</h4>
-                    <p class="text-xs text-slate-300 mb-3" style="line-height: 1.6;">
+                    <p class="text-xs text-slate-300 mb-3" style="line-height: 1.6; color: #cbd5e1;">
                         Seluruh siaran pers, klarifikasi, dan pengumuman resmi dipublikasikan melalui kanal BegawiPBJ untuk mendukung keterbukaan informasi publik dan akuntabilitas PBJ.
                     </p>
-                    <div class="d-flex align-items-center gap-2 pt-2 border-top border-white-10">
-                        <iconify-icon icon="solar:phone-calling-bold" class="text-warning text-lg"></iconify-icon>
+                    <div class="d-flex align-items-center gap-2 pt-2 border-top border-white-10" style="border-top: 1px solid rgba(255,255,255,0.15);">
+                        <i class="fas fa-phone-alt text-warning text-sm"></i>
                         <span class="text-xs text-white">Helpdesk: +62 851-1777-9783</span>
                     </div>
                 </div>
@@ -1343,17 +1302,17 @@
                 <!-- Quick Tags Widget -->
                 <div class="news-sidebar-widget">
                     <h4 class="news-widget-title">
-                        <iconify-icon icon="solar:tag-bold" class="text-info"></iconify-icon>
+                        <i class="fas fa-tags text-info"></i>
                         <span>Topik Populer</span>
                     </h4>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="<?= site_url('berita?q=P3DN') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border">#P3DN</a>
-                        <a href="<?= site_url('berita?q=Katalog') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border">#E-Katalog</a>
-                        <a href="<?= site_url('berita?q=Integritas') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border">#Integritas</a>
-                        <a href="<?= site_url('berita?q=Sertifikasi') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border">#Sertifikasi Level-1</a>
-                        <a href="<?= site_url('berita?q=Maturitas') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border">#UKPBJ Proaktif</a>
-                        <a href="<?= site_url('berita?q=Probity') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border">#Probity Audit</a>
-                        <a href="<?= site_url('berita?q=UMKM') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border">#UMKM Lokal</a>
+                        <a href="<?= site_url('berita?q=P3DN') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#P3DN</a>
+                        <a href="<?= site_url('berita?q=Katalog') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#E-Katalog</a>
+                        <a href="<?= site_url('berita?q=Integritas') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#Integritas</a>
+                        <a href="<?= site_url('berita?q=Sertifikasi') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#Sertifikasi Level-1</a>
+                        <a href="<?= site_url('berita?q=Maturitas') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#UKPBJ Proaktif</a>
+                        <a href="<?= site_url('berita?q=Probity') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#Probity Audit</a>
+                        <a href="<?= site_url('berita?q=UMKM') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#UMKM Lokal</a>
                     </div>
                 </div>
             </div>
@@ -1361,4 +1320,8 @@
     </div>
 </section>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('pageScripts') ?>
+<script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
 <?= $this->endSection() ?>
