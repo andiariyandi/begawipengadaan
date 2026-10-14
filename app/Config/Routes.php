@@ -296,8 +296,12 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     $routes->group('profile', static function ($routes) {
         $routes->get('/', 'ProfileController::index', ['as' => 'dashboard.profile.index']);
         $routes->get('edit', 'ProfileController::edit', ['as' => 'dashboard.profile.edit']);
+        $routes->post('edit', 'ProfileController::update', ['as' => 'dashboard.profile.update']);
+        $routes->post('update', 'ProfileController::update', ['as' => 'dashboard.profile.update.alt']);
         $routes->get('password', 'ProfileController::password', ['as' => 'dashboard.profile.password']);
+        $routes->post('password', 'ProfileController::updatePassword', ['as' => 'dashboard.profile.password.update']);
         $routes->get('preferences', 'ProfileController::preferences', ['as' => 'dashboard.profile.preferences']);
+        $routes->post('preferences', 'ProfileController::updatePreferences', ['as' => 'dashboard.profile.preferences.update']);
     });
 
     $routes->group('akses', static function ($routes) {
@@ -352,7 +356,10 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('peran-pengadaan', 'ProcurementRoleController::index', ['as' => 'dashboard.access.procurement-roles']);
         $routes->get('peran-pengadaan/tambah', 'ProcurementRoleController::create', ['as' => 'dashboard.access.procurement-roles.create']);
         $routes->post('peran-pengadaan/tambah', 'ProcurementRoleController::store', ['as' => 'dashboard.access.procurement-roles.store']);
+        $routes->get('peran-pengadaan/(:segment)/ubah', 'ProcurementRoleController::edit/$1', ['as' => 'dashboard.access.procurement-roles.edit']);
         $routes->post('peran-pengadaan/(:segment)/ubah', 'ProcurementRoleController::update/$1', ['as' => 'dashboard.access.procurement-roles.update']);
+        $routes->post('peran-pengadaan/(:segment)/nonaktifkan', 'ProcurementRoleController::deactivate/$1', ['as' => 'dashboard.access.procurement-roles.deactivate']);
+        $routes->post('peran-pengadaan/(:segment)/aktifkan', 'ProcurementRoleController::activate/$1', ['as' => 'dashboard.access.procurement-roles.activate']);
         $routes->get('penugasan-pengadaan', 'ProcurementRoleController::assignments', ['as' => 'dashboard.access.procurement-assignments']);
         $routes->post('penugasan-pengadaan', 'ProcurementRoleController::storeAssignment', ['as' => 'dashboard.access.procurement-assignments.store']);
         $routes->post('penugasan-pengadaan/(:segment)/verifikasi', 'ProcurementRoleController::verifyAssignment/$1', ['as' => 'dashboard.access.procurement-assignments.verify']);
@@ -752,8 +759,13 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
 
         $routes->get('audit-trail', 'AuditController::index', ['as' => 'dashboard.system.audit-trail']);
         $routes->get('audit-trail/(:segment)', 'AuditController::detail/$1', ['as' => 'dashboard.system.audit-trail.detail']);
-        $routes->get('file-media', 'AuditController::files', ['as' => 'dashboard.system.files-media']);
-        $routes->get('notifikasi', 'AuditController::notifications', ['as' => 'dashboard.system.notifications']);
+        $routes->get('notifikasi', 'NotificationController::index', ['as' => 'dashboard.system.notifications']);
+        $routes->get('notifikasi/(:segment)', 'NotificationController::detail/$1', ['as' => 'dashboard.system.notifications.detail']);
+        $routes->post('notifikasi/kirim', 'NotificationController::sendBroadcast', ['as' => 'dashboard.system.notifications.send']);
+        $routes->post('notifikasi/(:segment)/baca', 'NotificationController::markAsRead/$1', ['as' => 'dashboard.system.notifications.read']);
+        $routes->post('notifikasi/baca-semua', 'NotificationController::markAllAsRead', ['as' => 'dashboard.system.notifications.read-all']);
+        $routes->post('notifikasi/(:segment)/hapus', 'NotificationController::delete/$1', ['as' => 'dashboard.system.notifications.delete']);
+        $routes->get('notifikasi-api/feed', 'NotificationController::feed', ['as' => 'dashboard.system.notifications.feed']);
 
         $routes->get('pengaturan', 'SettingController::index', ['as' => 'dashboard.system.settings']);
         $routes->get('pengaturan-umum', 'SettingController::general', ['as' => 'dashboard.system.settings.general']);

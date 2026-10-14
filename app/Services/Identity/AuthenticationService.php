@@ -37,7 +37,7 @@ class AuthenticationService
         $roles = $this->users->getRoles((int) $user['id']);
         $permissions = $this->users->getPermissions((int) $user['id']);
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
+        if (session_status() === PHP_SESSION_ACTIVE && ! is_cli()) {
             session()->regenerate(true);
         }
         session()->set([
@@ -49,7 +49,7 @@ class AuthenticationService
             'roles' => array_column($roles, 'key'),
             'permissions' => $permissions,
         ]);
-        $this->users->update((int) $user['id'], ['last_login_at' => date('Y-m-d H:i:s')]);
+        $this->users->skipValidation(true)->update((int) $user['id'], ['last_login_at' => date('Y-m-d H:i:s')]);
         $this->audit->log((int) $user['id'], 'login', 'auth', 'users', (int) $user['id']);
 
         return ['ok' => true, 'user' => $user];

@@ -80,11 +80,6 @@ class AuditController extends BaseController
 
     public function notifications()
     {
-        return view('dashboard/audit/notifications', [
-            'title'         => 'Log Notifikasi | Dashboard BegawiPengadaan',
-            'pageTitle'     => 'Log Notifikasi Sistem',
-            'activeMenu'    => 'system',
-            'activeSubmenu' => 'notifications',
-        ]);
+        return (new NotificationController())->index();
     }
 }

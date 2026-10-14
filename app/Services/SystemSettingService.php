@@ -46,8 +46,11 @@ class SystemSettingService
             'signature_role'       => 'Pengguna Anggaran / Penanggung Jawab',
         ],
         'notification' => [
-            'email_enabled'   => '1',
-            'in_app_enabled'  => '1',
+            'email_enabled'    => '1',
+            'in_app_enabled'   => '1',
+            'sender_email'     => 'noreply@begawipbj.lampungprov.go.id',
+            'sender_name'      => 'BegawiPengadaan',
+            'daily_digest'     => '0',
             'digest_frequency' => 'instant',
         ],
         'integration' => [

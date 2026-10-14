@@ -19,8 +19,10 @@ class AuditService
 
         $request = service('request');
 
+        $actorId = ($userId !== null && $userId > 0) ? $userId : null;
+
         $this->auditLogModel->insert([
-            'actor_id'          => $userId,
+            'actor_id'          => $actorId,
             'action'            => $action,
             'resource_type'     => $targetType,
             'resource_id'       => $targetId,

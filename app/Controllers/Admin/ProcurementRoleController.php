@@ -44,16 +44,19 @@ class ProcurementRoleController extends BaseController
 
     public function store()
     {
+        $postData = (array) ($this->request->getPost() ?: $_POST);
         $rules = [
             'key'         => 'required|max_length[64]|is_unique[procurement_roles.key]',
             'name'        => 'required|max_length[255]',
             'description' => 'permit_empty',
+            'is_active'   => 'permit_empty|in_list[0,1]',
         ];
-        if (! $this->validate($rules)) {
+        if (! $this->validateData($postData, $rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
-        $id = (new ProcurementRoleService())->createRole($this->request->getPost(), (int) session()->get('user_id'));
-        return redirect()->to('dashboard/akses/peran-pengadaan/' . $id)->with('success', 'Peran pengadaan dibuat.');
+        $actorId = (int) session()->get('user_id') ?: null;
+        $id = (new ProcurementRoleService())->createRole($postData, $actorId);
+        return redirect()->to('dashboard/akses/peran-pengadaan/' . $id)->with('success', 'Peran pengadaan berhasil dibuat.');
     }
 
     public function detail(string $id)
@@ -77,18 +80,56 @@ class ProcurementRoleController extends BaseController
         ]);
     }
 
+    public function edit(string $id)
+    {
+        $roleId = ctype_digit($id) ? (int) $id : 0;
+        $role = (new ProcurementRoleService())->findRole($roleId);
+        if (! $role) {
+            return redirect()->to('dashboard/akses/peran-pengadaan')->with('error', 'Peran tidak ditemukan.');
+        }
+
+        return view('dashboard/access/procurement_role_form', [
+            'title'         => 'Ubah Peran Pengadaan | Dashboard BegawiPengadaan',
+            'pageTitle'     => 'Ubah Peran Pengadaan',
+            'formMode'      => 'edit',
+            'activeMenu'    => 'access',
+            'activeSubmenu' => 'procurement-roles',
+            'role'          => $role,
+            'roleId'        => $roleId,
+        ]);
+    }
+
     public function update(string $id)
     {
         $roleId = ctype_digit($id) ? (int) $id : 0;
+        $postData = (array) ($this->request->getPost() ?: $_POST);
         $rules = [
             'name'        => 'required|max_length[255]',
             'description' => 'permit_empty',
+            'is_active'   => 'permit_empty|in_list[0,1]',
         ];
-        if (! $this->validate($rules)) {
+        if (! $this->validateData($postData, $rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
-        (new ProcurementRoleService())->updateRole($roleId, $this->request->getPost(), (int) session()->get('user_id'));
-        return redirect()->to('dashboard/akses/peran-pengadaan/' . $roleId)->with('success', 'Peran diperbarui.');
+        $actorId = (int) session()->get('user_id') ?: null;
+        (new ProcurementRoleService())->updateRole($roleId, $postData, $actorId);
+        return redirect()->to('dashboard/akses/peran-pengadaan/' . $roleId)->with('success', 'Peran pengadaan berhasil diperbarui.');
+    }
+
+    public function activate(string $id)
+    {
+        $roleId = ctype_digit($id) ? (int) $id : 0;
+        $actorId = (int) session()->get('user_id') ?: null;
+        (new ProcurementRoleService())->updateRole($roleId, ['is_active' => 1], $actorId);
+        return redirect()->to('dashboard/akses/peran-pengadaan/' . $roleId)->with('success', 'Peran pengadaan berhasil diaktifkan.');
+    }
+
+    public function deactivate(string $id)
+    {
+        $roleId = ctype_digit($id) ? (int) $id : 0;
+        $actorId = (int) session()->get('user_id') ?: null;
+        (new ProcurementRoleService())->updateRole($roleId, ['is_active' => 0], $actorId);
+        return redirect()->to('dashboard/akses/peran-pengadaan/' . $roleId)->with('success', 'Peran pengadaan dinonaktifkan.');
     }
 
     /**

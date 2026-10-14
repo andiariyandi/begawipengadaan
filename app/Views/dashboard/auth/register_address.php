@@ -9,13 +9,35 @@
 
 <?= view('dashboard/auth/components/register_steps', ['currentStep' => $currentStep ?? 2, 'currentKey' => $currentKey ?? 'wilayah']) ?>
 
-<?php if ($errors = session()->getFlashdata('errors')): ?><div class="alert alert-danger mb-20"><?= esc(implode(' ', $errors)) ?></div><?php endif; ?>
+<?php if ($error = session()->getFlashdata('error')): ?>
+    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-20 radius-8 py-12 px-16" role="alert">
+        <iconify-icon icon="solar:danger-triangle-bold" class="text-xl text-danger-main flex-shrink-0"></iconify-icon>
+        <div class="flex-grow-1 text-sm"><?= esc($error) ?></div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+
+<?php if ($errors = session()->getFlashdata('errors')): ?>
+    <div class="alert alert-danger alert-dismissible fade show mb-20 radius-8 py-12 px-16" role="alert">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <iconify-icon icon="solar:danger-circle-bold" class="text-xl text-danger-main flex-shrink-0"></iconify-icon>
+            <strong class="text-sm">Kendala Validasi Wilayah:</strong>
+        </div>
+        <ul class="mb-0 ps-20 text-xs">
+            <?php foreach ((array) $errors as $err): ?>
+                <li><?= esc($err) ?></li>
+            <?php endforeach; ?>
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
 <?php
 $old = session()->getFlashdata('_ci_old_input')['post'] ?? [];
 $registrationAddress = $registrationAddress ?? [];
 $value = static fn(string $key): string => esc($old[$key] ?? $registrationAddress[$key] ?? '');
 ?>
 <form action="<?= site_url('dashboard/daftar/wilayah') ?>" method="post" id="registration-address-form">
+    <?= csrf_field() ?>
     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Provinsi</label>
     <select class="form-select h-56-px bg-neutral-50 radius-12 mb-16" name="province" id="province" data-selected="<?= $value('province') ?>" required>
         <option value="">Pilih provinsi</option>
