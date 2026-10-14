@@ -24,6 +24,8 @@ use CodeIgniter\HotReloader\HotReloader;
  */
 
 Events::on('pre_system', static function (): void {
+    date_default_timezone_set('Asia/Jakarta');
+
     if (ENVIRONMENT !== 'testing') {
         $value = ini_get('zlib.output_compression');
 
@@ -53,5 +55,15 @@ Events::on('pre_system', static function (): void {
                 (new HotReloader())->run();
             });
         }
+    }
+});
+
+// Explicitly synchronize MySQL session time_zone to GMT+7 (Asia/Jakarta)
+Events::on('post_controller_constructor', static function (): void {
+    try {
+        $db = \Config\Database::connect();
+        $db->query("SET time_zone = '+07:00'");
+    } catch (\Throwable $e) {
+        // Silently skip if database connection is deferred
     }
 });

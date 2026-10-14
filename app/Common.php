@@ -14,6 +14,11 @@
  * @see: https://codeigniter.com/user_guide/extending/common.html
  */
 
+// Enforce Asia/Jakarta (WIB / GMT+7) across the entire application runtime
+if (date_default_timezone_get() !== 'Asia/Jakarta') {
+    date_default_timezone_set('Asia/Jakarta');
+}
+
 if (! function_exists('csrf_token')) {
     function csrf_token(): string
     {
