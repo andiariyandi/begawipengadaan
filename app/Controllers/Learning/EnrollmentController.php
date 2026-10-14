@@ -103,7 +103,7 @@ class EnrollmentController extends BaseController
             ->get()->getResultArray();
 
         return view('dashboard/learning/enrollments/index', [
-            'title'         => 'Enrollment | Dashboard BegawiPBJ',
+            'title'         => 'Enrollment | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Pendaftaran Peserta (Enrollment)',
             'enrollments'   => $enrollments,
             'stats'         => $stats,
@@ -152,7 +152,7 @@ class EnrollmentController extends BaseController
             ->get()->getRowArray();
 
         return view('dashboard/learning/enrollments/detail', [
-            'title'            => 'Detail Enrollment | Dashboard BegawiPBJ',
+            'title'            => 'Detail Enrollment | Dashboard BegawiPengadaan',
             'pageTitle'        => 'Detail Enrollment',
             'enrollmentId'     => $id,
             'enrollment'       => $enrollment,

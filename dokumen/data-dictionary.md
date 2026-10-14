@@ -1,8 +1,8 @@
-# BegawiPBJ — Data Dictionary
+# BegawiPengadaan — Data Dictionary
 
 ## Tujuan
 
-Dokumen ini mendefinisikan struktur data BegawiPBJ pada level tabel dan kolom. Data dictionary menjelaskan tujuan tabel, kolom, tipe data, nullable, default, primary key, foreign key, unique/index/check constraint, nilai terkendali, klasifikasi data, validasi, serta aturan audit dan retensi utama.
+Dokumen ini mendefinisikan struktur data BegawiPengadaan pada level tabel dan kolom. Data dictionary menjelaskan tujuan tabel, kolom, tipe data, nullable, default, primary key, foreign key, unique/index/check constraint, nilai terkendali, klasifikasi data, validasi, serta aturan audit dan retensi utama.
 
 Dokumen ini merupakan turunan operasional dari `dokumen/database-blueprint.md` dan `dokumen/database-erd.md`. Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 

@@ -1,4 +1,4 @@
-<?php $pageTitle = $title ?? 'Dashboard BegawiPBJ'; ?>
+<?php $pageTitle = $title ?? 'Dashboard BegawiPengadaan'; ?>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= esc($pageTitle) ?></title>

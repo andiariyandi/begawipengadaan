@@ -10,10 +10,10 @@ class TagController extends BaseKnowledgeController
     {
         $items = (new TagModel())->listAll();
         return view('dashboard/knowledge/tags/index', [
-            'title'        => 'Tag Bunga Rampai | Dashboard BegawiPBJ',
+            'title'        => 'Tag Bunga Rampai | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Tag',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'tags',
+            'activeSubmenu' => 'tags',
             'items'        => $items,
         ]);
     }
@@ -21,11 +21,11 @@ class TagController extends BaseKnowledgeController
     public function create(): string
     {
         return view('dashboard/knowledge/tags/form', [
-            'title'        => 'Tambah Tag | Dashboard BegawiPBJ',
+            'title'        => 'Tambah Tag | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Tambah Tag',
             'formMode'     => 'create',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'tags',
+            'activeSubmenu' => 'tags',
             'tag'          => null,
         ]);
     }
@@ -58,13 +58,13 @@ class TagController extends BaseKnowledgeController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Tag tidak ditemukan.');
         }
         return view('dashboard/knowledge/tags/form', [
-            'title'        => 'Ubah Tag | Dashboard BegawiPBJ',
+            'title'        => 'Ubah Tag | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Ubah Tag',
             'formMode'     => 'edit',
             'tagId'        => (int) $id,
             'tag'          => $tag,
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'tags',
+            'activeSubmenu' => 'tags',
         ]);
     }
 

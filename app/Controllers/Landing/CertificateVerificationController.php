@@ -8,7 +8,7 @@ use App\Services\AuditService;
 use CodeIgniter\Database\ConnectionInterface;
 
 /**
- * CertificateVerificationController — Portal Publik Verifikasi Keabsahan Sertifikat Digital BegawiPBJ.
+ * CertificateVerificationController — Portal Publik Verifikasi Keabsahan Sertifikat Digital BegawiPengadaan.
  *
  * Routes:
  *   GET  /verifikasi-sertifikat               → Katalog publik & form pencarian interaktif
@@ -66,7 +66,8 @@ class CertificateVerificationController extends BaseController
             $stats['total_all'] = (int) $this->db->table('certificates')
                 ->whereIn('status', ['issued', 'revoked', 'expired'])
                 ->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         // 2. Query Direktori Sertifikat Terverifikasi
         $builder = $this->db->table('certificates c')
@@ -132,7 +133,8 @@ class CertificateVerificationController extends BaseController
                     $sampleNumbers[] = $s['certificate_number'];
                 }
             }
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         // 4. Data Pager
         $pagerData = [
@@ -147,10 +149,10 @@ class CertificateVerificationController extends BaseController
         ];
 
         return view('landing/pages/certificate_verify', [
-            'title'           => 'Verifikasi Keabsahan Sertifikat Digital PBJ | BegawiPBJ',
+            'title'           => 'Verifikasi Keabsahan Sertifikat Digital PBJ | BegawiPengadaan',
             'pageTitle'       => 'Verifikasi Sertifikat Digital',
             'metaDescription' => 'Portal resmi verifikasi keabsahan sertifikat kompetensi pengadaan barang/jasa Pemerintah Provinsi Lampung berbasis kode unik dan kriptografi digital.',
-            'metaKeywords'    => 'verifikasi sertifikat, cek sertifikat PBJ Lampung, keabsahan sertifikat pengadaan, BegawiPBJ sertifikasi',
+            'metaKeywords'    => 'verifikasi sertifikat, cek sertifikat PBJ Lampung, keabsahan sertifikat pengadaan, BegawiPengadaan sertifikasi',
             'breadcrumbs'     => [
                 ['label' => 'Verifikasi Sertifikat'],
             ],
@@ -187,13 +189,13 @@ class CertificateVerificationController extends BaseController
         if (! $row) {
             return $this->renderResult(
                 null,
-                "Sertifikat dengan nomor atau kode verifikasi '{$number}' tidak ditemukan dalam pangkalan data resmi BegawiPBJ.",
+                "Sertifikat dengan nomor atau kode verifikasi '{$number}' tidak ditemukan dalam pangkalan data resmi BegawiPengadaan.",
                 $number
             );
         }
 
         $row['title'] = $this->resolvePublicTitle((string) $row['source_type'], (int) $row['id']);
-        
+
         $this->auditService->log(null, 'certificate.verified', 'certificate', 'certificate', (int) $row['id'], [
             'method' => 'number_lookup',
             'query'  => $number,
@@ -253,15 +255,25 @@ class CertificateVerificationController extends BaseController
 
         // 1. Coba pencarian nomor sertifikat
         $row = $this->db->table('certificates c')
-            ->select(['c.id', 'c.certificate_number', 'c.source_type', 'c.source_id', 'c.status',
-                      'c.issued_at', 'c.expires_at', 'c.verification_token_hash', 'c.user_id',
-                      'u.name AS user_name', 't.name AS template_name'])
+            ->select([
+                'c.id',
+                'c.certificate_number',
+                'c.source_type',
+                'c.source_id',
+                'c.status',
+                'c.issued_at',
+                'c.expires_at',
+                'c.verification_token_hash',
+                'c.user_id',
+                'u.name AS user_name',
+                't.name AS template_name'
+            ])
             ->join('users u', 'u.id = c.user_id', 'left')
             ->join('certificate_templates t', 't.id = c.template_id', 'left')
             ->groupStart()
-                ->where('c.certificate_number', $query)
-                ->orWhere('c.certificate_number', $normalizedSlash)
-                ->orWhere('c.certificate_number', $normalizedDash)
+            ->where('c.certificate_number', $query)
+            ->orWhere('c.certificate_number', $normalizedSlash)
+            ->orWhere('c.certificate_number', $normalizedDash)
             ->groupEnd()
             ->get()
             ->getRowArray();
@@ -273,9 +285,19 @@ class CertificateVerificationController extends BaseController
         // 2. Coba pencarian token QR (hex sha256)
         if (preg_match('/^[a-f0-9]{32,64}$/i', $query)) {
             $rowByHash = $this->db->table('certificates c')
-                ->select(['c.id', 'c.certificate_number', 'c.source_type', 'c.source_id', 'c.status',
-                          'c.issued_at', 'c.expires_at', 'c.verification_token_hash', 'c.user_id',
-                          'u.name AS user_name', 't.name AS template_name'])
+                ->select([
+                    'c.id',
+                    'c.certificate_number',
+                    'c.source_type',
+                    'c.source_id',
+                    'c.status',
+                    'c.issued_at',
+                    'c.expires_at',
+                    'c.verification_token_hash',
+                    'c.user_id',
+                    'u.name AS user_name',
+                    't.name AS template_name'
+                ])
                 ->join('users u', 'u.id = c.user_id', 'left')
                 ->join('certificate_templates t', 't.id = c.template_id', 'left')
                 ->where('c.verification_token_hash', strtolower($query))
@@ -291,9 +313,19 @@ class CertificateVerificationController extends BaseController
         $rowByToken = $this->certificateModel->findByClearToken($query);
         if ($rowByToken) {
             $fullRow = $this->db->table('certificates c')
-                ->select(['c.id', 'c.certificate_number', 'c.source_type', 'c.source_id', 'c.status',
-                          'c.issued_at', 'c.expires_at', 'c.verification_token_hash', 'c.user_id',
-                          'u.name AS user_name', 't.name AS template_name'])
+                ->select([
+                    'c.id',
+                    'c.certificate_number',
+                    'c.source_type',
+                    'c.source_id',
+                    'c.status',
+                    'c.issued_at',
+                    'c.expires_at',
+                    'c.verification_token_hash',
+                    'c.user_id',
+                    'u.name AS user_name',
+                    't.name AS template_name'
+                ])
                 ->join('users u', 'u.id = c.user_id', 'left')
                 ->join('certificate_templates t', 't.id = c.template_id', 'left')
                 ->where('c.id', (int) $rowByToken['id'])
@@ -369,7 +401,7 @@ class CertificateVerificationController extends BaseController
     private function renderResult(?array $result, ?string $error, string $searched = '')
     {
         return view('landing/pages/certificate_result', [
-            'title'           => 'Hasil Verifikasi Keabsahan Sertifikat | BegawiPBJ',
+            'title'           => 'Hasil Verifikasi Keabsahan Sertifikat | BegawiPengadaan',
             'pageTitle'       => 'Hasil Verifikasi Sertifikat',
             'metaDescription' => 'Hasil verifikasi keabsahan dan otentikasi sertifikat digital resmi Biro Pengadaan Barang dan Jasa Pemerintah Provinsi Lampung.',
             'breadcrumbs'     => [

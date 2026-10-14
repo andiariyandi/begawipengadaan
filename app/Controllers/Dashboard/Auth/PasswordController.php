@@ -21,7 +21,7 @@ class PasswordController extends BaseController
         }
 
         return view('dashboard/auth/forgot_password', [
-            'title' => 'Lupa Kata Sandi | BegawiPBJ',
+            'title' => 'Lupa Kata Sandi | BegawiPengadaan',
             'pageTitle' => 'Lupa Kata Sandi',
             'pageDescription' => 'Masukkan alamat email akun Anda untuk menerima instruksi pengaturan ulang kata sandi.',
         ]);
@@ -61,7 +61,7 @@ class PasswordController extends BaseController
         }
 
         return view('dashboard/auth/reset_password', [
-            'title' => 'Reset Kata Sandi | BegawiPBJ',
+            'title' => 'Reset Kata Sandi | BegawiPengadaan',
             'token' => $token,
         ]);
     }

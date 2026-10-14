@@ -27,7 +27,7 @@
                 <div class="col-md-6"><label class="form-label fw-semibold text-primary-light text-sm mb-8">Nomor Telepon</label><input type="text" class="form-control radius-8" value="+62 851-1777-9783"></div>
                 <div class="col-md-6"><label class="form-label fw-semibold text-primary-light text-sm mb-8">Unit/OPD</label><input type="text" class="form-control radius-8" value="Biro Pengadaan Barang dan Jasa" readonly></div>
                 <div class="col-md-6"><label class="form-label fw-semibold text-primary-light text-sm mb-8">Jabatan</label><input type="text" class="form-control radius-8" value="Administrator Platform" readonly></div>
-                <div class="col-12"><label class="form-label fw-semibold text-primary-light text-sm mb-8">Bio Singkat</label><textarea class="form-control radius-8" rows="4" placeholder="Masukkan deskripsi singkat">Administrator platform BegawiPBJ.</textarea></div>
+                <div class="col-12"><label class="form-label fw-semibold text-primary-light text-sm mb-8">Bio Singkat</label><textarea class="form-control radius-8" rows="4" placeholder="Masukkan deskripsi singkat">Administrator platform BegawiPengadaan.</textarea></div>
                 <div class="col-12 d-flex justify-content-end gap-12"><a href="<?= site_url('dashboard/profile') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Batal</a><button type="button" class="btn btn-primary-600 radius-8 px-20 py-11">Simpan Perubahan</button></div>
             </div>
         </form>

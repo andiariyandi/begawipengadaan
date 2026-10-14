@@ -1,4 +1,4 @@
-# BegawiPBJ — Regulation Policy
+# BegawiPengadaan — Regulation Policy
 
 ## Tujuan
 

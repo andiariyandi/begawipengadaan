@@ -29,9 +29,9 @@ class LoginController extends BaseController
         }
 
         return view('dashboard/auth/login', [
-            'title' => 'Masuk | BegawiPBJ',
+            'title' => 'Masuk | BegawiPengadaan',
             'pageTitle' => 'Masuk ke Akun Anda',
-            'pageDescription' => 'Silakan masukkan email dan kata sandi untuk mengakses layanan BegawiPBJ.',
+            'pageDescription' => 'Silakan masukkan email dan kata sandi untuk mengakses layanan BegawiPengadaan.',
         ]);
     }
 

@@ -11,7 +11,7 @@ class EventLandingTest extends BaseCommand
 {
     protected $group       = 'Testing';
     protected $name        = 'event:landing:test';
-    protected $description = 'Comprehensive test suite for the redesigned BegawiPBJ Event & Agenda Landing Page';
+    protected $description = 'Comprehensive test suite for the redesigned BegawiPengadaan Event & Agenda Landing Page';
     protected $usage       = 'event:landing:test';
 
     private int $passed = 0;

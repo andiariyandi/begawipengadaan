@@ -12,7 +12,7 @@
                         <i class="fas fa-crown me-1"></i> Pusat Kendali Eksekutif
                     </span>
                     <span class="badge bg-white-50 text-white px-3 py-2 rounded-pill small">
-                        <i class="fas fa-shield-alt text-success me-1"></i> <?= esc($roleLabel) ?> BegawiPBJ
+                        <i class="fas fa-shield-alt text-success me-1"></i> <?= esc($roleLabel) ?> BegawiPengadaan
                     </span>
                 </div>
                 <h1 class="h2 text-white fw-bold mb-2">

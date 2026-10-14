@@ -1,4 +1,4 @@
-BegawiPBJ - Template Dokumen Dummy
+BegawiPengadaan - Template Dokumen Dummy
 
 Dokumen ini adalah contoh template publik untuk keperluan demonstrasi.
 Gunakan dokumen resmi yang telah divalidasi oleh pengelola sebelum diterapkan.

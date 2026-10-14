@@ -76,7 +76,7 @@ class LearningClassController extends BaseController
         ];
 
         return view('dashboard/learning/classes/index', [
-            'title'         => 'Kelas | Dashboard BegawiPBJ',
+            'title'         => 'Kelas | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Pelaksanaan Kelas',
             'classes'       => $classes,
             'stats'         => $stats,
@@ -95,7 +95,7 @@ class LearningClassController extends BaseController
     public function create(): string
     {
         return view('dashboard/learning/classes/form', [
-            'title' => 'Tambah Kelas | Dashboard BegawiPBJ',
+            'title' => 'Tambah Kelas | Dashboard BegawiPengadaan',
             'pageTitle' => 'Tambah Kelas',
             'formMode' => 'create',
             'class' => null,
@@ -143,7 +143,7 @@ class LearningClassController extends BaseController
         $modulesCount = (int) $db->table('learning_modules')->where('class_id', $id)->countAllResults();
 
         return view('dashboard/learning/classes/detail', [
-            'title'             => 'Detail Kelas | Dashboard BegawiPBJ',
+            'title'             => 'Detail Kelas | Dashboard BegawiPengadaan',
             'pageTitle'         => 'Detail Kelas',
             'classId'           => $id,
             'class'             => $class,
@@ -286,7 +286,7 @@ class LearningClassController extends BaseController
         }
 
         return view('dashboard/learning/classes/form', [
-            'title' => 'Ubah Kelas | Dashboard BegawiPBJ',
+            'title' => 'Ubah Kelas | Dashboard BegawiPengadaan',
             'pageTitle' => 'Ubah Kelas',
             'formMode' => 'edit',
             'classId' => $id,

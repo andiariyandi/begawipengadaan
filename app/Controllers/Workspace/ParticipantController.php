@@ -23,7 +23,7 @@ class ParticipantController extends BaseController
 
     public function enroll(int $classId)
     {
-        return $this->runAction(fn () => $this->learning->enroll($this->userId(), $classId), 'Enrollment berhasil dikirim.');
+        return $this->runAction(fn() => $this->learning->enroll($this->userId(), $classId), 'Enrollment berhasil dikirim.');
     }
 
     public function myClasses(): string
@@ -416,7 +416,7 @@ class ParticipantController extends BaseController
             ->orderBy('lessons.sort_order')->get()->getResultArray();
 
         return $this->learningPage('Progress Belajar', 'Kemajuan lesson pada kelas yang Anda ikuti.', array_map(
-            static fn (array $item): string => ($item['title'] ?? '-') . ' · ' . ($item['status'] ?? '-') . ' · ' . ($item['progress_percent'] ?? 0) . '%',
+            static fn(array $item): string => ($item['title'] ?? '-') . ' · ' . ($item['status'] ?? '-') . ' · ' . ($item['progress_percent'] ?? 0) . '%',
             $items
         ));
     }
@@ -1137,7 +1137,7 @@ class ParticipantController extends BaseController
         $optionsByQuestion = [];
         if ($questions !== []) {
             $rows = $db->table('quiz_options')
-                ->whereIn('question_id', array_map(static fn ($q): int => (int) $q['id'], $questions))
+                ->whereIn('question_id', array_map(static fn($q): int => (int) $q['id'], $questions))
                 ->orderBy('sort_order', 'ASC')
                 ->get()->getResultArray();
             foreach ($rows as $row) {
@@ -1171,7 +1171,7 @@ class ParticipantController extends BaseController
             ],
             'quiz'             => $quiz,
             'questions'        => $questions,
-            'optionsByQuestion'=> $optionsByQuestion,
+            'optionsByQuestion' => $optionsByQuestion,
             'attempt'          => $attempt,
             'attemptCount'     => $attemptCount,
             'attemptLimit'     => (int) ($quiz['attempt_limit'] ?? 1),
@@ -1247,7 +1247,7 @@ class ParticipantController extends BaseController
 
     public function startLesson(int $lessonId)
     {
-        return $this->runAction(fn () => $this->learning->startLesson($this->userId(), $lessonId), 'Lesson dibuka.');
+        return $this->runAction(fn() => $this->learning->startLesson($this->userId(), $lessonId), 'Lesson dibuka.');
     }
 
     public function completeLesson(int $lessonId)
@@ -1324,10 +1324,10 @@ class ParticipantController extends BaseController
             ->get()->getResultArray();
 
         $certificates = array_merge($classCerts, $eventCerts);
-        usort($certificates, static fn ($a, $b) => strtotime($b['created_at'] ?? 'now') <=> strtotime($a['created_at'] ?? 'now'));
+        usort($certificates, static fn($a, $b) => strtotime($b['created_at'] ?? 'now') <=> strtotime($a['created_at'] ?? 'now'));
 
         return view('main/workspace/pages/sertifikat', [
-            'title'          => 'Sertifikat Saya | Workspace BegawiPBJ',
+            'title'          => 'Sertifikat Saya | Workspace BegawiPengadaan',
             'pageTitle'      => 'Sertifikat Saya',
             'breadcrumbTail' => [['label' => 'Sertifikat Saya']],
             'certificates'   => $certificates,
@@ -1351,7 +1351,7 @@ class ParticipantController extends BaseController
         }
 
         return view('main/participant/certificates', [
-            'title' => 'Detail Sertifikat | Workspace BegawiPBJ',
+            'title' => 'Detail Sertifikat | Workspace BegawiPengadaan',
             'certificates' => [$certificate],
         ]);
     }
@@ -1442,7 +1442,7 @@ class ParticipantController extends BaseController
 
         $quizAttemptsMap = [];
         if ($lessonQuizzes !== [] && $enrollmentId > 0) {
-            $quizIds = array_map(static fn ($q): int => (int) $q['id'], $lessonQuizzes);
+            $quizIds = array_map(static fn($q): int => (int) $q['id'], $lessonQuizzes);
             $attempts = $db->table('quiz_attempts')
                 ->where('enrollment_id', $enrollmentId)
                 ->whereIn('quiz_id', $quizIds)
@@ -1466,7 +1466,7 @@ class ParticipantController extends BaseController
 
         $assignmentSubmissionsMap = [];
         if ($assignments !== [] && $enrollmentId > 0) {
-            $asgIds = array_map(static fn ($a): int => (int) $a['id'], $assignments);
+            $asgIds = array_map(static fn($a): int => (int) $a['id'], $assignments);
             $subs = $db->table('assignment_submissions')
                 ->where('enrollment_id', $enrollmentId)
                 ->whereIn('assignment_id', $asgIds)
@@ -1495,7 +1495,7 @@ class ParticipantController extends BaseController
             ->orderBy('l.sort_order', 'ASC')
             ->get()->getResultArray();
 
-        $lessonIds = array_map(static fn ($l): int => (int) $l['id'], $lessonRows);
+        $lessonIds = array_map(static fn($l): int => (int) $l['id'], $lessonRows);
         $progressMap = $enrollmentId > 0 ? $this->loadProgressMap($enrollmentId, $lessonIds) : [];
 
         // Build Modules Structure and compute Sequential Unlocking
@@ -1534,7 +1534,7 @@ class ParticipantController extends BaseController
         foreach ($moduleRows as $mIdx => $m) {
             $mid = (int) $m['id'];
             $modLessons = $lessonsByModule[$mid] ?? [];
-            $modLessonIds = array_map(static fn ($l): int => (int) $l['id'], $modLessons);
+            $modLessonIds = array_map(static fn($l): int => (int) $l['id'], $modLessons);
 
             // Match quiz to this module
             $modQuiz = null;
@@ -1557,7 +1557,7 @@ class ParticipantController extends BaseController
                 }
             }
             if ($modAssignment === null) {
-                $unassignedAssignments = array_values(array_filter($assignments, static fn ($a) => empty($a['lesson_id'])));
+                $unassignedAssignments = array_values(array_filter($assignments, static fn($a) => empty($a['lesson_id'])));
                 $unassignedCount = count($unassignedAssignments);
                 if ($unassignedCount > 0) {
                     if ($unassignedCount >= count($moduleRows)) {
@@ -1919,7 +1919,7 @@ class ParticipantController extends BaseController
             'has_assignments'        => $assignments !== [],
             'assignments'            => $assignments,
             'all_lessons_count'      => $allLessonsCount,
-            'completed_lessons_count'=> $completedLessonsCount,
+            'completed_lessons_count' => $completedLessonsCount,
             'overall_percent'        => $overallPercent,
             'is_passed'              => $isPassed,
             'certificate'            => $certificate,
@@ -1998,9 +1998,9 @@ class ParticipantController extends BaseController
             }
         }
         $tree = array_values($modules);
-        usort($tree, static fn (array $a, array $b): int => $a['order'] <=> $b['order']);
+        usort($tree, static fn(array $a, array $b): int => $a['order'] <=> $b['order']);
         foreach ($tree as &$mod) {
-            usort($mod['lessons'], static fn (array $a, array $b): int => $a['order'] <=> $b['order']);
+            usort($mod['lessons'], static fn(array $a, array $b): int => $a['order'] <=> $b['order']);
         }
         unset($mod);
         return $tree;
@@ -2050,7 +2050,7 @@ class ParticipantController extends BaseController
         return [
             'total'      => $total,
             'completed'  => $completed,
-            'in_progress'=> $inProgress,
+            'in_progress' => $inProgress,
             'percent'    => $overall,
         ];
     }
@@ -2081,7 +2081,7 @@ class ParticipantController extends BaseController
         return view('main/workspace/pages/penilaian', [
             'sectionContent' => [
                 'cards' => [['title' => $title, 'value' => (string) count($items), 'meta' => $description]],
-                'items' => array_map(static fn (array $item): string => $item['title'] . ' · ' . $item['status'] . ' · ' . $item['attempt_limit'] . ' percobaan', $items) ?: ['Belum tersedia.'],
+                'items' => array_map(static fn(array $item): string => $item['title'] . ' · ' . $item['status'] . ' · ' . $item['attempt_limit'] . ' percobaan', $items) ?: ['Belum tersedia.'],
             ],
         ]);
     }

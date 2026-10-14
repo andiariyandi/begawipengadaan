@@ -1,8 +1,8 @@
-# BegawiPBJ — Registration Policy
+# BegawiPengadaan — Registration Policy
 
 ## Tujuan
 
-Dokumen ini menetapkan kebijakan registrasi, data akun dasar, tipe profil, validasi, verifikasi, lifecycle account, perubahan profil, pengajuan role, privacy, dan audit untuk BegawiPBJ.
+Dokumen ini menetapkan kebijakan registrasi, data akun dasar, tipe profil, validasi, verifikasi, lifecycle account, perubahan profil, pengajuan role, privacy, dan audit untuk BegawiPengadaan.
 
 Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 

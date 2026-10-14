@@ -46,7 +46,7 @@ class HomeLandingTest extends BaseCommand
         // Test 2: Hero Section Elements
         $this->testModule("Hero Section & Unified Search", function () use ($html) {
             $this->assert(str_contains($html, 'Pemerintah Provinsi Lampung &middot; Biro PBJ Setda'), "Hero badge present");
-            $this->assert(str_contains($html, 'Ekosistem Digital Terpadu'), "Hero title present");
+            $this->assert(str_contains($html, 'Transformasi Digital Terpadu'), "Hero title present");
             $this->assert(str_contains($html, 'heroSearchForm'), "Unified search form present");
             $this->assert(str_contains($html, 'heroSearchTarget'), "Search target dropdown present");
         });
@@ -132,6 +132,23 @@ class HomeLandingTest extends BaseCommand
             $this->assert(! str_contains($html, 'Warning:'), "Zero PHP warnings in rendered HTML");
             $this->assert(! str_contains($html, 'Notice:'), "Zero PHP notices in rendered HTML");
             $this->assert(! str_contains($html, 'Fatal error:'), "Zero Fatal errors in rendered HTML");
+        });
+
+        // Test 13: Visitor Statistics & Feature Access Breakdown
+        $this->testModule("Visitor Statistics & Feature Access Analytics", function () use ($html) {
+            $this->assert(str_contains($html, 'Statistik Trafik &amp; Kunjungan Portal'), "Visitor statistics heading present");
+            $this->assert(str_contains($html, 'visitor-pulse-dot'), "Live realtime pulse dot present");
+            $this->assert(str_contains($html, 'Hari Ini'), "Home today metric present");
+            $this->assert(str_contains($html, 'Minggu Ini'), "Home this week metric present");
+            $this->assert(str_contains($html, 'Bulan Ini'), "Home this month metric present");
+            $this->assert(str_contains($html, 'Tahun Ini'), "Home this year metric present");
+            $this->assert(str_contains($html, 'Total Akumulasi Pembukaan'), "Home total accumulation present");
+            $this->assert(str_contains($html, 'Frekuensi Akses Fitur Unggulan'), "Feature stats card present");
+            $this->assert(str_contains($html, 'Arena Belajar'), "Arena Belajar feature metric present");
+            $this->assert(str_contains($html, 'Bunga Rampai PBJ'), "Bunga Rampai feature metric present");
+            $this->assert(str_contains($html, 'Regulasi PBJ'), "Regulasi feature metric present");
+            $this->assert(str_contains($html, 'Berita &amp; Informasi'), "Berita feature metric present");
+            $this->assert(str_contains($html, 'Event &amp; Agenda'), "Event feature metric present");
         });
 
         // Summary

@@ -4,7 +4,7 @@
 <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
 <style>
     /* =========================================================
-       BEGAWIPBJ HOMEPAGE ELEVATED DESIGN DNA & ACCESSIBLE STYLING
+       BEGAWIPENGADAAN HOMEPAGE ELEVATED DESIGN DNA & ACCESSIBLE STYLING
        ========================================================= */
     :root {
         --bg-navy-dark: #052244;
@@ -23,106 +23,90 @@
         --card-border: #e2e8f0;
     }
 
-    /* Menu Bar Natural Flow — Sits cleanly above Hero Slider without Overlapping */
+    /* Menu Bar Natural Flow — ALWAYS Sits Cleanly Above Hero Slider without Overlapping */
+    .main-header,
     .landing-home .main-header {
         position: relative !important;
-        z-index: 999;
-        background: linear-gradient(180deg, rgba(5, 34, 68, 1) 0%, rgba(8, 47, 92, 1) 100%);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        width: 100% !important;
+        margin: 0 !important;
+        z-index: 999 !important;
+        background: linear-gradient(180deg, rgba(5, 34, 68, 1) 0%, rgba(8, 47, 92, 1) 100%) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22) !important;
     }
 
-    /* Hero Slider Container — Text Placed at the Bottom so Background Image is 100% Uncovered */
+    /* Hero Slider Container — Sits in Normal Flow Directly Below Menu Bar */
     .main-slider {
-        position: relative;
-        display: block;
+        position: relative !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
         background-color: var(--bg-navy-dark);
         z-index: 1;
         overflow: hidden;
     }
 
-    /* Aligned to Bottom with Clear Image View Above */
     .main-slider .item {
         position: relative;
-        padding-top: 120px !important;
-        padding-bottom: 70px !important;
-        min-height: 680px;
-        display: flex !important;
-        flex-direction: column;
-        justify-content: flex-end !important;
+        padding: 0 !important;
+        margin: 0 !important;
         background-color: var(--bg-navy-dark);
         overflow: hidden;
     }
 
-    .main-slider .item > .container {
+    /* 1. Hero Image Banner — Compact Height (420px) so text caption is immediately visible */
+    .main-slider__image-block {
         position: relative;
-        z-index: 10;
         width: 100%;
-        margin-top: auto;
+        height: 420px;
+        max-height: 420px;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 0 !important;
+        background-color: var(--bg-navy-dark);
+        overflow: hidden;
     }
 
-    /* Slider Background with Enhanced Contrast & Sharp Filter */
-    .main-slider__bg {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-repeat: no-repeat;
-        background-position: center top;
-        background-size: cover;
-        opacity: 0.96 !important;
-        filter: brightness(0.92) contrast(1.05) !important;
-        transform: none !important;
-        transition: none !important;
-        z-index: 1;
+    .main-slider__hero-img {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 420px !important;
+        object-fit: cover !important;
+        object-position: center 30% !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        opacity: 1 !important;
+        filter: brightness(1) contrast(1.02) !important;
     }
 
-    /* Bottom-focused Scrim Gradient: Crystal clear top so hero image is unobstructed, darker bottom for high text contrast */
-    .main-slider .item::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(180deg, rgba(5, 34, 68, 0.02) 0%, rgba(5, 34, 68, 0.12) 35%, rgba(5, 34, 68, 0.65) 68%, rgba(5, 34, 68, 0.94) 100%);
-        z-index: 2;
-        pointer-events: none;
-    }
-
-    /* High-Legibility Glass Content Cards */
-    .main-slider__content-glass {
+    /* 2. Consistent, Compact & Concise Caption Strip BELOW the Image */
+    .main-slider__caption-block {
+        background: linear-gradient(180deg, #052244 0%, #072e5b 100%);
+        padding: 18px 0 36px;
         position: relative;
-        z-index: 10;
-        background: rgba(5, 34, 68, 0.82);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        border-radius: 20px;
-        padding: 26px 36px;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.40);
-        max-width: 720px;
+        z-index: 5;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
     }
 
-    .main-slider__content-glass--center {
-        max-width: 820px;
-        margin: 0 auto;
-        text-align: center;
+    .main-slider__caption-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
     }
 
-    .main-slider__content-glass--center .main-slider__sub-title-box {
-        margin: 0 auto 12px;
+    .main-slider__caption-text {
+        flex: 1 1 540px;
+        min-width: 0;
     }
 
-    .main-slider__content-glass--center .main-slider__text {
-        margin: 0 auto 20px;
-    }
-
-    .main-slider__content-glass--center .main-slider__btn-box {
-        justify-content: center;
-    }
-
-    /* Reset Broken Theme Transforms */
+    /* Reset Broken Theme Transforms & Ensure Visible Text */
     .main-slider__content,
-    .main-slider__content-glass,
     .main-slider__sub-title-box,
     .main-slider__title,
     .main-slider__text,
@@ -135,74 +119,84 @@
     }
 
     .main-slider__sub-title-box {
-        background: rgba(255, 255, 255, 0.16);
-        border: 1px solid rgba(255, 255, 255, 0.32);
-        padding: 7px 18px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        padding: 3px 12px;
         border-radius: 999px;
         display: inline-flex !important;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 14px;
+        gap: 6px;
+        margin-bottom: 5px;
     }
 
     .main-slider__sub-title {
-        font-size: 13px !important;
+        font-size: 11.5px !important;
         font-weight: 700 !important;
         font-style: normal !important;
         color: #fde68a !important;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
+        letter-spacing: 0.6px;
         font-family: inherit !important;
         margin: 0 !important;
         line-height: 1.2 !important;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     }
 
     .main-slider__sub-title-shape {
         background-color: #f59e0b !important;
-        width: 8px !important;
-        height: 8px !important;
+        width: 6px !important;
+        height: 6px !important;
         border-radius: 50%;
-        box-shadow: 0 0 10px #f59e0b;
+        box-shadow: 0 0 6px #f59e0b;
     }
 
+    /* Compact & Readable Headline */
     .main-slider__title {
-        font-size: 32px !important;
-        line-height: 1.25 !important;
+        font-size: 20px !important;
+        line-height: 1.3 !important;
         font-weight: 800 !important;
         color: #ffffff !important;
-        margin-top: 6px !important;
-        margin-bottom: 12px !important;
+        margin: 0 0 4px 0 !important;
         text-transform: none !important;
-        letter-spacing: -0.5px;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75) !important;
+        letter-spacing: -0.3px;
+        text-shadow: none !important;
     }
 
     .main-slider__title span {
         color: #fbbf24 !important;
         -webkit-text-fill-color: #fbbf24 !important;
         background: none !important;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75) !important;
     }
 
+    /* Concise Description */
     .main-slider__text {
-        font-size: 15px !important;
-        line-height: 1.6 !important;
-        color: #f1f5f9 !important;
-        margin-bottom: 18px !important;
-        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.75) !important;
+        font-size: 13.5px !important;
+        line-height: 1.5 !important;
+        color: #cbd5e1 !important;
+        margin: 0 !important;
+        text-shadow: none !important;
     }
 
+    /* Compact Buttons Beside Text on Desktop */
     .main-slider__btn-box {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 10px;
         flex-wrap: wrap;
+        flex-shrink: 0;
+    }
+
+    .main-slider__btn-box .thm-btn {
+        padding: 8px 18px !important;
+        font-size: 13px !important;
+        min-height: 38px !important;
+        border-radius: 8px !important;
+        gap: 6px !important;
+        font-weight: 600 !important;
     }
 
     .thm-btn-alt {
         background: transparent !important;
-        border: 2px solid rgba(255, 255, 255, 0.85) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.8) !important;
         color: #ffffff !important;
         backdrop-filter: blur(4px);
     }
@@ -213,10 +207,10 @@
         border-color: #ffffff !important;
     }
 
-    /* Owl Carousel Navigation Arrows */
+    /* Owl Carousel Navigation Arrows — Centered inside the Hero Image */
     .main-slider .owl-nav {
         position: absolute;
-        top: 40%;
+        top: 210px;
         left: 0;
         right: 0;
         transform: translateY(-50%);
@@ -226,18 +220,28 @@
 
     .main-slider .owl-nav button {
         pointer-events: auto;
-        width: 48px !important;
-        height: 48px !important;
+        width: 44px !important;
+        height: 44px !important;
+        background: rgba(5, 34, 68, 0.65) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
         border-radius: 50% !important;
-        background: rgba(255, 255, 255, 0.22) !important;
-        backdrop-filter: blur(8px);
         color: #ffffff !important;
         display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 14px !important;
+        backdrop-filter: blur(8px) !important;
         transition: all 0.25s ease !important;
-        font-size: 18px !important;
+        position: absolute !important;
+        top: 0 !important;
+    }
+
+    .main-slider .owl-nav button.owl-prev {
+        left: 24px !important;
+    }
+
+    .main-slider .owl-nav button.owl-next {
+        right: 24px !important;
     }
 
     .main-slider .owl-nav button:hover {
@@ -247,15 +251,55 @@
         transform: scale(1.08);
     }
 
-    .main-slider .owl-nav .owl-prev { margin-left: 24px; }
-    .main-slider .owl-nav .owl-next { margin-right: 24px; float: right; }
+    /* Owl Carousel Dots — Neatly below caption */
+    .main-slider .owl-theme .owl-dots {
+        position: absolute !important;
+        bottom: 12px !important;
+        left: 0 !important;
+        right: 0 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px;
+        padding: 0 !important;
+        margin: 0 !important;
+        height: auto !important;
+        line-height: normal !important;
+        transform: none !important;
+        z-index: 12;
+    }
+
+    .main-slider .owl-theme .owl-dots .owl-dot {
+        margin: 0 !important;
+    }
+
+    .main-slider .owl-theme .owl-dots .owl-dot span {
+        width: 8px !important;
+        height: 8px !important;
+        border-radius: 999px !important;
+        background: rgba(255, 255, 255, 0.45) !important;
+        border: none !important;
+        transition: all 0.3s ease !important;
+        margin: 0 !important;
+    }
+
+    .main-slider .owl-theme .owl-dots .owl-dot span::before {
+        display: none !important;
+    }
+
+    .main-slider .owl-theme .owl-dots .owl-dot.active span,
+    .main-slider .owl-theme .owl-dots .owl-dot:hover span {
+        width: 24px !important;
+        background: #f59e0b !important;
+    }
 
     /* Floating Portal Gateway (Search & KPI Ribbon) */
     .portal-gateway-section {
         position: relative;
         z-index: 25;
-        margin-top: -30px;
-        margin-bottom: 30px;
+        margin-top: 36px;
+        margin-bottom: 48px;
     }
 
     .portal-gateway-card {
@@ -371,13 +415,19 @@
         display: flex;
         align-items: center;
         gap: 14px;
-        padding: 8px 10px;
-        border-radius: 12px;
-        transition: all 0.2s ease;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #f8fafc;
+        border: 1px solid #edf2f7;
+        transition: all 0.25s ease;
+        height: 100%;
     }
 
     .gateway-kpi-item:hover {
-        background: #f8fafc;
+        background: #f1f5f9;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(8, 47, 92, 0.06);
+        border-color: #cbd5e1;
     }
 
     .gateway-kpi-icon {
@@ -389,6 +439,7 @@
         justify-content: center;
         font-size: 24px;
         flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     }
 
     .gateway-kpi-num {
@@ -396,6 +447,7 @@
         font-weight: 800;
         color: var(--bg-navy-dark);
         line-height: 1.1;
+        letter-spacing: -0.5px;
     }
 
     .gateway-kpi-label {
@@ -507,6 +559,21 @@
         flex-grow: 1;
     }
 
+    .pillar-badge {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin-bottom: 14px;
+        display: inline-block;
+        width: fit-content;
+        background: var(--pillar-bg, #eff6ff);
+        color: var(--pillar-accent, #0c5aa6);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
     .pillar-link {
         display: inline-flex;
         align-items: center;
@@ -516,6 +583,14 @@
         color: var(--pillar-accent, #0c5aa6);
         text-decoration: none;
         transition: gap 0.2s ease;
+    }
+
+    .pillar-link iconify-icon {
+        transition: transform 0.25s ease;
+    }
+
+    .pillar-card:hover .pillar-link iconify-icon {
+        transform: translateX(4px);
     }
 
     .pillar-link:hover {
@@ -588,7 +663,7 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     }
 
     .course-body-modern {
@@ -750,11 +825,11 @@
     .stage-card-step {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 24px 20px;
+        border-radius: 18px;
+        padding: 24px 18px;
         text-align: center;
         position: relative;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -762,14 +837,14 @@
     }
 
     .stage-card-step:hover {
-        transform: translateY(-5px);
+        transform: translateY(-6px);
         border-color: #0c5aa6;
-        box-shadow: 0 16px 30px rgba(8, 47, 92, 0.10);
+        box-shadow: 0 16px 32px rgba(8, 47, 92, 0.12);
     }
 
     .stage-number-badge {
-        width: 46px;
-        height: 46px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         background: linear-gradient(135deg, #0c5aa6 0%, #082f5c 100%);
         color: #ffffff;
@@ -778,8 +853,22 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         box-shadow: 0 6px 14px rgba(12, 90, 166, 0.28);
+        border: 3px solid #ffffff;
+        outline: 2px solid #e2e8f0;
+    }
+
+    .stage-step-tag {
+        font-size: 11px;
+        font-weight: 700;
+        color: #0c5aa6;
+        background: #eff6ff;
+        padding: 2px 10px;
+        border-radius: 999px;
+        margin-bottom: 10px;
+        display: inline-block;
+        border: 1px solid #dbeafe;
     }
 
     .stage-step-title {
@@ -791,7 +880,7 @@
     }
 
     .stage-step-desc {
-        font-size: 13px;
+        font-size: 12.5px;
         color: var(--text-slate-600);
         line-height: 1.55;
         margin-bottom: 16px;
@@ -803,18 +892,18 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 10px;
         flex-wrap: wrap;
         margin-bottom: 36px;
     }
 
     .knowledge-tab-btn {
         background: #ffffff;
-        border: 1px solid #e2e8f0;
+        border: 1.5px solid #e2e8f0;
         border-radius: 999px;
-        padding: 10px 22px;
+        padding: 10px 24px;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 700;
         color: #334155;
         cursor: pointer;
         transition: all 0.25s ease;
@@ -825,15 +914,15 @@
 
     .knowledge-tab-btn:hover {
         background: #f8fafc;
-        color: #0c5aa6;
+        color: #082f5c;
         border-color: #cbd5e1;
     }
 
     .knowledge-tab-btn.active {
-        background: #082f5c;
+        background: linear-gradient(135deg, #052244 0%, #082f5c 100%);
         color: #ffffff;
-        border-color: #082f5c;
-        box-shadow: 0 6px 16px rgba(8, 47, 92, 0.25);
+        border-color: #052244;
+        box-shadow: 0 8px 20px rgba(8, 47, 92, 0.22);
     }
 
     /* Article Modern Card */
@@ -961,6 +1050,457 @@
         border-bottom: 1px solid #e2e8f0;
     }
 
+    .patik-chip {
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #1e293b;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: all 0.2s ease;
+    }
+
+    .patik-chip:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+        transform: translateY(-1px);
+    }
+
+    /* Dedicated Modern Styling for "Portal Mitra Ekosistem Nasional & Daerah" */
+    .ecosystem-portal-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 28px 28px 22px;
+        box-shadow: 0 16px 36px rgba(8, 47, 92, 0.08);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ecosystem-portal-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, #0c5aa6 0%, #10b981 50%, #f59e0b 100%);
+    }
+
+    .ecosystem-portal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .ecosystem-portal-header-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: #eff6ff;
+        color: #0c5aa6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(12, 90, 166, 0.12);
+    }
+
+    .ecosystem-portal-title {
+        font-size: 17.5px;
+        font-weight: 800;
+        color: var(--bg-navy-dark);
+        margin: 0 0 3px 0;
+        line-height: 1.3;
+    }
+
+    .ecosystem-portal-subtitle {
+        font-size: 13px;
+        color: var(--text-slate-500);
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .ecosystem-item-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 13px 16px;
+        background: #ffffff;
+        border: 1.5px solid #edf2f7;
+        border-radius: 14px;
+        text-decoration: none !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        margin-bottom: 10px;
+    }
+
+    .ecosystem-item-link:last-child {
+        margin-bottom: 0;
+    }
+
+    .ecosystem-item-link:hover {
+        background: #f8fafc;
+        border-color: var(--item-accent, #0c5aa6);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(8, 47, 92, 0.08);
+    }
+
+    .ecosystem-item-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+        background: var(--item-bg, #eff6ff);
+        color: var(--item-accent, #0c5aa6);
+        transition: transform 0.25s ease;
+    }
+
+    .ecosystem-item-link:hover .ecosystem-item-icon {
+        transform: scale(1.08);
+    }
+
+    .ecosystem-item-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .ecosystem-item-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--bg-navy-dark);
+        display: block;
+        line-height: 1.3;
+        margin-bottom: 2px;
+    }
+
+    .ecosystem-item-desc {
+        font-size: 12px;
+        color: var(--text-slate-500);
+        display: block;
+        line-height: 1.4;
+    }
+
+    .ecosystem-item-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: #f1f5f9;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        flex-shrink: 0;
+        transition: all 0.25s ease;
+    }
+
+    .ecosystem-item-link:hover .ecosystem-item-action {
+        background: var(--item-accent, #0c5aa6);
+        color: #ffffff;
+        transform: translate(2px, -2px);
+    }
+
+    .ecosystem-portal-footer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
+        font-size: 11.5px;
+        color: var(--text-slate-500);
+    }
+
+    /* =========================================================
+       COMPACT VISITOR STATISTICS (PORTAL MITRA STYLE)
+       ========================================================= */
+    .visitor-stats-section {
+        padding: 40px 0 36px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .visitor-pulse-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #065f46;
+    }
+
+    .visitor-pulse-dot {
+        width: 7px;
+        height: 7px;
+        background-color: #10b981;
+        border-radius: 50%;
+        position: relative;
+        display: inline-block;
+    }
+
+    .visitor-pulse-dot::after {
+        content: '';
+        position: absolute;
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
+        border-radius: 50%;
+        border: 2px solid #10b981;
+        animation: visitor-pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+
+    @keyframes visitor-pulse-ring {
+        0% {
+            transform: scale(0.5);
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.5;
+        }
+
+        100% {
+            transform: scale(2.2);
+            opacity: 0;
+        }
+    }
+
+    .visitor-compact-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 22px 24px 18px;
+        box-shadow: 0 10px 25px rgba(8, 47, 92, 0.05);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .visitor-compact-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+    }
+
+    .visitor-compact-card.card-home::before {
+        background: linear-gradient(90deg, #0c5aa6 0%, #0284c7 60%, #10b981 100%);
+    }
+
+    .visitor-compact-card.card-features::before {
+        background: linear-gradient(90deg, #10b981 0%, #f59e0b 60%, #8b5cf6 100%);
+    }
+
+    .visitor-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .visitor-card-header-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .visitor-card-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--bg-navy-dark, #052244);
+        margin: 0 0 2px 0;
+        line-height: 1.3;
+    }
+
+    .visitor-card-subtitle {
+        font-size: 12px;
+        color: var(--text-slate-500, #64748b);
+        margin: 0;
+        line-height: 1.35;
+    }
+
+    .visitor-home-summary-box {
+        background: #f8fafc;
+        border: 1px solid #edf2f7;
+        border-radius: 12px;
+        padding: 10px 14px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .visitor-home-summary-num {
+        font-size: 24px;
+        font-weight: 800;
+        color: #0c5aa6;
+        line-height: 1.1;
+    }
+
+    .visitor-home-summary-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin-bottom: 2px;
+    }
+
+    .visitor-intervals-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .visitor-interval-box {
+        background: #ffffff;
+        border: 1px solid #edf2f7;
+        border-radius: 11px;
+        padding: 9px 12px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .visitor-interval-box:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+        transform: translateY(-1px);
+    }
+
+    .visitor-interval-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .visitor-interval-val {
+        font-size: 16px;
+        font-weight: 800;
+        line-height: 1.2;
+        color: #0f172a;
+    }
+
+    .visitor-interval-lbl {
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .visitor-feature-row {
+        background: #ffffff;
+        border: 1.2px solid #edf2f7;
+        border-radius: 11px;
+        padding: 8px 12px;
+        margin-bottom: 7px;
+        transition: all 0.2s ease;
+        text-decoration: none !important;
+        display: block;
+    }
+
+    .visitor-feature-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .visitor-feature-row:hover {
+        background: #f8fafc;
+        border-color: var(--feat-border, #cbd5e1);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(8, 47, 92, 0.04);
+    }
+
+    .visitor-feature-icon-box {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        flex-shrink: 0;
+    }
+
+    .visitor-feature-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.25;
+        margin-bottom: 1px;
+    }
+
+    .visitor-feature-desc {
+        font-size: 11px;
+        color: #64748b;
+        line-height: 1.2;
+    }
+
+    .visitor-progress-track {
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 6px;
+    }
+
+    .visitor-progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .visitor-card-footer {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid #f1f5f9;
+        font-size: 11.5px;
+        color: #64748b;
+    }
+
     /* Fast Action CTA */
     .cta-banner-modern {
         background: linear-gradient(135deg, #052244 0%, #082f5c 50%, #0c5aa6 100%);
@@ -984,77 +1524,131 @@
         pointer-events: none;
     }
 
-    /* Responsive Breakpoints & Bottom Alignment Guarantee */
+    /* Responsive Breakpoints for Compact Image & Text Below */
     @media (max-width: 1199px) {
-        .main-slider .item {
-            padding-top: 80px !important;
-            padding-bottom: 60px !important;
-            min-height: 600px;
+
+        .main-slider__image-block,
+        .main-slider__hero-img {
+            height: 360px !important;
+            max-height: 360px !important;
         }
+
+        .main-slider .owl-nav {
+            top: 180px !important;
+        }
+
         .main-slider__title {
-            font-size: 28px !important;
+            font-size: 18px !important;
         }
     }
 
     @media (max-width: 991px) {
-        .main-slider .item {
-            padding-top: 60px !important;
-            padding-bottom: 50px !important;
-            min-height: 540px;
+
+        .main-slider__image-block,
+        .main-slider__hero-img {
+            height: 300px !important;
+            max-height: 300px !important;
         }
+
+        .main-slider .owl-nav {
+            top: 150px !important;
+        }
+
+        .main-slider__caption-inner {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .main-slider__caption-block {
+            padding: 12px 0 18px;
+        }
+
         .main-slider__title {
-            font-size: 24px !important;
+            font-size: 17px !important;
         }
-        .main-slider__content-glass {
-            padding: 20px 22px;
-            border-radius: 16px;
-        }
+
         .section-title-main {
-            font-size: 26px;
+            font-size: 24px;
         }
+
         .portal-gateway-section {
-            margin-top: -25px;
+            margin-top: 28px;
+            margin-bottom: 36px;
         }
+
         .portal-gateway-card {
-            padding: 24px 20px;
+            padding: 20px 18px;
         }
+
         .cta-banner-modern {
-            padding: 40px 24px;
+            padding: 36px 20px;
         }
     }
 
     @media (max-width: 767px) {
-        .main-slider .item {
-            padding-top: 40px !important;
-            padding-bottom: 45px !important;
-            min-height: auto;
+
+        .main-slider__image-block,
+        .main-slider__hero-img {
+            height: 220px !important;
+            max-height: 220px !important;
         }
-        .main-slider__title {
-            font-size: 20px !important;
-        }
-        .main-slider__content-glass {
-            padding: 16px 16px;
-            border-radius: 14px;
-        }
+
         .main-slider .owl-nav {
             display: none !important;
         }
+
+        .main-slider__caption-block {
+            padding: 10px 0 16px;
+        }
+
+        .main-slider__title {
+            font-size: 15px !important;
+        }
+
+        .main-slider__text {
+            font-size: 12px !important;
+        }
+
+        .main-slider__btn-box .thm-btn {
+            padding: 6px 12px !important;
+            font-size: 12px !important;
+            min-height: 32px !important;
+        }
+
+        .portal-gateway-section {
+            margin-top: 24px;
+            margin-bottom: 32px;
+        }
+
         .hero-search-box {
             flex-wrap: wrap;
         }
+
         .hero-search-box input {
             width: 100%;
         }
+
         .hero-search-target-select {
             width: 100%;
         }
+
         .hero-search-box .btn-search {
             width: 100%;
             justify-content: center;
         }
+
         .event-card-modern {
             flex-direction: column;
             gap: 14px;
+        }
+
+        .visitor-intervals-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .visitor-compact-card {
+            padding: 18px 16px;
         }
     }
 </style>
@@ -1073,11 +1667,32 @@ $faqs           = $faqs ?? [];
 $mediaItems     = $mediaItems ?? [];
 $stages         = $stages ?? [];
 $upcomingEvents = $upcomingEvents ?? [];
+$visitorStats   = $visitorStats ?? [
+    'home' => [
+        'today'      => 0,
+        'this_week'  => 0,
+        'this_month' => 0,
+        'this_year'  => 0,
+        'total'      => 0,
+    ],
+    'features' => [],
+    'total_feature_hits' => 0,
+];
 
 // Indonesian month mapping helper
 $bulanIndo = [
-    1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
-    7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'
+    1 => 'Jan',
+    2 => 'Feb',
+    3 => 'Mar',
+    4 => 'Apr',
+    5 => 'Mei',
+    6 => 'Jun',
+    7 => 'Jul',
+    8 => 'Agu',
+    9 => 'Sep',
+    10 => 'Okt',
+    11 => 'Nov',
+    12 => 'Des'
 ];
 ?>
 
@@ -1086,96 +1701,99 @@ $bulanIndo = [
      ========================================================= -->
 <section class="main-slider">
     <div class="main-slider__carousel owl-carousel owl-theme">
-        <!-- Slide 1: Ekosistem Utama PBJ (Variasi Kiri / Left-Aligned Glass Panel) -->
+        <!-- Slide 1: Transformasi & Ekosistem PBJ Lampung -->
         <div class="item">
-            <div class="main-slider__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/slider-1-1.jpg') ?>);"></div>
-            <div class="container">
-                <div class="row align-items-end">
-                    <div class="col-lg-8 col-xl-7">
-                        <div class="main-slider__content-glass">
+            <div class="main-slider__image-block">
+                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>" alt="BegawiPengadaan Lampung - Transformasi Digital Pengadaan" class="main-slider__hero-img" width="1920" height="740" />
+            </div>
+            <div class="main-slider__caption-block">
+                <div class="container">
+                    <div class="main-slider__caption-inner">
+                        <div class="main-slider__caption-text">
                             <div class="main-slider__sub-title-box">
                                 <div class="main-slider__sub-title-shape"></div>
                                 <h5 class="main-slider__sub-title">Pemerintah Provinsi Lampung &middot; Biro PBJ Setda</h5>
                             </div>
                             <h2 class="main-slider__title">
-                                Ekosistem Digital Terpadu <br>
-                                <span>Pengadaan Barang &amp; Jasa</span>
+                                Transformasi Digital Terpadu <span>Pengadaan Barang &amp; Jasa</span>
                             </h2>
                             <p class="main-slider__text">
-                                Platform satu pintu yang mengintegrasikan pembelajaran aparatur (Arena Belajar), pusat literasi dan template dokumen (Bunga Rampai), serta bank payung hukum dan silsilah aturan (Regulasi PBJ) di Provinsi Lampung.
+                                Integrasi Arena Belajar aparatur, repositori dokumen Bunga Rampai, dan pusat regulasi PBJ terpadu.
                             </p>
-                            <div class="main-slider__btn-box">
-                                <a href="<?= site_url('regulasi') ?>" class="thm-btn">
-                                    <span class="icon-angles-right"></span>Pusat Regulasi PBJ
-                                </a>
-                                <a href="<?= site_url('arena-belajar') ?>" class="thm-btn thm-btn-alt">
-                                    <span class="icon-angles-right"></span>Mulai Belajar di Arena
-                                </a>
-                            </div>
+                        </div>
+                        <div class="main-slider__btn-box">
+                            <a href="<?= site_url('regulasi') ?>" class="thm-btn">
+                                <span class="icon-angles-right"></span>Pusat Regulasi PBJ
+                            </a>
+                            <a href="<?= site_url('arena-belajar') ?>" class="thm-btn thm-btn-alt">
+                                <span class="icon-angles-right"></span>Arena Belajar
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Slide 2: Arena Belajar (Variasi Tengah / Centered Glass Panel) -->
+        <!-- Slide 2: Arena Belajar PBJ -->
         <div class="item">
-            <div class="main-slider__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/slider-1-2.jpg') ?>);"></div>
-            <div class="container">
-                <div class="row justify-content-center align-items-end">
-                    <div class="col-lg-10 col-xl-9">
-                        <div class="main-slider__content-glass main-slider__content-glass--center">
+            <div class="main-slider__image-block">
+                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-2.png') ?>" alt="BegawiPengadaan Lampung - Arena Belajar" class="main-slider__hero-img" width="1920" height="740" />
+            </div>
+            <div class="main-slider__caption-block">
+                <div class="container">
+                    <div class="main-slider__caption-inner">
+                        <div class="main-slider__caption-text">
                             <div class="main-slider__sub-title-box">
                                 <div class="main-slider__sub-title-shape"></div>
                                 <h5 class="main-slider__sub-title">Arena Belajar &middot; Sertifikasi Kompetensi PBJ</h5>
                             </div>
                             <h2 class="main-slider__title">
-                                Tingkatkan Keahlian PBJ <br>
-                                <span>Bersama Instruktur Ahli LKPP</span>
+                                Tingkatkan Keahlian PBJ <span>Bersama Instruktur Ahli LKPP</span>
                             </h2>
                             <p class="main-slider__text">
-                                Akses modul pembelajaran interaktif berjenjang, silabus terakreditasi, kelas batch terjadwal, dan raih sertifikat kompetensi resmi terverifikasi dari Pemerintah Provinsi Lampung.
+                                Modul berjenjang terakreditasi LKPP, pembelajaran terjadwal, dan sertifikat resmi Pemprov Lampung.
                             </p>
-                            <div class="main-slider__btn-box">
-                                <a href="<?= site_url('arena-belajar/course') ?>" class="thm-btn">
-                                    <span class="icon-angles-right"></span>Katalog Kursus PBJ
-                                </a>
-                                <a href="<?= site_url('arena-belajar/program') ?>" class="thm-btn thm-btn-alt">
-                                    <span class="icon-angles-right"></span>Program Sertifikasi
-                                </a>
-                            </div>
+                        </div>
+                        <div class="main-slider__btn-box">
+                            <a href="<?= site_url('arena-belajar/course') ?>" class="thm-btn">
+                                <span class="icon-angles-right"></span>Katalog Kursus
+                            </a>
+                            <a href="<?= site_url('arena-belajar/program') ?>" class="thm-btn thm-btn-alt">
+                                <span class="icon-angles-right"></span>Sertifikasi PBJ
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Slide 3: Bunga Rampai & Regulasi (Variasi Kanan / Right-Aligned Glass Panel) -->
+        <!-- Slide 3: Bunga Rampai & Regulasi -->
         <div class="item">
-            <div class="main-slider__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/slider-1-3.jpg') ?>);"></div>
-            <div class="container">
-                <div class="row justify-content-end align-items-end">
-                    <div class="col-lg-8 col-xl-7">
-                        <div class="main-slider__content-glass ms-auto">
+            <div class="main-slider__image-block">
+                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-3.png') ?>" alt="BegawiPengadaan Lampung - Bunga Rampai &amp; Regulasi" class="main-slider__hero-img" width="1920" height="740" />
+            </div>
+            <div class="main-slider__caption-block">
+                <div class="container">
+                    <div class="main-slider__caption-inner">
+                        <div class="main-slider__caption-text">
                             <div class="main-slider__sub-title-box">
                                 <div class="main-slider__sub-title-shape"></div>
                                 <h5 class="main-slider__sub-title">Bunga Rampai &middot; Dokumen &amp; Praktik Baik</h5>
                             </div>
                             <h2 class="main-slider__title">
-                                Template Dokumen KAK, HPS <br>
-                                <span>&amp; Mitigasi Risiko Audit Pengadaan</span>
+                                Template Dokumen KAK, HPS <span>&amp; Mitigasi Risiko Audit Pengadaan</span>
                             </h2>
                             <p class="main-slider__text">
-                                Unduh format dokumen kerja siap pakai (DOCX/XLSX), pelajari solusi nyata sengketa pemilihan dan sanggahan, serta telusuri infografis alur tata kelola kepengadaan.
+                                Unduh format dokumen kerja siap pakai (DOCX/XLSX), telaah sengketa sanggahan, dan alur tata kelola PBJ.
                             </p>
-                            <div class="main-slider__btn-box">
-                                <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="thm-btn">
-                                    <span class="icon-angles-right"></span>Unduh Template Dokumen
-                                </a>
-                                <a href="<?= site_url('bunga-rampai/studi-kasus') ?>" class="thm-btn thm-btn-alt">
-                                    <span class="icon-angles-right"></span>Studi Kasus Lapangan
-                                </a>
-                            </div>
+                        </div>
+                        <div class="main-slider__btn-box">
+                            <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="thm-btn">
+                                <span class="icon-angles-right"></span>Template Dokumen
+                            </a>
+                            <a href="<?= site_url('bunga-rampai/studi-kasus') ?>" class="thm-btn thm-btn-alt">
+                                <span class="icon-angles-right"></span>Studi Kasus
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -1271,14 +1889,14 @@ $bulanIndo = [
 </section>
 
 <!-- =========================================================
-     3. PILAR EKOSISTEM BEGAWIPBJ (THE 5 CORE PILLARS)
+     3. PILAR EKOSISTEM BEGAWIPENGADAAN (THE 5 CORE PILLARS)
      ========================================================= -->
 <section class="section-spacious bg-white">
     <div class="container">
         <div class="section-title-wrap text-center">
             <div class="section-title-tag">
                 <iconify-icon icon="solar:layers-bold"></iconify-icon>
-                <span>Pilar Ekosistem BegawiPBJ</span>
+                <span>Pilar Ekosistem BegawiPengadaan</span>
             </div>
             <h2 class="section-title-main">Satu Pintu Layanan Digital Pengadaan Barang/Jasa</h2>
             <p class="section-title-desc mx-auto">Dirancang untuk memenuhi seluruh siklus kebutuhan Pejabat Pembuat Komitmen (PPK), Pokja Pemilihan, Pejabat Pengadaan, Penyedia Barang/Jasa, dan Auditor di Provinsi Lampung.</p>
@@ -1291,6 +1909,7 @@ $bulanIndo = [
                     <div class="pillar-icon-box">
                         <iconify-icon icon="solar:mortarboard-bold"></iconify-icon>
                     </div>
+                    <span class="pillar-badge">E-Learning &amp; Sertifikasi</span>
                     <h3 class="pillar-title">Arena Belajar</h3>
                     <p class="pillar-desc">Pusat pelatihan mandiri berbasis e-learning, program sertifikasi PBJ, modul berjenjang, dan kelas interaktif bersama instruktur terakreditasi LKPP.</p>
                     <a href="<?= site_url('arena-belajar') ?>" class="pillar-link">
@@ -1306,6 +1925,7 @@ $bulanIndo = [
                     <div class="pillar-icon-box">
                         <iconify-icon icon="solar:book-bookmark-bold"></iconify-icon>
                     </div>
+                    <span class="pillar-badge">Dokumen &amp; Studi Kasus</span>
                     <h3 class="pillar-title">Bunga Rampai PBJ</h3>
                     <p class="pillar-desc">Ensiklopedia literasi praktis: artikel wawasan, template dokumen kerja (KAK, HPS, Kontrak), studi kasus penanganan sanggah, dan galeri multimedia.</p>
                     <a href="<?= site_url('bunga-rampai') ?>" class="pillar-link">
@@ -1321,6 +1941,7 @@ $bulanIndo = [
                     <div class="pillar-icon-box">
                         <iconify-icon icon="solar:scale-bold"></iconify-icon>
                     </div>
+                    <span class="pillar-badge">Produk Hukum Resmi</span>
                     <h3 class="pillar-title">Regulasi &amp; Payung Hukum</h3>
                     <p class="pillar-desc">Koleksi terstruktur peraturan perundang-undangan (Perpres, PerLKPP, Perda Lampung, Surat Edaran), riwayat naskah versi, dan silsilah relasi aturan hukum.</p>
                     <a href="<?= site_url('regulasi') ?>" class="pillar-link">
@@ -1336,6 +1957,7 @@ $bulanIndo = [
                     <div class="pillar-icon-box">
                         <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
                     </div>
+                    <span class="pillar-badge">Helpdesk &amp; Mitigasi</span>
                     <h3 class="pillar-title">Klinik Konsultasi &amp; Tanya Jawab</h3>
                     <p class="pillar-desc">Bimbingan teknis terarah dan tanya jawab spesifik mengenai persoalan regulasi, kendala pemilihan penyedia, penyesuaian harga, serta tata cara mitigasi risiko audit kepengadaan.</p>
                     <a href="<?= site_url('bunga-rampai/faq') ?>" class="pillar-link">
@@ -1351,6 +1973,7 @@ $bulanIndo = [
                     <div class="pillar-icon-box">
                         <iconify-icon icon="solar:diploma-verified-bold"></iconify-icon>
                     </div>
+                    <span class="pillar-badge">Validasi QR Code</span>
                     <h3 class="pillar-title">Verifikasi Sertifikat Digital</h3>
                     <p class="pillar-desc">Validasi keabsahan sertifikat pelatihan, bukti tanda lulus, dan kompetensi yang diterbitkan resmi oleh Biro Pengadaan Barang dan Jasa Provinsi Lampung.</p>
                     <a href="<?= site_url('verifikasi-sertifikat') ?>" class="pillar-link">
@@ -1490,6 +2113,7 @@ $bulanIndo = [
             <div class="col">
                 <div class="stage-card-step">
                     <div class="stage-number-badge">1</div>
+                    <span class="stage-step-tag">SiRUP &amp; Identifikasi</span>
                     <h4 class="stage-step-title">Perencanaan Pengadaan</h4>
                     <p class="stage-step-desc">Identifikasi kebutuhan, penetapan barang/jasa, cara pengadaan, jadwal, dan pengumuman SiRUP.</p>
                     <a href="<?= site_url('regulasi?stage_id=1') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
@@ -1500,6 +2124,7 @@ $bulanIndo = [
             <div class="col">
                 <div class="stage-card-step">
                     <div class="stage-number-badge">2</div>
+                    <span class="stage-step-tag">HPS &amp; Spesifikasi/KAK</span>
                     <h4 class="stage-step-title">Persiapan Pengadaan</h4>
                     <p class="stage-step-desc">Penyusunan Spesifikasi Teknis/KAK, Harga Perkiraan Sendiri (HPS), dan rancangan kontrak.</p>
                     <a href="<?= site_url('regulasi?stage_id=2') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
@@ -1510,6 +2135,7 @@ $bulanIndo = [
             <div class="col">
                 <div class="stage-card-step">
                     <div class="stage-number-badge">3</div>
+                    <span class="stage-step-tag">E-Purchasing &amp; Tender</span>
                     <h4 class="stage-step-title">Pemilihan Penyedia</h4>
                     <p class="stage-step-desc">Pelaksanaan E-Purchasing (Katalog), Tender, Seleksi, Pengadaan Langsung, dan Evaluasi Penawaran.</p>
                     <a href="<?= site_url('regulasi?stage_id=3') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
@@ -1520,6 +2146,7 @@ $bulanIndo = [
             <div class="col">
                 <div class="stage-card-step">
                     <div class="stage-number-badge">4</div>
+                    <span class="stage-step-tag">SPPBJ &amp; Kontrak</span>
                     <h4 class="stage-step-title">Pelaksanaan Kontrak</h4>
                     <p class="stage-step-desc">Penerbitan SPPBJ, SPMK, pengawasan pekerjaan, addendum kontrak, dan mitigasi risiko.</p>
                     <a href="<?= site_url('regulasi?stage_id=4') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
@@ -1530,6 +2157,7 @@ $bulanIndo = [
             <div class="col">
                 <div class="stage-card-step">
                     <div class="stage-number-badge">5</div>
+                    <span class="stage-step-tag">BAST &amp; Pembayaran</span>
                     <h4 class="stage-step-title">Serah Terima Hasil</h4>
                     <p class="stage-step-desc">Pemeriksaan hasil pekerjaan, Berita Acara Serah Terima (BAST), pembayaran, dan evaluasi kinerja penyedia.</p>
                     <a href="<?= site_url('regulasi?stage_id=5') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
@@ -1608,7 +2236,7 @@ $bulanIndo = [
                             </div>
 
                             <span class="reg-doc-num"><?= esc($r['document_number'] ?? 'Naskah PBJ') ?></span>
-                            
+
                             <?php if (! empty($r['category_name'])): ?>
                                 <span class="badge bg-light text-primary border text-2xs fw-bold px-2 py-1 radius-4 mb-2 d-inline-block" style="width: fit-content;">
                                     <?= esc($r['category_name']) ?>
@@ -1619,7 +2247,7 @@ $bulanIndo = [
                                 <a href="<?= site_url('regulasi/' . esc($r['slug'])) ?>"><?= esc($r['title']) ?></a>
                             </h3>
                             <p class="reg-summary-text"><?= esc(! empty($r['summary']) ? $r['summary'] : 'Dokumen regulasi resmi pengadaan barang/jasa Pemerintah Provinsi Lampung.') ?></p>
-                            
+
                             <div class="reg-actions-row">
                                 <span class="text-xs text-muted d-flex align-items-center gap-1">
                                     <iconify-icon icon="solar:shield-check-linear"></iconify-icon>
@@ -1840,7 +2468,7 @@ $bulanIndo = [
                                 <div class="accordion-item radius-10 mb-2 border">
                                     <h2 class="accordion-header">
                                         <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#hfaq2">
-                                            Apakah pelatihan di Arena Belajar BegawiPBJ mendapatkan sertifikat resmi?
+                                            Apakah pelatihan di Arena Belajar BegawiPengadaan mendapatkan sertifikat resmi?
                                         </button>
                                     </h2>
                                     <div id="hfaq2" class="accordion-collapse collapse" data-bs-parent="#homeFaqAccordion">
@@ -2002,7 +2630,200 @@ $bulanIndo = [
 </section>
 
 <!-- =========================================================
-     9. BIRO PBJ SETDA PROVINSI LAMPUNG & TAUTAN EKOSISTEM
+     9. STATISTIK PENGUNJUNG & PEMANFAATAN PORTAL (COMPACT PORTAL STYLE)
+     ========================================================= -->
+<section class="visitor-stats-section">
+    <div class="container">
+        <!-- Compact Section Header -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-1">
+            <div>
+                <div class="d-inline-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-white border text-primary px-2 py-1 radius-20 text-2xs fw-bold">
+                        <iconify-icon icon="solar:chart-2-bold" class="me-1"></iconify-icon>
+                        Transparansi Akses Publik
+                    </span>
+                    <span class="visitor-pulse-indicator">
+                        <span class="visitor-pulse-dot"></span>
+                        <span>Real-Time Tracker</span>
+                    </span>
+                </div>
+                <h3 class="text-xl fw-bold text-dark mb-0">Statistik Trafik &amp; Kunjungan Portal</h3>
+            </div>
+            <p class="text-xs text-muted mb-0 d-none d-md-block" style="max-width: 420px; line-height: 1.4;">
+                Pantauan berkala akses dan pemanfaatan sistem pengadaan terpadu Provinsi Lampung secara terbuka dan akuntabel.
+            </p>
+        </div>
+
+        <div class="row g-3 align-items-stretch">
+            <!-- Kolom 1: Akses Landing Page Utama (Home) -->
+            <div class="col-lg-5">
+                <div class="visitor-compact-card card-home">
+                    <div>
+                        <!-- Header -->
+                        <div class="visitor-card-header">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="visitor-card-header-icon" style="background: #eff6ff; color: #0c5aa6;">
+                                    <iconify-icon icon="solar:home-2-bold"></iconify-icon>
+                                </div>
+                                <div>
+                                    <h4 class="visitor-card-title">Trafik Kunjungan Beranda</h4>
+                                    <p class="visitor-card-subtitle">Frekuensi pembukaan halaman utama BegawiPengadaan</p>
+                                </div>
+                            </div>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle text-2xs fw-bold px-2 py-1 radius-999 d-inline-flex align-items-center gap-1">
+                                <iconify-icon icon="solar:verified-check-bold"></iconify-icon> Akumulatif
+                            </span>
+                        </div>
+
+                        <!-- Summary Total Box -->
+                        <div class="visitor-home-summary-box">
+                            <div>
+                                <div class="visitor-home-summary-label">Total Akumulasi Pembukaan</div>
+                                <div class="visitor-home-summary-num">
+                                    <?= number_format($visitorStats['home']['total'] ?? 0) ?>
+                                    <span class="fs-6 fw-semibold text-muted ms-1">kali dibuka</span>
+                                </div>
+                            </div>
+                            <div class="p-2 rounded-circle" style="background: #eff6ff; color: #0c5aa6; font-size: 20px;">
+                                <iconify-icon icon="solar:fire-bold"></iconify-icon>
+                            </div>
+                        </div>
+
+                        <!-- 4 Interval Grid: Hari Ini, Minggu Ini, Bulan Ini, Tahun Ini -->
+                        <div class="visitor-intervals-grid">
+                            <!-- Hari Ini -->
+                            <div class="visitor-interval-box">
+                                <div class="visitor-interval-icon" style="background: #fffbeb; color: #d97706;">
+                                    <iconify-icon icon="solar:sun-2-bold"></iconify-icon>
+                                </div>
+                                <div>
+                                    <div class="visitor-interval-val">
+                                        <?= number_format($visitorStats['home']['today'] ?? 0) ?>
+                                    </div>
+                                    <div class="visitor-interval-lbl">Hari Ini</div>
+                                </div>
+                            </div>
+
+                            <!-- Minggu Ini -->
+                            <div class="visitor-interval-box">
+                                <div class="visitor-interval-icon" style="background: #eff6ff; color: #0284c7;">
+                                    <iconify-icon icon="solar:calendar-linear"></iconify-icon>
+                                </div>
+                                <div>
+                                    <div class="visitor-interval-val">
+                                        <?= number_format($visitorStats['home']['this_week'] ?? 0) ?>
+                                    </div>
+                                    <div class="visitor-interval-lbl">Minggu Ini</div>
+                                </div>
+                            </div>
+
+                            <!-- Bulan Ini -->
+                            <div class="visitor-interval-box">
+                                <div class="visitor-interval-icon" style="background: #ecfdf5; color: #059669;">
+                                    <iconify-icon icon="solar:calendar-mark-bold"></iconify-icon>
+                                </div>
+                                <div>
+                                    <div class="visitor-interval-val">
+                                        <?= number_format($visitorStats['home']['this_month'] ?? 0) ?>
+                                    </div>
+                                    <div class="visitor-interval-lbl">Bulan Ini (<?= ($bulanIndo[(int) date('n')] ?? date('M')) ?>)</div>
+                                </div>
+                            </div>
+
+                            <!-- Tahun Ini -->
+                            <div class="visitor-interval-box">
+                                <div class="visitor-interval-icon" style="background: #f5f3ff; color: #7c3aed;">
+                                    <iconify-icon icon="solar:chart-square-bold"></iconify-icon>
+                                </div>
+                                <div>
+                                    <div class="visitor-interval-val">
+                                        <?= number_format($visitorStats['home']['this_year'] ?? 0) ?>
+                                    </div>
+                                    <div class="visitor-interval-lbl">Tahun Ini (<?= date('Y') ?>)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="visitor-card-footer">
+                        <iconify-icon icon="solar:shield-check-bold" class="text-success text-base flex-shrink-0"></iconify-icon>
+                        <span>Dihitung akumulatif tanpa batasan sesi pengguna (non-unique page views).</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kolom 2: Distribusi Pemanfaatan Fitur Unggulan (5 Fitur) -->
+            <div class="col-lg-7">
+                <div class="visitor-compact-card card-features">
+                    <div>
+                        <!-- Header -->
+                        <div class="visitor-card-header">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="visitor-card-header-icon" style="background: #ecfdf5; color: #059669;">
+                                    <iconify-icon icon="solar:chart-2-bold"></iconify-icon>
+                                </div>
+                                <div>
+                                    <h4 class="visitor-card-title">Frekuensi Akses Fitur Unggulan</h4>
+                                    <p class="visitor-card-subtitle">Aktivitas pembukaan modul portal pengadaan</p>
+                                </div>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-2xs fw-bold px-2 py-1 radius-999">
+                                Total <?= number_format($visitorStats['total_feature_hits'] ?? 0) ?> Akses
+                            </span>
+                        </div>
+
+                        <!-- 5 Feature Items List -->
+                        <div class="visitor-features-list">
+                            <?php if (! empty($visitorStats['features'])): ?>
+                                <?php foreach ($visitorStats['features'] as $fKey => $fData): ?>
+                                    <a href="<?= esc($fData['url']) ?>" class="visitor-feature-row" style="--feat-color: <?= esc($fData['color']) ?>; --feat-border: <?= esc($fData['border']) ?>;">
+                                        <div class="d-flex align-items-center justify-content-between gap-2">
+                                            <div class="d-flex align-items-center gap-2 min-w-0">
+                                                <div class="visitor-feature-icon-box" style="background: <?= esc($fData['bg']) ?>; color: <?= esc($fData['color']) ?>;">
+                                                    <iconify-icon icon="<?= esc($fData['icon']) ?>"></iconify-icon>
+                                                </div>
+                                                <div class="text-truncate">
+                                                    <div class="visitor-feature-name text-truncate">
+                                                        <?= esc($fData['label']) ?>
+                                                        <span class="badge bg-light text-muted border text-2xs ms-1"><?= esc($fData['percentage']) ?>%</span>
+                                                    </div>
+                                                    <div class="visitor-feature-desc text-truncate">
+                                                        <?= esc($fData['description']) ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="text-end flex-shrink-0">
+                                                <div class="fw-bold text-dark text-xs">
+                                                    <?= number_format($fData['hits_total']) ?> <small class="text-muted fw-normal">tayang</small>
+                                                </div>
+                                                <span class="badge bg-success-subtle text-success text-2xs px-1 py-0">
+                                                    +<?= number_format($fData['hits_today']) ?> hari ini
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="visitor-progress-track">
+                                            <div class="visitor-progress-fill" style="width: <?= esc($fData['percentage']) ?>%; background: <?= esc($fData['color']) ?>;"></div>
+                                        </div>
+                                    </a>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="visitor-card-footer">
+                        <iconify-icon icon="solar:info-circle-bold" class="text-primary text-base flex-shrink-0"></iconify-icon>
+                        <span>Tercatat otomatis pada setiap kunjungan modul terkait secara transparan.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================================
+     10. BIRO PBJ SETDA PROVINSI LAMPUNG & TAUTAN EKOSISTEM
      ========================================================= -->
 <section class="section-spacious biro-showcase-bg">
     <div class="container">
@@ -2013,9 +2834,16 @@ $bulanIndo = [
                     <span>Tentang Penyelenggara</span>
                 </div>
                 <h2 class="section-title-main">Biro Pengadaan Barang &amp; Jasa Sekretariat Daerah Provinsi Lampung</h2>
-                <p class="text-slate-600 mb-4" style="line-height: 1.7;">
+                <p class="text-slate-600 mb-3" style="line-height: 1.7;">
                     Sebagai Unit Kerja Pengadaan Barang/Jasa (UKPBJ) Pemerintah Provinsi Lampung, kami berkomitmen mewujudkan pengadaan yang <strong>kredibel, transparan, akuntabel, dan bebas gratifikasi</strong> berlandaskan budaya kerja PATIK (Profesional, Akuntabel, Transparan, Integritas, Kredibel).
                 </p>
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <span class="patik-chip"><iconify-icon icon="solar:star-bold" class="text-primary"></iconify-icon><strong>P</strong> &middot; Profesional</span>
+                    <span class="patik-chip"><iconify-icon icon="solar:shield-check-bold" class="text-info"></iconify-icon><strong>A</strong> &middot; Akuntabel</span>
+                    <span class="patik-chip"><iconify-icon icon="solar:eye-bold" class="text-success"></iconify-icon><strong>T</strong> &middot; Transparan</span>
+                    <span class="patik-chip"><iconify-icon icon="solar:lock-keyhole-bold" class="text-warning"></iconify-icon><strong>I</strong> &middot; Integritas</span>
+                    <span class="patik-chip"><iconify-icon icon="solar:medal-ribbon-star-bold" class="text-danger"></iconify-icon><strong>K</strong> &middot; Kredibel</span>
+                </div>
                 <div class="row g-3">
                     <div class="col-sm-6">
                         <div class="d-flex align-items-center gap-3 p-3 bg-white border radius-12">
@@ -2038,40 +2866,69 @@ $bulanIndo = [
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="p-32 bg-white border radius-20 shadow-sm">
-                    <h4 class="text-lg fw-bold mb-3 text-dark">Portal Mitra Ekosistem Nasional &amp; Daerah</h4>
-                    <p class="text-sm text-slate-500 mb-4">Akses langsung ke sistem layanan pengadaan resmi pemerintah:</p>
-                    <div class="d-grid gap-2">
-                        <a href="https://lpse.lampungprov.go.id" target="_blank" rel="noopener noreferrer" class="btn btn-outline-neutral-300 p-3 d-flex align-items-center justify-content-between radius-10 text-dark text-decoration-none">
-                            <div class="d-flex align-items-center gap-3">
-                                <iconify-icon icon="solar:server-bold" class="text-primary text-xl"></iconify-icon>
-                                <div>
-                                    <strong class="d-block text-sm">LPSE Provinsi Lampung</strong>
-                                    <small class="text-muted">Sistem Pengadaan Secara Elektronik (SPSE)</small>
-                                </div>
+                <div class="ecosystem-portal-card">
+                    <div class="ecosystem-portal-header">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="ecosystem-portal-header-icon">
+                                <iconify-icon icon="solar:global-bold"></iconify-icon>
                             </div>
-                            <iconify-icon icon="solar:arrow-right-up-linear" class="text-muted"></iconify-icon>
-                        </a>
-                        <a href="https://sirup.lkpp.go.id" target="_blank" rel="noopener noreferrer" class="btn btn-outline-neutral-300 p-3 d-flex align-items-center justify-content-between radius-10 text-dark text-decoration-none">
-                            <div class="d-flex align-items-center gap-3">
-                                <iconify-icon icon="solar:document-add-bold" class="text-success text-xl"></iconify-icon>
-                                <div>
-                                    <strong class="d-block text-sm">SiRUP LKPP</strong>
-                                    <small class="text-muted">Sistem Informasi Rencana Umum Pengadaan</small>
-                                </div>
+                            <div>
+                                <h4 class="ecosystem-portal-title">Portal Mitra Ekosistem Nasional &amp; Daerah</h4>
+                                <p class="ecosystem-portal-subtitle">Akses langsung ke sistem layanan pengadaan resmi pemerintah</p>
                             </div>
-                            <iconify-icon icon="solar:arrow-right-up-linear" class="text-muted"></iconify-icon>
-                        </a>
-                        <a href="https://e-katalog.lkpp.go.id" target="_blank" rel="noopener noreferrer" class="btn btn-outline-neutral-300 p-3 d-flex align-items-center justify-content-between radius-10 text-dark text-decoration-none">
-                            <div class="d-flex align-items-center gap-3">
-                                <iconify-icon icon="solar:cart-large-4-bold" class="text-warning text-xl"></iconify-icon>
-                                <div>
-                                    <strong class="d-block text-sm">Katalog Elektronik (E-Katalog LKPP)</strong>
-                                    <small class="text-muted">Belanja pengadaan daring komoditas nasional &amp; lokal</small>
-                                </div>
+                        </div>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle text-2xs fw-bold px-2 py-1 radius-999 d-none d-sm-inline-flex align-items-center gap-1">
+                            <iconify-icon icon="solar:verified-check-bold"></iconify-icon> Resmi
+                        </span>
+                    </div>
+
+                    <div class="ecosystem-items-list">
+                        <!-- Portal 1: LPSE Lampung -->
+                        <a href="https://lpse.lampungprov.go.id" target="_blank" rel="noopener noreferrer" class="ecosystem-item-link" style="--item-accent: #0284c7; --item-bg: #eff6ff;">
+                            <div class="ecosystem-item-icon">
+                                <iconify-icon icon="solar:server-square-bold"></iconify-icon>
                             </div>
-                            <iconify-icon icon="solar:arrow-right-up-linear" class="text-muted"></iconify-icon>
+                            <div class="ecosystem-item-content">
+                                <strong class="ecosystem-item-name">LPSE Provinsi Lampung</strong>
+                                <span class="ecosystem-item-desc">Sistem Pengadaan Secara Elektronik (SPSE)</span>
+                            </div>
+                            <div class="ecosystem-item-action">
+                                <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+                            </div>
                         </a>
+
+                        <!-- Portal 2: SiRUP LKPP -->
+                        <a href="https://sirup.lkpp.go.id" target="_blank" rel="noopener noreferrer" class="ecosystem-item-link" style="--item-accent: #10b981; --item-bg: #ecfdf5;">
+                            <div class="ecosystem-item-icon">
+                                <iconify-icon icon="solar:document-add-bold"></iconify-icon>
+                            </div>
+                            <div class="ecosystem-item-content">
+                                <strong class="ecosystem-item-name">SiRUP LKPP</strong>
+                                <span class="ecosystem-item-desc">Sistem Informasi Rencana Umum Pengadaan</span>
+                            </div>
+                            <div class="ecosystem-item-action">
+                                <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+                            </div>
+                        </a>
+
+                        <!-- Portal 3: E-Katalog LKPP -->
+                        <a href="https://e-katalog.lkpp.go.id" target="_blank" rel="noopener noreferrer" class="ecosystem-item-link" style="--item-accent: #f59e0b; --item-bg: #fffbeb;">
+                            <div class="ecosystem-item-icon">
+                                <iconify-icon icon="solar:cart-large-4-bold"></iconify-icon>
+                            </div>
+                            <div class="ecosystem-item-content">
+                                <strong class="ecosystem-item-name">Katalog Elektronik (E-Katalog LKPP)</strong>
+                                <span class="ecosystem-item-desc">Belanja pengadaan daring komoditas nasional &amp; lokal</span>
+                            </div>
+                            <div class="ecosystem-item-action">
+                                <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="ecosystem-portal-footer">
+                        <iconify-icon icon="solar:shield-check-bold" class="text-success text-base flex-shrink-0"></iconify-icon>
+                        <span>Tautan resmi terenkripsi SSL/TLS langsung ke domain pemerintah (.go.id).</span>
                     </div>
                 </div>
             </div>
@@ -2087,7 +2944,7 @@ $bulanIndo = [
         <div class="cta-banner-modern">
             <div class="row align-items-center">
                 <div class="col-lg-8">
-                    <span class="badge bg-warning text-dark px-3 py-1 radius-6 text-xs fw-bold mb-3 text-uppercase">Mari Bergabung Bersama BegawiPBJ</span>
+                    <span class="badge bg-warning text-dark px-3 py-1 radius-6 text-xs fw-bold mb-3 text-uppercase">Mari Bergabung Bersama BegawiPengadaan</span>
                     <h3 class="text-3xl fw-bold text-white mb-3">Tingkatkan Profesionalisme &amp; Kepatuhan Pengadaan Anda</h3>
                     <p class="text-slate-300 mb-0" style="max-width: 600px; font-size: 16px;">
                         Daftar akun sebagai aparatur pemerintah, staf pengadaan, atau penyedia barang/jasa untuk mengikuti kelas terstruktur, mengunduh template dokumen, dan memperoleh sertifikat kompetensi.
@@ -2113,14 +2970,14 @@ $bulanIndo = [
 
 <?= $this->section('pageScripts') ?>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         // Dynamic search form target switcher
         const searchForm = document.getElementById('heroSearchForm');
         const targetSelect = document.getElementById('heroSearchTarget');
         const searchInput = document.getElementById('heroSearchInput');
 
         if (searchForm && targetSelect) {
-            targetSelect.addEventListener('change', function () {
+            targetSelect.addEventListener('change', function() {
                 const base = '<?= site_url('') ?>';
                 searchForm.action = base + '/' + this.value;
                 if (this.value === 'regulasi') {

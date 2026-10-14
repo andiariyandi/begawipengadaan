@@ -44,7 +44,7 @@ class GradingController extends BaseController
         ];
 
         return view('dashboard/learning/gradings/index', [
-            'title'       => 'Penilaian | Dashboard BegawiPBJ',
+            'title'       => 'Penilaian | Dashboard BegawiPengadaan',
             'pageTitle'   => 'Penilaian dan Evaluasi Tugas',
             'submissions' => $submissions,
             'stats'       => $stats,
@@ -79,7 +79,7 @@ class GradingController extends BaseController
             ->get()->getResultArray();
 
         return view('dashboard/learning/gradings/detail', [
-            'title'         => 'Detail Penilaian | Dashboard BegawiPBJ',
+            'title'         => 'Detail Penilaian | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Penilaian Tugas',
             'gradingId'     => $id,
             'submission'    => $submission,

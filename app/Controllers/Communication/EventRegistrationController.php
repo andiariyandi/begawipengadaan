@@ -51,7 +51,7 @@ class EventRegistrationController extends BaseController
         ];
 
         return view('dashboard/communication/registrations/index', [
-            'title'         => 'Registrasi Event | Dashboard BegawiPBJ',
+            'title'         => 'Registrasi Event | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Registrasi Event',
             'activeMenu'    => 'communication',
             'activeSubmenu' => 'event-registrations',
@@ -72,7 +72,7 @@ class EventRegistrationController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Registrasi tidak ditemukan.');
         }
         return view('dashboard/communication/registrations/detail', [
-            'title'         => 'Detail Registrasi | Dashboard BegawiPBJ',
+            'title'         => 'Detail Registrasi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Registrasi',
             'activeMenu'    => 'communication',
             'activeSubmenu' => 'event-registrations',
@@ -125,7 +125,7 @@ class EventRegistrationController extends BaseController
         ];
 
         return view('dashboard/communication/waitlist_cancellations/index', [
-            'title'         => 'Waitlist dan Pembatalan | Dashboard BegawiPBJ',
+            'title'         => 'Waitlist dan Pembatalan | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Waitlist dan Pembatalan',
             'activeMenu'    => 'communication',
             'activeSubmenu' => 'waitlist-cancellations',

@@ -14,7 +14,7 @@ $dateTo         = $dateTo ?? '';
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Riwayat & Arsip Sertifikat PBJ</h6>
-        <p class="text-secondary-light mb-0">Arsip seluruh sertifikat yang pernah diterbitkan untuk kegiatan pembelajaran dan event BegawiPBJ.</p>
+        <p class="text-secondary-light mb-0">Arsip seluruh sertifikat yang pernah diterbitkan untuk kegiatan pembelajaran dan event BegawiPengadaan.</p>
     </div>
     <div class="d-flex align-items-center gap-2">
         <a href="<?= site_url('dashboard/sertifikat') ?>" class="btn btn-outline-primary-600 radius-8 px-16 py-9 d-flex align-items-center gap-2 text-sm">
@@ -108,7 +108,7 @@ $dateTo         = $dateTo ?? '';
                     <label class="form-label text-sm fw-medium mb-1">Status Sertifikat</label>
                     <select name="status" class="form-select radius-8">
                         <option value="all" <?= $statusFilter === 'all' ? 'selected' : '' ?>>Semua Status</option>
-                        <option value="issued"  <?= $statusFilter === 'issued'  ? 'selected' : '' ?>>Aktif (Issued)</option>
+                        <option value="issued" <?= $statusFilter === 'issued'  ? 'selected' : '' ?>>Aktif (Issued)</option>
                         <option value="revoked" <?= $statusFilter === 'revoked' ? 'selected' : '' ?>>Dicabut (Revoked)</option>
                         <option value="expired" <?= $statusFilter === 'expired' ? 'selected' : '' ?>>Kedaluwarsa</option>
                     </select>
@@ -158,8 +158,8 @@ $dateTo         = $dateTo ?? '';
                     <tbody>
                         <?php foreach ($certificates as $certificate): ?>
                             <?php
-                                $userName = $certificate['user_name'] ?? 'Peserta PBJ';
-                                $initials = strtoupper(substr($userName, 0, 2));
+                            $userName = $certificate['user_name'] ?? 'Peserta PBJ';
+                            $initials = strtoupper(substr($userName, 0, 2));
                             ?>
                             <tr>
                                 <td>
@@ -216,8 +216,8 @@ $dateTo         = $dateTo ?? '';
                                         </a>
                                         <?php if ($certificate['status'] === 'issued'): ?>
                                             <button type="button" class="w-32-px h-32-px bg-danger-50 text-danger-600 rounded-circle d-flex align-items-center justify-content-center text-md border-0"
-                                                    title="Cabut Sertifikat"
-                                                    onclick="handleRevoke(<?= (int) $certificate['id'] ?>, '<?= esc($certificate['certificate_number']) ?>')">
+                                                title="Cabut Sertifikat"
+                                                onclick="handleRevoke(<?= (int) $certificate['id'] ?>, '<?= esc($certificate['certificate_number']) ?>')">
                                                 <iconify-icon icon="solar:close-circle-outline"></iconify-icon>
                                             </button>
                                         <?php endif; ?>
@@ -268,12 +268,12 @@ $dateTo         = $dateTo ?? '';
 </div>
 
 <script>
-function handleRevoke(certId, certNumber) {
-    document.getElementById('revokeCertNumber').innerText = certNumber;
-    document.getElementById('revokeForm').action = '<?= site_url('dashboard/sertifikat') ?>/' + certId + '/cabut';
-    var myModal = new bootstrap.Modal(document.getElementById('revokeModal'));
-    myModal.show();
-}
+    function handleRevoke(certId, certNumber) {
+        document.getElementById('revokeCertNumber').innerText = certNumber;
+        document.getElementById('revokeForm').action = '<?= site_url('dashboard/sertifikat') ?>/' + certId + '/cabut';
+        var myModal = new bootstrap.Modal(document.getElementById('revokeModal'));
+        myModal.show();
+    }
 </script>
 
 <?= $this->endSection() ?>

@@ -53,7 +53,7 @@ class ProgramController extends BaseController
         ];
 
         return view('dashboard/learning/programs/index', [
-            'title'         => 'Program | Dashboard BegawiPBJ',
+            'title'         => 'Program | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Program Pembelajaran',
             'programs'      => $programs,
             'stats'         => $stats,
@@ -70,7 +70,7 @@ class ProgramController extends BaseController
     public function create(): string
     {
         return view('dashboard/learning/programs/form', [
-            'title' => 'Tambah Program | Dashboard BegawiPBJ',
+            'title' => 'Tambah Program | Dashboard BegawiPengadaan',
             'pageTitle' => 'Tambah Program',
             'formMode' => 'create',
             'program' => null,
@@ -105,7 +105,7 @@ class ProgramController extends BaseController
         }
 
         return view('dashboard/learning/programs/detail', [
-            'title' => 'Detail Program | Dashboard BegawiPBJ',
+            'title' => 'Detail Program | Dashboard BegawiPengadaan',
             'pageTitle' => 'Detail Program',
             'programId' => $id,
             'program' => $program,
@@ -122,7 +122,7 @@ class ProgramController extends BaseController
         }
 
         return view('dashboard/learning/programs/form', [
-            'title' => 'Ubah Program | Dashboard BegawiPBJ',
+            'title' => 'Ubah Program | Dashboard BegawiPengadaan',
             'pageTitle' => 'Ubah Program',
             'formMode' => 'edit',
             'programId' => $id,

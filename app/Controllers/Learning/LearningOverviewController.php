@@ -38,8 +38,8 @@ class LearningOverviewController extends BaseController
 
         $eligibleCertificates = (int) $db->table('enrollments')
             ->groupStart()
-                ->whereIn('status', ['completed', 'passed'])
-                ->orWhere('certificate_eligible_at IS NOT NULL', null, false)
+            ->whereIn('status', ['completed', 'passed'])
+            ->orWhere('certificate_eligible_at IS NOT NULL', null, false)
             ->groupEnd()
             ->countAllResults();
 
@@ -55,7 +55,7 @@ class LearningOverviewController extends BaseController
             'active_trainers'      => $activeTrainers,
             'active_participants'  => $activeParticipants,
             'completion_rate'      => $completionRate,
-            'eligible_certificates'=> $eligibleCertificates,
+            'eligible_certificates' => $eligibleCertificates,
             'issued_certificates'  => $issuedCertificates,
         ];
 
@@ -99,7 +99,7 @@ class LearningOverviewController extends BaseController
             ->get()->getResultArray();
 
         return view('dashboard/learning/overview', [
-            'title'              => 'Overview Arena Belajar | Dashboard BegawiPBJ',
+            'title'              => 'Overview Arena Belajar | Dashboard BegawiPengadaan',
             'pageTitle'          => 'Overview Arena Belajar',
             'stats'              => $stats,
             'recentClasses'      => $recentClasses,

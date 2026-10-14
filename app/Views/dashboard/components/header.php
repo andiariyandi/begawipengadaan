@@ -59,7 +59,7 @@
 
                 <div class="dropdown">
                     <button class="d-flex justify-content-center align-items-center rounded-circle" type="button" data-bs-toggle="dropdown">
-                        <img src="<?= base_url('assets/dashboard/images/user.png') ?>" alt="Admin BegawiPBJ" class="w-40-px h-40-px object-fit-cover rounded-circle">
+                        <img src="<?= base_url('assets/dashboard/images/user.png') ?>" alt="Admin BegawiPengadaan" class="w-40-px h-40-px object-fit-cover rounded-circle">
                     </button>
                     <div class="dropdown-menu to-top dropdown-menu-sm">
                         <div class="py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2">
@@ -68,7 +68,7 @@
                                     Administrator
                                 </h6>
                                 <span class="text-secondary-light fw-medium text-sm">
-                                    BegawiPBJ
+                                    BegawiPengadaan
                                 </span>
                             </div>
                         </div>

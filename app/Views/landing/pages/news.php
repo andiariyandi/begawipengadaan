@@ -442,7 +442,7 @@
         align-items: center;
         justify-content: center;
         color: #0f172a;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .headline-carousel-ctrl:hover {
@@ -810,18 +810,23 @@
         .news-hero-banner {
             padding: 150px 0 65px;
         }
+
         .news-hero-title {
             font-size: 32px;
         }
+
         .news-headline-img-wrap {
             height: 260px;
         }
+
         .news-headline-content {
             padding: 28px 24px;
         }
+
         .headline-carousel-ctrl.carousel-control-prev {
             left: 8px;
         }
+
         .headline-carousel-ctrl.carousel-control-next {
             right: 8px;
         }
@@ -925,14 +930,14 @@
         <!-- Filter Pills & Sorting Row -->
         <div class="news-filter-wrapper">
             <div class="news-category-pills">
-                <a href="<?= site_url('berita') . (! empty($keyword) ? '?q=' . urlencode($keyword) : '') ?>" 
-                   class="news-cat-pill <?= empty($selectedCategory) ? 'active' : '' ?>">
+                <a href="<?= site_url('berita') . (! empty($keyword) ? '?q=' . urlencode($keyword) : '') ?>"
+                    class="news-cat-pill <?= empty($selectedCategory) ? 'active' : '' ?>">
                     <span>Semua Kategori</span>
                     <span class="pill-badge"><?= $stats['total_news'] ?></span>
                 </a>
                 <?php foreach ($categories as $cat): ?>
-                    <a href="<?= site_url('berita/kategori/' . $cat['slug']) . (! empty($keyword) ? '?q=' . urlencode($keyword) : '') ?>" 
-                       class="news-cat-pill <?= $selectedCategory === $cat['slug'] ? 'active' : '' ?>">
+                    <a href="<?= site_url('berita/kategori/' . $cat['slug']) . (! empty($keyword) ? '?q=' . urlencode($keyword) : '') ?>"
+                        class="news-cat-pill <?= $selectedCategory === $cat['slug'] ? 'active' : '' ?>">
                         <span><?= esc($cat['name']) ?></span>
                         <span class="pill-badge"><?= $cat['news_count'] ?></span>
                     </a>
@@ -964,8 +969,8 @@
         <?php endif; ?>
 
         <!-- Headline Showcase (Supports up to 5 Featured Articles) -->
-        <?php 
-            $headlineList = ! empty($headlineArticles) ? $headlineArticles : (! empty($headlineArticle) ? [$headlineArticle] : []);
+        <?php
+        $headlineList = ! empty($headlineArticles) ? $headlineArticles : (! empty($headlineArticle) ? [$headlineArticle] : []);
         ?>
         <?php if (! empty($headlineList)): ?>
             <?php if (count($headlineList) > 1): ?>
@@ -978,9 +983,9 @@
                                     <div class="row g-0 align-items-center">
                                         <div class="col-lg-6">
                                             <div class="news-headline-img-wrap">
-                                                <img src="<?= $hItem['cover_url'] ?: base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>" 
-                                                     alt="<?= esc($hItem['title']) ?>" 
-                                                     class="news-headline-img">
+                                                <img src="<?= $hItem['cover_url'] ?: base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>"
+                                                    alt="<?= esc($hItem['title']) ?>"
+                                                    class="news-headline-img">
                                                 <div class="news-badge-headline">
                                                     <i class="fas fa-star me-1"></i>
                                                     <span>Berita Utama #<?= $hIndex + 1 ?></span>
@@ -1034,10 +1039,10 @@
                     <!-- Carousel Indicators (Pills 1..5) -->
                     <div class="carousel-indicators headline-carousel-indicators">
                         <?php foreach ($headlineList as $hIndex => $hItem): ?>
-                            <button type="button" data-bs-target="#headlineCarousel" data-bs-slide-to="<?= $hIndex ?>" 
-                                    class="<?= $hIndex === 0 ? 'active' : '' ?>" 
-                                    aria-current="<?= $hIndex === 0 ? 'true' : 'false' ?>" 
-                                    aria-label="Berita Utama <?= $hIndex + 1 ?>">
+                            <button type="button" data-bs-target="#headlineCarousel" data-bs-slide-to="<?= $hIndex ?>"
+                                class="<?= $hIndex === 0 ? 'active' : '' ?>"
+                                aria-current="<?= $hIndex === 0 ? 'true' : 'false' ?>"
+                                aria-label="Berita Utama <?= $hIndex + 1 ?>">
                                 <span>Utama #<?= $hIndex + 1 ?></span>
                             </button>
                         <?php endforeach; ?>
@@ -1057,9 +1062,9 @@
                     <div class="row g-0 align-items-center">
                         <div class="col-lg-6">
                             <div class="news-headline-img-wrap">
-                                <img src="<?= $singleArticle['cover_url'] ?: base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>" 
-                                     alt="<?= esc($singleArticle['title']) ?>" 
-                                     class="news-headline-img">
+                                <img src="<?= $singleArticle['cover_url'] ?: base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>"
+                                    alt="<?= esc($singleArticle['title']) ?>"
+                                    class="news-headline-img">
                                 <div class="news-badge-headline">
                                     <i class="fas fa-star me-1"></i>
                                     <span>Berita Utama</span>
@@ -1124,16 +1129,16 @@
                 <?php else: ?>
                     <div class="row g-4">
                         <?php foreach ($items as $index => $item): ?>
-                            <?php 
-                                $sampleImages = [
-                                    base_url('assets/main/images/blog/blog-list-1-1.jpg'),
-                                    base_url('assets/main/images/blog/blog-list-1-3.jpg'),
-                                    base_url('assets/main/images/blog/blog-1-1.jpg'),
-                                    base_url('assets/main/images/blog/blog-1-2.jpg'),
-                                    base_url('assets/main/images/blog/blog-1-3.jpg'),
-                                    base_url('assets/main/images/blog/blog-2-1.jpg'),
-                                ];
-                                $thumbUrl = $item['cover_url'] ?: $sampleImages[$index % count($sampleImages)];
+                            <?php
+                            $sampleImages = [
+                                base_url('assets/main/images/blog/blog-list-1-1.jpg'),
+                                base_url('assets/main/images/blog/blog-list-1-3.jpg'),
+                                base_url('assets/main/images/blog/blog-1-1.jpg'),
+                                base_url('assets/main/images/blog/blog-1-2.jpg'),
+                                base_url('assets/main/images/blog/blog-1-3.jpg'),
+                                base_url('assets/main/images/blog/blog-2-1.jpg'),
+                            ];
+                            $thumbUrl = $item['cover_url'] ?: $sampleImages[$index % count($sampleImages)];
                             ?>
                             <div class="col-md-6">
                                 <article class="news-grid-card">
@@ -1179,26 +1184,26 @@
                     <!-- Clean Pagination Bar -->
                     <?php if ($totalPages > 1): ?>
                         <?php
-                            $queryParams = [];
-                            if (! empty($keyword)) $queryParams['q'] = $keyword;
-                            if (! empty($sort) && $sort !== 'newest') $queryParams['sort'] = $sort;
-                            $buildUrl = function ($p) use ($queryParams) {
-                                $params = array_merge($queryParams, ['page' => $p]);
-                                return current_url() . '?' . http_build_query($params);
-                            };
+                        $queryParams = [];
+                        if (! empty($keyword)) $queryParams['q'] = $keyword;
+                        if (! empty($sort) && $sort !== 'newest') $queryParams['sort'] = $sort;
+                        $buildUrl = function ($p) use ($queryParams) {
+                            $params = array_merge($queryParams, ['page' => $p]);
+                            return current_url() . '?' . http_build_query($params);
+                        };
                         ?>
                         <nav class="news-pagination-wrap" aria-label="Navigasi Halaman Berita">
-                            <a href="<?= $buildUrl(max(1, $currentPage - 1)) ?>" 
-                               class="news-page-btn <?= $currentPage <= 1 ? 'disabled' : '' ?>" 
-                               aria-label="Halaman Sebelumnya">
+                            <a href="<?= $buildUrl(max(1, $currentPage - 1)) ?>"
+                                class="news-page-btn <?= $currentPage <= 1 ? 'disabled' : '' ?>"
+                                aria-label="Halaman Sebelumnya">
                                 <i class="fas fa-chevron-left"></i>
                                 <span class="ms-1 d-none d-sm-inline">Sebelumnya</span>
                             </a>
 
                             <?php for ($p = 1; $p <= $totalPages; $p++): ?>
                                 <?php if ($p === 1 || $p === $totalPages || ($p >= $currentPage - 1 && $p <= $currentPage + 1)): ?>
-                                    <a href="<?= $buildUrl($p) ?>" 
-                                       class="news-page-btn <?= $p === $currentPage ? 'active' : '' ?>">
+                                    <a href="<?= $buildUrl($p) ?>"
+                                        class="news-page-btn <?= $p === $currentPage ? 'active' : '' ?>">
                                         <?= $p ?>
                                     </a>
                                 <?php elseif ($p === 2 && $currentPage > 3): ?>
@@ -1208,9 +1213,9 @@
                                 <?php endif; ?>
                             <?php endfor; ?>
 
-                            <a href="<?= $buildUrl(min($totalPages, $currentPage + 1)) ?>" 
-                               class="news-page-btn <?= $currentPage >= $totalPages ? 'disabled' : '' ?>" 
-                               aria-label="Halaman Berikutnya">
+                            <a href="<?= $buildUrl(min($totalPages, $currentPage + 1)) ?>"
+                                class="news-page-btn <?= $currentPage >= $totalPages ? 'disabled' : '' ?>"
+                                aria-label="Halaman Berikutnya">
                                 <span class="me-1 d-none d-sm-inline">Berikutnya</span>
                                 <i class="fas fa-chevron-right"></i>
                             </a>
@@ -1291,7 +1296,7 @@
                     <span class="badge bg-warning text-dark px-3 py-1 radius-6 text-xs fw-bold mb-3 text-uppercase">Kanal Resmi</span>
                     <h4 class="text-lg fw-bold mb-2 text-white">Biro Pengadaan Barang &amp; Jasa Setda Provinsi Lampung</h4>
                     <p class="text-xs text-slate-300 mb-3" style="line-height: 1.6; color: #cbd5e1;">
-                        Seluruh siaran pers, klarifikasi, dan pengumuman resmi dipublikasikan melalui kanal BegawiPBJ untuk mendukung keterbukaan informasi publik dan akuntabilitas PBJ.
+                        Seluruh siaran pers, klarifikasi, dan pengumuman resmi dipublikasikan melalui kanal BegawiPengadaan untuk mendukung keterbukaan informasi publik dan akuntabilitas PBJ.
                     </p>
                     <div class="d-flex align-items-center gap-2 pt-2 border-top border-white-10" style="border-top: 1px solid rgba(255,255,255,0.15);">
                         <i class="fas fa-phone-alt text-warning text-sm"></i>

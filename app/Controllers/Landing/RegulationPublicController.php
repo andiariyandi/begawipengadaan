@@ -39,6 +39,11 @@ class RegulationPublicController extends BaseController
 
     public function index()
     {
+        try {
+            (new \App\Services\VisitorStatisticService())->recordHit('regulasi');
+        } catch (\Throwable) {
+        }
+
         $page        = max(1, (int) ($this->request->getGet('page') ?: 1));
         $categoryId  = (int) ($this->request->getGet('category_id') ?: 0) ?: null;
         $keyword     = trim((string) ($this->request->getGet('q') ?: '')) ?: null;
@@ -51,7 +56,7 @@ class RegulationPublicController extends BaseController
         $result = $this->svc->list($page, 9, $categoryId, $keyword, $legalStatus, $year, $stageId, $sort);
 
         return view('landing/pages/regulation', [
-            'title'               => 'Pusat Regulasi & Tata Kelola PBJ Lampung | BegawiPBJ',
+            'title'               => 'Pusat Regulasi & Tata Kelola PBJ Lampung | BegawiPengadaan',
             'metaDescription'     => 'Kompilasi regulasi Pengadaan Barang/Jasa Pemerintah terlengkap: Perpres 12/2021, Peraturan LKPP, Peraturan Daerah Lampung, status keberlakuan hukum, riwayat versi, dan unduh dokumen resmi.',
             'pageTitle'           => 'Pusat Regulasi PBJ',
             'regulations'         => $result['items'],
@@ -155,7 +160,7 @@ class RegulationPublicController extends BaseController
         $versions = $this->svc->versions($regId);
 
         return view('landing/pages/regulation_detail', [
-            'title'         => 'Riwayat Versi ' . ($regulation['document_number'] ?? '') . ' | BegawiPBJ',
+            'title'         => 'Riwayat Versi ' . ($regulation['document_number'] ?? '') . ' | BegawiPengadaan',
             'pageTitle'     => 'Riwayat Versi · ' . ($regulation['document_number'] ?? ''),
             'regulation'    => $regulation,
             'versions'      => $versions,
@@ -179,7 +184,7 @@ class RegulationPublicController extends BaseController
         $relations = $this->svc->relations($regId);
 
         return view('landing/pages/regulation_detail', [
-            'title'         => 'Relasi & Keterkaitan ' . ($regulation['document_number'] ?? '') . ' | BegawiPBJ',
+            'title'         => 'Relasi & Keterkaitan ' . ($regulation['document_number'] ?? '') . ' | BegawiPengadaan',
             'pageTitle'     => 'Matriks Relasi · ' . ($regulation['document_number'] ?? ''),
             'regulation'    => $regulation,
             'versions'      => $this->svc->versions($regId),

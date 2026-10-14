@@ -1,4 +1,4 @@
-# BegawiPBJ — Assessment and Certification Rules
+# BegawiPengadaan — Assessment and Certification Rules
 
 ## Tujuan
 

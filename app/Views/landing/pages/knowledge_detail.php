@@ -51,10 +51,14 @@ $readingTime = $item['reading_time'] ?? 5;
 
 <!-- Flash Alerts -->
 <?php if ($msg = session()->getFlashdata('success')): ?>
-    <div class="container mt-4"><div class="alert alert-success radius-8 mb-0"><?= esc($msg) ?></div></div>
+    <div class="container mt-4">
+        <div class="alert alert-success radius-8 mb-0"><?= esc($msg) ?></div>
+    </div>
 <?php endif; ?>
 <?php if ($msg = session()->getFlashdata('error')): ?>
-    <div class="container mt-4"><div class="alert alert-danger radius-8 mb-0"><?= esc($msg) ?></div></div>
+    <div class="container mt-4">
+        <div class="alert alert-danger radius-8 mb-0"><?= esc($msg) ?></div>
+    </div>
 <?php endif; ?>
 
 <!-- =========================================================================
@@ -440,7 +444,7 @@ $readingTime = $item['reading_time'] ?? 5;
                         <i class="fas fa-graduation-cap mx-auto mb-2 text-warning" style="font-size: 36px;"></i>
                         <h5 class="text-white fw-bold mb-2" style="font-size: 16px;">Ingin Meningkatkan Sertifikasi?</h5>
                         <p class="small text-white-80 mb-3" style="font-size: 13px; color: rgba(255,255,255,0.85);">
-                            Daftarkan diri Anda ke program pembelajaran dan kelas interaktif di Arena Belajar BegawiPBJ.
+                            Daftarkan diri Anda ke program pembelajaran dan kelas interaktif di Arena Belajar BegawiPengadaan.
                         </p>
                         <a href="<?= site_url('arena-belajar') ?>" class="btn btn-warning text-dark fw-bold radius-8 btn-sm px-3 py-2">
                             Buka Arena Belajar
@@ -456,70 +460,70 @@ $readingTime = $item['reading_time'] ?? 5;
      RELATED CONTENT SHOWCASE
      ========================================================================= -->
 <?php if (! empty($related)): ?>
-<section class="py-5 bg-white border-top">
-    <div class="container">
-        <div class="d-flex flex-wrap align-items-end justify-content-between mb-4">
-            <div class="arena-section-head mb-0">
-                <span class="arena-section-head__tag">
-                    <i class="fas fa-bookmark me-1"></i> Rekomendasi Lanjutan
-                </span>
-                <h3 class="arena-section-head__title">Materi &amp; Referensi Terkait</h3>
-                <p class="arena-section-head__desc mb-0">
-                    Kumpulan referensi relevan lainnya untuk memperkaya pemahaman Anda.
-                </p>
+    <section class="py-5 bg-white border-top">
+        <div class="container">
+            <div class="d-flex flex-wrap align-items-end justify-content-between mb-4">
+                <div class="arena-section-head mb-0">
+                    <span class="arena-section-head__tag">
+                        <i class="fas fa-bookmark me-1"></i> Rekomendasi Lanjutan
+                    </span>
+                    <h3 class="arena-section-head__title">Materi &amp; Referensi Terkait</h3>
+                    <p class="arena-section-head__desc mb-0">
+                        Kumpulan referensi relevan lainnya untuk memperkaya pemahaman Anda.
+                    </p>
+                </div>
+                <a href="<?= esc($catalogUrl) ?>" class="btn btn-outline-primary radius-8 px-4 py-2 mt-3 mt-md-0 d-inline-flex align-items-center gap-2 fw-semibold">
+                    <span>Lihat Semua <?= esc($catalogTitle) ?></span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
-            <a href="<?= esc($catalogUrl) ?>" class="btn btn-outline-primary radius-8 px-4 py-2 mt-3 mt-md-0 d-inline-flex align-items-center gap-2 fw-semibold">
-                <span>Lihat Semua <?= esc($catalogTitle) ?></span>
-                <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
 
-        <div class="row g-4">
-            <?php foreach ($related as $rel):
-                $relRoute = match ($rel['type']) {
-                    'case_study' => 'public.knowledge.case-study.detail',
-                    'template'   => 'public.knowledge.templates.detail',
-                    default      => 'public.knowledge.article.detail',
-                };
-                $relUrl = route_to($relRoute, $rel['slug']);
-                $relBookmarkType = match ($rel['type']) {
-                    'case_study' => 'knowledge_case',
-                    'template'   => 'knowledge_template',
-                    default      => 'knowledge_article',
-                };
-            ?>
-                <div class="col-xl-4 col-lg-6 col-md-6">
-                    <div class="card h-100 border-0 shadow-sm radius-16 p-4 d-flex flex-column transition-hover" style="border: 1px solid #edf2f7 !important;">
-                        <div class="d-flex align-items-center gap-2 text-muted small mb-2" style="font-size: 12px;">
-                            <span><i class="far fa-calendar-alt me-1"></i> <?= ! empty($rel['published_at']) ? esc(date('d M Y', strtotime($rel['published_at']))) : 'Terbaru' ?></span>
-                            <span>&middot;</span>
-                            <span><i class="far fa-clock me-1"></i> <?= esc($rel['reading_time'] ?? 5) ?> mnt</span>
-                        </div>
-                        <h5 class="fw-bold mb-2" style="font-size: 16px; line-height: 1.45; color: #082f5c;">
-                            <a href="<?= esc($relUrl) ?>" class="text-decoration-none text-reset hover-primary">
-                                <?= esc($rel['title']) ?>
-                            </a>
-                        </h5>
-                        <p class="text-muted small mb-4 flex-grow-1" style="line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-                            <?= esc($rel['summary'] ?? '') ?>
-                        </p>
-                        <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-auto">
-                            <a href="<?= esc($relUrl) ?>" class="small text-primary fw-semibold text-decoration-none hover-underline">
-                                Baca Materi <i class="fas fa-chevron-right ms-1" style="font-size: 10px;"></i>
-                            </a>
-                            <?= view('landing/components/bookmark_button', [
-                                'type'  => $relBookmarkType,
-                                'id'    => (int) $rel['id'],
-                                'title' => $rel['title'] ?? null,
-                                'size'  => 'sm',
-                            ]) ?>
+            <div class="row g-4">
+                <?php foreach ($related as $rel):
+                    $relRoute = match ($rel['type']) {
+                        'case_study' => 'public.knowledge.case-study.detail',
+                        'template'   => 'public.knowledge.templates.detail',
+                        default      => 'public.knowledge.article.detail',
+                    };
+                    $relUrl = route_to($relRoute, $rel['slug']);
+                    $relBookmarkType = match ($rel['type']) {
+                        'case_study' => 'knowledge_case',
+                        'template'   => 'knowledge_template',
+                        default      => 'knowledge_article',
+                    };
+                ?>
+                    <div class="col-xl-4 col-lg-6 col-md-6">
+                        <div class="card h-100 border-0 shadow-sm radius-16 p-4 d-flex flex-column transition-hover" style="border: 1px solid #edf2f7 !important;">
+                            <div class="d-flex align-items-center gap-2 text-muted small mb-2" style="font-size: 12px;">
+                                <span><i class="far fa-calendar-alt me-1"></i> <?= ! empty($rel['published_at']) ? esc(date('d M Y', strtotime($rel['published_at']))) : 'Terbaru' ?></span>
+                                <span>&middot;</span>
+                                <span><i class="far fa-clock me-1"></i> <?= esc($rel['reading_time'] ?? 5) ?> mnt</span>
+                            </div>
+                            <h5 class="fw-bold mb-2" style="font-size: 16px; line-height: 1.45; color: #082f5c;">
+                                <a href="<?= esc($relUrl) ?>" class="text-decoration-none text-reset hover-primary">
+                                    <?= esc($rel['title']) ?>
+                                </a>
+                            </h5>
+                            <p class="text-muted small mb-4 flex-grow-1" style="line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                <?= esc($rel['summary'] ?? '') ?>
+                            </p>
+                            <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-auto">
+                                <a href="<?= esc($relUrl) ?>" class="small text-primary fw-semibold text-decoration-none hover-underline">
+                                    Baca Materi <i class="fas fa-chevron-right ms-1" style="font-size: 10px;"></i>
+                                </a>
+                                <?= view('landing/components/bookmark_button', [
+                                    'type'  => $relBookmarkType,
+                                    'id'    => (int) $rel['id'],
+                                    'title' => $rel['title'] ?? null,
+                                    'size'  => 'sm',
+                                ]) ?>
+                            </div>
                         </div>
                     </div>
-                </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 <?php endif; ?>
 
 <?= $this->endSection() ?>

@@ -129,7 +129,7 @@ $revokedAtFmt = ! empty($c['revoked_at'])
                         <div class="col-md-6">
                             <div class="p-16 radius-8 border h-100">
                                 <span class="text-secondary-light text-xs d-block mb-1">TRAINER PENGAJAR</span>
-                                <span class="text-sm text-primary-light fw-medium"><?= esc($c['trainers_names'] ?? 'Pengajar BegawiPBJ') ?></span>
+                                <span class="text-sm text-primary-light fw-medium"><?= esc($c['trainers_names'] ?? 'Pengajar BegawiPengadaan') ?></span>
                             </div>
                         </div>
                     <?php else: ?>
@@ -184,13 +184,13 @@ $revokedAtFmt = ! empty($c['revoked_at'])
                     <div class="col-md-6">
                         <div class="p-16 radius-8 border h-100">
                             <span class="text-secondary-light text-xs d-block mb-1">DITERBITKAN OLEH</span>
-                            <span class="text-sm fw-semibold text-primary-light"><?= esc($c['issued_by_name'] ?? 'Sistem BegawiPBJ') ?></span>
+                            <span class="text-sm fw-semibold text-primary-light"><?= esc($c['issued_by_name'] ?? 'Sistem BegawiPengadaan') ?></span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-16 radius-8 border h-100">
                             <span class="text-secondary-light text-xs d-block mb-1">TEMPLATE YANG DIGUNAKAN</span>
-                            <span class="text-sm fw-semibold text-primary-light"><?= esc($c['template_name'] ?? 'Standar BegawiPBJ') ?></span>
+                            <span class="text-sm fw-semibold text-primary-light"><?= esc($c['template_name'] ?? 'Standar BegawiPengadaan') ?></span>
                         </div>
                     </div>
                     <div class="col-12">

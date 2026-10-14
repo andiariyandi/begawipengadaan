@@ -34,11 +34,20 @@ class RegisterController extends BaseController
             'label'        => 'ASN',
             'page_title'   => 'Profil ASN',
             'fields'       => [
-                'asn_origin', 'nip_nippk', 'employment_status', 'organization_unit_id',
-                'institution_name', 'external_unit_name', 'institution_province',
-                'institution_regency', 'institution_district_village',
-                'position', 'rank', 'official_email',
-                'has_procurement_role', 'procurement_roles',
+                'asn_origin',
+                'nip_nippk',
+                'employment_status',
+                'organization_unit_id',
+                'institution_name',
+                'external_unit_name',
+                'institution_province',
+                'institution_regency',
+                'institution_district_village',
+                'position',
+                'rank',
+                'official_email',
+                'has_procurement_role',
+                'procurement_roles',
             ],
             'required'     => ['asn_origin', 'employment_status', 'position'],
             'json_fields'  => ['procurement_roles'],
@@ -51,9 +60,14 @@ class RegisterController extends BaseController
             'label'        => 'Penyedia Barang/Jasa',
             'page_title'   => 'Profil Penyedia Barang/Jasa',
             'fields'       => [
-                'nik', 'company_name', 'business_entity_type',
-                'registrant_position', 'responsible_person',
-                'nib', 'company_email', 'company_address',
+                'nik',
+                'company_name',
+                'business_entity_type',
+                'registrant_position',
+                'responsible_person',
+                'nib',
+                'company_email',
+                'company_address',
             ],
             'required'     => ['company_name', 'business_entity_type', 'registrant_position', 'responsible_person'],
             'json_fields'  => [],
@@ -66,8 +80,14 @@ class RegisterController extends BaseController
             'label'        => 'Akademisi',
             'page_title'   => 'Profil Akademisi',
             'fields'       => [
-                'nik', 'institution_name', 'institution_type', 'academic_role',
-                'expertise', 'institution_email', 'professional_identifier', 'portfolio_url',
+                'nik',
+                'institution_name',
+                'institution_type',
+                'academic_role',
+                'expertise',
+                'institution_email',
+                'professional_identifier',
+                'portfolio_url',
             ],
             'required'     => ['institution_name', 'institution_type', 'academic_role'],
             'json_fields'  => ['expertise'],
@@ -80,8 +100,11 @@ class RegisterController extends BaseController
             'label'        => 'Masyarakat Umum',
             'page_title'   => 'Profil Masyarakat Umum',
             'fields'       => [
-                'nik', 'occupation_status', 'organization_name',
-                'procurement_interest', 'usage_purpose',
+                'nik',
+                'occupation_status',
+                'organization_name',
+                'procurement_interest',
+                'usage_purpose',
             ],
             'required'     => ['occupation_status'],
             'json_fields'  => ['procurement_interest', 'usage_purpose'],
@@ -171,7 +194,7 @@ class RegisterController extends BaseController
     public function registerAddress()
     {
         return view('dashboard/auth/register_address', [
-            'title' => 'Wilayah dan Alamat | BegawiPBJ',
+            'title' => 'Wilayah dan Alamat | BegawiPengadaan',
             'pageTitle' => 'Wilayah dan Alamat Ringkas',
             'pageDescription' => 'Langkah 2 dari 4 — Lengkapi wilayah domisili dan alamat ringkas Anda.',
             'currentStep' => 2,
@@ -200,7 +223,11 @@ class RegisterController extends BaseController
         }
 
         $address = $this->request->getPost([
-            'province', 'regency', 'district', 'village', 'address',
+            'province',
+            'regency',
+            'district',
+            'village',
+            'address',
         ]);
 
         if (! $this->isValidWilayahChain(
@@ -285,7 +312,7 @@ class RegisterController extends BaseController
         $cfg = self::PROFILE_REGISTRY[$profileType];
 
         return view($cfg['view'], [
-            'title' => $cfg['page_title'] . ' | BegawiPBJ',
+            'title' => $cfg['page_title'] . ' | BegawiPengadaan',
             'pageTitle' => $cfg['page_title'],
             'pageDescription' => 'Langkah 3 dari 4 — Lengkapi data spesifik untuk tipe profil Anda.',
             'currentStep' => 3,
@@ -299,7 +326,8 @@ class RegisterController extends BaseController
     {
         $profileType = $this->profileTypeForSegment($type);
 
-        if ($profileType === null
+        if (
+            $profileType === null
             || ! session()->has('registration_data')
             || ! session()->has('registration_address')
         ) {
@@ -352,7 +380,8 @@ class RegisterController extends BaseController
 
     public function registerReview()
     {
-        if (! session()->has('registration_data')
+        if (
+            ! session()->has('registration_data')
             || ! session()->has('registration_address')
             || ! session()->has('registration_profile')
         ) {
@@ -387,7 +416,7 @@ class RegisterController extends BaseController
         ];
 
         return view('dashboard/auth/register_review', [
-            'title' => 'Tinjau Pendaftaran | BegawiPBJ',
+            'title' => 'Tinjau Pendaftaran | BegawiPengadaan',
             'pageTitle' => 'Tinjau Data Pendaftaran',
             'pageDescription' => 'Langkah 4 dari 4 — Pastikan seluruh data yang Anda masukkan sudah benar.',
             'currentStep' => 4,
@@ -472,7 +501,7 @@ class RegisterController extends BaseController
     public function registerSuccess()
     {
         return view('dashboard/auth/register_success', [
-            'title' => 'Pendaftaran Berhasil | BegawiPBJ',
+            'title' => 'Pendaftaran Berhasil | BegawiPengadaan',
             'pageTitle' => 'Pendaftaran Berhasil Dikirim',
             'pageDescription' => 'Akun Anda sedang menunggu verifikasi Operator/Admin.',
         ]);

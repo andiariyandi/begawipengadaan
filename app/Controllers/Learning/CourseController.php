@@ -63,7 +63,7 @@ class CourseController extends BaseController
         ];
 
         return view('dashboard/learning/courses/index', [
-            'title'         => 'Course | Dashboard BegawiPBJ',
+            'title'         => 'Course | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Course Pembelajaran',
             'courses'       => $courses,
             'stats'         => $stats,
@@ -82,7 +82,7 @@ class CourseController extends BaseController
     public function create(): string
     {
         return view('dashboard/learning/courses/form', [
-            'title' => 'Tambah Course | Dashboard BegawiPBJ',
+            'title' => 'Tambah Course | Dashboard BegawiPengadaan',
             'pageTitle' => 'Tambah Course',
             'formMode' => 'create',
             'course' => null,
@@ -120,7 +120,7 @@ class CourseController extends BaseController
         }
 
         return view('dashboard/learning/courses/detail', [
-            'title' => 'Detail Course | Dashboard BegawiPBJ',
+            'title' => 'Detail Course | Dashboard BegawiPengadaan',
             'pageTitle' => 'Detail Course',
             'courseId' => $id,
             'course' => $course,
@@ -137,7 +137,7 @@ class CourseController extends BaseController
         }
 
         return view('dashboard/learning/courses/form', [
-            'title' => 'Ubah Course | Dashboard BegawiPBJ',
+            'title' => 'Ubah Course | Dashboard BegawiPengadaan',
             'pageTitle' => 'Ubah Course',
             'formMode' => 'edit',
             'courseId' => $id,

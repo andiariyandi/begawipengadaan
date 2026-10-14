@@ -3,7 +3,7 @@
 <?= $this->section('content') ?>
 <div>
     <a href="<?= site_url('/') ?>" class="mb-40 d-inline-block text-decoration-none">
-        <span class="auth-brand-text">BegawiPBJ</span>
+        <span class="auth-brand-text">BegawiPengadaan</span>
         <span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span>
     </a>
 

@@ -23,7 +23,7 @@ class CaseStudyController extends BaseKnowledgeController
         ];
 
         return view('dashboard/knowledge/case_studies/index', [
-            'title'         => 'Studi Kasus | Dashboard BegawiPBJ',
+            'title'         => 'Studi Kasus | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Studi Kasus PBJ',
             'activeMenu'    => 'knowledge',
             'activeSubmenu' => 'case-studies',
@@ -32,18 +32,18 @@ class CaseStudyController extends BaseKnowledgeController
             'categories'    => (new KnowledgeCategoryModel())->activeFlat(),
             'filterStatus'  => $status,
             'filterKeyword' => $keyword,
-            'filterCategory'=> $category,
+            'filterCategory' => $category,
         ]);
     }
 
     public function create(): string
     {
         return view('dashboard/knowledge/case_studies/form', [
-            'title'        => 'Tambah Studi Kasus | Dashboard BegawiPBJ',
+            'title'        => 'Tambah Studi Kasus | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Tambah Studi Kasus',
             'formMode'     => 'create',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'case-studies',
+            'activeSubmenu' => 'case-studies',
             'caseStudy'    => null,
             'categories'   => (new KnowledgeCategoryModel())->activeFlat(),
         ]);
@@ -93,7 +93,7 @@ class CaseStudyController extends BaseKnowledgeController
         }
         $model->insert($payload);
         $id = (int) $model->getInsertID();
-        $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn ($v) => $v > 0));
+        $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn($v) => $v > 0));
         $model->syncCategories($id, $cats);
         return redirect()->to(route_to('dashboard.knowledge.case-studies.detail', (string) $id))->with('success', 'Studi kasus berhasil ditambahkan.');
     }
@@ -105,12 +105,12 @@ class CaseStudyController extends BaseKnowledgeController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Studi kasus tidak ditemukan.');
         }
         return view('dashboard/knowledge/case_studies/detail', [
-            'title'        => 'Detail Studi Kasus | Dashboard BegawiPBJ',
+            'title'        => 'Detail Studi Kasus | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Detail Studi Kasus',
             'caseStudyId'  => (int) $id,
             'caseStudy'    => $row,
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'case-studies',
+            'activeSubmenu' => 'case-studies',
         ]);
     }
 
@@ -121,15 +121,15 @@ class CaseStudyController extends BaseKnowledgeController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Studi kasus tidak ditemukan.');
         }
         return view('dashboard/knowledge/case_studies/form', [
-            'title'        => 'Ubah Studi Kasus | Dashboard BegawiPBJ',
+            'title'        => 'Ubah Studi Kasus | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Ubah Studi Kasus',
             'formMode'     => 'edit',
             'caseStudyId'  => (int) $id,
             'caseStudy'    => $row,
             'categories'   => (new KnowledgeCategoryModel())->activeFlat(),
-            'selectedCategories' => array_map(static fn ($c) => (int) $c['id'], $row['categories'] ?? []),
+            'selectedCategories' => array_map(static fn($c) => (int) $c['id'], $row['categories'] ?? []),
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'case-studies',
+            'activeSubmenu' => 'case-studies',
         ]);
     }
 
@@ -178,7 +178,7 @@ class CaseStudyController extends BaseKnowledgeController
             $payload['cover_file_id'] = $fileId;
         }
         $model->update((int) $id, $payload);
-        $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn ($v) => $v > 0));
+        $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn($v) => $v > 0));
         $model->syncCategories((int) $id, $cats);
         return redirect()->to(route_to('dashboard.knowledge.case-studies.detail', $id))->with('success', 'Studi kasus berhasil diperbarui.');
     }

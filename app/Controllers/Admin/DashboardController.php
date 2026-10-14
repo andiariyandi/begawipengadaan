@@ -19,7 +19,7 @@ class DashboardController extends BaseController
         $summary = $this->dashboardService->getFullDashboardSummary();
 
         $context = [
-            'title'              => 'Ringkasan Dashboard | BegawiPBJ',
+            'title'              => 'Ringkasan Dashboard | BegawiPengadaan',
             'pageTitle'          => 'Ringkasan',
             'activeMenu'         => 'summary',
             'activeSubmenu'      => 'dashboard',
@@ -49,7 +49,7 @@ class DashboardController extends BaseController
     public function internalKpi(): string
     {
         return view('dashboard/home/summary', $this->buildHomeContext(
-            'KPI Internal | BegawiPBJ',
+            'KPI Internal | BegawiPengadaan',
             'KPI Internal',
             'kpi'
         ));
@@ -58,7 +58,7 @@ class DashboardController extends BaseController
     public function approvalQueue(): string
     {
         $context = $this->buildHomeContext(
-            'Antrean Persetujuan | BegawiPBJ',
+            'Antrean Persetujuan | BegawiPengadaan',
             'Antrean Persetujuan',
             'approval-queue'
         );
@@ -74,7 +74,7 @@ class DashboardController extends BaseController
     public function recentActivity(): string
     {
         $context = $this->buildHomeContext(
-            'Aktivitas Terbaru | BegawiPBJ',
+            'Aktivitas Terbaru | BegawiPengadaan',
             'Aktivitas Terbaru',
             'recent-activity'
         );
@@ -87,7 +87,7 @@ class DashboardController extends BaseController
     public function systemIndicators(): string
     {
         $context = $this->buildHomeContext(
-            'Indikator Sistem | BegawiPBJ',
+            'Indikator Sistem | BegawiPengadaan',
             'Indikator Sistem',
             'system-indicators'
         );
@@ -184,7 +184,7 @@ class DashboardController extends BaseController
         string $viewName
     ): string {
         return view('dashboard/reports/' . $viewName, [
-            'title'         => $pageTitle . ' | BegawiPBJ',
+            'title'         => $pageTitle . ' | BegawiPengadaan',
             'pageTitle'     => $pageTitle,
             'activeMenu'    => 'reports',
             'activeSubmenu' => $activeSubmenu,

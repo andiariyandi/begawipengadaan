@@ -48,7 +48,7 @@ class EventController extends BaseController
         ];
 
         return view('dashboard/communication/events/index', [
-            'title'         => 'Event & Agenda PBJ | Dashboard BegawiPBJ',
+            'title'         => 'Event & Agenda PBJ | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Event & Agenda PBJ',
             'activeMenu'    => 'communication',
             'activeSubmenu' => 'events',
@@ -66,7 +66,7 @@ class EventController extends BaseController
     public function create(): string
     {
         return view('dashboard/communication/events/form', [
-            'title'         => 'Tambah Event | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Event | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Event',
             'formMode'      => 'create',
             'activeMenu'    => 'communication',
@@ -135,7 +135,7 @@ class EventController extends BaseController
             ->get()->getResultArray();
 
         return view('dashboard/communication/events/detail', [
-            'title'            => 'Detail Event | Dashboard BegawiPBJ',
+            'title'            => 'Detail Event | Dashboard BegawiPengadaan',
             'pageTitle'        => 'Detail Event',
             'activeMenu'       => 'communication',
             'activeSubmenu'    => 'events',
@@ -207,7 +207,7 @@ class EventController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
         }
         return view('dashboard/communication/events/form', [
-            'title'         => 'Ubah Event | Dashboard BegawiPBJ',
+            'title'         => 'Ubah Event | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Ubah Event',
             'formMode'      => 'edit',
             'activeMenu'    => 'communication',

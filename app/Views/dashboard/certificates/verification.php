@@ -11,7 +11,7 @@ $notFound    = $notFound ?? false;
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Verifikasi Sertifikat PBJ</h6>
-        <p class="text-secondary-light mb-0">Pemeriksaan keaslian dan status keabsahan dokumen sertifikat resmi BegawiPBJ.</p>
+        <p class="text-secondary-light mb-0">Pemeriksaan keaslian dan status keabsahan dokumen sertifikat resmi BegawiPengadaan.</p>
     </div>
     <div class="d-flex align-items-center gap-2">
         <a href="<?= site_url('verifikasi-sertifikat') ?>" target="_blank" class="btn btn-outline-primary-600 radius-8 px-16 py-9 d-flex align-items-center gap-2 text-sm">
@@ -53,7 +53,7 @@ $notFound    = $notFound ?? false;
                     <iconify-icon icon="solar:verified-check-bold" class="text-2xl text-success-main"></iconify-icon>
                     <div>
                         <h6 class="mb-0 fw-bold text-success-main">SERTIFIKAT SAH DAN VALID</h6>
-                        <span class="text-xs text-secondary-light">Tercatat resmi dalam database BegawiPBJ Pemerintah Provinsi Lampung</span>
+                        <span class="text-xs text-secondary-light">Tercatat resmi dalam database BegawiPengadaan Pemerintah Provinsi Lampung</span>
                     </div>
                 <?php elseif ($certificate['status'] === 'revoked'): ?>
                     <iconify-icon icon="solar:close-circle-bold" class="text-2xl text-danger-main"></iconify-icon>
@@ -139,7 +139,7 @@ $notFound    = $notFound ?? false;
                         <div class="col-sm-6">
                             <span class="text-xs text-secondary-light d-block mb-1">PENERBIT RESMI</span>
                             <span class="text-sm text-secondary-light">
-                                BegawiPBJ — Pemerintah Provinsi Lampung
+                                BegawiPengadaan — Pemerintah Provinsi Lampung
                             </span>
                         </div>
                     </div>
@@ -165,7 +165,7 @@ $notFound    = $notFound ?? false;
         <iconify-icon icon="solar:danger-circle-outline" class="text-5xl text-danger-main mb-2 d-block mx-auto"></iconify-icon>
         <h6 class="fw-bold mb-1 text-danger-main">Sertifikat Tidak Ditemukan</h6>
         <p class="text-secondary-light text-sm mb-0">
-            Nomor sertifikat atau token hash "<strong><?= esc($searchQuery) ?></strong>" tidak terdaftar pada sistem BegawiPBJ.
+            Nomor sertifikat atau token hash "<strong><?= esc($searchQuery) ?></strong>" tidak terdaftar pada sistem BegawiPengadaan.
         </p>
     </div>
 <?php endif; ?>

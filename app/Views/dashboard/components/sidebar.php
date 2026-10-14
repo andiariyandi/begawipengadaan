@@ -2,7 +2,7 @@
 $currentMenu = $activeMenu ?? '';
 $currentSubmenu = $activeSubmenu ?? '';
 $activeClass = static fn(string $menu, ?string $submenu = null): string =>
-    $currentMenu === $menu && ($submenu === null || $currentSubmenu === $submenu) ? 'active-page' : '';
+$currentMenu === $menu && ($submenu === null || $currentSubmenu === $submenu) ? 'active-page' : '';
 $openClass = static fn(string $menu): string => $currentMenu === $menu ? 'open' : '';
 
 $auth = new \App\Services\Identity\AuthorizationService();
@@ -16,9 +16,9 @@ $isSuperAdmin = $auth->isSuperAdmin();
 
     <div>
         <a href="<?= site_url('dashboard') ?>" class="sidebar-logo">
-            <img src="<?= base_url('assets/dashboard/images/logo.png') ?>" alt="BegawiPBJ" class="light-logo">
-            <img src="<?= base_url('assets/dashboard/images/logo-light.png') ?>" alt="BegawiPBJ" class="dark-logo">
-            <img src="<?= base_url('assets/dashboard/images/logo-icon.png') ?>" alt="BegawiPBJ" class="logo-icon">
+            <img src="<?= base_url('assets/dashboard/images/logo.png') ?>" alt="BegawiPengadaan" class="light-logo">
+            <img src="<?= base_url('assets/dashboard/images/logo-light.png') ?>" alt="BegawiPengadaan" class="dark-logo">
+            <img src="<?= base_url('assets/dashboard/images/logo-icon.png') ?>" alt="BegawiPengadaan" class="logo-icon">
         </a>
     </div>
 

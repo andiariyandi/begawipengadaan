@@ -48,7 +48,7 @@ class ProfileController extends BaseController
         string $viewName
     ): string {
         return view('dashboard/profile/' . $viewName, [
-            'title' => $pageTitle . ' | BegawiPBJ',
+            'title' => $pageTitle . ' | BegawiPengadaan',
             'pageTitle' => $pageTitle,
             'activeMenu' => 'profile',
             'activeSubmenu' => $activeSubmenu,

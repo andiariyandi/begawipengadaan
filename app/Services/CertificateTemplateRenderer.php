@@ -22,7 +22,7 @@ use RuntimeException;
  *   {
  *     "body_html":    "<h1>...</h1>..."   // opsional; jika kosong → default layout
  *     "css":          "string css"        // opsional; tambahan styling
- *     "issuer_name":  "BegawiPBJ"         // opsional override
+ *     "issuer_name":  "BegawiPengadaan"         // opsional override
  *     "qr_position":  "right"|"bottom"    // opsional; default "right"
  *   }
  *
@@ -81,7 +81,7 @@ class CertificateTemplateRenderer
         $qrBlock = $this->renderQrBlock($payload, $certificateData);
 
         $title = htmlspecialchars((string) ($certificateData['certificate_title'] ?? 'Sertifikat'), ENT_QUOTES, 'UTF-8');
-        $headerBar = '<div class="cert-header"><span class="cert-app">BegawiPBJ</span><span class="cert-type">' . $title . '</span></div>';
+        $headerBar = '<div class="cert-header"><span class="cert-app">BegawiPengadaan</span><span class="cert-type">' . $title . '</span></div>';
 
         return '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">'
             . '<title>' . $title . '</title>'
@@ -113,7 +113,7 @@ class CertificateTemplateRenderer
             '{{certificate_number}}'  => htmlspecialchars((string) ($certificateData['certificate_number']  ?? '—'), ENT_QUOTES, 'UTF-8'),
             '{{certificate_title}}'   => htmlspecialchars((string) ($certificateData['certificate_title']   ?? '—'), ENT_QUOTES, 'UTF-8'),
             '{{issued_date}}'         => $issuedDate,
-            '{{issuer_name}}'         => htmlspecialchars((string) ($certificateData['issuer_name']         ?? 'BegawiPBJ — Pemerintah Provinsi Lampung'), ENT_QUOTES, 'UTF-8'),
+            '{{issuer_name}}'         => htmlspecialchars((string) ($certificateData['issuer_name']         ?? 'BegawiPengadaan — Pemerintah Provinsi Lampung'), ENT_QUOTES, 'UTF-8'),
             '{{verification_url}}'    => htmlspecialchars((string) ($certificateData['verification_url']    ?? ''), ENT_QUOTES, 'UTF-8'),
             '{{source_label}}'        => htmlspecialchars((string) ($certificateData['source_label']        ?? '—'), ENT_QUOTES, 'UTF-8'),
         ];

@@ -1,8 +1,8 @@
-# BegawiPBJ — Implementation Status Register
+# BegawiPengadaan — Implementation Status Register
 
 ## Tujuan
 
-Dokumen ini mencatat status implementasi BegawiPBJ pada level area, modul, kontrak, dan batch pekerjaan. Tujuannya adalah membedakan struktur/dokumen yang sudah tersedia dari fitur yang benar-benar telah diimplementasikan, diuji, dan siap digunakan.
+Dokumen ini mencatat status implementasi BegawiPengadaan pada level area, modul, kontrak, dan batch pekerjaan. Tujuannya adalah membedakan struktur/dokumen yang sudah tersedia dari fitur yang benar-benar telah diimplementasikan, diuji, dan siap digunakan.
 
 Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 
@@ -85,7 +85,7 @@ Jangan menaikkan status berdasarkan asumsi. Gunakan bukti implementasi yang dapa
 
 ## Status Implementasi Saat Ini
 
-Status aplikasi BegawiPBJ telah diperbarui sesuai kondisi riil dan pengujian automated test suite:
+Status aplikasi BegawiPengadaan telah diperbarui sesuai kondisi riil dan pengujian automated test suite:
 
 | Area | Status | Catatan Realitas Implementasi |
 |---|---|---|

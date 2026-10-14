@@ -87,7 +87,7 @@ class CertificateBatchController extends BaseController
         $eventTemplates    = $this->templateModel->where('is_active', 1)->where('source_type', 'event')->findAll();
 
         return view('dashboard/certificates/batch', [
-            'title'             => 'Batch Certificate Generator | Dashboard BegawiPBJ',
+            'title'             => 'Batch Certificate Generator | Dashboard BegawiPengadaan',
             'pageTitle'         => 'Batch Certificate Generator',
             'activeMenu'        => 'certificates',
             'activeSubmenu'     => 'batch',
@@ -120,8 +120,8 @@ class CertificateBatchController extends BaseController
                 ->join('learning_progress lp', 'lp.enrollment_id = e.id', 'left')
                 ->where('e.class_id', $classId)
                 ->groupStart()
-                    ->where('e.status', 'completed')
-                    ->orWhere('lp.progress_percent >=', 100.0)
+                ->where('e.status', 'completed')
+                ->orWhere('lp.progress_percent >=', 100.0)
                 ->groupEnd()
                 ->get()
                 ->getResultArray();

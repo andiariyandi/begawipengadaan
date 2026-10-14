@@ -27,7 +27,7 @@ class LessonController extends BaseController
             ->findAll();
 
         return view('dashboard/learning/lessons/index', [
-            'title' => 'Lesson | Dashboard BegawiPBJ',
+            'title' => 'Lesson | Dashboard BegawiPengadaan',
             'pageTitle' => 'Lesson',
             'lessons' => $lessons,
             'activeMenu' => 'learning',
@@ -38,7 +38,7 @@ class LessonController extends BaseController
     public function create(): string
     {
         return view('dashboard/learning/lessons/form', [
-            'title' => 'Tambah Lesson | Dashboard BegawiPBJ',
+            'title' => 'Tambah Lesson | Dashboard BegawiPengadaan',
             'pageTitle' => 'Tambah Lesson',
             'formMode' => 'create',
             'lesson' => null,
@@ -73,7 +73,7 @@ class LessonController extends BaseController
         }
 
         return view('dashboard/learning/lessons/detail', [
-            'title' => 'Detail Lesson | Dashboard BegawiPBJ',
+            'title' => 'Detail Lesson | Dashboard BegawiPengadaan',
             'pageTitle' => 'Detail Lesson',
             'lessonId' => $id,
             'lesson' => $lesson,
@@ -90,7 +90,7 @@ class LessonController extends BaseController
         }
 
         return view('dashboard/learning/lessons/form', [
-            'title' => 'Ubah Lesson | Dashboard BegawiPBJ',
+            'title' => 'Ubah Lesson | Dashboard BegawiPengadaan',
             'pageTitle' => 'Ubah Lesson',
             'formMode' => 'edit',
             'lesson' => $lesson,

@@ -60,266 +60,289 @@ $renderLegalStatusBadge = function (?string $status): string {
 ?>
 
 <style>
-/* =========================================================================
+    /* =========================================================================
    REGULASI PBJ LANDING DESIGN DNA & HIGH-CONTRAST ACCESSIBILITY
    ========================================================================= */
-:root {
-    --begawi-primary: #0c5aa6;
-    --begawi-dark: #082f5c;
-    --begawi-accent: #f3a20b;
-}
+    :root {
+        --begawi-primary: #0c5aa6;
+        --begawi-dark: #082f5c;
+        --begawi-accent: #f3a20b;
+    }
 
-/* =========================================================================
+    /* =========================================================================
    HIGH CONTRAST SOFT BADGES (Fix for Bootstrap 5.0 missing bg-opacity)
    All badges have explicit dark text on soft pastel background for 100% readability
    ========================================================================= */
-.badge-soft-success {
-    background-color: #dcfce7 !important;
-    color: #15803d !important;
-    border: 1px solid #bbf7d0 !important;
-    font-weight: 600;
-}
-.badge-soft-warning {
-    background-color: #fef3c7 !important;
-    color: #b45309 !important;
-    border: 1px solid #fde68a !important;
-    font-weight: 600;
-}
-.badge-soft-danger {
-    background-color: #fee2e2 !important;
-    color: #b91c1c !important;
-    border: 1px solid #fecaca !important;
-    font-weight: 600;
-}
-.badge-soft-info {
-    background-color: #e0f2fe !important;
-    color: #0369a1 !important;
-    border: 1px solid #bae6fd !important;
-    font-weight: 600;
-}
-.badge-soft-primary {
-    background-color: #e0e7ff !important;
-    color: #3730a3 !important;
-    border: 1px solid #c7d2fe !important;
-    font-weight: 600;
-}
-.badge-soft-secondary {
-    background-color: #f1f5f9 !important;
-    color: #334155 !important;
-    border: 1px solid #e2e8f0 !important;
-    font-weight: 600;
-}
-.badge-soft-dark {
-    background-color: #f1f5f9 !important;
-    color: #0f172a !important;
-    border: 1px solid #cbd5e1 !important;
-    font-weight: 600;
-}
+    .badge-soft-success {
+        background-color: #dcfce7 !important;
+        color: #15803d !important;
+        border: 1px solid #bbf7d0 !important;
+        font-weight: 600;
+    }
 
-/* =========================================================================
+    .badge-soft-warning {
+        background-color: #fef3c7 !important;
+        color: #b45309 !important;
+        border: 1px solid #fde68a !important;
+        font-weight: 600;
+    }
+
+    .badge-soft-danger {
+        background-color: #fee2e2 !important;
+        color: #b91c1c !important;
+        border: 1px solid #fecaca !important;
+        font-weight: 600;
+    }
+
+    .badge-soft-info {
+        background-color: #e0f2fe !important;
+        color: #0369a1 !important;
+        border: 1px solid #bae6fd !important;
+        font-weight: 600;
+    }
+
+    .badge-soft-primary {
+        background-color: #e0e7ff !important;
+        color: #3730a3 !important;
+        border: 1px solid #c7d2fe !important;
+        font-weight: 600;
+    }
+
+    .badge-soft-secondary {
+        background-color: #f1f5f9 !important;
+        color: #334155 !important;
+        border: 1px solid #e2e8f0 !important;
+        font-weight: 600;
+    }
+
+    .badge-soft-dark {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        font-weight: 600;
+    }
+
+    /* =========================================================================
    FILTER PILLS (HIGH CONTRAST & UNIFIED STYLING)
    ========================================================================= */
-.btn-filter-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 16px;
-    border-radius: 50px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #334155 !important;
-    line-height: 1.3;
-}
-.btn-filter-pill:hover {
-    background: #f1f5f9;
-    color: var(--begawi-primary) !important;
-    border-color: #94a3b8;
-    transform: translateY(-1px);
-}
-.btn-filter-pill.active {
-    background: var(--begawi-primary) !important;
-    color: #ffffff !important;
-    border-color: var(--begawi-primary) !important;
-    box-shadow: 0 4px 10px rgba(12, 90, 166, 0.25);
-}
-.btn-filter-pill.active-success {
-    background: #16a34a !important;
-    color: #ffffff !important;
-    border-color: #16a34a !important;
-    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.25);
-}
-.btn-filter-pill.active-warning {
-    background: #d97706 !important;
-    color: #ffffff !important;
-    border-color: #d97706 !important;
-    box-shadow: 0 4px 10px rgba(217, 119, 6, 0.25);
-}
-.btn-filter-pill.active-danger {
-    background: #dc2626 !important;
-    color: #ffffff !important;
-    border-color: #dc2626 !important;
-    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25);
-}
+    .btn-filter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 16px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #334155 !important;
+        line-height: 1.3;
+    }
 
-/* =========================================================================
+    .btn-filter-pill:hover {
+        background: #f1f5f9;
+        color: var(--begawi-primary) !important;
+        border-color: #94a3b8;
+        transform: translateY(-1px);
+    }
+
+    .btn-filter-pill.active {
+        background: var(--begawi-primary) !important;
+        color: #ffffff !important;
+        border-color: var(--begawi-primary) !important;
+        box-shadow: 0 4px 10px rgba(12, 90, 166, 0.25);
+    }
+
+    .btn-filter-pill.active-success {
+        background: #16a34a !important;
+        color: #ffffff !important;
+        border-color: #16a34a !important;
+        box-shadow: 0 4px 10px rgba(22, 163, 74, 0.25);
+    }
+
+    .btn-filter-pill.active-warning {
+        background: #d97706 !important;
+        color: #ffffff !important;
+        border-color: #d97706 !important;
+        box-shadow: 0 4px 10px rgba(217, 119, 6, 0.25);
+    }
+
+    .btn-filter-pill.active-danger {
+        background: #dc2626 !important;
+        color: #ffffff !important;
+        border-color: #dc2626 !important;
+        box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25);
+    }
+
+    /* =========================================================================
    CARD ELEMENTS & HIGH-CONTRAST METADATA BOX
    ========================================================================= */
-.regulation-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 16px;
-    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-.regulation-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 32px rgba(8, 47, 92, 0.1) !important;
-    border-color: #cbd5e1 !important;
-}
+    .regulation-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
 
-.reg-card-title {
-    color: #052143 !important;
-    font-weight: 700;
-    font-size: 16.5px;
-    line-height: 1.4;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-.reg-card-title:hover {
-    color: var(--begawi-primary) !important;
-}
+    .regulation-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 32px rgba(8, 47, 92, 0.1) !important;
+        border-color: #cbd5e1 !important;
+    }
 
-.reg-card-excerpt {
-    color: #334155 !important;
-    font-size: 13.5px;
-    line-height: 1.6;
-    margin-bottom: 12px;
-}
+    .reg-card-title {
+        color: #052143 !important;
+        font-weight: 700;
+        font-size: 16.5px;
+        line-height: 1.4;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
 
-/* Box info penerbit & tanggal (100% readable text) */
-.reg-meta-box {
-    background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 10px;
-    padding: 10px 14px;
-    font-size: 13px;
-}
-.reg-meta-label {
-    color: #475569 !important;
-    font-weight: 500;
-}
-.reg-meta-value {
-    color: #0f172a !important;
-    font-weight: 600;
-}
+    .reg-card-title:hover {
+        color: var(--begawi-primary) !important;
+    }
 
-/* Consistent Action Buttons on Cards */
-.btn-reg-download {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 12.5px;
-    font-weight: 600;
-    background: var(--begawi-primary);
-    color: #ffffff !important;
-    border: 1px solid var(--begawi-primary);
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-.btn-reg-download:hover {
-    background: var(--begawi-dark);
-    border-color: var(--begawi-dark);
-    color: #ffffff !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(8, 47, 92, 0.2);
-}
+    .reg-card-excerpt {
+        color: #334155 !important;
+        font-size: 13.5px;
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
 
-.btn-reg-detail {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 12.5px;
-    font-weight: 600;
-    background: #ffffff;
-    color: var(--begawi-primary) !important;
-    border: 1px solid #cbd5e1;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-.btn-reg-detail:hover {
-    background: #f0f7ff;
-    border-color: var(--begawi-primary);
-    color: var(--begawi-primary) !important;
-    transform: translateY(-1px);
-}
+    /* Box info penerbit & tanggal (100% readable text) */
+    .reg-meta-box {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 13px;
+    }
 
-.btn-reg-preview {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    background: #f8fafc;
-    color: #475569;
-    border: 1px solid #cbd5e1;
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-.btn-reg-preview:hover {
-    background: #ffffff;
-    color: var(--begawi-primary);
-    border-color: var(--begawi-primary);
-    transform: translateY(-1px);
-}
+    .reg-meta-label {
+        color: #475569 !important;
+        font-weight: 500;
+    }
 
-/* Norm Hierarchy Card */
-.norm-tier-card {
-    border-radius: 14px;
-    padding: 22px;
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    transition: all 0.25s ease;
-}
-.norm-tier-card:hover {
-    border-color: var(--begawi-primary);
-    box-shadow: 0 10px 24px rgba(12, 90, 166, 0.08);
-}
-.norm-tier-card h4 {
-    color: #052143 !important;
-    font-weight: 700;
-}
-.norm-tier-card p {
-    color: #475569 !important;
-    font-size: 13.5px;
-    line-height: 1.6;
-}
+    .reg-meta-value {
+        color: #0f172a !important;
+        font-weight: 600;
+    }
 
-/* Stat strip text colors */
-.arena-stat-box {
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-}
-.arena-stat-content h4 {
-    color: #052143 !important;
-    font-size: 24px;
-    font-weight: 800;
-}
-.arena-stat-content p {
-    color: #475569 !important;
-    font-size: 13px;
-    font-weight: 500;
-}
+    /* Consistent Action Buttons on Cards */
+    .btn-reg-download {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 12.5px;
+        font-weight: 600;
+        background: var(--begawi-primary);
+        color: #ffffff !important;
+        border: 1px solid var(--begawi-primary);
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .btn-reg-download:hover {
+        background: var(--begawi-dark);
+        border-color: var(--begawi-dark);
+        color: #ffffff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(8, 47, 92, 0.2);
+    }
+
+    .btn-reg-detail {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 12.5px;
+        font-weight: 600;
+        background: #ffffff;
+        color: var(--begawi-primary) !important;
+        border: 1px solid #cbd5e1;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .btn-reg-detail:hover {
+        background: #f0f7ff;
+        border-color: var(--begawi-primary);
+        color: var(--begawi-primary) !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-reg-preview {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid #cbd5e1;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .btn-reg-preview:hover {
+        background: #ffffff;
+        color: var(--begawi-primary);
+        border-color: var(--begawi-primary);
+        transform: translateY(-1px);
+    }
+
+    /* Norm Hierarchy Card */
+    .norm-tier-card {
+        border-radius: 14px;
+        padding: 22px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        transition: all 0.25s ease;
+    }
+
+    .norm-tier-card:hover {
+        border-color: var(--begawi-primary);
+        box-shadow: 0 10px 24px rgba(12, 90, 166, 0.08);
+    }
+
+    .norm-tier-card h4 {
+        color: #052143 !important;
+        font-weight: 700;
+    }
+
+    .norm-tier-card p {
+        color: #475569 !important;
+        font-size: 13.5px;
+        line-height: 1.6;
+    }
+
+    /* Stat strip text colors */
+    .arena-stat-box {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+
+    .arena-stat-content h4 {
+        color: #052143 !important;
+        font-size: 24px;
+        font-weight: 800;
+    }
+
+    .arena-stat-content p {
+        color: #475569 !important;
+        font-size: 13px;
+        font-weight: 500;
+    }
 </style>
 
 <!-- =========================================================================
@@ -327,7 +350,7 @@ $renderLegalStatusBadge = function (?string $status): string {
      Full navbar height compensation (padding-top: 225px)
      ========================================================================= -->
 <section class="arena-hero position-relative">
-    <div class="arena-hero__bg" style="background-image: url('<?= base_url('assets/main/images/backgrounds/slider-1-1.jpg') ?>');"></div>
+    <div class="arena-hero__bg" style="background-image: url('<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>');"></div>
     <div class="arena-hero__overlay"></div>
 
     <div class="container">
@@ -343,7 +366,7 @@ $renderLegalStatusBadge = function (?string $status): string {
                 hierarki norma hukum, status keberlakuan resmi, serta dokumen pengadaan yang transparan dan akuntabel.
             </p>
 
-            <!-- Search Bar (Unified BegawiPBJ Design System) -->
+            <!-- Search Bar (Unified BegawiPengadaan Design System) -->
             <div class="arena-search-bar mb-3">
                 <form action="<?= site_url('regulasi') ?>" method="get" class="d-flex align-items-center">
                     <i class="fas fa-search text-muted me-2" style="font-size: 16px;"></i>
@@ -877,107 +900,107 @@ $renderLegalStatusBadge = function (?string $status): string {
      TAHAPAN PENGADAAN & INTEGRASI REGULASI
      ========================================================================= -->
 <?php if (! empty($stages)): ?>
-<section class="py-5 bg-light border-bottom" style="border-color: #e2e8f0 !important;">
-    <div class="container">
-        <div class="text-center mb-5">
-            <span class="badge badge-soft-primary radius-6 px-3 py-2 fw-semibold mb-2">
-                <i class="fas fa-project-diagram me-1"></i> Siklus Pengadaan PBJ
-            </span>
-            <h2 class="fw-bold mb-2" style="color: #052143;">Jelajahi Regulasi Berdasarkan Tahapan PBJ</h2>
-            <p class="mx-auto" style="color: #475569; max-width: 680px;">
-                Pahami aturan dan dasar hukum spesifik pada setiap fase siklus pengadaan barang/jasa pemerintah.
-            </p>
-        </div>
+    <section class="py-5 bg-light border-bottom" style="border-color: #e2e8f0 !important;">
+        <div class="container">
+            <div class="text-center mb-5">
+                <span class="badge badge-soft-primary radius-6 px-3 py-2 fw-semibold mb-2">
+                    <i class="fas fa-project-diagram me-1"></i> Siklus Pengadaan PBJ
+                </span>
+                <h2 class="fw-bold mb-2" style="color: #052143;">Jelajahi Regulasi Berdasarkan Tahapan PBJ</h2>
+                <p class="mx-auto" style="color: #475569; max-width: 680px;">
+                    Pahami aturan dan dasar hukum spesifik pada setiap fase siklus pengadaan barang/jasa pemerintah.
+                </p>
+            </div>
 
-        <div class="row g-3 justify-content-center">
-            <?php foreach ($stages as $stg): ?>
-                <?php
-                $stgId = (int) $stg['id'];
-                $isStgActive = (int) $selectedStage === $stgId;
-                $stgIcon = match (true) {
-                    str_contains(strtolower($stg['name']), 'perencanaan') => 'fa-clipboard-list',
-                    str_contains(strtolower($stg['name']), 'persiapan')   => 'fa-calculator',
-                    str_contains(strtolower($stg['name']), 'pemilihan')   => 'fa-users-cog',
-                    str_contains(strtolower($stg['name']), 'kontrak')     => 'fa-file-contract',
-                    str_contains(strtolower($stg['name']), 'serah')       => 'fa-handshake',
-                    default => 'fa-check-circle',
-                };
-                ?>
-                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <a href="<?= $buildFilterUrl(['stage_id' => $isStgActive ? null : $stgId, 'page' => 1]) ?>" class="text-decoration-none d-block h-100">
-                        <div class="card h-100 border-0 shadow-sm radius-16 text-center p-3 transition-hover <?= $isStgActive ? 'bg-primary text-white' : 'bg-white' ?>" style="border: 1px solid #e2e8f0 !important;">
-                            <div class="mx-auto mb-2 rounded-circle d-flex align-items-center justify-content-center <?= $isStgActive ? 'bg-white text-primary' : 'badge-soft-primary' ?>" style="width: 48px; height: 48px;">
-                                <i class="fas <?= $stgIcon ?> fs-5"></i>
+            <div class="row g-3 justify-content-center">
+                <?php foreach ($stages as $stg): ?>
+                    <?php
+                    $stgId = (int) $stg['id'];
+                    $isStgActive = (int) $selectedStage === $stgId;
+                    $stgIcon = match (true) {
+                        str_contains(strtolower($stg['name']), 'perencanaan') => 'fa-clipboard-list',
+                        str_contains(strtolower($stg['name']), 'persiapan')   => 'fa-calculator',
+                        str_contains(strtolower($stg['name']), 'pemilihan')   => 'fa-users-cog',
+                        str_contains(strtolower($stg['name']), 'kontrak')     => 'fa-file-contract',
+                        str_contains(strtolower($stg['name']), 'serah')       => 'fa-handshake',
+                        default => 'fa-check-circle',
+                    };
+                    ?>
+                    <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                        <a href="<?= $buildFilterUrl(['stage_id' => $isStgActive ? null : $stgId, 'page' => 1]) ?>" class="text-decoration-none d-block h-100">
+                            <div class="card h-100 border-0 shadow-sm radius-16 text-center p-3 transition-hover <?= $isStgActive ? 'bg-primary text-white' : 'bg-white' ?>" style="border: 1px solid #e2e8f0 !important;">
+                                <div class="mx-auto mb-2 rounded-circle d-flex align-items-center justify-content-center <?= $isStgActive ? 'bg-white text-primary' : 'badge-soft-primary' ?>" style="width: 48px; height: 48px;">
+                                    <i class="fas <?= $stgIcon ?> fs-5"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1 <?= $isStgActive ? 'text-white' : '' ?>" style="<?= ! $isStgActive ? 'color: #052143;' : '' ?> font-size: 14px;">
+                                    <?= esc($stg['name']) ?>
+                                </h6>
+                                <small class="<?= $isStgActive ? 'text-white text-opacity-75' : '' ?>" style="<?= ! $isStgActive ? 'color: #64748b;' : '' ?> font-size: 12px;">
+                                    <?= $isStgActive ? 'Filter Aktif' : 'Lihat Aturan' ?>
+                                </small>
                             </div>
-                            <h6 class="fw-bold mb-1 <?= $isStgActive ? 'text-white' : '' ?>" style="<?= ! $isStgActive ? 'color: #052143;' : '' ?> font-size: 14px;">
-                                <?= esc($stg['name']) ?>
-                            </h6>
-                            <small class="<?= $isStgActive ? 'text-white text-opacity-75' : '' ?>" style="<?= ! $isStgActive ? 'color: #64748b;' : '' ?> font-size: 12px;">
-                                <?= $isStgActive ? 'Filter Aktif' : 'Lihat Aturan' ?>
-                            </small>
-                        </div>
-                    </a>
-                </div>
-            <?php endforeach; ?>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 <?php endif; ?>
 
 <!-- =========================================================================
      REGULASI PALING POPULER & SERING DIUNDUH
      ========================================================================= -->
 <?php if (! empty($popular)): ?>
-<section class="py-5 bg-white">
-    <div class="container">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-            <div>
-                <span class="badge badge-soft-warning radius-6 px-3 py-1 fw-semibold mb-2">
-                    <i class="fas fa-fire me-1 text-danger"></i> Paling Banyak Diakses
-                </span>
-                <h3 class="fw-bold mb-0" style="color: #052143;">Regulasi Populer PBJ</h3>
+    <section class="py-5 bg-white">
+        <div class="container">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div>
+                    <span class="badge badge-soft-warning radius-6 px-3 py-1 fw-semibold mb-2">
+                        <i class="fas fa-fire me-1 text-danger"></i> Paling Banyak Diakses
+                    </span>
+                    <h3 class="fw-bold mb-0" style="color: #052143;">Regulasi Populer PBJ</h3>
+                </div>
+                <a href="<?= site_url('regulasi?sort=downloads') ?>" class="btn btn-outline-primary radius-8 px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1">
+                    <span>Lihat Seluruh Peringkat</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
-            <a href="<?= site_url('regulasi?sort=downloads') ?>" class="btn btn-outline-primary radius-8 px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1">
-                <span>Lihat Seluruh Peringkat</span>
-                <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
 
-        <div class="row g-4">
-            <?php foreach ($popular as $pop): ?>
-                <?php
-                $popUrl = site_url('regulasi/' . esc($pop['slug']));
-                ?>
-                <div class="col-xl-3 col-lg-6 col-md-6">
-                    <div class="card h-100 border-0 shadow-sm radius-16 p-3 bg-white transition-hover" style="border: 1px solid #e2e8f0 !important;">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="badge badge-soft-primary radius-6 px-2 py-1 small">
-                                <?= esc($pop['category_name'] ?? 'Regulasi') ?>
-                            </span>
-                            <span class="badge badge-soft-success radius-6 px-2 py-1 small fw-semibold">
-                                <i class="fas fa-download me-1"></i> <?= number_format((int) ($pop['download_count'] ?? 0)) ?>x
-                            </span>
-                        </div>
-                        <h4 class="h6 fw-bold mb-2">
-                            <a href="<?= $popUrl ?>" class="text-decoration-none hover-primary" style="color: #052143;">
-                                <?= esc($pop['document_number'] ?? 'Dokumen') ?>
-                            </a>
-                        </h4>
-                        <p class="small mb-3 flex-grow-1" style="color: #475569; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                            <?= esc($pop['title'] ?? '-') ?>
-                        </p>
-                        <div class="pt-2 border-top d-flex align-items-center justify-content-between small" style="border-color: #e2e8f0 !important;">
-                            <span style="color: #64748b;">Tahun <?= esc($pop['document_year'] ?? '-') ?></span>
-                            <a href="<?= $popUrl ?>" class="text-primary fw-semibold text-decoration-none">
-                                Baca <i class="fas fa-chevron-right small"></i>
-                            </a>
+            <div class="row g-4">
+                <?php foreach ($popular as $pop): ?>
+                    <?php
+                    $popUrl = site_url('regulasi/' . esc($pop['slug']));
+                    ?>
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="card h-100 border-0 shadow-sm radius-16 p-3 bg-white transition-hover" style="border: 1px solid #e2e8f0 !important;">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge badge-soft-primary radius-6 px-2 py-1 small">
+                                    <?= esc($pop['category_name'] ?? 'Regulasi') ?>
+                                </span>
+                                <span class="badge badge-soft-success radius-6 px-2 py-1 small fw-semibold">
+                                    <i class="fas fa-download me-1"></i> <?= number_format((int) ($pop['download_count'] ?? 0)) ?>x
+                                </span>
+                            </div>
+                            <h4 class="h6 fw-bold mb-2">
+                                <a href="<?= $popUrl ?>" class="text-decoration-none hover-primary" style="color: #052143;">
+                                    <?= esc($pop['document_number'] ?? 'Dokumen') ?>
+                                </a>
+                            </h4>
+                            <p class="small mb-3 flex-grow-1" style="color: #475569; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                <?= esc($pop['title'] ?? '-') ?>
+                            </p>
+                            <div class="pt-2 border-top d-flex align-items-center justify-content-between small" style="border-color: #e2e8f0 !important;">
+                                <span style="color: #64748b;">Tahun <?= esc($pop['document_year'] ?? '-') ?></span>
+                                <a href="<?= $popUrl ?>" class="text-primary fw-semibold text-decoration-none">
+                                    Baca <i class="fas fa-chevron-right small"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 <?php endif; ?>
 
 <!-- =========================================================================
@@ -1046,61 +1069,61 @@ $renderLegalStatusBadge = function (?string $status): string {
 </div>
 
 <script>
-function openRegulationModal(data) {
-    if (! data) return;
-    document.getElementById('modalDocumentNumber').textContent = data.document_number || '-';
-    document.getElementById('modalTitle').textContent = data.title || '-';
-    document.getElementById('modalCategoryBadge').textContent = data.category_name || 'Regulasi';
-    document.getElementById('modalIssuer').textContent = data.issuer || 'Pemerintah';
-    document.getElementById('modalYear').textContent = data.year || '-';
-    document.getElementById('modalOfficialDate').textContent = data.official_date || '-';
-    document.getElementById('modalEffectiveDate').textContent = data.effective_date || '-';
-    document.getElementById('modalSummary').textContent = data.summary || 'Tidak ada ringkasan materi.';
-    document.getElementById('modalFileSize').textContent = data.file_size || 'PDF';
+    function openRegulationModal(data) {
+        if (!data) return;
+        document.getElementById('modalDocumentNumber').textContent = data.document_number || '-';
+        document.getElementById('modalTitle').textContent = data.title || '-';
+        document.getElementById('modalCategoryBadge').textContent = data.category_name || 'Regulasi';
+        document.getElementById('modalIssuer').textContent = data.issuer || 'Pemerintah';
+        document.getElementById('modalYear').textContent = data.year || '-';
+        document.getElementById('modalOfficialDate').textContent = data.official_date || '-';
+        document.getElementById('modalEffectiveDate').textContent = data.effective_date || '-';
+        document.getElementById('modalSummary').textContent = data.summary || 'Tidak ada ringkasan materi.';
+        document.getElementById('modalFileSize').textContent = data.file_size || 'PDF';
 
-    // Status Badge (High Contrast Soft Badges)
-    const stBadge = document.getElementById('modalStatusBadge');
-    const status = (data.legal_status || '').toLowerCase();
-    if (status === 'active' || status === 'berlaku') {
-        stBadge.className = 'badge badge-soft-success radius-6 px-2 py-1 small';
-        stBadge.textContent = 'Berlaku';
-    } else if (status === 'amended' || status === 'diubah') {
-        stBadge.className = 'badge badge-soft-warning radius-6 px-2 py-1 small';
-        stBadge.textContent = 'Diubah';
-    } else if (status === 'revoked' || status === 'dicabut') {
-        stBadge.className = 'badge badge-soft-danger radius-6 px-2 py-1 small';
-        stBadge.textContent = 'Dicabut';
-    } else {
-        stBadge.className = 'badge badge-soft-secondary radius-6 px-2 py-1 small';
-        stBadge.textContent = status || 'Resmi';
-    }
+        // Status Badge (High Contrast Soft Badges)
+        const stBadge = document.getElementById('modalStatusBadge');
+        const status = (data.legal_status || '').toLowerCase();
+        if (status === 'active' || status === 'berlaku') {
+            stBadge.className = 'badge badge-soft-success radius-6 px-2 py-1 small';
+            stBadge.textContent = 'Berlaku';
+        } else if (status === 'amended' || status === 'diubah') {
+            stBadge.className = 'badge badge-soft-warning radius-6 px-2 py-1 small';
+            stBadge.textContent = 'Diubah';
+        } else if (status === 'revoked' || status === 'dicabut') {
+            stBadge.className = 'badge badge-soft-danger radius-6 px-2 py-1 small';
+            stBadge.textContent = 'Dicabut';
+        } else {
+            stBadge.className = 'badge badge-soft-secondary radius-6 px-2 py-1 small';
+            stBadge.textContent = status || 'Resmi';
+        }
 
-    // Source link
-    const srcBox = document.getElementById('modalOfficialSourceBox');
-    const srcLink = document.getElementById('modalOfficialSourceLink');
-    if (data.official_source) {
-        srcLink.href = data.official_source;
-        srcBox.style.display = 'block';
-    } else {
-        srcBox.style.display = 'none';
-    }
+        // Source link
+        const srcBox = document.getElementById('modalOfficialSourceBox');
+        const srcLink = document.getElementById('modalOfficialSourceLink');
+        if (data.official_source) {
+            srcLink.href = data.official_source;
+            srcBox.style.display = 'block';
+        } else {
+            srcBox.style.display = 'none';
+        }
 
-    // Action buttons
-    document.getElementById('modalDetailBtn').href = data.detail_url || '#';
-    const dlBtn = document.getElementById('modalDownloadBtn');
-    if (data.has_file && data.download_url) {
-        dlBtn.href = data.download_url;
-        dlBtn.style.display = 'inline-flex';
-    } else {
-        dlBtn.style.display = 'none';
-    }
+        // Action buttons
+        document.getElementById('modalDetailBtn').href = data.detail_url || '#';
+        const dlBtn = document.getElementById('modalDownloadBtn');
+        if (data.has_file && data.download_url) {
+            dlBtn.href = data.download_url;
+            dlBtn.style.display = 'inline-flex';
+        } else {
+            dlBtn.style.display = 'none';
+        }
 
-    const modalEl = document.getElementById('regulationQuickPreviewModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.show();
+        const modalEl = document.getElementById('regulationQuickPreviewModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
     }
-}
 </script>
 
 <?= $this->endSection() ?>

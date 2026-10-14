@@ -17,7 +17,7 @@ $fmt = static fn(int $n): string => number_format($n, 0, ',', '.');
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Ringkasan') ?></h6>
-        <p class="text-secondary-light mb-0">Ikhtisar operasional dan pemantauan metrik BegawiPBJ.</p>
+        <p class="text-secondary-light mb-0">Ikhtisar operasional dan pemantauan metrik BegawiPengadaan.</p>
     </div>
     <ul class="d-flex align-items-center gap-2 mb-0">
         <li class="fw-medium"><a href="<?= site_url('dashboard') ?>" class="hover-text-primary">Beranda</a></li>
@@ -32,10 +32,42 @@ $fmt = static fn(int $n): string => number_format($n, 0, ',', '.');
     $rejectedToday = (int) ($rejectedToday ?? 0);
     ?>
     <div class="row row-cols-xxxl-4 row-cols-lg-2 row-cols-1 gy-4">
-        <div class="col"><div class="card h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Menunggu</p><h6 class="mb-0"><?= $fmt((int) ($kpis['pendingApprovals'] ?? 0)) ?></h6><p class="text-sm text-primary-light mt-12 mb-0">Memerlukan tindakan</p></div></div></div>
-        <div class="col"><div class="card h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Disetujui Hari Ini</p><h6 class="mb-0"><?= $fmt($approvedToday) ?></h6><p class="text-sm text-primary-light mt-12 mb-0">Permintaan diproses</p></div></div></div>
-        <div class="col"><div class="card h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Ditolak Hari Ini</p><h6 class="mb-0"><?= $fmt($rejectedToday) ?></h6><p class="text-sm text-primary-light mt-12 mb-0">Dengan catatan tindak lanjut</p></div></div></div>
-        <div class="col"><div class="card h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Total Pending</p><h6 class="mb-0"><?= $fmt((int) ($kpis['pendingApprovals'] ?? 0)) ?></h6><p class="text-sm text-primary-light mt-12 mb-0">Seluruh antrean</p></div></div></div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body p-20">
+                    <p class="fw-medium text-primary-light mb-1">Menunggu</p>
+                    <h6 class="mb-0"><?= $fmt((int) ($kpis['pendingApprovals'] ?? 0)) ?></h6>
+                    <p class="text-sm text-primary-light mt-12 mb-0">Memerlukan tindakan</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body p-20">
+                    <p class="fw-medium text-primary-light mb-1">Disetujui Hari Ini</p>
+                    <h6 class="mb-0"><?= $fmt($approvedToday) ?></h6>
+                    <p class="text-sm text-primary-light mt-12 mb-0">Permintaan diproses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body p-20">
+                    <p class="fw-medium text-primary-light mb-1">Ditolak Hari Ini</p>
+                    <h6 class="mb-0"><?= $fmt($rejectedToday) ?></h6>
+                    <p class="text-sm text-primary-light mt-12 mb-0">Dengan catatan tindak lanjut</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body p-20">
+                    <p class="fw-medium text-primary-light mb-1">Total Pending</p>
+                    <h6 class="mb-0"><?= $fmt((int) ($kpis['pendingApprovals'] ?? 0)) ?></h6>
+                    <p class="text-sm text-primary-light mt-12 mb-0">Seluruh antrean</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="card mt-24">
@@ -43,10 +75,21 @@ $fmt = static fn(int $n): string => number_format($n, 0, ',', '.');
             <h6 class="text-lg mb-16">Daftar Antrean</h6>
             <div class="table-responsive scroll-sm">
                 <table class="table bordered-table sm-table mb-0">
-                    <thead><tr><th>ID</th><th>Resource</th><th>Action</th><th>Pemohon</th><th>Diajukan</th><th class="text-center">Status</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Resource</th>
+                            <th>Action</th>
+                            <th>Pemohon</th>
+                            <th>Diajukan</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         <?php if ($approvalQueue === []): ?>
-                            <tr><td colspan="6" class="text-center text-secondary-light">Tidak ada antrian.</td></tr>
+                            <tr>
+                                <td colspan="6" class="text-center text-secondary-light">Tidak ada antrian.</td>
+                            </tr>
                         <?php else: ?>
                             <?php foreach ($approvalQueue as $row): ?>
                                 <tr>
@@ -102,13 +145,23 @@ $fmt = static fn(int $n): string => number_format($n, 0, ',', '.');
                     <h6 class="mb-16 text-lg">Distribusi Tipe Profil</h6>
                     <div class="table-responsive scroll-sm">
                         <table class="table bordered-table sm-table mb-0">
-                            <thead><tr><th>Tipe</th><th class="text-end">Jumlah</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Tipe</th>
+                                    <th class="text-end">Jumlah</th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 <?php if ($usersByProfile === []): ?>
-                                    <tr><td colspan="2" class="text-center text-secondary-light">Belum ada data.</td></tr>
+                                    <tr>
+                                        <td colspan="2" class="text-center text-secondary-light">Belum ada data.</td>
+                                    </tr>
                                 <?php else: ?>
                                     <?php foreach ($usersByProfile as $pt => $total): ?>
-                                        <tr><td><?= esc($pt) ?></td><td class="text-end"><strong><?= $fmt((int) $total) ?></strong></td></tr>
+                                        <tr>
+                                            <td><?= esc($pt) ?></td>
+                                            <td class="text-end"><strong><?= $fmt((int) $total) ?></strong></td>
+                                        </tr>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>
@@ -123,13 +176,23 @@ $fmt = static fn(int $n): string => number_format($n, 0, ',', '.');
                     <h6 class="mb-16 text-lg">Distribusi Status Akun</h6>
                     <div class="table-responsive scroll-sm">
                         <table class="table bordered-table sm-table mb-0">
-                            <thead><tr><th>Status</th><th class="text-end">Jumlah</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th class="text-end">Jumlah</th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 <?php if ($usersByAccount === []): ?>
-                                    <tr><td colspan="2" class="text-center text-secondary-light">Belum ada data.</td></tr>
+                                    <tr>
+                                        <td colspan="2" class="text-center text-secondary-light">Belum ada data.</td>
+                                    </tr>
                                 <?php else: ?>
                                     <?php foreach ($usersByAccount as $st => $total): ?>
-                                        <tr><td><?= esc($st) ?></td><td class="text-end"><strong><?= $fmt((int) $total) ?></strong></td></tr>
+                                        <tr>
+                                            <td><?= esc($st) ?></td>
+                                            <td class="text-end"><strong><?= $fmt((int) $total) ?></strong></td>
+                                        </tr>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>
@@ -142,13 +205,15 @@ $fmt = static fn(int $n): string => number_format($n, 0, ',', '.');
 
 <?php else: ?>
     <div class="row gy-4">
-        <?php foreach ([
-            ['label' => 'Total Pengguna',          'value' => $kpis['totalUsers']          ?? 0, 'icon' => 'gridicons:multiple-users',                'color' => 'bg-cyan'],
-            ['label' => 'Akun Aktif',             'value' => $kpis['activeUsers']         ?? 0, 'icon' => 'solar:user-check-rounded-outline',         'color' => 'bg-purple'],
-            ['label' => 'Enrollment Aktif',       'value' => $kpis['activeEnrollments']   ?? 0, 'icon' => 'solar:book-2-outline',                     'color' => 'bg-info'],
-            ['label' => 'Sertifikat Terbit',      'value' => $kpis['issuedCertificates']  ?? 0, 'icon' => 'solar:medal-ribbons-star-outline',         'color' => 'bg-success-main'],
-            ['label' => 'Menunggu Approval',      'value' => $kpis['pendingApprovals']    ?? 0, 'icon' => 'solar:clock-circle-outline',               'color' => 'bg-red'],
-        ] as $card): ?>
+        <?php foreach (
+            [
+                ['label' => 'Total Pengguna',          'value' => $kpis['totalUsers']          ?? 0, 'icon' => 'gridicons:multiple-users',                'color' => 'bg-cyan'],
+                ['label' => 'Akun Aktif',             'value' => $kpis['activeUsers']         ?? 0, 'icon' => 'solar:user-check-rounded-outline',         'color' => 'bg-purple'],
+                ['label' => 'Enrollment Aktif',       'value' => $kpis['activeEnrollments']   ?? 0, 'icon' => 'solar:book-2-outline',                     'color' => 'bg-info'],
+                ['label' => 'Sertifikat Terbit',      'value' => $kpis['issuedCertificates']  ?? 0, 'icon' => 'solar:medal-ribbons-star-outline',         'color' => 'bg-success-main'],
+                ['label' => 'Menunggu Approval',      'value' => $kpis['pendingApprovals']    ?? 0, 'icon' => 'solar:clock-circle-outline',               'color' => 'bg-red'],
+            ] as $card
+        ): ?>
             <div class="col-xxl-4 col-md-6">
                 <div class="card shadow-none border h-100">
                     <div class="card-body p-20">

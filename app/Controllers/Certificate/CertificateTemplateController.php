@@ -51,7 +51,7 @@ class CertificateTemplateController extends BaseController
             ->findAll();
 
         return view('dashboard/certificates/templates/index', [
-            'title'         => 'Template Sertifikat | Dashboard BegawiPBJ',
+            'title'         => 'Template Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Template Sertifikat',
             'activeMenu'    => 'certificates',
             'activeSubmenu' => 'templates',
@@ -62,7 +62,7 @@ class CertificateTemplateController extends BaseController
     public function create()
     {
         return view('dashboard/certificates/templates/form', [
-            'title'         => 'Tambah Template Sertifikat | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Template Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Template',
             'formMode'      => 'create',
             'activeMenu'    => 'certificates',
@@ -70,7 +70,7 @@ class CertificateTemplateController extends BaseController
             'template'      => [
                 'id'         => 0,
                 'name'       => '',
-                'source_type'=> 'learning',
+                'source_type' => 'learning',
                 'template_payload' => $this->defaultPayload(),
                 'is_active'  => 1,
             ],
@@ -134,7 +134,7 @@ class CertificateTemplateController extends BaseController
         $template['template_payload_pretty'] = $this->prettyJson($template['template_payload'] ?? null);
 
         return view('dashboard/certificates/templates/detail', [
-            'title'         => 'Detail Template | Dashboard BegawiPBJ',
+            'title'         => 'Detail Template | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Template',
             'activeMenu'    => 'certificates',
             'activeSubmenu' => 'templates',
@@ -157,7 +157,7 @@ class CertificateTemplateController extends BaseController
         $template['template_payload'] = $decoded;
 
         return view('dashboard/certificates/templates/form', [
-            'title'         => 'Ubah Template | Dashboard BegawiPBJ',
+            'title'         => 'Ubah Template | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Ubah Template',
             'formMode'      => 'edit',
             'activeMenu'    => 'certificates',
@@ -269,7 +269,7 @@ class CertificateTemplateController extends BaseController
         $css      = isset($raw['css'])      && is_string($raw['css'])      ? $raw['css']      : '';
         $issuer   = isset($raw['issuer_name']) && is_string($raw['issuer_name']) && trim($raw['issuer_name']) !== ''
             ? trim($raw['issuer_name'])
-            : 'BegawiPBJ — Pemerintah Provinsi Lampung';
+            : 'BegawiPengadaan — Pemerintah Provinsi Lampung';
         $qrPos    = isset($raw['qr_position']) && in_array($raw['qr_position'], ['right', 'bottom'], true)
             ? $raw['qr_position']
             : 'right';
@@ -288,7 +288,7 @@ class CertificateTemplateController extends BaseController
         return [
             'body_html'   => '',
             'css'         => '',
-            'issuer_name' => 'BegawiPBJ — Pemerintah Provinsi Lampung',
+            'issuer_name' => 'BegawiPengadaan — Pemerintah Provinsi Lampung',
             'qr_position' => 'right',
         ];
     }
@@ -336,10 +336,10 @@ class CertificateTemplateController extends BaseController
             ->join('roles r', 'r.id = ur.role_id')
             ->where(['ur.user_id' => $actorId, 'ur.status' => 'active'])
             ->groupStart()
-                ->where('r.key', 'admin')
-                ->orWhere('r.key', 'super_admin')
-                ->orWhere('r.name', 'admin')
-                ->orWhere('r.name', 'super_admin')
+            ->where('r.key', 'admin')
+            ->orWhere('r.key', 'super_admin')
+            ->orWhere('r.name', 'admin')
+            ->orWhere('r.name', 'super_admin')
             ->groupEnd()
             ->countAllResults() > 0;
 

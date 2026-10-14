@@ -9,7 +9,7 @@ class IntelligenceDashboardController extends BaseController
     public function index(): string
     {
         return view('dashboard/intelligence/home/index', [
-            'title' => 'Dashboard Intelligence | Dashboard BegawiPBJ',
+            'title' => 'Dashboard Intelligence | Dashboard BegawiPengadaan',
             'pageTitle' => 'Dashboard Intelligence',
             'activeMenu' => 'intelligence',
             'activeSubmenu' => 'dashboard',
@@ -19,7 +19,7 @@ class IntelligenceDashboardController extends BaseController
     public function competencyGap(): string
     {
         return view('dashboard/intelligence/competency_gap/index', [
-            'title' => 'Gap Kompetensi | Dashboard BegawiPBJ',
+            'title' => 'Gap Kompetensi | Dashboard BegawiPengadaan',
             'pageTitle' => 'Gap Kompetensi',
             'activeMenu' => 'intelligence',
             'activeSubmenu' => 'competency-gap',

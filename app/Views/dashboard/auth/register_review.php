@@ -2,7 +2,7 @@
 
 <?= $this->section('content') ?>
 <div>
-    <a href="<?= site_url('/') ?>" class="mb-32 d-inline-block text-decoration-none"><span class="auth-brand-text">BegawiPBJ</span><span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span></a>
+    <a href="<?= site_url('/') ?>" class="mb-32 d-inline-block text-decoration-none"><span class="auth-brand-text">BegawiPengadaan</span><span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span></a>
     <h4 class="mb-8"><?= esc($pageTitle ?? 'Tinjau Data Pendaftaran') ?></h4>
     <p class="mb-24 text-secondary-light text-md"><?= esc($pageDescription ?? '') ?></p>
 </div>
@@ -43,7 +43,7 @@ $profileLabels = ['asn' => 'ASN', 'provider' => 'Penyedia Barang/Jasa', 'academi
     </div>
     <div class="d-flex flex-column gap-10 text-sm">
         <div class="d-flex justify-content-between gap-12"><span class="text-secondary-light">Profil</span><strong><?= esc($profileLabels[$registrationData['profile_type'] ?? ''] ?? '-') ?></strong></div>
-        <div class="d-flex justify-content-between gap-12"><span class="text-secondary-light">Data profil</span><strong class="text-end"><?= esc(implode(', ', array_map(static fn ($value) => is_array($value) ? implode(', ', $value) : (string) $value, array_slice($registrationProfile, 0, 3)))) ?></strong></div>
+        <div class="d-flex justify-content-between gap-12"><span class="text-secondary-light">Data profil</span><strong class="text-end"><?= esc(implode(', ', array_map(static fn($value) => is_array($value) ? implode(', ', $value) : (string) $value, array_slice($registrationProfile, 0, 3)))) ?></strong></div>
     </div>
 </div>
 

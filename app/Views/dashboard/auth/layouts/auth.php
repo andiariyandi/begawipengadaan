@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($title ?? 'BegawiPBJ') ?></title>
+    <title><?= esc($title ?? 'BegawiPengadaan') ?></title>
 
     <link rel="icon" type="image/png" href="<?= base_url('assets/dashboard/images/favicon.png') ?>" sizes="16x16">
     <link rel="stylesheet" href="<?= base_url('assets/dashboard/css/remixicon.css') ?>">
@@ -71,8 +71,8 @@
                     <img
                         src="<?= base_url('assets/dashboard/images/auth/auth-img.png') ?>"
                         class="auth-left__image"
-                        alt="BegawiPBJ">
-                    <h2>BegawiPBJ</h2>
+                        alt="BegawiPengadaan">
+                    <h2>BegawiPengadaan</h2>
                     <p>Platform informasi, pembelajaran, dan ekosistem Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.</p>
                 </div>
             </div>

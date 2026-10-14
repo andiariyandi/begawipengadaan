@@ -41,10 +41,10 @@ class WorkspaceHomeController extends BaseController
             ->get()->getResultArray();
 
         return view('main/workspace/pages/aktivitas', [
-            'title'          => 'Aktivitas Saya | Workspace BegawiPBJ',
+            'title'          => 'Aktivitas Saya | Workspace BegawiPengadaan',
             'pageTitle'      => 'Aktivitas Saya',
             'breadcrumbTail' => [['label' => 'Aktivitas Saya']],
-            'userName'       => (string) (session()->get('name') ?: 'Pengguna BegawiPBJ'),
+            'userName'       => (string) (session()->get('name') ?: 'Pengguna BegawiPengadaan'),
             'primaryRole'    => $role,
             'roleLabel'      => $this->roleLabel($role),
             'logs'           => $logs,
@@ -66,9 +66,9 @@ class WorkspaceHomeController extends BaseController
         }
 
         return view('main/workspace/pages/' . $view, array_merge([
-            'title'          => ucfirst($section) . ' | Workspace BegawiPBJ',
+            'title'          => ucfirst($section) . ' | Workspace BegawiPengadaan',
             'pageTitle'      => ucfirst($section) . ' Workspace',
-            'userName'       => (string) (session()->get('name') ?: 'Pengguna BegawiPBJ'),
+            'userName'       => (string) (session()->get('name') ?: 'Pengguna BegawiPengadaan'),
             'roles'          => [$role],
             'primaryRole'    => $role,
             'roleLabel'      => $this->roleLabel($role),
@@ -135,7 +135,7 @@ class WorkspaceHomeController extends BaseController
                 ->limit(16)
                 ->get()->getResultArray();
 
-            $enrollmentIds = array_map(static fn ($r) => (int) $r['enrollment_id'], $recentClasses);
+            $enrollmentIds = array_map(static fn($r) => (int) $r['enrollment_id'], $recentClasses);
             $progressMap = [];
             if ($enrollmentIds !== []) {
                 $progRows = $db->table('learning_progress')
@@ -204,7 +204,7 @@ class WorkspaceHomeController extends BaseController
 
             // Recent Quizzes / Assessments
             $recentQuizzes = [];
-            $enrolledClassIds = array_map(static fn ($r) => (int) ($r['class_id'] ?? 0), $recentClasses);
+            $enrolledClassIds = array_map(static fn($r) => (int) ($r['class_id'] ?? 0), $recentClasses);
             if ($enrolledClassIds !== []) {
                 $recentQuizzes = $db->table('quizzes q')
                     ->select('q.id, q.class_id, q.title, q.type, lc.passing_grade, lc.name AS class_name, (SELECT MAX(qa.score) FROM quiz_attempts qa JOIN enrollments e2 ON e2.id = qa.enrollment_id WHERE qa.quiz_id = q.id AND e2.user_id = ' . (int) $userId . ') AS highest_score')
@@ -215,7 +215,6 @@ class WorkspaceHomeController extends BaseController
                     ->limit(12)
                     ->get()->getResultArray();
             }
-
         } elseif ($role === 'operator') {
             // Operator Real KPIs
             $pendingVerif = $db->table('profile_verifications')->where('status', 'pending')->countAllResults();

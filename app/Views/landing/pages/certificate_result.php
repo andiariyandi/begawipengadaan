@@ -3,11 +3,25 @@
 <?= $this->section('pageStyles') ?>
 <style>
     /* Universal high-contrast text utilities */
-    .text-slate-900 { color: #0f172a !important; }
-    .text-slate-800 { color: #1e293b !important; }
-    .text-slate-700 { color: #334155 !important; }
-    .text-slate-600 { color: #475569 !important; }
-    .text-slate-500 { color: #64748b !important; }
+    .text-slate-900 {
+        color: #0f172a !important;
+    }
+
+    .text-slate-800 {
+        color: #1e293b !important;
+    }
+
+    .text-slate-700 {
+        color: #334155 !important;
+    }
+
+    .text-slate-600 {
+        color: #475569 !important;
+    }
+
+    .text-slate-500 {
+        color: #64748b !important;
+    }
 
     /* Hero Banner - 205px padding top gives 45px+ safe breathing room under the 160px absolute menu bar */
     .result-hero {
@@ -17,6 +31,7 @@
         color: #ffffff;
         text-align: center;
     }
+
     .result-section {
         padding: 0 0 90px;
         margin-top: -40px;
@@ -43,15 +58,18 @@
         justify-content: space-between;
         gap: 20px;
     }
+
     .cert-official-emblem {
         display: flex;
         align-items: center;
         gap: 16px;
     }
+
     .cert-official-emblem img {
         height: 60px;
         width: auto;
     }
+
     .cert-official-emblem__text h4 {
         font-size: 1.15rem;
         font-weight: 800;
@@ -60,6 +78,7 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
+
     .cert-official-emblem__text p {
         font-size: 0.825rem;
         color: #64748b;
@@ -76,16 +95,19 @@
         font-weight: 700;
         font-size: 0.95rem;
     }
+
     .cert-status-ribbon--valid {
         background: linear-gradient(90deg, #ecfdf5 0%, #d1fae5 100%);
         color: #065f46;
         border-bottom: 1px solid #a7f3d0;
     }
+
     .cert-status-ribbon--revoked {
         background: linear-gradient(90deg, #fef2f2 0%, #fee2e2 100%);
         color: #991b1b;
         border-bottom: 1px solid #fecaca;
     }
+
     .cert-status-ribbon--expired {
         background: linear-gradient(90deg, #fffbeb 0%, #fef3c7 100%);
         color: #92400e;
@@ -96,6 +118,7 @@
     .cert-official-body {
         padding: 40px 48px;
     }
+
     .cert-recipient-title {
         font-size: 0.85rem;
         font-weight: 700;
@@ -104,6 +127,7 @@
         color: #64748b;
         margin-bottom: 6px;
     }
+
     .cert-recipient-name {
         font-size: 2.25rem;
         font-weight: 800;
@@ -111,6 +135,7 @@
         margin-bottom: 24px;
         line-height: 1.2;
     }
+
     .cert-number-badge {
         display: inline-flex;
         align-items: center;
@@ -125,6 +150,7 @@
         color: #0c5aa6;
         margin-bottom: 28px;
     }
+
     .cert-btn-copy {
         background: transparent;
         border: none;
@@ -134,6 +160,7 @@
         border-radius: 4px;
         transition: all 0.2s;
     }
+
     .cert-btn-copy:hover {
         background: #e2e8f0;
         color: #0c5aa6;
@@ -149,6 +176,7 @@
         border-bottom: 1px solid #e2e8f0;
         margin-bottom: 32px;
     }
+
     .cert-detail-item__label {
         font-size: 0.825rem;
         font-weight: 600;
@@ -157,6 +185,7 @@
         letter-spacing: 0.5px;
         margin-bottom: 6px;
     }
+
     .cert-detail-item__val {
         font-size: 1.05rem;
         font-weight: 700;
@@ -177,11 +206,13 @@
         border-radius: 12px;
         border: 1px dashed #cbd5e1;
     }
+
     .cert-qr-mock {
         display: flex;
         align-items: center;
         gap: 14px;
     }
+
     .cert-qr-box {
         width: 72px;
         height: 72px;
@@ -194,6 +225,7 @@
         font-size: 34px;
         color: #052244;
     }
+
     .cert-security-hash {
         font-family: monospace;
         font-size: 0.815rem;
@@ -209,6 +241,7 @@
         gap: 14px;
         justify-content: center;
     }
+
     .btn-cert-action {
         display: inline-flex;
         align-items: center;
@@ -221,20 +254,24 @@
         transition: all 0.25s ease;
         cursor: pointer;
     }
+
     .btn-cert-primary {
         background: #0c5aa6;
         color: #ffffff;
         border: 1px solid #0c5aa6;
     }
+
     .btn-cert-primary:hover {
         background: #083b70;
         color: #ffffff;
     }
+
     .btn-cert-outline {
         background: #ffffff;
         color: #334155;
         border: 1px solid #cbd5e1;
     }
+
     .btn-cert-outline:hover {
         background: #f1f5f9;
         color: #0f172a;
@@ -249,6 +286,7 @@
         box-shadow: 0 20px 45px rgba(5, 34, 68, 0.12);
         border: 1px solid #e2e8f0;
     }
+
     .cert-error-icon {
         width: 80px;
         height: 80px;
@@ -261,18 +299,21 @@
         font-size: 36px;
         margin-bottom: 24px;
     }
+
     .cert-error-title {
         font-size: 1.75rem;
         font-weight: 800;
         color: #0f172a;
         margin-bottom: 12px;
     }
+
     .cert-error-desc {
         color: #64748b;
         max-width: 600px;
         margin: 0 auto 30px;
         line-height: 1.7;
     }
+
     .cert-tips-box {
         background: #f8fafc;
         border-radius: 12px;
@@ -285,8 +326,15 @@
 
     /* Print Styles */
     @media print {
-        body * { visibility: hidden; }
-        .cert-official-card, .cert-official-card * { visibility: visible; }
+        body * {
+            visibility: hidden;
+        }
+
+        .cert-official-card,
+        .cert-official-card * {
+            visibility: visible;
+        }
+
         .cert-official-card {
             position: absolute;
             left: 0;
@@ -295,19 +343,43 @@
             box-shadow: none;
             border: 2px solid #052244;
         }
-        .cert-action-bar, .main-header, .site-footer { display: none !ns; }
+
+        .cert-action-bar,
+        .main-header,
+        .site-footer {
+            display: none !ns;
+        }
     }
 
     @media (max-width: 991px) {
-        .result-hero { padding: 175px 0 65px; }
+        .result-hero {
+            padding: 175px 0 65px;
+        }
     }
 
     @media (max-width: 768px) {
-        .result-hero { padding: 155px 0 55px; }
-        .cert-official-header { flex-direction: column; text-align: center; }
-        .cert-official-body { padding: 24px 18px; }
-        .cert-recipient-name { font-size: 1.65rem; }
-        .cert-status-ribbon { flex-direction: column; gap: 8px; text-align: center; }
+        .result-hero {
+            padding: 155px 0 55px;
+        }
+
+        .cert-official-header {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .cert-official-body {
+            padding: 24px 18px;
+        }
+
+        .cert-recipient-name {
+            font-size: 1.65rem;
+        }
+
+        .cert-status-ribbon {
+            flex-direction: column;
+            gap: 8px;
+            text-align: center;
+        }
     }
 </style>
 <?= $this->endSection() ?>
@@ -338,7 +410,7 @@
                         <!-- Header with Emblem -->
                         <div class="cert-official-header">
                             <div class="cert-official-emblem">
-                                <img src="<?= base_url('assets/main/images/resources/logo-4.png') ?>" alt="BegawiPBJ Lampung">
+                                <img src="<?= base_url('assets/main/images/resources/logo-4.png') ?>" alt="BegawiPengadaan Lampung">
                                 <div class="cert-official-emblem__text">
                                     <h4>Pemerintah Provinsi Lampung</h4>
                                     <p>Biro Pengadaan Barang dan Jasa Sekretariat Daerah</p>
@@ -445,7 +517,7 @@
                         </div>
                         <h2 class="cert-error-title">Sertifikat Tidak Ditemukan</h2>
                         <p class="cert-error-desc">
-                            <?= esc($error ?? 'Nomor sertifikat atau kode verifikasi yang Anda masukkan tidak tercatat dalam pangkalan data resmi BegawiPBJ Pemerintah Provinsi Lampung.') ?>
+                            <?= esc($error ?? 'Nomor sertifikat atau kode verifikasi yang Anda masukkan tidak tercatat dalam pangkalan data resmi BegawiPengadaan Pemerintah Provinsi Lampung.') ?>
                         </p>
 
                         <!-- Verification Help Tips -->
@@ -473,8 +545,7 @@
                                             class="form-control form-control-lg"
                                             placeholder="Masukkan nomor sertifikat..."
                                             value="<?= esc($searched ?? '') ?>"
-                                            required
-                                        >
+                                            required>
                                         <button class="btn btn-primary px-4 fw-bold" type="submit">
                                             <i class="fas fa-search me-1"></i> Cek Ulang
                                         </button>
@@ -525,10 +596,14 @@
                 if (!isClamping) {
                     isClamping = true;
                     window.scrollTo(0, maxScroll);
-                    requestAnimationFrame(function() { isClamping = false; });
+                    requestAnimationFrame(function() {
+                        isClamping = false;
+                    });
                 }
             }
-        }, { passive: true });
+        }, {
+            passive: true
+        });
     })();
 </script>
 <?= $this->endSection() ?>

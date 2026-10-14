@@ -1,8 +1,8 @@
-# BegawiPBJ — File Storage Policy
+# BegawiPengadaan — File Storage Policy
 
 ## Tujuan
 
-Dokumen ini menetapkan kebijakan penyimpanan, upload, klasifikasi, validasi, visibility, akses, preview, download, export, retention, audit, dan lifecycle file untuk BegawiPBJ.
+Dokumen ini menetapkan kebijakan penyimpanan, upload, klasifikasi, validasi, visibility, akses, preview, download, export, retention, audit, dan lifecycle file untuk BegawiPengadaan.
 
 Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 

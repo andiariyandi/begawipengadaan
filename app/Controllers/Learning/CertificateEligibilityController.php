@@ -100,7 +100,7 @@ class CertificateEligibilityController extends BaseController
         $classes = $this->classModel->orderBy('name', 'ASC')->findAll();
 
         return view('dashboard/learning/certificate_eligibility/index', [
-            'title'        => 'Kelayakan Sertifikat | Dashboard BegawiPBJ',
+            'title'        => 'Kelayakan Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Kelayakan Penerbitan Sertifikat Pembelajaran',
             'records'      => $paginatedRecords,
             'stats'        => $stats,
@@ -112,7 +112,7 @@ class CertificateEligibilityController extends BaseController
                 'eligibility_status' => $eligibilityFilter,
             ],
             'activeMenu'   => 'learning',
-            'activeSubmenu'=> 'certificate-eligibility',
+            'activeSubmenu' => 'certificate-eligibility',
         ]);
     }
 
@@ -142,8 +142,8 @@ class CertificateEligibilityController extends BaseController
             ->join('certificates cert', 'cert.source_type = "learning_enrollment" AND cert.source_id = e.id AND cert.status = "issued"', 'left')
             ->where('cert.id IS NULL', null, false)
             ->groupStart()
-                ->whereIn('e.status', ['completed', 'passed'])
-                ->orWhere('e.certificate_eligible_at IS NOT NULL', null, false)
+            ->whereIn('e.status', ['completed', 'passed'])
+            ->orWhere('e.certificate_eligible_at IS NOT NULL', null, false)
             ->groupEnd();
 
         if ($classId > 0) {

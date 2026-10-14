@@ -12,34 +12,34 @@
 
 <?php if (! empty($user)): ?>
     <?php
-        $status = $user['account_status'] ?? 'draft';
-        $badgeClass = match ($status) {
-            'active' => 'bg-success-focus text-success-main border-success',
-            'pending_verification', 'submitted', 'draft' => 'bg-warning-focus text-warning-main border-warning',
-            'revision_required' => 'bg-info-focus text-info-main border-info',
-            'rejected', 'inactive', 'suspended', 'archived' => 'bg-danger-focus text-danger-main border-danger',
-            default => 'bg-neutral-100 text-neutral-600 border-neutral-300',
-        };
-        $statusLabel = match ($status) {
-            'active' => 'Akun Aktif',
-            'pending_verification' => 'Menunggu Verifikasi',
-            'submitted' => 'Telah Diajukan',
-            'draft' => 'Draft Pendaftaran',
-            'revision_required' => 'Perlu Perbaikan Data',
-            'rejected' => 'Pendaftaran Ditolak',
-            'inactive' => 'Akun Tidak Aktif',
-            'suspended' => 'Akun Ditangguhkan',
-            'archived' => 'Akun Diarsipkan',
-            default => ucfirst(str_replace('_', ' ', $status)),
-        };
-        $statusDesc = match ($status) {
-            'active' => 'Akun Anda sudah aktif. Silakan masuk kembali untuk melanjutkan ke Workspace.',
-            'pending_verification', 'submitted', 'draft' => 'Pendaftaran akun Anda telah diterima dan sedang dalam antrean verifikasi oleh Operator atau Administrator. Anda akan dapat masuk setelah akun diverifikasi.',
-            'revision_required' => 'Data pendaftaran Anda membutuhkan perbaikan atau kelengkapan tambahan. Silakan hubungi tim verifikator atau tunggu instruksi perbaikan melalui email.',
-            'rejected' => 'Mohon maaf, pengajuan akun Anda ditolak. Silakan hubungi administrator layanan BegawiPBJ untuk informasi lebih rinci.',
-            'inactive', 'suspended' => 'Akun Anda sedang dinonaktifkan sementara. Silakan hubungi administrator jika Anda memerlukan bantuan akses.',
-            default => 'Status akun saat ini: ' . $status . '.',
-        };
+    $status = $user['account_status'] ?? 'draft';
+    $badgeClass = match ($status) {
+        'active' => 'bg-success-focus text-success-main border-success',
+        'pending_verification', 'submitted', 'draft' => 'bg-warning-focus text-warning-main border-warning',
+        'revision_required' => 'bg-info-focus text-info-main border-info',
+        'rejected', 'inactive', 'suspended', 'archived' => 'bg-danger-focus text-danger-main border-danger',
+        default => 'bg-neutral-100 text-neutral-600 border-neutral-300',
+    };
+    $statusLabel = match ($status) {
+        'active' => 'Akun Aktif',
+        'pending_verification' => 'Menunggu Verifikasi',
+        'submitted' => 'Telah Diajukan',
+        'draft' => 'Draft Pendaftaran',
+        'revision_required' => 'Perlu Perbaikan Data',
+        'rejected' => 'Pendaftaran Ditolak',
+        'inactive' => 'Akun Tidak Aktif',
+        'suspended' => 'Akun Ditangguhkan',
+        'archived' => 'Akun Diarsipkan',
+        default => ucfirst(str_replace('_', ' ', $status)),
+    };
+    $statusDesc = match ($status) {
+        'active' => 'Akun Anda sudah aktif. Silakan masuk kembali untuk melanjutkan ke Workspace.',
+        'pending_verification', 'submitted', 'draft' => 'Pendaftaran akun Anda telah diterima dan sedang dalam antrean verifikasi oleh Operator atau Administrator. Anda akan dapat masuk setelah akun diverifikasi.',
+        'revision_required' => 'Data pendaftaran Anda membutuhkan perbaikan atau kelengkapan tambahan. Silakan hubungi tim verifikator atau tunggu instruksi perbaikan melalui email.',
+        'rejected' => 'Mohon maaf, pengajuan akun Anda ditolak. Silakan hubungi administrator layanan BegawiPengadaan untuk informasi lebih rinci.',
+        'inactive', 'suspended' => 'Akun Anda sedang dinonaktifkan sementara. Silakan hubungi administrator jika Anda memerlukan bantuan akses.',
+        default => 'Status akun saat ini: ' . $status . '.',
+    };
     ?>
 
     <div class="card border radius-12 p-20 mb-24 bg-neutral-50">

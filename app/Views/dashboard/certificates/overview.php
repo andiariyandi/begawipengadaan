@@ -10,7 +10,7 @@ $recentCertificates = $recentCertificates ?? [];
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Overview Sertifikat PBJ</h6>
-        <p class="text-secondary-light mb-0">Pusat monitoring, tata kelola penerbitan, dan verifikasi sertifikat BegawiPBJ Provinsi Lampung.</p>
+        <p class="text-secondary-light mb-0">Pusat monitoring, tata kelola penerbitan, dan verifikasi sertifikat BegawiPengadaan Provinsi Lampung.</p>
     </div>
     <div class="d-flex flex-wrap align-items-center gap-2">
         <a href="<?= site_url('dashboard/sertifikat/learning') ?>" class="btn btn-outline-primary-600 radius-8 px-14 py-9 d-flex align-items-center gap-2 text-sm">
@@ -145,7 +145,7 @@ $recentCertificates = $recentCertificates ?? [];
     <div class="card-header py-16 px-20 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h6 class="card-title fw-semibold mb-0">Sertifikat Terbaru</h6>
-            <span class="text-secondary-light text-xs">Daftar sertifikat yang baru diterbitkan melalui sistem BegawiPBJ</span>
+            <span class="text-secondary-light text-xs">Daftar sertifikat yang baru diterbitkan melalui sistem BegawiPengadaan</span>
         </div>
         <a href="<?= site_url('dashboard/sertifikat/riwayat') ?>" class="btn btn-outline-secondary radius-8 px-14 py-7 text-xs d-flex align-items-center gap-1">
             Lihat Semua Riwayat

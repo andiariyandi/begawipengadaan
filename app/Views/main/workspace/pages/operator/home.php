@@ -12,7 +12,7 @@
                         <i class="fas fa-cogs me-1"></i> Pusat Operasional Harian Sistem
                     </span>
                     <span class="badge bg-white-50 text-white px-3 py-2 rounded-pill small">
-                        <i class="fas fa-check-double text-success me-1"></i> Otoritas Operasional BegawiPBJ
+                        <i class="fas fa-check-double text-success me-1"></i> Otoritas Operasional BegawiPengadaan
                     </span>
                 </div>
                 <h1 class="h2 text-white fw-bold mb-2">
@@ -25,9 +25,9 @@
 
             <!-- Spotlight Box (Glassmorphism DNA) -->
             <div class="col-lg-5">
-                <?php 
+                <?php
                 $urgentCount = (int) ($stats['pendingApproval'] ?? 0) + (int) ($stats['userPendingVerif'] ?? 0);
-                if ($urgentCount > 0): 
+                if ($urgentCount > 0):
                 ?>
                     <div class="ws-hero-glass-box">
                         <div class="d-flex justify-content-between align-items-center mb-2">

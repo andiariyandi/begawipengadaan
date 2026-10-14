@@ -1,8 +1,8 @@
-# BegawiPBJ — Database ERD
+# BegawiPengadaan — Database ERD
 
 ## Tujuan
 
-Dokumen ini menyajikan Entity Relationship Diagram (ERD) konseptual dan relasional untuk BegawiPBJ. ERD ini menjelaskan entitas, hubungan, kardinalitas, ownership, pivot table, serta batas domain database.
+Dokumen ini menyajikan Entity Relationship Diagram (ERD) konseptual dan relasional untuk BegawiPengadaan. ERD ini menjelaskan entitas, hubungan, kardinalitas, ownership, pivot table, serta batas domain database.
 
 Dokumen ini merupakan visualisasi dan penjelasan relasi dari `dokumen/database-blueprint.md`. Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 
@@ -1133,7 +1133,7 @@ erDiagram
 ### Interpretasi
 
 - `jf_ppbj_records` menyimpan record SDM JF PPBJ internal/restricted dan dapat dikaitkan dengan user account jika tersedia, tetapi tidak harus selalu memiliki account aplikasi.
-- Sertifikat kompetensi PBJ disimpan pada `competency_certificates`, terpisah dari sertifikat digital BegawiPBJ pada `certificates`.
+- Sertifikat kompetensi PBJ disimpan pada `competency_certificates`, terpisah dari sertifikat digital BegawiPengadaan pada `certificates`.
 - Gap snapshot adalah agregasi per organisasi, kompetensi, dan periode; digunakan untuk analitik internal serta sumber yang telah dianonimkan untuk statistik publik sesuai policy.
 
 ---

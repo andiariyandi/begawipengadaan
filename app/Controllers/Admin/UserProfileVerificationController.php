@@ -23,7 +23,7 @@ class UserProfileVerificationController extends BaseController
         );
 
         return view('dashboard/users/profile_verifications', [
-            'title'         => 'Verifikasi Profil | Dashboard BegawiPBJ',
+            'title'         => 'Verifikasi Profil | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Antrean Verifikasi Profil',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'profile-verifications',
@@ -76,7 +76,7 @@ class UserProfileVerificationController extends BaseController
             ->orderBy('created_at', 'DESC')->get()->getResultArray();
 
         return view('dashboard/users/profile_verification_detail', [
-            'title'         => 'Detail Verifikasi Profil | Dashboard BegawiPBJ',
+            'title'         => 'Detail Verifikasi Profil | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Verifikasi Profil',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'profile-verifications',
@@ -142,7 +142,7 @@ class UserProfileVerificationController extends BaseController
             ->get()->getResultArray();
 
         return view('dashboard/users/profile_change_requests', [
-            'title'         => 'Permohonan Perubahan Profil | Dashboard BegawiPBJ',
+            'title'         => 'Permohonan Perubahan Profil | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Permohonan Perubahan Profil',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'profile-change-requests',
@@ -188,7 +188,7 @@ class UserProfileVerificationController extends BaseController
             ->orderBy('created_at', 'DESC')->get()->getResultArray();
 
         return view('dashboard/users/profile_change_request_detail', [
-            'title'         => 'Detail Permohonan Perubahan Profil | Dashboard BegawiPBJ',
+            'title'         => 'Detail Permohonan Perubahan Profil | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Permohonan Perubahan Profil',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'profile-change-requests',

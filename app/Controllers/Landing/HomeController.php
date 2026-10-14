@@ -25,7 +25,8 @@ class HomeController extends BaseController
                 ->where('deleted_at', null)
                 ->where('workflow_status', 'published')
                 ->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $stats['total_courses'] = (int) $db->table('courses')
@@ -33,14 +34,16 @@ class HomeController extends BaseController
                 ->where('status', 'published')
                 ->where('visibility', 'public')
                 ->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $stats['total_classes'] = (int) $db->table('learning_classes')
                 ->where('deleted_at', null)
                 ->whereIn('status', ['scheduled', 'active'])
                 ->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $stats['total_knowledge'] = (int) $db->table('knowledge_articles')
@@ -48,18 +51,21 @@ class HomeController extends BaseController
                 ->where('workflow_status', 'published')
                 ->where('visibility', 'public')
                 ->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $stats['total_downloads'] = (int) $db->table('regulation_downloads')->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $stats['total_users'] = (int) $db->table('users')
                 ->where('deleted_at', null)
                 ->where('account_status', 'active')
                 ->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         // 2. Featured / Popular Courses (Arena Belajar)
         $courses = [];
@@ -78,7 +84,8 @@ class HomeController extends BaseController
                 ->orderBy('c.id', 'DESC')
                 ->limit(6)
                 ->get()->getResultArray();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         // 3. Featured & Latest Regulations (Regulasi PBJ)
         $regulations = [];
@@ -98,7 +105,8 @@ class HomeController extends BaseController
                 ->orderBy('r.id', 'DESC')
                 ->limit(6)
                 ->get()->getResultArray();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         // 4. Bunga Rampai (Multi-Pillar Knowledge Hub)
         $articles = [];
@@ -123,7 +131,8 @@ class HomeController extends BaseController
                 ->orderBy('ka.id', 'DESC')
                 ->limit(4)
                 ->get()->getResultArray();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $templates = $db->table('knowledge_articles ka')
@@ -138,7 +147,8 @@ class HomeController extends BaseController
                 ->orderBy('ka.id', 'DESC')
                 ->limit(4)
                 ->get()->getResultArray();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $caseStudies = $db->table('knowledge_articles ka')
@@ -153,7 +163,8 @@ class HomeController extends BaseController
                 ->orderBy('ka.id', 'DESC')
                 ->limit(4)
                 ->get()->getResultArray();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $faqs = $db->table('knowledge_articles ka')
@@ -166,7 +177,8 @@ class HomeController extends BaseController
                 ->orderBy('ka.id', 'ASC')
                 ->limit(5)
                 ->get()->getResultArray();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $mediaItems = $db->table('knowledge_media km')
@@ -179,7 +191,8 @@ class HomeController extends BaseController
                 ->orderBy('km.id', 'DESC')
                 ->limit(4)
                 ->get()->getResultArray();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         // 5. Procurement Stages (Tahapan Siklus PBJ)
         $stages = [];
@@ -189,7 +202,8 @@ class HomeController extends BaseController
                 ->where('name NOT LIKE', '%QA AUDIT%')
                 ->orderBy('sort_order', 'ASC')
                 ->get()->getResultArray();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         // 6. Upcoming Events / Bimtek
         $upcomingEvents = [];
@@ -208,13 +222,24 @@ class HomeController extends BaseController
                 ->orderBy('e.start_at', 'ASC')
                 ->limit(3)
                 ->get()->getResultArray();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
+
+        // 7. Visitor Statistics Tracking (Non-unique page views)
+        $visitorStats = [];
+        try {
+            $visitorService = new \App\Services\VisitorStatisticService();
+            $visitorService->recordHit('home');
+            $visitorStats = $visitorService->getVisitorStats();
+        } catch (\Throwable) {
+        }
 
         return view('landing/home/index', [
-            'title'            => 'BegawiPBJ | Platform Pengadaan Barang/Jasa Pemerintah Provinsi Lampung',
-            'pageTitle'        => 'BegawiPBJ | Ekosistem Digital Pengadaan Barang/Jasa Provinsi Lampung',
+            'isHome'           => true,
+            'title'            => 'BegawiPengadaan | Platform Pengadaan Barang/Jasa Pemerintah Provinsi Lampung',
+            'pageTitle'        => 'BegawiPengadaan | Transformasi Digital Pengadaan Barang/Jasa Provinsi Lampung',
             'metaDescription'  => 'Platform resmi terintegrasi Pembelajaran Pengadaan (Arena Belajar), Repositori Pengetahuan (Bunga Rampai), dan Pusat Regulasi Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.',
-            'metaKeywords'     => 'BegawiPBJ, PBJ Lampung, Biro PBJ Setda Lampung, Arena Belajar, Bunga Rampai, Regulasi PBJ, Pengadaan Barang Jasa Pemerintah, LKPP',
+            'metaKeywords'     => 'BegawiPengadaan, PBJ Lampung, Biro PBJ Setda Lampung, Arena Belajar, Bunga Rampai, Regulasi PBJ, Pengadaan Barang Jasa Pemerintah, LKPP',
             'stats'            => $stats,
             'courses'          => $courses,
             'regulations'      => $regulations,
@@ -225,6 +250,7 @@ class HomeController extends BaseController
             'mediaItems'       => $mediaItems,
             'stages'           => $stages,
             'upcomingEvents'   => $upcomingEvents,
+            'visitorStats'     => $visitorStats,
         ]);
     }
 
@@ -245,39 +271,44 @@ class HomeController extends BaseController
                 ->where('deleted_at', null)
                 ->where('workflow_status', 'published')
                 ->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $stats['total_courses'] = (int) $db->table('courses')
                 ->where('deleted_at', null)
                 ->where('status', 'published')
                 ->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $stats['total_certificates'] = (int) $db->table('certificates')
                 ->where('status', 'issued')
                 ->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $stats['total_users'] = (int) $db->table('users')
                 ->where('deleted_at', null)
                 ->where('account_status', 'active')
                 ->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         try {
             $stats['total_knowledge'] = (int) $db->table('knowledge_articles')
                 ->where('deleted_at', null)
                 ->where('workflow_status', 'published')
                 ->countAllResults();
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         return view('landing/pages/about', [
-            'title'           => 'Tentang BegawiPBJ | Biro PBJ Setda Provinsi Lampung',
+            'title'           => 'Tentang BegawiPengadaan | Biro PBJ Setda Provinsi Lampung',
             'metaDescription' => 'Profil resmi, visi, misi, nilai budaya kerja PATIK, struktur organisasi, dan 5 pilar ekosistem digital Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung.',
-            'metaKeywords'    => 'tentang BegawiPBJ, Biro PBJ Lampung, UKPBJ Lampung, pengadaan barang jasa Lampung, visi misi PBJ Lampung',
+            'metaKeywords'    => 'tentang BegawiPengadaan, Biro PBJ Lampung, UKPBJ Lampung, pengadaan barang jasa Lampung, visi misi PBJ Lampung',
             'breadcrumbs'     => [
                 ['label' => 'Tentang Kami'],
             ],
@@ -314,7 +345,7 @@ class HomeController extends BaseController
         return view('landing/pages/contact', [
             'title'             => 'Hubungi Kami & Helpdesk PBJ | Biro Pengadaan Barang dan Jasa Lampung',
             'metaDescription'   => 'Layanan informasi resmi, konsultasi teknis, dan helpdesk LPSE Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung.',
-            'metaKeywords'      => 'kontak BegawiPBJ, helpdesk LPSE Lampung, biro PBJ Setda Lampung, alamat kantor gubernur lampung',
+            'metaKeywords'      => 'kontak BegawiPengadaan, helpdesk LPSE Lampung, biro PBJ Setda Lampung, alamat kantor gubernur lampung',
             'breadcrumbs'       => [
                 ['label' => 'Hubungi Kami'],
             ],
@@ -350,7 +381,8 @@ class HomeController extends BaseController
                 'service_type' => substr((string) $this->request->getPost('service_type'), 0, 100),
                 'subject'      => substr((string) $this->request->getPost('subject'), 0, 150),
             ]);
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         return redirect()->to(site_url('kontak#form-pesan'))
             ->with('contact_success', 'Terima kasih atas pesan Anda! Konsultasi dan pertanyaan Anda telah berhasil diteruskan ke Helpdesk Biro Pengadaan Barang dan Jasa Provinsi Lampung. Petugas kami akan segera menindaklanjuti.');
@@ -389,7 +421,7 @@ class HomeController extends BaseController
         string $statusCode
     ): string {
         return view('landing/home/error_preview', [
-            'title' => $statusCode . ' | ' . $pageTitle . ' | BegawiPBJ',
+            'title' => $statusCode . ' | ' . $pageTitle . ' | BegawiPengadaan',
             'metaDescription' => $message,
             'pageTitle' => $pageTitle,
             'message' => $message,

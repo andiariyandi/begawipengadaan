@@ -70,7 +70,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
     <div class="container">
         <div class="arena-hero__inner text-center pt-2 pt-md-4">
             <span class="arena-section-head__tag text-white mb-3" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.32); backdrop-filter: blur(6px);">
-                <i class="fas fa-graduation-cap me-1"></i> Arena Belajar BegawiPBJ Lampung
+                <i class="fas fa-graduation-cap me-1"></i> Arena Belajar BegawiPengadaan Lampung
             </span>
             <h1 class="text-white mb-3" style="font-size: 38px; font-weight: 800; line-height: 1.25; text-shadow: 0 2px 10px rgba(0,0,0,0.4);">
                 <?= $heroMeta['title'] ?>
@@ -144,7 +144,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                             Roadmap Kurikulum Pengadaan Barang &amp; Jasa Berjenjang
                         </h4>
                         <p class="text-muted small mb-0" style="max-width: 720px;">
-                            Struktur kurikulum terpadu BegawiPBJ dirancang berjenjang untuk memastikan aparatur dan praktisi menguasai seluruh siklus pengadaan pemerintah secara akuntabel.
+                            Struktur kurikulum terpadu BegawiPengadaan dirancang berjenjang untuk memastikan aparatur dan praktisi menguasai seluruh siklus pengadaan pemerintah secara akuntabel.
                         </p>
                     </div>
                     <div class="d-none d-lg-block">
@@ -485,7 +485,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                             </article>
                         </div>
 
-                    <!-- ==================== 2. CLASSES SUB-MENU ==================== -->
+                        <!-- ==================== 2. CLASSES SUB-MENU ==================== -->
                     <?php elseif ($catalogType === 'classes'): ?>
                         <?php
                         $imgIdx = (($index + 2) % 6) + 1;
@@ -615,7 +615,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                             </article>
                         </div>
 
-                    <!-- ==================== 3. TRAINERS SUB-MENU ==================== -->
+                        <!-- ==================== 3. TRAINERS SUB-MENU ==================== -->
                     <?php elseif ($catalogType === 'trainers'): ?>
                         <?php
                         $imgIdx = ($index % 5) + 1;
@@ -702,7 +702,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                             </article>
                         </div>
 
-                    <!-- ==================== 4. PROGRAMS SUB-MENU ==================== -->
+                        <!-- ==================== 4. PROGRAMS SUB-MENU ==================== -->
                     <?php else: ?>
                         <?php
                         $bgImages = [

@@ -2,7 +2,7 @@
 
 <?= $this->section('content') ?>
 <div class="text-center">
-    <a href="<?= site_url('/') ?>" class="mb-40 d-inline-block text-decoration-none"><span class="auth-brand-text">BegawiPBJ</span><span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span></a>
+    <a href="<?= site_url('/') ?>" class="mb-40 d-inline-block text-decoration-none"><span class="auth-brand-text">BegawiPengadaan</span><span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span></a>
 
     <span class="w-80-px h-80-px bg-success-focus text-success-main rounded-circle d-inline-flex align-items-center justify-content-center text-4xl">
         <iconify-icon icon="solar:check-circle-outline"></iconify-icon>

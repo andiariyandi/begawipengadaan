@@ -17,7 +17,7 @@ class BookmarkController extends BaseKnowledgeController
         }
 
         return view('dashboard/knowledge/bookmarks/index', [
-            'title'            => 'Bookmark Koleksi PBJ | Dashboard BegawiPBJ',
+            'title'            => 'Bookmark Koleksi PBJ | Dashboard BegawiPengadaan',
             'pageTitle'        => 'Bookmark Saya',
             'activeMenu'       => 'knowledge',
             'activeSubmenu'    => 'bookmarks',

@@ -19,7 +19,7 @@ class BungaRampaiController extends BaseController
     private const ARTICLES_PER_PAGE = 9;
     private const FAQS_PER_PAGE     = 10;
     private const CASES_PER_PAGE    = 9;
-    private const TEMPLATES_PER_PAGE= 9;
+    private const TEMPLATES_PER_PAGE = 9;
     private const MEDIA_PER_PAGE    = 9;
     private const GALLERY_PER_PAGE  = 12;
     private const VIDEOS_PER_PAGE   = 9;
@@ -29,6 +29,11 @@ class BungaRampaiController extends BaseController
     // ------------------------------------------------------------------
     public function index(): string
     {
+        try {
+            (new \App\Services\VisitorStatisticService())->recordHit('bunga_rampai');
+        } catch (\Throwable) {
+        }
+
         $stats = $this->getKnowledgeStats();
 
         // Featured items across articles, cases, and templates
@@ -70,7 +75,7 @@ class BungaRampaiController extends BaseController
         return view('landing/pages/knowledge', [
             'title'           => 'Bunga Rampai PBJ Lampung | Pusat Pengetahuan & Praktik Baik',
             'metaDescription' => 'Pusat repositori pengetahuan, artikel teknis, studi kasus audit, FAQ pengadaan, template dokumen, dan multimedia Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.',
-            'metaKeywords'    => 'Bunga Rampai, artikel PBJ, regulasi pengadaan, studi kasus PBJ, template dokumen pengadaan, FAQ pengadaan, BegawiPBJ Lampung',
+            'metaKeywords'    => 'Bunga Rampai, artikel PBJ, regulasi pengadaan, studi kasus PBJ, template dokumen pengadaan, FAQ pengadaan, BegawiPengadaan Lampung',
             'pageTitle'       => 'Bunga Rampai',
             'description'     => 'Referensi pengetahuan Pengadaan Barang/Jasa terlengkap untuk aparatur pemerintah daerah, pokja pemilihan, penyedia, dan pemangku kepentingan.',
             'stats'           => $stats,
@@ -437,7 +442,7 @@ class BungaRampaiController extends BaseController
                 ->like('ka.title', $q)
                 ->orLike('ka.summary', $q)
                 ->orLike('ka.content', $q)
-            ->groupEnd();
+                ->groupEnd();
         }
 
         if ($featured === '1') {
@@ -511,7 +516,7 @@ class BungaRampaiController extends BaseController
                 ->like('km.title', $q)
                 ->orLike('km.caption', $q)
                 ->orLike('km.alt_text', $q)
-            ->groupEnd();
+                ->groupEnd();
         }
 
         $totalItems = $builder->countAllResults(false);
@@ -785,9 +790,9 @@ class BungaRampaiController extends BaseController
         $stats = $this->getKnowledgeStats();
 
         return view('landing/pages/knowledge_catalog', [
-            'title'               => $pageTitle . ' | Bunga Rampai BegawiPBJ Lampung',
+            'title'               => $pageTitle . ' | Bunga Rampai BegawiPengadaan Lampung',
             'metaDescription'     => $description,
-            'metaKeywords'        => 'Bunga Rampai, ' . strtolower($pageTitle) . ', BegawiPBJ Lampung, referensi pengadaan',
+            'metaKeywords'        => 'Bunga Rampai, ' . strtolower($pageTitle) . ', BegawiPengadaan Lampung, referensi pengadaan',
             'pageTitle'           => $pageTitle,
             'catalogType'         => $catalogType,
             'description'         => $description,
@@ -839,9 +844,9 @@ class BungaRampaiController extends BaseController
         $stats = $this->getKnowledgeStats();
 
         return view('landing/pages/knowledge_detail', [
-            'title'           => ($row['title'] ?? 'Bunga Rampai') . ' | Bunga Rampai BegawiPBJ Lampung',
-            'metaDescription' => ! empty($row['summary']) ? $row['summary'] : ('Informasi ' . strtolower($pageTitle) . ' pada Bunga Rampai BegawiPBJ.'),
-            'metaKeywords'    => 'Bunga Rampai, BegawiPBJ, ' . strtolower($pageTitle) . ', pengadaan barang jasa lampung',
+            'title'           => ($row['title'] ?? 'Bunga Rampai') . ' | Bunga Rampai BegawiPengadaan Lampung',
+            'metaDescription' => ! empty($row['summary']) ? $row['summary'] : ('Informasi ' . strtolower($pageTitle) . ' pada Bunga Rampai BegawiPengadaan.'),
+            'metaKeywords'    => 'Bunga Rampai, BegawiPengadaan, ' . strtolower($pageTitle) . ', pengadaan barang jasa lampung',
             'pageTitle'       => $pageTitle,
             'itemTitle'       => $row['title'] ?? 'Tanpa Judul',
             'catalogType'     => $catalogType,

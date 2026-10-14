@@ -2,7 +2,7 @@
 
 <?= $this->section('content') ?>
 <div>
-    <a href="<?= site_url('/') ?>" class="mb-32 d-inline-block text-decoration-none"><span class="auth-brand-text">BegawiPBJ</span><span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span></a>
+    <a href="<?= site_url('/') ?>" class="mb-32 d-inline-block text-decoration-none"><span class="auth-brand-text">BegawiPengadaan</span><span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span></a>
     <h4 class="mb-8"><?= esc($pageTitle ?? 'Wilayah dan Alamat Ringkas') ?></h4>
     <p class="mb-24 text-secondary-light text-md"><?= esc($pageDescription ?? '') ?></p>
 </div>
@@ -13,7 +13,7 @@
 <?php
 $old = session()->getFlashdata('_ci_old_input')['post'] ?? [];
 $registrationAddress = $registrationAddress ?? [];
-$value = static fn (string $key): string => esc($old[$key] ?? $registrationAddress[$key] ?? '');
+$value = static fn(string $key): string => esc($old[$key] ?? $registrationAddress[$key] ?? '');
 ?>
 <form action="<?= site_url('dashboard/daftar/wilayah') ?>" method="post" id="registration-address-form">
     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Provinsi</label>
@@ -48,57 +48,61 @@ $value = static fn (string $key): string => esc($old[$key] ?? $registrationAddre
 </form>
 
 <script>
-(() => {
-    const endpoint = <?= json_encode(site_url('dashboard/daftar/wilayah/options')) ?>;
-    const selects = [
-        document.getElementById('province'),
-        document.getElementById('regency'),
-        document.getElementById('district'),
-        document.getElementById('village')
-    ];
-    const labels = ['Pilih provinsi', 'Pilih kabupaten/kota', 'Pilih kecamatan', 'Pilih desa/kelurahan'];
+    (() => {
+        const endpoint = <?= json_encode(site_url('dashboard/daftar/wilayah/options')) ?>;
+        const selects = [
+            document.getElementById('province'),
+            document.getElementById('regency'),
+            document.getElementById('district'),
+            document.getElementById('village')
+        ];
+        const labels = ['Pilih provinsi', 'Pilih kabupaten/kota', 'Pilih kecamatan', 'Pilih desa/kelurahan'];
 
-    async function loadChildren(index, parentCode, selectedCode) {
-        const select = selects[index];
-        if (!select) return;
-        select.innerHTML = '<option value="">' + labels[index] + '</option>';
-        select.disabled = !parentCode;
-        if (!parentCode) return;
-        const response = await fetch(endpoint + '/' + encodeURIComponent(parentCode), {headers: {'Accept': 'application/json'}});
-        if (!response.ok) throw new Error('Wilayah tidak dapat dimuat.');
-        const rows = await response.json();
-        rows.forEach((row) => {
-            const option = new Option(row.name, row.code, false, row.code === selectedCode);
-            select.add(option);
-        });
-        select.disabled = false;
-    }
-
-    selects.forEach((select, index) => {
-        select.addEventListener('change', async () => {
-            for (let child = index + 1; child < selects.length; child++) {
-                selects[child].innerHTML = '<option value="">' + labels[child] + '</option>';
-                selects[child].disabled = true;
-            }
-            if (index >= selects.length - 1) return;
-            try {
-                await loadChildren(index + 1, select.value, '');
-            } catch (error) {
-                select.setCustomValidity(error.message);
-            }
-        });
-    });
-
-    (async () => {
-        try {
-            await loadChildren(1, selects[0].value, selects[1].dataset.selected);
-            await loadChildren(2, selects[1].value, selects[2].dataset.selected);
-            await loadChildren(3, selects[2].value, selects[3].dataset.selected);
-        } catch (error) {
-            selects[0].setCustomValidity(error.message);
+        async function loadChildren(index, parentCode, selectedCode) {
+            const select = selects[index];
+            if (!select) return;
+            select.innerHTML = '<option value="">' + labels[index] + '</option>';
+            select.disabled = !parentCode;
+            if (!parentCode) return;
+            const response = await fetch(endpoint + '/' + encodeURIComponent(parentCode), {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (!response.ok) throw new Error('Wilayah tidak dapat dimuat.');
+            const rows = await response.json();
+            rows.forEach((row) => {
+                const option = new Option(row.name, row.code, false, row.code === selectedCode);
+                select.add(option);
+            });
+            select.disabled = false;
         }
+
+        selects.forEach((select, index) => {
+            select.addEventListener('change', async () => {
+                for (let child = index + 1; child < selects.length; child++) {
+                    selects[child].innerHTML = '<option value="">' + labels[child] + '</option>';
+                    selects[child].disabled = true;
+                }
+                if (index >= selects.length - 1) return;
+                try {
+                    await loadChildren(index + 1, select.value, '');
+                } catch (error) {
+                    select.setCustomValidity(error.message);
+                }
+            });
+        });
+
+        (async () => {
+            try {
+                await loadChildren(1, selects[0].value, selects[1].dataset.selected);
+                await loadChildren(2, selects[1].value, selects[2].dataset.selected);
+                await loadChildren(3, selects[2].value, selects[3].dataset.selected);
+            } catch (error) {
+                selects[0].setCustomValidity(error.message);
+            }
+        })();
     })();
-})();
 </script>
 
 <?= $this->endSection() ?>

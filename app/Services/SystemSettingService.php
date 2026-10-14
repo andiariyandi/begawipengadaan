@@ -7,8 +7,8 @@ class SystemSettingService
     private string $storagePath;
     private array $defaults = [
         'general' => [
-            'app_name'        => 'BegawiPBJ',
-            'app_short_name'  => 'BegawiPBJ',
+            'app_name'        => 'BegawiPengadaan',
+            'app_short_name'  => 'BegawiPengadaan',
             'default_locale'  => 'id',
             'timezone'        => 'Asia/Jakarta',
             'date_format'     => 'd F Y',
@@ -48,7 +48,7 @@ class SystemSettingService
         'notification' => [
             'email_enabled'   => '1',
             'in_app_enabled'  => '1',
-            'digest_frequency'=> 'instant',
+            'digest_frequency' => 'instant',
         ],
         'integration' => [
             'lkpp_api_endpoint' => 'https://api.lkpp.go.id/v1',

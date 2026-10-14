@@ -1,12 +1,12 @@
-# BegawiPBJ
+# BegawiPengadaan
 
-## Platform Ekosistem Digital Pengadaan Barang/Jasa Pemerintah Provinsi Lampung
+## Platform Transformasi Digital Pengadaan Barang/Jasa Pemerintah Provinsi Lampung
 
-BegawiPBJ adalah platform digital terpadu untuk mendukung ekosistem Pengadaan Barang/Jasa Pemerintah (PBJ) di lingkungan Pemerintah Provinsi Lampung.
+BegawiPengadaan adalah platform digital terpadu untuk mendukung ekosistem Pengadaan Barang/Jasa Pemerintah (PBJ) di lingkungan Pemerintah Provinsi Lampung.
 
 Platform ini menyatukan pembelajaran digital (*Arena Belajar*), pusat pengetahuan (*Bunga Rampai*), repositori regulasi PBJ, publikasi dan agenda (*Berita & Event*), sertifikat digital terverifikasi, data kompetensi SDM PBJ (*Government Intelligence*), statistik publik, serta workflow persetujuan berbasis peran (*Role-Based Access Control*) dalam satu aplikasi monolitik yang aman, terstruktur, dan dapat diaudit secara penuh.
 
-BegawiPBJ dibangun menggunakan **CodeIgniter 4 (AppStarter)** dengan adaptasi antarmuka produksi dari dua source template HTML:
+BegawiPengadaan dibangun menggunakan **CodeIgniter 4 (AppStarter)** dengan adaptasi antarmuka produksi dari dua source template HTML:
 - **FiStudy:** Didedikasikan untuk **Landing Page (Public Area)** dan **Workspace** pengguna.
 - **WowDash:** Didedikasikan untuk **Auth Terpadu** dan **Dashboard Back-office**.
 
@@ -14,11 +14,11 @@ BegawiPBJ dibangun menggunakan **CodeIgniter 4 (AppStarter)** dengan adaptasi an
 
 ## Tiga Pilar Fungsional Utama Sistem
 
-Sistem BegawiPBJ terbagi secara tegas ke dalam 3 area fungsional utama berdasarkan target audiens, hak akses, layout, dan interaksinya:
+Sistem BegawiPengadaan terbagi secara tegas ke dalam 3 area fungsional utama berdasarkan target audiens, hak akses, layout, dan interaksinya:
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│                               BegawiPBJ                                │
+│                               BegawiPengadaan                                │
 └───────────────────┬────────────────┬───────────────────┬───────────────┘
                     │                │                   │
          ┌──────────▼──────────┐     │        ┌──────────▼──────────┐
@@ -91,7 +91,7 @@ Sistem BegawiPBJ terbagi secara tegas ke dalam 3 area fungsional utama berdasark
 
 ## Arsitektur Antarmuka & Kontrak Template
 
-Sistem BegawiPBJ memisahkan dependensi antarmuka secara mutlak untuk mencegah konflik CSS/JS antar-template:
+Sistem BegawiPengadaan memisahkan dependensi antarmuka secara mutlak untuk mencegah konflik CSS/JS antar-template:
 
 | Area | Template | Controller Root | View Root | Asset Root |
 |---|---|---|---|---|
@@ -270,7 +270,7 @@ Sistem BegawiPBJ memisahkan dependensi antarmuka secara mutlak untuk mencegah ko
 
 ## Suite Pengujian Otomatis & Spark Commands
 
-BegawiPBJ dilengkapi dengan rangkaian test suite berbasis CodeIgniter CLI Spark untuk memverifikasi fungsionalitas end-to-end tanpa bergantung pada browser manual:
+BegawiPengadaan dilengkapi dengan rangkaian test suite berbasis CodeIgniter CLI Spark untuk memverifikasi fungsionalitas end-to-end tanpa bergantung pada browser manual:
 
 ```bash
 # ====================================================================
@@ -300,7 +300,7 @@ php spark knowledge:admin:test     # Verifikasi admin Bunga Rampai
 php spark knowledge:test           # Verifikasi publik Bunga Rampai
 php spark regulation:admin:test    # Verifikasi admin Regulasi PBJ
 php spark regulation:test          # Verifikasi publik Repositori Regulasi
-php spark home:landing:test        # Verifikasi beranda utama BegawiPBJ
+php spark home:landing:test        # Verifikasi beranda utama BegawiPengadaan
 ```
 
 ---
@@ -357,5 +357,5 @@ dokumen/
 
 ## Lisensi & Hak Cipta
 
-* **Aplikasi BegawiPBJ:** Hak Cipta © 2026 Pemerintah Provinsi Lampung. Hak cipta dilindungi undang-undang.
+* **Aplikasi BegawiPengadaan:** Hak Cipta © 2026 Pemerintah Provinsi Lampung. Hak cipta dilindungi undang-undang.
 * **Lisensi Pihak Ketiga:** Template FiStudy, WowDash, Font, Iconify Solar Icons, library JavaScript, dan dependensi Composer tunduk pada lisensi masing-masing penyedia sebelum didistribusikan ke lingkungan produksi publik.

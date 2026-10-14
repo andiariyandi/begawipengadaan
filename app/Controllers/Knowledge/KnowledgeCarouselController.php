@@ -23,10 +23,10 @@ class KnowledgeCarouselController extends BaseKnowledgeController
             ->orderBy('sort_order', 'ASC')
             ->findAll();
         return view('dashboard/knowledge/carousel/index', [
-            'title'        => 'Carousel dan Konten Unggulan | Dashboard BegawiPBJ',
+            'title'        => 'Carousel dan Konten Unggulan | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Carousel dan Konten Unggulan',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'carousel',
+            'activeSubmenu' => 'carousel',
             'articles'     => $articles,
             'media'        => $media,
         ]);
@@ -35,11 +35,11 @@ class KnowledgeCarouselController extends BaseKnowledgeController
     public function create(): string
     {
         return view('dashboard/knowledge/carousel/form', [
-            'title'        => 'Tambah Carousel | Dashboard BegawiPBJ',
+            'title'        => 'Tambah Carousel | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Tambah Carousel',
             'formMode'     => 'create',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'carousel',
+            'activeSubmenu' => 'carousel',
         ]);
     }
 

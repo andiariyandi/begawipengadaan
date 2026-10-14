@@ -11,7 +11,7 @@ class NewsLandingTest extends BaseCommand
 {
     protected $group       = 'Testing';
     protected $name        = 'news:landing:test';
-    protected $description = 'Comprehensive test suite for the redesigned BegawiPBJ Berita Landing Page';
+    protected $description = 'Comprehensive test suite for the redesigned BegawiPengadaan Berita Landing Page';
     protected $usage       = 'news:landing:test';
 
     private int $passed = 0;

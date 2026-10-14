@@ -148,7 +148,7 @@ class EventAdminTest extends BaseCommand
                 'end_at'                => date('Y-m-d H:i:s', strtotime('+3 days 16:00')),
                 'registration_open_at'  => date('Y-m-d H:i:s', strtotime('-1 days')),
                 'registration_close_at' => date('Y-m-d H:i:s', strtotime('+2 days 23:59')),
-                'location'              => 'Gedung Pertemuan BegawiPBJ, Bandar Lampung',
+                'location'              => 'Gedung Pertemuan BegawiPengadaan, Bandar Lampung',
                 'meeting_url'           => 'https://zoom.us/j/9988776655',
                 'capacity'              => 80,
                 'waitlist_enabled'      => 1,

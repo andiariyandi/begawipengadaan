@@ -86,7 +86,7 @@ class CertificateLearningController extends BaseController
         $courses  = $this->db->table('courses')->select('id, title, program_id')->orderBy('title', 'ASC')->get()->getResultArray();
 
         return view('dashboard/certificates/learning', [
-            'title'         => 'Learning Certificate | Dashboard BegawiPBJ',
+            'title'         => 'Learning Certificate | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Learning Certificate',
             'activeMenu'    => 'certificates',
             'activeSubmenu' => 'learning',
@@ -95,7 +95,7 @@ class CertificateLearningController extends BaseController
             'courses'       => $courses,
             'keyword'       => $keyword,
             'selectedProg'  => $programId,
-            'selectedCourse'=> $courseId,
+            'selectedCourse' => $courseId,
         ]);
     }
 

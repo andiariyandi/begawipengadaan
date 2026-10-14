@@ -151,7 +151,7 @@ class CurriculumController extends BaseController
         }
 
         return view('dashboard/learning/curriculum/index', [
-            'title'            => 'Manajemen Kurikulum | Dashboard BegawiPBJ',
+            'title'            => 'Manajemen Kurikulum | Dashboard BegawiPengadaan',
             'pageTitle'        => 'Manajemen Kurikulum Pembelajaran',
             'classes'          => $classes,
             'selectedClass'    => $selectedClass,

@@ -187,7 +187,7 @@ class AboutContactCertTest extends BaseCommand
 
             $this->assert(str_contains($content, 'site_url(\'tentang\')'), "Tentang menu link present");
             $this->assert(str_contains($content, 'Visi &amp; Misi 2024–2029') || str_contains($content, 'visi-misi'), "Tentang Visi Misi sub-menu present");
-            $this->assert(str_contains($content, '5 Pilar Ekosistem BegawiPBJ') || str_contains($content, 'pilar'), "Tentang 5 Pilar sub-menu present");
+            $this->assert(str_contains($content, '5 Pilar Ekosistem BegawiPengadaan') || str_contains($content, 'pilar'), "Tentang 5 Pilar sub-menu present");
             $this->assert(str_contains($content, 'site_url(\'verifikasi-sertifikat\')'), "Verifikasi Sertifikat link in header present");
             $this->assert(str_contains($content, 'site_url(\'kontak\')'), "Kontak link in header present");
         });

@@ -30,7 +30,7 @@ class OperatorController extends BaseController
         if ($req instanceof \CodeIgniter\HTTP\IncomingRequest) {
             return mb_substr((string) $req->getUserAgent(), 0, 255);
         }
-        return 'CLI/BegawiPBJ';
+        return 'CLI/BegawiPengadaan';
     }
 
     private function logAudit(int $actorId, string $action, string $resourceType, int $resourceId, array $snapshot = [], ?string $reason = null): void
@@ -166,7 +166,7 @@ class OperatorController extends BaseController
         $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Operator');
 
         return view('main/workspace/pages/operator/home', [
-            'title'             => 'Dashboard Operasional | Operator BegawiPBJ',
+            'title'             => 'Dashboard Operasional | Operator BegawiPengadaan',
             'pageTitle'         => 'Dashboard Operasional',
             'breadcrumbTail'    => [['label' => 'Dashboard Operasional']],
             'userName'          => $userName,
@@ -467,7 +467,7 @@ class OperatorController extends BaseController
         $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Operator');
 
         return view('main/workspace/pages/operator/class_trainers', [
-            'title'          => 'Kelas & Penugasan Trainer | Operator BegawiPBJ',
+            'title'          => 'Kelas & Penugasan Trainer | Operator BegawiPengadaan',
             'pageTitle'      => 'Kelas & Trainer Assignment',
             'breadcrumbTail' => [['label' => 'Kelas & Trainer Assignment']],
             'userName'       => $userName,
@@ -631,7 +631,7 @@ class OperatorController extends BaseController
         $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Operator');
 
         return view('main/workspace/pages/operator/event_participants', [
-            'title'          => 'Peserta Event: ' . esc($event['title']) . ' | Operator BegawiPBJ',
+            'title'          => 'Peserta Event: ' . esc($event['title']) . ' | Operator BegawiPengadaan',
             'pageTitle'      => 'Peserta Event',
             'breadcrumbTail' => [
                 ['label' => 'Operasional Event', 'url' => route_to('workspace.operator.events')],
@@ -764,8 +764,8 @@ class OperatorController extends BaseController
             $passedCount = $this->db->table('enrollments')
                 ->where('class_id', $cid)
                 ->groupStart()
-                    ->where('status', 'completed')
-                    ->orWhere('passed_at IS NOT NULL')
+                ->where('status', 'completed')
+                ->orWhere('passed_at IS NOT NULL')
                 ->groupEnd()
                 ->countAllResults();
 
@@ -802,7 +802,7 @@ class OperatorController extends BaseController
         $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Operator');
 
         return view('main/workspace/pages/operator/learning_monitoring', [
-            'title'          => 'Monitoring Pembelajaran | Operator BegawiPBJ',
+            'title'          => 'Monitoring Pembelajaran | Operator BegawiPengadaan',
             'pageTitle'      => 'Monitoring Pembelajaran',
             'breadcrumbTail' => [['label' => 'Monitoring Pembelajaran']],
             'userName'       => $userName,
@@ -851,7 +851,7 @@ class OperatorController extends BaseController
         $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Operator');
 
         return view('main/workspace/pages/operator/certificates', [
-            'title'              => 'Verifikasi Sertifikat | Operator BegawiPBJ',
+            'title'              => 'Verifikasi Sertifikat | Operator BegawiPengadaan',
             'pageTitle'          => 'Verifikasi Sertifikat',
             'breadcrumbTail'     => [['label' => 'Verifikasi Sertifikat']],
             'userName'           => $userName,
@@ -1041,7 +1041,7 @@ class OperatorController extends BaseController
         $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Operator');
 
         return view('main/workspace/pages/operator/override_submission', [
-            'title'       => 'Override Penilaian #' . $submissionId . ' | Operator BegawiPBJ',
+            'title'       => 'Override Penilaian #' . $submissionId . ' | Operator BegawiPengadaan',
             'pageTitle'   => 'Override Penilaian Tugas',
             'userName'    => $userName,
             'roles'       => ['operator'],
@@ -1298,7 +1298,7 @@ class OperatorController extends BaseController
         $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Operator');
 
         return view('main/workspace/pages/operasional', [
-            'title'          => $title . ' | Operator BegawiPBJ',
+            'title'          => $title . ' | Operator BegawiPengadaan',
             'pageTitle'      => $title,
             'breadcrumbTail' => [['label' => $title]],
             'userName'       => $userName,

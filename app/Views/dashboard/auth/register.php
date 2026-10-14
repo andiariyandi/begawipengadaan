@@ -3,11 +3,11 @@
 <?= $this->section('content') ?>
 <div>
     <a href="<?= site_url('/') ?>" class="mb-32 d-inline-block text-decoration-none">
-        <span class="auth-brand-text">BegawiPBJ</span>
+        <span class="auth-brand-text">BegawiPengadaan</span>
         <span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span>
     </a>
 
-    <h4 class="mb-8"><?= esc($pageTitle ?? 'Buat Akun BegawiPBJ') ?></h4>
+    <h4 class="mb-8"><?= esc($pageTitle ?? 'Buat Akun BegawiPengadaan') ?></h4>
     <p class="mb-24 text-secondary-light text-md"><?= esc($pageDescription ?? '') ?></p>
 </div>
 

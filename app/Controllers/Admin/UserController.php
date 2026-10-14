@@ -103,7 +103,7 @@ class UserController extends BaseController
         ];
 
         return view('dashboard/users/index', [
-            'title'         => 'Pengguna | Dashboard BegawiPBJ',
+            'title'         => 'Pengguna | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Manajemen Pengguna',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'users',
@@ -183,7 +183,7 @@ class UserController extends BaseController
             ->getResultArray();
 
         return view('dashboard/users/detail', [
-            'title'         => 'Detail Pengguna | Dashboard BegawiPBJ',
+            'title'         => 'Detail Pengguna | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Pengguna',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'users',
@@ -248,7 +248,7 @@ class UserController extends BaseController
         }
         $categories = (new \App\Services\Admin\OrganizationService())->listTree();
         return view('dashboard/users/form', [
-            'title'         => 'Tambah Pengguna | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Pengguna | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Pengguna',
             'formMode'      => 'create',
             'activeMenu'    => 'access',
@@ -267,7 +267,7 @@ class UserController extends BaseController
             'email'       => 'required|valid_email|is_unique[users.email]',
             'name'        => 'required|max_length[255]',
             'password'    => 'required|min_length[12]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]',
-            'profile_type'=> 'required|in_list[asn,provider,academic,public]',
+            'profile_type' => 'required|in_list[asn,provider,academic,public]',
         ];
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
@@ -311,7 +311,7 @@ class UserController extends BaseController
         }
         $categories = (new \App\Services\Admin\OrganizationService())->listTree();
         return view('dashboard/users/form', [
-            'title'         => 'Ubah Pengguna | Dashboard BegawiPBJ',
+            'title'         => 'Ubah Pengguna | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Ubah Pengguna',
             'formMode'      => 'edit',
             'activeMenu'    => 'access',
@@ -331,7 +331,7 @@ class UserController extends BaseController
             'username'    => 'required|min_length[3]|max_length[255]',
             'email'       => 'required|valid_email',
             'name'        => 'required|max_length[255]',
-            'profile_type'=> 'required|in_list[asn,provider,academic,public]',
+            'profile_type' => 'required|in_list[asn,provider,academic,public]',
         ];
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
@@ -399,19 +399,25 @@ class UserController extends BaseController
         $rel = 'uploads/users/' . $stored;
         $db = db_connect();
         $ok = $db->table('file_assets')->insert([
-            'disk' => 'local', 'path' => $rel,
+            'disk' => 'local',
+            'path' => $rel,
             'original_name' => $file->getClientName() ?: $stored,
             'stored_name'   => $stored,
             'extension'     => $file->getClientExtension() ?: 'bin',
             'mime_type'     => $file->getClientMimeType() ?: 'application/octet-stream',
             'size_bytes'    => (int) ($file->getSize() ?: 0),
-            'visibility'    => 'public', 'lifecycle_status' => 'available',
+            'visibility'    => 'public',
+            'lifecycle_status' => 'available',
             'resource_type' => 'user_avatar',
             'resource_id'   => null,
             'uploaded_by'   => (int) session()->get('user_id'),
-            'available_at'  => $now, 'created_at' => $now, 'updated_at' => $now,
+            'available_at'  => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
         ], true);
-        if (! $ok) { return false; }
+        if (! $ok) {
+            return false;
+        }
         $post['avatar_file_id'] = (int) $db->insertID();
         return true;
     }

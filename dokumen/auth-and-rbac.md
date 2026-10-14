@@ -1,8 +1,8 @@
-# BegawiPBJ — Authentication and RBAC Contract
+# BegawiPengadaan — Authentication and RBAC Contract
 
 ## Tujuan
 
-Dokumen ini menetapkan kontrak autentikasi, lifecycle akun, session, role, permission, authorization, filter, assignment, ownership, redirect pascalogin, serta audit akses untuk BegawiPBJ.
+Dokumen ini menetapkan kontrak autentikasi, lifecycle akun, session, role, permission, authorization, filter, assignment, ownership, redirect pascalogin, serta audit akses untuk BegawiPengadaan.
 
 Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 

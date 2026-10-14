@@ -211,7 +211,7 @@ class AssessmentManagementController extends BaseController
         }
 
         return view('dashboard/learning/assessments/management', [
-            'title'          => 'Assessment & Penilaian | Dashboard BegawiPBJ',
+            'title'          => 'Assessment & Penilaian | Dashboard BegawiPengadaan',
             'pageTitle'      => 'Assessment & Penilaian Pembelajaran',
             'currentTab'     => $tab,
             'quizzes'        => $quizzes,
@@ -593,7 +593,7 @@ class AssessmentManagementController extends BaseController
         $classes = $this->classModel->orderBy('name', 'ASC')->findAll();
 
         return view('dashboard/learning/assessments/question_bank', [
-            'title'     => 'Bank Soal | Dashboard BegawiPBJ',
+            'title'     => 'Bank Soal | Dashboard BegawiPengadaan',
             'pageTitle' => 'Bank Soal Evaluasi Pembelajaran',
             'questions' => $questions,
             'classes'   => $classes,

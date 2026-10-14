@@ -30,34 +30,122 @@
     }
 
     /* Universal high-contrast text and border utilities */
-    .text-slate-900 { color: #0f172a !important; }
-    .text-slate-800 { color: #1e293b !important; }
-    .text-slate-700 { color: #334155 !important; }
-    .text-slate-600 { color: #475569 !important; }
-    .text-slate-500 { color: #64748b !important; }
-    .text-slate-400 { color: #94a3b8 !important; }
-    .text-slate-300 { color: #cbd5e1 !important; }
-    .text-xs { font-size: 12px !important; line-height: 1.45; }
-    .text-sm { font-size: 14px !important; line-height: 1.5; }
-    .text-base { font-size: 16px !important; }
-    .text-lg { font-size: 18px !important; }
-    .text-xl { font-size: 20px !important; }
-    .text-2xl { font-size: 24px !important; }
-    .radius-6 { border-radius: 6px !important; }
-    .radius-8 { border-radius: 8px !important; }
-    .radius-10 { border-radius: 10px !important; }
-    .radius-12 { border-radius: 12px !important; }
-    .radius-14 { border-radius: 14px !important; }
-    .radius-16 { border-radius: 16px !important; }
-    .radius-18 { border-radius: 18px !important; }
-    .radius-999 { border-radius: 9999px !important; }
+    .text-slate-900 {
+        color: #0f172a !important;
+    }
+
+    .text-slate-800 {
+        color: #1e293b !important;
+    }
+
+    .text-slate-700 {
+        color: #334155 !important;
+    }
+
+    .text-slate-600 {
+        color: #475569 !important;
+    }
+
+    .text-slate-500 {
+        color: #64748b !important;
+    }
+
+    .text-slate-400 {
+        color: #94a3b8 !important;
+    }
+
+    .text-slate-300 {
+        color: #cbd5e1 !important;
+    }
+
+    .text-xs {
+        font-size: 12px !important;
+        line-height: 1.45;
+    }
+
+    .text-sm {
+        font-size: 14px !important;
+        line-height: 1.5;
+    }
+
+    .text-base {
+        font-size: 16px !important;
+    }
+
+    .text-lg {
+        font-size: 18px !important;
+    }
+
+    .text-xl {
+        font-size: 20px !important;
+    }
+
+    .text-2xl {
+        font-size: 24px !important;
+    }
+
+    .radius-6 {
+        border-radius: 6px !important;
+    }
+
+    .radius-8 {
+        border-radius: 8px !important;
+    }
+
+    .radius-10 {
+        border-radius: 10px !important;
+    }
+
+    .radius-12 {
+        border-radius: 12px !important;
+    }
+
+    .radius-14 {
+        border-radius: 14px !important;
+    }
+
+    .radius-16 {
+        border-radius: 16px !important;
+    }
+
+    .radius-18 {
+        border-radius: 18px !important;
+    }
+
+    .radius-999 {
+        border-radius: 9999px !important;
+    }
 
     /* High-contrast sub badges */
-    .bg-primary-subtle { background-color: #eff6ff !important; color: #0c5aa6 !important; border: 1px solid #bfdbfe; }
-    .bg-success-subtle { background-color: #ecfdf5 !important; color: #059669 !important; border: 1px solid #a7f3d0; }
-    .bg-warning-subtle { background-color: #fffbeb !important; color: #b45309 !important; border: 1px solid #fde68a; }
-    .bg-info-subtle { background-color: #f0f9ff !important; color: #0284c7 !important; border: 1px solid #bae6fd; }
-    .bg-secondary-subtle { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1; }
+    .bg-primary-subtle {
+        background-color: #eff6ff !important;
+        color: #0c5aa6 !important;
+        border: 1px solid #bfdbfe;
+    }
+
+    .bg-success-subtle {
+        background-color: #ecfdf5 !important;
+        color: #059669 !important;
+        border: 1px solid #a7f3d0;
+    }
+
+    .bg-warning-subtle {
+        background-color: #fffbeb !important;
+        color: #b45309 !important;
+        border: 1px solid #fde68a;
+    }
+
+    .bg-info-subtle {
+        background-color: #f0f9ff !important;
+        color: #0284c7 !important;
+        border: 1px solid #bae6fd;
+    }
+
+    .bg-secondary-subtle {
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1;
+    }
 
     /* Page Hero Banner - 215px gives safe clearance below absolute header */
     .evt-hero-banner {
@@ -488,9 +576,20 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
-    .evt-mode-online { background: rgba(16, 185, 129, 0.95); color: #ffffff; }
-    .evt-mode-offline { background: rgba(12, 90, 166, 0.95); color: #ffffff; }
-    .evt-mode-hybrid { background: rgba(245, 158, 11, 0.98); color: #0f172a; }
+    .evt-mode-online {
+        background: rgba(16, 185, 129, 0.95);
+        color: #ffffff;
+    }
+
+    .evt-mode-offline {
+        background: rgba(12, 90, 166, 0.95);
+        color: #ffffff;
+    }
+
+    .evt-mode-hybrid {
+        background: rgba(245, 158, 11, 0.98);
+        color: #0f172a;
+    }
 
     .evt-card-body {
         padding: 22px;
@@ -687,12 +786,15 @@
         .evt-hero-banner {
             padding: 185px 0 70px;
         }
+
         .evt-hero-title {
             font-size: 30px;
         }
+
         .evt-spotlight-inner {
             padding: 24px;
         }
+
         .evt-timeline-item {
             flex-direction: column;
             align-items: flex-start;
@@ -840,16 +942,16 @@
                     <span class="badge bg-light text-dark radius-999"><?= $stats['total_events'] ?></span>
                 </a>
                 <?php
-                    $dashboardTypes = [
-                        'webinar'     => 'Webinar',
-                        'bimtek'      => 'Bimtek',
-                        'workshop'    => 'Workshop',
-                        'sosialisasi' => 'Sosialisasi',
-                        'seminar'     => 'Seminar',
-                        'pelatihan'   => 'Pelatihan',
-                        'rakor'       => 'Rapat Koordinasi',
-                        'klinik'      => 'Klinik PBJ',
-                    ];
+                $dashboardTypes = [
+                    'webinar'     => 'Webinar',
+                    'bimtek'      => 'Bimtek',
+                    'workshop'    => 'Workshop',
+                    'sosialisasi' => 'Sosialisasi',
+                    'seminar'     => 'Seminar',
+                    'pelatihan'   => 'Pelatihan',
+                    'rakor'       => 'Rapat Koordinasi',
+                    'klinik'      => 'Klinik PBJ',
+                ];
                 ?>
                 <?php foreach ($dashboardTypes as $tKey => $tLabel): ?>
                     <a href="<?= site_url('event?tipe=' . $tKey . (! empty($selectedMode) ? '&mode=' . $selectedMode : '')) ?>" class="evt-pill <?= $selectedType === $tKey ? 'active' : '' ?>">
@@ -874,7 +976,7 @@
                     <?php if (empty($calendarGrouped)): ?>
                         <div class="text-center p-5 bg-white border radius-18">
                             <h5 class="fw-bold mb-2 text-slate-900">Belum ada kalender agenda terjadwal</h5>
-                            <p class="text-slate-600">Pantau terus pembaharuan agenda melalui kanal resmi BegawiPBJ.</p>
+                            <p class="text-slate-600">Pantau terus pembaharuan agenda melalui kanal resmi BegawiPengadaan.</p>
                         </div>
                     <?php else: ?>
                         <?php foreach ($calendarGrouped as $monthName => $cEvents): ?>
@@ -884,9 +986,9 @@
                             </h3>
                             <div class="d-grid gap-2">
                                 <?php foreach ($cEvents as $ce): ?>
-                                    <?php 
-                                        $ceStart = ! empty($ce['start_at']) ? strtotime($ce['start_at']) : time();
-                                        $ceEnd   = ! empty($ce['end_at']) ? strtotime($ce['end_at']) : $ceStart;
+                                    <?php
+                                    $ceStart = ! empty($ce['start_at']) ? strtotime($ce['start_at']) : time();
+                                    $ceEnd   = ! empty($ce['end_at']) ? strtotime($ce['end_at']) : $ceStart;
                                     ?>
                                     <div class="evt-timeline-item">
                                         <div class="d-flex align-items-center gap-3" style="min-width: 140px;">
@@ -940,7 +1042,7 @@
                 </div>
             </div>
 
-        <!-- STANDARD CATALOG / AGENDA VIEW -->
+            <!-- STANDARD CATALOG / AGENDA VIEW -->
         <?php else: ?>
             <!-- Spotlight Upcoming Event (Hero Card) -->
             <?php if (! empty($spotlightEvent)): ?>
@@ -953,9 +1055,9 @@
                         <div class="col-lg-5">
                             <div style="height: 100%; min-height: 320px; position: relative; background: var(--evt-navy-dark);">
                                 <?php if (! empty($spotlightEvent['cover_url'])): ?>
-                                    <img src="<?= $spotlightEvent['cover_url'] ?>" 
-                                         alt="<?= esc($spotlightEvent['title']) ?>" 
-                                         style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="<?= $spotlightEvent['cover_url'] ?>"
+                                        alt="<?= esc($spotlightEvent['title']) ?>"
+                                        style="width: 100%; height: 100%; object-fit: cover;">
                                 <?php else: ?>
                                     <div class="evt-card-placeholder">
                                         <iconify-icon icon="solar:calendar-date-bold" style="font-size: 56px; color: var(--evt-gold); margin-bottom: 12px;"></iconify-icon>
@@ -1031,12 +1133,12 @@
                     <?php else: ?>
                         <div class="row g-4">
                             <?php foreach ($items as $item): ?>
-                                <?php 
-                                    $modeClass = match ($item['mode']) {
-                                        'online'  => 'evt-mode-online',
-                                        'offline' => 'evt-mode-offline',
-                                        default   => 'evt-mode-hybrid',
-                                    };
+                                <?php
+                                $modeClass = match ($item['mode']) {
+                                    'online'  => 'evt-mode-online',
+                                    'offline' => 'evt-mode-offline',
+                                    default   => 'evt-mode-hybrid',
+                                };
                                 ?>
                                 <div class="col-md-6">
                                     <article class="evt-card">
@@ -1047,7 +1149,7 @@
                                                 <div class="evt-card-placeholder">
                                                     <iconify-icon icon="solar:calendar-date-bold" style="font-size: 42px; color: var(--evt-gold); margin-bottom: 8px;"></iconify-icon>
                                                     <span class="badge bg-warning text-dark text-xs fw-bold px-2 py-1 radius-6 mb-1"><?= esc($item['type_label']) ?></span>
-                                                    <small class="text-white-50 text-xs">BegawiPBJ Lampung</small>
+                                                    <small class="text-white-50 text-xs">BegawiPengadaan Lampung</small>
                                                 </div>
                                             <?php endif; ?>
                                             <div class="evt-date-badge">
@@ -1108,26 +1210,26 @@
                         <!-- Pagination Bar -->
                         <?php if ($totalPages > 1): ?>
                             <?php
-                                $queryParams = [];
-                                if (! empty($keyword)) $queryParams['q'] = $keyword;
-                                if (! empty($selectedType)) $queryParams['tipe'] = $selectedType;
-                                if (! empty($selectedMode)) $queryParams['mode'] = $selectedMode;
-                                if (! empty($selectedTimeline)) $queryParams['timeline'] = $selectedTimeline;
-                                $buildEvtUrl = function ($p) use ($queryParams) {
-                                    $params = array_merge($queryParams, ['page' => $p]);
-                                    return current_url() . '?' . http_build_query($params);
-                                };
+                            $queryParams = [];
+                            if (! empty($keyword)) $queryParams['q'] = $keyword;
+                            if (! empty($selectedType)) $queryParams['tipe'] = $selectedType;
+                            if (! empty($selectedMode)) $queryParams['mode'] = $selectedMode;
+                            if (! empty($selectedTimeline)) $queryParams['timeline'] = $selectedTimeline;
+                            $buildEvtUrl = function ($p) use ($queryParams) {
+                                $params = array_merge($queryParams, ['page' => $p]);
+                                return current_url() . '?' . http_build_query($params);
+                            };
                             ?>
                             <nav class="evt-pagination-wrap" aria-label="Navigasi Halaman Event">
-                                <a href="<?= $buildEvtUrl(max(1, $currentPage - 1)) ?>" 
-                                   class="evt-page-btn <?= $currentPage <= 1 ? 'disabled' : '' ?>">
+                                <a href="<?= $buildEvtUrl(max(1, $currentPage - 1)) ?>"
+                                    class="evt-page-btn <?= $currentPage <= 1 ? 'disabled' : '' ?>">
                                     <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
                                     <span class="ms-1 d-none d-sm-inline">Sebelumnya</span>
                                 </a>
 
                                 <?php for ($p = 1; $p <= $totalPages; $p++): ?>
                                     <?php if ($p === 1 || $p === $totalPages || ($p >= $currentPage - 1 && $p <= $currentPage + 1)): ?>
-                                        <a href="<?= $buildEvtUrl($p) ?>" 
+                                        <a href="<?= $buildEvtUrl($p) ?>"
                                             class="evt-page-btn <?= $p === $currentPage ? 'active' : '' ?>">
                                             <?= $p ?>
                                         </a>
@@ -1138,8 +1240,8 @@
                                     <?php endif; ?>
                                 <?php endfor; ?>
 
-                                <a href="<?= $buildEvtUrl(min($totalPages, $currentPage + 1)) ?>" 
-                                   class="evt-page-btn <?= $currentPage >= $totalPages ? 'disabled' : '' ?>">
+                                <a href="<?= $buildEvtUrl(min($totalPages, $currentPage + 1)) ?>"
+                                    class="evt-page-btn <?= $currentPage >= $totalPages ? 'disabled' : '' ?>">
                                     <span class="me-1 d-none d-sm-inline">Berikutnya</span>
                                     <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
                                 </a>
@@ -1234,19 +1336,23 @@
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
-(function() {
-    // Bulletproof zero-jitter clamping at scroll extremities for ultra-smooth scrolling
-    var isClamping = false;
-    window.addEventListener('scroll', function() {
-        var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-        if (window.scrollY > maxScroll) {
-            if (!isClamping) {
-                isClamping = true;
-                window.scrollTo(0, maxScroll);
-                requestAnimationFrame(function() { isClamping = false; });
+    (function() {
+        // Bulletproof zero-jitter clamping at scroll extremities for ultra-smooth scrolling
+        var isClamping = false;
+        window.addEventListener('scroll', function() {
+            var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+            if (window.scrollY > maxScroll) {
+                if (!isClamping) {
+                    isClamping = true;
+                    window.scrollTo(0, maxScroll);
+                    requestAnimationFrame(function() {
+                        isClamping = false;
+                    });
+                }
             }
-        }
-    }, { passive: true });
-})();
+        }, {
+            passive: true
+        });
+    })();
 </script>
 <?= $this->endSection() ?>

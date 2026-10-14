@@ -30,34 +30,122 @@
     }
 
     /* Universal high-contrast text and border utilities */
-    .text-slate-900 { color: #0f172a !important; }
-    .text-slate-800 { color: #1e293b !important; }
-    .text-slate-700 { color: #334155 !important; }
-    .text-slate-600 { color: #475569 !important; }
-    .text-slate-500 { color: #64748b !important; }
-    .text-slate-400 { color: #94a3b8 !important; }
-    .text-slate-300 { color: #cbd5e1 !important; }
-    .text-xs { font-size: 12px !important; line-height: 1.45; }
-    .text-sm { font-size: 14px !important; line-height: 1.5; }
-    .text-base { font-size: 16px !important; }
-    .text-lg { font-size: 18px !important; }
-    .text-xl { font-size: 20px !important; }
-    .text-2xl { font-size: 24px !important; }
-    .radius-6 { border-radius: 6px !important; }
-    .radius-8 { border-radius: 8px !important; }
-    .radius-10 { border-radius: 10px !important; }
-    .radius-12 { border-radius: 12px !important; }
-    .radius-14 { border-radius: 14px !important; }
-    .radius-16 { border-radius: 16px !important; }
-    .radius-18 { border-radius: 18px !important; }
-    .radius-999 { border-radius: 9999px !important; }
+    .text-slate-900 {
+        color: #0f172a !important;
+    }
+
+    .text-slate-800 {
+        color: #1e293b !important;
+    }
+
+    .text-slate-700 {
+        color: #334155 !important;
+    }
+
+    .text-slate-600 {
+        color: #475569 !important;
+    }
+
+    .text-slate-500 {
+        color: #64748b !important;
+    }
+
+    .text-slate-400 {
+        color: #94a3b8 !important;
+    }
+
+    .text-slate-300 {
+        color: #cbd5e1 !important;
+    }
+
+    .text-xs {
+        font-size: 12px !important;
+        line-height: 1.45;
+    }
+
+    .text-sm {
+        font-size: 14px !important;
+        line-height: 1.5;
+    }
+
+    .text-base {
+        font-size: 16px !important;
+    }
+
+    .text-lg {
+        font-size: 18px !important;
+    }
+
+    .text-xl {
+        font-size: 20px !important;
+    }
+
+    .text-2xl {
+        font-size: 24px !important;
+    }
+
+    .radius-6 {
+        border-radius: 6px !important;
+    }
+
+    .radius-8 {
+        border-radius: 8px !important;
+    }
+
+    .radius-10 {
+        border-radius: 10px !important;
+    }
+
+    .radius-12 {
+        border-radius: 12px !important;
+    }
+
+    .radius-14 {
+        border-radius: 14px !important;
+    }
+
+    .radius-16 {
+        border-radius: 16px !important;
+    }
+
+    .radius-18 {
+        border-radius: 18px !important;
+    }
+
+    .radius-999 {
+        border-radius: 9999px !important;
+    }
 
     /* High-contrast sub badges */
-    .bg-primary-subtle { background-color: #eff6ff !important; color: #0c5aa6 !important; border: 1px solid #bfdbfe; }
-    .bg-success-subtle { background-color: #ecfdf5 !important; color: #059669 !important; border: 1px solid #a7f3d0; }
-    .bg-warning-subtle { background-color: #fffbeb !important; color: #b45309 !important; border: 1px solid #fde68a; }
-    .bg-info-subtle { background-color: #f0f9ff !important; color: #0284c7 !important; border: 1px solid #bae6fd; }
-    .bg-secondary-subtle { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1; }
+    .bg-primary-subtle {
+        background-color: #eff6ff !important;
+        color: #0c5aa6 !important;
+        border: 1px solid #bfdbfe;
+    }
+
+    .bg-success-subtle {
+        background-color: #ecfdf5 !important;
+        color: #059669 !important;
+        border: 1px solid #a7f3d0;
+    }
+
+    .bg-warning-subtle {
+        background-color: #fffbeb !important;
+        color: #b45309 !important;
+        border: 1px solid #fde68a;
+    }
+
+    .bg-info-subtle {
+        background-color: #f0f9ff !important;
+        color: #0284c7 !important;
+        border: 1px solid #bae6fd;
+    }
+
+    .bg-secondary-subtle {
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1;
+    }
 
     /* Detail Header Banner - 215px gives safe clearance below absolute header */
     .evt-detail-header-section {
@@ -286,15 +374,34 @@
     .evt-share-btn:hover {
         transform: translateY(-2px);
         color: #ffffff;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
-    .evt-share-wa { background: #25d366; }
-    .evt-share-tg { background: #0088cc; }
-    .evt-share-tw { background: #000000; }
-    .evt-share-fb { background: #1877f2; }
-    .evt-share-in { background: #0077b5; }
-    .evt-share-copy { background: #334155; border: none; cursor: pointer; }
+    .evt-share-wa {
+        background: #25d366;
+    }
+
+    .evt-share-tg {
+        background: #0088cc;
+    }
+
+    .evt-share-tw {
+        background: #000000;
+    }
+
+    .evt-share-fb {
+        background: #1877f2;
+    }
+
+    .evt-share-in {
+        background: #0077b5;
+    }
+
+    .evt-share-copy {
+        background: #334155;
+        border: none;
+        cursor: pointer;
+    }
 
     #copyToast {
         position: fixed;
@@ -306,21 +413,23 @@
         border-radius: 12px;
         font-size: 14px;
         font-weight: 600;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
         display: none;
         z-index: 99999;
         align-items: center;
         gap: 10px;
-        border: 1px solid rgba(255,255,255,0.2);
+        border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     @media (max-width: 991px) {
         .evt-detail-header-section {
             padding: 185px 0 55px;
         }
+
         .evt-detail-title {
             font-size: 26px;
         }
+
         .evt-detail-card {
             padding: 24px;
         }
@@ -478,9 +587,9 @@
                 <!-- Cover Banner -->
                 <div class="rounded-3 overflow-hidden mb-4" style="max-height: 420px; background: var(--evt-navy-dark);">
                     <?php if (! empty($event['cover_path'])): ?>
-                        <img src="<?= base_url($event['cover_path']) ?>" 
-                             alt="<?= esc($event['title']) ?>" 
-                             style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="<?= base_url($event['cover_path']) ?>"
+                            alt="<?= esc($event['title']) ?>"
+                            style="width: 100%; height: 100%; object-fit: cover;">
                     <?php else: ?>
                         <div class="p-5 text-center text-white" style="background: linear-gradient(135deg, #052244 0%, #082f5c 50%, #0c5aa6 100%);">
                             <iconify-icon icon="solar:calendar-date-bold" style="font-size: 64px; color: var(--evt-gold); margin-bottom: 16px;"></iconify-icon>
@@ -547,7 +656,7 @@
                                 <strong>Rangkuman Hasil, Penutupan &amp; Validasi Presensi</strong>
                                 <small class="text-slate-500 d-block mt-1">Perekaman rekam jejak kehadiran dan penerbitan sertifikat</small>
                             </td>
-                            <td>Penyelenggara Resmi BegawiPBJ</td>
+                            <td>Penyelenggara Resmi BegawiPengadaan</td>
                         </tr>
                     </tbody>
                 </table>
@@ -688,7 +797,7 @@
             <div class="evt-register-widget">
                 <span class="badge bg-primary text-white text-xs fw-bold px-2 py-1 mb-2">Pendaftaran Peserta</span>
                 <h4 class="h5 fw-bold text-slate-900 mb-1">Status Partisipasi</h4>
-                <p class="text-xs text-slate-600 mb-3">Pastikan Anda telah masuk dengan akun BegawiPBJ untuk konfirmasi otomatis.</p>
+                <p class="text-xs text-slate-600 mb-3">Pastikan Anda telah masuk dengan akun BegawiPengadaan untuk konfirmasi otomatis.</p>
 
                 <!-- Quota Counter & Bar -->
                 <?php if ($isUnlimited): ?>
@@ -706,8 +815,8 @@
                         <span>Terdaftar: <?= $registeredCount ?></span>
                         <span>Kapasitas: <?= $capacity ?></span>
                     </div>
-                    <?php 
-                        $percent = $capacity > 0 ? min(100, round(($registeredCount / $capacity) * 100)) : 0;
+                    <?php
+                    $percent = $capacity > 0 ? min(100, round(($registeredCount / $capacity) * 100)) : 0;
                     ?>
                     <div class="evt-seat-bar-wrap">
                         <div class="evt-seat-bar-fill" style="width: <?= $percent ?>%;"></div>
@@ -785,8 +894,8 @@
                             <span>Tautan pertemuan daring terbuka untuk peserta terdaftar.</span>
                         </div>
                     <?php endif; ?>
-                    <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=<?= urlencode($event['title']) ?>&dates=<?= date('Ymd\THis', $startTime) ?>/<?= date('Ymd\THis', $endTime) ?>&details=<?= urlencode($event['summary'] ?: $event['title']) ?>&location=<?= urlencode($event['location'] ?: 'Lampung') ?>" 
-                       target="_blank" class="btn btn-sm btn-outline-secondary w-100 radius-8 fw-semibold mt-1">
+                    <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=<?= urlencode($event['title']) ?>&dates=<?= date('Ymd\THis', $startTime) ?>/<?= date('Ymd\THis', $endTime) ?>&details=<?= urlencode($event['summary'] ?: $event['title']) ?>&location=<?= urlencode($event['location'] ?: 'Lampung') ?>"
+                        target="_blank" class="btn btn-sm btn-outline-secondary w-100 radius-8 fw-semibold mt-1">
                         <iconify-icon icon="solar:calendar-add-bold"></iconify-icon> Tambahkan ke Google Calendar
                     </a>
                 </div>
@@ -819,96 +928,100 @@
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Copy link handler
-    var btnCopy = document.getElementById('btnCopyLink');
-    var toast = document.getElementById('copyToast');
-    if (btnCopy) {
-        btnCopy.addEventListener('click', function () {
-            var url = '<?= $shareUrl ?>';
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(url).then(function () {
-                    showToast();
-                }).catch(function () {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Copy link handler
+        var btnCopy = document.getElementById('btnCopyLink');
+        var toast = document.getElementById('copyToast');
+        if (btnCopy) {
+            btnCopy.addEventListener('click', function() {
+                var url = '<?= $shareUrl ?>';
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(function() {
+                        showToast();
+                    }).catch(function() {
+                        fallbackCopy(url);
+                    });
+                } else {
                     fallbackCopy(url);
-                });
-            } else {
-                fallbackCopy(url);
+                }
+            });
+        }
+
+        function showToast() {
+            if (toast) {
+                toast.style.display = 'flex';
+                setTimeout(function() {
+                    toast.style.display = 'none';
+                }, 3000);
             }
+        }
+
+        function fallbackCopy(text) {
+            var tempInput = document.createElement('input');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                alert('Salin tautan: ' + text);
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        // Countdown timer handler
+        var timerContainer = document.getElementById('countdownTimer');
+        if (timerContainer) {
+            var targetSec = parseInt(timerContainer.getAttribute('data-target'), 10) * 1000;
+            var elDays = document.getElementById('cdDays');
+            var elHours = document.getElementById('cdHours');
+            var elMinutes = document.getElementById('cdMinutes');
+            var elSeconds = document.getElementById('cdSeconds');
+
+            function updateCountdown() {
+                var now = new Date().getTime();
+                var diff = targetSec - now;
+
+                if (diff <= 0) {
+                    if (elDays) elDays.innerText = '00';
+                    if (elHours) elHours.innerText = '00';
+                    if (elMinutes) elMinutes.innerText = '00';
+                    if (elSeconds) elSeconds.innerText = '00';
+                    return;
+                }
+
+                var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                if (elDays) elDays.innerText = String(days).padStart(2, '0');
+                if (elHours) elHours.innerText = String(hours).padStart(2, '0');
+                if (elMinutes) elMinutes.innerText = String(minutes).padStart(2, '0');
+                if (elSeconds) elSeconds.innerText = String(seconds).padStart(2, '0');
+            }
+
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+
+        // Bulletproof zero-jitter clamping at scroll extremities for ultra-smooth scrolling
+        var isClamping = false;
+        window.addEventListener('scroll', function() {
+            var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+            if (window.scrollY > maxScroll) {
+                if (!isClamping) {
+                    isClamping = true;
+                    window.scrollTo(0, maxScroll);
+                    requestAnimationFrame(function() {
+                        isClamping = false;
+                    });
+                }
+            }
+        }, {
+            passive: true
         });
-    }
-
-    function showToast() {
-        if (toast) {
-            toast.style.display = 'flex';
-            setTimeout(function () {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-    }
-
-    function fallbackCopy(text) {
-        var tempInput = document.createElement('input');
-        tempInput.value = text;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        try {
-            document.execCommand('copy');
-            showToast();
-        } catch (err) {
-            alert('Salin tautan: ' + text);
-        }
-        document.body.removeChild(tempInput);
-    }
-
-    // Countdown timer handler
-    var timerContainer = document.getElementById('countdownTimer');
-    if (timerContainer) {
-        var targetSec = parseInt(timerContainer.getAttribute('data-target'), 10) * 1000;
-        var elDays = document.getElementById('cdDays');
-        var elHours = document.getElementById('cdHours');
-        var elMinutes = document.getElementById('cdMinutes');
-        var elSeconds = document.getElementById('cdSeconds');
-
-        function updateCountdown() {
-            var now = new Date().getTime();
-            var diff = targetSec - now;
-
-            if (diff <= 0) {
-                if (elDays) elDays.innerText = '00';
-                if (elHours) elHours.innerText = '00';
-                if (elMinutes) elMinutes.innerText = '00';
-                if (elSeconds) elSeconds.innerText = '00';
-                return;
-            }
-
-            var days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            var seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-            if (elDays) elDays.innerText = String(days).padStart(2, '0');
-            if (elHours) elHours.innerText = String(hours).padStart(2, '0');
-            if (elMinutes) elMinutes.innerText = String(minutes).padStart(2, '0');
-            if (elSeconds) elSeconds.innerText = String(seconds).padStart(2, '0');
-        }
-
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
-    }
-
-    // Bulletproof zero-jitter clamping at scroll extremities for ultra-smooth scrolling
-    var isClamping = false;
-    window.addEventListener('scroll', function() {
-        var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-        if (window.scrollY > maxScroll) {
-            if (!isClamping) {
-                isClamping = true;
-                window.scrollTo(0, maxScroll);
-                requestAnimationFrame(function() { isClamping = false; });
-            }
-        }
-    }, { passive: true });
-});
+    });
 </script>
 <?= $this->endSection() ?>

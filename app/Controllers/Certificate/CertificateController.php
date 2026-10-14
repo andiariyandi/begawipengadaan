@@ -71,7 +71,7 @@ class CertificateController extends BaseController
         $recentCertificates = array_slice($recentCertificates, 0, 8);
 
         return view('dashboard/certificates/overview', [
-            'title'              => 'Overview Sertifikat | Dashboard BegawiPBJ',
+            'title'              => 'Overview Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'          => 'Overview Sertifikat',
             'activeMenu'         => 'certificates',
             'activeSubmenu'      => 'overview',
@@ -91,11 +91,21 @@ class CertificateController extends BaseController
         $dateFrom = (string) $this->request->getGet('date_from');
         $dateTo   = (string) $this->request->getGet('date_to');
 
-        if ($keyword === '')  { $keyword = null; }
-        if ($status  === '')  { $status  = null; }
-        if ($category === '') { $category = null; }
-        if ($dateFrom === '') { $dateFrom = null; }
-        if ($dateTo   === '') { $dateTo   = null; }
+        if ($keyword === '') {
+            $keyword = null;
+        }
+        if ($status  === '') {
+            $status  = null;
+        }
+        if ($category === '') {
+            $category = null;
+        }
+        if ($dateFrom === '') {
+            $dateFrom = null;
+        }
+        if ($dateTo   === '') {
+            $dateTo   = null;
+        }
 
         $db = $this->db;
         $stats = [
@@ -115,7 +125,7 @@ class CertificateController extends BaseController
         $pager->store('certificates', $page, $perPage, $total, 0);
 
         return view('dashboard/certificates/index', [
-            'title'          => 'Riwayat Sertifikat | Dashboard BegawiPBJ',
+            'title'          => 'Riwayat Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'      => 'Riwayat Sertifikat',
             'activeMenu'     => 'certificates',
             'activeSubmenu'  => 'riwayat',
@@ -142,7 +152,7 @@ class CertificateController extends BaseController
     public function verification()
     {
         return view('dashboard/certificates/verification', [
-            'title'         => 'Verifikasi Sertifikat | Dashboard BegawiPBJ',
+            'title'         => 'Verifikasi Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Verifikasi Sertifikat',
             'activeMenu'    => 'certificates',
             'activeSubmenu' => 'verification',
@@ -191,7 +201,7 @@ class CertificateController extends BaseController
         }
 
         return view('dashboard/certificates/verification', [
-            'title'         => 'Verifikasi Sertifikat | Dashboard BegawiPBJ',
+            'title'         => 'Verifikasi Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Verifikasi Sertifikat',
             'activeMenu'    => 'certificates',
             'activeSubmenu' => 'verification',
@@ -219,7 +229,7 @@ class CertificateController extends BaseController
         $verifyTokenForDisplay = $issuedToken ?? null;
 
         return view('dashboard/certificates/detail', [
-            'title'                  => 'Detail Sertifikat | Dashboard BegawiPBJ',
+            'title'                  => 'Detail Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'              => 'Detail Sertifikat',
             'activeMenu'             => 'certificates',
             'activeSubmenu'          => 'riwayat',
@@ -237,7 +247,7 @@ class CertificateController extends BaseController
         }
 
         return view('dashboard/certificates/form', [
-            'title'         => 'Ubah Sertifikat | Dashboard BegawiPBJ',
+            'title'         => 'Ubah Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Ubah Sertifikat',
             'formMode'      => 'edit',
             'activeMenu'    => 'certificates',
@@ -285,7 +295,7 @@ class CertificateController extends BaseController
             'certificate',
             $idInt,
             [
-                'before' => array_intersect_key((array) $before, array_flip(['status','issued_at','expires_at','revocation_reason'])),
+                'before' => array_intersect_key((array) $before, array_flip(['status', 'issued_at', 'expires_at', 'revocation_reason'])),
                 'after'  => $data,
             ]
         );
@@ -348,12 +358,18 @@ class CertificateController extends BaseController
     private function normalizeDateTime(?string $value, $fallback): ?string
     {
         if ($value === null || $value === '') {
-            if ($fallback === null) { return null; }
-            if ($fallback === 'now') { return date('Y-m-d H:i:s'); }
+            if ($fallback === null) {
+                return null;
+            }
+            if ($fallback === 'now') {
+                return date('Y-m-d H:i:s');
+            }
             return is_string($fallback) ? $fallback : null;
         }
         $ts = strtotime($value);
-        if ($ts === false) { return is_string($fallback) ? $fallback : null; }
+        if ($ts === false) {
+            return is_string($fallback) ? $fallback : null;
+        }
         return date('Y-m-d H:i:s', $ts);
     }
 

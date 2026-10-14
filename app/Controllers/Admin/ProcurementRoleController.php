@@ -22,7 +22,7 @@ class ProcurementRoleController extends BaseController
         $pager->store('procurement_roles', $page, $perPage, count($roles), 0);
 
         return view('dashboard/access/procurement_roles', [
-            'title'         => 'Peran Pengadaan | Dashboard BegawiPBJ',
+            'title'         => 'Peran Pengadaan | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Peran Pengadaan',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'procurement-roles',
@@ -34,7 +34,7 @@ class ProcurementRoleController extends BaseController
     public function create()
     {
         return view('dashboard/access/procurement_role_form', [
-            'title'         => 'Tambah Peran Pengadaan | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Peran Pengadaan | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Peran Pengadaan',
             'formMode'      => 'create',
             'activeMenu'    => 'access',
@@ -67,7 +67,7 @@ class ProcurementRoleController extends BaseController
         $assignments = (new ProcurementRoleService())->listAssignments(['user_id' => null]);
 
         return view('dashboard/access/procurement_role_detail', [
-            'title'         => 'Detail Peran Pengadaan | Dashboard BegawiPBJ',
+            'title'         => 'Detail Peran Pengadaan | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Peran Pengadaan',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'procurement-roles',
@@ -100,7 +100,7 @@ class ProcurementRoleController extends BaseController
         $items = $service->listAssignments(['verification_status' => $this->request->getGet('verification_status')]);
 
         return view('dashboard/access/procurement_role_assignments', [
-            'title'         => 'Penugasan Peran Pengadaan | Dashboard BegawiPBJ',
+            'title'         => 'Penugasan Peran Pengadaan | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Penugasan Peran Pengadaan',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'procurement-roles',

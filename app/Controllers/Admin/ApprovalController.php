@@ -48,7 +48,7 @@ class ApprovalController extends BaseController
         array $data = []
     ): string {
         return view('dashboard/approvals/' . $viewName, array_merge([
-            'title' => $pageTitle . ' | BegawiPBJ',
+            'title' => $pageTitle . ' | BegawiPengadaan',
             'pageTitle' => $pageTitle,
             'activeMenu' => 'system',
             'activeSubmenu' => $activeSubmenu,

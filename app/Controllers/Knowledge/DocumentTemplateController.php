@@ -23,7 +23,7 @@ class DocumentTemplateController extends BaseKnowledgeController
         ];
 
         return view('dashboard/knowledge/templates/index', [
-            'title'         => 'Template Dokumen | Dashboard BegawiPBJ',
+            'title'         => 'Template Dokumen | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Template Dokumen PBJ',
             'activeMenu'    => 'knowledge',
             'activeSubmenu' => 'document-templates',
@@ -32,18 +32,18 @@ class DocumentTemplateController extends BaseKnowledgeController
             'categories'    => (new KnowledgeCategoryModel())->activeFlat(),
             'filterStatus'  => $status,
             'filterKeyword' => $keyword,
-            'filterCategory'=> $category,
+            'filterCategory' => $category,
         ]);
     }
 
     public function create(): string
     {
         return view('dashboard/knowledge/templates/form', [
-            'title'        => 'Tambah Template Dokumen | Dashboard BegawiPBJ',
+            'title'        => 'Tambah Template Dokumen | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Tambah Template Dokumen',
             'formMode'     => 'create',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'document-templates',
+            'activeSubmenu' => 'document-templates',
             'template'     => null,
             'categories'   => (new KnowledgeCategoryModel())->activeFlat(),
         ]);
@@ -90,7 +90,7 @@ class DocumentTemplateController extends BaseKnowledgeController
         }
         $model->insert($payload);
         $id = (int) $model->getInsertID();
-        $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn ($v) => $v > 0));
+        $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn($v) => $v > 0));
         $model->syncCategories($id, $cats);
         return redirect()->to(route_to('dashboard.knowledge.document-templates.detail', (string) $id))->with('success', 'Template berhasil ditambahkan.');
     }
@@ -106,13 +106,13 @@ class DocumentTemplateController extends BaseKnowledgeController
             $fileMeta = $this->db->table('file_assets')->where('id', (int) $row['cover_file_id'])->get()->getRowArray();
         }
         return view('dashboard/knowledge/templates/detail', [
-            'title'        => 'Detail Template Dokumen | Dashboard BegawiPBJ',
+            'title'        => 'Detail Template Dokumen | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Detail Template Dokumen',
             'templateId'   => (int) $id,
             'template'     => $row,
             'fileMeta'     => $fileMeta,
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'document-templates',
+            'activeSubmenu' => 'document-templates',
         ]);
     }
 
@@ -123,15 +123,15 @@ class DocumentTemplateController extends BaseKnowledgeController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Template tidak ditemukan.');
         }
         return view('dashboard/knowledge/templates/form', [
-            'title'        => 'Ubah Template Dokumen | Dashboard BegawiPBJ',
+            'title'        => 'Ubah Template Dokumen | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Ubah Template Dokumen',
             'formMode'     => 'edit',
             'templateId'   => (int) $id,
             'template'     => $row,
             'categories'   => (new KnowledgeCategoryModel())->activeFlat(),
-            'selectedCategories' => array_map(static fn ($c) => (int) $c['id'], $row['categories'] ?? []),
+            'selectedCategories' => array_map(static fn($c) => (int) $c['id'], $row['categories'] ?? []),
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'document-templates',
+            'activeSubmenu' => 'document-templates',
         ]);
     }
 
@@ -175,7 +175,7 @@ class DocumentTemplateController extends BaseKnowledgeController
             $payload['cover_file_id'] = $fileId;
         }
         $model->update((int) $id, $payload);
-        $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn ($v) => $v > 0));
+        $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn($v) => $v > 0));
         $model->syncCategories((int) $id, $cats);
         return redirect()->to(route_to('dashboard.knowledge.document-templates.detail', $id))->with('success', 'Template berhasil diperbarui.');
     }

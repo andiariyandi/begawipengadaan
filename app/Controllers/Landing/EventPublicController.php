@@ -26,6 +26,11 @@ class EventPublicController extends BaseController
      */
     public function index(): string
     {
+        try {
+            (new \App\Services\VisitorStatisticService())->recordHit('event');
+        } catch (\Throwable) {
+        }
+
         return $this->renderCatalog('all');
     }
 
@@ -110,7 +115,7 @@ class EventPublicController extends BaseController
             $builder->orderBy('e.start_at', 'DESC');
         } else {
             $builder->orderBy('CASE WHEN e.end_at >= "' . $now . '" THEN 0 ELSE 1 END', 'ASC', false)
-                    ->orderBy('e.start_at', 'ASC');
+                ->orderBy('e.start_at', 'ASC');
         }
 
         $rawItems = $builder->limit($perPage, $offset)->get()->getResultArray();
@@ -159,7 +164,7 @@ class EventPublicController extends BaseController
                 'waitlist_enabled'     => (int) ($row['waitlist_enabled'] ?? 0),
                 'certificate_enabled'  => (int) ($row['certificate_enabled'] ?? 0),
                 'registration_open_at' => $row['registration_open_at'],
-                'registration_close_at'=> $row['registration_close_at'],
+                'registration_close_at' => $row['registration_close_at'],
                 'cover_url'            => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
             ];
         }, $rawItems);
@@ -230,7 +235,7 @@ class EventPublicController extends BaseController
         };
 
         return view('landing/pages/events', [
-            'title'            => $pageTitle . ' | BegawiPBJ Provinsi Lampung',
+            'title'            => $pageTitle . ' | BegawiPengadaan Provinsi Lampung',
             'metaDescription'  => 'Jadwal bimbingan teknis, webinar nasional, workshop probity audit, dan agenda kolaborasi pengadaan barang dan jasa Pemerintah Provinsi Lampung.',
             'pageTitle'        => $pageTitle,
             'viewMode'         => $viewMode,

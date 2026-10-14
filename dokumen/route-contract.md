@@ -1,8 +1,8 @@
-# BegawiPBJ — Route Contract
+# BegawiPengadaan — Route Contract
 
 ## Tujuan
 
-Dokumen ini menetapkan kontrak route HTTP untuk aplikasi BegawiPBJ. Kontrak mencakup path, method, controller, boundary antarmuka, filter, akses minimum, tujuan view/response, serta aturan penamaan route.
+Dokumen ini menetapkan kontrak route HTTP untuk aplikasi BegawiPengadaan. Kontrak mencakup path, method, controller, boundary antarmuka, filter, akses minimum, tujuan view/response, serta aturan penamaan route.
 
 Dokumen ini berlaku untuk seluruh area proyek:
 

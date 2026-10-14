@@ -4,7 +4,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        <h4>BegawiPBJ Dashboard</h4>
+        <h4>BegawiPengadaan Dashboard</h4>
         <p>Monitoring ekosistem Pengadaan Barang/Jasa Pemerintah.</p>
     </div>
 </div>

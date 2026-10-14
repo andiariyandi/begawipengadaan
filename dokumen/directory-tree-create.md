@@ -1,8 +1,8 @@
-# BegawiPBJ Directory Tree
+# BegawiPengadaan Directory Tree
 
-## Struktur Direktori dan File Baru Proyek BegawiPBJ V4
+## Struktur Direktori dan File Baru Proyek BegawiPengadaan V4
 
-Dokumen ini menetapkan tree direktori dan file target untuk proyek **BegawiPBJ V4**. Struktur ini berfokus pada file yang akan dibuat, diadaptasi, atau dikelola oleh proyek BegawiPBJ.
+Dokumen ini menetapkan tree direktori dan file target untuk proyek **BegawiPengadaan V4**. Struktur ini berfokus pada file yang akan dibuat, diadaptasi, atau dikelola oleh proyek BegawiPengadaan.
 
 Folder bawaan CodeIgniter 4 AppStarter yang tidak memerlukan penambahan file khusus ditampilkan hanya sampai level folder. File internal bawaan CI4 tidak dirinci. Source template FiStudy dan WowDash ditampilkan sesuai struktur yang telah diberikan, tetapi tetap berstatus non-production.
 

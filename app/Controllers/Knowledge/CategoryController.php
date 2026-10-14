@@ -11,10 +11,10 @@ class CategoryController extends BaseKnowledgeController
         $items = (new KnowledgeCategoryModel())->activeFlat();
         $counts = $this->contentCountsByCategory();
         return view('dashboard/knowledge/categories/index', [
-            'title'        => 'Kategori Bunga Rampai | Dashboard BegawiPBJ',
+            'title'        => 'Kategori Bunga Rampai | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Kategori',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'categories',
+            'activeSubmenu' => 'categories',
             'items'        => $items,
             'counts'       => $counts,
         ]);
@@ -24,11 +24,11 @@ class CategoryController extends BaseKnowledgeController
     {
         $parents = (new KnowledgeCategoryModel())->activeFlat();
         return view('dashboard/knowledge/categories/form', [
-            'title'        => 'Tambah Kategori | Dashboard BegawiPBJ',
+            'title'        => 'Tambah Kategori | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Tambah Kategori',
             'formMode'     => 'create',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'categories',
+            'activeSubmenu' => 'categories',
             'category'     => null,
             'parents'      => $parents,
         ]);
@@ -69,14 +69,14 @@ class CategoryController extends BaseKnowledgeController
         }
         $parents = $model->where('id !=', (int) $id)->orderBy('name', 'ASC')->findAll();
         return view('dashboard/knowledge/categories/form', [
-            'title'        => 'Ubah Kategori | Dashboard BegawiPBJ',
+            'title'        => 'Ubah Kategori | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Ubah Kategori',
             'formMode'     => 'edit',
             'categoryId'   => (int) $id,
             'category'     => $category,
             'parents'      => $parents,
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'categories',
+            'activeSubmenu' => 'categories',
         ]);
     }
 

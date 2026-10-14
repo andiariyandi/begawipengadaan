@@ -2,7 +2,7 @@
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? $title ?? 'Dashboard') ?></h6>
-        <p class="text-secondary-light mb-0">Manajemen data BegawiPBJ.</p>
+        <p class="text-secondary-light mb-0">Manajemen data BegawiPengadaan.</p>
     </div>
     <?php if ($items !== []): ?>
         <ul class="d-flex align-items-center gap-2 mb-0">

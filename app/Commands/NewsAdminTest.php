@@ -134,7 +134,7 @@ class NewsAdminTest extends BaseCommand
                 'is_featured'     => 1,
                 'reading_time'    => '4 menit',
                 'tags'            => 'Pengadaan, Digitalisasi, Testing',
-                'source_name'     => 'BegawiPBJ Media',
+                'source_name'     => 'BegawiPengadaan Media',
                 'source_url'      => 'https://begawipbj.test/source',
                 'cover_caption'   => 'Dokumentasi kegiatan peluncuran sistem',
             ], $adminId);
@@ -147,7 +147,7 @@ class NewsAdminTest extends BaseCommand
             $this->assert((int) $row['is_featured'] === 1, "is_featured field correctly saved as 1");
             $this->assert($row['reading_time'] === '4 menit', "reading_time correctly saved");
             $this->assert($row['tags'] === 'Pengadaan, Digitalisasi, Testing', "tags correctly saved");
-            $this->assert($row['source_name'] === 'BegawiPBJ Media', "source_name correctly saved");
+            $this->assert($row['source_name'] === 'BegawiPengadaan Media', "source_name correctly saved");
             $this->assert($row['source_url'] === 'https://begawipbj.test/source', "source_url correctly saved");
             $this->assert($row['cover_caption'] === 'Dokumentasi kegiatan peluncuran sistem', "cover_caption correctly saved");
         });
@@ -163,7 +163,7 @@ class NewsAdminTest extends BaseCommand
                 $this->assert(str_contains($body, 'Detail Informasi Berita'), "Detail title present");
                 $this->assert(str_contains($body, 'Berita Utama'), "Headline badge present");
                 $this->assert(str_contains($body, 'Dokumentasi kegiatan peluncuran sistem'), "Cover caption present");
-                $this->assert(str_contains($body, 'BegawiPBJ Media'), "Source name present");
+                $this->assert(str_contains($body, 'BegawiPengadaan Media'), "Source name present");
                 $this->assert(str_contains($body, '4 menit'), "Reading time badge present");
                 $this->assert(str_contains($body, 'Pengadaan'), "Tag badge present");
                 $this->assert(str_contains($body, 'Ubah Berita'), "Edit button present");
@@ -180,7 +180,7 @@ class NewsAdminTest extends BaseCommand
                 $this->assert(str_contains($body, 'Ubah Berita'), "Edit form heading present");
                 $this->assert(str_contains($body, 'value="4 menit"'), "Pre-filled reading_time present");
                 $this->assert(str_contains($body, 'Pengadaan, Digitalisasi, Testing'), "Pre-filled tags present");
-                $this->assert(str_contains($body, 'BegawiPBJ Media'), "Pre-filled source_name present");
+                $this->assert(str_contains($body, 'BegawiPengadaan Media'), "Pre-filled source_name present");
                 $this->assert(str_contains($body, 'Dokumentasi kegiatan peluncuran sistem'), "Pre-filled cover_caption present");
                 $this->assert(str_contains($body, 'Simpan Pembaruan Berita'), "Submit update button present");
             });

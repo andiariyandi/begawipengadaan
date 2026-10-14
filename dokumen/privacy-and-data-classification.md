@@ -1,8 +1,8 @@
-# BegawiPBJ — Privacy and Data Classification Policy
+# BegawiPengadaan — Privacy and Data Classification Policy
 
 ## Tujuan
 
-Dokumen ini menetapkan klasifikasi data, prinsip privasi, batas pemrosesan, akses, masking, tampilan UI, file access, logging, audit, notifikasi, export, statistik, retention, serta respons insiden untuk BegawiPBJ.
+Dokumen ini menetapkan klasifikasi data, prinsip privasi, batas pemrosesan, akses, masking, tampilan UI, file access, logging, audit, notifikasi, export, statistik, retention, serta respons insiden untuk BegawiPengadaan.
 
 Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 
@@ -27,7 +27,7 @@ dokumen/regulation-policy.md
 
 ## Prinsip Privasi
 
-BegawiPBJ menerapkan prinsip berikut:
+BegawiPengadaan menerapkan prinsip berikut:
 
 - **Data minimization**: kumpulkan hanya data yang diperlukan untuk layanan, verifikasi, keamanan, atau kewajiban yang sah.
 - **Purpose limitation**: gunakan data hanya untuk tujuan yang dijelaskan oleh layanan dan policy domain.

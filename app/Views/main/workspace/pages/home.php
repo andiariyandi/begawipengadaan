@@ -8,6 +8,7 @@
         position: relative;
         overflow: hidden;
     }
+
     .ws-hero-card::after {
         content: '';
         position: absolute;
@@ -19,26 +20,31 @@
         background: radial-gradient(circle, rgba(255, 107, 53, 0.18) 0%, rgba(255, 107, 53, 0) 70%);
         pointer-events: none;
     }
+
     .ws-stat-card {
         border-radius: 16px;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         border: 1px solid #eef2f7;
     }
+
     .ws-stat-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 25px rgba(8, 47, 92, 0.08) !important;
     }
+
     .ws-class-card {
         border-radius: 16px;
         border: 1px solid #eef2f7;
         background: #ffffff;
         transition: all 0.2s ease;
     }
+
     .ws-class-card:hover {
         border-color: #cbd5e1;
         box-shadow: 0 8px 24px rgba(8, 47, 92, 0.08);
         transform: translateY(-2px);
     }
+
     .ws-event-date-box {
         width: 52px;
         height: 52px;
@@ -53,23 +59,27 @@
         line-height: 1.1;
         flex-shrink: 0;
     }
+
     .ws-event-date-box small {
         font-size: 10px;
         text-transform: uppercase;
         font-weight: 600;
         opacity: 0.85;
     }
+
     .ws-cert-card {
         border-radius: 16px;
         border: 1px solid #e2e8f0;
         background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
         transition: all 0.2s ease;
     }
+
     .ws-cert-card:hover {
         border-color: #f59e0b;
         box-shadow: 0 8px 24px rgba(245, 158, 11, 0.12);
         transform: translateY(-2px);
     }
+
     .text-navy {
         color: #082f5c !important;
     }
@@ -119,7 +129,7 @@ $methodBadge = static function (?string $method): array {
                         <i class="fas fa-graduation-cap me-1"></i> Ruang Kerja Peserta
                     </span>
                     <span class="badge bg-white-50 text-white px-3 py-2 rounded-pill small">
-                        <i class="fas fa-check-circle text-success me-1"></i> Terverifikasi BegawiPBJ
+                        <i class="fas fa-check-circle text-success me-1"></i> Terverifikasi BegawiPengadaan
                     </span>
                 </div>
                 <h1 class="h2 text-white fw-bold mb-2">
@@ -158,7 +168,7 @@ $methodBadge = static function (?string $method): array {
                                 </span>
                             <?php endif; ?>
                         </div>
-                        
+
                         <div class="progress rounded-pill mb-3" style="height: 6px; background: rgba(255, 255, 255, 0.2);">
                             <div class="progress-bar bg-warning rounded-pill" role="progressbar" style="width: <?= (int) ($resumeClass['progress_percent'] ?? 0) ?>%"></div>
                         </div>
@@ -335,7 +345,7 @@ $methodBadge = static function (?string $method): array {
                                     <small class="text-muted d-block mb-1" style="font-size: 0.75rem;"><?= esc($task['class_name']) ?></small>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <small class="text-danger small" style="font-size: 0.75rem;">
-                                             <i class="far fa-clock me-1"></i> Batas: <?= esc(!empty($task['due_at']) ? date('d/m/Y H:i', strtotime($task['due_at'])) : 'Tidak ada batas') ?>
+                                            <i class="far fa-clock me-1"></i> Batas: <?= esc(!empty($task['due_at']) ? date('d/m/Y H:i', strtotime($task['due_at'])) : 'Tidak ada batas') ?>
                                         </small>
                                         <a href="<?= route_to('workspace.participant.assignments', $task['class_id']) ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.75rem;">
                                             <?= ($task['submission_status'] ?? '') === 'graded' ? 'Lihat Nilai' : 'Kerjakan' ?>
@@ -418,7 +428,7 @@ $methodBadge = static function (?string $method): array {
                                 <div class="flex-grow-1">
                                     <div class="d-flex justify-content-between align-items-start mb-1">
                                         <strong class="small text-navy text-truncate" style="max-width: 75%;">
-                                            <?= esc($ev['event_title'] ?? 'Event BegawiPBJ') ?>
+                                            <?= esc($ev['event_title'] ?? 'Event BegawiPengadaan') ?>
                                         </strong>
                                         <span class="badge <?= ($ev['attendance_status'] ?? '') === 'present' ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary' ?> small rounded-pill">
                                             <?= ($ev['attendance_status'] ?? '') === 'present' ? 'Hadir' : 'Terdaftar' ?>
@@ -461,7 +471,7 @@ $methodBadge = static function (?string $method): array {
                 <h2 class="h5 fw-bold text-navy mb-0">
                     <i class="fas fa-award text-success me-2"></i>Sertifikat Kelulusan & Kompetensi Saya
                 </h2>
-                <small class="text-muted">Bukti capaian kompetensi resmi yang diterbitkan oleh BegawiPBJ</small>
+                <small class="text-muted">Bukti capaian kompetensi resmi yang diterbitkan oleh BegawiPengadaan</small>
             </div>
             <a href="<?= route_to('workspace.participant.certificates') ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
                 Lihat Semua Sertifikat

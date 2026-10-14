@@ -26,27 +26,27 @@ class ArticleController extends BaseKnowledgeController
         ];
 
         return view('dashboard/knowledge/articles/index', [
-            'title'        => 'Artikel | Dashboard BegawiPBJ',
+            'title'        => 'Artikel | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Artikel dan Praktik Baik',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'articles',
+            'activeSubmenu' => 'articles',
             'items'        => $items,
             'stats'        => $stats,
             'categories'   => (new KnowledgeCategoryModel())->activeFlat(),
             'filterStatus' => $status,
-            'filterKeyword'=> $keyword,
-            'filterCategory'=> $category,
+            'filterKeyword' => $keyword,
+            'filterCategory' => $category,
         ]);
     }
 
     public function create(): string
     {
         return view('dashboard/knowledge/articles/form', [
-            'title'        => 'Tambah Artikel | Dashboard BegawiPBJ',
+            'title'        => 'Tambah Artikel | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Tambah Artikel',
             'formMode'     => 'create',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'articles',
+            'activeSubmenu' => 'articles',
             'article'      => null,
             'categories'   => (new KnowledgeCategoryModel())->activeFlat(),
             'tags'         => (new TagModel())->listAll(),
@@ -114,12 +114,12 @@ class ArticleController extends BaseKnowledgeController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Artikel tidak ditemukan.');
         }
         return view('dashboard/knowledge/articles/detail', [
-            'title'        => 'Detail Artikel | Dashboard BegawiPBJ',
+            'title'        => 'Detail Artikel | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Detail Artikel',
             'articleId'    => (int) $id,
             'article'      => $article,
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'articles',
+            'activeSubmenu' => 'articles',
         ]);
     }
 
@@ -130,17 +130,17 @@ class ArticleController extends BaseKnowledgeController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Artikel tidak ditemukan.');
         }
         return view('dashboard/knowledge/articles/form', [
-            'title'        => 'Ubah Artikel | Dashboard BegawiPBJ',
+            'title'        => 'Ubah Artikel | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Ubah Artikel',
             'formMode'     => 'edit',
             'articleId'    => (int) $id,
             'article'      => $article,
             'categories'   => (new KnowledgeCategoryModel())->activeFlat(),
             'tags'         => (new TagModel())->listAll(),
-            'selectedCategories' => array_map(static fn ($c) => (int) $c['id'], $article['categories'] ?? []),
-            'selectedTags'        => array_map(static fn ($t) => (string) $t['name'], $article['tags'] ?? []),
+            'selectedCategories' => array_map(static fn($c) => (int) $c['id'], $article['categories'] ?? []),
+            'selectedTags'        => array_map(static fn($t) => (string) $t['name'], $article['tags'] ?? []),
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'articles',
+            'activeSubmenu' => 'articles',
         ]);
     }
 
@@ -213,7 +213,7 @@ class ArticleController extends BaseKnowledgeController
     private function syncRelations(ArticleModel $model, int $articleId): void
     {
         $categories = (array) $this->request->getPost('categories');
-        $categories = array_values(array_filter(array_map('intval', $categories), static fn ($v) => $v > 0));
+        $categories = array_values(array_filter(array_map('intval', $categories), static fn($v) => $v > 0));
         $model->syncCategories($articleId, $categories);
 
         $tagsRaw = (string) $this->request->getPost('tags');

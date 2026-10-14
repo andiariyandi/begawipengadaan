@@ -19,7 +19,7 @@ class OrganizationController extends BaseController
         $pager->store('units', $page, $perPage, count($units), 0);
 
         return view('dashboard/access/organization_units', [
-            'title'         => 'Unit Organisasi | Dashboard BegawiPBJ',
+            'title'         => 'Unit Organisasi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Unit Organisasi',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'organization-units',
@@ -31,7 +31,7 @@ class OrganizationController extends BaseController
     public function create()
     {
         return view('dashboard/access/organization_unit_form', [
-            'title'         => 'Tambah Unit Organisasi | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Unit Organisasi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Unit Organisasi',
             'formMode'      => 'create',
             'activeMenu'    => 'access',
@@ -73,7 +73,7 @@ class OrganizationController extends BaseController
         }
 
         return view('dashboard/access/organization_unit_detail', [
-            'title'         => 'Detail Unit Organisasi | Dashboard BegawiPBJ',
+            'title'         => 'Detail Unit Organisasi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Unit Organisasi',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'organization-units',
@@ -93,7 +93,7 @@ class OrganizationController extends BaseController
         }
 
         return view('dashboard/access/organization_unit_form', [
-            'title'         => 'Ubah Unit Organisasi | Dashboard BegawiPBJ',
+            'title'         => 'Ubah Unit Organisasi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Ubah Unit Organisasi',
             'formMode'      => 'edit',
             'activeMenu'    => 'access',
