@@ -209,26 +209,130 @@ class HomeController extends BaseController
 
     public function about(): string
     {
+        $db = db_connect();
+
+        $stats = [
+            'total_regulations'  => 0,
+            'total_courses'      => 0,
+            'total_certificates' => 0,
+            'total_users'        => 0,
+            'total_knowledge'    => 0,
+        ];
+
+        try {
+            $stats['total_regulations'] = (int) $db->table('regulations')
+                ->where('deleted_at', null)
+                ->where('workflow_status', 'published')
+                ->countAllResults();
+        } catch (\Throwable) {}
+
+        try {
+            $stats['total_courses'] = (int) $db->table('courses')
+                ->where('deleted_at', null)
+                ->where('status', 'published')
+                ->countAllResults();
+        } catch (\Throwable) {}
+
+        try {
+            $stats['total_certificates'] = (int) $db->table('certificates')
+                ->where('status', 'issued')
+                ->countAllResults();
+        } catch (\Throwable) {}
+
+        try {
+            $stats['total_users'] = (int) $db->table('users')
+                ->where('deleted_at', null)
+                ->where('account_status', 'active')
+                ->countAllResults();
+        } catch (\Throwable) {}
+
+        try {
+            $stats['total_knowledge'] = (int) $db->table('knowledge_articles')
+                ->where('deleted_at', null)
+                ->where('workflow_status', 'published')
+                ->countAllResults();
+        } catch (\Throwable) {}
+
         return view('landing/pages/about', [
-            'title' => 'Tentang BegawiPBJ | Provinsi Lampung',
-            'metaDescription' => 'Tentang visi, misi, nilai, dan ekosistem layanan BegawiPBJ.',
-            'metaKeywords' => 'tentang BegawiPBJ, Biro PBJ Lampung, pengadaan barang jasa Lampung',
-            'breadcrumbs' => [
-                ['label' => 'Tentang BegawiPBJ'],
+            'title'           => 'Tentang BegawiPBJ | Biro PBJ Setda Provinsi Lampung',
+            'metaDescription' => 'Profil resmi, visi, misi, nilai budaya kerja PATIK, struktur organisasi, dan 5 pilar ekosistem digital Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung.',
+            'metaKeywords'    => 'tentang BegawiPBJ, Biro PBJ Lampung, UKPBJ Lampung, pengadaan barang jasa Lampung, visi misi PBJ Lampung',
+            'breadcrumbs'     => [
+                ['label' => 'Tentang Kami'],
             ],
+            'stats'           => $stats,
         ]);
     }
 
     public function contact(): string
     {
-        return view('landing/home/contact', [
-            'title' => 'Kontak BegawiPBJ | Provinsi Lampung',
-            'metaDescription' => 'Hubungi tim BegawiPBJ untuk informasi dan layanan Pengadaan Barang/Jasa.',
-            'metaKeywords' => 'kontak BegawiPBJ, Biro PBJ Lampung, pengadaan barang jasa',
-            'breadcrumbs' => [
-                ['label' => 'Kontak'],
+        $contactInfo = [
+            'phone'          => '(0721) 481103',
+            'whatsapp'       => '+62 851-1777-9783',
+            'whatsapp_link'  => 'https://wa.me/6285117779783?text=' . rawurlencode('Halo Helpdesk Biro PBJ Setda Provinsi Lampung, saya ingin berkonsultasi mengenai: '),
+            'email'          => 'biropbj@lampungprov.go.id',
+            'email_alt'      => 'lpse.lampung@gmail.com',
+            'address'        => 'Gedung Biro Pengadaan Barang dan Jasa, Kompleks Kantor Gubernur Provinsi Lampung, Jl. Wolter Monginsidi No. 69, Teluk Betung, Bandar Lampung 35211',
+            'hours_weekday'  => 'Senin – Kamis: 08.00 – 16.00 WIB',
+            'hours_friday'   => 'Jumat: 08.00 – 15.30 WIB',
+            'hours_weekend'  => 'Sabtu – Minggu & Hari Libur Nasional: Tutup',
+            'maps_embed_url' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3971.970891823157!2d105.2570003!3d-5.4388889!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e40da4ea912bb29%3A0x633da4b46c645479!2sKantor%20Gubernur%20Lampung!5e0!3m2!1sid!2sid!4v1700000000000',
+            'maps_dir_link'  => 'https://maps.google.com/?q=Kantor+Gubernur+Lampung',
+        ];
+
+        $serviceCategories = [
+            'Konsultasi Perencanaan & Pemilihan PBJ',
+            'Helpdesk LPSE & Sistem SPSE Lampung',
+            'Pelatihan Kompetensi (Arena Belajar)',
+            'Verifikasi & Validasi Sertifikat Digital',
+            'Katalog Elektronik Lokal & E-Purchasing',
+            'Advokasi & Bantuan Hukum PBJ',
+            'Pengaduan & Informasi Publik Lainnya',
+        ];
+
+        return view('landing/pages/contact', [
+            'title'             => 'Hubungi Kami & Helpdesk PBJ | Biro Pengadaan Barang dan Jasa Lampung',
+            'metaDescription'   => 'Layanan informasi resmi, konsultasi teknis, dan helpdesk LPSE Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung.',
+            'metaKeywords'      => 'kontak BegawiPBJ, helpdesk LPSE Lampung, biro PBJ Setda Lampung, alamat kantor gubernur lampung',
+            'breadcrumbs'       => [
+                ['label' => 'Hubungi Kami'],
             ],
+            'contact'           => $contactInfo,
+            'serviceCategories' => $serviceCategories,
         ]);
+    }
+
+    public function sendContact()
+    {
+        $rules = [
+            'name'         => 'required|min_length[3]|max_length[100]',
+            'email'        => 'required|valid_email|max_length[150]',
+            'phone'        => 'permit_empty|min_length[8]|max_length[20]',
+            'organization' => 'permit_empty|max_length[150]',
+            'service_type' => 'permit_empty|max_length[100]',
+            'subject'      => 'required|min_length[3]|max_length[200]',
+            'message'      => 'required|min_length[10]|max_length[3000]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('contact_error', 'Mohon lengkapi formulir dengan data yang valid: ' . implode(' ', $this->validator->getErrors()));
+        }
+
+        // Simpan / catat log pesan konsultasi
+        try {
+            $auditService = new \App\Services\AuditService();
+            $auditService->log(null, 'contact.inquiry_submitted', 'contact', 'contact_form', 0, [
+                'name'         => substr((string) $this->request->getPost('name'), 0, 100),
+                'email'        => substr((string) $this->request->getPost('email'), 0, 100),
+                'service_type' => substr((string) $this->request->getPost('service_type'), 0, 100),
+                'subject'      => substr((string) $this->request->getPost('subject'), 0, 150),
+            ]);
+        } catch (\Throwable) {}
+
+        return redirect()->to(site_url('kontak#form-pesan'))
+            ->with('contact_success', 'Terima kasih atas pesan Anda! Konsultasi dan pertanyaan Anda telah berhasil diteruskan ke Helpdesk Biro Pengadaan Barang dan Jasa Provinsi Lampung. Petugas kami akan segera menindaklanjuti.');
     }
 
     public function forbiddenPreview(): string
