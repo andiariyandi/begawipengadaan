@@ -94,7 +94,7 @@ class CertificateApprovalController extends BaseController
         $items = $this->resolveSources($rows);
 
         return view('dashboard/certificates/approvals/index', [
-            'title'         => 'Approval Sertifikat | Dashboard BegawiPBJ',
+            'title'         => 'Approval Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Approval Sertifikat',
             'activeMenu'    => 'certificates',
             'activeSubmenu' => 'approvals',
@@ -134,14 +134,14 @@ class CertificateApprovalController extends BaseController
             ->countAllResults() > 0;
 
         return view('dashboard/certificates/approvals/detail', [
-            'title'         => 'Detail Approval Sertifikat | Dashboard BegawiPBJ',
+            'title'         => 'Detail Approval Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Approval Sertifikat',
             'activeMenu'    => 'certificates',
             'activeSubmenu' => 'approvals',
             'approval'      => $approval,
             'approvalId'    => (int) $id,
             'source'        => $source,
-            'hasCertificate'=> $hasCertificate,
+            'hasCertificate' => $hasCertificate,
         ]);
     }
 
@@ -183,7 +183,7 @@ class CertificateApprovalController extends BaseController
             session()->setFlashdata('certificate_issued_token', [
                 'id'    => (int) $result['certificate_id'],
                 'token' => (string) $result['clear_token'],
-                'number'=> (string) $result['certificate_number'],
+                'number' => (string) $result['certificate_number'],
             ]);
 
             return redirect()->to(site_url('dashboard/sertifikat/' . (int) $result['certificate_id']))
@@ -270,8 +270,13 @@ class CertificateApprovalController extends BaseController
         $enrollments = [];
         if (! empty($enrollIds)) {
             $enrollments = $this->db->table('enrollments e')
-                ->select(['e.id AS source_id', 'u.name AS user_name', 'u.email AS user_email',
-                          'lc.name AS class_name', 'co.title AS course_title'])
+                ->select([
+                    'e.id AS source_id',
+                    'u.name AS user_name',
+                    'u.email AS user_email',
+                    'lc.name AS class_name',
+                    'co.title AS course_title'
+                ])
                 ->join('learning_classes lc', 'lc.id = e.class_id', 'left')
                 ->join('courses co',          'co.id = lc.course_id', 'left')
                 ->join('users u',             'u.id = e.user_id', 'left')
@@ -283,8 +288,14 @@ class CertificateApprovalController extends BaseController
         $eventRegs = [];
         if (! empty($eventRegIds)) {
             $eventRegs = $this->db->table('event_registrations er')
-                ->select(['er.id AS source_id', 'u.name AS user_name', 'u.email AS user_email',
-                          'ev.title AS event_title', 'ev.start_at AS event_start_at', 'ev.end_at AS event_end_at'])
+                ->select([
+                    'er.id AS source_id',
+                    'u.name AS user_name',
+                    'u.email AS user_email',
+                    'ev.title AS event_title',
+                    'ev.start_at AS event_start_at',
+                    'ev.end_at AS event_end_at'
+                ])
                 ->join('events ev', 'ev.id = er.event_id', 'left')
                 ->join('users u',   'u.id = er.user_id', 'left')
                 ->whereIn('er.id', array_keys($eventRegIds))
@@ -293,8 +304,12 @@ class CertificateApprovalController extends BaseController
         }
 
         $bySource = [];
-        foreach ($enrollments as $e) { $bySource['learning_enrollment'][(int) $e['source_id']] = ['type' => 'learning_enrollment', 'data' => $e]; }
-        foreach ($eventRegs    as $r) { $bySource['event_registration'] [(int) $r['source_id']] = ['type' => 'event_registration',  'data' => $r]; }
+        foreach ($enrollments as $e) {
+            $bySource['learning_enrollment'][(int) $e['source_id']] = ['type' => 'learning_enrollment', 'data' => $e];
+        }
+        foreach ($eventRegs    as $r) {
+            $bySource['event_registration'][(int) $r['source_id']] = ['type' => 'event_registration',  'data' => $r];
+        }
 
         $out = [];
         foreach ($rows as $row) {
@@ -309,7 +324,7 @@ class CertificateApprovalController extends BaseController
             $row['course_title']  = $matched['data']['course_title'] ?? null;
             $row['class_name']    = $matched['data']['class_name']   ?? null;
             $row['event_title']   = $matched['data']['event_title']  ?? null;
-            $row['event_start_at']= $matched['data']['event_start_at'] ?? null;
+            $row['event_start_at'] = $matched['data']['event_start_at'] ?? null;
             $row['event_end_at']  = $matched['data']['event_end_at']   ?? null;
             $row['source_label']  = $matched['data']['course_title']
                 ?? $matched['data']['event_title']
@@ -326,9 +341,17 @@ class CertificateApprovalController extends BaseController
     private function loadSourceContext(int $resourceId): array
     {
         $enrollment = $this->db->table('enrollments e')
-            ->select(['e.id AS source_id', 'e.user_id', 'e.class_id', 'e.status AS enrollment_status', 'e.completed_at',
-                      'u.name AS user_name', 'u.email AS user_email',
-                      'lc.name AS class_name', 'co.title AS course_title'])
+            ->select([
+                'e.id AS source_id',
+                'e.user_id',
+                'e.class_id',
+                'e.status AS enrollment_status',
+                'e.completed_at',
+                'u.name AS user_name',
+                'u.email AS user_email',
+                'lc.name AS class_name',
+                'co.title AS course_title'
+            ])
             ->join('learning_classes lc', 'lc.id = e.class_id', 'left')
             ->join('courses co',          'co.id = lc.course_id', 'left')
             ->join('users u',             'u.id = e.user_id', 'left')
@@ -342,10 +365,18 @@ class CertificateApprovalController extends BaseController
         }
 
         $registration = $this->db->table('event_registrations er')
-            ->select(['er.id AS source_id', 'er.user_id', 'er.event_id', 'er.status AS registration_status',
-                      'u.name AS user_name', 'u.email AS user_email',
-                      'ev.title AS event_title', 'ev.start_at', 'ev.end_at',
-                      'a.status AS attendance_status'])
+            ->select([
+                'er.id AS source_id',
+                'er.user_id',
+                'er.event_id',
+                'er.status AS registration_status',
+                'u.name AS user_name',
+                'u.email AS user_email',
+                'ev.title AS event_title',
+                'ev.start_at',
+                'ev.end_at',
+                'a.status AS attendance_status'
+            ])
             ->join('events ev',     'ev.id = er.event_id',              'left')
             ->join('attendances a', 'a.event_registration_id = er.id',  'left')
             ->join('users u',       'u.id = er.user_id',                'left')

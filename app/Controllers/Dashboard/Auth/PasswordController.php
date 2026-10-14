@@ -21,9 +21,9 @@ class PasswordController extends BaseController
         }
 
         return view('dashboard/auth/forgot_password', [
-            'title' => 'Lupa Kata Sandi | BegawiPBJ',
-            'pageTitle' => 'Lupa Kata Sandi',
-            'pageDescription' => 'Masukkan alamat email akun Anda untuk menerima instruksi pengaturan ulang kata sandi.',
+            'title'           => 'Lupa Kata Sandi | BegawiPengadaan',
+            'pageTitle'       => 'Lupa Kata Sandi Akun',
+            'pageDescription' => 'Masukkan alamat email akun Anda untuk menerima tautan instruksi pemulihan kata sandi.',
         ]);
     }
 
@@ -33,19 +33,32 @@ class PasswordController extends BaseController
             return redirect()->to(site_url('dashboard'));
         }
 
-        $email = strtolower(trim((string) $this->request->getPost('email')));
+        $rules = [
+            'email' => 'required|valid_email|max_length[150]',
+        ];
 
-        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $messages = [
+            'email' => [
+                'required'    => 'Silakan masukkan alamat email akun Anda.',
+                'valid_email' => 'Format alamat email yang Anda masukkan tidak valid.',
+            ],
+        ];
+
+        $postData = (array) ($this->request->getPost() ?: $_POST);
+
+        if (! $this->validateData($postData, $rules, $messages)) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Alamat email tidak valid.');
+                ->with('errors', $this->validator->getErrors());
         }
 
-        // Generic path — no account-existence disclosure.
+        $email = strtolower(trim((string) ($postData['email'] ?? '')));
+
+        // Generic path — no account-existence disclosure per CLAUDE.md §9.
         (new PasswordResetService())->requestReset($email);
 
         return redirect()->back()
-            ->with('message', 'Jika email terdaftar, instruksi pengaturan ulang akan diproses.');
+            ->with('message', 'Permintaan pemulihan telah diterima. Jika alamat email terdaftar di sistem, tautan pengaturan ulang kata sandi telah diproses.');
     }
 
     public function resetForm(string $token)
@@ -57,12 +70,14 @@ class PasswordController extends BaseController
         $row = (new PasswordResetService())->findValidToken($token);
         if (! $row) {
             return redirect()->to(site_url('dashboard/lupa-kata-sandi'))
-                ->with('error', 'Tautan reset tidak valid atau sudah kedaluwarsa. Silakan ajukan ulang.');
+                ->with('error', 'Tautan pemulihan kata sandi tidak valid atau sudah kedaluwarsa. Silakan ajukan permohonan baru.');
         }
 
         return view('dashboard/auth/reset_password', [
-            'title' => 'Reset Kata Sandi | BegawiPBJ',
-            'token' => $token,
+            'title'           => 'Atur Ulang Kata Sandi | BegawiPengadaan',
+            'pageTitle'       => 'Atur Ulang Kata Sandi',
+            'pageDescription' => 'Silakan masukkan kata sandi baru yang memenuhi standar keamanan sistem.',
+            'token'           => $token,
         ]);
     }
 
@@ -73,21 +88,35 @@ class PasswordController extends BaseController
             'password_confirmation' => 'required|matches[password]',
         ];
 
-        if (! $this->validate($rules)) {
+        $messages = [
+            'password' => [
+                'required'    => 'Kata sandi baru wajib diisi.',
+                'min_length'  => 'Kata sandi baru minimal harus terdiri dari 12 karakter.',
+                'regex_match' => 'Kata sandi baru wajib memadukan huruf besar, huruf kecil, angka, dan karakter khusus/simbol.',
+            ],
+            'password_confirmation' => [
+                'required' => 'Konfirmasi kata sandi baru wajib diisi.',
+                'matches'  => 'Konfirmasi kata sandi tidak cocok dengan kata sandi baru.',
+            ],
+        ];
+
+        $postData = (array) ($this->request->getPost() ?: $_POST);
+
+        if (! $this->validateData($postData, $rules, $messages)) {
             return redirect()->back()
                 ->with('errors', $this->validator->getErrors());
         }
 
-        $newPassword = (string) $this->request->getPost('password');
+        $newPassword = (string) ($postData['password'] ?? '');
 
         $ok = (new PasswordResetService())->resetPassword($token, $newPassword);
 
         if (! $ok) {
             return redirect()->to(site_url('dashboard/lupa-kata-sandi'))
-                ->with('error', 'Tautan reset tidak valid atau sudah kedaluwarsa.');
+                ->with('error', 'Tautan pengaturan ulang sudah tidak valid atau telah digunakan sebelumnya.');
         }
 
         return redirect()->to(site_url('dashboard/masuk'))
-            ->with('message', 'Kata sandi berhasil diubah. Silakan masuk.');
+            ->with('success', 'Kata sandi Anda berhasil diperbarui. Silakan masuk menggunakan kata sandi baru.');
     }
 }

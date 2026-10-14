@@ -25,7 +25,7 @@ $isLoggedIn       = session()->get('isLoggedIn') === true;
     <div class="container">
         <div class="arena-hero__inner text-center pt-2 pt-md-4">
             <span class="arena-section-head__tag text-white mb-3" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.32); backdrop-filter: blur(6px);">
-                <i class="fas fa-graduation-cap me-1"></i> Arena Belajar BegawiPBJ Lampung
+                <i class="fas fa-graduation-cap me-1"></i> Arena Belajar BegawiPengadaan Lampung
             </span>
             <h1 class="text-white mb-3" style="font-size: 38px; font-weight: 800; line-height: 1.25; text-shadow: 0 2px 10px rgba(0,0,0,0.4);">
                 Pusat Pembelajaran &amp; Kompetensi Pengadaan
@@ -415,58 +415,58 @@ $isLoggedIn       = session()->get('isLoggedIn') === true;
      SHOWCASE 4: INSTRUKTUR & FASILITATOR PBJ
      ========================================================================= -->
 <?php if ($featuredTrainers !== []): ?>
-<section class="py-5">
-    <div class="container">
-        <div class="d-flex flex-wrap align-items-end justify-content-between mb-4">
-            <div class="arena-section-head mb-0">
-                <span class="arena-section-head__tag">
-                    <i class="fas fa-chalkboard-teacher me-1"></i> Praktisi &amp; Widyaiswara PBJ
-                </span>
-                <h3 class="arena-section-head__title">Instruktur &amp; Fasilitator Terakreditasi</h3>
-                <p class="arena-section-head__desc mb-0">
-                    Didampingi oleh praktisi dan pejabat fungsional pengadaan barang/jasa berpengalaman dari Pemerintah Provinsi Lampung.
-                </p>
+    <section class="py-5">
+        <div class="container">
+            <div class="d-flex flex-wrap align-items-end justify-content-between mb-4">
+                <div class="arena-section-head mb-0">
+                    <span class="arena-section-head__tag">
+                        <i class="fas fa-chalkboard-teacher me-1"></i> Praktisi &amp; Widyaiswara PBJ
+                    </span>
+                    <h3 class="arena-section-head__title">Instruktur &amp; Fasilitator Terakreditasi</h3>
+                    <p class="arena-section-head__desc mb-0">
+                        Didampingi oleh praktisi dan pejabat fungsional pengadaan barang/jasa berpengalaman dari Pemerintah Provinsi Lampung.
+                    </p>
+                </div>
+                <a href="<?= site_url('arena-belajar/pengajar') ?>" class="btn btn-outline-primary radius-8 px-4 py-2 mt-3 mt-md-0 d-inline-flex align-items-center gap-2 fw-semibold">
+                    <span>Direktori Instruktur</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
-            <a href="<?= site_url('arena-belajar/pengajar') ?>" class="btn btn-outline-primary radius-8 px-4 py-2 mt-3 mt-md-0 d-inline-flex align-items-center gap-2 fw-semibold">
-                <span>Direktori Instruktur</span>
-                <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
 
-        <div class="row g-4">
-            <?php foreach ($featuredTrainers as $idx => $tr): ?>
-                <?php
-                $avatarIdx = ($idx % 5) + 1;
-                $avatarUrl = base_url("assets/main/images/resources/course-list-client-img-{$avatarIdx}.jpg");
-                $trainerSlug = $tr['username'] ?: (string) $tr['id'];
-                ?>
-                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
-                    <div class="card h-100 border text-center p-4 radius-16 shadow-sm transition-all" style="background: #ffffff;">
-                        <div class="mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid #eff6ff;">
-                            <img src="<?= $avatarUrl ?>" alt="<?= esc($tr['name']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <h5 class="fw-bold mb-1" style="font-size: 16px;">
-                            <a href="<?= route_to('public.learning.trainer.detail', $trainerSlug) ?>" class="text-dark">
-                                <?= esc($tr['name'] ?: $tr['username']) ?>
-                            </a>
-                        </h5>
-                        <p class="text-muted small mb-2"><?= esc($tr['profile_type'] ?: 'Fasilitator PBJ Lampung') ?></p>
-                        <div class="mt-auto pt-2">
-                            <span class="badge bg-light text-primary border px-3 py-1 radius-20" style="font-size: 11px;">
-                                <i class="fas fa-chalkboard me-1"></i> <?= (int) ($tr['total_classes'] ?? 1) ?> Kelas Aktif
-                            </span>
-                            <div class="mt-3">
-                                <a href="<?= route_to('public.learning.trainer.detail', $trainerSlug) ?>" class="btn btn-sm btn-outline-secondary radius-6 px-3">
-                                    Lihat Profil
+            <div class="row g-4">
+                <?php foreach ($featuredTrainers as $idx => $tr): ?>
+                    <?php
+                    $avatarIdx = ($idx % 5) + 1;
+                    $avatarUrl = base_url("assets/main/images/resources/course-list-client-img-{$avatarIdx}.jpg");
+                    $trainerSlug = $tr['username'] ?: (string) $tr['id'];
+                    ?>
+                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                        <div class="card h-100 border text-center p-4 radius-16 shadow-sm transition-all" style="background: #ffffff;">
+                            <div class="mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid #eff6ff;">
+                                <img src="<?= $avatarUrl ?>" alt="<?= esc($tr['name']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <h5 class="fw-bold mb-1" style="font-size: 16px;">
+                                <a href="<?= route_to('public.learning.trainer.detail', $trainerSlug) ?>" class="text-dark">
+                                    <?= esc($tr['name'] ?: $tr['username']) ?>
                                 </a>
+                            </h5>
+                            <p class="text-muted small mb-2"><?= esc($tr['profile_type'] ?: 'Fasilitator PBJ Lampung') ?></p>
+                            <div class="mt-auto pt-2">
+                                <span class="badge bg-light text-primary border px-3 py-1 radius-20" style="font-size: 11px;">
+                                    <i class="fas fa-chalkboard me-1"></i> <?= (int) ($tr['total_classes'] ?? 1) ?> Kelas Aktif
+                                </span>
+                                <div class="mt-3">
+                                    <a href="<?= route_to('public.learning.trainer.detail', $trainerSlug) ?>" class="btn btn-sm btn-outline-secondary radius-6 px-3">
+                                        Lihat Profil
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 <?php endif; ?>
 
 <!-- =========================================================================
@@ -478,7 +478,7 @@ $isLoggedIn       = session()->get('isLoggedIn') === true;
             <div class="col-xl-6">
                 <div class="why-choose-one__left">
                     <span class="arena-section-head__tag text-white mb-2" style="background: rgba(255,255,255,0.18);">
-                        <i class="fas fa-check-circle me-1"></i> Keunggulan BegawiPBJ
+                        <i class="fas fa-check-circle me-1"></i> Keunggulan BegawiPengadaan
                     </span>
                     <h2 class="text-white mb-3" style="font-size: 32px; font-weight: 800; line-height: 1.3;">
                         Dari Regulasi Menuju Praktik Nyata Pengadaan

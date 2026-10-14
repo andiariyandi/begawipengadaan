@@ -7,8 +7,8 @@ class SystemSettingService
     private string $storagePath;
     private array $defaults = [
         'general' => [
-            'app_name'        => 'BegawiPBJ',
-            'app_short_name'  => 'BegawiPBJ',
+            'app_name'        => 'BegawiPengadaan',
+            'app_short_name'  => 'BegawiPengadaan',
             'default_locale'  => 'id',
             'timezone'        => 'Asia/Jakarta',
             'date_format'     => 'd F Y',
@@ -46,9 +46,12 @@ class SystemSettingService
             'signature_role'       => 'Pengguna Anggaran / Penanggung Jawab',
         ],
         'notification' => [
-            'email_enabled'   => '1',
-            'in_app_enabled'  => '1',
-            'digest_frequency'=> 'instant',
+            'email_enabled'    => '1',
+            'in_app_enabled'   => '1',
+            'sender_email'     => 'noreply@begawipbj.lampungprov.go.id',
+            'sender_name'      => 'BegawiPengadaan',
+            'daily_digest'     => '0',
+            'digest_frequency' => 'instant',
         ],
         'integration' => [
             'lkpp_api_endpoint' => 'https://api.lkpp.go.id/v1',

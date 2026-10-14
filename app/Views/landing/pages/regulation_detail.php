@@ -31,246 +31,266 @@ $previewUrl  = site_url('regulasi/' . esc($regulation['slug'] ?? '') . '/preview
 ?>
 
 <style>
-/* =========================================================================
+    /* =========================================================================
    REGULASI DETAIL DNA & HIGH-CONTRAST ACCESSIBILITY
    ========================================================================= */
-:root {
-    --begawi-primary: #0c5aa6;
-    --begawi-dark: #082f5c;
-    --begawi-accent: #f3a20b;
-}
-
-/* High Contrast Soft Badges (100% Readable) */
-.badge-soft-success {
-    background-color: #dcfce7 !important;
-    color: #15803d !important;
-    border: 1px solid #bbf7d0 !important;
-    font-weight: 600;
-}
-.badge-soft-warning {
-    background-color: #fef3c7 !important;
-    color: #b45309 !important;
-    border: 1px solid #fde68a !important;
-    font-weight: 600;
-}
-.badge-soft-danger {
-    background-color: #fee2e2 !important;
-    color: #b91c1c !important;
-    border: 1px solid #fecaca !important;
-    font-weight: 600;
-}
-.badge-soft-info {
-    background-color: #e0f2fe !important;
-    color: #0369a1 !important;
-    border: 1px solid #bae6fd !important;
-    font-weight: 600;
-}
-.badge-soft-primary {
-    background-color: #e0e7ff !important;
-    color: #3730a3 !important;
-    border: 1px solid #c7d2fe !important;
-    font-weight: 600;
-}
-.badge-soft-secondary {
-    background-color: #f1f5f9 !important;
-    color: #334155 !important;
-    border: 1px solid #e2e8f0 !important;
-    font-weight: 600;
-}
-.badge-soft-dark {
-    background-color: #f1f5f9 !important;
-    color: #0f172a !important;
-    border: 1px solid #cbd5e1 !important;
-    font-weight: 600;
-}
-
-/* Full compensation for absolute fixed header menu bar */
-.regulation-detail-hero {
-    position: relative;
-    padding-top: 220px;
-    padding-bottom: 75px;
-    background: linear-gradient(135deg, #041830 0%, #082f5c 45%, #0c5aa6 85%, #07274c 100%);
-    overflow: hidden;
-    color: #ffffff;
-    z-index: 1;
-}
-@media (max-width: 1199px) {
-    .regulation-detail-hero {
-        padding-top: 195px;
-        padding-bottom: 60px;
+    :root {
+        --begawi-primary: #0c5aa6;
+        --begawi-dark: #082f5c;
+        --begawi-accent: #f3a20b;
     }
-}
-@media (max-width: 767px) {
-    .regulation-detail-hero {
-        padding-top: 155px;
-        padding-bottom: 50px;
+
+    /* High Contrast Soft Badges (100% Readable) */
+    .badge-soft-success {
+        background-color: #dcfce7 !important;
+        color: #15803d !important;
+        border: 1px solid #bbf7d0 !important;
+        font-weight: 600;
     }
-}
 
-.regulation-detail-hero__overlay {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 50% 30%, rgba(12, 90, 166, 0.45) 0%, rgba(4, 24, 48, 0.92) 80%);
-    z-index: 2;
-}
-.regulation-detail-hero .container {
-    position: relative;
-    z-index: 3;
-}
+    .badge-soft-warning {
+        background-color: #fef3c7 !important;
+        color: #b45309 !important;
+        border: 1px solid #fde68a !important;
+        font-weight: 600;
+    }
 
-/* Action Buttons */
-.btn-hero-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--begawi-accent);
-    color: var(--begawi-dark) !important;
-    font-weight: 700;
-    font-size: 14px;
-    border-radius: 10px;
-    padding: 12px 24px;
-    border: none;
-    box-shadow: 0 4px 15px rgba(243, 162, 11, 0.35);
-    text-decoration: none;
-    transition: all 0.25s ease;
-}
-.btn-hero-cta:hover {
-    background: #e09405;
-    color: #031427 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(243, 162, 11, 0.45);
-}
+    .badge-soft-danger {
+        background-color: #fee2e2 !important;
+        color: #b91c1c !important;
+        border: 1px solid #fecaca !important;
+        font-weight: 600;
+    }
 
-.btn-hero-glass {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    color: #ffffff !important;
-    font-weight: 600;
-    font-size: 14px;
-    border-radius: 10px;
-    padding: 12px 20px;
-    text-decoration: none;
-    backdrop-filter: blur(8px);
-    transition: all 0.25s ease;
-}
-.btn-hero-glass:hover {
-    background: #ffffff;
-    color: var(--begawi-primary) !important;
-    border-color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-}
+    .badge-soft-info {
+        background-color: #e0f2fe !important;
+        color: #0369a1 !important;
+        border: 1px solid #bae6fd !important;
+        font-weight: 600;
+    }
 
-.btn-reg-download {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    background: var(--begawi-primary);
-    color: #ffffff !important;
-    border: 1px solid var(--begawi-primary);
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-.btn-reg-download:hover {
-    background: var(--begawi-dark);
-    border-color: var(--begawi-dark);
-    color: #ffffff !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(8, 47, 92, 0.2);
-}
+    .badge-soft-primary {
+        background-color: #e0e7ff !important;
+        color: #3730a3 !important;
+        border: 1px solid #c7d2fe !important;
+        font-weight: 600;
+    }
 
-.btn-reg-detail {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    background: #ffffff;
-    color: var(--begawi-primary) !important;
-    border: 1px solid #cbd5e1;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-.btn-reg-detail:hover {
-    background: #f0f7ff;
-    border-color: var(--begawi-primary);
-    color: var(--begawi-primary) !important;
-    transform: translateY(-1px);
-}
+    .badge-soft-secondary {
+        background-color: #f1f5f9 !important;
+        color: #334155 !important;
+        border: 1px solid #e2e8f0 !important;
+        font-weight: 600;
+    }
 
-/* Tab Navigation */
-.regulation-tab-nav {
-    display: flex;
-    gap: 8px;
-    border-bottom: 2px solid #e2e8f0;
-    margin-bottom: 24px;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-.regulation-tab-nav::-webkit-scrollbar {
-    display: none;
-}
-.regulation-tab-btn {
-    padding: 12px 20px;
-    font-weight: 600;
-    font-size: 14.5px;
-    color: #64748b;
-    text-decoration: none;
-    border: none;
-    background: none;
-    border-bottom: 3px solid transparent;
-    margin-bottom: -2px;
-    white-space: nowrap;
-    transition: all 0.25s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-.regulation-tab-btn:hover {
-    color: var(--begawi-primary);
-}
-.regulation-tab-btn.active {
-    color: var(--begawi-primary);
-    border-bottom-color: var(--begawi-primary);
-    font-weight: 700;
-}
+    .badge-soft-dark {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        font-weight: 600;
+    }
 
-/* Sidebar metadata rows (High contrast) */
-.meta-info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #edf2f7;
-    font-size: 13.5px;
-}
-.meta-info-row:last-child {
-    border-bottom: none;
-}
-.meta-info-label {
-    color: #475569 !important;
-    font-weight: 500;
-}
-.meta-info-value {
-    color: #052143 !important;
-    font-weight: 600;
-}
+    /* Full compensation for absolute fixed header menu bar */
+    .regulation-detail-hero {
+        position: relative;
+        padding-top: 220px;
+        padding-bottom: 75px;
+        background: linear-gradient(135deg, #041830 0%, #082f5c 45%, #0c5aa6 85%, #07274c 100%);
+        overflow: hidden;
+        color: #ffffff;
+        z-index: 1;
+    }
+
+    @media (max-width: 1199px) {
+        .regulation-detail-hero {
+            padding-top: 195px;
+            padding-bottom: 60px;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .regulation-detail-hero {
+            padding-top: 155px;
+            padding-bottom: 50px;
+        }
+    }
+
+    .regulation-detail-hero__overlay {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 30%, rgba(12, 90, 166, 0.45) 0%, rgba(4, 24, 48, 0.92) 80%);
+        z-index: 2;
+    }
+
+    .regulation-detail-hero .container {
+        position: relative;
+        z-index: 3;
+    }
+
+    /* Action Buttons */
+    .btn-hero-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--begawi-accent);
+        color: var(--begawi-dark) !important;
+        font-weight: 700;
+        font-size: 14px;
+        border-radius: 10px;
+        padding: 12px 24px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(243, 162, 11, 0.35);
+        text-decoration: none;
+        transition: all 0.25s ease;
+    }
+
+    .btn-hero-cta:hover {
+        background: #e09405;
+        color: #031427 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(243, 162, 11, 0.45);
+    }
+
+    .btn-hero-glass {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        color: #ffffff !important;
+        font-weight: 600;
+        font-size: 14px;
+        border-radius: 10px;
+        padding: 12px 20px;
+        text-decoration: none;
+        backdrop-filter: blur(8px);
+        transition: all 0.25s ease;
+    }
+
+    .btn-hero-glass:hover {
+        background: #ffffff;
+        color: var(--begawi-primary) !important;
+        border-color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-reg-download {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        background: var(--begawi-primary);
+        color: #ffffff !important;
+        border: 1px solid var(--begawi-primary);
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .btn-reg-download:hover {
+        background: var(--begawi-dark);
+        border-color: var(--begawi-dark);
+        color: #ffffff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(8, 47, 92, 0.2);
+    }
+
+    .btn-reg-detail {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        background: #ffffff;
+        color: var(--begawi-primary) !important;
+        border: 1px solid #cbd5e1;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .btn-reg-detail:hover {
+        background: #f0f7ff;
+        border-color: var(--begawi-primary);
+        color: var(--begawi-primary) !important;
+        transform: translateY(-1px);
+    }
+
+    /* Tab Navigation */
+    .regulation-tab-nav {
+        display: flex;
+        gap: 8px;
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 24px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .regulation-tab-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .regulation-tab-btn {
+        padding: 12px 20px;
+        font-weight: 600;
+        font-size: 14.5px;
+        color: #64748b;
+        text-decoration: none;
+        border: none;
+        background: none;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        white-space: nowrap;
+        transition: all 0.25s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .regulation-tab-btn:hover {
+        color: var(--begawi-primary);
+    }
+
+    .regulation-tab-btn.active {
+        color: var(--begawi-primary);
+        border-bottom-color: var(--begawi-primary);
+        font-weight: 700;
+    }
+
+    /* Sidebar metadata rows (High contrast) */
+    .meta-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #edf2f7;
+        font-size: 13.5px;
+    }
+
+    .meta-info-row:last-child {
+        border-bottom: none;
+    }
+
+    .meta-info-label {
+        color: #475569 !important;
+        font-weight: 500;
+    }
+
+    .meta-info-value {
+        color: #052143 !important;
+        font-weight: 600;
+    }
 </style>
 
 <!-- =========================================================================
      HERO & BREADCRUMB SECTION (UNIFIED WITH COMPENSATED PADDING)
      ========================================================================= -->
 <section class="regulation-detail-hero">
-    <div class="position-absolute inset-0 w-100 h-100" style="background-image: url('<?= base_url('assets/main/images/backgrounds/slider-1-1.jpg') ?>'); background-size: cover; background-position: center; opacity: 0.15;"></div>
+    <div class="position-absolute inset-0 w-100 h-100" style="background-image: url('<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>'); background-size: cover; background-position: center; opacity: 0.15;"></div>
     <div class="regulation-detail-hero__overlay"></div>
 
     <div class="container">
@@ -475,7 +495,7 @@ $previewUrl  = site_url('regulasi/' . esc($regulation['slug'] ?? '') . '/preview
                                     $typeConfig = match ($relType) {
                                         'amends', 'amended_by'    => ['label' => 'Mengubah / Diubah', 'bg' => 'badge-soft-warning', 'icon' => 'fa-pen'],
                                         'revokes', 'revoked_by'   => ['label' => 'Mencabut / Dicabut', 'bg' => 'badge-soft-danger', 'icon' => 'fa-ban'],
-                                        'implements', 'implemented_by'=> ['label' => 'Melaksanakan', 'bg' => 'badge-soft-success', 'icon' => 'fa-check-circle'],
+                                        'implements', 'implemented_by' => ['label' => 'Melaksanakan', 'bg' => 'badge-soft-success', 'icon' => 'fa-check-circle'],
                                         'references', 'referenced_by' => ['label' => 'Merujuk / Dirujuk', 'bg' => 'badge-soft-info', 'icon' => 'fa-book-reader'],
                                         default         => ['label' => ucwords(str_replace('_', ' ', $relType)), 'bg' => 'badge-soft-secondary', 'icon' => 'fa-link'],
                                     };
@@ -550,7 +570,7 @@ $previewUrl  = site_url('regulasi/' . esc($regulation['slug'] ?? '') . '/preview
                                     <tbody>
                                         <?php foreach ($versions as $ver): ?>
                                             <?php
-                                             $isCurrent = (int) ($ver['is_current'] ?? 0) === 1;
+                                            $isCurrent = (int) ($ver['is_current'] ?? 0) === 1;
                                             ?>
                                             <tr>
                                                 <td>
@@ -750,22 +770,22 @@ $previewUrl  = site_url('regulasi/' . esc($regulation['slug'] ?? '') . '/preview
 </section>
 
 <script>
-function switchTab(tabId, btn) {
-    document.querySelectorAll('.tab-pane-content').forEach(el => {
-        el.style.display = 'none';
-    });
-    document.querySelectorAll('.regulation-tab-btn').forEach(el => {
-        el.classList.remove('active');
-    });
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-pane-content').forEach(el => {
+            el.style.display = 'none';
+        });
+        document.querySelectorAll('.regulation-tab-btn').forEach(el => {
+            el.classList.remove('active');
+        });
 
-    const target = document.getElementById(tabId);
-    if (target) {
-        target.style.display = 'block';
+        const target = document.getElementById(tabId);
+        if (target) {
+            target.style.display = 'block';
+        }
+        if (btn) {
+            btn.classList.add('active');
+        }
     }
-    if (btn) {
-        btn.classList.add('active');
-    }
-}
 </script>
 
 <?= $this->endSection() ?>

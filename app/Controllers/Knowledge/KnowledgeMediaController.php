@@ -23,15 +23,15 @@ class KnowledgeMediaController extends BaseKnowledgeController
         ];
 
         return view('dashboard/knowledge/media/index', [
-            'title'        => 'Semua Media & Galeri | Dashboard BegawiPBJ',
+            'title'        => 'Semua Media & Galeri | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Media & Galeri PBJ',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'media-gallery',
+            'activeSubmenu' => 'media-gallery',
             'items'        => $items,
             'stats'        => $stats,
             'filterType'   => $type,
             'filterStatus' => $status,
-            'filterKeyword'=> $keyword,
+            'filterKeyword' => $keyword,
             'scope'        => 'all',
         ]);
     }
@@ -69,15 +69,15 @@ class KnowledgeMediaController extends BaseKnowledgeController
         ];
 
         return view('dashboard/knowledge/media/index', [
-            'title'        => 'Media & Infografik | Dashboard BegawiPBJ',
+            'title'        => 'Media & Infografik | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Media & Infografik PBJ',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'media',
+            'activeSubmenu' => 'media',
             'items'        => $items,
             'stats'        => $stats,
             'filterType'   => 'infographic',
             'filterStatus' => $status,
-            'filterKeyword'=> $keyword,
+            'filterKeyword' => $keyword,
             'scope'        => 'infographics',
         ]);
     }
@@ -115,15 +115,15 @@ class KnowledgeMediaController extends BaseKnowledgeController
         ];
 
         return view('dashboard/knowledge/media/index', [
-            'title'        => 'Video PBJ | Dashboard BegawiPBJ',
+            'title'        => 'Video PBJ | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Video Edukasi & Podcast PBJ',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'videos',
+            'activeSubmenu' => 'videos',
             'items'        => $items,
             'stats'        => $stats,
             'filterType'   => 'youtube',
             'filterStatus' => $status,
-            'filterKeyword'=> $keyword,
+            'filterKeyword' => $keyword,
             'scope'        => 'videos',
         ]);
     }
@@ -161,15 +161,15 @@ class KnowledgeMediaController extends BaseKnowledgeController
         ];
 
         return view('dashboard/knowledge/media/index', [
-            'title'        => 'Galeri Kegiatan | Dashboard BegawiPBJ',
+            'title'        => 'Galeri Kegiatan | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Galeri Kegiatan & Dokumentasi PBJ',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'gallery',
+            'activeSubmenu' => 'gallery',
             'items'        => $items,
             'stats'        => $stats,
             'filterType'   => 'gallery',
             'filterStatus' => $status,
-            'filterKeyword'=> $keyword,
+            'filterKeyword' => $keyword,
             'scope'        => 'gallery',
         ]);
     }
@@ -185,11 +185,11 @@ class KnowledgeMediaController extends BaseKnowledgeController
         };
 
         return view('dashboard/knowledge/media/form', [
-            'title'        => 'Tambah Media | Dashboard BegawiPBJ',
+            'title'        => 'Tambah Media | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Tambah Media & Galeri',
             'formMode'     => 'create',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> $activeSubmenu,
+            'activeSubmenu' => $activeSubmenu,
             'media'        => ['type' => $defaultType],
             'preselectedType' => $defaultType,
         ]);
@@ -231,7 +231,7 @@ class KnowledgeMediaController extends BaseKnowledgeController
             'visibility'      => (string) ($this->request->getPost('visibility') ?: 'public'),
             'sort_order'      => (int) ($this->request->getPost('sort_order') ?: 0),
             'featured'        => $this->request->getPost('featured') ? 1 : 0,
-            'carousel_enabled'=> $this->request->getPost('carousel_enabled') ? 1 : 0,
+            'carousel_enabled' => $this->request->getPost('carousel_enabled') ? 1 : 0,
             'created_by'      => $this->currentUserId(),
             'created_at'      => $now,
             'updated_at'      => $now,
@@ -243,13 +243,13 @@ class KnowledgeMediaController extends BaseKnowledgeController
         }
 
         $file = $this->request->getFile('file');
-        $fileId = $this->uploadFileAsset($file, 'media_'.$type, 'public');
+        $fileId = $this->uploadFileAsset($file, 'media_' . $type, 'public');
         if ($fileId !== null) {
             $payload['file_id'] = $fileId;
         }
 
         $thumb = $this->request->getFile('thumbnail');
-        $thumbId = $this->uploadFileAsset($thumb, 'media_thumbnail_'.$type, 'public');
+        $thumbId = $this->uploadFileAsset($thumb, 'media_thumbnail_' . $type, 'public');
         if ($thumbId !== null) {
             $payload['thumbnail_file_id'] = $thumbId;
         }
@@ -283,12 +283,12 @@ class KnowledgeMediaController extends BaseKnowledgeController
         };
 
         return view('dashboard/knowledge/media/detail', [
-            'title'        => 'Detail Media | Dashboard BegawiPBJ',
+            'title'        => 'Detail Media | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Detail Media & Galeri',
             'mediaId'      => (int) $id,
             'media'        => $row,
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> $activeSubmenu,
+            'activeSubmenu' => $activeSubmenu,
         ]);
     }
 
@@ -308,13 +308,13 @@ class KnowledgeMediaController extends BaseKnowledgeController
         };
 
         return view('dashboard/knowledge/media/form', [
-            'title'        => 'Ubah Media | Dashboard BegawiPBJ',
+            'title'        => 'Ubah Media | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Ubah Media & Galeri',
             'formMode'     => 'edit',
             'mediaId'      => (int) $id,
             'media'        => $row,
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> $activeSubmenu,
+            'activeSubmenu' => $activeSubmenu,
             'preselectedType' => $type,
         ]);
     }
@@ -356,7 +356,7 @@ class KnowledgeMediaController extends BaseKnowledgeController
             'visibility'      => (string) ($this->request->getPost('visibility') ?: 'public'),
             'sort_order'      => (int) ($this->request->getPost('sort_order') ?: 0),
             'featured'        => $this->request->getPost('featured') ? 1 : 0,
-            'carousel_enabled'=> $this->request->getPost('carousel_enabled') ? 1 : 0,
+            'carousel_enabled' => $this->request->getPost('carousel_enabled') ? 1 : 0,
             'updated_at'      => $now,
         ];
 
@@ -366,13 +366,13 @@ class KnowledgeMediaController extends BaseKnowledgeController
         }
 
         $file = $this->request->getFile('file');
-        $fileId = $this->uploadFileAsset($file, 'media_'.$payload['type'], 'public');
+        $fileId = $this->uploadFileAsset($file, 'media_' . $payload['type'], 'public');
         if ($fileId !== null) {
             $payload['file_id'] = $fileId;
         }
 
         $thumb = $this->request->getFile('thumbnail');
-        $thumbId = $this->uploadFileAsset($thumb, 'media_thumbnail_'.$payload['type'], 'public');
+        $thumbId = $this->uploadFileAsset($thumb, 'media_thumbnail_' . $payload['type'], 'public');
         if ($thumbId !== null) {
             $payload['thumbnail_file_id'] = $thumbId;
         }

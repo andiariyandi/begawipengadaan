@@ -11,7 +11,7 @@
                 <div class="about-three__right">
                     <div class="section-title-two text-left">
                         <div class="section-title-two__tagline-box">
-                            <span class="section-title-two__tagline"><?= esc($category ?? 'BegawiPBJ Publik') ?></span>
+                            <span class="section-title-two__tagline"><?= esc($category ?? 'BegawiPengadaan Publik') ?></span>
                         </div>
                         <h2 class="section-title-two__title"><?= esc($itemTitle) ?></h2>
                     </div>

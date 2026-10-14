@@ -1,8 +1,8 @@
-# BegawiPBJ — Workflow Contract
+# BegawiPengadaan — Workflow Contract
 
 ## Tujuan
 
-Dokumen ini menetapkan kontrak workflow dan state machine untuk proses bisnis BegawiPBJ. Kontrak mencakup status, transisi valid, actor, permission, alasan, audit, side effect, serta aturan umum eksekusi workflow.
+Dokumen ini menetapkan kontrak workflow dan state machine untuk proses bisnis BegawiPengadaan. Kontrak mencakup status, transisi valid, actor, permission, alasan, audit, side effect, serta aturan umum eksekusi workflow.
 
 Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 

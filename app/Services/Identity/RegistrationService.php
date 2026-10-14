@@ -28,6 +28,7 @@ class RegistrationService
             'employee_identifier'   => 'nip_nippk',
             'employment_status'     => 'employment_status',
             'origin_type'           => 'asn_origin',
+            'organization_unit_id'  => 'organization_unit_id',
             'institution_name'      => 'institution_name',
             'unit_name'             => 'external_unit_name',
             'position_name'         => 'position',
@@ -190,6 +191,54 @@ class RegistrationService
             throw new \RuntimeException('Gagal menetapkan peran pengguna: ' . $e->getMessage(), 0, $e);
         }
 
+        // Record requested procurement roles into user_procurement_roles with pending verification
+        if ($profileType === 'asn' && ! empty($data['profile']['procurement_roles'])) {
+            try {
+                $rawRoles = $data['profile']['procurement_roles'];
+                if (is_string($rawRoles)) {
+                    $decoded = json_decode($rawRoles, true);
+                    $roleList = is_array($decoded) ? $decoded : [$rawRoles];
+                } elseif (is_array($rawRoles)) {
+                    $roleList = $rawRoles;
+                } else {
+                    $roleList = [];
+                }
+
+                $roleIds = [];
+                foreach ($roleList as $rItem) {
+                    if (empty($rItem)) {
+                        continue;
+                    }
+                    if (is_numeric($rItem)) {
+                        $roleRow = $db->table('procurement_roles')->where('id', (int) $rItem)->get()->getRowArray();
+                        if ($roleRow) {
+                            $roleIds[] = (int) $roleRow['id'];
+                        }
+                    } else {
+                        $roleRow = $db->table('procurement_roles')->where('key', (string) $rItem)->get()->getRowArray();
+                        if ($roleRow) {
+                            $roleIds[] = (int) $roleRow['id'];
+                        }
+                    }
+                }
+
+                $roleIds = array_unique($roleIds);
+                foreach ($roleIds as $rId) {
+                    $db->table('user_procurement_roles')->insert([
+                        'user_id'             => $userId,
+                        'procurement_role_id' => $rId,
+                        'verification_status' => 'pending',
+                        'assignment_start_at' => $now,
+                        'created_at'          => $now,
+                        'updated_at'          => $now,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                $db->transRollback();
+                throw new \RuntimeException('Gagal mencatat penugasan peran pengadaan: ' . $e->getMessage(), 0, $e);
+            }
+        }
+
         $db->transComplete();
         if (! $db->transStatus()) {
             throw new \RuntimeException('Transaksi registrasi gagal (transStatus=false).');
@@ -308,10 +357,22 @@ class RegistrationService
         switch ($profileType) {
             case 'asn':
                 $base['origin_type'] = $profile['origin_type'] ?? 'lainnya';
+                if (! empty($profile['organization_unit_id'])) {
+                    $base['organization_unit_id'] = (int) $profile['organization_unit_id'];
+                    $unitRow = db_connect()->table('organization_units')->where('id', (int) $profile['organization_unit_id'])->get()->getRowArray();
+                    if ($unitRow) {
+                        if (empty($profile['unit_name'])) {
+                            $base['unit_name'] = $unitRow['name'];
+                        }
+                        if (empty($profile['institution_name'])) {
+                            $base['institution_name'] = 'Pemerintah Daerah Provinsi Lampung';
+                        }
+                    }
+                }
                 foreach (['employee_identifier', 'employment_status', 'organization_unit_id',
                             'institution_name', 'unit_name', 'position_name',
                             'rank_grade', 'official_email'] as $col) {
-                    if (array_key_exists($col, $profile)) {
+                    if (array_key_exists($col, $profile) && ! isset($base[$col])) {
                         $base[$col] = $profile[$col];
                     }
                 }

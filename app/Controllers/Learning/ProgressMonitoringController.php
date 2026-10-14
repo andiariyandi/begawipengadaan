@@ -112,8 +112,8 @@ class ProgressMonitoringController extends BaseController
             'ongoing'   => (int) $db->table('enrollments')->whereIn('status', ['active', 'enrolled', 'in_progress'])->countAllResults(),
             'eligible'  => (int) $db->table('enrollments')
                 ->groupStart()
-                    ->whereIn('status', ['passed', 'completed'])
-                    ->orWhere('certificate_eligible_at IS NOT NULL', null, false)
+                ->whereIn('status', ['passed', 'completed'])
+                ->orWhere('certificate_eligible_at IS NOT NULL', null, false)
                 ->groupEnd()
                 ->countAllResults(),
         ];
@@ -121,7 +121,7 @@ class ProgressMonitoringController extends BaseController
         $classes = $this->classModel->orderBy('name', 'ASC')->findAll();
 
         return view('dashboard/learning/progress/monitoring', [
-            'title'        => 'Monitoring Progres Pembelajaran | Dashboard BegawiPBJ',
+            'title'        => 'Monitoring Progres Pembelajaran | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Monitoring Progres Pembelajaran',
             'participants' => $participants,
             'stats'        => $stats,
@@ -133,7 +133,7 @@ class ProgressMonitoringController extends BaseController
                 'class_id' => $classId,
             ],
             'activeMenu'   => 'learning',
-            'activeSubmenu'=> 'progress',
+            'activeSubmenu' => 'progress',
         ]);
     }
 
@@ -176,7 +176,7 @@ class ProgressMonitoringController extends BaseController
             ->get()->getRowArray();
 
         return view('dashboard/learning/progress/detail', [
-            'title'         => 'Detail Progres Peserta | Dashboard BegawiPBJ',
+            'title'         => 'Detail Progres Peserta | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Progres: ' . esc($enrollment['student_name']),
             'enrollment'    => $enrollment,
             'modules'       => $modules,

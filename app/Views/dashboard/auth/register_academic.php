@@ -2,14 +2,38 @@
 
 <?= $this->section('content') ?>
 <div>
-    <a href="<?= site_url('/') ?>" class="mb-32 d-inline-block text-decoration-none"><span class="auth-brand-text">BegawiPBJ</span><span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span></a>
+    <a href="<?= site_url('/') ?>" class="mb-32 d-inline-block text-decoration-none"><span class="auth-brand-text">BegawiPengadaan</span><span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span></a>
     <h4 class="mb-8"><?= esc($pageTitle ?? 'Lengkapi Profil Akademisi') ?></h4>
     <p class="mb-24 text-secondary-light text-md"><?= esc($pageDescription ?? '') ?></p>
 </div>
 
 <?= view('dashboard/auth/components/register_steps', ['currentStep' => $currentStep ?? 3, 'currentKey' => $currentKey ?? 'profil']) ?>
 
+<?php if ($error = session()->getFlashdata('error')): ?>
+    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-20 radius-8 py-12 px-16" role="alert">
+        <iconify-icon icon="solar:danger-triangle-bold" class="text-xl text-danger-main flex-shrink-0"></iconify-icon>
+        <div class="flex-grow-1 text-sm"><?= esc($error) ?></div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+
+<?php if ($errors = session()->getFlashdata('errors')): ?>
+    <div class="alert alert-danger alert-dismissible fade show mb-20 radius-8 py-12 px-16" role="alert">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <iconify-icon icon="solar:danger-circle-bold" class="text-xl text-danger-main flex-shrink-0"></iconify-icon>
+            <strong class="text-sm">Kendala Validasi Profil Akademisi:</strong>
+        </div>
+        <ul class="mb-0 ps-20 text-xs">
+            <?php foreach ((array) $errors as $err): ?>
+                <li><?= esc($err) ?></li>
+            <?php endforeach; ?>
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+
 <form action="<?= site_url('dashboard/daftar/profil/akademisi') ?>" method="post">
+    <?= csrf_field() ?>
     <div class="icon-field mb-16"><span class="icon top-50 translate-middle-y"><iconify-icon icon="solar:card-linear"></iconify-icon></span><input type="text" class="form-control h-56-px bg-neutral-50 radius-12" name="nik" placeholder="NIK (16 digit)"></div>
 
     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Nama Institusi</label>

@@ -9,7 +9,7 @@ class EventSeed extends BaseCommand
 {
     protected $group       = 'Database';
     protected $name        = 'event:seed';
-    protected $description = 'Seed authentic Indonesian PBJ events, workshops, webinars, and training agendas for BegawiPBJ.';
+    protected $description = 'Seed authentic Indonesian PBJ events, workshops, webinars, and training agendas for BegawiPengadaan.';
     protected $usage       = 'event:seed';
 
     public function run(array $params): int
@@ -36,7 +36,7 @@ class EventSeed extends BaseCommand
                 'description'           => "Pemerintah Provinsi Lampung melalui Biro Pengadaan Barang dan Jasa Sekretariat Daerah menyelenggarakan Webinar Nasional dengan fokus percepatan adopsi Katalog Elektronik Versi 6 (E-Katalog V6).\n\nKegiatan ini ditujukan bagi Pejabat Pembuat Komitmen (PPK), Pejabat Pengadaan (PP), serta pelaku usaha mikro, kecil, dan menengah (UMKM) serta Koperasi di seluruh Kabupaten/Kota se-Lampung.\n\nNarasumber:\n1. Direktur Pengembangan Sistem Katalog LKPP RI\n2. Kepala Biro PBJ Setda Provinsi Lampung\n3. Tenaga Ahli Pengadaan Digital LKPP\n\nMateri Pokok:\n• Pemahaman fitur terbaru E-Katalog V6 (pencarian komoditas, multi-vendor cart, pembayaran KKPD).\n• Tata cara onboarding dan upload katalog produk lokal tanpa biaya retribusi.\n• Kebijakan afirmasi minimal 40% alokasi anggaran APBD untuk Produk Dalam Negeri (PDN).\n• Sesi live demo transaksi dan tanya jawab interaktif.",
                 'start_at'              => '2026-10-28 09:00:00',
                 'end_at'                => '2026-10-28 12:30:00',
-                'location'              => 'Daring via Zoom Cloud Meetings & Live YouTube BegawiPBJ',
+                'location'              => 'Daring via Zoom Cloud Meetings & Live YouTube BegawiPengadaan',
                 'meeting_url'           => 'https://zoom.us/j/85117779783?pwd=BegawiPBJ2026',
                 'registration_open_at'  => '2026-10-14 00:00:00',
                 'registration_close_at' => '2026-10-27 23:59:00',
@@ -127,7 +127,7 @@ class EventSeed extends BaseCommand
                 'mode'                  => 'online',
                 'status'                => 'open_registration',
                 'visibility'            => 'public',
-                'summary'               => 'Webinar sosialisasi Surat Edaran pencegahan fraud, larangan gratifikasi, serta integrasi pakta integritas digital pada sistem BegawiPBJ.',
+                'summary'               => 'Webinar sosialisasi Surat Edaran pencegahan fraud, larangan gratifikasi, serta integrasi pakta integritas digital pada sistem BegawiPengadaan.',
                 'description'           => "Sosialisasi daring bagi seluruh aparatur pengadaan di lingkungan Pemerintah Provinsi dan Pemerintah Kabupaten/Kota se-Lampung.\n\nNarasumber:\n• Tim Satgassus Pencegahan Korupsi Mabes Polri / KPK RI\n• Inspektur Daerah Provinsi Lampung\n• Kepala Bagian Pembinaan & Advokasi PBJ\n\nFasilitas: E-Sertifikat resmi dan materi presentasi digital.",
                 'start_at'              => '2026-12-02 09:00:00',
                 'end_at'                => '2026-12-02 12:00:00',

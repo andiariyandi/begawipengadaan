@@ -1,8 +1,8 @@
-# BegawiPBJ — Directory & File Tree
+# BegawiPengadaan — Directory & File Tree
 
 ## Struktur Target Proyek
 
-Dokumen ini menetapkan struktur direktori dan file target untuk proyek **BegawiPBJ** berbasis CodeIgniter 4 AppStarter. Struktur ini menerjemahkan kontrak arsitektur, boundary antarmuka, model akses, domain, privacy, keamanan, storage, dan arah implementasi yang ditetapkan pada `README.md`.
+Dokumen ini menetapkan struktur direktori dan file target untuk proyek **BegawiPengadaan** berbasis CodeIgniter 4 AppStarter. Struktur ini menerjemahkan kontrak arsitektur, boundary antarmuka, model akses, domain, privacy, keamanan, storage, dan arah implementasi yang ditetapkan pada `README.md`.
 
 Struktur proyek dibangun untuk mendukung:
 

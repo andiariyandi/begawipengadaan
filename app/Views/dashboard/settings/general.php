@@ -17,11 +17,11 @@
             <div class="row gy-20">
                 <div class="col-md-6">
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Nama Aplikasi</label>
-                    <input type="text" name="app_name" class="form-control radius-8" value="<?= esc($settings['app_name'] ?? 'BegawiPBJ') ?>" required>
+                    <input type="text" name="app_name" class="form-control radius-8" value="<?= esc($settings['app_name'] ?? 'BegawiPengadaan') ?>" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Nama Singkat</label>
-                    <input type="text" name="app_short_name" class="form-control radius-8" value="<?= esc($settings['app_short_name'] ?? 'BegawiPBJ') ?>" required>
+                    <input type="text" name="app_short_name" class="form-control radius-8" value="<?= esc($settings['app_short_name'] ?? 'BegawiPengadaan') ?>" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Bahasa Default</label>

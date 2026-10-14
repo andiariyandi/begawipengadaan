@@ -91,7 +91,7 @@ class PasswordResetService
 
         $userId = (int) $row['user_id'];
 
-        $this->users->update($userId, [
+        $this->users->skipValidation(true)->update($userId, [
             'password_hash' => password_hash($newPassword, PASSWORD_DEFAULT),
         ]);
 

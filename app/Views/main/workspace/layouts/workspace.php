@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($pageTitle ?? $title ?? 'Workspace | BegawiPBJ') ?></title>
+    <title><?= esc($pageTitle ?? $title ?? 'Workspace | BegawiPengadaan') ?></title>
 
     <!-- Favicons -->
     <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('assets/main/images/favicons/apple-touch-icon.png') ?>" />
@@ -36,6 +37,7 @@
 
     <?= $this->renderSection('pageStyles') ?>
 </head>
+
 <body class="custom-cursor landing-internal">
     <div class="custom-cursor__cursor"></div>
     <div class="custom-cursor__cursor-two"></div>
@@ -128,4 +130,5 @@
 
     <?= $this->renderSection('pageScripts') ?>
 </body>
+
 </html>

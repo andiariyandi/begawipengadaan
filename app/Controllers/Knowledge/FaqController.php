@@ -24,7 +24,7 @@ class FaqController extends BaseKnowledgeController
         ];
 
         return view('dashboard/knowledge/faqs/index', [
-            'title'         => 'FAQ | Dashboard BegawiPBJ',
+            'title'         => 'FAQ | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tanya Jawab (FAQ)',
             'activeMenu'    => 'knowledge',
             'activeSubmenu' => 'faqs',
@@ -33,18 +33,18 @@ class FaqController extends BaseKnowledgeController
             'categories'    => (new KnowledgeCategoryModel())->activeFlat(),
             'filterStatus'  => $status,
             'filterKeyword' => $keyword,
-            'filterCategory'=> $category,
+            'filterCategory' => $category,
         ]);
     }
 
     public function create(): string
     {
         return view('dashboard/knowledge/faqs/form', [
-            'title'        => 'Tambah FAQ | Dashboard BegawiPBJ',
+            'title'        => 'Tambah FAQ | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Tambah FAQ',
             'formMode'     => 'create',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'faqs',
+            'activeSubmenu' => 'faqs',
             'faq'          => null,
             'categories'   => (new KnowledgeCategoryModel())->activeFlat(),
         ]);
@@ -88,7 +88,7 @@ class FaqController extends BaseKnowledgeController
         $model->insert($payload);
         $faqId = (int) $model->getInsertID();
         $cats = (array) $this->request->getPost('categories');
-        $cats = array_values(array_filter(array_map('intval', $cats), static fn ($v) => $v > 0));
+        $cats = array_values(array_filter(array_map('intval', $cats), static fn($v) => $v > 0));
         $model->syncCategories($faqId, $cats);
         return redirect()->to(route_to('dashboard.knowledge.faqs.detail', (string) $faqId))->with('success', 'FAQ berhasil ditambahkan.');
     }
@@ -100,12 +100,12 @@ class FaqController extends BaseKnowledgeController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('FAQ tidak ditemukan.');
         }
         return view('dashboard/knowledge/faqs/detail', [
-            'title'        => 'Detail FAQ | Dashboard BegawiPBJ',
+            'title'        => 'Detail FAQ | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Detail FAQ',
             'faqId'        => (int) $id,
             'faq'          => $faq,
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'faqs',
+            'activeSubmenu' => 'faqs',
         ]);
     }
 
@@ -116,15 +116,15 @@ class FaqController extends BaseKnowledgeController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('FAQ tidak ditemukan.');
         }
         return view('dashboard/knowledge/faqs/form', [
-            'title'        => 'Ubah FAQ | Dashboard BegawiPBJ',
+            'title'        => 'Ubah FAQ | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Ubah FAQ',
             'formMode'     => 'edit',
             'faqId'        => (int) $id,
             'faq'          => $faq,
             'categories'   => (new KnowledgeCategoryModel())->activeFlat(),
-            'selectedCategories' => array_map(static fn ($c) => (int) $c['id'], $faq['categories'] ?? []),
+            'selectedCategories' => array_map(static fn($c) => (int) $c['id'], $faq['categories'] ?? []),
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'faqs',
+            'activeSubmenu' => 'faqs',
         ]);
     }
 
@@ -166,7 +166,7 @@ class FaqController extends BaseKnowledgeController
         }
         $model->update((int) $id, $payload);
         $cats = (array) $this->request->getPost('categories');
-        $cats = array_values(array_filter(array_map('intval', $cats), static fn ($v) => $v > 0));
+        $cats = array_values(array_filter(array_map('intval', $cats), static fn($v) => $v > 0));
         $model->syncCategories((int) $id, $cats);
         return redirect()->to(route_to('dashboard.knowledge.faqs.detail', $id))->with('success', 'FAQ berhasil diperbarui.');
     }

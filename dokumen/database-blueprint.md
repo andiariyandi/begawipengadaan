@@ -1,8 +1,8 @@
-# BegawiPBJ — Database Blueprint
+# BegawiPengadaan — Database Blueprint
 
 ## Tujuan
 
-Dokumen ini menetapkan blueprint database relasional untuk BegawiPBJ. Blueprint mencakup kelompok tabel, tanggung jawab data, relasi utama, primary key, foreign key, enum/status, constraint, index, ownership, auditability, privacy, urutan migration, dan strategi seeding.
+Dokumen ini menetapkan blueprint database relasional untuk BegawiPengadaan. Blueprint mencakup kelompok tabel, tanggung jawab data, relasi utama, primary key, foreign key, enum/status, constraint, index, ownership, auditability, privacy, urutan migration, dan strategi seeding.
 
 Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 
@@ -1406,7 +1406,7 @@ UNIQUE(key)
 
 ### `competency_certificates`
 
-Berbeda dari `certificates` digital BegawiPBJ.
+Berbeda dari `certificates` digital BegawiPengadaan.
 
 | Kolom utama | Keterangan |
 |---|---|

@@ -7,11 +7,25 @@
     }
 
     /* Universal high-contrast text utilities */
-    .text-slate-900 { color: #0f172a !important; }
-    .text-slate-800 { color: #1e293b !important; }
-    .text-slate-700 { color: #334155 !important; }
-    .text-slate-600 { color: #475569 !important; }
-    .text-slate-500 { color: #64748b !important; }
+    .text-slate-900 {
+        color: #0f172a !important;
+    }
+
+    .text-slate-800 {
+        color: #1e293b !important;
+    }
+
+    .text-slate-700 {
+        color: #334155 !important;
+    }
+
+    .text-slate-600 {
+        color: #475569 !important;
+    }
+
+    .text-slate-500 {
+        color: #64748b !important;
+    }
 
     /* Reliable Iconify display */
     iconify-icon {
@@ -30,14 +44,16 @@
         color: #ffffff;
         overflow: hidden;
     }
+
     .cert-hero::before {
         content: '';
         position: absolute;
         inset: 0;
         background: radial-gradient(circle at 85% 20%, rgba(245, 158, 11, 0.18) 0%, transparent 45%),
-                    radial-gradient(circle at 15% 80%, rgba(16, 185, 129, 0.14) 0%, transparent 50%);
+            radial-gradient(circle at 15% 80%, rgba(16, 185, 129, 0.14) 0%, transparent 50%);
         pointer-events: none;
     }
+
     .cert-badge-pill {
         display: inline-flex;
         align-items: center;
@@ -54,6 +70,7 @@
         margin-bottom: 22px;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
     }
+
     .cert-hero__title {
         font-size: 2.85rem;
         font-weight: 800;
@@ -62,9 +79,11 @@
         margin-bottom: 18px;
         letter-spacing: -0.5px;
     }
+
     .cert-hero__title span {
         color: #f59e0b;
     }
+
     .cert-hero__subtitle {
         font-size: 1.15rem;
         color: #e2e8f0;
@@ -84,12 +103,14 @@
         position: relative;
         z-index: 10;
     }
+
     .cert-search-input-wrap {
         position: relative;
         display: flex;
         gap: 12px;
         align-items: stretch;
     }
+
     .cert-search-icon {
         position: absolute;
         left: 20px;
@@ -99,6 +120,7 @@
         font-size: 20px;
         pointer-events: none;
     }
+
     .cert-search-input {
         width: 100%;
         padding: 16px 20px 16px 56px;
@@ -110,15 +132,18 @@
         transition: all 0.25s ease;
         background-color: #ffffff;
     }
+
     .cert-search-input::placeholder {
         color: #94a3b8;
     }
+
     .cert-search-input:focus {
         border-color: #0c5aa6;
         background-color: #ffffff;
         box-shadow: 0 0 0 4px rgba(12, 90, 166, 0.15);
         outline: none;
     }
+
     .cert-btn-verify {
         display: inline-flex;
         align-items: center;
@@ -136,6 +161,7 @@
         white-space: nowrap;
         box-shadow: 0 4px 14px rgba(12, 90, 166, 0.28);
     }
+
     .cert-btn-verify:hover {
         background: linear-gradient(135deg, #083b70 0%, #052244 100%);
         transform: translateY(-2px);
@@ -154,10 +180,12 @@
         border-top: 1px dashed #e2e8f0;
         font-size: 0.875rem;
     }
+
     .cert-quick-label {
         color: #475569;
         font-weight: 700;
     }
+
     .cert-sample-pill {
         display: inline-flex;
         align-items: center;
@@ -173,6 +201,7 @@
         transition: all 0.2s ease;
         text-decoration: none;
     }
+
     .cert-sample-pill:hover {
         background: #0c5aa6;
         color: #ffffff;
@@ -183,6 +212,7 @@
     .cert-stats-section {
         padding: 45px 0 20px;
     }
+
     .cert-stat-card {
         background: #ffffff;
         border-radius: 14px;
@@ -194,11 +224,13 @@
         transition: all 0.3s ease;
         box-shadow: 0 4px 15px rgba(5, 34, 68, 0.04);
     }
+
     .cert-stat-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 10px 25px rgba(5, 34, 68, 0.1);
         border-color: #cbd5e1;
     }
+
     .cert-stat-icon {
         width: 60px;
         height: 60px;
@@ -209,10 +241,31 @@
         font-size: 24px;
         flex-shrink: 0;
     }
-    .cert-stat-icon--blue { background: #eff6ff; color: #0c5aa6; border: 1px solid #bfdbfe; }
-    .cert-stat-icon--amber { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-    .cert-stat-icon--emerald { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-    .cert-stat-icon--purple { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+
+    .cert-stat-icon--blue {
+        background: #eff6ff;
+        color: #0c5aa6;
+        border: 1px solid #bfdbfe;
+    }
+
+    .cert-stat-icon--amber {
+        background: #fffbeb;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+
+    .cert-stat-icon--emerald {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+    }
+
+    .cert-stat-icon--purple {
+        background: #f5f3ff;
+        color: #7c3aed;
+        border: 1px solid #ddd6fe;
+    }
+
     .cert-stat-number {
         font-size: 1.95rem;
         font-weight: 800;
@@ -220,6 +273,7 @@
         line-height: 1.1;
         margin-bottom: 4px;
     }
+
     .cert-stat-label {
         font-size: 0.9rem;
         color: #334155;
@@ -234,6 +288,7 @@
         gap: 24px;
         margin: 40px 0;
     }
+
     .cert-trust-item {
         background: #f8fafc;
         border-radius: 14px;
@@ -242,18 +297,21 @@
         display: flex;
         gap: 16px;
     }
+
     .cert-trust-item__icon {
         font-size: 28px;
         color: #0c5aa6;
         flex-shrink: 0;
         margin-top: 2px;
     }
+
     .cert-trust-item__title {
         font-size: 1.1rem;
         font-weight: 800;
         color: #0f172a;
         margin-bottom: 6px;
     }
+
     .cert-trust-item__desc {
         font-size: 0.9rem;
         color: #334155;
@@ -265,15 +323,18 @@
     .cert-directory-section {
         padding: 50px 0 80px;
     }
+
     .cert-section-header {
         margin-bottom: 30px;
     }
+
     .cert-section-title {
         font-size: 1.85rem;
         font-weight: 800;
         color: #052244;
         margin-bottom: 8px;
     }
+
     .cert-section-subtitle {
         color: #64748b;
         font-size: 1rem;
@@ -292,11 +353,13 @@
         border-radius: 12px;
         border: 1px solid #e2e8f0;
     }
+
     .cert-filter-pills {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
     }
+
     .cert-filter-pill {
         display: inline-flex;
         align-items: center;
@@ -310,10 +373,12 @@
         text-decoration: none;
         transition: all 0.2s ease;
     }
+
     .cert-filter-pill:hover {
         background: #e2e8f0;
         color: #0f172a;
     }
+
     .cert-filter-pill.active {
         background: #0c5aa6;
         color: #ffffff;
@@ -332,17 +397,20 @@
         height: 100%;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
     }
+
     .cert-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 12px 28px rgba(5, 34, 68, 0.08);
         border-color: #0c5aa6;
     }
+
     .cert-card__top {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: 14px;
     }
+
     .cert-card__status-badge {
         font-size: 0.75rem;
         font-weight: 700;
@@ -351,10 +419,26 @@
         padding: 5px 10px;
         border-radius: 6px;
     }
-    .badge-success { background: #dcfce7; color: #166534; }
-    .badge-danger { background: #fee2e2; color: #991b1b; }
-    .badge-warning { background: #fef3c7; color: #92400e; }
-    .badge-secondary { background: #f1f5f9; color: #475569; }
+
+    .badge-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-secondary {
+        background: #f1f5f9;
+        color: #475569;
+    }
 
     .cert-card__number {
         font-family: monospace;
@@ -366,6 +450,7 @@
         gap: 6px;
         margin-bottom: 10px;
     }
+
     .cert-card__title {
         font-size: 1.1rem;
         font-weight: 700;
@@ -373,6 +458,7 @@
         line-height: 1.45;
         margin-bottom: 10px;
     }
+
     .cert-card__user {
         font-size: 0.925rem;
         color: #334155;
@@ -382,6 +468,7 @@
         gap: 8px;
         margin-bottom: 14px;
     }
+
     .cert-card__meta {
         font-size: 0.815rem;
         color: #64748b;
@@ -392,6 +479,7 @@
         border-top: 1px dashed #e2e8f0;
         margin-bottom: 18px;
     }
+
     .cert-card__btn-view {
         display: inline-flex;
         align-items: center;
@@ -408,6 +496,7 @@
         text-decoration: none;
         transition: all 0.2s ease;
     }
+
     .cert-card__btn-view:hover {
         background: #0c5aa6;
         color: #ffffff;
@@ -422,6 +511,7 @@
         gap: 8px;
         margin-top: 40px;
     }
+
     .begawi-pagination__link {
         display: inline-flex;
         align-items: center;
@@ -438,16 +528,19 @@
         text-decoration: none;
         transition: all 0.2s ease;
     }
+
     .begawi-pagination__link:hover:not(.disabled) {
         background: #f1f5f9;
         color: #0c5aa6;
         border-color: #cbd5e1;
     }
+
     .begawi-pagination__link.active {
         background: #0c5aa6;
         color: #ffffff;
         border-color: #0c5aa6;
     }
+
     .begawi-pagination__link.disabled {
         opacity: 0.45;
         cursor: not-allowed;
@@ -455,17 +548,41 @@
 
     /* Responsive */
     @media (max-width: 991px) {
-        .cert-hero { padding: 185px 0 75px; }
-        .cert-hero__title { font-size: 2.35rem; }
+        .cert-hero {
+            padding: 185px 0 75px;
+        }
+
+        .cert-hero__title {
+            font-size: 2.35rem;
+        }
     }
 
     @media (max-width: 768px) {
-        .cert-hero { padding: 165px 0 65px; }
-        .cert-hero__title { font-size: 2rem; }
-        .cert-search-input-wrap { flex-direction: column; }
-        .cert-btn-verify { width: 100%; }
-        .cert-search-card { padding: 24px 18px; margin-top: -30px; }
-        .cert-filter-bar { flex-direction: column; align-items: stretch; }
+        .cert-hero {
+            padding: 165px 0 65px;
+        }
+
+        .cert-hero__title {
+            font-size: 2rem;
+        }
+
+        .cert-search-input-wrap {
+            flex-direction: column;
+        }
+
+        .cert-btn-verify {
+            width: 100%;
+        }
+
+        .cert-search-card {
+            padding: 24px 18px;
+            margin-top: -30px;
+        }
+
+        .cert-filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
     }
 </style>
 <?= $this->endSection() ?>
@@ -511,8 +628,7 @@
                             placeholder="Contoh: SERT/2026/00003 atau masukkan token kriptografi..."
                             value="<?= esc($keyword) ?>"
                             required
-                            autocomplete="off"
-                        >
+                            autocomplete="off">
                         <button type="submit" class="cert-btn-verify">
                             <i class="fas fa-check-circle"></i> Verifikasi Sekarang
                         </button>
@@ -608,7 +724,7 @@
             <div>
                 <h4 class="cert-trust-item__title">Tanda Tangan Digital Resmi</h4>
                 <p class="cert-trust-item__desc">
-                    Disahkan langsung oleh Kepala Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung melalui otentikasi sistem BegawiPBJ.
+                    Disahkan langsung oleh Kepala Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung melalui otentikasi sistem BegawiPengadaan.
                 </p>
             </div>
         </div>
@@ -645,15 +761,15 @@
         <div class="cert-filter-bar">
             <div class="cert-filter-pills">
                 <a href="<?= site_url('verifikasi-sertifikat?' . http_build_query(array_merge($_GET, ['tipe' => 'all', 'page' => 1]))) ?>"
-                   class="cert-filter-pill <?= $sourceFilter === 'all' || $sourceFilter === '' ? 'active' : '' ?>">
+                    class="cert-filter-pill <?= $sourceFilter === 'all' || $sourceFilter === '' ? 'active' : '' ?>">
                     <i class="fas fa-th-large"></i> Semua Sumber
                 </a>
                 <a href="<?= site_url('verifikasi-sertifikat?' . http_build_query(array_merge($_GET, ['tipe' => 'learning_enrollment', 'page' => 1]))) ?>"
-                   class="cert-filter-pill <?= $sourceFilter === 'learning_enrollment' ? 'active' : '' ?>">
+                    class="cert-filter-pill <?= $sourceFilter === 'learning_enrollment' ? 'active' : '' ?>">
                     <i class="fas fa-graduation-cap"></i> Pelatihan (Arena Belajar)
                 </a>
                 <a href="<?= site_url('verifikasi-sertifikat?' . http_build_query(array_merge($_GET, ['tipe' => 'event_registration', 'page' => 1]))) ?>"
-                   class="cert-filter-pill <?= $sourceFilter === 'event_registration' ? 'active' : '' ?>">
+                    class="cert-filter-pill <?= $sourceFilter === 'event_registration' ? 'active' : '' ?>">
                     <i class="fas fa-calendar-alt"></i> Event &amp; Seminar PBJ
                 </a>
             </div>
@@ -661,11 +777,11 @@
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small fw-bold">Status:</span>
                 <a href="<?= site_url('verifikasi-sertifikat?' . http_build_query(array_merge($_GET, ['status' => 'all', 'page' => 1]))) ?>"
-                   class="btn btn-sm <?= $statusFilter === 'all' || $statusFilter === '' ? 'btn-dark' : 'btn-outline-secondary' ?>">Semua</a>
+                    class="btn btn-sm <?= $statusFilter === 'all' || $statusFilter === '' ? 'btn-dark' : 'btn-outline-secondary' ?>">Semua</a>
                 <a href="<?= site_url('verifikasi-sertifikat?' . http_build_query(array_merge($_GET, ['status' => 'issued', 'page' => 1]))) ?>"
-                   class="btn btn-sm <?= $statusFilter === 'issued' ? 'btn-success' : 'btn-outline-success' ?>">Valid (Issued)</a>
+                    class="btn btn-sm <?= $statusFilter === 'issued' ? 'btn-success' : 'btn-outline-success' ?>">Valid (Issued)</a>
                 <a href="<?= site_url('verifikasi-sertifikat?' . http_build_query(array_merge($_GET, ['status' => 'revoked', 'page' => 1]))) ?>"
-                   class="btn btn-sm <?= $statusFilter === 'revoked' ? 'btn-danger' : 'btn-outline-danger' ?>">Dicabut</a>
+                    class="btn btn-sm <?= $statusFilter === 'revoked' ? 'btn-danger' : 'btn-outline-danger' ?>">Dicabut</a>
             </div>
         </div>
 
@@ -725,15 +841,15 @@
             <?php if ($pagerData['totalPages'] > 1): ?>
                 <div class="begawi-pagination">
                     <a href="<?= site_url('verifikasi-sertifikat?' . http_build_query(array_merge($_GET, ['page' => $pagerData['prevPage']]))) ?>"
-                       class="begawi-pagination__link <?= ! $pagerData['hasPrev'] ? 'disabled' : '' ?>"
-                       aria-label="Halaman Sebelumnya">
+                        class="begawi-pagination__link <?= ! $pagerData['hasPrev'] ? 'disabled' : '' ?>"
+                        aria-label="Halaman Sebelumnya">
                         <i class="fas fa-chevron-left"></i>
                     </a>
 
                     <?php for ($p = 1; $p <= $pagerData['totalPages']; $p++): ?>
                         <?php if ($p === 1 || $p === $pagerData['totalPages'] || abs($p - $pagerData['page']) <= 2): ?>
                             <a href="<?= site_url('verifikasi-sertifikat?' . http_build_query(array_merge($_GET, ['page' => $p]))) ?>"
-                               class="begawi-pagination__link <?= $p === $pagerData['page'] ? 'active' : '' ?>">
+                                class="begawi-pagination__link <?= $p === $pagerData['page'] ? 'active' : '' ?>">
                                 <?= $p ?>
                             </a>
                         <?php elseif (abs($p - $pagerData['page']) === 3): ?>
@@ -742,8 +858,8 @@
                     <?php endfor; ?>
 
                     <a href="<?= site_url('verifikasi-sertifikat?' . http_build_query(array_merge($_GET, ['page' => $pagerData['nextPage']]))) ?>"
-                       class="begawi-pagination__link <?= ! $pagerData['hasNext'] ? 'disabled' : '' ?>"
-                       aria-label="Halaman Berikutnya">
+                        class="begawi-pagination__link <?= ! $pagerData['hasNext'] ? 'disabled' : '' ?>"
+                        aria-label="Halaman Berikutnya">
                         <i class="fas fa-chevron-right"></i>
                     </a>
                 </div>
@@ -767,14 +883,14 @@
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         // Quick sample fill handler
         const sampleButtons = document.querySelectorAll('.btn-sample-fill');
         const certInput = document.getElementById('certNumberInput');
         const certForm = document.getElementById('certVerificationForm');
 
         sampleButtons.forEach(button => {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function() {
                 const sampleVal = this.getAttribute('data-sample');
                 if (sampleVal && certInput) {
                     certInput.value = sampleVal;
@@ -793,10 +909,14 @@
                 if (!isClamping) {
                     isClamping = true;
                     window.scrollTo(0, maxScroll);
-                    requestAnimationFrame(function() { isClamping = false; });
+                    requestAnimationFrame(function() {
+                        isClamping = false;
+                    });
                 }
             }
-        }, { passive: true });
+        }, {
+            passive: true
+        });
     })();
 </script>
 <?= $this->endSection() ?>

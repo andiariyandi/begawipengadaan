@@ -96,7 +96,7 @@ class CertificateGenerator
         $sourceType = (string) $source['source_type'];
         $sourceId   = (int)    $source['source_id'];
         $userId     = (int)    $source['user_id'];
-        $issuerName = 'BegawiPBJ — Pemerintah Provinsi Lampung';
+        $issuerName = 'BegawiPengadaan — Pemerintah Provinsi Lampung';
         $now        = date('Y-m-d H:i:s');
 
         // Idempotency — UNIQUE(source_type, source_id)
@@ -117,7 +117,7 @@ class CertificateGenerator
         if (! $template) {
             throw new RuntimeException(
                 'Template sertifikat untuk source_type "' . $templateSource
-                . '" belum tersedia atau belum diaktifkan.'
+                    . '" belum tersedia atau belum diaktifkan.'
             );
         }
 
@@ -157,7 +157,7 @@ class CertificateGenerator
             $certificateData = [
                 'certificate_id'    => $certificateId,
                 'participant_name'  => (string) ($source['user_name'] ?? '—'),
-                'certificate_number'=> $certNumber,
+                'certificate_number' => $certNumber,
                 'certificate_title' => (string) ($source['title'] ?? 'Sertifikat'),
                 'source_label'      => (string) ($source['title'] ?? '—'),
                 'issued_at'         => $issuedAtForRender,
@@ -204,7 +204,7 @@ class CertificateGenerator
             $this->auditService->log($actorId, 'certificate.created', 'certificate', 'certificate', $certificateId, [
                 'source_type'       => $sourceType,
                 'source_id'         => $sourceId,
-                'certificate_number'=> $certNumber,
+                'certificate_number' => $certNumber,
                 'template_id'       => (int) $template['id'],
                 'pdf_file_id'       => $pdfFileId,
             ]);
@@ -236,7 +236,7 @@ class CertificateGenerator
             'certificate_id'    => $certificateId,
             'pdf_file_id'       => $pdfFileId ?? null,
             'clear_token'       => $clearToken,
-            'certificate_number'=> $certNumber,
+            'certificate_number' => $certNumber,
             'source_type'       => $sourceType,
             'source_id'         => $sourceId,
         ];
@@ -279,7 +279,7 @@ class CertificateGenerator
 
         $source     = $this->resolveSourceDirect($sourceType, $sourceId);
         $userId     = (int) $source['user_id'];
-        $issuerName = 'BegawiPBJ — Pemerintah Provinsi Lampung';
+        $issuerName = 'BegawiPengadaan — Pemerintah Provinsi Lampung';
         $now        = date('Y-m-d H:i:s');
 
         // Template resolution

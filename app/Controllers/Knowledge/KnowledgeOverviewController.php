@@ -45,7 +45,7 @@ class KnowledgeOverviewController extends BaseKnowledgeController
         $categoriesCount   = (int) $db->table('knowledge_categories')->where('is_active', 1)->countAllResults();
         $tagsCount         = (int) $db->table('knowledge_tags')->countAllResults();
         $featuredCount     = (int) $db->table('knowledge_articles')->where('featured', 1)->where('deleted_at IS NULL')->countAllResults()
-                           + (int) $db->table('knowledge_media')->where('featured', 1)->countAllResults();
+            + (int) $db->table('knowledge_media')->where('featured', 1)->countAllResults();
 
         // 2. Recent Articles & Case Studies & Templates
         $recentArticles = $db->table('knowledge_articles ka')
@@ -70,7 +70,7 @@ class KnowledgeOverviewController extends BaseKnowledgeController
         $categories = (new KnowledgeCategoryModel())->activeFlat();
 
         return view('dashboard/knowledge/overview/index', [
-            'title'             => 'Ringkasan Bunga Rampai | Dashboard BegawiPBJ',
+            'title'             => 'Ringkasan Bunga Rampai | Dashboard BegawiPengadaan',
             'pageTitle'         => 'Dashboard Bunga Rampai (Knowledge Management)',
             'activeMenu'        => 'knowledge',
             'activeSubmenu'     => 'overview',

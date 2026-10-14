@@ -23,9 +23,23 @@ $accountInitial = strtoupper(substr($userName, 0, 1));
 $hasDashboardAccess = (bool) session()->get('dashboard_access')
     || in_array('admin', $roles, true)
     || in_array('super_admin', $roles, true);
+$isHomeView = !empty($isHome);
 ?>
-<header class="main-header">
+<header class="main-header <?= $isHomeView ? 'main-header--home' : '' ?>" style="<?= $isHomeView ? 'position: relative !important; top: auto !important; left: auto !important; right: auto !important; width: 100% !important; margin: 0 !important; z-index: 999 !important; background: #052244 !important;' : '' ?>">
     <style>
+        .main-header--home,
+        .landing-home .main-header {
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            width: 100% !important;
+            margin: 0 !important;
+            z-index: 999 !important;
+            background: linear-gradient(180deg, rgba(5, 34, 68, 1) 0%, rgba(8, 47, 92, 1) 100%) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
+        }
+
         .main-menu__user {
             position: relative;
             display: inline-flex;
@@ -219,8 +233,8 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                 <div class="main-menu__wrapper-inner">
                     <div class="main-menu__left">
                         <div class="main-menu__logo">
-                            <a href="<?= site_url('/') ?>" aria-label="Beranda BegawiPBJ">
-                                <img src="<?= base_url('assets/main/images/resources/logo-1.png') ?>" alt="BegawiPBJ">
+                            <a href="<?= site_url('/') ?>" aria-label="Beranda BegawiPengadaan">
+                                <img src="<?= base_url('assets/main/images/resources/logo-1.png') ?>" alt="BegawiPengadaan">
                             </a>
                         </div>
 
@@ -264,7 +278,7 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                                 <ul class="shadow-box">
                                     <li><a href="<?= site_url('tentang') ?>">Profil Biro PBJ</a></li>
                                     <li><a href="<?= site_url('tentang#visi-misi') ?>">Visi &amp; Misi 2024–2029</a></li>
-                                    <li><a href="<?= site_url('tentang#pilar') ?>">5 Pilar Ekosistem BegawiPBJ</a></li>
+                                    <li><a href="<?= site_url('tentang#pilar') ?>">5 Pilar Ekosistem BegawiPengadaan</a></li>
                                     <li><a href="<?= site_url('tentang#struktur') ?>">Struktur Organisasi</a></li>
                                     <li><a href="<?= site_url('tentang#maklumat') ?>">Maklumat Pelayanan UKPBJ</a></li>
                                 </ul>

@@ -43,7 +43,7 @@ class RoleController extends BaseController
         $pager->store('roles', $page, $perPage, $total, 0);
 
         return view('dashboard/access/roles', [
-            'title'         => 'Role dan Permission | Dashboard BegawiPBJ',
+            'title'         => 'Role dan Permission | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Role dan Permission',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'roles',
@@ -60,7 +60,7 @@ class RoleController extends BaseController
             return $res;
         }
         return view('dashboard/access/role_form', [
-            'title'         => 'Tambah Role | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Role | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Role',
             'formMode'      => 'create',
             'activeMenu'    => 'access',
@@ -101,7 +101,7 @@ class RoleController extends BaseController
         $permissions = $service->permissionsForRole($roleId);
 
         return view('dashboard/access/role_detail', [
-            'title'         => 'Detail Role | Dashboard BegawiPBJ',
+            'title'         => 'Detail Role | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Role',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'roles',
@@ -124,7 +124,7 @@ class RoleController extends BaseController
 
         $service = new RoleManagementService();
         return view('dashboard/access/role_form', [
-            'title'           => 'Ubah Role | Dashboard BegawiPBJ',
+            'title'           => 'Ubah Role | Dashboard BegawiPengadaan',
             'pageTitle'       => 'Ubah Role',
             'formMode'        => 'edit',
             'activeMenu'      => 'access',
@@ -194,7 +194,7 @@ class RoleController extends BaseController
         }
 
         return view('dashboard/access/role_permission_matrix', [
-            'title'         => 'Role-Permission Matrix | Dashboard BegawiPBJ',
+            'title'         => 'Role-Permission Matrix | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Role vs Permission',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'roles',

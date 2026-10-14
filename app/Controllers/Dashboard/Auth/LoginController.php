@@ -29,25 +29,39 @@ class LoginController extends BaseController
         }
 
         return view('dashboard/auth/login', [
-            'title' => 'Masuk | BegawiPBJ',
+            'title' => 'Masuk | BegawiPengadaan',
             'pageTitle' => 'Masuk ke Akun Anda',
-            'pageDescription' => 'Silakan masukkan email dan kata sandi untuk mengakses layanan BegawiPBJ.',
+            'pageDescription' => 'Silakan masukkan email dan kata sandi untuk mengakses layanan BegawiPengadaan.',
         ]);
     }
 
     public function attemptLogin()
     {
-        if (! $this->validate([
-            'email' => 'required|valid_email|max_length[150]',
+        $rules = [
+            'email'    => 'required|valid_email|max_length[150]',
             'password' => 'required|max_length[255]',
-        ])) {
+        ];
+
+        $messages = [
+            'email' => [
+                'required'    => 'Alamat email wajib diisi.',
+                'valid_email' => 'Format alamat email tidak valid.',
+            ],
+            'password' => [
+                'required' => 'Kata sandi akun wajib diisi.',
+            ],
+        ];
+
+        $postData = (array) ($this->request->getPost() ?: $_POST);
+
+        if (! $this->validateData($postData, $rules, $messages)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $result = (new AuthenticationService())->authenticate(
-            (string) $this->request->getPost('email'),
-            (string) $this->request->getPost('password')
-        );
+        $email    = strtolower(trim((string) ($postData['email'] ?? '')));
+        $password = (string) ($postData['password'] ?? '');
+
+        $result = (new AuthenticationService())->authenticate($email, $password);
 
         if (! $result['ok']) {
             if ($result['reason'] === 'inactive_account') {

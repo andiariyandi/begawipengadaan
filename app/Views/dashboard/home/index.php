@@ -52,13 +52,13 @@ $fmt = static fn(int $n): string => number_format($n, 0, ',', '.');
 $profileLabelMap = [
     'asn'                  => 'ASN / Instansi',
     'provider'             => 'Penyedia Barang/Jasa',
-    'academic_practitioner'=> 'Akademisi / Praktisi',
+    'academic_practitioner' => 'Akademisi / Praktisi',
     'public'               => 'Masyarakat Umum',
 ];
 
 $accountLabelMap = [
     'active'              => 'Aktif',
-    'pending_verification'=> 'Pending Verifikasi',
+    'pending_verification' => 'Pending Verifikasi',
     'submitted'           => 'Diajukan',
     'revision_required'   => 'Perlu Revisi',
     'rejected'            => 'Ditolak',
@@ -82,7 +82,7 @@ $roleBadge = $isSuperAdmin ? 'Super Administrator' : 'Administrator Back-Office'
                 <i class="ri-shield-user-line me-1"></i><?= esc($roleBadge) ?>
             </span>
         </div>
-        <p class="text-secondary-light mb-0">Ikhtisar operasional dan pemantauan modul BegawiPBJ Provinsi Lampung.</p>
+        <p class="text-secondary-light mb-0">Ikhtisar operasional dan pemantauan modul BegawiPengadaan Provinsi Lampung.</p>
     </div>
     <ul class="d-flex align-items-center gap-2 mb-0">
         <li class="fw-medium">
@@ -529,7 +529,9 @@ $roleBadge = $isSuperAdmin ? 'Super Administrator' : 'Administrator Back-Office'
                         </thead>
                         <tbody>
                             <?php if (empty($usersByProfile)): ?>
-                                <tr><td colspan="2" class="text-center text-secondary-light">Belum ada data profil.</td></tr>
+                                <tr>
+                                    <td colspan="2" class="text-center text-secondary-light">Belum ada data profil.</td>
+                                </tr>
                             <?php else: ?>
                                 <?php foreach ($usersByProfile as $profileType => $total): ?>
                                     <tr>
@@ -565,7 +567,9 @@ $roleBadge = $isSuperAdmin ? 'Super Administrator' : 'Administrator Back-Office'
                         </thead>
                         <tbody>
                             <?php if (empty($usersByAccount)): ?>
-                                <tr><td colspan="2" class="text-center text-secondary-light">Belum ada data status.</td></tr>
+                                <tr>
+                                    <td colspan="2" class="text-center text-secondary-light">Belum ada data status.</td>
+                                </tr>
                             <?php else: ?>
                                 <?php foreach ($usersByAccount as $status => $total): ?>
                                     <tr>
@@ -588,7 +592,7 @@ $roleBadge = $isSuperAdmin ? 'Super Administrator' : 'Administrator Back-Office'
 
 <?= $this->section('pageScripts') ?>
 <script>
-    (function () {
+    (function() {
         // Area Chart: Tren Pendaftaran & Enrollment 12 Bulan
         const enrollmentTarget = document.querySelector('#begawiEnrollmentChart');
         const monthly = <?= json_encode($enrollmentMonthly, JSON_UNESCAPED_UNICODE) ?>;
@@ -598,32 +602,67 @@ $roleBadge = $isSuperAdmin ? 'Super Administrator' : 'Administrator Back-Office'
                     type: 'area',
                     height: 310,
                     fontFamily: 'inherit',
-                    toolbar: { show: false }
+                    toolbar: {
+                        show: false
+                    }
                 },
-                series: [
-                    { name: 'Pendaftaran Akun', data: monthly.registration },
-                    { name: 'Enrollment Kelas', data: monthly.enrollment }
+                series: [{
+                        name: 'Pendaftaran Akun',
+                        data: monthly.registration
+                    },
+                    {
+                        name: 'Enrollment Kelas',
+                        data: monthly.enrollment
+                    }
                 ],
                 colors: ['#487FFF', '#16A34A'],
-                dataLabels: { enabled: false },
-                stroke: { curve: 'smooth', width: 3 },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 3
+                },
                 fill: {
                     type: 'gradient',
-                    gradient: { shadeIntensity: 1, opacityFrom: 0.28, opacityTo: 0.04, stops: [0, 100] }
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.28,
+                        opacityTo: 0.04,
+                        stops: [0, 100]
+                    }
                 },
-                grid: { borderColor: '#E9ECEF', strokeDashArray: 4 },
+                grid: {
+                    borderColor: '#E9ECEF',
+                    strokeDashArray: 4
+                },
                 xaxis: {
                     categories: monthly.categories,
-                    labels: { style: { colors: '#6B7280', fontSize: '12px' } }
+                    labels: {
+                        style: {
+                            colors: '#6B7280',
+                            fontSize: '12px'
+                        }
+                    }
                 },
                 yaxis: {
                     labels: {
                         formatter: value => Math.round(value),
-                        style: { colors: '#6B7280', fontSize: '12px' }
+                        style: {
+                            colors: '#6B7280',
+                            fontSize: '12px'
+                        }
                     }
                 },
-                legend: { position: 'top', horizontalAlign: 'right', fontWeight: 500 },
-                tooltip: { shared: true, theme: 'light' }
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'right',
+                    fontWeight: 500
+                },
+                tooltip: {
+                    shared: true,
+                    theme: 'light'
+                }
             }).render();
         }
 
@@ -632,12 +671,20 @@ $roleBadge = $isSuperAdmin ? 'Super Administrator' : 'Administrator Back-Office'
         const donut = <?= json_encode($accountStatusDonut, JSON_UNESCAPED_UNICODE) ?>;
         if (accountStatusTarget && window.ApexCharts && donut) {
             new ApexCharts(accountStatusTarget, {
-                chart: { type: 'donut', height: 240, fontFamily: 'inherit' },
+                chart: {
+                    type: 'donut',
+                    height: 240,
+                    fontFamily: 'inherit'
+                },
                 series: donut.series,
                 labels: donut.labels,
                 colors: donut.colors,
-                legend: { show: false },
-                dataLabels: { enabled: false },
+                legend: {
+                    show: false
+                },
+                dataLabels: {
+                    enabled: false
+                },
                 plotOptions: {
                     pie: {
                         donut: {
@@ -648,13 +695,19 @@ $roleBadge = $isSuperAdmin ? 'Super Administrator' : 'Administrator Back-Office'
                                     show: true,
                                     label: 'Total Akun',
                                     formatter: () => String(donut.total),
-                                    style: { fontSize: '13px', fontWeight: 600, color: '#4B5563' }
+                                    style: {
+                                        fontSize: '13px',
+                                        fontWeight: 600,
+                                        color: '#4B5563'
+                                    }
                                 }
                             }
                         }
                     }
                 },
-                tooltip: { theme: 'light' }
+                tooltip: {
+                    theme: 'light'
+                }
             }).render();
         }
     })();

@@ -26,6 +26,11 @@ class NewsPublicController extends BaseController
      */
     public function index(): string
     {
+        try {
+            (new \App\Services\VisitorStatisticService())->recordHit('berita');
+        } catch (\Throwable) {
+        }
+
         $keyword      = trim((string) ($this->request->getGet('q') ?: ''));
         $categorySlug = trim((string) ($this->request->getGet('kategori') ?: $this->request->getGet('category') ?: ''));
         $sort         = trim((string) ($this->request->getGet('sort') ?: 'newest'));
@@ -115,7 +120,7 @@ class NewsPublicController extends BaseController
                 'category_slug' => $row['category_slug'] ?? 'umum',
                 'author_name'   => $row['author_name'] ?: 'Biro PBJ Setda Lampung',
                 'published_at'  => $row['published_at'] ?? $row['created_at'],
-                'date_formatted'=> ! empty($row['published_at']) ? date('d M Y', strtotime($row['published_at'])) : date('d M Y'),
+                'date_formatted' => ! empty($row['published_at']) ? date('d M Y', strtotime($row['published_at'])) : date('d M Y'),
                 'view_count'    => (int) ($row['view_count'] ?? 0),
                 'read_time'     => $readTime,
                 'cover_url'     => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
@@ -156,7 +161,7 @@ class NewsPublicController extends BaseController
                     'category_name' => $row['category_name'] ?? 'Berita PBJ',
                     'category_slug' => $row['category_slug'] ?? 'umum',
                     'published_at'  => $row['published_at'] ?? date('Y-m-d H:i:s'),
-                    'date_formatted'=> ! empty($row['published_at']) ? date('d M Y', strtotime($row['published_at'])) : date('d M Y'),
+                    'date_formatted' => ! empty($row['published_at']) ? date('d M Y', strtotime($row['published_at'])) : date('d M Y'),
                     'view_count'    => (int) ($row['view_count'] ?? 0),
                     'read_time'     => $readTime,
                     'cover_url'     => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
@@ -217,7 +222,7 @@ class NewsPublicController extends BaseController
         }
 
         return view('landing/pages/news', [
-            'title'               => $pageTitle . ' | BegawiPBJ Provinsi Lampung',
+            'title'               => $pageTitle . ' | BegawiPengadaan Provinsi Lampung',
             'metaDescription'     => $metaDesc,
             'pageTitle'           => $pageTitle,
             'items'               => $items,

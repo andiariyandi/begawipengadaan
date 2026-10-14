@@ -1,8 +1,8 @@
-# BegawiPBJ — Documentation and Database File Register
+# BegawiPengadaan — Documentation and Database File Register
 
 ## Tujuan
 
-Dokumen ini adalah register resmi untuk dokumentasi proyek dan artefak database BegawiPBJ. Register mencatat path, jenis, status, sumber kebenaran, fungsi, dependency, dan aturan perubahan setiap dokumen atau file database yang menjadi bagian kontrak proyek.
+Dokumen ini adalah register resmi untuk dokumentasi proyek dan artefak database BegawiPengadaan. Register mencatat path, jenis, status, sumber kebenaran, fungsi, dependency, dan aturan perubahan setiap dokumen atau file database yang menjadi bagian kontrak proyek.
 
 Dokumen ini tidak menggantikan isi dokumen yang diregistrasi. Untuk aturan substantif, gunakan dokumen sumber yang tercantum pada register.
 

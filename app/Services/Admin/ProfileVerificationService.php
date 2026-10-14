@@ -91,7 +91,7 @@ class ProfileVerificationService
             $userId,
             'account_approved',
             'Akun Anda Telah Disetujui',
-            'Selamat, pendaftaran akun Anda telah disetujui oleh Operator/Admin. Anda kini dapat masuk dan mengakses seluruh fitur pembelajaran BegawiPBJ.'
+            'Selamat, pendaftaran akun Anda telah disetujui oleh Operator/Admin. Anda kini dapat masuk dan mengakses seluruh fitur pembelajaran BegawiPengadaan.'
         );
 
         return true;

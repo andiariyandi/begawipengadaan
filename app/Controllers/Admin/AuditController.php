@@ -41,7 +41,7 @@ class AuditController extends BaseController
         ];
 
         return view('dashboard/audit/index', [
-            'title'         => 'Audit Akses & Log Sistem | Dashboard BegawiPBJ',
+            'title'         => 'Audit Akses & Log Sistem | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Audit Trail & Log Aktivitas',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'audit',
@@ -59,7 +59,7 @@ class AuditController extends BaseController
         $item = (new \App\Models\AuditLogModel())->find($id);
 
         return view('dashboard/audit/detail', [
-            'title'         => 'Detail Audit | Dashboard BegawiPBJ',
+            'title'         => 'Detail Audit | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Audit',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'audit',
@@ -71,7 +71,7 @@ class AuditController extends BaseController
     public function files()
     {
         return view('dashboard/audit/files', [
-            'title'         => 'File dan Media | Dashboard BegawiPBJ',
+            'title'         => 'File dan Media | Dashboard BegawiPengadaan',
             'pageTitle'     => 'File dan Media',
             'activeMenu'    => 'system',
             'activeSubmenu' => 'files-media',
@@ -80,11 +80,6 @@ class AuditController extends BaseController
 
     public function notifications()
     {
-        return view('dashboard/audit/notifications', [
-            'title'         => 'Log Notifikasi | Dashboard BegawiPBJ',
-            'pageTitle'     => 'Log Notifikasi Sistem',
-            'activeMenu'    => 'system',
-            'activeSubmenu' => 'notifications',
-        ]);
+        return (new NotificationController())->index();
     }
 }

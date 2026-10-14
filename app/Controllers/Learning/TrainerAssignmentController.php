@@ -81,7 +81,7 @@ class TrainerAssignmentController extends BaseController
             ->get()->getResultArray();
 
         return view('dashboard/learning/trainers/index', [
-            'title'         => 'Penugasan Trainer | Dashboard BegawiPBJ',
+            'title'         => 'Penugasan Trainer | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Penugasan Trainer (Trainer Assignment)',
             'assignments'   => $assignments,
             'stats'         => $stats,

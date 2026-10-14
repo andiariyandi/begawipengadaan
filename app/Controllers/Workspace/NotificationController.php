@@ -78,7 +78,7 @@ class NotificationController extends BaseController
         ];
 
         return view('main/workspace/pages/notifikasi', [
-            'title'          => $title . ' | Workspace BegawiPBJ',
+            'title'          => $title . ' | Workspace BegawiPengadaan',
             'pageTitle'      => $title,
             'userName'       => $userName,
             'roles'          => [$primaryRole],
@@ -97,7 +97,7 @@ class NotificationController extends BaseController
     private function menuItems(string $role): array
     {
         $workspace = route_to('workspace.home');
-        $section = static fn (string $name): string => route_to('workspace.section', $name);
+        $section = static fn(string $name): string => route_to('workspace.section', $name);
 
         return [
             ['label' => 'Dashboard', 'items' => [

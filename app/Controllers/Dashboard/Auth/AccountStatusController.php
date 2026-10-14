@@ -41,7 +41,7 @@ class AccountStatusController extends BaseController
         $status = $user['account_status'] ?? 'draft';
 
         return view('dashboard/auth/account_status', [
-            'title'           => 'Status Akun | BegawiPBJ',
+            'title'           => 'Status Akun | BegawiPengadaan',
             'pageTitle'       => 'Status Akun Anda',
             'pageDescription' => 'Ringkasan status akun dan langkah selanjutnya.',
             'user'            => $user,

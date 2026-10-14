@@ -44,7 +44,7 @@ class ArenaE2ETest extends BaseCommand
         $testClassId     = 4; // Pengantar Pengadaan Barang/Jasa Pemerintah — Kelas 1
         $testTrainerId   = 34; // Siti Rahmawati
         $unauthTrainerId = 33; // Budi Santoso (unassigned for Class 4)
-        $testOperatorId  = 32; // Operator BegawiPBJ
+        $testOperatorId  = 32; // Operator BegawiPengadaan
 
         // Ensure test class has sufficient capacity for repeated automated test runs
         $db->table('learning_classes')->where('id', $testClassId)->update(['capacity' => 1000]);
@@ -64,7 +64,7 @@ class ArenaE2ETest extends BaseCommand
             // 1.1 Render Register Page
             $registerController = new RegisterController();
             $registerViewHtml = view('dashboard/auth/register', [
-                'title'       => 'Daftar Akun | BegawiPBJ',
+                'title'       => 'Daftar Akun | BegawiPengadaan',
                 'pageTitle'   => 'Daftar Akun Baru',
                 'currentStep' => 1,
                 'provinces'   => [],
@@ -165,7 +165,7 @@ class ArenaE2ETest extends BaseCommand
             $session->set([
                 'isLoggedIn'     => true,
                 'user_id'        => $testOperatorId,
-                'name'           => 'Operator BegawiPBJ',
+                'name'           => 'Operator BegawiPengadaan',
                 'username'       => 'operator_begawi',
                 'account_status' => 'active',
                 'roles'          => ['operator'],
@@ -327,7 +327,7 @@ class ArenaE2ETest extends BaseCommand
             $session->set([
                 'isLoggedIn'     => true,
                 'user_id'        => $testOperatorId,
-                'name'           => 'Operator BegawiPBJ',
+                'name'           => 'Operator BegawiPengadaan',
                 'username'       => 'operator_begawi',
                 'account_status' => 'active',
                 'roles'          => ['operator'],
@@ -699,7 +699,7 @@ class ArenaE2ETest extends BaseCommand
             $session->set([
                 'isLoggedIn'     => true,
                 'user_id'        => $testOperatorId,
-                'name'           => 'Operator BegawiPBJ',
+                'name'           => 'Operator BegawiPengadaan',
                 'username'       => 'operator_begawi',
                 'account_status' => 'active',
                 'roles'          => ['operator'],

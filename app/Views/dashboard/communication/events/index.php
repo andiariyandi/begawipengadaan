@@ -2,349 +2,387 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
-/* Bulletproof Jitter-Free & Shake-Free Scroll at Viewport Extremities */
-html {
-    scroll-behavior: auto !important;
-    overflow-x: clip !important;
-    overflow-y: scroll !important;
-    overscroll-behavior: none !important;
-    overscroll-behavior-y: none !important;
-    overflow-anchor: none !important;
-}
-body {
-    overflow-x: clip !important;
-    overflow-y: visible !important;
-    overscroll-behavior: none !important;
-    overscroll-behavior-y: none !important;
-    overflow-anchor: none !important;
-    min-height: 100vh;
-}
-.dashboard-main {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    transition: margin-inline-start 0.3s ease, margin-left 0.3s ease !important;
-}
-.dashboard-main-body {
-    flex: 1 0 auto;
-}
-.d-footer {
-    margin-block-start: 24px !important;
-    position: relative;
-    z-index: 1;
-}
+    /* Bulletproof Jitter-Free & Shake-Free Scroll at Viewport Extremities */
+    html {
+        scroll-behavior: auto !important;
+        overflow-x: clip !important;
+        overflow-y: scroll !important;
+        overscroll-behavior: none !important;
+        overscroll-behavior-y: none !important;
+        overflow-anchor: none !important;
+    }
 
-/* Scoped Events Dashboard Styling for Maximum Contrast, Clean Alignment & Legibility */
-.events-dashboard-container {
-    color: #0f172a !important;
-    overflow-x: clip;
-    padding-bottom: 24px;
-}
-.events-dashboard-container * {
-    box-sizing: border-box;
-}
+    body {
+        overflow-x: clip !important;
+        overflow-y: visible !important;
+        overscroll-behavior: none !important;
+        overscroll-behavior-y: none !important;
+        overflow-anchor: none !important;
+        min-height: 100vh;
+    }
 
-/* Force high-contrast on faint text classes */
-.events-dashboard-container .text-secondary-light,
-.events-dashboard-container .text-muted,
-.events-dashboard-container .text-neutral-500 {
-    color: #475569 !important;
-}
-.events-dashboard-container .text-neutral-600 {
-    color: #334155 !important;
-}
-.events-dashboard-container .text-neutral-700 {
-    color: #1e293b !important;
-}
-.events-dashboard-container .text-neutral-800,
-.events-dashboard-container .text-neutral-900 {
-    color: #0f172a !important;
-}
+    .dashboard-main {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        transition: margin-inline-start 0.3s ease, margin-left 0.3s ease !important;
+    }
 
-/* Form Controls Contrast */
-.events-dashboard-container .form-control,
-.events-dashboard-container .form-select {
-    color: #0f172a !important;
-    background-color: #ffffff !important;
-    border-color: #cbd5e1 !important;
-    font-size: 13.5px;
-    font-weight: 500;
-}
-.events-dashboard-container .form-control:focus,
-.events-dashboard-container .form-select:focus {
-    border-color: #0284c7 !important;
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
-}
-.events-dashboard-container label {
-    color: #0f172a !important;
-    font-weight: 700 !important;
-    font-size: 12px !important;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-}
+    .dashboard-main-body {
+        flex: 1 0 auto;
+    }
 
-/* KPI Cards - Jitter-Free Solid Alignment */
-.kpi-event-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 12px;
-    padding: 16px 18px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.kpi-event-card:hover {
-    border-color: #93c5fd !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
+    .d-footer {
+        margin-block-start: 24px !important;
+        position: relative;
+        z-index: 1;
+    }
 
-/* Action Dropdown Button */
-.btn-action-dropdown {
-    background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #0f172a !important;
-    border-radius: 8px !important;
-    padding: 6px 10px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    transition: all 0.2s ease !important;
-}
-.btn-action-dropdown:hover,
-.btn-action-dropdown:focus {
-    background: #0284c7 !important;
-    border-color: #0284c7 !important;
-    color: #ffffff !important;
-}
-.btn-action-dropdown iconify-icon {
-    color: #0f172a !important;
-    font-size: 18px !important;
-}
-.btn-action-dropdown:hover iconify-icon,
-.btn-action-dropdown:focus iconify-icon {
-    color: #ffffff !important;
-}
+    /* Scoped Events Dashboard Styling for Maximum Contrast, Clean Alignment & Legibility */
+    .events-dashboard-container {
+        color: #0f172a !important;
+        overflow-x: clip;
+        padding-bottom: 24px;
+    }
 
-/* Event Grid Card - Jitter-Free Solid Alignment */
-.event-grid-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    overflow: hidden;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.event-grid-card:hover {
-    border-color: #0284c7;
-    box-shadow: 0 6px 16px -2px rgba(2, 132, 199, 0.12);
-}
-.event-cover-wrapper {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    background: #f1f5f9;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-.event-cover-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: opacity 0.2s ease;
-}
-.event-grid-card:hover .event-cover-img {
-    opacity: 0.94;
-}
-.event-cover-placeholder {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 50%, #eff6ff 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #475569;
-}
-.event-grid-title-wrap {
-    height: 48px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-bottom: 12px;
-}
-.event-grid-info-box {
-    min-height: 74px;
-    background: #f8fafc;
-    border: 1px solid #f1f5f9;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 14px;
-}
+    .events-dashboard-container * {
+        box-sizing: border-box;
+    }
 
-/* Type & Mode Badges */
-.badge-type-pill {
-    background: #ffffff;
-    color: #0369a1;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid #bae6fd;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-.badge-mode-online {
-    background: #ffffff;
-    color: #047857;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid #a7f3d0;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-.badge-mode-offline {
-    background: #ffffff;
-    color: #c2410c;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid #fed7aa;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-.badge-mode-hybrid {
-    background: #ffffff;
-    color: #a21caf;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid #f5d0fe;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
+    /* Force high-contrast on faint text classes */
+    .events-dashboard-container .text-secondary-light,
+    .events-dashboard-container .text-muted,
+    .events-dashboard-container .text-neutral-500 {
+        color: #475569 !important;
+    }
 
-/* Status Badges Override for High Legibility */
-.events-dashboard-container .status-badge-custom {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 700;
-}
-.status-badge-open {
-    background-color: #dcfce7 !important;
-    color: #15803d !important;
-    border: 1px solid #bbf7d0 !important;
-}
-.status-badge-coming-soon {
-    background-color: #fef3c7 !important;
-    color: #92400e !important;
-    border: 1px solid #fde68a !important;
-}
-.status-badge-published {
-    background-color: #e0f2fe !important;
-    color: #0369a1 !important;
-    border: 1px solid #bae6fd !important;
-}
-.status-badge-full {
-    background-color: #f3e8ff !important;
-    color: #7e22ce !important;
-    border: 1px solid #e9d5ff !important;
-}
-.status-badge-finished {
-    background-color: #f1f5f9 !important;
-    color: #334155 !important;
-    border: 1px solid #cbd5e1 !important;
-}
-.status-badge-cancelled {
-    background-color: #fee2e2 !important;
-    color: #b91c1c !important;
-    border: 1px solid #fecaca !important;
-}
-.status-badge-draft {
-    background-color: #f8fafc !important;
-    color: #475569 !important;
-    border: 1px solid #cbd5e1 !important;
-}
+    .events-dashboard-container .text-neutral-600 {
+        color: #334155 !important;
+    }
 
-/* Table Style Polish */
-.events-table-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-}
-.events-table th {
-    background: #f8fafc !important;
-    color: #0f172a !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 14px 16px !important;
-    border-bottom: 2px solid #e2e8f0 !important;
-}
-.events-table td {
-    padding: 14px 16px !important;
-    vertical-align: middle;
-    border-bottom: 1px solid #f1f5f9;
-    color: #0f172a;
-}
-.events-table tbody tr:hover {
-    background-color: #f8fafc;
-}
+    .events-dashboard-container .text-neutral-700 {
+        color: #1e293b !important;
+    }
 
-/* Pagination Bar */
-.events-pagination {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-.events-pagination .page-link {
-    border-radius: 8px !important;
-    padding: 6px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #0f172a;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    transition: all 0.2s ease;
-}
-.events-pagination .page-link:hover {
-    background: #f1f5f9;
-    color: #0284c7;
-    border-color: #93c5fd;
-}
-.events-pagination .page-item.active .page-link {
-    background: #0284c7 !important;
-    border-color: #0284c7 !important;
-    color: #ffffff !important;
-}
-.events-pagination .page-item.disabled .page-link {
-    color: #94a3b8;
-    background: #f8fafc;
-    border-color: #e2e8f0;
-}
+    .events-dashboard-container .text-neutral-800,
+    .events-dashboard-container .text-neutral-900 {
+        color: #0f172a !important;
+    }
+
+    /* Form Controls Contrast */
+    .events-dashboard-container .form-control,
+    .events-dashboard-container .form-select {
+        color: #0f172a !important;
+        background-color: #ffffff !important;
+        border-color: #cbd5e1 !important;
+        font-size: 13.5px;
+        font-weight: 500;
+    }
+
+    .events-dashboard-container .form-control:focus,
+    .events-dashboard-container .form-select:focus {
+        border-color: #0284c7 !important;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
+    }
+
+    .events-dashboard-container label {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 12px !important;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    /* KPI Cards - Jitter-Free Solid Alignment */
+    .kpi-event-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px;
+        padding: 16px 18px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .kpi-event-card:hover {
+        border-color: #93c5fd !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Action Dropdown Button */
+    .btn-action-dropdown {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+        border-radius: 8px !important;
+        padding: 6px 10px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        transition: all 0.2s ease !important;
+    }
+
+    .btn-action-dropdown:hover,
+    .btn-action-dropdown:focus {
+        background: #0284c7 !important;
+        border-color: #0284c7 !important;
+        color: #ffffff !important;
+    }
+
+    .btn-action-dropdown iconify-icon {
+        color: #0f172a !important;
+        font-size: 18px !important;
+    }
+
+    .btn-action-dropdown:hover iconify-icon,
+    .btn-action-dropdown:focus iconify-icon {
+        color: #ffffff !important;
+    }
+
+    /* Event Grid Card - Jitter-Free Solid Alignment */
+    .event-grid-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .event-grid-card:hover {
+        border-color: #0284c7;
+        box-shadow: 0 6px 16px -2px rgba(2, 132, 199, 0.12);
+    }
+
+    .event-cover-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        background: #f1f5f9;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .event-cover-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: opacity 0.2s ease;
+    }
+
+    .event-grid-card:hover .event-cover-img {
+        opacity: 0.94;
+    }
+
+    .event-cover-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 50%, #eff6ff 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #475569;
+    }
+
+    .event-grid-title-wrap {
+        height: 48px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+
+    .event-grid-info-box {
+        min-height: 74px;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 14px;
+    }
+
+    /* Type & Mode Badges */
+    .badge-type-pill {
+        background: #ffffff;
+        color: #0369a1;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        border: 1px solid #bae6fd;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .badge-mode-online {
+        background: #ffffff;
+        color: #047857;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        border: 1px solid #a7f3d0;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .badge-mode-offline {
+        background: #ffffff;
+        color: #c2410c;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        border: 1px solid #fed7aa;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .badge-mode-hybrid {
+        background: #ffffff;
+        color: #a21caf;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        border: 1px solid #f5d0fe;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Status Badges Override for High Legibility */
+    .events-dashboard-container .status-badge-custom {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .status-badge-open {
+        background-color: #dcfce7 !important;
+        color: #15803d !important;
+        border: 1px solid #bbf7d0 !important;
+    }
+
+    .status-badge-coming-soon {
+        background-color: #fef3c7 !important;
+        color: #92400e !important;
+        border: 1px solid #fde68a !important;
+    }
+
+    .status-badge-published {
+        background-color: #e0f2fe !important;
+        color: #0369a1 !important;
+        border: 1px solid #bae6fd !important;
+    }
+
+    .status-badge-full {
+        background-color: #f3e8ff !important;
+        color: #7e22ce !important;
+        border: 1px solid #e9d5ff !important;
+    }
+
+    .status-badge-finished {
+        background-color: #f1f5f9 !important;
+        color: #334155 !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    .status-badge-cancelled {
+        background-color: #fee2e2 !important;
+        color: #b91c1c !important;
+        border: 1px solid #fecaca !important;
+    }
+
+    .status-badge-draft {
+        background-color: #f8fafc !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    /* Table Style Polish */
+    .events-table-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    .events-table th {
+        background: #f8fafc !important;
+        color: #0f172a !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 14px 16px !important;
+        border-bottom: 2px solid #e2e8f0 !important;
+    }
+
+    .events-table td {
+        padding: 14px 16px !important;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        color: #0f172a;
+    }
+
+    .events-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Pagination Bar */
+    .events-pagination {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .events-pagination .page-link {
+        border-radius: 8px !important;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #0f172a;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        transition: all 0.2s ease;
+    }
+
+    .events-pagination .page-link:hover {
+        background: #f1f5f9;
+        color: #0284c7;
+        border-color: #93c5fd;
+    }
+
+    .events-pagination .page-item.active .page-link {
+        background: #0284c7 !important;
+        border-color: #0284c7 !important;
+        color: #ffffff !important;
+    }
+
+    .events-pagination .page-item.disabled .page-link {
+        color: #94a3b8;
+        background: #f8fafc;
+        border-color: #e2e8f0;
+    }
 </style>
 <?= $this->endSection() ?>
 
@@ -567,13 +605,13 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                         <tbody>
                             <?php foreach ($items as $e): ?>
                                 <?php
-                                    $coverUrl = ! empty($e['cover_file_id']) ? base_url('file/' . (int) $e['cover_file_id']) : null;
-                                    $modeKey = strtolower($e['mode'] ?? 'online');
-                                    $statusKey = $e['status'] ?? 'draft';
-                                    $capacity = (int) ($e['capacity'] ?? 0);
-                                    $registered = (int) ($e['registered_count'] ?? 0);
-                                    $present = (int) ($e['present_count'] ?? 0);
-                                    $pct = $capacity > 0 ? min(100, round(($registered / $capacity) * 100)) : 0;
+                                $coverUrl = ! empty($e['cover_file_id']) ? base_url('file/' . (int) $e['cover_file_id']) : null;
+                                $modeKey = strtolower($e['mode'] ?? 'online');
+                                $statusKey = $e['status'] ?? 'draft';
+                                $capacity = (int) ($e['capacity'] ?? 0);
+                                $registered = (int) ($e['registered_count'] ?? 0);
+                                $present = (int) ($e['present_count'] ?? 0);
+                                $pct = $capacity > 0 ? min(100, round(($registered / $capacity) * 100)) : 0;
                                 ?>
                                 <tr>
                                     <td>
@@ -671,19 +709,21 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                                                         <span>Ubah Event</span>
                                                     </a>
                                                 </li>
-                                                <li><hr class="dropdown-divider my-4"></li>
+                                                <li>
+                                                    <hr class="dropdown-divider my-4">
+                                                </li>
                                                 <li>
                                                     <button type="button" class="dropdown-item text-xs fw-semibold py-8 px-14 d-flex align-items-center gap-2 text-danger-600 border-0 bg-transparent w-100 text-start"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#confirmationActionModal"
-                                                            data-action="<?= route_to('dashboard.communication.events.delete', (string) $e['id']) ?>"
-                                                            data-method="POST"
-                                                            data-title="Hapus Event / Agenda"
-                                                            data-message="Apakah Anda yakin ingin menghapus agenda &quot;<?= esc($e['title'] ?? '') ?>&quot;?"
-                                                            data-btn-text="Ya, Hapus"
-                                                            data-btn-class="btn-danger-600"
-                                                            data-icon="fluent:delete-24-regular"
-                                                            data-icon-color="danger">
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#confirmationActionModal"
+                                                        data-action="<?= route_to('dashboard.communication.events.delete', (string) $e['id']) ?>"
+                                                        data-method="POST"
+                                                        data-title="Hapus Event / Agenda"
+                                                        data-message="Apakah Anda yakin ingin menghapus agenda &quot;<?= esc($e['title'] ?? '') ?>&quot;?"
+                                                        data-btn-text="Ya, Hapus"
+                                                        data-btn-class="btn-danger-600"
+                                                        data-icon="fluent:delete-24-regular"
+                                                        data-icon-color="danger">
                                                         <iconify-icon icon="solar:trash-bin-trash-bold" class="text-sm"></iconify-icon>
                                                         <span>Hapus Agenda</span>
                                                     </button>
@@ -704,13 +744,13 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
             <div class="row row-cols-xxl-3 row-cols-md-2 row-cols-1 g-4 mb-24">
                 <?php foreach ($items as $e): ?>
                     <?php
-                        $coverUrl = ! empty($e['cover_file_id']) ? base_url('file/' . (int) $e['cover_file_id']) : null;
-                        $modeKey = strtolower($e['mode'] ?? 'online');
-                        $statusKey = $e['status'] ?? 'draft';
-                        $capacity = (int) ($e['capacity'] ?? 0);
-                        $registered = (int) ($e['registered_count'] ?? 0);
-                        $present = (int) ($e['present_count'] ?? 0);
-                        $pct = $capacity > 0 ? min(100, round(($registered / $capacity) * 100)) : 0;
+                    $coverUrl = ! empty($e['cover_file_id']) ? base_url('file/' . (int) $e['cover_file_id']) : null;
+                    $modeKey = strtolower($e['mode'] ?? 'online');
+                    $statusKey = $e['status'] ?? 'draft';
+                    $capacity = (int) ($e['capacity'] ?? 0);
+                    $registered = (int) ($e['registered_count'] ?? 0);
+                    $present = (int) ($e['present_count'] ?? 0);
+                    $pct = $capacity > 0 ? min(100, round(($registered / $capacity) * 100)) : 0;
                     ?>
                     <div class="col">
                         <div class="event-grid-card">
@@ -721,7 +761,7 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                                 <?php else: ?>
                                     <div class="event-cover-placeholder">
                                         <iconify-icon icon="solar:calendar-mark-bold-duotone" class="text-4xl text-primary-500 mb-1"></iconify-icon>
-                                        <span class="text-xs fw-bold text-neutral-800">BegawiPBJ Agenda</span>
+                                        <span class="text-xs fw-bold text-neutral-800">BegawiPengadaan Agenda</span>
                                     </div>
                                 <?php endif; ?>
 
@@ -835,19 +875,21 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                                                         <span>Daftar Peserta</span>
                                                     </a>
                                                 </li>
-                                                <li><hr class="dropdown-divider my-4"></li>
+                                                <li>
+                                                    <hr class="dropdown-divider my-4">
+                                                </li>
                                                 <li>
                                                     <button type="button" class="dropdown-item text-xs fw-semibold py-8 px-14 d-flex align-items-center gap-2 text-danger-600 border-0 bg-transparent w-100 text-start"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#confirmationActionModal"
-                                                            data-action="<?= route_to('dashboard.communication.events.delete', (string) $e['id']) ?>"
-                                                            data-method="POST"
-                                                            data-title="Hapus Event / Agenda"
-                                                            data-message="Apakah Anda yakin ingin menghapus agenda &quot;<?= esc($e['title'] ?? '') ?>&quot;?"
-                                                            data-btn-text="Ya, Hapus"
-                                                            data-btn-class="btn-danger-600"
-                                                            data-icon="fluent:delete-24-regular"
-                                                            data-icon-color="danger">
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#confirmationActionModal"
+                                                        data-action="<?= route_to('dashboard.communication.events.delete', (string) $e['id']) ?>"
+                                                        data-method="POST"
+                                                        data-title="Hapus Event / Agenda"
+                                                        data-message="Apakah Anda yakin ingin menghapus agenda &quot;<?= esc($e['title'] ?? '') ?>&quot;?"
+                                                        data-btn-text="Ya, Hapus"
+                                                        data-btn-class="btn-danger-600"
+                                                        data-icon="fluent:delete-24-regular"
+                                                        data-icon-color="danger">
                                                         <iconify-icon icon="solar:trash-bin-trash-bold" class="text-sm"></iconify-icon>
                                                         <span>Hapus Agenda</span>
                                                     </button>
@@ -917,19 +959,23 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
 
 <?= $this->section('pageScripts') ?>
 <script>
-(function() {
-    // Bulletproof zero-jitter clamping at scroll extremities (especially for Windows mouse wheel)
-    var isClamping = false;
-    window.addEventListener('scroll', function() {
-        var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-        if (window.scrollY > maxScroll) {
-            if (!isClamping) {
-                isClamping = true;
-                window.scrollTo(0, maxScroll);
-                requestAnimationFrame(function() { isClamping = false; });
+    (function() {
+        // Bulletproof zero-jitter clamping at scroll extremities (especially for Windows mouse wheel)
+        var isClamping = false;
+        window.addEventListener('scroll', function() {
+            var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+            if (window.scrollY > maxScroll) {
+                if (!isClamping) {
+                    isClamping = true;
+                    window.scrollTo(0, maxScroll);
+                    requestAnimationFrame(function() {
+                        isClamping = false;
+                    });
+                }
             }
-        }
-    }, { passive: true });
-})();
+        }, {
+            passive: true
+        });
+    })();
 </script>
 <?= $this->endSection() ?>

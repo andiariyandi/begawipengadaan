@@ -31,7 +31,7 @@ class ModuleController extends BaseController
             ->findAll();
 
         return view('dashboard/learning/modules/index', [
-            'title' => 'Materi dan Modul | Dashboard BegawiPBJ',
+            'title' => 'Materi dan Modul | Dashboard BegawiPengadaan',
             'pageTitle' => 'Materi dan Modul',
             'modules' => $modules,
             'activeMenu' => 'learning',
@@ -42,7 +42,7 @@ class ModuleController extends BaseController
     public function create(): string
     {
         return view('dashboard/learning/modules/form', [
-            'title' => 'Tambah Materi atau Modul | Dashboard BegawiPBJ',
+            'title' => 'Tambah Materi atau Modul | Dashboard BegawiPengadaan',
             'pageTitle' => 'Tambah Materi atau Modul',
             'formMode' => 'create',
             'module' => null,
@@ -75,7 +75,7 @@ class ModuleController extends BaseController
         }
 
         return view('dashboard/learning/modules/detail', [
-            'title' => 'Detail Materi atau Modul | Dashboard BegawiPBJ',
+            'title' => 'Detail Materi atau Modul | Dashboard BegawiPengadaan',
             'pageTitle' => 'Detail Materi atau Modul',
             'moduleId' => $id,
             'module' => $module,
@@ -93,7 +93,7 @@ class ModuleController extends BaseController
         }
 
         return view('dashboard/learning/modules/form', [
-            'title' => 'Ubah Modul | Dashboard BegawiPBJ',
+            'title' => 'Ubah Modul | Dashboard BegawiPengadaan',
             'pageTitle' => 'Ubah Modul',
             'formMode' => 'edit',
             'module' => $module,

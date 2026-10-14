@@ -7,13 +7,13 @@ $activeClasses    = $activeClasses ?? [];
 $completedClasses = $completedClasses ?? [];
 $pendingClasses   = $pendingClasses ?? [];
 $summary          = $summary ?? ['pending' => 0, 'active' => 0, 'completed' => 0, 'cancelled' => 0, 'withdrawn' => 0, 'issued_certificates' => 0];
-$fmt              = static fn (int $n): string => number_format($n, 0, ',', '.');
+$fmt              = static fn(int $n): string => number_format($n, 0, ',', '.');
 
 $statusBadge = static function (string $status): array {
     return match ($status) {
         'active'    => ['label' => 'Aktif',            'class' => 'bg-success-subtle text-success-emphasis border-success-subtle'],
         'completed' => ['label' => 'Selesai',          'class' => 'bg-primary-subtle text-primary-emphasis border-primary-subtle'],
-        'pending'   => ['label' => 'Menunggu Approval','class' => 'bg-warning-subtle text-warning-emphasis border-warning-subtle'],
+        'pending'   => ['label' => 'Menunggu Approval', 'class' => 'bg-warning-subtle text-warning-emphasis border-warning-subtle'],
         'withdrawn' => ['label' => 'Dibatalkan',       'class' => 'bg-secondary-subtle text-secondary-emphasis border-secondary-subtle'],
         default     => ['label' => 'Ditolak',          'class' => 'bg-danger-subtle text-danger-emphasis border-danger-subtle'],
     };
@@ -191,15 +191,15 @@ $trainerRoleLabel = static function (?string $role): string {
             <div class="row g-4 ws-paginated-container" data-page-size="4">
                 <?php foreach ($activeClasses as $item): ?>
                     <?php
-                        $classId     = (int) ($item['class_id'] ?? 0);
-                        $stateCode   = $item['state_code'] ?? 'in_learning';
-                        $pct         = (float) ($item['overall_percent'] ?? 0);
-                        $doneLessons = (int) ($item['completed_lessons_count'] ?? 0);
-                        $totalLessons= (int) ($item['all_lessons_count'] ?? 0);
-                        $cta         = $item['cta'] ?? [];
-                        $preTest     = $item['pre_test'] ?? [];
-                        $postTest    = $item['post_test'] ?? [];
-                        $trainers    = $item['trainers'] ?? [];
+                    $classId     = (int) ($item['class_id'] ?? 0);
+                    $stateCode   = $item['state_code'] ?? 'in_learning';
+                    $pct         = (float) ($item['overall_percent'] ?? 0);
+                    $doneLessons = (int) ($item['completed_lessons_count'] ?? 0);
+                    $totalLessons = (int) ($item['all_lessons_count'] ?? 0);
+                    $cta         = $item['cta'] ?? [];
+                    $preTest     = $item['pre_test'] ?? [];
+                    $postTest    = $item['post_test'] ?? [];
+                    $trainers    = $item['trainers'] ?? [];
                     ?>
                     <div class="col-12 ws-paginated-item">
                         <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white">
@@ -428,13 +428,13 @@ $trainerRoleLabel = static function (?string $role): string {
             <div class="row g-4 ws-paginated-container" data-page-size="4">
                 <?php foreach ($completedClasses as $item): ?>
                     <?php
-                        $classId     = (int) ($item['class_id'] ?? 0);
-                        $finalScore  = $item['final_score'] ?? null;
-                        $passingGrade= (float) ($item['passing_grade'] ?? 70);
-                        $certId      = $item['certificate_id'] ?? null;
-                        $certNumber  = $item['certificate_number'] ?? null;
-                        $certStatus  = $item['certificate_status'] ?? null;
-                        $certEnabled = (int) ($item['certificate_enabled'] ?? 0) === 1;
+                    $classId     = (int) ($item['class_id'] ?? 0);
+                    $finalScore  = $item['final_score'] ?? null;
+                    $passingGrade = (float) ($item['passing_grade'] ?? 70);
+                    $certId      = $item['certificate_id'] ?? null;
+                    $certNumber  = $item['certificate_number'] ?? null;
+                    $certStatus  = $item['certificate_status'] ?? null;
+                    $certEnabled = (int) ($item['certificate_enabled'] ?? 0) === 1;
                     ?>
                     <div class="col-12 ws-paginated-item">
                         <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white border-start border-success border-4">
@@ -657,7 +657,7 @@ $trainerRoleLabel = static function (?string $role): string {
                             </div>
 
                             <div class="p-3 bg-light rounded-3 text-muted small">
-                                <i class="fas fa-info-circle text-primary me-1"></i> Permintaan pendaftaran Anda telah tersimpan di sistem BegawiPBJ. Operator akan memverifikasi kelengkapan profil serta alokasi kuota sebelum mengaktifkan kelas Anda.
+                                <i class="fas fa-info-circle text-primary me-1"></i> Permintaan pendaftaran Anda telah tersimpan di sistem BegawiPengadaan. Operator akan memverifikasi kelengkapan profil serta alokasi kuota sebelum mengaktifkan kelas Anda.
                             </div>
                         </div>
                     </div>
@@ -673,7 +673,7 @@ $trainerRoleLabel = static function (?string $role): string {
                 <div class="py-4">
                     <i class="fas fa-history fs-1 text-muted opacity-50 mb-3"></i>
                     <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Riwayat Kelas</h2>
-                    <p class="text-muted mb-4">Anda belum pernah mendaftar pada kelas manapun di sistem BegawiPBJ.</p>
+                    <p class="text-muted mb-4">Anda belum pernah mendaftar pada kelas manapun di sistem BegawiPengadaan.</p>
                     <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
                         <i class="fas fa-search me-1"></i> Buka Arena Belajar
                     </a>
@@ -683,11 +683,11 @@ $trainerRoleLabel = static function (?string $role): string {
             <div class="row g-4 ws-paginated-container" data-page-size="6">
                 <?php foreach ($enrollments as $item): ?>
                     <?php
-                        $status   = (string) ($item['enrollment_status'] ?? 'pending');
-                        $badge    = $statusBadge($status);
-                        $classId  = (int) ($item['class_id'] ?? 0);
-                        $pct      = (float) ($item['overall_percent'] ?? ($item['progress_summary']['percent'] ?? 0));
-                        $finalScore = $item['final_score'] ?? null;
+                    $status   = (string) ($item['enrollment_status'] ?? 'pending');
+                    $badge    = $statusBadge($status);
+                    $classId  = (int) ($item['class_id'] ?? 0);
+                    $pct      = (float) ($item['overall_percent'] ?? ($item['progress_summary']['percent'] ?? 0));
+                    $finalScore = $item['final_score'] ?? null;
                     ?>
                     <div class="col-lg-6 ws-paginated-item">
                         <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white d-flex flex-column">

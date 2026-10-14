@@ -40,10 +40,10 @@ class KnowledgeLandingTest extends BaseCommand
 
         $guestChecks = [
             'Hero Section Title'    => 'Pusat Pengetahuan &amp; Praktik Baik Pengadaan',
-            'Hero Tag'              => 'Bunga Rampai BegawiPBJ Lampung',
+            'Hero Tag'              => 'Bunga Rampai BegawiPengadaan Lampung',
             'Search Bar'            => 'arena-search-bar',
             'Category Nav Pills'    => 'arena-nav-pills',
-            'Glass Nav Pill Sub-Nav'=> 'arena-nav-pill',
+            'Glass Nav Pill Sub-Nav' => 'arena-nav-pill',
             'Category Exploration'  => 'Jelajahi Ekosistem Pengetahuan PBJ',
             'Pilihan Editor'        => 'Rekomendasi Utama Pengetahuan',
             'Artikel Terbaru'       => 'Artikel Pengetahuan Terbaru',

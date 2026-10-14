@@ -68,8 +68,8 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                     <!-- Left: Logo & Category Box Eksplorasi -->
                     <div class="main-menu__left">
                         <div class="main-menu__logo">
-                            <a href="<?= site_url('/') ?>" aria-label="Beranda BegawiPBJ">
-                                <img src="<?= base_url('assets/main/images/resources/logo-1.png') ?>" alt="BegawiPBJ">
+                            <a href="<?= site_url('/') ?>" aria-label="Beranda BegawiPengadaan">
+                                <img src="<?= base_url('assets/main/images/resources/logo-1.png') ?>" alt="BegawiPengadaan">
                             </a>
                         </div>
 
@@ -221,34 +221,34 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
 </header>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    var userEl = document.getElementById('workspaceUserDropdown');
-    var trigger = document.getElementById('workspaceUserTrigger');
-    if (!userEl || !trigger) return;
+    document.addEventListener('DOMContentLoaded', function() {
+        var userEl = document.getElementById('workspaceUserDropdown');
+        var trigger = document.getElementById('workspaceUserTrigger');
+        if (!userEl || !trigger) return;
 
-    // Toggle on click / tap
-    trigger.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var isOpen = userEl.classList.toggle('is-open');
-        trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    });
+        // Toggle on click / tap
+        trigger.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var isOpen = userEl.classList.toggle('is-open');
+            trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
 
-    // Dismiss on click outside
-    document.addEventListener('click', function (e) {
-        if (!userEl.contains(e.target)) {
-            userEl.classList.remove('is-open');
-            trigger.setAttribute('aria-expanded', 'false');
-        }
-    });
+        // Dismiss on click outside
+        document.addEventListener('click', function(e) {
+            if (!userEl.contains(e.target)) {
+                userEl.classList.remove('is-open');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        });
 
-    // Dismiss on Escape key
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && userEl.classList.contains('is-open')) {
-            userEl.classList.remove('is-open');
-            trigger.setAttribute('aria-expanded', 'false');
-            trigger.focus();
-        }
+        // Dismiss on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && userEl.classList.contains('is-open')) {
+                userEl.classList.remove('is-open');
+                trigger.setAttribute('aria-expanded', 'false');
+                trigger.focus();
+            }
+        });
     });
-});
 </script>

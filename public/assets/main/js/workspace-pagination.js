@@ -1,5 +1,5 @@
 /**
- * BegawiPBJ Workspace Modular Pagination Engine
+ * BegawiPengadaan Workspace Modular Pagination Engine
  * 
  * Automatically enhances containers with `.ws-paginated-container` class.
  * Works seamlessly across multi-section dashboards without reloading.

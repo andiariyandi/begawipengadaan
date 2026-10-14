@@ -42,7 +42,7 @@ class PermissionController extends BaseController
         $pager->store('permissions', $page, $perPage, $total, 0);
 
         return view('dashboard/access/permissions', [
-            'title'         => 'Permission | Dashboard BegawiPBJ',
+            'title'         => 'Permission | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Daftar Permission',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'roles',
@@ -59,7 +59,7 @@ class PermissionController extends BaseController
             return $res;
         }
         return view('dashboard/access/permission_form', [
-            'title'         => 'Tambah Permission | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Permission | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Permission',
             'formMode'      => 'create',
             'activeMenu'    => 'access',
@@ -104,7 +104,7 @@ class PermissionController extends BaseController
             ->get()->getResultArray();
 
         return view('dashboard/access/permission_detail', [
-            'title'         => 'Detail Permission | Dashboard BegawiPBJ',
+            'title'         => 'Detail Permission | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Permission',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'roles',

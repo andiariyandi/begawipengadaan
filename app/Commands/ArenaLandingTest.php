@@ -42,10 +42,10 @@ class ArenaLandingTest extends BaseCommand
 
         $guestChecks = [
             'Hero Section Title'    => 'Pusat Pembelajaran &amp; Kompetensi Pengadaan',
-            'Hero Tag'              => 'Arena Belajar BegawiPBJ Lampung',
+            'Hero Tag'              => 'Arena Belajar BegawiPengadaan Lampung',
             'Search Bar Present'    => 'arena-search-bar',
             'Category Nav Pills'    => 'arena-nav-pills',
-            'Glass Nav Pill Sub-Nav'=> 'arena-nav-pill',
+            'Glass Nav Pill Sub-Nav' => 'arena-nav-pill',
             'Featured Programs'     => 'Program Pembelajaran Unggulan',
             'Popular Courses'       => 'Course PBJ Terpopuler &amp; Pilihan',
             'Active Classes'        => 'Kelas &amp; Batch Siap Daftar',

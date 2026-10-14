@@ -45,7 +45,7 @@ class NewsController extends BaseController
         ];
 
         return view('dashboard/communication/news/index', [
-            'title'          => 'Berita & Publikasi | Dashboard BegawiPBJ',
+            'title'          => 'Berita & Publikasi | Dashboard BegawiPengadaan',
             'pageTitle'      => 'Berita & Publikasi',
             'activeMenu'     => 'communication',
             'activeSubmenu'  => 'news',
@@ -68,7 +68,7 @@ class NewsController extends BaseController
         $headlineCount = (int) db_connect()->table('news')->where('deleted_at', null)->where('is_featured', 1)->countAllResults();
 
         return view('dashboard/communication/news/form', [
-            'title'                 => 'Tambah Berita | Dashboard BegawiPBJ',
+            'title'                 => 'Tambah Berita | Dashboard BegawiPengadaan',
             'pageTitle'             => 'Tambah Berita',
             'formMode'              => 'create',
             'activeMenu'            => 'communication',
@@ -125,7 +125,7 @@ class NewsController extends BaseController
         }
 
         return view('dashboard/communication/news/detail', [
-            'title'         => 'Detail Berita | Dashboard BegawiPBJ',
+            'title'         => 'Detail Berita | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Berita',
             'activeMenu'    => 'communication',
             'activeSubmenu' => 'news',
@@ -145,7 +145,7 @@ class NewsController extends BaseController
         $headlineCount = (int) db_connect()->table('news')->where('deleted_at', null)->where('is_featured', 1)->countAllResults();
 
         return view('dashboard/communication/news/form', [
-            'title'                 => 'Ubah Berita | Dashboard BegawiPBJ',
+            'title'                 => 'Ubah Berita | Dashboard BegawiPengadaan',
             'pageTitle'             => 'Ubah Berita',
             'formMode'              => 'edit',
             'activeMenu'            => 'communication',
@@ -212,7 +212,7 @@ class NewsController extends BaseController
         $items = $this->service->listActiveCategoriesWithCount();
 
         return view('dashboard/communication/news_categories/index', [
-            'title'         => 'Kategori Berita | Dashboard BegawiPBJ',
+            'title'         => 'Kategori Berita | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Kategori Berita',
             'activeMenu'    => 'communication',
             'activeSubmenu' => 'news-categories',
@@ -223,7 +223,7 @@ class NewsController extends BaseController
     public function categoryCreate(): string
     {
         return view('dashboard/communication/news_categories/form', [
-            'title'         => 'Tambah Kategori | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Kategori | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Kategori',
             'formMode'      => 'create',
             'activeMenu'    => 'communication',
@@ -257,7 +257,7 @@ class NewsController extends BaseController
         }
 
         return view('dashboard/communication/news_categories/form', [
-            'title'         => 'Ubah Kategori | Dashboard BegawiPBJ',
+            'title'         => 'Ubah Kategori | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Ubah Kategori',
             'formMode'      => 'edit',
             'activeMenu'    => 'communication',

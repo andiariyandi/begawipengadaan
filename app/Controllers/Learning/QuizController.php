@@ -35,7 +35,7 @@ class QuizController extends BaseController
         ];
 
         return view('dashboard/learning/assessments/index', [
-            'title'          => 'Assessment dan Bank Soal | Dashboard BegawiPBJ',
+            'title'          => 'Assessment dan Bank Soal | Dashboard BegawiPengadaan',
             'pageTitle'      => 'Assessment dan Bank Soal',
             'assessmentType' => 'Semua Assessment',
             'quizzes'        => $quizzes,
@@ -68,7 +68,7 @@ class QuizController extends BaseController
         $questions = $builder->get()->getResultArray();
 
         return view('dashboard/learning/assessments/question_bank', [
-            'title'         => 'Bank Soal | Dashboard BegawiPBJ',
+            'title'         => 'Bank Soal | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Bank Soal Evaluasi',
             'questions'     => $questions,
             'filters'       => ['keyword' => $keyword],

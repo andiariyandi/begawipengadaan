@@ -5,16 +5,34 @@
     html {
         scroll-behavior: smooth;
     }
-    #visi-misi, #pilar, #struktur, #maklumat {
+
+    #visi-misi,
+    #pilar,
+    #struktur,
+    #maklumat {
         scroll-margin-top: 130px;
     }
 
     /* Universal high-contrast text utilities */
-    .text-slate-900 { color: #0f172a !important; }
-    .text-slate-800 { color: #1e293b !important; }
-    .text-slate-700 { color: #334155 !important; }
-    .text-slate-600 { color: #475569 !important; }
-    .text-slate-500 { color: #64748b !important; }
+    .text-slate-900 {
+        color: #0f172a !important;
+    }
+
+    .text-slate-800 {
+        color: #1e293b !important;
+    }
+
+    .text-slate-700 {
+        color: #334155 !important;
+    }
+
+    .text-slate-600 {
+        color: #475569 !important;
+    }
+
+    .text-slate-500 {
+        color: #64748b !important;
+    }
 
     /* Reliable Iconify display */
     iconify-icon {
@@ -33,14 +51,16 @@
         color: #ffffff;
         overflow: hidden;
     }
+
     .about-hero::before {
         content: '';
         position: absolute;
         inset: 0;
         background: radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.18) 0%, transparent 45%),
-                    radial-gradient(circle at 10% 85%, rgba(16, 185, 129, 0.14) 0%, transparent 50%);
+            radial-gradient(circle at 10% 85%, rgba(16, 185, 129, 0.14) 0%, transparent 50%);
         pointer-events: none;
     }
+
     .about-badge-pill {
         display: inline-flex;
         align-items: center;
@@ -57,6 +77,7 @@
         margin-bottom: 22px;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
     }
+
     .about-hero__title {
         font-size: 2.85rem;
         font-weight: 800;
@@ -65,9 +86,11 @@
         margin-bottom: 18px;
         letter-spacing: -0.5px;
     }
+
     .about-hero__title span {
         color: #f59e0b;
     }
+
     .about-hero__subtitle {
         font-size: 1.15rem;
         color: #e2e8f0;
@@ -80,11 +103,13 @@
     .abt-section {
         padding: 75px 0;
     }
+
     .abt-section--alt {
         background-color: #f8fafc;
         border-top: 1px solid #e2e8f0;
         border-bottom: 1px solid #e2e8f0;
     }
+
     .abt-sec-tag {
         display: inline-flex;
         align-items: center;
@@ -96,6 +121,7 @@
         letter-spacing: 0.8px;
         margin-bottom: 10px;
     }
+
     .abt-sec-title {
         font-size: 2.25rem;
         font-weight: 800;
@@ -103,9 +129,11 @@
         line-height: 1.3;
         margin-bottom: 16px;
     }
+
     .abt-sec-title span {
         color: #0c5aa6;
     }
+
     .abt-sec-desc {
         color: #334155;
         font-size: 1.05rem;
@@ -122,6 +150,7 @@
         position: relative;
         overflow: hidden;
     }
+
     .abt-philo-card::after {
         content: '\f02d';
         font-family: 'Font Awesome 5 Free';
@@ -133,6 +162,7 @@
         color: rgba(255, 255, 255, 0.05);
         pointer-events: none;
     }
+
     .abt-philo-quote {
         font-size: 1.35rem;
         font-weight: 700;
@@ -152,11 +182,13 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
         transition: all 0.3s ease;
     }
+
     .abt-vm-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 12px 30px rgba(5, 34, 68, 0.08);
         border-color: #cbd5e1;
     }
+
     .abt-vm-icon {
         width: 60px;
         height: 60px;
@@ -167,18 +199,29 @@
         font-size: 26px;
         margin-bottom: 20px;
     }
-    .abt-vm-icon--gold { background: rgba(245, 158, 11, 0.15); color: #d97706; }
-    .abt-vm-icon--blue { background: rgba(12, 90, 166, 0.15); color: #0c5aa6; }
+
+    .abt-vm-icon--gold {
+        background: rgba(245, 158, 11, 0.15);
+        color: #d97706;
+    }
+
+    .abt-vm-icon--blue {
+        background: rgba(12, 90, 166, 0.15);
+        color: #0c5aa6;
+    }
+
     .abt-vm-list {
         padding-left: 20px;
         margin-bottom: 0;
     }
+
     .abt-vm-list li {
         color: #334155;
         font-size: 0.95rem;
         line-height: 1.65;
         margin-bottom: 12px;
     }
+
     .abt-vm-list li:last-child {
         margin-bottom: 0;
     }
@@ -193,11 +236,13 @@
         transition: all 0.3s ease;
         position: relative;
     }
+
     .abt-pillar-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 12px 28px rgba(5, 34, 68, 0.08);
         border-color: #0c5aa6;
     }
+
     .abt-pillar-num {
         position: absolute;
         right: 20px;
@@ -206,6 +251,7 @@
         font-weight: 900;
         color: #e2e8f0;
     }
+
     .abt-pillar-icon {
         width: 52px;
         height: 52px;
@@ -216,12 +262,14 @@
         font-size: 22px;
         margin-bottom: 18px;
     }
+
     .abt-pillar-card h4 {
         font-size: 1.15rem;
         font-weight: 700;
         color: #052244;
         margin-bottom: 10px;
     }
+
     .abt-pillar-card p {
         font-size: 0.9rem;
         color: #64748b;
@@ -240,11 +288,13 @@
         gap: 18px;
         transition: all 0.3s ease;
     }
+
     .abt-patik-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 25px rgba(5, 34, 68, 0.08);
         border-color: #0c5aa6;
     }
+
     .abt-patik-letter {
         width: 54px;
         height: 54px;
@@ -259,12 +309,14 @@
         flex-shrink: 0;
         box-shadow: 0 4px 12px rgba(12, 90, 166, 0.25);
     }
+
     .abt-patik-title {
         font-size: 1.15rem;
         font-weight: 800;
         color: #0f172a;
         margin-bottom: 4px;
     }
+
     .abt-patik-desc {
         font-size: 0.875rem;
         color: #475569;
@@ -278,8 +330,9 @@
         border: 1px solid #e2e8f0;
         border-radius: 18px;
         padding: 36px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     }
+
     .abt-org-lead {
         background: linear-gradient(135deg, #052244 0%, #0a3a6b 100%);
         color: #ffffff;
@@ -289,18 +342,21 @@
         margin-bottom: 30px;
         box-shadow: 0 8px 24px rgba(5, 34, 68, 0.15);
     }
+
     .abt-org-lead h4 {
         font-size: 1.25rem;
         font-weight: 800;
         color: #ffffff;
         margin-bottom: 4px;
     }
+
     .abt-org-lead p {
         color: #fcd34d;
         font-size: 0.95rem;
         font-weight: 600;
         margin: 0;
     }
+
     .abt-org-item {
         background: #f8fafc;
         border: 1px solid #e2e8f0;
@@ -309,17 +365,20 @@
         height: 100%;
         transition: all 0.25s ease;
     }
+
     .abt-org-item:hover {
         background: #ffffff;
         border-color: #0c5aa6;
         box-shadow: 0 8px 20px rgba(12, 90, 166, 0.08);
     }
+
     .abt-org-item h5 {
         font-size: 1.05rem;
         font-weight: 700;
         color: #052244;
         margin-bottom: 8px;
     }
+
     .abt-org-item p {
         font-size: 0.85rem;
         color: #64748b;
@@ -335,6 +394,7 @@
         padding: 36px;
         position: relative;
     }
+
     .abt-maklumat-card::before {
         content: '';
         position: absolute;
@@ -354,12 +414,14 @@
         padding: 36px 24px;
         margin-top: 50px;
     }
+
     .abt-kpi-val {
         font-size: 2.25rem;
         font-weight: 900;
         color: #f59e0b;
         margin-bottom: 4px;
     }
+
     .abt-kpi-lbl {
         font-size: 0.875rem;
         color: #cbd5e1;
@@ -368,15 +430,31 @@
     }
 
     @media (max-width: 991px) {
-        .about-hero { padding: 185px 0 75px; }
-        .about-hero__title { font-size: 2.35rem; }
+        .about-hero {
+            padding: 185px 0 75px;
+        }
+
+        .about-hero__title {
+            font-size: 2.35rem;
+        }
     }
 
     @media (max-width: 768px) {
-        .about-hero { padding: 165px 0 65px; }
-        .about-hero__title { font-size: 2rem; }
-        .abt-sec-title { font-size: 1.75rem; }
-        .abt-philo-card { padding: 28px 20px; }
+        .about-hero {
+            padding: 165px 0 65px;
+        }
+
+        .about-hero__title {
+            font-size: 2rem;
+        }
+
+        .abt-sec-title {
+            font-size: 1.75rem;
+        }
+
+        .abt-philo-card {
+            padding: 28px 20px;
+        }
     }
 </style>
 <?= $this->endSection() ?>
@@ -395,14 +473,14 @@
                     Membangun Ekosistem Pengadaan Digital <span>Berintegritas &amp; Berdampak</span>
                 </h1>
                 <p class="about-hero__subtitle">
-                    BegawiPBJ merupakan pusat inovasi, pembelajaran digital, regulasi hukum, dan intelijen pengadaan terpadu yang dirancang untuk mewujudkan tata kelola Pengadaan Barang/Jasa Pemerintah Provinsi Lampung yang transparan, profesional, dan akuntabel.
+                    BegawiPengadaan merupakan pusat inovasi, pembelajaran digital, regulasi hukum, dan intelijen pengadaan terpadu yang dirancang untuk mewujudkan tata kelola Pengadaan Barang/Jasa Pemerintah Provinsi Lampung yang transparan, profesional, dan akuntabel.
                 </p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Filosofi & Sekilas BegawiPBJ -->
+<!-- Filosofi & Sekilas BegawiPengadaan -->
 <section class="abt-section">
     <div class="container">
         <div class="row align-items-center g-5">
@@ -415,7 +493,7 @@
                     Kata <strong>"Begawi"</strong> berakar dari kearifan bahasa dan adat budaya Lampung yang mencerminkan etos kerja luhur, bergotong-royong, dan mengabdi dengan penuh kesungguhan serta kehormatan.
                 </p>
                 <p class="abt-sec-desc mb-4">
-                    Dalam konteks pengadaan barang dan jasa modern, BegawiPBJ hadir mengintegrasikan semangat pengabdian tersebut dengan teknologi digital tingkat lanjut. Tujuannya adalah menjadikan seluruh proses pengadaan di Provinsi Lampung tidak sekadar taat administratif, melainkan memberikan nilai manfaat nyata bagi kemakmuran masyarakat Bumi Ruwa Jurai.
+                    Dalam konteks pengadaan barang dan jasa modern, BegawiPengadaan hadir mengintegrasikan semangat pengabdian tersebut dengan teknologi digital tingkat lanjut. Tujuannya adalah menjadikan seluruh proses pengadaan di Provinsi Lampung tidak sekadar taat administratif, melainkan memberikan nilai manfaat nyata bagi kemakmuran masyarakat Bumi Ruwa Jurai.
                 </p>
                 <div class="d-flex flex-wrap gap-3">
                     <a href="<?= site_url('arena-belajar') ?>" class="thm-btn">
@@ -430,7 +508,7 @@
             <div class="col-lg-6">
                 <div class="abt-philo-card">
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <img src="<?= base_url('assets/main/images/resources/logo-4.png') ?>" alt="BegawiPBJ" height="50">
+                        <img src="<?= base_url('assets/main/images/resources/logo-4.png') ?>" alt="BegawiPengadaan" height="50">
                         <div>
                             <h4 class="text-white fw-bold mb-0">UKPBJ Level Proaktif</h4>
                             <span class="badge bg-warning text-dark fw-bold">Pemerintah Provinsi Lampung</span>
@@ -514,12 +592,12 @@
     </div>
 </section>
 
-<!-- 5 Pilar Ekosistem BegawiPBJ -->
+<!-- 5 Pilar Ekosistem BegawiPengadaan -->
 <section class="abt-section" id="pilar">
     <div class="container">
         <div class="text-center max-w-700 mx-auto mb-5">
             <span class="abt-sec-tag"><i class="fas fa-cubes me-1"></i> Arsitektur Layanan</span>
-            <h2 class="abt-sec-title">5 Pilar Ekosistem <span>BegawiPBJ</span></h2>
+            <h2 class="abt-sec-title">5 Pilar Ekosistem <span>BegawiPengadaan</span></h2>
             <p class="abt-sec-desc">
                 Inovasi terpadu yang menghubungkan seluruh pilar kebutuhan aparatur pemerintah, penyedia barang/jasa, dan publik.
             </p>
@@ -828,10 +906,14 @@
                 if (!isClamping) {
                     isClamping = true;
                     window.scrollTo(0, maxScroll);
-                    requestAnimationFrame(function() { isClamping = false; });
+                    requestAnimationFrame(function() {
+                        isClamping = false;
+                    });
                 }
             }
-        }, { passive: true });
+        }, {
+            passive: true
+        });
     })();
 </script>
 <?= $this->endSection() ?>

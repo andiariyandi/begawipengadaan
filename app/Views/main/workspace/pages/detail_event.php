@@ -329,7 +329,7 @@ if ($hasAttended) {
                     </div>
                     <div>
                         <h2 class="h4 fw-bold text-success mb-1">✓ Kehadiran berhasil dicatat</h2>
-                        <p class="text-muted mb-0 small">Data kehadiran Anda telah diverifikasi dan sah dalam sistem BegawiPBJ.</p>
+                        <p class="text-muted mb-0 small">Data kehadiran Anda telah diverifikasi dan sah dalam sistem BegawiPengadaan.</p>
                     </div>
                 </div>
                 <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold">

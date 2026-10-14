@@ -1,7 +1,7 @@
 {
     "general": {
-        "app_name": "BegawiPBJ Lampung Testing 081025",
-        "app_short_name": "BegawiPBJ",
+        "app_name": "BegawiPengadaan Lampung Testing 081025",
+        "app_short_name": "BegawiPengadaan",
         "default_locale": "id",
         "timezone": "Asia/Jakarta",
         "date_format": "d F Y",
@@ -41,6 +41,9 @@
     "notification": {
         "email_enabled": "1",
         "in_app_enabled": "1",
+        "sender_email": "noreply@begawipbj.lampungprov.go.id",
+        "sender_name": "BegawiPengadaan",
+        "daily_digest": "0",
         "digest_frequency": "instant"
     },
     "integration": {
@@ -60,5 +63,12 @@
         "maintenance_mode": "0",
         "allowed_ips": "127.0.0.1, ::1",
         "maintenance_message": "Sistem sedang dalam pemeliharaan berkala. Silakan coba beberapa saat lagi."
+    },
+    "user_preferences_14": {
+        "language": "id",
+        "theme": "dark",
+        "email_notification": 1,
+        "in_app_notification": 1,
+        "report_notification": 0
     }
 }

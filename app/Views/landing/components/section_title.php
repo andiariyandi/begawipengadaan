@@ -1,5 +1,5 @@
 <?php
-$tagline = $tagline ?? 'BegawiPBJ';
+$tagline = $tagline ?? 'BegawiPengadaan';
 $title = $title ?? '';
 $description = $description ?? null;
 $alignment = $alignment ?? 'left';

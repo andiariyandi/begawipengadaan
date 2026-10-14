@@ -176,7 +176,7 @@ class LearningReportController extends BaseController
         $programs = $this->programModel->orderBy('title', 'ASC')->findAll();
 
         return view('dashboard/learning/reports/index', [
-            'title'          => 'Laporan & Analitik Pembelajaran | Dashboard BegawiPBJ',
+            'title'          => 'Laporan & Analitik Pembelajaran | Dashboard BegawiPengadaan',
             'pageTitle'      => 'Laporan & Analitik Pembelajaran',
             'summary'        => $summary,
             'classReports'   => $classReports,

@@ -9,7 +9,7 @@ $pager = $pager ?? null;
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Role dan Permission</h6>
-        <p class="text-secondary-light mb-0">Kelola hierarki role strategis dan matriks hak akses platform BegawiPBJ.</p>
+        <p class="text-secondary-light mb-0">Kelola hierarki role strategis dan matriks hak akses platform BegawiPengadaan.</p>
     </div>
     <div class="d-flex gap-12">
         <a href="<?= site_url('dashboard/akses/role/matrix') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11 d-inline-flex align-items-center gap-2">
@@ -102,7 +102,9 @@ $pager = $pager ?? null;
                                                     <span>Ubah Role</span>
                                                 </a>
                                             </li>
-                                            <li><hr class="dropdown-divider my-4"></li>
+                                            <li>
+                                                <hr class="dropdown-divider my-4">
+                                            </li>
                                             <li>
                                                 <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= site_url('dashboard/akses/role/matriks') ?>">
                                                     <iconify-icon icon="solar:shield-keyhole-outline" class="text-lg text-info-main"></iconify-icon>

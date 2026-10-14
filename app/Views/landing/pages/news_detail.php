@@ -263,12 +263,29 @@
         color: #ffffff;
     }
 
-    .news-share-wa { background: #25D366; }
-    .news-share-tg { background: #0088cc; }
-    .news-share-tw { background: #000000; }
-    .news-share-fb { background: #1877f2; }
-    .news-share-in { background: #0077b5; }
-    .news-share-copy { background: #475569; }
+    .news-share-wa {
+        background: #25D366;
+    }
+
+    .news-share-tg {
+        background: #0088cc;
+    }
+
+    .news-share-tw {
+        background: #000000;
+    }
+
+    .news-share-fb {
+        background: #1877f2;
+    }
+
+    .news-share-in {
+        background: #0077b5;
+    }
+
+    .news-share-copy {
+        background: #475569;
+    }
 
     /* Tags Bar */
     .news-tags-bar {
@@ -535,13 +552,16 @@
         .news-detail-header-section {
             padding: 150px 0 50px;
         }
+
         .news-detail-title {
             font-size: 28px;
         }
+
         .news-article-wrap {
             padding: 24px;
             margin-top: -20px;
         }
+
         .news-nav-row {
             flex-direction: column;
         }
@@ -610,9 +630,9 @@
                 <article class="news-article-wrap">
                     <!-- Featured Image -->
                     <div class="news-featured-img-wrap">
-                        <img src="<?= ! empty($news['cover_path']) ? base_url($news['cover_path']) : base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>" 
-                             alt="<?= esc($news['title']) ?>" 
-                             class="news-featured-img">
+                        <img src="<?= ! empty($news['cover_path']) ? base_url($news['cover_path']) : base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>"
+                            alt="<?= esc($news['title']) ?>"
+                            class="news-featured-img">
                         <div class="news-img-caption">
                             <i class="fas fa-camera me-1"></i> Foto: Dokumentasi Humas Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung
                         </div>
@@ -629,31 +649,31 @@
                     <!-- Body Content -->
                     <div class="news-article-body">
                         <?php if (! empty($news['content'])): ?>
-                            <?php 
-                                // Format double newlines into clean paragraphs if plain text
-                                $paragraphs = explode("\n\n", trim($news['content']));
-                                foreach ($paragraphs as $para) {
-                                    $trimmed = trim($para);
-                                    if (empty($trimmed)) continue;
-                                    
-                                    // Check if bullet point list
-                                    if (str_starts_with($trimmed, '•') || str_starts_with($trimmed, '-') || preg_match('/^\d+\./', $trimmed)) {
-                                        echo '<ul>';
-                                        $lines = explode("\n", $trimmed);
-                                        foreach ($lines as $line) {
-                                            $cleanLine = preg_replace('/^[•\-\d\.]+\s*/', '', trim($line));
-                                            if (! empty($cleanLine)) {
-                                                echo '<li>' . esc($cleanLine) . '</li>';
-                                            }
+                            <?php
+                            // Format double newlines into clean paragraphs if plain text
+                            $paragraphs = explode("\n\n", trim($news['content']));
+                            foreach ($paragraphs as $para) {
+                                $trimmed = trim($para);
+                                if (empty($trimmed)) continue;
+
+                                // Check if bullet point list
+                                if (str_starts_with($trimmed, '•') || str_starts_with($trimmed, '-') || preg_match('/^\d+\./', $trimmed)) {
+                                    echo '<ul>';
+                                    $lines = explode("\n", $trimmed);
+                                    foreach ($lines as $line) {
+                                        $cleanLine = preg_replace('/^[•\-\d\.]+\s*/', '', trim($line));
+                                        if (! empty($cleanLine)) {
+                                            echo '<li>' . esc($cleanLine) . '</li>';
                                         }
-                                        echo '</ul>';
-                                    } elseif (str_starts_with($trimmed, '"') && str_ends_with($trimmed, '"')) {
-                                        // Blockquote
-                                        echo '<blockquote>' . esc($trimmed) . '</blockquote>';
-                                    } else {
-                                        echo '<p>' . nl2br(esc($trimmed)) . '</p>';
                                     }
+                                    echo '</ul>';
+                                } elseif (str_starts_with($trimmed, '"') && str_ends_with($trimmed, '"')) {
+                                    // Blockquote
+                                    echo '<blockquote>' . esc($trimmed) . '</blockquote>';
+                                } else {
+                                    echo '<p>' . nl2br(esc($trimmed)) . '</p>';
                                 }
+                            }
                             ?>
                         <?php else: ?>
                             <p>Artikel informasi resmi dipublikasikan oleh Biro Pengadaan Barang dan Jasa Pemerintah Provinsi Lampung.</p>
@@ -669,7 +689,7 @@
                         <ul class="mb-0 text-sm text-slate-700" style="padding-left: 20px;">
                             <li class="mb-1">Seluruh proses pengadaan di lingkungan Pemprov Lampung wajib mematuhi ketentuan Perpres Nomor 12 Tahun 2021 dan prinsip etika pengadaan.</li>
                             <li class="mb-1">Prioritaskan penggunaan produk dalam negeri (P3DN) bersertifikat TKDN minimal 25% melalui e-katalog lokal.</li>
-                            <li>Informasi pendampingan dan helpdesk teknis SPSE dapat diakses melalui portal resmi BegawiPBJ.</li>
+                            <li>Informasi pendampingan dan helpdesk teknis SPSE dapat diakses melalui portal resmi BegawiPengadaan.</li>
                         </ul>
                     </div>
 
@@ -680,24 +700,24 @@
                             <span>Bagikan Informasi Ini:</span>
                         </div>
                         <div class="news-share-btn-group">
-                            <a href="https://api.whatsapp.com/send?text=<?= urlencode($news['title'] . ' ' . $shareUrl) ?>" 
-                               target="_blank" class="news-share-btn news-share-wa" title="Bagikan ke WhatsApp">
+                            <a href="https://api.whatsapp.com/send?text=<?= urlencode($news['title'] . ' ' . $shareUrl) ?>"
+                                target="_blank" class="news-share-btn news-share-wa" title="Bagikan ke WhatsApp">
                                 <i class="fab fa-whatsapp"></i>
                             </a>
-                            <a href="https://telegram.me/share/url?url=<?= urlencode($shareUrl) ?>&text=<?= urlencode($news['title']) ?>" 
-                               target="_blank" class="news-share-btn news-share-tg" title="Bagikan ke Telegram">
+                            <a href="https://telegram.me/share/url?url=<?= urlencode($shareUrl) ?>&text=<?= urlencode($news['title']) ?>"
+                                target="_blank" class="news-share-btn news-share-tg" title="Bagikan ke Telegram">
                                 <i class="fab fa-telegram-plane"></i>
                             </a>
-                            <a href="https://twitter.com/intent/tweet?text=<?= urlencode($news['title']) ?>&url=<?= urlencode($shareUrl) ?>" 
-                               target="_blank" class="news-share-btn news-share-tw" title="Bagikan ke X (Twitter)">
+                            <a href="https://twitter.com/intent/tweet?text=<?= urlencode($news['title']) ?>&url=<?= urlencode($shareUrl) ?>"
+                                target="_blank" class="news-share-btn news-share-tw" title="Bagikan ke X (Twitter)">
                                 <i class="fab fa-twitter"></i>
                             </a>
-                            <a href="https://www.facebook.com/sharer/sharer.php?u=<?= urlencode($shareUrl) ?>" 
-                               target="_blank" class="news-share-btn news-share-fb" title="Bagikan ke Facebook">
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=<?= urlencode($shareUrl) ?>"
+                                target="_blank" class="news-share-btn news-share-fb" title="Bagikan ke Facebook">
                                 <i class="fab fa-facebook-f"></i>
                             </a>
-                            <a href="https://www.linkedin.com/sharing/share-offsite/?url=<?= urlencode($shareUrl) ?>" 
-                               target="_blank" class="news-share-btn news-share-in" title="Bagikan ke LinkedIn">
+                            <a href="https://www.linkedin.com/sharing/share-offsite/?url=<?= urlencode($shareUrl) ?>"
+                                target="_blank" class="news-share-btn news-share-in" title="Bagikan ke LinkedIn">
                                 <i class="fab fa-linkedin-in"></i>
                             </a>
                             <button type="button" class="news-share-btn news-share-copy" id="btnCopyLink" title="Salin Tautan">
@@ -775,13 +795,13 @@
                         </div>
                         <div class="row g-4">
                             <?php foreach ($relatedNews as $idx => $rel): ?>
-                                <?php 
-                                    $sampleRelImgs = [
-                                        base_url('assets/main/images/blog/blog-list-1-1.jpg'),
-                                        base_url('assets/main/images/blog/blog-list-1-3.jpg'),
-                                        base_url('assets/main/images/blog/blog-1-1.jpg'),
-                                    ];
-                                    $relThumb = ! empty($rel['cover_path']) ? base_url($rel['cover_path']) : $sampleRelImgs[$idx % count($sampleRelImgs)];
+                                <?php
+                                $sampleRelImgs = [
+                                    base_url('assets/main/images/blog/blog-list-1-1.jpg'),
+                                    base_url('assets/main/images/blog/blog-list-1-3.jpg'),
+                                    base_url('assets/main/images/blog/blog-1-1.jpg'),
+                                ];
+                                $relThumb = ! empty($rel['cover_path']) ? base_url($rel['cover_path']) : $sampleRelImgs[$idx % count($sampleRelImgs)];
                                 ?>
                                 <div class="col-md-4">
                                     <article class="related-news-card">
@@ -852,8 +872,8 @@
                     <ul class="news-widget-categories" style="list-style: none; padding: 0; margin: 0;">
                         <?php foreach ($categories as $cat): ?>
                             <li class="mb-2">
-                                <a href="<?= site_url('berita/kategori/' . $cat['slug']) ?>" 
-                                   class="d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none <?= ($news['category_slug'] ?? '') === $cat['slug'] ? 'bg-primary-subtle text-primary fw-bold' : 'text-slate-700 bg-light' ?>">
+                                <a href="<?= site_url('berita/kategori/' . $cat['slug']) ?>"
+                                    class="d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none <?= ($news['category_slug'] ?? '') === $cat['slug'] ? 'bg-primary-subtle text-primary fw-bold' : 'text-slate-700 bg-light' ?>">
                                     <span><?= esc($cat['name']) ?></span>
                                     <span class="badge bg-white text-muted border"><?= $cat['news_count'] ?></span>
                                 </a>
@@ -864,7 +884,7 @@
 
                 <!-- Ecosystem Navigation Banner -->
                 <div class="p-4 bg-light border radius-18 mb-4">
-                    <h5 class="fw-bold text-dark mb-2">Jelajahi Ekosistem BegawiPBJ</h5>
+                    <h5 class="fw-bold text-dark mb-2">Jelajahi Ekosistem BegawiPengadaan</h5>
                     <p class="text-xs text-slate-500 mb-3" style="color: #64748b;">Tingkatkan pemahaman dan kapabilitas Anda melalui kanal lainnya:</p>
                     <div class="d-grid gap-2">
                         <a href="<?= site_url('regulasi') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
@@ -897,21 +917,21 @@
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const btnCopy = document.getElementById('btnCopyLink');
         const toast = document.getElementById('copyToast');
 
         if (btnCopy) {
-            btnCopy.addEventListener('click', function () {
+            btnCopy.addEventListener('click', function() {
                 const url = '<?= $shareUrl ?>';
-                navigator.clipboard.writeText(url).then(function () {
+                navigator.clipboard.writeText(url).then(function() {
                     if (toast) {
                         toast.style.display = 'flex';
-                        setTimeout(function () {
+                        setTimeout(function() {
                             toast.style.display = 'none';
                         }, 3000);
                     }
-                }).catch(function () {
+                }).catch(function() {
                     alert('Tautan: ' + url);
                 });
             });

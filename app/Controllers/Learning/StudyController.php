@@ -61,7 +61,7 @@ class StudyController extends BaseController
         ];
 
         return view('dashboard/learning/progress/index', [
-            'title'        => 'Progres dan Kelulusan | Dashboard BegawiPBJ',
+            'title'        => 'Progres dan Kelulusan | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Monitoring Progres dan Kelulusan',
             'participants' => $participants,
             'stats'        => $stats,
@@ -70,7 +70,7 @@ class StudyController extends BaseController
                 'status'  => $status,
             ],
             'activeMenu'   => 'learning',
-            'activeSubmenu'=> 'progress-completion',
+            'activeSubmenu' => 'progress-completion',
         ]);
     }
 
@@ -103,13 +103,13 @@ class StudyController extends BaseController
         ];
 
         return view('dashboard/learning/feedback/index', [
-            'title'        => 'Feedback Peserta | Dashboard BegawiPBJ',
+            'title'        => 'Feedback Peserta | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Umpan Balik Peserta Pelatihan',
             'feedbacks'    => $feedbacks,
             'stats'        => $stats,
             'filters'      => ['keyword' => $keyword],
             'activeMenu'   => 'learning',
-            'activeSubmenu'=> 'participant-feedback',
+            'activeSubmenu' => 'participant-feedback',
         ]);
     }
 }

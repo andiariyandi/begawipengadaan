@@ -4,7 +4,7 @@
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Laporan') ?></h6>
-        <p class="text-secondary-light mb-0">Pratinjau UI laporan BegawiPBJ.</p>
+        <p class="text-secondary-light mb-0">Pratinjau UI laporan BegawiPengadaan.</p>
     </div>
     <button type="button" class="btn btn-primary-600 radius-8 px-20 py-11">Export Data</button>
 </div>

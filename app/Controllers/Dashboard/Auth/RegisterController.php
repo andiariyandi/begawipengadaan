@@ -34,11 +34,20 @@ class RegisterController extends BaseController
             'label'        => 'ASN',
             'page_title'   => 'Profil ASN',
             'fields'       => [
-                'asn_origin', 'nip_nippk', 'employment_status', 'organization_unit_id',
-                'institution_name', 'external_unit_name', 'institution_province',
-                'institution_regency', 'institution_district_village',
-                'position', 'rank', 'official_email',
-                'has_procurement_role', 'procurement_roles',
+                'asn_origin',
+                'nip_nippk',
+                'employment_status',
+                'organization_unit_id',
+                'institution_name',
+                'external_unit_name',
+                'institution_province',
+                'institution_regency',
+                'institution_district_village',
+                'position',
+                'rank',
+                'official_email',
+                'has_procurement_role',
+                'procurement_roles',
             ],
             'required'     => ['asn_origin', 'employment_status', 'position'],
             'json_fields'  => ['procurement_roles'],
@@ -51,9 +60,14 @@ class RegisterController extends BaseController
             'label'        => 'Penyedia Barang/Jasa',
             'page_title'   => 'Profil Penyedia Barang/Jasa',
             'fields'       => [
-                'nik', 'company_name', 'business_entity_type',
-                'registrant_position', 'responsible_person',
-                'nib', 'company_email', 'company_address',
+                'nik',
+                'company_name',
+                'business_entity_type',
+                'registrant_position',
+                'responsible_person',
+                'nib',
+                'company_email',
+                'company_address',
             ],
             'required'     => ['company_name', 'business_entity_type', 'registrant_position', 'responsible_person'],
             'json_fields'  => [],
@@ -66,8 +80,14 @@ class RegisterController extends BaseController
             'label'        => 'Akademisi',
             'page_title'   => 'Profil Akademisi',
             'fields'       => [
-                'nik', 'institution_name', 'institution_type', 'academic_role',
-                'expertise', 'institution_email', 'professional_identifier', 'portfolio_url',
+                'nik',
+                'institution_name',
+                'institution_type',
+                'academic_role',
+                'expertise',
+                'institution_email',
+                'professional_identifier',
+                'portfolio_url',
             ],
             'required'     => ['institution_name', 'institution_type', 'academic_role'],
             'json_fields'  => ['expertise'],
@@ -80,8 +100,11 @@ class RegisterController extends BaseController
             'label'        => 'Masyarakat Umum',
             'page_title'   => 'Profil Masyarakat Umum',
             'fields'       => [
-                'nik', 'occupation_status', 'organization_name',
-                'procurement_interest', 'usage_purpose',
+                'nik',
+                'occupation_status',
+                'organization_name',
+                'procurement_interest',
+                'usage_purpose',
             ],
             'required'     => ['occupation_status'],
             'json_fields'  => ['procurement_interest', 'usage_purpose'],
@@ -126,20 +149,54 @@ class RegisterController extends BaseController
 
     public function attempt()
     {
-        $data = $this->request->getPost();
+        $data = (array) ($this->request->getPost() ?: $_POST);
 
         $allowedProfileTypes = array_keys(self::PROFILE_REGISTRY);
 
         $rules = [
-            'username'      => 'required|min_length[3]|is_unique[users.username]',
-            'email'         => 'required|valid_email|is_unique[users.email]',
-            'password'      => 'required|min_length[12]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/\d/]|regex_match[/[^\w\s]/]',
-            'full_name'     => 'required',
-            'phone'         => 'required',
-            'profile_type'  => 'required|in_list[' . implode(',', $allowedProfileTypes) . ']',
+            'full_name'             => 'required|min_length[3]|max_length[150]',
+            'username'              => 'required|min_length[3]|max_length[100]|is_unique[users.username]',
+            'email'                 => 'required|valid_email|max_length[150]|is_unique[users.email]',
+            'phone'                 => 'required|min_length[8]|max_length[20]',
+            'password'              => 'required|min_length[12]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/\d/]|regex_match[/[^\w\s]/]',
+            'password_confirmation' => 'required|matches[password]',
+            'profile_type'          => 'required|in_list[' . implode(',', $allowedProfileTypes) . ']',
         ];
 
-        if (! $this->validate($rules)) {
+        $messages = [
+            'full_name' => [
+                'required'   => 'Nama lengkap wajib diisi.',
+                'min_length' => 'Nama lengkap minimal 3 karakter.',
+            ],
+            'username' => [
+                'required'   => 'Username akun wajib diisi.',
+                'min_length' => 'Username minimal 3 karakter.',
+                'is_unique'  => 'Username ini sudah digunakan oleh akun lain.',
+            ],
+            'email' => [
+                'required'    => 'Alamat email wajib diisi.',
+                'valid_email' => 'Format alamat email tidak valid.',
+                'is_unique'   => 'Alamat email ini sudah terdaftar di sistem.',
+            ],
+            'phone' => [
+                'required' => 'Nomor telepon/HP wajib diisi.',
+            ],
+            'password' => [
+                'required'    => 'Kata sandi wajib diisi.',
+                'min_length'  => 'Kata sandi minimal harus 12 karakter.',
+                'regex_match' => 'Kata sandi wajib memadukan huruf besar, huruf kecil, angka, dan simbol/karakter khusus.',
+            ],
+            'password_confirmation' => [
+                'required' => 'Konfirmasi kata sandi wajib diisi.',
+                'matches'  => 'Konfirmasi kata sandi tidak cocok dengan kata sandi.',
+            ],
+            'profile_type' => [
+                'required' => 'Silakan pilih tipe profil pendaftaran Anda.',
+                'in_list'  => 'Tipe profil yang dipilih tidak valid.',
+            ],
+        ];
+
+        if (! $this->validateData($data, $rules, $messages)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
@@ -171,7 +228,7 @@ class RegisterController extends BaseController
     public function registerAddress()
     {
         return view('dashboard/auth/register_address', [
-            'title' => 'Wilayah dan Alamat | BegawiPBJ',
+            'title' => 'Wilayah dan Alamat | BegawiPengadaan',
             'pageTitle' => 'Wilayah dan Alamat Ringkas',
             'pageDescription' => 'Langkah 2 dari 4 — Lengkapi wilayah domisili dan alamat ringkas Anda.',
             'currentStep' => 2,
@@ -194,13 +251,17 @@ class RegisterController extends BaseController
             'address'  => 'required|max_length[500]',
         ];
 
-        if (! $this->validate($rules)) {
+        if (! $this->validateData((array) $this->request->getPost(), $rules)) {
             return redirect()->back()->withInput()
                 ->with('errors', $this->validator->getErrors());
         }
 
         $address = $this->request->getPost([
-            'province', 'regency', 'district', 'village', 'address',
+            'province',
+            'regency',
+            'district',
+            'village',
+            'address',
         ]);
 
         if (! $this->isValidWilayahChain(
@@ -284,22 +345,37 @@ class RegisterController extends BaseController
 
         $cfg = self::PROFILE_REGISTRY[$profileType];
 
-        return view($cfg['view'], [
-            'title' => $cfg['page_title'] . ' | BegawiPBJ',
+        $extraData = [];
+        if ($segment === 'asn') {
+            $extraData['organizationUnits'] = (new \App\Models\OrganizationUnitModel())
+                ->where('is_active', 1)
+                ->orderBy('sort_order', 'ASC')
+                ->orderBy('name', 'ASC')
+                ->findAll();
+            $extraData['procurementRoles'] = (new \App\Models\ProcurementRoleModel())
+                ->where('is_active', 1)
+                ->orderBy('id', 'ASC')
+                ->findAll();
+            $extraData['registrationProfile'] = session('registration_profile.fields') ?? [];
+        }
+
+        return view($cfg['view'], array_merge([
+            'title' => $cfg['page_title'] . ' | BegawiPengadaan',
             'pageTitle' => $cfg['page_title'],
             'pageDescription' => 'Langkah 3 dari 4 — Lengkapi data spesifik untuk tipe profil Anda.',
             'currentStep' => 3,
             'currentKey' => 'profil',
             'profileType' => $cfg['label'],
             'profileTable' => $cfg['table'],
-        ]);
+        ], $extraData));
     }
 
     public function registerProfileAttempt(string $type)
     {
         $profileType = $this->profileTypeForSegment($type);
 
-        if ($profileType === null
+        if (
+            $profileType === null
             || ! session()->has('registration_data')
             || ! session()->has('registration_address')
         ) {
@@ -320,8 +396,29 @@ class RegisterController extends BaseController
         }
 
         $cfg = self::PROFILE_REGISTRY[$profileType];
-        $incoming = $this->request->getPost();
+        $incoming = (array) ($this->request->getPost() ?: $_POST);
         $sanitized = $this->extractProfileFields($profileType, is_array($incoming) ? $incoming : []);
+
+        if ($profileType === 'asn') {
+            $origin = (string) ($sanitized['asn_origin'] ?? '');
+            if ($origin === 'pemprov_lampung') {
+                $opdId = (int) ($sanitized['organization_unit_id'] ?? 0);
+                if ($opdId <= 0) {
+                    return redirect()->to(site_url('dashboard/daftar/profil/asn'))
+                        ->withInput()
+                        ->with('error', 'Silakan pilih OPD/Perangkat Daerah Pemerintah Provinsi Lampung.');
+                }
+                $opd = (new \App\Models\OrganizationUnitModel())->find($opdId);
+                if (! $opd || empty($opd['is_active'])) {
+                    return redirect()->to(site_url('dashboard/daftar/profil/asn'))
+                        ->withInput()
+                        ->with('error', 'OPD/Perangkat Daerah yang dipilih tidak valid atau sedang tidak aktif.');
+                }
+                $sanitized['organization_unit_id'] = $opd['id'];
+                $sanitized['institution_name']      = 'Pemerintah Daerah Provinsi Lampung';
+                $sanitized['external_unit_name']    = $opd['name'];
+            }
+        }
 
         $missing = [];
         foreach ($cfg['required'] as $requiredKey) {
@@ -352,7 +449,8 @@ class RegisterController extends BaseController
 
     public function registerReview()
     {
-        if (! session()->has('registration_data')
+        if (
+            ! session()->has('registration_data')
             || ! session()->has('registration_address')
             || ! session()->has('registration_profile')
         ) {
@@ -379,15 +477,48 @@ class RegisterController extends BaseController
         $profileType = (string) (session('registration_data.profile_type') ?? '');
         $cfg         = self::PROFILE_REGISTRY[$profileType] ?? null;
 
+        $fields = session('registration_profile.fields') ?? [];
+        if ($profileType === 'asn') {
+            if (! empty($fields['organization_unit_id'])) {
+                $opd = (new \App\Models\OrganizationUnitModel())->find((int) $fields['organization_unit_id']);
+                if ($opd) {
+                    $fields['opd_name'] = $opd['name'];
+                }
+            }
+            if (! empty($fields['procurement_roles'])) {
+                $rawRoles = $fields['procurement_roles'];
+                if (is_string($rawRoles)) {
+                    $decoded = json_decode($rawRoles, true);
+                    $list = is_array($decoded) ? $decoded : [$rawRoles];
+                } elseif (is_array($rawRoles)) {
+                    $list = $rawRoles;
+                } else {
+                    $list = [];
+                }
+                $roleNames = [];
+                foreach ($list as $rItem) {
+                    if (empty($rItem)) continue;
+                    if (is_numeric($rItem)) {
+                        $r = (new \App\Models\ProcurementRoleModel())->find((int) $rItem);
+                        if ($r) $roleNames[] = $r['name'];
+                    } else {
+                        $r = (new \App\Models\ProcurementRoleModel())->where('key', (string) $rItem)->first();
+                        if ($r) $roleNames[] = $r['name'];
+                    }
+                }
+                $fields['procurement_role_names'] = $roleNames;
+            }
+        }
+
         $profileDisplay = [
             'profile_type' => $profileType,
             'label'        => $cfg['label'] ?? '-',
             'table'        => $cfg['table'] ?? '-',
-            'fields'       => session('registration_profile.fields') ?? [],
+            'fields'       => $fields,
         ];
 
         return view('dashboard/auth/register_review', [
-            'title' => 'Tinjau Pendaftaran | BegawiPBJ',
+            'title' => 'Tinjau Pendaftaran | BegawiPengadaan',
             'pageTitle' => 'Tinjau Data Pendaftaran',
             'pageDescription' => 'Langkah 4 dari 4 — Pastikan seluruh data yang Anda masukkan sudah benar.',
             'currentStep' => 4,
@@ -395,6 +526,7 @@ class RegisterController extends BaseController
             'registrationData'    => session('registration_data'),
             'registrationAddress' => $addressDisplay,
             'registrationProfile' => $profileDisplay,
+            'profileSegment'      => $cfg['segment'] ?? 'asn',
         ]);
     }
 
@@ -472,7 +604,7 @@ class RegisterController extends BaseController
     public function registerSuccess()
     {
         return view('dashboard/auth/register_success', [
-            'title' => 'Pendaftaran Berhasil | BegawiPBJ',
+            'title' => 'Pendaftaran Berhasil | BegawiPengadaan',
             'pageTitle' => 'Pendaftaran Berhasil Dikirim',
             'pageDescription' => 'Akun Anda sedang menunggu verifikasi Operator/Admin.',
         ]);

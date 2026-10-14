@@ -9,7 +9,7 @@ $pager = $pager ?? null;
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Daftar Permission</h6>
-        <p class="text-secondary-light mb-0">Daftar hak akses granular BegawiPBJ untuk setiap modul dan aksi.</p>
+        <p class="text-secondary-light mb-0">Daftar hak akses granular BegawiPengadaan untuk setiap modul dan aksi.</p>
     </div>
     <div class="d-flex gap-12">
         <a href="<?= site_url('dashboard/akses/role') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11 d-inline-flex align-items-center gap-2">

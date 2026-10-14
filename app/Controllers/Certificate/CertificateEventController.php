@@ -72,7 +72,7 @@ class CertificateEventController extends BaseController
         $events = $builder->get()->getResultArray();
 
         return view('dashboard/certificates/events/select', [
-            'title'         => 'Event Certificate | Dashboard BegawiPBJ',
+            'title'         => 'Event Certificate | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Event / Agenda Certificate',
             'activeMenu'    => 'certificates',
             'activeSubmenu' => 'event',

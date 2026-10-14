@@ -89,7 +89,7 @@ class RegulationController extends BaseController
         ];
 
         return view('dashboard/regulation/regulations/index', [
-            'title'            => 'Regulasi PBJ | Dashboard BegawiPBJ',
+            'title'            => 'Regulasi PBJ | Dashboard BegawiPengadaan',
             'pageTitle'        => 'Regulasi Pengadaan Barang/Jasa',
             'activeMenu'       => 'regulations',
             'activeSubmenu'    => 'regulations',
@@ -107,7 +107,7 @@ class RegulationController extends BaseController
     public function create()
     {
         return view('dashboard/regulation/regulations/form', [
-            'title'                => 'Tambah Regulasi | Dashboard BegawiPBJ',
+            'title'                => 'Tambah Regulasi | Dashboard BegawiPengadaan',
             'pageTitle'            => 'Tambah Regulasi',
             'formMode'             => 'create',
             'activeMenu'           => 'regulations',
@@ -140,7 +140,7 @@ class RegulationController extends BaseController
 
         $svc = new RegulationService();
         $post = $this->request->getPost();
-        
+
         $coverFile = $this->request->getFile('cover_image');
         $coverFileId = $this->uploadCoverImage($coverFile);
 
@@ -196,8 +196,8 @@ class RegulationController extends BaseController
 
         $relations = (new RegulationRelationModel())
             ->groupStart()
-                ->where('source_regulation_id', $regId)
-                ->orWhere('target_regulation_id', $regId)
+            ->where('source_regulation_id', $regId)
+            ->orWhere('target_regulation_id', $regId)
             ->groupEnd()
             ->listForAdmin();
 
@@ -213,7 +213,7 @@ class RegulationController extends BaseController
             ->orderBy('created_at', 'DESC')->get()->getResultArray();
 
         return view('dashboard/regulation/regulations/detail', [
-            'title'            => 'Detail Regulasi | Dashboard BegawiPBJ',
+            'title'            => 'Detail Regulasi | Dashboard BegawiPengadaan',
             'pageTitle'        => 'Detail Regulasi',
             'activeMenu'       => 'regulations',
             'activeSubmenu'    => 'regulations',
@@ -244,7 +244,7 @@ class RegulationController extends BaseController
         $coverImgUrl = ! empty($regulation['cover_file_id']) ? base_url('file/' . (int) $regulation['cover_file_id']) : null;
 
         return view('dashboard/regulation/regulations/form', [
-            'title'                => 'Ubah Regulasi | Dashboard BegawiPBJ',
+            'title'                => 'Ubah Regulasi | Dashboard BegawiPengadaan',
             'pageTitle'            => 'Ubah Regulasi',
             'formMode'             => 'edit',
             'activeMenu'           => 'regulations',
@@ -284,7 +284,7 @@ class RegulationController extends BaseController
         }
 
         $post = $this->request->getPost();
-        
+
         $updateData = [
             'category_id'         => (int) $post['category_id'],
             'title'               => $post['title'],
@@ -472,7 +472,7 @@ class RegulationController extends BaseController
     {
         $categories = (new RegulationCategoryModel())->listAll();
         return view('dashboard/regulation/categories/index', [
-            'title'         => 'Kategori Regulasi | Dashboard BegawiPBJ',
+            'title'         => 'Kategori Regulasi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Kategori Regulasi',
             'activeMenu'    => 'regulations',
             'activeSubmenu' => 'categories',
@@ -483,7 +483,7 @@ class RegulationController extends BaseController
     public function categoryCreate()
     {
         return view('dashboard/regulation/categories/form', [
-            'title'         => 'Tambah Kategori | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Kategori | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Kategori',
             'formMode'      => 'create',
             'activeMenu'    => 'regulations',
@@ -533,7 +533,7 @@ class RegulationController extends BaseController
         }
         $regulations = db_connect()->table('regulations')->where('category_id', $catId)->where('deleted_at', null)->orderBy('created_at', 'DESC')->get()->getResultArray();
         return view('dashboard/regulation/categories/detail', [
-            'title'         => 'Detail Kategori | Dashboard BegawiPBJ',
+            'title'         => 'Detail Kategori | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Kategori',
             'activeMenu'    => 'regulations',
             'activeSubmenu' => 'categories',
@@ -551,7 +551,7 @@ class RegulationController extends BaseController
         }
         $iconUrl = ! empty($category['icon_file_id']) ? base_url('file/' . (int) $category['icon_file_id']) : null;
         return view('dashboard/regulation/categories/form', [
-            'title'         => 'Ubah Kategori | Dashboard BegawiPBJ',
+            'title'         => 'Ubah Kategori | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Ubah Kategori',
             'formMode'      => 'edit',
             'activeMenu'    => 'regulations',
@@ -626,7 +626,7 @@ class RegulationController extends BaseController
     {
         $relations = (new RegulationRelationModel())->listForAdmin();
         return view('dashboard/regulation/relations/index', [
-            'title'         => 'Relasi Regulasi | Dashboard BegawiPBJ',
+            'title'         => 'Relasi Regulasi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Relasi Regulasi',
             'activeMenu'    => 'regulations',
             'activeSubmenu' => 'relations',
@@ -638,7 +638,7 @@ class RegulationController extends BaseController
     public function relationCreate()
     {
         return view('dashboard/regulation/relations/form', [
-            'title'         => 'Tambah Relasi | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Relasi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Relasi',
             'formMode'      => 'create',
             'activeMenu'    => 'regulations',
@@ -696,7 +696,7 @@ class RegulationController extends BaseController
             return redirect()->to('dashboard/regulasi/relasi')->with('error', 'Relasi tidak ditemukan.');
         }
         return view('dashboard/regulation/relations/detail', [
-            'title'         => 'Detail Relasi | Dashboard BegawiPBJ',
+            'title'         => 'Detail Relasi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Relasi',
             'activeMenu'    => 'regulations',
             'activeSubmenu' => 'relations',
@@ -730,7 +730,7 @@ class RegulationController extends BaseController
             ->orderBy('v.created_at', 'DESC')
             ->get()->getResultArray();
         return view('dashboard/regulation/versions/index', [
-            'title'         => 'Versi Dokumen | Dashboard BegawiPBJ',
+            'title'         => 'Versi Dokumen | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Versi Dokumen',
             'activeMenu'    => 'regulations',
             'activeSubmenu' => 'versions',
@@ -753,7 +753,7 @@ class RegulationController extends BaseController
             return redirect()->to('dashboard/regulasi/versi')->with('error', 'Versi tidak ditemukan.');
         }
         return view('dashboard/regulation/versions/detail', [
-            'title'         => 'Detail Versi | Dashboard BegawiPBJ',
+            'title'         => 'Detail Versi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Versi',
             'activeMenu'    => 'regulations',
             'activeSubmenu' => 'versions',
@@ -779,7 +779,7 @@ class RegulationController extends BaseController
         $pager->store('logs', $page, $perPage, count($logs), 0);
 
         return view('dashboard/regulation/download_logs/index', [
-            'title'         => 'Log Download Regulasi | Dashboard BegawiPBJ',
+            'title'         => 'Log Download Regulasi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Log Download',
             'activeMenu'    => 'regulations',
             'activeSubmenu' => 'download-logs',
@@ -795,7 +795,7 @@ class RegulationController extends BaseController
     {
         $stages = (new ProcurementStageModel())->orderBy('sort_order, name')->findAll();
         return view('dashboard/regulation/procurement_stages/index', [
-            'title'         => 'Tahapan PBJ | Dashboard BegawiPBJ',
+            'title'         => 'Tahapan PBJ | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tahapan PBJ',
             'activeMenu'    => 'regulations',
             'activeSubmenu' => 'procurement-stages',
@@ -806,7 +806,7 @@ class RegulationController extends BaseController
     public function procurementStageCreate()
     {
         return view('dashboard/regulation/procurement_stages/form', [
-            'title'         => 'Tambah Tahapan PBJ | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Tahapan PBJ | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Tahapan',
             'formMode'      => 'create',
             'activeMenu'    => 'regulations',
@@ -849,7 +849,7 @@ class RegulationController extends BaseController
             return redirect()->to('dashboard/regulasi/tahapan-pbj')->with('error', 'Tahapan tidak ditemukan.');
         }
         return view('dashboard/regulation/procurement_stages/form', [
-            'title'         => 'Ubah Tahapan PBJ | Dashboard BegawiPBJ',
+            'title'         => 'Ubah Tahapan PBJ | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Ubah Tahapan',
             'formMode'      => 'edit',
             'activeMenu'    => 'regulations',
@@ -907,7 +907,9 @@ class RegulationController extends BaseController
             ->groupBy('rc.regulation_id')
             ->get()->getResultArray();
         $pivotMap = [];
-        foreach ($pivots as $p) { $pivotMap[(int) $p['regulation_id']] = (int) $p['total']; }
+        foreach ($pivots as $p) {
+            $pivotMap[(int) $p['regulation_id']] = (int) $p['total'];
+        }
         foreach ($competencies as &$c) {
             $c['regulation_count'] = 0;
             foreach ($pivots as $p) {
@@ -917,7 +919,7 @@ class RegulationController extends BaseController
             }
         }
         return view('dashboard/regulation/competencies/index', [
-            'title'         => 'Kompetensi Terkait | Dashboard BegawiPBJ',
+            'title'         => 'Kompetensi Terkait | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Kompetensi Terkait',
             'activeMenu'    => 'regulations',
             'activeSubmenu' => 'competencies',
@@ -928,7 +930,7 @@ class RegulationController extends BaseController
     public function competencyCreate()
     {
         return view('dashboard/regulation/competencies/form', [
-            'title'         => 'Tambah Kompetensi | Dashboard BegawiPBJ',
+            'title'         => 'Tambah Kompetensi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tambah Kompetensi',
             'formMode'      => 'create',
             'activeMenu'    => 'regulations',
@@ -969,7 +971,7 @@ class RegulationController extends BaseController
             return redirect()->to('dashboard/regulasi/kompetensi-terkait')->with('error', 'Kompetensi tidak ditemukan.');
         }
         return view('dashboard/regulation/competencies/form', [
-            'title'         => 'Ubah Kompetensi | Dashboard BegawiPBJ',
+            'title'         => 'Ubah Kompetensi | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Ubah Kompetensi',
             'formMode'      => 'edit',
             'activeMenu'    => 'regulations',
@@ -1030,7 +1032,8 @@ class RegulationController extends BaseController
                 'created_at'     => $now,
             ]);
             (new AuditService())->log((int) session()->get('user_id'), 'regulation.competency.attach', 'regulation_competencies', 'regulation_competency', null, [
-                'regulation_id' => $regId, 'competency_id' => $compId,
+                'regulation_id' => $regId,
+                'competency_id' => $compId,
             ]);
             return redirect()->to('dashboard/regulasi/dokumen/' . $regId)->with('success', 'Kompetensi terkait ditambah.');
         } catch (\Throwable $e) {

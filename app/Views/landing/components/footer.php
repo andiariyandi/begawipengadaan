@@ -6,7 +6,7 @@
                 <div class="col-xl-6 col-lg-6 wow fadeInUp" data-wow-delay="100ms">
                     <div class="site-footer__top-left">
                         <div class="site-footer__logo">
-                            <a href="<?= site_url('/') ?>"><img src="<?= base_url('assets/main/images/resources/site-footer-logo-2.png') ?>" alt="BegawiPBJ"></a>
+                            <a href="<?= site_url('/') ?>"><img src="<?= base_url('assets/main/images/resources/site-footer-logo-2.png') ?>" alt="BegawiPengadaan"></a>
                         </div>
                         <p class="site-footer__top-left-text">Platform informasi, pembelajaran, dan ekosistem Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.</p>
                         <div class="site-footer__contact-info">
@@ -107,7 +107,7 @@
                 <div class="col-xl-12">
                     <div class="site-footer__bottom-inner">
                         <div class="site-footer__copyright">
-                            <p class="site-footer__copyright-text">Copyright © <?= date('Y') ?> <a href="<?= site_url('/') ?>">BegawiPBJ</a>. Pemerintah Provinsi Lampung.</p>
+                            <p class="site-footer__copyright-text">Copyright © <?= date('Y') ?> <a href="<?= site_url('/') ?>">BegawiPengadaan</a>. Pemerintah Provinsi Lampung.</p>
                         </div>
                         <div class="site-footer__bottom-card-box">
                             <p class="site-footer__copyright-text">Pengadaan kompeten, transparan, dan berdampak.</p>

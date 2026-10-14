@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Trainer Home - Learning Management Experience
  * FiStudy UI DNA - Elevated Unified Design
@@ -61,7 +62,7 @@ $trainerRoleLabel = static function (?string $role): string {
                         <i class="fas fa-chalkboard-teacher me-1"></i> Ruang Kerja Pengajar & Instruktur
                     </span>
                     <span class="badge bg-white-50 text-white px-3 py-2 rounded-pill small">
-                        <i class="fas fa-shield-alt text-success me-1"></i> Instruktur Terverifikasi BegawiPBJ
+                        <i class="fas fa-shield-alt text-success me-1"></i> Instruktur Terverifikasi BegawiPengadaan
                     </span>
                 </div>
                 <h1 class="h2 text-white fw-bold mb-2">
@@ -116,7 +117,7 @@ $trainerRoleLabel = static function (?string $role): string {
                             <?= esc($firstClass['name'] ?? 'Kelas Pembelajaran') ?>
                         </h3>
                         <p class="small text-white-50 text-truncate mb-2"><?= esc($firstClass['course_title'] ?? '') ?></p>
-                        
+
                         <?php if (! empty($firstClass['location_or_link'])): ?>
                             <p class="small text-white-50 text-truncate mb-2" style="font-size: 0.75rem;">
                                 <i class="fas fa-map-marker-alt text-warning me-1"></i> <?= esc($firstClass['location_or_link']) ?>

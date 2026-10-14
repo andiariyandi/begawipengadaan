@@ -75,7 +75,7 @@ class EventAttendanceTest extends BaseCommand
                 'description'           => 'Event untuk menguji alur pembuatan kode, check-in, dan sertifikat batch.',
                 'start_at'              => date('Y-m-d H:i:s', strtotime('-1 hour')),
                 'end_at'                => date('Y-m-d H:i:s', strtotime('+2 hours')),
-                'location'              => 'Zoom Webinar BegawiPBJ',
+                'location'              => 'Zoom Webinar BegawiPengadaan',
                 'meeting_url'           => 'https://zoom.us/j/1234567890',
                 'capacity'              => 50,
                 'certificate_enabled'   => 1,

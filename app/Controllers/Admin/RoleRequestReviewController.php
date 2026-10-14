@@ -18,7 +18,7 @@ class RoleRequestReviewController extends BaseController
         );
 
         return view('dashboard/users/role_requests', [
-            'title'         => 'Permohonan Role | Dashboard BegawiPBJ',
+            'title'         => 'Permohonan Role | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Permohonan Role',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'role-requests',
@@ -57,7 +57,7 @@ class RoleRequestReviewController extends BaseController
             ->orderBy('created_at', 'DESC')->get()->getResultArray();
 
         return view('dashboard/users/role_request_detail', [
-            'title'         => 'Detail Permohonan Role | Dashboard BegawiPBJ',
+            'title'         => 'Detail Permohonan Role | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Permohonan Role',
             'activeMenu'    => 'access',
             'activeSubmenu' => 'role-requests',

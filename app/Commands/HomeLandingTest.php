@@ -46,7 +46,7 @@ class HomeLandingTest extends BaseCommand
         // Test 2: Hero Section Elements
         $this->testModule("Hero Section & Unified Search", function () use ($html) {
             $this->assert(str_contains($html, 'Pemerintah Provinsi Lampung &middot; Biro PBJ Setda'), "Hero badge present");
-            $this->assert(str_contains($html, 'Ekosistem Digital Terpadu'), "Hero title present");
+            $this->assert(str_contains($html, 'Transformasi Digital Terpadu'), "Hero title present");
             $this->assert(str_contains($html, 'heroSearchForm'), "Unified search form present");
             $this->assert(str_contains($html, 'heroSearchTarget'), "Search target dropdown present");
         });
@@ -98,6 +98,57 @@ class HomeLandingTest extends BaseCommand
             $this->assert(str_contains($html, 'LPSE Provinsi Lampung'), "LPSE link present");
             $this->assert(str_contains($html, 'SiRUP LKPP'), "SiRUP link present");
             $this->assert(str_contains($html, 'Katalog Elektronik (E-Katalog LKPP)'), "E-Katalog link present");
+        });
+
+        // Test 9: Upcoming Events & Agenda PBJ Integration
+        $this->testModule("Upcoming Events & Agenda Integration", function () use ($html) {
+            $this->assert(str_contains($html, 'Event, Webinar &amp; Bimtek Mendatang'), "Event section heading present");
+            $this->assert(str_contains($html, 'event-card-modern'), "Modern event card class present");
+            $this->assert(str_contains($html, 'event-date-badge'), "Event date badge present");
+            $this->assert(str_contains($html, 'site_url(\'event') || str_contains($html, '/event'), "Event detail route link present");
+        });
+
+        // Test 10: Regulation & Course Badges and Actions
+        $this->testModule("Card Metadata (JP Duration, Legal Status & Downloads)", function () use ($html) {
+            $this->assert(str_contains($html, 'JP'), "JP duration badge present on courses");
+            $this->assert(str_contains($html, 'reg-status-badge'), "Legal status badge present on regulations");
+            $this->assert(str_contains($html, '/unduh'), "Direct download links present");
+        });
+
+        // Test 11: Unified Search Targets Alignment
+        $this->testModule("Search Gateway 5-Module Targeting", function () use ($html) {
+            $this->assert(str_contains($html, 'value="event"'), "Event search option present");
+            $this->assert(str_contains($html, 'value="verifikasi-sertifikat"'), "Certificate verification search option present");
+            $this->assert(str_contains($html, 'value="regulasi"'), "Regulasi search option present");
+            $this->assert(str_contains($html, 'value="arena-belajar/course"'), "Course search option present");
+        });
+
+        // Test 12: Zero Dummy & Warning Integrity
+        $this->testModule("Content Integrity & Zero Dummy", function () use ($html) {
+            $this->assert(! str_contains(strtolower($html), 'lorem ipsum'), "Zero lorem ipsum in rendered HTML");
+            $this->assert(! str_contains($html, 'bbbbbbb'), "Zero test dummy 'bbbbbbb' in rendered HTML");
+            $this->assert(! str_contains($html, 'zfdfdfsdfd'), "Zero test dummy 'zfdfdfsdfd' in rendered HTML");
+            $this->assert(! str_contains($html, 'xvxxb'), "Zero test dummy 'xvxxb' in rendered HTML");
+            $this->assert(! str_contains($html, 'Warning:'), "Zero PHP warnings in rendered HTML");
+            $this->assert(! str_contains($html, 'Notice:'), "Zero PHP notices in rendered HTML");
+            $this->assert(! str_contains($html, 'Fatal error:'), "Zero Fatal errors in rendered HTML");
+        });
+
+        // Test 13: Visitor Statistics & Feature Access Breakdown
+        $this->testModule("Visitor Statistics & Feature Access Analytics", function () use ($html) {
+            $this->assert(str_contains($html, 'Statistik Trafik &amp; Kunjungan Portal'), "Visitor statistics heading present");
+            $this->assert(str_contains($html, 'visitor-pulse-dot'), "Live realtime pulse dot present");
+            $this->assert(str_contains($html, 'Hari Ini'), "Home today metric present");
+            $this->assert(str_contains($html, 'Minggu Ini'), "Home this week metric present");
+            $this->assert(str_contains($html, 'Bulan Ini'), "Home this month metric present");
+            $this->assert(str_contains($html, 'Tahun Ini'), "Home this year metric present");
+            $this->assert(str_contains($html, 'Total Akumulasi Pembukaan'), "Home total accumulation present");
+            $this->assert(str_contains($html, 'Frekuensi Akses Fitur Unggulan'), "Feature stats card present");
+            $this->assert(str_contains($html, 'Arena Belajar'), "Arena Belajar feature metric present");
+            $this->assert(str_contains($html, 'Bunga Rampai PBJ'), "Bunga Rampai feature metric present");
+            $this->assert(str_contains($html, 'Regulasi PBJ'), "Regulasi feature metric present");
+            $this->assert(str_contains($html, 'Berita &amp; Informasi'), "Berita feature metric present");
+            $this->assert(str_contains($html, 'Event &amp; Agenda'), "Event feature metric present");
         });
 
         // Summary

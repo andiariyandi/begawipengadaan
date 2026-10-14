@@ -11,6 +11,11 @@ class ArenaBelajarController extends BaseController
 {
     public function index(): string
     {
+        try {
+            (new \App\Services\VisitorStatisticService())->recordHit('arena_belajar');
+        } catch (\Throwable) {
+        }
+
         $programModel = new ProgramModel();
         $courseModel  = new CourseModel();
         $classModel   = new LearningClassModel();
@@ -100,9 +105,9 @@ class ArenaBelajarController extends BaseController
             ->get()->getResultArray();
 
         return view('landing/pages/learning', [
-            'title'            => 'Arena Belajar | BegawiPBJ',
+            'title'            => 'Arena Belajar | BegawiPengadaan',
             'metaDescription'  => 'Pusat pembelajaran, program terstruktur, course mandiri, kelas aktif, dan pengajar Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.',
-            'metaKeywords'     => 'Arena Belajar, pembelajaran PBJ, pelatihan pengadaan, sertifikasi PBJ, BegawiPBJ',
+            'metaKeywords'     => 'Arena Belajar, pembelajaran PBJ, pelatihan pengadaan, sertifikasi PBJ, BegawiPengadaan',
             'stats'            => $stats,
             'featuredPrograms' => $featuredPrograms,
             'popularCourses'   => $popularCourses,
@@ -127,7 +132,7 @@ class ArenaBelajarController extends BaseController
                 ->like('title', $q)
                 ->orLike('summary', $q)
                 ->orLike('description', $q)
-            ->groupEnd();
+                ->groupEnd();
         }
 
         if ($featuredFilter === '1') {
@@ -213,7 +218,7 @@ class ArenaBelajarController extends BaseController
                 ->orLike('courses.summary', $q)
                 ->orLike('courses.description', $q)
                 ->orLike('programs.title', $q)
-            ->groupEnd();
+                ->groupEnd();
         }
 
         if ($programSlug !== '') {
@@ -297,7 +302,7 @@ class ArenaBelajarController extends BaseController
                 ->orLike('learning_classes.code', $q)
                 ->orLike('courses.title', $q)
                 ->orLike('programs.title', $q)
-            ->groupEnd();
+                ->groupEnd();
         }
 
         if ($status !== '' && in_array($status, ['scheduled', 'active'], true)) {
@@ -392,7 +397,7 @@ class ArenaBelajarController extends BaseController
                 ->orLike('users.profile_type', $q)
                 ->orLike('learning_classes.name', $q)
                 ->orLike('courses.title', $q)
-            ->groupEnd();
+                ->groupEnd();
         }
 
         if ($profile !== '') {
@@ -426,7 +431,7 @@ class ArenaBelajarController extends BaseController
                 'code'            => $row['class_code'],
                 'status'          => $row['class_status'],
                 'learning_method' => $row['learning_method'] ?? 'online',
-                'location_or_link'=> $row['location_or_link'] ?? null,
+                'location_or_link' => $row['location_or_link'] ?? null,
                 'role'            => $row['trainer_role'] ?? 'primary',
             ];
             $cKey = (string) $row['course_id'];
@@ -503,7 +508,7 @@ class ArenaBelajarController extends BaseController
                 ->like('title', $courseSearch)
                 ->orLike('summary', $courseSearch)
                 ->orLike('description', $courseSearch)
-            ->groupEnd();
+                ->groupEnd();
         }
 
         // Paginate courses for this program
@@ -602,7 +607,7 @@ class ArenaBelajarController extends BaseController
             $classBuilder->groupStart()
                 ->like('learning_classes.name', $classSearch)
                 ->orLike('learning_classes.code', $classSearch)
-            ->groupEnd();
+                ->groupEnd();
         }
 
         $classes = $classBuilder
@@ -852,8 +857,8 @@ class ArenaBelajarController extends BaseController
             ->where('users.account_status', 'active')
             ->where('users.deleted_at IS NULL', null, false)
             ->groupStart()
-                ->where('users.username', $slug)
-                ->orWhere('users.id', is_numeric($slug) ? (int) $slug : 0)
+            ->where('users.username', $slug)
+            ->orWhere('users.id', is_numeric($slug) ? (int) $slug : 0)
             ->groupEnd()
             ->get()
             ->getRowArray();
@@ -944,7 +949,7 @@ class ArenaBelajarController extends BaseController
             'slug'            => $user['username'],
             'email'           => $user['email'],
             'profile_type'    => $user['profile_type'],
-            'classes'         => array_map(static fn (array $c): array => ['name' => $c['name'], 'code' => $c['code']], $classes),
+            'classes'         => array_map(static fn(array $c): array => ['name' => $c['name'], 'code' => $c['code']], $classes),
             'detailedClasses' => $classes,
             'coursesTaught'   => array_values($coursesTaught),
             'total_classes'   => count($classes),
@@ -983,9 +988,9 @@ class ArenaBelajarController extends BaseController
         ];
 
         return view('landing/pages/learning_catalog', array_merge([
-            'title'           => $pageTitle . ' | Arena Belajar BegawiPBJ',
+            'title'           => $pageTitle . ' | Arena Belajar BegawiPengadaan',
             'metaDescription' => $description,
-            'metaKeywords'    => 'Arena Belajar, ' . strtolower($pageTitle) . ', BegawiPBJ',
+            'metaKeywords'    => 'Arena Belajar, ' . strtolower($pageTitle) . ', BegawiPengadaan',
             'pageTitle'       => $pageTitle,
             'catalogType'     => $catalogType,
             'description'     => $description,
@@ -998,9 +1003,9 @@ class ArenaBelajarController extends BaseController
     private function detail(string $pageTitle, string $itemTitle, string $catalogType, ?array $item = null, array $extra = []): string
     {
         return view('landing/pages/learning_detail', array_merge([
-            'title'           => $itemTitle . ' | Arena Belajar BegawiPBJ',
-            'metaDescription' => 'Informasi ' . strtolower($pageTitle) . ' pada Arena Belajar BegawiPBJ.',
-            'metaKeywords'    => 'BegawiPBJ, Arena Belajar, ' . strtolower($pageTitle),
+            'title'           => $itemTitle . ' | Arena Belajar BegawiPengadaan',
+            'metaDescription' => 'Informasi ' . strtolower($pageTitle) . ' pada Arena Belajar BegawiPengadaan.',
+            'metaKeywords'    => 'BegawiPengadaan, Arena Belajar, ' . strtolower($pageTitle),
             'pageTitle'       => $pageTitle,
             'itemTitle'       => $itemTitle,
             'catalogType'     => $catalogType,

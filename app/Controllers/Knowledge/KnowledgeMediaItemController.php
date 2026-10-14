@@ -13,10 +13,10 @@ class KnowledgeMediaItemController extends BaseKnowledgeController
     {
         $items = (new KnowledgeMediaItemModel())->listMedia();
         return view('dashboard/knowledge/media/items/index', [
-            'title'        => 'Item Media | Dashboard BegawiPBJ',
+            'title'        => 'Item Media | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Item Media',
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'media-gallery',
+            'activeSubmenu' => 'media-gallery',
             'items'        => $items,
         ]);
     }
@@ -28,12 +28,12 @@ class KnowledgeMediaItemController extends BaseKnowledgeController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Item media tidak ditemukan.');
         }
         return view('dashboard/knowledge/media/items/detail', [
-            'title'        => 'Detail Item Media | Dashboard BegawiPBJ',
+            'title'        => 'Detail Item Media | Dashboard BegawiPengadaan',
             'pageTitle'    => 'Detail Item Media',
             'mediaItemId'  => (int) $id,
             'mediaItem'    => $row,
             'activeMenu'   => 'knowledge',
-            'activeSubmenu'=> 'media-gallery',
+            'activeSubmenu' => 'media-gallery',
         ]);
     }
 

@@ -50,7 +50,7 @@ class AttendanceController extends BaseController
         ];
 
         return view('dashboard/communication/attendance/index', [
-            'title'         => 'Kehadiran Event | Dashboard BegawiPBJ',
+            'title'         => 'Kehadiran Event | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Kehadiran Event',
             'activeMenu'    => 'communication',
             'activeSubmenu' => 'attendance',

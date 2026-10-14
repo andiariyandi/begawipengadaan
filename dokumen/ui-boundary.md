@@ -1,8 +1,8 @@
-# BegawiPBJ — UI Boundary Contract
+# BegawiPengadaan — UI Boundary Contract
 
 ## Tujuan
 
-Dokumen ini menetapkan batas antarmuka pengguna BegawiPBJ: pemilihan template, root controller, root view, layout, asset, pengguna, tujuan akses, dan aturan perpindahan antar-area.
+Dokumen ini menetapkan batas antarmuka pengguna BegawiPengadaan: pemilihan template, root controller, root view, layout, asset, pengguna, tujuan akses, dan aturan perpindahan antar-area.
 
 Dokumen ini melengkapi `README.md`, `dokumen/directory-tree.md`, dan `dokumen/route-contract.md`. Dokumen ini tidak menetapkan route baru, permission baru, atau domain baru; seluruh path dan boundary di bawah mengikuti ketiga dokumen tersebut.
 
@@ -40,7 +40,7 @@ Dokumen ini melengkapi `README.md`, `dokumen/directory-tree.md`, dan `dokumen/ro
 
 ### Fungsi
 
-Landing dan Public Area menyediakan presentasi publik dan read-only untuk informasi BegawiPBJ yang telah memiliki status publikasi/visibility sesuai kebijakan domain.
+Landing dan Public Area menyediakan presentasi publik dan read-only untuk informasi BegawiPengadaan yang telah memiliki status publikasi/visibility sesuai kebijakan domain.
 
 Area ini mencakup:
 
