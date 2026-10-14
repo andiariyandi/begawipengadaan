@@ -45,7 +45,7 @@ class NewsCategoryModel extends Model
         $base = $slug;
         $i = 1;
         while (true) {
-            $check = $this->where('slug', $slug)->first();
+            $check = $this->withDeleted()->where('slug', $slug)->first();
             if ($check === null || ($ignoreId !== null && (int) $check['id'] === $ignoreId)) {
                 return $slug;
             }

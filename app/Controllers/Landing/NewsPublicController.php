@@ -122,14 +122,55 @@ class NewsPublicController extends BaseController
             ];
         }, $rawItems);
 
-        // Featured / Headline News (only on first page when not actively searching)
-        $headlineArticle = null;
-        if ($currentPage === 1 && empty($keyword) && empty($categorySlug) && ! empty($items)) {
-            // Pick the first item as headline, or the one with highest views
-            $headlineArticle = $items[0];
-            // Remove from grid so it doesn't duplicate
-            array_shift($items);
+        // Featured / Headline News (support up to 5 featured articles, only on page 1 when not searching)
+        $headlineArticles = [];
+        if ($currentPage === 1 && empty($keyword) && empty($categorySlug)) {
+            $rawHeadlines = $this->db->table('news n')
+                ->select('n.id, n.title, n.slug, n.summary, n.content, n.published_at, n.view_count, n.reading_time, nc.name AS category_name, nc.slug AS category_slug, fa.path AS cover_path')
+                ->join('news_categories nc', 'nc.id = n.category_id', 'left')
+                ->join('file_assets fa', 'fa.id = n.cover_file_id', 'left')
+                ->where('n.deleted_at', null)
+                ->where('n.workflow_status', 'published')
+                ->where('n.is_featured', 1)
+                ->orderBy('n.published_at', 'DESC')
+                ->limit(5)
+                ->get()->getResultArray();
+
+            // If no articles are marked is_featured = 1, fallback to latest published items (up to 5)
+            if (empty($rawHeadlines) && ! empty($rawItems)) {
+                $rawHeadlines = array_slice($rawItems, 0, min(5, count($rawItems)));
+            }
+
+            $headlineIds = array_column($rawHeadlines, 'id');
+
+            $headlineArticles = array_map(function ($row) {
+                $words = str_word_count(strip_tags((string) ($row['content'] ?? '')));
+                $readTime = ! empty($row['reading_time']) ? $row['reading_time'] : (max(1, (int) ceil($words / 180)) . ' menit');
+
+                return [
+                    'id'            => (int) $row['id'],
+                    'title'         => $row['title'],
+                    'slug'          => $row['slug'],
+                    'summary'       => $row['summary'] ?: mb_strimwidth(strip_tags((string) $row['content']), 0, 180, '...'),
+                    'content'       => $row['content'],
+                    'category_name' => $row['category_name'] ?? 'Berita PBJ',
+                    'category_slug' => $row['category_slug'] ?? 'umum',
+                    'published_at'  => $row['published_at'] ?? date('Y-m-d H:i:s'),
+                    'date_formatted'=> ! empty($row['published_at']) ? date('d M Y', strtotime($row['published_at'])) : date('d M Y'),
+                    'view_count'    => (int) ($row['view_count'] ?? 0),
+                    'read_time'     => $readTime,
+                    'cover_url'     => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
+                ];
+            }, $rawHeadlines);
+
+            // Filter out headline items from regular grid so they don't duplicate on page 1
+            $items = array_filter($items, function ($item) use ($headlineIds) {
+                return ! in_array($item['id'], $headlineIds, true);
+            });
+            $items = array_values($items);
         }
+
+        $headlineArticle = ! empty($headlineArticles) ? $headlineArticles[0] : null;
 
         // Active Categories with item counts
         $categoriesWithCount = $this->db->table('news_categories nc')
@@ -181,6 +222,7 @@ class NewsPublicController extends BaseController
             'pageTitle'           => $pageTitle,
             'items'               => $items,
             'headlineArticle'     => $headlineArticle,
+            'headlineArticles'    => $headlineArticles,
             'totalItems'          => $totalItems,
             'currentPage'         => $currentPage,
             'totalPages'          => $totalPages,
@@ -215,11 +257,11 @@ class NewsPublicController extends BaseController
             throw PageNotFoundException::forPageNotFound('Berita pengadaan tidak ditemukan: ' . esc($slug));
         }
 
-        // Increment view count safely
+        // Increment view count: setiap kali berita dibuka/dibaca, tambahkan +1 (bukan user unik)
         try {
-            $this->db->table('news')->where('id', $news['id'])->increment('view_count');
+            $this->db->query('UPDATE news SET view_count = COALESCE(view_count, 0) + 1 WHERE id = ?', [(int) $news['id']]);
         } catch (\Throwable $e) {
-            // Non-critical
+            log_message('error', 'Gagal increment view_count: ' . $e->getMessage());
         }
 
         $news['view_count'] = (int) ($news['view_count'] ?? 0) + 1;

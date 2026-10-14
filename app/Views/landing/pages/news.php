@@ -10,9 +10,9 @@
         --news-gold: #f59e0b;
         --news-gold-light: #fef3c7;
         --news-slate-900: #0f172a;
-        --news-slate-700: #334155;
-        --news-slate-500: #64748b;
-        --news-slate-200: #e2e8f0;
+        --news-slate-700: #1e293b;
+        --news-slate-500: #334155;
+        --news-slate-200: #cbd5e1;
         --news-slate-50: #f8fafc;
     }
 
@@ -53,15 +53,15 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.16);
         backdrop-filter: blur(8px);
         padding: 6px 16px;
         border-radius: 999px;
         font-size: 13px;
-        font-weight: 500;
-        color: #e2e8f0;
+        font-weight: 600;
+        color: #ffffff;
         margin-bottom: 18px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     .news-breadcrumb a {
@@ -88,11 +88,12 @@
     }
 
     .news-hero-desc {
-        font-size: 16px;
-        color: #cbd5e1;
+        font-size: 16.5px;
+        color: #f1f5f9;
         line-height: 1.6;
         max-width: 720px;
         margin-bottom: 30px;
+        font-weight: 400;
     }
 
     /* Hero Search Bar */
@@ -118,7 +119,8 @@
     }
 
     .news-search-box input::placeholder {
-        color: #94a3b8;
+        color: #64748b;
+        font-weight: 500;
     }
 
     .news-search-box button {
@@ -183,9 +185,9 @@
     }
 
     .news-kpi-label {
-        font-size: 13px;
+        font-size: 13.5px;
         font-weight: 600;
-        color: var(--news-slate-500);
+        color: var(--news-slate-700);
         margin-top: 3px;
     }
 
@@ -261,7 +263,11 @@
         cursor: pointer;
     }
 
-    /* Headline / Featured Card */
+    /* Headline / Featured Card & Carousel (Supports up to 5 Headlines) */
+    .news-headline-carousel {
+        position: relative;
+    }
+
     .news-headline-card {
         background: #ffffff;
         border: 1px solid var(--news-slate-200);
@@ -306,7 +312,7 @@
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        padding: 5px 14px;
+        padding: 6px 14px;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
         display: inline-flex;
@@ -359,7 +365,7 @@
 
     .news-headline-desc {
         font-size: 15px;
-        color: var(--news-slate-500);
+        color: #1e293b;
         line-height: 1.65;
         margin-bottom: 22px;
     }
@@ -370,14 +376,103 @@
         gap: 16px;
         flex-wrap: wrap;
         font-size: 13px;
-        color: var(--news-slate-500);
+        color: var(--news-slate-700);
+        font-weight: 600;
         margin-bottom: 24px;
     }
 
     .news-meta-item {
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
+    }
+
+    /* Headline Carousel Controls & Indicators */
+    .headline-carousel-indicators {
+        position: relative !important;
+        margin-top: 14px !important;
+        margin-bottom: 0 !important;
+        gap: 8px !important;
+        justify-content: flex-start !important;
+        padding: 0 4px 10px !important;
+    }
+
+    .headline-carousel-indicators button {
+        width: auto !important;
+        height: auto !important;
+        text-indent: 0 !important;
+        border: 1px solid var(--news-slate-200) !important;
+        border-radius: 20px !important;
+        background: #ffffff !important;
+        padding: 5px 14px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        opacity: 0.8 !important;
+        transition: all 0.25s ease !important;
+        cursor: pointer !important;
+    }
+
+    .headline-carousel-indicators button.active {
+        background: var(--news-navy-dark) !important;
+        border-color: var(--news-navy-dark) !important;
+        opacity: 1 !important;
+        box-shadow: 0 4px 12px rgba(5, 34, 68, 0.25) !important;
+    }
+
+    .headline-carousel-indicators button .indicator-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--news-gold);
+        display: inline-block;
+    }
+
+    .headline-carousel-indicators button .indicator-text {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--news-slate-700);
+    }
+
+    .headline-carousel-indicators button.active .indicator-text {
+        color: #ffffff;
+    }
+
+    .headline-carousel-ctrl {
+        width: 44px;
+        height: 44px;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.85;
+        transition: all 0.2s ease;
+        z-index: 5;
+    }
+
+    .headline-carousel-ctrl:hover {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.08);
+    }
+
+    .headline-carousel-ctrl.carousel-control-prev {
+        left: 12px;
+    }
+
+    .headline-carousel-ctrl.carousel-control-next {
+        right: 12px;
+    }
+
+    .headline-ctrl-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--news-navy-dark);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
     }
 
     /* Standard News Grid Card */
@@ -818,45 +913,45 @@
         <div class="row g-4">
             <div class="col-lg-3 col-6">
                 <div class="news-kpi-item">
-                    <div class="news-kpi-icon text-primary bg-primary-subtle">
+                    <div class="news-kpi-icon" style="background:#e0f2fe; color:#0284c7;">
                         <iconify-icon icon="solar:document-text-bold"></iconify-icon>
                     </div>
                     <div>
                         <div class="news-kpi-num"><?= number_format($stats['total_news'] > 0 ? $stats['total_news'] : 12) ?></div>
-                        <div class="news-kpi-label">Berita Publikasi Resmi</div>
+                        <div class="news-kpi-label" style="color: #334155; font-weight: 600;">Berita Publikasi Resmi</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
                 <div class="news-kpi-item">
-                    <div class="news-kpi-icon text-info bg-info-subtle">
+                    <div class="news-kpi-icon" style="background:#e0f7fa; color:#00838f;">
                         <iconify-icon icon="solar:folder-with-files-bold"></iconify-icon>
                     </div>
                     <div>
                         <div class="news-kpi-num"><?= number_format($stats['total_categories'] > 0 ? $stats['total_categories'] : 6) ?></div>
-                        <div class="news-kpi-label">Kategori Liputan PBJ</div>
+                        <div class="news-kpi-label" style="color: #334155; font-weight: 600;">Kategori Liputan PBJ</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
                 <div class="news-kpi-item">
-                    <div class="news-kpi-icon text-warning bg-warning-subtle">
+                    <div class="news-kpi-icon" style="background:#fef3c7; color:#d97706;">
                         <iconify-icon icon="solar:eye-bold"></iconify-icon>
                     </div>
                     <div>
                         <div class="news-kpi-num"><?= number_format($stats['total_views'] > 0 ? $stats['total_views'] : 6800) ?>+</div>
-                        <div class="news-kpi-label">Total Pembaca Terjangkau</div>
+                        <div class="news-kpi-label" style="color: #334155; font-weight: 600;">Total Pembaca Terjangkau</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
                 <div class="news-kpi-item">
-                    <div class="news-kpi-icon text-success bg-success-subtle">
+                    <div class="news-kpi-icon" style="background:#dcfce7; color:#16a34a;">
                         <iconify-icon icon="solar:calendar-date-bold"></iconify-icon>
                     </div>
                     <div>
                         <div class="news-kpi-num"><?= number_format($stats['this_month'] > 0 ? $stats['this_month'] : 5) ?></div>
-                        <div class="news-kpi-label">Rilis Bulan Ini</div>
+                        <div class="news-kpi-label" style="color: #334155; font-weight: 600;">Rilis Bulan Ini</div>
                     </div>
                 </div>
             </div>
@@ -908,56 +1003,146 @@
             </div>
         <?php endif; ?>
 
-        <!-- Headline Article Hero Card (Page 1 only without keyword) -->
-        <?php if (! empty($headlineArticle)): ?>
-            <div class="news-headline-card">
-                <div class="row g-0 align-items-center">
-                    <div class="col-lg-6">
-                        <div class="news-headline-img-wrap">
-                            <img src="<?= $headlineArticle['cover_url'] ?: base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>" 
-                                 alt="<?= esc($headlineArticle['title']) ?>" 
-                                 class="news-headline-img">
-                            <div class="news-badge-headline">
-                                <iconify-icon icon="solar:star-fall-bold"></iconify-icon>
-                                <span>Berita Utama</span>
+        <!-- Headline Showcase (Supports up to 5 Featured Articles) -->
+        <?php 
+            $headlineList = ! empty($headlineArticles) ? $headlineArticles : (! empty($headlineArticle) ? [$headlineArticle] : []);
+        ?>
+        <?php if (! empty($headlineList)): ?>
+            <?php if (count($headlineList) > 1): ?>
+                <!-- Multi-headline Carousel (Up to 5 Featured News) -->
+                <div id="headlineCarousel" class="carousel slide news-headline-carousel mb-40" data-bs-ride="carousel" data-bs-interval="6500">
+                    <div class="carousel-inner">
+                        <?php foreach ($headlineList as $hIndex => $hItem): ?>
+                            <div class="carousel-item <?= $hIndex === 0 ? 'active' : '' ?>">
+                                <div class="news-headline-card mb-0">
+                                    <div class="row g-0 align-items-center">
+                                        <div class="col-lg-6">
+                                            <div class="news-headline-img-wrap">
+                                                <img src="<?= $hItem['cover_url'] ?: base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>" 
+                                                     alt="<?= esc($hItem['title']) ?>" 
+                                                     class="news-headline-img">
+                                                <div class="news-badge-headline">
+                                                    <iconify-icon icon="solar:star-fall-bold"></iconify-icon>
+                                                    <span>Berita Utama #<?= $hIndex + 1 ?></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="news-headline-content">
+                                                <div class="d-flex align-items-center gap-2 mb-2">
+                                                    <span class="news-cat-badge mb-0"><?= esc($hItem['category_name']) ?></span>
+                                                    <span class="badge bg-warning text-dark px-8 py-4 radius-6 text-2xs fw-bold shadow-none" style="font-size: 11px;">
+                                                        Headline <?= $hIndex + 1 ?> / <?= count($headlineList) ?>
+                                                    </span>
+                                                </div>
+                                                <h2 class="news-headline-title">
+                                                    <a href="<?= site_url('berita/' . $hItem['slug']) ?>">
+                                                        <?= esc($hItem['title']) ?>
+                                                    </a>
+                                                </h2>
+                                                <p class="news-headline-desc"><?= esc($hItem['summary']) ?></p>
+
+                                                <div class="news-meta-row">
+                                                    <div class="news-meta-item">
+                                                        <iconify-icon icon="solar:calendar-linear" class="text-primary"></iconify-icon>
+                                                        <span><?= esc($hItem['date_formatted']) ?></span>
+                                                    </div>
+                                                    <div class="news-meta-item">
+                                                        <iconify-icon icon="solar:clock-circle-linear" class="text-warning"></iconify-icon>
+                                                        <span><?= esc($hItem['read_time']) ?> baca</span>
+                                                    </div>
+                                                    <div class="news-meta-item">
+                                                        <iconify-icon icon="solar:eye-linear" class="text-info"></iconify-icon>
+                                                        <span><?= number_format($hItem['view_count']) ?> views</span>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <a href="<?= site_url('berita/' . $hItem['slug']) ?>" class="thm-btn">
+                                                        <span>Baca Berita Lengkap</span>
+                                                        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <!-- Carousel Indicators (Pills 1..5) -->
+                    <div class="carousel-indicators headline-carousel-indicators">
+                        <?php foreach ($headlineList as $hIndex => $hItem): ?>
+                            <button type="button" data-bs-target="#headlineCarousel" data-bs-slide-to="<?= $hIndex ?>" 
+                                    class="<?= $hIndex === 0 ? 'active' : '' ?>" 
+                                    aria-current="<?= $hIndex === 0 ? 'true' : 'false' ?>" 
+                                    aria-label="Berita Utama <?= $hIndex + 1 ?>">
+                                <span class="indicator-dot"></span>
+                                <span class="indicator-text">Utama #<?= $hIndex + 1 ?></span>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <!-- Prev/Next Controls -->
+                    <button class="carousel-control-prev headline-carousel-ctrl" type="button" data-bs-target="#headlineCarousel" data-bs-slide="prev" aria-label="Sebelumnya">
+                        <span class="headline-ctrl-icon"><iconify-icon icon="solar:alt-arrow-left-bold"></iconify-icon></span>
+                    </button>
+                    <button class="carousel-control-next headline-carousel-ctrl" type="button" data-bs-target="#headlineCarousel" data-bs-slide="next" aria-label="Selanjutnya">
+                        <span class="headline-ctrl-icon"><iconify-icon icon="solar:alt-arrow-right-bold"></iconify-icon></span>
+                    </button>
+                </div>
+            <?php else: ?>
+                <?php $singleArticle = $headlineList[0]; ?>
+                <div class="news-headline-card">
+                    <div class="row g-0 align-items-center">
+                        <div class="col-lg-6">
+                            <div class="news-headline-img-wrap">
+                                <img src="<?= $singleArticle['cover_url'] ?: base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>" 
+                                     alt="<?= esc($singleArticle['title']) ?>" 
+                                     class="news-headline-img">
+                                <div class="news-badge-headline">
+                                    <iconify-icon icon="solar:star-fall-bold"></iconify-icon>
+                                    <span>Berita Utama</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="news-headline-content">
-                            <span class="news-cat-badge"><?= esc($headlineArticle['category_name']) ?></span>
-                            <h2 class="news-headline-title">
-                                <a href="<?= site_url('berita/' . $headlineArticle['slug']) ?>">
-                                    <?= esc($headlineArticle['title']) ?>
-                                </a>
-                            </h2>
-                            <p class="news-headline-desc"><?= esc($headlineArticle['summary']) ?></p>
+                        <div class="col-lg-6">
+                            <div class="news-headline-content">
+                                <span class="news-cat-badge"><?= esc($singleArticle['category_name']) ?></span>
+                                <h2 class="news-headline-title">
+                                    <a href="<?= site_url('berita/' . $singleArticle['slug']) ?>">
+                                        <?= esc($singleArticle['title']) ?>
+                                    </a>
+                                </h2>
+                                <p class="news-headline-desc"><?= esc($singleArticle['summary']) ?></p>
 
-                            <div class="news-meta-row">
-                                <div class="news-meta-item">
-                                    <iconify-icon icon="solar:calendar-linear" class="text-primary"></iconify-icon>
-                                    <span><?= esc($headlineArticle['date_formatted']) ?></span>
+                                <div class="news-meta-row">
+                                    <div class="news-meta-item">
+                                        <iconify-icon icon="solar:calendar-linear" class="text-primary"></iconify-icon>
+                                        <span><?= esc($singleArticle['date_formatted']) ?></span>
+                                    </div>
+                                    <div class="news-meta-item">
+                                        <iconify-icon icon="solar:clock-circle-linear" class="text-warning"></iconify-icon>
+                                        <span><?= esc($singleArticle['read_time']) ?> baca</span>
+                                    </div>
+                                    <div class="news-meta-item">
+                                        <iconify-icon icon="solar:eye-linear" class="text-info"></iconify-icon>
+                                        <span><?= number_format($singleArticle['view_count']) ?> views</span>
+                                    </div>
                                 </div>
-                                <div class="news-meta-item">
-                                    <iconify-icon icon="solar:clock-circle-linear" class="text-warning"></iconify-icon>
-                                    <span><?= esc($headlineArticle['read_time']) ?> baca</span>
-                                </div>
-                                <div class="news-meta-item">
-                                    <iconify-icon icon="solar:eye-linear" class="text-info"></iconify-icon>
-                                    <span><?= number_format($headlineArticle['view_count']) ?> views</span>
-                                </div>
-                            </div>
 
-                            <div>
-                                <a href="<?= site_url('berita/' . $headlineArticle['slug']) ?>" class="thm-btn">
-                                    <span>Baca Berita Lengkap</span>
-                                    <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
-                                </a>
+                                <div>
+                                    <a href="<?= site_url('berita/' . $singleArticle['slug']) ?>" class="thm-btn">
+                                        <span>Baca Berita Lengkap</span>
+                                        <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            <?php endif; ?>
         <?php endif; ?>
 
         <!-- Main Grid & Sidebar Layout -->

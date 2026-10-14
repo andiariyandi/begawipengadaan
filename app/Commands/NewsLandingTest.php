@@ -134,6 +134,55 @@ class NewsLandingTest extends BaseCommand
             $this->assert(str_contains($content, 'site_url(\'berita/kategori/e-katalog-digital\')'), "E-Katalog sub-menu present");
         });
 
+        // 10. Test View Count Increments by +1 on Every Open (Non-unique)
+        $this->testModule("View Counter (+1 on Every Open)", function () {
+            $db = db_connect();
+            $news = $db->table('news')->where('workflow_status', 'published')->where('deleted_at', null)->get()->getRowArray();
+            $this->assert(! empty($news), "Published news found for view count test");
+
+            $initialCount = (int) ($news['view_count'] ?? 0);
+
+            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'berita/' . $news['slug']);
+            $request = new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent());
+            \Config\Services::injectMock('request', $request);
+
+            $controller = new NewsPublicController();
+            $controller->initController($request, service('response'), service('logger'));
+
+            // Visit 1
+            $controller->detail($news['slug']);
+            $countAfter1 = (int) ($db->table('news')->where('id', $news['id'])->get()->getRowArray()['view_count'] ?? 0);
+            $this->assert($countAfter1 === $initialCount + 1, "View count incremented by +1 on first open (now {$countAfter1})");
+
+            // Visit 2
+            $controller->detail($news['slug']);
+            $countAfter2 = (int) ($db->table('news')->where('id', $news['id'])->get()->getRowArray()['view_count'] ?? 0);
+            $this->assert($countAfter2 === $initialCount + 2, "View count incremented by another +1 on second open (now {$countAfter2})");
+        });
+
+        // 11. Test Multi-Headline Carousel (Up to 5 Featured Articles)
+        $this->testModule("Multi-Headline Carousel (Up to 5 Featured Articles)", function () {
+            $db = db_connect();
+            // Ensure up to 5 articles are marked as is_featured = 1
+            $articles = $db->table('news')->where('workflow_status', 'published')->where('deleted_at', null)->limit(5)->get()->getResultArray();
+            $ids = array_column($articles, 'id');
+            if (! empty($ids)) {
+                $db->table('news')->whereIn('id', $ids)->update(['is_featured' => 1]);
+            }
+
+            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'berita');
+            $request = new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent());
+            \Config\Services::injectMock('request', $request);
+
+            $controller = new NewsPublicController();
+            $controller->initController($request, service('response'), service('logger'));
+
+            $html = $controller->index();
+            $this->assert(str_contains($html, 'headlineCarousel'), "Headline carousel container present");
+            $this->assert(str_contains($html, 'carousel-item') || str_contains($html, 'news-headline-card'), "Headline carousel items present");
+            $this->assert(str_contains($html, 'Utama #') || str_contains($html, 'Berita Utama'), "Headline indicator pills present");
+        });
+
         CLI::newLine();
         CLI::write("==================================================================", "cyan");
         CLI::write("   TEST RESULTS: {$this->passed} PASSED, {$this->failed} FAILED", $this->failed === 0 ? "green" : "red");
