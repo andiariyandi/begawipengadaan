@@ -8,16 +8,16 @@ Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 
 ```text
 README.md
-directory-tree.md
-docs/architecture/route-contract.md
-docs/architecture/ui-boundary.md
-docs/architecture/auth-and-rbac.md
-docs/architecture/workflow-contract.md
-docs/architecture/file-storage-policy.md
-docs/database/database-blueprint.md
-docs/database/database-erd.md
-docs/database/data-dictionary.md
-docs/database/schema-fresh-v4.sql
+dokumen/directory-tree.md
+dokumen/route-contract.md
+dokumen/ui-boundary.md
+dokumen/auth-and-rbac.md
+dokumen/workflow-contract.md
+dokumen/file-storage-policy.md
+dokumen/database-blueprint.md
+dokumen/database-erd.md
+dokumen/data-dictionary.md
+dokumen/schema-fresh-v4-1.sql
 ```
 
 Registrasi menggunakan UI Auth WowDash, controller `App\Controllers\Dashboard\Auth`, dan route di bawah prefix `/dashboard`.
@@ -94,7 +94,7 @@ Route registrasi memakai filter `guest` dan `rateLimit:registration` pada endpoi
 | Selesai dan disetujui | `active` | Role default dapat diberikan |
 | Tidak diterima | `rejected` | Alasan ditampilkan proporsional |
 
-Transisi account mengikuti `docs/architecture/workflow-contract.md`. Controller tidak boleh mengubah status langsung di luar service/workflow layer.
+Transisi account mengikuti `dokumen/workflow-contract.md`. Controller tidak boleh mengubah status langsung di luar service/workflow layer.
 
 ---
 

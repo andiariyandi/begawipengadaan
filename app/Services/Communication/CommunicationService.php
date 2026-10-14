@@ -33,14 +33,20 @@ class CommunicationService
         $now = date('Y-m-d H:i:s');
         $payload = [
             'category_id'     => ! empty($data['category_id']) ? (int) $data['category_id'] : null,
-            'title'            => trim((string) ($data['title'] ?? '')),
-            'slug'             => $this->news->generateUniqueSlug(trim((string) ($data['title'] ?? 'berita'))),
-            'summary'          => (string) ($data['summary'] ?? ''),
-            'content'          => (string) ($data['content'] ?? ''),
-            'workflow_status'  => (string) ($data['workflow_status'] ?? 'draft'),
-            'visibility'       => (string) ($data['visibility'] ?? 'public'),
-            'author_id'        => $actorId,
-            'scheduled_at'     => $this->parseDateTime($data['scheduled_at'] ?? null),
+            'title'           => trim((string) ($data['title'] ?? '')),
+            'slug'            => $this->news->generateUniqueSlug(trim((string) ($data['title'] ?? 'berita'))),
+            'summary'         => (string) ($data['summary'] ?? ''),
+            'reading_time'    => ! empty($data['reading_time']) ? trim((string) $data['reading_time']) : null,
+            'tags'            => ! empty($data['tags']) ? trim((string) $data['tags']) : null,
+            'content'         => (string) ($data['content'] ?? ''),
+            'source_name'     => ! empty($data['source_name']) ? trim((string) $data['source_name']) : null,
+            'source_url'      => ! empty($data['source_url']) ? trim((string) $data['source_url']) : null,
+            'cover_caption'   => ! empty($data['cover_caption']) ? trim((string) $data['cover_caption']) : null,
+            'is_featured'     => ! empty($data['is_featured']) ? 1 : 0,
+            'workflow_status' => (string) ($data['workflow_status'] ?? 'draft'),
+            'visibility'      => (string) ($data['visibility'] ?? 'public'),
+            'author_id'       => $actorId,
+            'scheduled_at'    => $this->parseDateTime($data['scheduled_at'] ?? null),
         ];
         if (! empty($data['cover_file'])) {
             $fileId = $this->storeFile($data['cover_file'], 'news_cover', $actorId);
@@ -49,7 +55,7 @@ class CommunicationService
             }
         }
         if (($payload['workflow_status'] ?? '') === 'published') {
-            $payload['published_at'] = $now;
+            $payload['published_at'] = ! empty($data['published_at']) ? $this->parseDateTime($data['published_at']) : $now;
             $payload['published_by'] = $actorId;
         }
         $payload['created_at'] = $now;
@@ -68,14 +74,20 @@ class CommunicationService
         }
         $payload = [
             'category_id'     => ! empty($data['category_id']) ? (int) $data['category_id'] : null,
-            'title'            => trim((string) ($data['title'] ?? '')),
-            'slug'             => $this->news->generateUniqueSlug(trim((string) ($data['title'] ?? 'berita')), $id),
-            'summary'          => (string) ($data['summary'] ?? ''),
-            'content'          => (string) ($data['content'] ?? ''),
-            'workflow_status'  => (string) ($data['workflow_status'] ?? 'draft'),
-            'visibility'       => (string) ($data['visibility'] ?? 'public'),
-            'scheduled_at'     => $this->parseDateTime($data['scheduled_at'] ?? null),
-            'updated_at'       => date('Y-m-d H:i:s'),
+            'title'           => trim((string) ($data['title'] ?? '')),
+            'slug'            => $this->news->generateUniqueSlug(trim((string) ($data['title'] ?? 'berita')), $id),
+            'summary'         => (string) ($data['summary'] ?? ''),
+            'reading_time'    => ! empty($data['reading_time']) ? trim((string) $data['reading_time']) : null,
+            'tags'            => ! empty($data['tags']) ? trim((string) $data['tags']) : null,
+            'content'         => (string) ($data['content'] ?? ''),
+            'source_name'     => ! empty($data['source_name']) ? trim((string) $data['source_name']) : null,
+            'source_url'      => ! empty($data['source_url']) ? trim((string) $data['source_url']) : null,
+            'cover_caption'   => ! empty($data['cover_caption']) ? trim((string) $data['cover_caption']) : null,
+            'is_featured'     => ! empty($data['is_featured']) ? 1 : 0,
+            'workflow_status' => (string) ($data['workflow_status'] ?? 'draft'),
+            'visibility'      => (string) ($data['visibility'] ?? 'public'),
+            'scheduled_at'    => $this->parseDateTime($data['scheduled_at'] ?? null),
+            'updated_at'      => date('Y-m-d H:i:s'),
         ];
         if (! empty($data['cover_file'])) {
             $fileId = $this->storeFile($data['cover_file'], 'news_cover', $actorId);
@@ -83,7 +95,9 @@ class CommunicationService
                 $payload['cover_file_id'] = $fileId;
             }
         }
-        if (($payload['workflow_status'] ?? '') === 'published' && empty($current['published_at'])) {
+        if (! empty($data['published_at'])) {
+            $payload['published_at'] = $this->parseDateTime($data['published_at']);
+        } elseif (($payload['workflow_status'] ?? '') === 'published' && empty($current['published_at'])) {
             $payload['published_at'] = date('Y-m-d H:i:s');
             $payload['published_by'] = $actorId;
         }
@@ -108,11 +122,13 @@ class CommunicationService
     public function createCategory(array $data, ?int $actorId = null): int
     {
         $name = trim((string) ($data['name'] ?? ''));
+        $slug = ! empty($data['slug']) ? url_title(strtolower(trim((string) $data['slug'])), '-', true) : $this->newsCategories->generateUniqueSlug($name);
+        $isActive = array_key_exists('is_active', $data) ? (! empty($data['is_active']) ? 1 : 0) : 1;
         $id = (int) $this->newsCategories->insert([
             'name'        => $name,
-            'slug'        => $this->newsCategories->generateUniqueSlug($name),
+            'slug'        => $slug,
             'description' => (string) ($data['description'] ?? ''),
-            'is_active'   => isset($data['is_active']) ? 1 : 0,
+            'is_active'   => $isActive,
             'created_at'  => date('Y-m-d H:i:s'),
             'updated_at'  => date('Y-m-d H:i:s'),
         ], true);
@@ -122,11 +138,14 @@ class CommunicationService
 
     public function updateCategory(int $id, array $data, ?int $actorId = null): bool
     {
+        $name = trim((string) ($data['name'] ?? ''));
+        $slug = ! empty($data['slug']) ? url_title(strtolower(trim((string) $data['slug'])), '-', true) : $this->newsCategories->generateUniqueSlug($name !== '' ? $name : 'kategori', $id);
+        $isActive = array_key_exists('is_active', $data) ? (! empty($data['is_active']) ? 1 : 0) : 0;
         $ok = (bool) $this->newsCategories->update($id, [
-            'name'        => trim((string) ($data['name'] ?? '')),
-            'slug'        => $this->newsCategories->generateUniqueSlug(trim((string) ($data['name'] ?? 'kategori')), $id),
+            'name'        => $name,
+            'slug'        => $slug,
             'description' => (string) ($data['description'] ?? ''),
-            'is_active'   => isset($data['is_active']) ? 1 : 0,
+            'is_active'   => $isActive,
             'updated_at'  => date('Y-m-d H:i:s'),
         ]);
         if ($ok) {
@@ -312,6 +331,24 @@ class CommunicationService
             throw new \InvalidArgumentException('Status kehadiran tidak valid.');
         }
         $now = date('Y-m-d H:i:s');
+        $existing = $this->attendance->where('event_registration_id', $registrationId)->first();
+        if ($existing) {
+            $ok = (bool) $this->attendance->update($existing['id'], [
+                'status'      => $status,
+                'recorded_by' => $actorId,
+                'recorded_at' => $now,
+                'notes'       => $notes,
+                'updated_at'  => $now,
+            ]);
+            if ($ok) {
+                $this->audit->log($actorId, 'attendance.update', 'attendances', 'attendance', (int) $existing['id'], [
+                    'registration_id' => $registrationId,
+                    'status'          => $status,
+                ]);
+            }
+            return $ok;
+        }
+
         $ok = (bool) $this->attendance->insert([
             'event_registration_id' => $registrationId,
             'status'               => $status,

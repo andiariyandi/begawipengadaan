@@ -9,11 +9,11 @@ Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 ```text
 README.md
 directory-tree.md
-docs/architecture/route-contract.md
-docs/architecture/ui-boundary.md
-docs/architecture/auth-and-rbac.md
-docs/architecture/workflow-contract.md
-docs/architecture/file-storage-policy.md
+dokumen/route-contract.md
+dokumen/ui-boundary.md
+dokumen/auth-and-rbac.md
+dokumen/workflow-contract.md
+dokumen/file-storage-policy.md
 ```
 
 Dokumen ini menjadi dasar implementasi migration, model, entity, service, validation, seeder, database test, ERD, dan data dictionary.
@@ -1160,13 +1160,18 @@ UNIQUE(slug)
 | `id` | Primary key |
 | `category_id` | FK news_categories nullable |
 | `title`, `slug` | Identitas publik |
-| `summary`, `content` | Konten |
+| `summary`, `content` | Konten berita utama |
+| `reading_time` | Estimasi waktu baca (misal: "3 Menit") |
+| `tags` | Tag pencarian / kata kunci |
+| `source_name`, `source_url` | Sumber berita / referensi |
 | `cover_file_id` | FK file_assets nullable |
-| `workflow_status` | Publication workflow |
-| `visibility` | Visibility |
+| `cover_caption` | Keterangan/caption foto cover |
+| `is_featured` | Flag berita unggulan (Top 5 Featured Carousel) |
+| `workflow_status` | Publication workflow (`draft`, `in_review`, `published`, `archived`) |
+| `visibility` | Visibility (`public`, `internal`) |
 | `published_at`, `scheduled_at` | Waktu publikasi |
-| `view_count` | Counter terkendali |
-| `author_id`, `reviewed_by`, `published_by` | Actor metadata |
+| `view_count` | Counter terkendali (increment otomatis saat dibaca di publik) |
+| `author_id`, `reviewed_by`, `published_by` | Actor metadata (FK users) |
 | `created_at`, `updated_at`, `deleted_at` | Timestamp |
 
 Constraint/index:
@@ -1174,6 +1179,7 @@ Constraint/index:
 ```text
 UNIQUE(slug)
 INDEX(category_id, workflow_status, visibility, published_at)
+INDEX(is_featured, workflow_status, published_at)
 ```
 
 ### `events`
@@ -1186,17 +1192,20 @@ INDEX(category_id, workflow_status, visibility, published_at)
 | `mode` | `online`, `offline`, `hybrid` |
 | `status` | `draft`, `coming_soon`, `open_registration`, `full`, `finished`, `cancelled` |
 | `visibility` | Visibility public/internal |
-| `summary`, `description` | Konten |
+| `summary`, `description` | Konten ringkasan dan deskripsi lengkap |
 | `cover_file_id` | FK file_assets nullable |
 | `start_at`, `end_at` | Waktu event |
 | `location` | Lokasi offline nullable |
 | `meeting_url` | URL online tervalidasi nullable |
 | `registration_open_at`, `registration_close_at` | Periode registrasi |
-| `capacity` | Kuota nullable |
-| `waitlist_enabled` | Boolean |
-| `certificate_enabled` | Boolean |
-| `created_by`, `updated_by` | Actor metadata |
-| `cancelled_by`, `cancelled_at`, `cancellation_reason` | Metadata pembatalan |
+| `capacity` | Kuota peserta utama |
+| `waitlist_enabled` | Boolean status fitur antrean jika kuota terpenuhi |
+| `certificate_enabled` | Boolean penerbitan e-sertifikat otomatis |
+| `attendance_code` | Kode presensi 6-digit acak (tersimpan untuk display admin) |
+| `attendance_code_hash` | Hash SHA-256 kode presensi untuk verifikasi check-in cepat |
+| `attendance_open_at`, `attendance_close_at` | Jendela waktu presensi mandiri dibuka dan ditutup |
+| `created_by`, `updated_by` | Actor metadata (FK users) |
+| `cancelled_by`, `cancelled_at`, `cancellation_reason` | Metadata pembatalan event |
 | `created_at`, `updated_at`, `deleted_at` | Timestamp |
 
 Constraint/index:
@@ -1205,6 +1214,7 @@ Constraint/index:
 UNIQUE(slug)
 INDEX(status, visibility, start_at)
 INDEX(registration_open_at, registration_close_at)
+INDEX(attendance_code)
 ```
 
 ### `event_registrations`
@@ -1215,8 +1225,8 @@ INDEX(registration_open_at, registration_close_at)
 | `event_id` | FK events |
 | `user_id` | FK users |
 | `status` | `registered`, `waitlisted`, `cancelled`, `rejected` |
-| `registered_at`, `cancelled_at`, `promoted_at` | Timestamp |
-| `status_reason` | Alasan bila relevan |
+| `registered_at`, `cancelled_at`, `promoted_at` | Timestamp registrasi, pembatalan, dan promosi otomatis dari waitlist |
+| `status_reason` | Alasan pembatalan atau penolakan |
 | `created_at`, `updated_at` | Timestamp |
 
 Constraint/index:
@@ -1234,9 +1244,9 @@ INDEX(user_id, status)
 | `id` | Primary key |
 | `event_registration_id` | FK event_registrations |
 | `status` | `present`, `absent`, `excused` |
-| `recorded_by` | FK users |
-| `recorded_at` | Timestamp |
-| `notes` | Catatan aman |
+| `recorded_by` | FK users (nullable jika melalui kode presensi mandiri) |
+| `recorded_at` | Timestamp kehadiran |
+| `notes` | Catatan kehadiran |
 | `created_at`, `updated_at` | Timestamp |
 
 Constraint:
@@ -1248,6 +1258,22 @@ UNIQUE(event_registration_id)
 ---
 
 ## Sertifikat Digital
+
+### `certificate_sequences`
+
+Tabel sequence counter untuk menjamin penomoran sertifikat digital yang atomik, urut, dan bebas race condition (contoh format: `BPJ-SERT/{TIPE}/{TAHUN}/{BULAN}/{NOMOR_URUT_5_DIGIT}`).
+
+| Kolom utama | Keterangan |
+|---|---|
+| `year` | Tahun penomoran (Primary Key, `SMALLINT UNSIGNED`) |
+| `last_number` | Nomor urut terakhir yang diterbitkan (`INT UNSIGNED`, default: 0) |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint:
+
+```text
+PRIMARY KEY(year)
+```
 
 ### `certificate_templates`
 

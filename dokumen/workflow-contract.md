@@ -8,10 +8,10 @@ Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 
 ```text
 README.md
-directory-tree.md
-docs/architecture/route-contract.md
-docs/architecture/ui-boundary.md
-docs/architecture/auth-and-rbac.md
+dokumen/directory-tree.md
+dokumen/route-contract.md
+dokumen/ui-boundary.md
+dokumen/auth-and-rbac.md
 ```
 
 Workflow berlaku pada registrasi/account lifecycle, profile change, role request, approval, konten Bunga Rampai, regulasi, berita, event, sertifikat, serta file dan export yang terkait proses domain.

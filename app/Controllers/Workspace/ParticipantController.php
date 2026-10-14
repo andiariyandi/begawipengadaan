@@ -1687,7 +1687,7 @@ class ParticipantController extends BaseController
                 ];
             }
 
-            $isModuleCompleted = $isGraduated || ($isModuleUnlocked && $allModLessonsDone && $isQuizCompleted && $isAsgSatisfied);
+            $isModuleCompleted = $isGraduated || ($isModuleUnlocked && $allModLessonsDone);
 
             $modulesTree[] = [
                 'id'           => $mid,
@@ -1855,6 +1855,15 @@ class ParticipantController extends BaseController
                 'class'    => 'btn btn-primary',
                 'disabled' => false,
             ];
+        } elseif ($postTest !== null && ! $postTestCompleted && $allModulesCompleted) {
+            $stateCode = 'post_test_required';
+            $cta = [
+                'label'    => 'Kerjakan Post-Test',
+                'url'      => route_to('workspace.participant.quiz.take', (string) $postTest['id']),
+                'type'     => 'post_test',
+                'class'    => 'btn btn-primary',
+                'disabled' => false,
+            ];
         } elseif ($nextActionItem && $nextActionItem['type'] === 'lesson') {
             $stateCode = 'in_learning';
             $isFirstLesson = ($completedLessonsCount === 0);
@@ -1881,15 +1890,6 @@ class ParticipantController extends BaseController
                 'url'      => route_to('workspace.participant.assignment.submission', (string) $classId) . '?assignment_id=' . $nextActionItem['item']['id'],
                 'type'     => 'assignment',
                 'class'    => 'btn btn-info text-dark',
-                'disabled' => false,
-            ];
-        } elseif ($postTest !== null && ! $postTestCompleted && $allModulesCompleted) {
-            $stateCode = 'post_test_required';
-            $cta = [
-                'label'    => 'Kerjakan Post-Test',
-                'url'      => route_to('workspace.participant.quiz.take', (string) $postTest['id']),
-                'type'     => 'post_test',
-                'class'    => 'btn btn-primary',
                 'disabled' => false,
             ];
         }

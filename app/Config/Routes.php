@@ -9,6 +9,7 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
     $routes->get('file/(:segment)', 'FileController::show/$1', ['as' => 'public.file.show']);
     $routes->get('tentang', 'HomeController::about', ['as' => 'public.about']);
     $routes->get('kontak', 'HomeController::contact', ['as' => 'public.contact']);
+    $routes->post('kontak', 'HomeController::sendContact', ['as' => 'public.contact.send']);
 
     $routes->group('arena-belajar', static function ($routes) {
         $routes->get('/', 'ArenaBelajarController::index', ['as' => 'public.learning.index']);
@@ -71,8 +72,8 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
 
     $routes->group('verifikasi-sertifikat', static function ($routes) {
         $routes->get('/', 'CertificateVerificationController::index', ['as' => 'public.certificate.verify']);
-        $routes->post('hasil', 'CertificateVerificationController::result', ['as' => 'public.certificate.verify.result']);
-        $routes->get('(:segment)', 'CertificateVerificationController::detail/$1', ['as' => 'public.certificate.verify.detail']);
+        $routes->match(['get', 'post'], 'hasil', 'CertificateVerificationController::result', ['as' => 'public.certificate.verify.result']);
+        $routes->get('(:any)', 'CertificateVerificationController::detail/$1', ['as' => 'public.certificate.verify.detail']);
     });
 });
 

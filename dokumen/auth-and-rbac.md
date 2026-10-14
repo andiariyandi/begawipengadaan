@@ -8,9 +8,9 @@ Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 
 ```text
 README.md
-directory-tree.md
-docs/architecture/route-contract.md
-docs/architecture/ui-boundary.md
+dokumen/directory-tree.md
+dokumen/route-contract.md
+dokumen/ui-boundary.md
 ```
 
 Seluruh implementasi Auth dan RBAC wajib mengikuti kontrak ini. Perubahan pada account status, role, permission, filter, route Auth, atau boundary akses harus memperbarui dokumen ini serta dokumen yang terkait secara konsisten.

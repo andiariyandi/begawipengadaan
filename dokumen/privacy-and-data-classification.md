@@ -8,19 +8,19 @@ Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 
 ```text
 README.md
-directory-tree.md
-docs/architecture/route-contract.md
-docs/architecture/ui-boundary.md
-docs/architecture/auth-and-rbac.md
-docs/architecture/workflow-contract.md
-docs/architecture/file-storage-policy.md
-docs/database/database-blueprint.md
-docs/database/database-erd.md
-docs/database/data-dictionary.md
-docs/database/schema-fresh-v4.sql
-docs/domain/registration-policy.md
-docs/domain/assessment-and-certification-rules.md
-docs/domain/regulation-policy.md
+dokumen/directory-tree.md
+dokumen/route-contract.md
+dokumen/ui-boundary.md
+dokumen/auth-and-rbac.md
+dokumen/workflow-contract.md
+dokumen/file-storage-policy.md
+dokumen/database-blueprint.md
+dokumen/database-erd.md
+dokumen/data-dictionary.md
+dokumen/schema-fresh-v4-1.sql
+dokumen/registration-policy.md
+dokumen/assessment-and-certification-rules.md
+dokumen/regulation-policy.md
 ```
 
 ---
@@ -480,7 +480,7 @@ Aturan minimum:
 - Pisahkan query Statistik Publik dari query Government Intelligence detail.
 - Dokumentasikan definisi indikator, periode, sumber, dan transformasi agregasi.
 
-Aturan indikator, threshold, suppression, serta disclosure control dirinci pada `docs/domain/public-statistics-policy.md`.
+Aturan indikator, threshold, suppression, serta disclosure control dirinci pada `dokumen/public-statistics-policy.md`.
 
 ---
 

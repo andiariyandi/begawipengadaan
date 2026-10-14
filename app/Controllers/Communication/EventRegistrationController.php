@@ -12,8 +12,43 @@ class EventRegistrationController extends BaseController
     {
         $eventId = $this->request->getGet('event_id') ? (int) $this->request->getGet('event_id') : null;
         $status  = $this->request->getGet('status') ?: null;
+        $keyword = $this->request->getGet('q') ?: null;
 
-        $items = (new EventRegistrationModel())->listRegistrations($eventId, $status);
+        $page    = max(1, (int) ($this->request->getGet('page') ?? 1));
+        $perPage = 15;
+
+        $model = new EventRegistrationModel();
+        $total = $model->countRegistrations($eventId, $status, $keyword);
+        $totalPages = max(1, (int) ceil($total / $perPage));
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+        $offset = ($page - 1) * $perPage;
+        $items  = $model->listRegistrations($eventId, $status, $keyword, $perPage, $offset);
+
+        $db = db_connect();
+        $stats = [
+            'total'      => (int) $db->table('event_registrations')->countAllResults(),
+            'registered' => (int) $db->table('event_registrations')->where('status', 'registered')->countAllResults(),
+            'attended'   => (int) $db->table('event_registrations')->where('status', 'attended')->countAllResults(),
+            'waiting'    => (int) $db->table('event_registrations')->where('status', 'waiting')->countAllResults(),
+            'cancelled'  => (int) $db->table('event_registrations')->where('status', 'cancelled')->countAllResults(),
+        ];
+
+        $eventsList = $db->table('events')
+            ->select('id, title, start_at')
+            ->where('deleted_at IS NULL', null, false)
+            ->orderBy('start_at', 'DESC')
+            ->get()->getResultArray();
+
+        $pagination = [
+            'page'       => $page,
+            'perPage'    => $perPage,
+            'total'      => $total,
+            'totalPages' => $totalPages,
+            'from'       => $total > 0 ? $offset + 1 : 0,
+            'to'         => min($offset + $perPage, $total),
+        ];
 
         return view('dashboard/communication/registrations/index', [
             'title'         => 'Registrasi Event | Dashboard BegawiPBJ',
@@ -21,8 +56,12 @@ class EventRegistrationController extends BaseController
             'activeMenu'    => 'communication',
             'activeSubmenu' => 'event-registrations',
             'items'         => $items,
+            'stats'         => $stats,
+            'eventsList'    => $eventsList,
             'filterEventId' => $eventId,
             'filterStatus'  => $status,
+            'filterKeyword' => $keyword,
+            'pagination'    => $pagination,
         ]);
     }
 
@@ -46,21 +85,44 @@ class EventRegistrationController extends BaseController
     {
         $svc = new CommunicationService();
         $newStatus = (string) $this->request->getPost('status');
+        $redirectUrl = (string) $this->request->getPost('redirect_to');
         try {
             $svc->updateRegistrationStatus((int) $id, $newStatus, (int) session()->get('user_id'));
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+
+        if (! empty($redirectUrl)) {
+            return redirect()->to($redirectUrl)->with('success', 'Status registrasi berhasil diperbarui ke ' . esc($newStatus) . '.');
+        }
+
         return redirect()->to(route_to('dashboard.communication.event-registrations.detail', (string) $id))
-            ->with('success', 'Status registrasi diperbarui.');
+            ->with('success', 'Status registrasi berhasil diperbarui.');
     }
 
     public function waitlistAndCancellation()
     {
+        $db = db_connect();
         $model = new EventRegistrationModel();
-        $waiting = $model->listRegistrations(null, 'waiting');
-        $cancelled = $model->listRegistrations(null, 'cancelled');
-        $promoted = $model->listRegistrations(null, 'promoted');
+        $keyword = $this->request->getGet('q') ?: null;
+        $eventId = $this->request->getGet('event_id') ? (int) $this->request->getGet('event_id') : null;
+        $tab     = $this->request->getGet('tab') ?: 'waiting';
+
+        $waiting   = $model->listRegistrations($eventId, 'waiting', $keyword);
+        $cancelled = $model->listRegistrations($eventId, 'cancelled', $keyword);
+        $promoted  = $model->listRegistrations($eventId, 'promoted', $keyword);
+
+        $eventsList = $db->table('events')
+            ->select('id, title, start_at')
+            ->where('deleted_at IS NULL', null, false)
+            ->orderBy('start_at', 'DESC')
+            ->get()->getResultArray();
+
+        $stats = [
+            'waiting'   => count($waiting),
+            'cancelled' => count($cancelled),
+            'promoted'  => count($promoted),
+        ];
 
         return view('dashboard/communication/waitlist_cancellations/index', [
             'title'         => 'Waitlist dan Pembatalan | Dashboard BegawiPBJ',
@@ -70,6 +132,11 @@ class EventRegistrationController extends BaseController
             'waiting'       => $waiting,
             'cancelled'     => $cancelled,
             'promoted'      => $promoted,
+            'stats'         => $stats,
+            'eventsList'    => $eventsList,
+            'activeTab'     => $tab,
+            'filterEventId' => $eventId,
+            'filterKeyword' => $keyword,
         ]);
     }
 }

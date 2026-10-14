@@ -4,18 +4,18 @@
 
 Dokumen ini mendefinisikan struktur data BegawiPBJ pada level tabel dan kolom. Data dictionary menjelaskan tujuan tabel, kolom, tipe data, nullable, default, primary key, foreign key, unique/index/check constraint, nilai terkendali, klasifikasi data, validasi, serta aturan audit dan retensi utama.
 
-Dokumen ini merupakan turunan operasional dari `docs/database/database-blueprint.md` dan `docs/database/database-erd.md`. Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
+Dokumen ini merupakan turunan operasional dari `dokumen/database-blueprint.md` dan `dokumen/database-erd.md`. Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 
 ```text
 README.md
-directory-tree.md
-docs/architecture/route-contract.md
-docs/architecture/ui-boundary.md
-docs/architecture/auth-and-rbac.md
-docs/architecture/workflow-contract.md
-docs/architecture/file-storage-policy.md
-docs/database/database-blueprint.md
-docs/database/database-erd.md
+dokumen/directory-tree.md
+dokumen/route-contract.md
+dokumen/ui-boundary.md
+dokumen/auth-and-rbac.md
+dokumen/workflow-contract.md
+dokumen/file-storage-policy.md
+dokumen/database-blueprint.md
+dokumen/database-erd.md
 ```
 
 Tipe data, constraint, dan relasi pada dokumen ini adalah baseline implementasi migration. Jika database engine memiliki batasan terhadap suatu check/partial unique constraint, migration harus menggunakan kombinasi constraint, index, transaction, dan service validation yang menghasilkan perilaku bisnis yang setara.

@@ -21,25 +21,243 @@ class EventPublicController extends BaseController
         $this->auditService = new AuditService();
     }
 
+    /**
+     * Main Event & Agenda index with filters, pagination, and KPI ribbon
+     */
     public function index(): string
     {
-        return $this->loadCatalog('Event dan Agenda PBJ', 'events', 'Agenda pelatihan, forum kolaboratif, dan kegiatan ekosistem Pengadaan Barang/Jasa Provinsi Lampung.');
+        return $this->renderCatalog('all');
     }
 
+    /**
+     * Upcoming agenda view
+     */
     public function agenda(): string
     {
-        return $this->loadCatalog('Agenda PBJ Mendatang', 'events', 'Jadwal kegiatan PBJ yang akan datang dan sedang berlangsung.');
+        return $this->renderCatalog('upcoming');
     }
 
+    /**
+     * Monthly calendar / timeline overview
+     */
     public function calendar(): string
     {
-        return $this->loadCatalog('Kalender Kegiatan PBJ', 'events', 'Kalender agenda pembelajaran dan kolaborasi publik.');
+        return $this->renderCatalog('calendar');
     }
 
+    /**
+     * Shared catalog renderer with full pagination and filtering
+     */
+    private function renderCatalog(string $viewMode = 'all'): string
+    {
+        $keyword  = trim((string) ($this->request->getGet('q') ?: ''));
+        $type     = trim((string) ($this->request->getGet('tipe') ?: $this->request->getGet('type') ?: ''));
+        $mode     = trim((string) ($this->request->getGet('mode') ?: ''));
+        $timeline = trim((string) ($this->request->getGet('timeline') ?: ''));
+        $page     = max(1, (int) ($this->request->getGet('page') ?: 1));
+        $perPage  = 6;
+
+        if ($viewMode === 'upcoming' && empty($timeline)) {
+            $timeline = 'upcoming';
+        }
+
+        $now = date('Y-m-d H:i:s');
+
+        // Base builder for events
+        $builder = $this->db->table('events e')
+            ->select('e.*, COALESCE(u.name, u.username, "Biro PBJ Setda Lampung") AS creator_name, fa.path AS cover_path')
+            ->join('users u', 'u.id = e.created_by', 'left')
+            ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
+            ->where('e.deleted_at', null)
+            ->where('e.visibility', 'public');
+
+        // Type filter
+        if (! empty($type)) {
+            $builder->where('e.type', $type);
+        }
+
+        // Mode filter (online, offline, hybrid)
+        if (! empty($mode)) {
+            $builder->where('e.mode', $mode);
+        }
+
+        // Timeline filter
+        if ($timeline === 'upcoming') {
+            $builder->where('e.end_at >=', $now);
+        } elseif ($timeline === 'past') {
+            $builder->where('e.end_at <', $now);
+        }
+
+        // Keyword filter
+        if (! empty($keyword)) {
+            $builder->groupStart()
+                ->like('e.title', $keyword)
+                ->orLike('e.summary', $keyword)
+                ->orLike('e.description', $keyword)
+                ->orLike('e.location', $keyword)
+                ->groupEnd();
+        }
+
+        // Count total matching items
+        $countBuilder = clone $builder;
+        $totalItems   = (int) $countBuilder->countAllResults(false);
+        $totalPages   = max(1, (int) ceil($totalItems / $perPage));
+        $currentPage  = min($page, $totalPages);
+        $offset       = ($currentPage - 1) * $perPage;
+
+        // Sorting: upcoming events first by start_at ASC, past by start_at DESC
+        if ($timeline === 'past') {
+            $builder->orderBy('e.start_at', 'DESC');
+        } else {
+            $builder->orderBy('CASE WHEN e.end_at >= "' . $now . '" THEN 0 ELSE 1 END', 'ASC', false)
+                    ->orderBy('e.start_at', 'ASC');
+        }
+
+        $rawItems = $builder->limit($perPage, $offset)->get()->getResultArray();
+
+        // Format event items
+        $items = array_map(function ($row) use ($now) {
+            $start = ! empty($row['start_at']) ? strtotime($row['start_at']) : time();
+            $end   = ! empty($row['end_at']) ? strtotime($row['end_at']) : $start;
+
+            $regCount = $this->db->table('event_registrations')
+                ->where('event_id', $row['id'])
+                ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
+                ->countAllResults();
+
+            $capacity    = (int) ($row['capacity'] ?? 0);
+            $isUnlimited = ($capacity <= 0);
+            $remaining   = $isUnlimited ? null : max(0, $capacity - $regCount);
+            $isPast      = strtotime($row['end_at']) < strtotime($now);
+
+            return [
+                'id'                   => (int) $row['id'],
+                'title'                => $row['title'],
+                'slug'                 => $row['slug'],
+                'type'                 => $row['type'],
+                'type_label'           => $this->formatTypeLabel($row['type']),
+                'mode'                 => $row['mode'],
+                'mode_label'           => $this->formatModeLabel($row['mode']),
+                'status'               => $row['status'],
+                'status_label'         => $this->formatStatusLabel($row['status'], $isPast),
+                'summary'              => $row['summary'] ?: mb_strimwidth(strip_tags((string) $row['description']), 0, 150, '...'),
+                'description'          => $row['description'],
+                'start_at'             => $row['start_at'],
+                'end_at'               => $row['end_at'],
+                'start_date'           => date('d M Y', $start),
+                'start_day'            => date('d', $start),
+                'start_month'          => date('M', $start),
+                'start_year'           => date('Y', $start),
+                'time_range'           => date('H:i', $start) . ' - ' . date('H:i', $end) . ' WIB',
+                'location'             => $row['location'] ?: ($row['mode'] === 'online' ? 'Daring via Zoom / Platform Online' : 'Bandar Lampung'),
+                'meeting_url'          => $row['meeting_url'] ?? '',
+                'capacity'             => $capacity,
+                'is_unlimited'         => $isUnlimited,
+                'registered'           => $regCount,
+                'remaining'            => $remaining,
+                'is_past'              => $isPast,
+                'waitlist_enabled'     => (int) ($row['waitlist_enabled'] ?? 0),
+                'certificate_enabled'  => (int) ($row['certificate_enabled'] ?? 0),
+                'registration_open_at' => $row['registration_open_at'],
+                'registration_close_at'=> $row['registration_close_at'],
+                'cover_url'            => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
+            ];
+        }, $rawItems);
+
+        // Spotlight Event (Closest upcoming open event on page 1 without search)
+        $spotlightEvent = null;
+        if ($currentPage === 1 && empty($keyword) && empty($type) && empty($mode) && ! empty($items)) {
+            // Find first upcoming open event
+            foreach ($items as $idx => $it) {
+                if (! $it['is_past'] && in_array($it['status'], ['open_registration', 'coming_soon', 'published'])) {
+                    $spotlightEvent = $it;
+                    // Remove spotlight from list so it doesn't duplicate
+                    array_splice($items, $idx, 1);
+                    break;
+                }
+            }
+        }
+
+        // Live KPI Metrics (strictly authentic database counts, zero dummy data)
+        $stats = [
+            'total_events'      => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->countAllResults(),
+            'upcoming_events'   => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('end_at >=', $now)->countAllResults(),
+            'open_registration' => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('status', 'open_registration')->countAllResults(),
+            'total_attendees'   => (int) $this->db->table('event_registrations')->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])->countAllResults(),
+        ];
+
+        // Type counts for all 8 supported dashboard event types
+        $allEventTypes = ['webinar', 'bimtek', 'workshop', 'sosialisasi', 'seminar', 'pelatihan', 'rakor', 'klinik'];
+        $typeCounts = [];
+        foreach ($allEventTypes as $tKey) {
+            $typeCounts[$tKey] = (int) $this->db->table('events')
+                ->where('deleted_at', null)
+                ->where('visibility', 'public')
+                ->where('type', $tKey)
+                ->countAllResults();
+        }
+
+        // Upcoming Top 3 Events for Sidebar
+        $upcomingSidebar = $this->db->table('events e')
+            ->select('e.title, e.slug, e.start_at, e.mode, e.type, e.location, e.certificate_enabled')
+            ->where('e.deleted_at', null)
+            ->where('e.visibility', 'public')
+            ->where('e.end_at >=', $now)
+            ->orderBy('e.start_at', 'ASC')
+            ->limit(3)
+            ->get()->getResultArray();
+
+        // Calendar grouped events for calendar tab view
+        $calendarGrouped = [];
+        if ($viewMode === 'calendar') {
+            $allCalendarEvents = $this->db->table('events e')
+                ->select('e.id, e.title, e.slug, e.start_at, e.end_at, e.type, e.mode, e.location, e.status, e.certificate_enabled')
+                ->where('e.deleted_at', null)
+                ->where('e.visibility', 'public')
+                ->orderBy('e.start_at', 'ASC')
+                ->get()->getResultArray();
+
+            foreach ($allCalendarEvents as $ce) {
+                $monthKey = date('F Y', strtotime($ce['start_at']));
+                $calendarGrouped[$monthKey][] = $ce;
+            }
+        }
+
+        $pageTitle = match ($viewMode) {
+            'upcoming' => 'Agenda PBJ Mendatang',
+            'calendar' => 'Kalender Kegiatan PBJ',
+            default    => 'Event & Agenda PBJ Lampung',
+        };
+
+        return view('landing/pages/events', [
+            'title'            => $pageTitle . ' | BegawiPBJ Provinsi Lampung',
+            'metaDescription'  => 'Jadwal bimbingan teknis, webinar nasional, workshop probity audit, dan agenda kolaborasi pengadaan barang dan jasa Pemerintah Provinsi Lampung.',
+            'pageTitle'        => $pageTitle,
+            'viewMode'         => $viewMode,
+            'items'            => $items,
+            'spotlightEvent'   => $spotlightEvent,
+            'totalItems'       => $totalItems,
+            'currentPage'      => $currentPage,
+            'totalPages'       => $totalPages,
+            'perPage'          => $perPage,
+            'keyword'          => $keyword,
+            'selectedType'     => $type,
+            'selectedMode'     => $mode,
+            'selectedTimeline' => $timeline,
+            'stats'            => $stats,
+            'typeCounts'       => $typeCounts,
+            'upcomingSidebar'  => $upcomingSidebar,
+            'calendarGrouped'  => $calendarGrouped,
+        ]);
+    }
+
+    /**
+     * Event Detail page with countdown, rundown, speaker info, and registration widget
+     */
     public function detail(string $slug): string
     {
         $event = $this->db->table('events e')
-            ->select('e.*, u.name AS creator_name, fa.path AS cover_path')
+            ->select('e.*, COALESCE(u.name, u.username, "Biro Pengadaan Barang dan Jasa Provinsi Lampung") AS creator_name, fa.path AS cover_path')
             ->join('users u', 'u.id = e.created_by', 'left')
             ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
             ->where('e.slug', $slug)
@@ -47,59 +265,120 @@ class EventPublicController extends BaseController
             ->get()->getRowArray();
 
         if (! $event) {
-            throw PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
+            throw PageNotFoundException::forPageNotFound('Event atau agenda tidak ditemukan: ' . esc($slug));
         }
 
+        $now       = time();
+        $startTime = ! empty($event['start_at']) ? strtotime($event['start_at']) : $now;
+        $endTime   = ! empty($event['end_at']) ? strtotime($event['end_at']) : $startTime;
+        $isPast    = $endTime < $now;
+        $isOngoing = ($startTime <= $now && $endTime >= $now);
+
+        // Registration count
         $regCount = $this->db->table('event_registrations')
             ->where('event_id', $event['id'])
-            ->whereIn('status', ['registered', 'confirmed'])
+            ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
             ->countAllResults();
 
-        $userId = (int) session()->get('user_id');
-        $isRegistered = false;
+        $capacity    = (int) ($event['capacity'] ?? 0);
+        $isUnlimited = ($capacity <= 0);
+        $remaining   = $isUnlimited ? null : max(0, $capacity - $regCount);
+
+        // Check if user is logged in and already registered
+        $userId         = (int) session()->get('user_id');
+        $isRegistered   = false;
+        $userRegData    = null;
+        $userAttendance = null;
+
         if ($userId > 0) {
-            $isRegistered = $this->db->table('event_registrations')
+            $userRegData = $this->db->table('event_registrations')
                 ->where(['event_id' => $event['id'], 'user_id' => $userId])
-                ->whereIn('status', ['registered', 'confirmed'])
-                ->countAllResults() > 0;
+                ->get()->getRowArray();
+            $isRegistered = ! empty($userRegData) && in_array($userRegData['status'], ['registered', 'attended', 'confirmed', 'promoted', 'waitlist']);
+
+            if ($userRegData) {
+                $userAttendance = $this->db->table('attendances')
+                    ->where('event_registration_id', $userRegData['id'])
+                    ->get()->getRowArray();
+            }
         }
 
-        $startDate = ! empty($event['start_at']) ? date('d F Y', strtotime($event['start_at'])) : date('d F Y');
-        $startTime = ! empty($event['start_at']) && ! empty($event['end_at'])
-            ? date('H:i', strtotime($event['start_at'])) . ' - ' . date('H:i', strtotime($event['end_at'])) . ' WIB'
-            : '09:00 - 12:00 WIB';
+        // Registration window checks
+        $regOpenAt  = ! empty($event['registration_open_at']) ? strtotime($event['registration_open_at']) : null;
+        $regCloseAt = ! empty($event['registration_close_at']) ? strtotime($event['registration_close_at']) : null;
 
-        $locationLabel = match ($event['mode'] ?? 'online') {
-            'offline' => ($event['location'] ?: 'Bandar Lampung') . ' (Tatap Muka)',
-            'hybrid'  => ($event['location'] ?: 'Bandar Lampung') . ' & Daring (Hybrid)',
-            default   => 'Daring / Online (Tautan disediakan setelah terdaftar)',
-        };
+        $isRegOpen = true;
+        if ($regOpenAt && $now < $regOpenAt) {
+            $isRegOpen = false;
+        }
+        if ($regCloseAt && $now > $regCloseAt) {
+            $isRegOpen = false;
+        }
+        if ($isPast || $event['status'] === 'cancelled') {
+            $isRegOpen = false;
+        }
 
-        return view('landing/pages/public_detail', [
-            'title'           => $event['title'] . ' | BegawiPBJ',
+        // Attendance / Presensi session active check
+        $attOpenAt      = ! empty($event['attendance_open_at']) ? strtotime($event['attendance_open_at']) : null;
+        $attCloseAt     = ! empty($event['attendance_close_at']) ? strtotime($event['attendance_close_at']) : null;
+        $isPresensiOpen = false;
+        if (! empty($event['attendance_code']) && $attOpenAt !== null) {
+            if ($attOpenAt <= $now && ($attCloseAt === null || $attCloseAt > $now)) {
+                $isPresensiOpen = true;
+            }
+        }
+
+        // Related upcoming events
+        $relatedEvents = $this->db->table('events e')
+            ->select('e.id, e.title, e.slug, e.start_at, e.end_at, e.type, e.mode, e.location, e.certificate_enabled, fa.path AS cover_path')
+            ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
+            ->where('e.deleted_at', null)
+            ->where('e.visibility', 'public')
+            ->where('e.id !=', $event['id'])
+            ->where('e.end_at >=', date('Y-m-d H:i:s'))
+            ->orderBy('e.start_at', 'ASC')
+            ->limit(3)
+            ->get()->getResultArray();
+
+        return view('landing/pages/event_detail', [
+            'title'           => $event['title'] . ' | Event PBJ Lampung',
+            'metaDescription' => $event['summary'] ?: ('Jadwal dan pendaftaran resmi: ' . $event['title']),
             'pageTitle'       => 'Detail Event & Agenda',
-            'itemTitle'       => $event['title'],
-            'category'        => 'Event ' . ucfirst($event['type'] ?? 'PBJ'),
-            'description'     => $event['summary'] ?: ($startDate . ' · ' . $startTime),
-            'content'         => $event['description'] ?? '',
-            'authorLabel'     => $event['creator_name'] ?? 'Biro Pengadaan Barang dan Jasa Provinsi Lampung',
-            'dateLabel'       => $startDate . ' (' . $startTime . ')',
-            'locationLabel'   => $locationLabel,
-            'statusLabel'     => ucfirst($event['status'] ?? 'Open'),
-            'coverUrl'        => ! empty($event['cover_path']) ? base_url($event['cover_path']) : null,
             'event'           => $event,
+            'typeLabel'       => $this->formatTypeLabel($event['type']),
+            'modeLabel'       => $this->formatModeLabel($event['mode']),
+            'statusLabel'     => $this->formatStatusLabel($event['status'], $isPast),
+            'startTime'       => $startTime,
+            'endTime'         => $endTime,
+            'isPast'          => $isPast,
+            'isOngoing'       => $isOngoing,
             'registeredCount' => $regCount,
+            'capacity'        => $capacity,
+            'isUnlimited'     => $isUnlimited,
+            'remainingSeats'  => $remaining,
             'isRegistered'    => $isRegistered,
-            'backUrl'         => 'event',
+            'userRegData'     => $userRegData,
+            'userAttendance'  => $userAttendance,
+            'isRegOpen'       => $isRegOpen,
+            'regOpenAt'       => $regOpenAt,
+            'regCloseAt'      => $regCloseAt,
+            'isPresensiOpen'  => $isPresensiOpen,
+            'attOpenAt'       => $attOpenAt,
+            'attCloseAt'      => $attCloseAt,
+            'relatedEvents'   => $relatedEvents,
+            'shareUrl'        => site_url('event/' . $event['slug']),
         ]);
     }
 
+    /**
+     * Handle user event registration
+     */
     public function register(string $slug)
     {
         $userId = (int) session()->get('user_id');
         if ($userId < 1 || session()->get('isLoggedIn') !== true) {
-            session()->set('redirect_url', current_url());
-            return redirect()->to(site_url('masuk'))->with('error', 'Silakan masuk ke akun Anda terlebih dahulu untuk mendaftar event.');
+            session()->set('redirect_url', site_url('event/' . $slug));
+            return redirect()->to(site_url('masuk'))->with('error', 'Silakan masuk ke akun Anda terlebih dahulu untuk mendaftar kegiatan ini.');
         }
 
         $event = $this->db->table('events')->where(['slug' => $slug, 'deleted_at' => null])->get()->getRowArray();
@@ -107,9 +386,15 @@ class EventPublicController extends BaseController
             throw PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
         }
 
-        // Check if registration is open
+        // Check if registration window is closed
         if (! empty($event['registration_close_at']) && strtotime($event['registration_close_at']) < time()) {
             return redirect()->back()->with('error', 'Pendaftaran event ini sudah ditutup.');
+        }
+        if (! empty($event['registration_open_at']) && strtotime($event['registration_open_at']) > time()) {
+            return redirect()->back()->with('error', 'Pendaftaran event ini belum dibuka.');
+        }
+        if (strtotime($event['end_at']) < time()) {
+            return redirect()->back()->with('error', 'Kegiatan ini telah selesai diselenggarakan.');
         }
 
         // Check if already registered
@@ -121,14 +406,23 @@ class EventPublicController extends BaseController
             return redirect()->back()->with('error', 'Anda sudah terdaftar pada kegiatan ini.');
         }
 
-        // Check capacity
+        // Check capacity & waitlist
         $currentCount = $this->db->table('event_registrations')
             ->where('event_id', $event['id'])
-            ->whereIn('status', ['registered', 'confirmed'])
+            ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
             ->countAllResults();
 
-        $capacity = (int) ($event['capacity'] ?? 100);
-        $status = ($currentCount >= $capacity) ? 'waitlist' : 'registered';
+        $capacity    = (int) ($event['capacity'] ?? 0);
+        $isUnlimited = ($capacity <= 0);
+
+        if (! $isUnlimited && $currentCount >= $capacity) {
+            if (empty($event['waitlist_enabled'])) {
+                return redirect()->back()->with('error', 'Mohon maaf, kuota peserta telah terpenuhi dan antrian waitlist tidak dibuka untuk kegiatan ini.');
+            }
+            $status = 'waitlist';
+        } else {
+            $status = 'registered';
+        }
 
         $now = date('Y-m-d H:i:s');
         $this->db->table('event_registrations')->insert([
@@ -146,42 +440,54 @@ class EventPublicController extends BaseController
             'event_registration',
             (string) $this->db->insertID(),
             null,
-            ['event_id' => $event['id'], 'event_title' => $event['title']]
+            ['event_id' => $event['id'], 'event_title' => $event['title'], 'status' => $status]
         );
 
         $msg = ($status === 'waitlist')
-            ? 'Kuota utama penuh. Anda terdaftar dalam daftar tunggu (waitlist).'
-            : 'Pendaftaran event berhasil! Sampai jumpa di kegiatan.';
+            ? 'Kuota utama telah terpenuhi. Anda otomatis tercatat dalam antrian tunggu (waitlist) resmi.'
+            : 'Selamat! Pendaftaran Anda berhasil dikonfirmasi. Simpan jadwal pada kalender Anda.';
 
         return redirect()->back()->with('message', $msg);
     }
 
-    private function loadCatalog(string $pageTitle, string $type, string $description): string
+    private function formatTypeLabel(string $type): string
     {
-        $keyword = $this->request->getGet('q');
-        $rawEvents = $this->eventModel->listEvents(null, $keyword);
+        return match (strtolower($type)) {
+            'webinar'     => 'Webinar',
+            'bimtek'      => 'Bimtek',
+            'workshop'    => 'Workshop',
+            'sosialisasi' => 'Sosialisasi Regulasi',
+            'seminar'     => 'Seminar',
+            'pelatihan'   => 'Pelatihan',
+            'rakor'       => 'Rapat Koordinasi',
+            'klinik'      => 'Klinik Pengadaan',
+            default       => ucfirst($type),
+        };
+    }
 
-        $items = [];
-        foreach ($rawEvents as $e) {
-            $start = ! empty($e['start_at']) ? strtotime($e['start_at']) : time();
-            $items[] = [
-                'title'    => $e['title'],
-                'slug'     => $e['slug'],
-                'text'     => $e['summary'] ?: ($e['location'] ?: 'Bandar Lampung'),
-                'date'     => date('d M Y', $start),
-                'day'      => date('d', $start),
-                'month'    => date('M', $start),
-                'location' => $e['location'] ?: 'Bandar Lampung · Daring',
-                'time'     => date('H.i', $start) . ' WIB',
-            ];
+    private function formatModeLabel(string $mode): string
+    {
+        return match (strtolower($mode)) {
+            'online'  => 'Daring (Online)',
+            'offline' => 'Tatap Muka (Luring)',
+            'hybrid'  => 'Hybrid (Luring & Daring)',
+            default   => ucfirst($mode),
+        };
+    }
+
+    private function formatStatusLabel(string $status, bool $isPast): string
+    {
+        if ($isPast) {
+            return 'Selesai';
         }
-
-        return view('landing/pages/public_catalog', [
-            'title'       => $pageTitle . ' | BegawiPBJ',
-            'pageTitle'   => $pageTitle,
-            'catalogType' => $type,
-            'description' => $description,
-            'items'       => $items,
-        ]);
+        return match (strtolower($status)) {
+            'open_registration' => 'Pendaftaran Dibuka',
+            'coming_soon'       => 'Segera Dibuka',
+            'published'         => 'Terjadwal',
+            'full'              => 'Kuota Penuh',
+            'finished'          => 'Selesai',
+            'cancelled'         => 'Dibatalkan',
+            default             => 'Terjadwal',
+        };
     }
 }

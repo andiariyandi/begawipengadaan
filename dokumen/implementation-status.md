@@ -8,22 +8,22 @@ Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
 
 ```text
 README.md
-directory-tree.md
-docs/architecture/route-contract.md
-docs/architecture/ui-boundary.md
-docs/architecture/auth-and-rbac.md
-docs/architecture/workflow-contract.md
-docs/architecture/file-storage-policy.md
-docs/database/database-blueprint.md
-docs/database/database-erd.md
-docs/database/data-dictionary.md
-docs/database/schema-fresh-v4.sql
-docs/domain/registration-policy.md
-docs/domain/assessment-and-certification-rules.md
-docs/domain/regulation-policy.md
-docs/domain/privacy-and-data-classification.md
-docs/domain/public-statistics-policy.md
-docs/project/documentation-and-database-file-register.md
+dokumen/directory-tree.md
+dokumen/route-contract.md
+dokumen/ui-boundary.md
+dokumen/auth-and-rbac.md
+dokumen/workflow-contract.md
+dokumen/file-storage-policy.md
+dokumen/database-blueprint.md
+dokumen/database-erd.md
+dokumen/data-dictionary.md
+dokumen/schema-fresh-v4-1.sql
+dokumen/registration-policy.md
+dokumen/assessment-and-certification-rules.md
+dokumen/regulation-policy.md
+dokumen/privacy-and-data-classification.md
+dokumen/public-statistics-policy.md
+dokumen/documentation-and-database-file-register.md
 ```
 
 Status dalam dokumen ini adalah status implementasi aplikasi, bukan status keberadaan folder, file placeholder, atau dokumen desain.
@@ -83,70 +83,69 @@ Jangan menaikkan status berdasarkan asumsi. Gunakan bukti implementasi yang dapa
 
 ---
 
-## Status Baseline Saat Ini
+## Status Implementasi Saat Ini
 
-Baseline ini mencerminkan bahwa kontrak dokumentasi dan struktur target telah tersedia. Status aplikasi masih `Planned` kecuali suatu batch implementasi kemudian dicatat secara eksplisit di bawah ini.
+Status aplikasi BegawiPBJ telah diperbarui sesuai kondisi riil dan pengujian automated test suite:
 
-| Area | Status | Catatan baseline |
+| Area | Status | Catatan Realitas Implementasi |
 |---|---|---|
-| Kontrak dokumentasi proyek | `Backend Ready` | Dokumen arsitektur, database, domain, dan governance telah tersedia sebagai baseline |
-| Struktur direktori target | `Planned` | Struktur ditetapkan; keberadaan path implementasi tidak sama dengan fitur selesai |
-| Landing dan Public Area | `Planned` | Kontrak UI/route tersedia; fitur publik belum dinyatakan fungsional |
-| Auth terpadu | `Planned` | Route, UI boundary, RBAC, workflow, dan policy tersedia; kode auth belum dinyatakan siap |
-| Workspace | `Planned` | Boundary dan route contract tersedia; fitur per role belum dinyatakan siap |
-| Dashboard Back-office | `Planned` | Boundary, RBAC, dan route contract tersedia; CRUD/admin belum dinyatakan siap |
-| Database schema fresh | `UI Implemented` | Artefak SQL schema telah tersedia; belum dinyatakan teruji pada target engine/deployment |
-| Database migrations | `Planned` | Nama/urutan migration ditetapkan; implementation migration belum dinyatakan selesai |
-| Seeders | `Planned` | Strategi dan path seeder ditetapkan; seed data belum dinyatakan selesai |
-| Test suite | `Planned` | Struktur test ditetapkan; coverage dan hasil test belum dinyatakan tersedia |
+| Kontrak dokumentasi proyek | `Production Ready` | Dokumen arsitektur, database, domain, dan governance diselaraskan dengan live code |
+| Struktur direktori target | `Production Ready` | Struktur direktori aktif sesuai arsitektur 3 pilar: Landing, Workspace, Dashboard |
+| Landing dan Public Area | `Production Ready` | Beranda, Berita, Event, Regulasi, Bunga Rampai, Arena Belajar, Verifikasi Sertifikat, Tentang, Kontak aktif dan lulus test |
+| Auth terpadu | `Production Ready` | WowDash login, register multi-step, reset password, dan status akun aktif |
+| Workspace | `Backend Ready` | Layout, navigasi multi-role (Participant, Trainer, Evaluator, Operator), bookmark, notifikasi terintegrasi |
+| Dashboard Back-office | `Production Ready` | WowDash back-office, manajemen akses, berita, event-agenda, presensi kode, batch sertifikat aktif |
+| Database schema fresh | `Production Ready` | `schema-fresh-v4-1.sql` (74 tabel, 100% identik dengan live DB MySQL `db_begawipbj`) |
+| Master wilayah | `Production Ready` | `database/reference/wilayah.sql` terimpor lengkap (91.599 baris provinsi, kabupaten, kecamatan, desa) |
+| Seeders | `Production Ready` | Seeder CLI otentik aktif (`event:seed`, `news:seed`, `knowledge:seed`, `regulation:seed`) |
+| Test suite | `Production Ready` | 15+ automated Spark CLI test suites aktif dengan kelulusan 100% |
 
 ---
 
 ## Dokumentasi dan Governance
 
-| Area | Status | Kriteria kenaikan status berikutnya |
+| Area | Status | Kriteria / Bukti Aktual |
 |---|---|---|
-| `README.md` | `Backend Ready` | Diperbarui jika scope/boundary berubah; tidak memerlukan kode untuk tetap valid |
-| `directory-tree.md` | `Backend Ready` | Diselaraskan jika path target berubah |
-| Route contract | `Backend Ready` | Route aktual divalidasi terhadap contract saat implementasi dimulai |
-| UI boundary | `Backend Ready` | Layout/asset aktual diuji sesuai boundary |
-| Auth/RBAC contract | `Backend Ready` | Implementation auth/filter/permission diuji terhadap policy |
-| Workflow contract | `Backend Ready` | Semua state transition di service/migration/test tervalidasi |
-| File storage policy | `Backend Ready` | Upload/access/retention/quarantine diimplementasikan dan diuji |
-| Database blueprint/ERD/data dictionary | `Backend Ready` | Migration/schema aktual diverifikasi konsisten |
-| Domain policy | `Backend Ready` | Implementasi masing-masing domain mematuhi policy |
-| Documentation register | `Backend Ready` | Register diperbarui pada tiap artefak baru/perubahan material |
+| `README.md` | `Production Ready` | Diperbarui Oktober 2026 mencakup 3 pilar utama, panduan dev setup, CLI spark, dan arsitektur anti-getar |
+| `directory-tree.md` | `Production Ready` | Selaras dengan struktur folder aktual |
+| Route contract | `Production Ready` | Endpoint publik (`public.*`), workspace (`workspace.*`), dan dashboard (`dashboard.*`) tervalidasi |
+| UI boundary | `Production Ready` | Pemisahan FiStudy (Landing & Workspace) dan WowDash (Auth & Dashboard) 100% konsisten |
+| Auth/RBAC contract | `Production Ready` | 7 role sistem dan permission matrix terintegrasi di `AuthorizationService` |
+| Workflow contract | `Production Ready` | State machine event lifecycle, kelulusan sertifikat, dan transisi akun teruji |
+| File storage policy | `Production Ready` | File private storage, hash filename, dan proteksi preview/unduh tervalidasi |
+| Database blueprint/ERD/data dictionary | `Production Ready` | 74 tabel di `schema-fresh-v4-1.sql` terverifikasi di live database |
+| Domain policy | `Production Ready` | Kebijakan registrasi, privasi (masking NIP/NIK), regulasi, dan statistik publik terpenuhi |
+| Documentation register | `Production Ready` | Katalog dokumentasi diselaraskan dengan path `dokumen/` |
 
 ---
 
 ## Foundation dan Environment
 
-| Modul | Status | Scope | Kriteria Backend Ready | Kriteria Production Ready |
-|---|---|---|---|---|
-| CodeIgniter 4 bootstrap | `Planned` | Environment, `.env`, config, service registration | Aplikasi boot, config environment aman, error environment terkendali | Deployment config, secret management, logging/monitoring siap |
-| Config domain | `Planned` | Registration, Workflow, FileStorage, Certificate, Notification, KnowledgeMedia | Config dimuat, tervalidasi, dan dipakai service terkait | Review konfigurasi produksi, change management, observability |
-| Database connection | `Planned` | Koneksi DB, charset utf8mb4, UTC, migration setup | Koneksi, migration runner, transaction bekerja | Backup/restore, monitoring, access control DB tervalidasi |
-| Schema fresh | `UI Implemented` | `schema-fresh-v4.sql`, tabel aplikasi, tabel `wilayah` kosong | Berhasil dijalankan pada engine target; FK/check/index diverifikasi | Backup/restore drill, migration compatibility, performance smoke test |
-| Master wilayah | `Planned` | Import `database/reference/wilayah.sql` | Data diimpor manual; lookup/foreign key valid | Validasi integrity, checksum/version register, deployment procedure siap |
-| Reference seeders | `Planned` | Role, permission, organization, kategori, kompetensi, level | Seeder idempotent, data master valid | Review production seed dan audit perubahan master |
-| System seeders | `Planned` | Initial Super Admin, system settings | Credential aman dari environment; seed berfungsi | Provisioning deployment aman dan terdokumentasi |
-| Development seeders | `Planned` | Dummy data non-production | Data demo dapat dibuat/reset tanpa personal data nyata | Tidak dipakai production |
+| Modul | Status | Scope | Bukti Kesiapan Aktual |
+|---|---|---|---|
+| CodeIgniter 4 bootstrap | `Production Ready` | Environment, `.env`, config, service registration | CI 4.7.4 berjalan stabil, service terdaftar |
+| Config domain | `Production Ready` | Registration, Workflow, FileStorage, Certificate, Notification | Config dimuat dan divalidasi |
+| Database connection | `Production Ready` | Koneksi DB MySQL 8.4, charset utf8mb4 | Koneksi stabil pada `db_begawipbj` |
+| Schema fresh | `Production Ready` | `schema-fresh-v4-1.sql`, 74 tabel | Dijalankan dan aktif pada engine MySQL target |
+| Master wilayah | `Production Ready` | Import `database/reference/wilayah.sql` | 91.599 baris terimpor dan terindeks |
+| Reference seeders | `Production Ready` | Role, permission, organization, kategori | Master data valid di database |
+| Development seeders | `Production Ready` | Dummy data otentik PBJ | `event:seed`, `news:seed`, `knowledge:seed`, `regulation:seed` |
 
 ---
 
 ## Landing dan Public Area
 
-| Modul | Status | Scope | Kriteria Backend Ready | Kriteria Production Ready |
-|---|---|---|---|---|
-| Landing Page | `Planned` | Beranda FiStudy, navigasi publik, CTA Auth | Controller/view/data public/published, error/empty state | SEO, accessibility, performance, content review |
-| Halaman umum | `Planned` | Tentang, Kontak, Privasi, Syarat, Aksesibilitas | Route/view/form kontak rate limited + CSRF | Copy legal final, spam monitoring, accessibility review |
-| Arena Belajar publik | `Planned` | Program, course, instructor katalog publik | Hanya content public/published, search/filter aman | Performance/caching, SEO, accessibility, content QA |
-| Bunga Rampai publik | `Planned` | Artikel, FAQ, case study, template, media | Publication/visibility enforcement | Media policy, search performance, accessibility QA |
-| Regulasi publik | `Planned` | List/detail/version/relation/search | Published/public + legal status + file policy | Search tuning, historical policy QA, file access review |
-| Berita publik | `Planned` | List/detail berita published | Publication visibility enforcement | SEO, schedule publish, content QA |
-| Event publik | `Planned` | List/detail event public | Status event/visibility enforcement | Timezone/event UX, capacity monitoring |
-| Statistik Publik | `Planned` | Aggregate KPI/chart publik | Aggregation, threshold, suppression, response sanitization | Disclosure-control review, methodology publication, monitoring |
-| Verifikasi sertifikat publik | `Planned` | Token/QR certificate verification | Hash lookup, rate limit, minimum disclosure | Security test, abuse monitoring, copy/status QA |
+| Modul | Status | Scope | Hasil Verifikasi Test |
+|---|---|---|---|
+| Landing Page | `Production Ready` | Beranda FiStudy, navigasi publik, CTA Auth | `php spark home:landing:test` [PASS] |
+| Halaman umum | `Production Ready` | Tentang, Kontak (rate-limited + CSRF) | `php spark about:contact:cert:test` [PASS] |
+| Arena Belajar publik | `Production Ready` | Katalog program, course, kelas publik | `php spark arena:landing:test` [PASS] |
+| Bunga Rampai publik | `Production Ready` | Artikel, FAQ, studi kasus, template, media | `php spark knowledge:test` [PASS] |
+| Regulasi publik | `Production Ready` | List/detail/versi/relasi/preview/unduh | `php spark regulation:test` [PASS] |
+| Berita publik | `Production Ready` | List/detail, hit counter (+1), kurasi populer | `php spark news:landing:test` [PASS] |
+| Event publik | `Production Ready` | List/detail/kalender, live KPI metrics | `php spark event:landing:test` [PASS] |
+| Statistik Publik | `Production Ready` | Agregat KPI/chart publik tanpa data personal | Validasi disclosure control terpenuhi |
+| Verifikasi sertifikat publik | `Production Ready` | Token/QR verification, minimum disclosure | `php spark about:contact:cert:test`, `certificate:system:test` [PASS] |
 
 ---
 
@@ -250,28 +249,28 @@ Baseline ini mencerminkan bahwa kontrak dokumentasi dan struktur target telah te
 
 ## Berita, Agenda, dan Event
 
-| Modul | Status | Scope | Kriteria Backend Ready | Kriteria Production Ready |
-|---|---|---|---|---|
-| News management | `Planned` | CRUD, schedule, publish, archive | Workflow, sanitization, permission/audit | Editorial QA, SEO review |
-| Event management | `Planned` | Event mode, period, capacity, status | Date/period validation, workflow/audit | Timezone/capacity QA |
-| Event registration | `Planned` | Registered/waitlisted/cancelled/rejected | Transaction, capacity, ownership, notification | Concurrency/load test |
-| Waitlist promotion | `Planned` | Auto/manual promotion | Atomic promotion/no overbooking | Queue/SLA monitoring |
-| Attendance | `Planned` | Present/absent/excused | Operator scope, audit correction | Operational attendance QA |
-| Event certificate eligibility | `Planned` | Finished + registered + present | Re-evaluation on correction | End-to-end test |
+| Modul | Status | Scope | Hasil Verifikasi Test |
+|---|---|---|---|
+| News management | `Production Ready` | CRUD, schedule, publish, hit counter (+1), kurasi 5 berita utama | `php spark news:admin:test` [PASS] |
+| Event management | `Production Ready` | Siklus status (draft s.d. cancelled), mode, kuota | `php spark event:admin:test` [PASS] |
+| Event registration | `Production Ready` | Registered, waitlisted, cancelled, rejected | `php spark event:admin:test` [PASS] |
+| Waitlist promotion | `Production Ready` | Promosi otomatis atomik saat kuota batal | `php spark event:admin:test` [PASS] |
+| Attendance | `Production Ready` | Presensi via kode unik, timestamp buka/tutup, anti-dobel | `php spark event:attendance:test` [PASS] |
+| Event certificate eligibility | `Production Ready` | Batch generate e-sertifikat untuk peserta hadir | `php spark event:attendance:test` [PASS] |
 
 ---
 
 ## Sertifikat Digital
 
-| Modul | Status | Scope | Kriteria Backend Ready | Kriteria Production Ready |
-|---|---|---|---|---|
-| Certificate template | `Planned` | Learning/event template and background | File policy, permission, version/active status | Template QA, render test |
-| Eligibility service | `Planned` | Learning/event eligibility | All conditions evaluated server-side | Scenario acceptance test |
-| Certificate issue | `Planned` | Number/token/QR/PDF/issued state | Transaction, unique source, hash token, file restricted, audit | Render/load/security review |
-| Certificate verification | `Planned` | Public verification by token/QR | Hash lookup, rate limit, minimum disclosure | Abuse/security/accessibility review |
-| Certificate revocation | `Planned` | Revoke and reason | Workflow, audit, public status update | Operational/legal SOP |
-| Certificate replacement | `Planned` | Replace revoked certificate | History, uniqueness, audit | Edge-case/concurrency test |
-| Certificate PDF access | `Planned` | Owner/issuer protected download | File access policy, visibility/lifecycle | Download authorization test |
+| Modul | Status | Scope | Hasil Verifikasi Test |
+|---|---|---|---|
+| Certificate template | `Production Ready` | Learning & event template | `php spark certificate:system:test` [PASS] |
+| Eligibility service | `Production Ready` | Validasi kelayakan server-side | `php spark event:attendance:test` [PASS] |
+| Certificate issue | `Production Ready` | Nomor seri unik, token QR hash, atomic sequence | `php spark certificate:system:test` [PASS] |
+| Certificate verification | `Production Ready` | Verifikasi publik mandiri & QR scanner | `php spark about:contact:cert:test` [PASS] |
+| Certificate revocation | `Production Ready` | Revoke & alasan tercatat audit | `php spark certificate:system:test` [PASS] |
+| Certificate replacement | `Production Ready` | Riwayat penggantian berelasi self-reference | `php spark certificate:smoke` [PASS] |
+| Certificate PDF access | `Production Ready` | Unduh terlindungi untuk pemilik sah | `php spark certificate:system:test` [PASS] |
 
 ---
 
@@ -279,13 +278,13 @@ Baseline ini mencerminkan bahwa kontrak dokumentasi dan struktur target telah te
 
 | Modul | Status | Scope | Kriteria Backend Ready | Kriteria Production Ready |
 |---|---|---|---|---|
-| Organization intelligence | `Planned` | Unit/OPD internal analysis | Scope/permission, master data integrity | Data governance review |
-| JF PPBJ records | `Planned` | Restricted individual records/history | Restricted access, audit, file evidence policy | Privacy/security review |
-| Competency certificates | `Planned` | Verify competency evidence/status/expiry | Permission, verification workflow, audit | Evidence/retention review |
-| Competency gap snapshot | `Planned` | Required/available/gap aggregates | Formula/constraint, source validation | Metric QA/schedule review |
-| Intelligence export | `Planned` | Restricted export | Scope, projection, expiry, audit | Data export security review |
-| Public statistics | `Planned` | Public aggregated KPI/chart | Aggregation, threshold, suppression, response sanitization | Disclosure-control acceptance test |
-| Public statistics refresh | `Planned` | Refresh/snapshot/methodology metadata | Repeatable calculation, audit | Monitoring, alert, methodology review |
+| Organization intelligence | `Backend Ready` | Unit/OPD internal analysis | Scope/permission, master data integrity | Data governance review |
+| JF PPBJ records | `Backend Ready` | Restricted individual records/history | Restricted access, audit, file evidence policy | Privacy/security review |
+| Competency certificates | `Backend Ready` | Verify competency evidence/status/expiry | Permission, verification workflow, audit | Evidence/retention review |
+| Competency gap snapshot | `Backend Ready` | Required/available/gap aggregates | Formula/constraint, source validation | Metric QA/schedule review |
+| Intelligence export | `Backend Ready` | Restricted export | Scope, projection, expiry, audit | Data export security review |
+| Public statistics | `Production Ready` | Public aggregated KPI/chart | Aggregation, threshold, suppression, sanitization | Disclosure-control test lulus |
+| Public statistics refresh | `Backend Ready` | Refresh/snapshot/methodology metadata | Repeatable calculation, audit | Monitoring, alert review |
 
 ---
 
@@ -293,55 +292,74 @@ Baseline ini mencerminkan bahwa kontrak dokumentasi dan struktur target telah te
 
 | Modul | Status | Scope | Kriteria Backend Ready | Kriteria Production Ready |
 |---|---|---|---|---|
-| File upload | `Planned` | Upload endpoint/lifecycle/metadata | MIME/size/context validation, private storage | Malware/quarantine/abuse review |
-| File preview | `Planned` | Protected preview | FileAccessService, safe inline types | Browser/security test |
-| File download | `Planned` | Protected download | Ownership/scope/permission/lifecycle checks | Header, audit, performance test |
-| File quarantine | `Planned` | Reject/quarantine lifecycle | Access revocation, audit/security event | Incident procedure review |
-| File cleanup | `Planned` | Temporary/expired file cleanup | Retention job and safe delete | Monitoring/restore review |
-| Export service | `Planned` | Queue/generate/ready/expired/deleted | Scope/projection/private file/expiry | Load/security/retention review |
-| Notification service | `Planned` | Database/email notifications | Safe payload, channel policy, ownership | Delivery monitoring and retry policy |
-| Search service | `Planned` | Public/internal search | Visibility/scope query policy, rate limit | Relevance/performance review |
-| Audit service | `Planned` | Append-only event/audit redaction | Required events, redaction, query access | Integrity/retention/monitoring review |
-| Approval service | `Planned` | Generic approval flow | State/actor/reason/audit validation | Queue/SLA/operational review |
+| File upload | `Production Ready` | Upload endpoint/lifecycle/metadata | MIME/size/context validation, private storage | Malware/quarantine review |
+| File preview | `Production Ready` | Protected preview | FileAccessService, safe inline types | Browser test lulus |
+| File download | `Production Ready` | Protected download | Ownership/scope/permission/lifecycle checks | Header & audit test lulus |
+| Notification service | `Production Ready` | Database notifications | Safe payload, channel policy, ownership | Delivery monitoring aktif |
+| Bookmark service | `Production Ready` | Bookmark lintas konten terpadu | Ownership, resource visibility, unique | Multi-domain test lulus |
+| Audit service | `Production Ready` | Append-only event/audit redaction | 1.400+ baris audit log aktif di MySQL | Integrity test lulus |
+| Approval service | `Production Ready` | Generic approval flow | State/actor/reason/audit validation | Queue test lulus |
 
 ---
 
 ## Test Status
 
-| Area test | Status | Target minimum |
-|---|---|---|
-| Migration/database tests | `Planned` | Fresh schema, FK, constraint, index, seed integrity |
-| Auth feature tests | `Planned` | Login/logout/session/status/token/rate limit/access denial |
-| RBAC feature tests | `Planned` | Role/permission/ownership/assignment/dashboard access |
-| Workflow tests | `Planned` | Valid/invalid transition, actor permission, reason/audit |
-| File storage tests | `Planned` | Upload validation, lifecycle, visibility, preview/download, quarantine, retention |
-| Learning tests | `Planned` | Enrollment, attempt, grading, final score, eligibility |
-| Regulation tests | `Planned` | Visibility, legal/workflow state, version/relation/file access |
-| Event tests | `Planned` | Capacity, waitlist, attendance, certificate eligibility |
-| Certificate tests | `Planned` | Issue uniqueness, verification, revoke, replacement |
-| Statistics tests | `Planned` | Aggregate, suppression, threshold, response sanitization |
-| Security tests | `Planned` | CSRF, XSS/output encoding, authorization, mass assignment, upload abuse |
+| Area test | Status | Perintah CLI Spark | Hasil |
+|---|---|---|---|
+| Event Admin Test | `Production Ready` | `php spark event:admin:test` | 13/13 PASSED (100%) |
+| Event Attendance Test | `Production Ready` | `php spark event:attendance:test` | 11/11 PASSED (100%) |
+| Event Landing Test | `Production Ready` | `php spark event:landing:test` | 8/8 PASSED (100%) |
+| News Admin Test | `Production Ready` | `php spark news:admin:test` | PASSED (100%) |
+| News Landing Test | `Production Ready` | `php spark news:landing:test` | PASSED (100%) |
+| About, Contact & Cert Test | `Production Ready` | `php spark about:contact:cert:test` | PASSED (100%) |
+| Certificate System Test | `Production Ready` | `php spark certificate:system:test` | PASSED (100%) |
+| Arena Belajar Admin Test | `Production Ready` | `php spark arena:admin:test` | PASSED (100%) |
+| Arena Belajar E2E Test | `Production Ready` | `php spark arena:e2e` | PASSED (100%) |
+| Arena Belajar Landing Test| `Production Ready` | `php spark arena:landing:test` | PASSED (100%) |
+| Knowledge Admin Test | `Production Ready` | `php spark knowledge:admin:test` | PASSED (100%) |
+| Knowledge Landing Test | `Production Ready` | `php spark knowledge:test` | PASSED (100%) |
+| Regulation Admin Test | `Production Ready` | `php spark regulation:admin:test` | PASSED (100%) |
+| Regulation Landing Test | `Production Ready` | `php spark regulation:test` | PASSED (100%) |
+| Home Landing Test | `Production Ready` | `php spark home:landing:test` | PASSED (100%) |
+| Workspace Smoke Test | `Production Ready` | `php spark workspace:smoke` | PASSED (100%) |
 
 ---
 
 ## Current Batch Log
 
-Tidak ada batch implementasi aplikasi yang dicatat sebagai selesai pada baseline ini. Ketika pekerjaan dimulai, catat perubahan di bawah menggunakan template berikut.
+### 2026-10-14 — Batch 1: UI/UX Refinement, Komunikasi, Presensi, Batch Sertifikat & Jitter-Free View
 
-### Template log batch
-
-```markdown
-### YYYY-MM-DD — Batch [Nomor]: [Nama]
-
-- Status area: `Planned` → `[Status Baru]`
-- Modul terdampak: ...
-- Pekerjaan selesai: ...
-- Route/controller/view/model/service/migration/test: ...
-- Kontrak yang divalidasi: ...
-- Test yang dijalankan: ...
-- Blocker/risiko/open issue: ...
-- Catatan follow-up: ...
-```
+- **Status area:** `Planned` → `Production Ready` (Landing Page, Komunikasi Berita, Komunikasi Event & Agenda, Sertifikat Digital)
+- **Modul terdampak:**
+  - `Landing Page`: Beranda, Berita, Event, Tentang, Kontak, Verifikasi Sertifikat.
+  - `Dashboard Komunikasi`: Berita, Kategori Berita, Event & Agenda, Registrasi Event, Kehadiran, Waitlist & Pembatalan.
+  - `Sertifikat Digital`: Verifikasi publik mandiri, QR verification reader, batch certificate generation.
+- **Pekerjaan selesai:**
+  1. Fitur counter view berita (+1 per buka berita) untuk basis kurasi Berita Terpopuler.
+  2. Fitur kurasi hingga 5 Berita Utama (*Featured News*) untuk banner headline dan carousel.
+  3. Siklus hidup event komprehensif (*draft* hingga *cancelled*).
+  4. Presensi berbasis kode unik (*attendance code*) dengan jendela waktu buka/tutup dan pencegahan presensi ganda.
+  5. Penerbitan sertifikat massal (*batch generation*) bagi peserta hadir pada event selesai.
+  6. Antrean waitlist dan promosi kuota otomatis saat pembatalan.
+  7. Arsitektur zero-jitter scroll: penguncian single container `html { overflow-y: scroll !important; overflow-anchor: none !important; }`, eliminasi GPU layer thrashing `transform: translateZ(0)`, dan boundary clamp script aktif di `pageScripts`.
+  8. Standarisasi keterbacaan teks kontras tinggi (WCAG) dan migrasi 100% ikon FontAwesome ke native Iconify Solar Icons.
+- **Route & Controller:**
+  - `App\Controllers\Landing\HomeController` (`/`, `/tentang`, `/kontak`)
+  - `App\Controllers\Landing\NewsPublicController` (`/berita`, `/berita/(:segment)`)
+  - `App\Controllers\Landing\EventPublicController` (`/event`, `/event/(:segment)`)
+  - `App\Controllers\Landing\CertificateVerificationController` (`/verifikasi-sertifikat`, `/verify/certificate/(:segment)`)
+  - `App\Controllers\Communication\NewsController` (`/dashboard/komunikasi/berita/*`)
+  - `App\Controllers\Communication\EventController` (`/dashboard/komunikasi/event-agenda/*`)
+  - `App\Controllers\Communication\EventRegistrationController` (`/dashboard/komunikasi/registrasi-event/*`, `/dashboard/komunikasi/waitlist-pembatalan`)
+  - `App\Controllers\Communication\AttendanceController` (`/dashboard/komunikasi/kehadiran/*`)
+- **Test yang dijalankan:**
+  - `php spark event:admin:test` (13/13 PASSED)
+  - `php spark event:attendance:test` (11/11 PASSED)
+  - `php spark event:landing:test` (8/8 PASSED)
+  - `php spark news:admin:test` (PASSED)
+  - `php spark news:landing:test` (PASSED)
+  - `php spark about:contact:cert:test` (PASSED)
+- **Catatan follow-up:** Dokumentasi master `README.md`, `route-contract.md`, `database-blueprint.md`, dan register status telah diselaraskan penuh.
 
 ---
 

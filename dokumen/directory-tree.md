@@ -12,7 +12,7 @@ Struktur proyek dibangun untuk mendukung:
 - Dashboard Back-office berbasis WowDash bagi Admin dan Super Admin.
 - Arena Belajar, Bunga Rampai, Regulasi PBJ, Berita/Agenda/Event, Sertifikat Digital, Government Intelligence PBJ, Statistik Publik PBJ, serta layanan shared.
 
-Keberadaan folder atau file dalam tree bukan indikator bahwa modul telah selesai. Implementasi harus memakai status `Planned`, `UI Implemented`, `Backend Ready`, atau `Production Ready` pada `docs/project/implementation-status.md`.
+Keberadaan folder atau file dalam tree bukan indikator bahwa modul telah selesai. Implementasi harus memakai status `Planned`, `UI Implemented`, `Backend Ready`, atau `Production Ready` pada `dokumen/implementation-status.md`.
 
 ---
 
@@ -832,28 +832,26 @@ begawipbj/
 │   └── reference/
 │       └── wilayah.sql                           # Master resmi wilayah; bukan seed dummy/development
 │
-├── docs/
-│   ├── architecture/
-│   │   ├── auth-and-rbac.md
-│   │   ├── file-storage-policy.md
-│   │   ├── route-contract.md
-│   │   ├── ui-boundary.md
-│   │   └── workflow-contract.md
-│   ├── database/
-│   │   ├── data-dictionary.md
-│   │   ├── database-blueprint.md
-│   │   ├── database-erd.md
-│   │   └── schema-fresh-v4.sql
-│   ├── domain/
-│   │   ├── assessment-and-certification-rules.md
-│   │   ├── privacy-and-data-classification.md
-│   │   ├── public-statistics-policy.md
-│   │   ├── registration-policy.md
-│   │   └── regulation-policy.md
-│   └── project/
-│       ├── directory-tree.md
-│       ├── documentation-and-database-file-register.md
-│       └── implementation-status.md
+├── dokumen/
+│   ├── README.md                                 # Dokumentasi komprehensif 3 pilar (Landing, Workspace, Dashboard)
+│   ├── assessment-and-certification-rules.md     # Aturan assessment, kelulusan, dan penerbitan sertifikat
+│   ├── auth-and-rbac.md                          # Kontrak autentikasi, lifecycle akun, role & permission
+│   ├── auth-migration-plan.md                    # Catatan historis migrasi auth (Completed & Archived)
+│   ├── data-dictionary.md                        # Kamus data tabel, tipe kolom, dan klasifikasi
+│   ├── database-blueprint.md                     # Blueprint tabel, constraint, index, migration & seeder
+│   ├── database-erd.md                           # Diagram relasi antar-entitas (ERD)
+│   ├── directory-tree.md                         # Pohon direktori kanonis proyek
+│   ├── documentation-and-database-file-register.md # Register resmi seluruh artefak dokumen & database
+│   ├── file-storage-policy.md                    # Kebijakan penyimpanan file, upload, visibility & retention
+│   ├── implementation-status.md                  # Status implementasi aktual seluruh fitur & modul
+│   ├── privacy-and-data-classification.md        # Klasifikasi data sensitif, privasi & masking
+│   ├── public-statistics-policy.md               # Kebijakan agregasi statistik publik
+│   ├── registration-policy.md                    # Kebijakan registrasi multi-step & verifikasi profil
+│   ├── regulation-policy.md                      # Kebijakan tata kelola regulasi PBJ
+│   ├── route-contract.md                         # Kontrak route, controller, method, filter & route name
+│   ├── schema-fresh-v4-1.sql                     # Schema fresh SQL V4.1 (74 tabel, 100% sinkron database)
+│   ├── ui-boundary.md                            # Batasan antarmuka (Landing vs Workspace vs Dashboard)
+│   └── workflow-contract.md                      # Kontrak state machine dan transisi workflow
 │
 ├── .env.example
 ├── .gitignore
@@ -940,46 +938,46 @@ public/assets/main/uploads-public/
 ## Dokumentasi Teknis
 
 ```text
-docs/architecture/ui-boundary.md
+dokumen/ui-boundary.md
 → Boundary UI, template, layout, asset, dan redirect lintas area.
 
-docs/architecture/route-contract.md
+dokumen/route-contract.md
 → Route, HTTP method, controller, filter, permission, route name, dan response/view.
 
-docs/architecture/auth-and-rbac.md
+dokumen/auth-and-rbac.md
 → Auth, session, account status, role, permission, filter, redirect, dan access matrix.
 
-docs/architecture/workflow-contract.md
+dokumen/workflow-contract.md
 → State machine, transisi, actor, approval, alasan, dan audit.
 
-docs/architecture/file-storage-policy.md
+dokumen/file-storage-policy.md
 → Disk, visibility, upload, preview/download, retention, serta audit file.
 
-docs/database/database-blueprint.md
+dokumen/database-blueprint.md
 → Tabel, PK/FK, enum, constraint, index, ownership, migration order, dan seed strategy.
 
-docs/database/database-erd.md
+dokumen/database-erd.md
 → ERD konseptual dan relasi antar-domain.
 
-docs/database/data-dictionary.md
+dokumen/data-dictionary.md
 → Definisi tabel/kolom, tipe data, nullable, default, klasifikasi data, dan validasi.
 
-docs/domain/registration-policy.md
+dokumen/registration-policy.md
 → Field, validasi, verifikasi, perubahan profil, dan role request per tipe profil.
 
-docs/domain/assessment-and-certification-rules.md
+dokumen/assessment-and-certification-rules.md
 → Assessment, nilai, kelulusan, eligibility, dan sertifikat.
 
-docs/domain/regulation-policy.md
+dokumen/regulation-policy.md
 → Versioning, legal status, relation, publication, visibility, preview, dan download regulasi.
 
-docs/domain/privacy-and-data-classification.md
+dokumen/privacy-and-data-classification.md
 → Klasifikasi public/internal/restricted, masking, export, retention, dan audit redaction.
 
-docs/domain/public-statistics-policy.md
+dokumen/public-statistics-policy.md
 → Indikator, aggregation, suppression, threshold, dan disclosure control.
 
-docs/project/implementation-status.md
+dokumen/implementation-status.md
 → Register Planned/UI Implemented/Backend Ready/Production Ready per area.
 ```
 

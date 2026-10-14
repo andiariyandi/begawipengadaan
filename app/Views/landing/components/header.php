@@ -259,7 +259,16 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                         <a href="#" class="mobile-nav__toggler"><i class="fa fa-bars"></i></a>
                         <ul class="main-menu__list">
                             <li class="<?= $isActive('') ? 'current' : '' ?>"><a href="<?= site_url('/') ?>">Beranda</a></li>
-                            <li class="<?= $isActive('tentang') ? 'current' : '' ?>"><a href="<?= site_url('tentang') ?>">Tentang</a></li>
+                            <li class="dropdown <?= $isPrefixActive('tentang') ? 'current' : '' ?>">
+                                <a href="<?= site_url('tentang') ?>">Tentang</a>
+                                <ul class="shadow-box">
+                                    <li><a href="<?= site_url('tentang') ?>">Profil Biro PBJ</a></li>
+                                    <li><a href="<?= site_url('tentang#visi-misi') ?>">Visi &amp; Misi 2024–2029</a></li>
+                                    <li><a href="<?= site_url('tentang#pilar') ?>">5 Pilar Ekosistem BegawiPBJ</a></li>
+                                    <li><a href="<?= site_url('tentang#struktur') ?>">Struktur Organisasi</a></li>
+                                    <li><a href="<?= site_url('tentang#maklumat') ?>">Maklumat Pelayanan UKPBJ</a></li>
+                                </ul>
+                            </li>
                             <li class="dropdown <?= $isPrefixActive('arena-belajar') ? 'current' : '' ?>">
                                 <a href="<?= site_url('arena-belajar') ?>">Arena Belajar</a>
                                 <ul class="shadow-box">
@@ -294,14 +303,36 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                                     <li><a href="<?= site_url('regulasi?category=surat-edaran') ?>">Surat Edaran (SE) PBJ</a></li>
                                 </ul>
                             </li>
-                            <li class="<?= $isPrefixActive('berita') ? 'current' : '' ?>"><a href="<?= site_url('berita') ?>">Berita</a></li>
-                            <li class="<?= $isPrefixActive('event') ? 'current' : '' ?>"><a href="<?= site_url('event') ?>">Event</a></li>
+                            <li class="dropdown <?= $isPrefixActive('berita') ? 'current' : '' ?>">
+                                <a href="<?= site_url('berita') ?>">Berita</a>
+                                <ul class="shadow-box">
+                                    <li><a href="<?= site_url('berita') ?>">Semua Berita PBJ</a></li>
+                                    <li><a href="<?= site_url('berita/kategori/kebijakan-regulasi') ?>">Kebijakan &amp; Regulasi</a></li>
+                                    <li><a href="<?= site_url('berita/kategori/tata-kelola-integritas') ?>">Tata Kelola &amp; Integritas</a></li>
+                                    <li><a href="<?= site_url('berita/kategori/e-katalog-digital') ?>">E-Katalog &amp; Digital</a></li>
+                                    <li><a href="<?= site_url('berita/kategori/bimtek-pelatihan') ?>">Bimtek &amp; Sertifikasi</a></li>
+                                    <li><a href="<?= site_url('berita/kategori/capaian-prestasi') ?>">Capaian &amp; Prestasi UKPBJ</a></li>
+                                    <li><a href="<?= site_url('berita/kategori/pengumuman-resmi') ?>">Pengumuman Resmi</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown <?= $isPrefixActive('event') ? 'current' : '' ?>">
+                                <a href="<?= site_url('event') ?>">Event &amp; Agenda</a>
+                                <ul class="shadow-box">
+                                    <li><a href="<?= site_url('event') ?>">Semua Event &amp; Agenda</a></li>
+                                    <li><a href="<?= site_url('event/agenda') ?>">Agenda Mendatang</a></li>
+                                    <li><a href="<?= site_url('event?tipe=webinar') ?>">Webinar PBJ Daring</a></li>
+                                    <li><a href="<?= site_url('event?tipe=bimtek') ?>">Bimbingan Teknis (Bimtek)</a></li>
+                                    <li><a href="<?= site_url('event?tipe=workshop') ?>">Workshop &amp; Lokakarya</a></li>
+                                    <li><a href="<?= site_url('event?tipe=sosialisasi') ?>">Sosialisasi Regulasi</a></li>
+                                    <li><a href="<?= site_url('event/kalender') ?>">Kalender Kegiatan PBJ</a></li>
+                                </ul>
+                            </li>
                             <li class="dropdown <?= $isPrefixActive('statistik') || $isPrefixActive('verifikasi-sertifikat') || $isActive('kontak') ? 'current' : '' ?>">
                                 <a href="#">Lainnya</a>
                                 <ul class="shadow-box">
-                                    <li><a href="<?= site_url('statistik') ?>">Statistik</a></li>
-                                    <li><a href="<?= site_url('verifikasi-sertifikat') ?>">Verifikasi Sertifikat</a></li>
-                                    <li><a href="<?= site_url('kontak') ?>">Kontak</a></li>
+                                    <li><a href="<?= site_url('statistik') ?>">Statistik Publik PBJ</a></li>
+                                    <li><a href="<?= site_url('verifikasi-sertifikat') ?>">Verifikasi Sertifikat Digital</a></li>
+                                    <li><a href="<?= site_url('kontak') ?>">Hubungi Kami &amp; Helpdesk LPSE</a></li>
                                 </ul>
                             </li>
                         </ul>
