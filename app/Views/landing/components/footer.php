@@ -70,6 +70,8 @@
                                     <ul class="site-footer__links-list list-unstyled">
                                         <li><a href="<?= site_url('/') ?>"><span class="icon-plus"></span> Beranda</a></li>
                                         <li><a href="<?= site_url('tentang') ?>"><span class="icon-plus"></span> Tentang Kami</a></li>
+                                        <li><a href="<?= site_url('/#section-testimonies') ?>"><span class="icon-plus"></span> Testimoni Pengguna</a></li>
+                                        <li><a href="<?= site_url('/#section-team') ?>"><span class="icon-plus"></span> Tim Pengembang</a></li>
                                         <li><a href="<?= site_url('arena-belajar') ?>"><span class="icon-plus"></span> Arena Belajar</a></li>
                                         <li><a href="<?= site_url('event') ?>"><span class="icon-plus"></span> Event</a></li>
                                         <li><a href="<?= site_url('kontak') ?>"><span class="icon-plus"></span> Kontak</a></li>

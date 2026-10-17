@@ -2,1656 +2,7 @@
 
 <?= $this->section('pageStyles') ?>
 <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
-<style>
-    /* =========================================================
-       BEGAWIPENGADAAN HOMEPAGE ELEVATED DESIGN DNA & ACCESSIBLE STYLING
-       ========================================================= */
-    :root {
-        --bg-navy-dark: #052244;
-        --bg-navy-main: #082f5c;
-        --bg-navy-light: #0c5aa6;
-        --bg-navy-soft: #f0f7ff;
-        --bg-amber: #f59e0b;
-        --bg-amber-dark: #d97706;
-        --bg-emerald: #10b981;
-        --bg-sky: #0ea5e9;
-        --text-slate-900: #0f172a;
-        --text-slate-800: #1e293b;
-        --text-slate-700: #334155;
-        --text-slate-600: #475569;
-        --text-slate-500: #64748b;
-        --card-border: #e2e8f0;
-    }
-
-    /* Menu Bar Natural Flow — ALWAYS Sits Cleanly Above Hero Slider without Overlapping */
-    .main-header,
-    .landing-home .main-header {
-        position: relative !important;
-        top: auto !important;
-        left: auto !important;
-        right: auto !important;
-        width: 100% !important;
-        margin: 0 !important;
-        z-index: 999 !important;
-        background: linear-gradient(180deg, rgba(5, 34, 68, 1) 0%, rgba(8, 47, 92, 1) 100%) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22) !important;
-    }
-
-    /* Hero Slider Container — Sits in Normal Flow Directly Below Menu Bar */
-    .main-slider {
-        position: relative !important;
-        display: block !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background-color: var(--bg-navy-dark);
-        z-index: 1;
-        overflow: hidden;
-    }
-
-    .main-slider .item {
-        position: relative;
-        padding: 0 !important;
-        margin: 0 !important;
-        background-color: var(--bg-navy-dark);
-        overflow: hidden;
-    }
-
-    /* 1. Hero Image Banner — Compact Height (420px) so text caption is immediately visible */
-    .main-slider__image-block {
-        position: relative;
-        width: 100%;
-        height: 420px;
-        max-height: 420px;
-        margin: 0 !important;
-        padding: 0 !important;
-        line-height: 0 !important;
-        background-color: var(--bg-navy-dark);
-        overflow: hidden;
-    }
-
-    .main-slider__hero-img {
-        width: 100% !important;
-        height: 100% !important;
-        max-height: 420px !important;
-        object-fit: cover !important;
-        object-position: center 30% !important;
-        display: block !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        opacity: 1 !important;
-        filter: brightness(1) contrast(1.02) !important;
-    }
-
-    /* 2. Consistent, Compact & Concise Caption Strip BELOW the Image */
-    .main-slider__caption-block {
-        background: linear-gradient(180deg, #052244 0%, #072e5b 100%);
-        padding: 18px 0 36px;
-        position: relative;
-        z-index: 5;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .main-slider__caption-inner {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 24px;
-        flex-wrap: wrap;
-    }
-
-    .main-slider__caption-text {
-        flex: 1 1 540px;
-        min-width: 0;
-    }
-
-    /* Reset Broken Theme Transforms & Ensure Visible Text */
-    .main-slider__content,
-    .main-slider__sub-title-box,
-    .main-slider__title,
-    .main-slider__text,
-    .main-slider__btn-box {
-        opacity: 1 !important;
-        transform: none !important;
-        -webkit-transform: none !important;
-        transition: opacity 0.3s ease !important;
-        visibility: visible !important;
-    }
-
-    .main-slider__sub-title-box {
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        padding: 3px 12px;
-        border-radius: 999px;
-        display: inline-flex !important;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 5px;
-    }
-
-    .main-slider__sub-title {
-        font-size: 11.5px !important;
-        font-weight: 700 !important;
-        font-style: normal !important;
-        color: #fde68a !important;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        font-family: inherit !important;
-        margin: 0 !important;
-        line-height: 1.2 !important;
-    }
-
-    .main-slider__sub-title-shape {
-        background-color: #f59e0b !important;
-        width: 6px !important;
-        height: 6px !important;
-        border-radius: 50%;
-        box-shadow: 0 0 6px #f59e0b;
-    }
-
-    /* Compact & Readable Headline */
-    .main-slider__title {
-        font-size: 20px !important;
-        line-height: 1.3 !important;
-        font-weight: 800 !important;
-        color: #ffffff !important;
-        margin: 0 0 4px 0 !important;
-        text-transform: none !important;
-        letter-spacing: -0.3px;
-        text-shadow: none !important;
-    }
-
-    .main-slider__title span {
-        color: #fbbf24 !important;
-        -webkit-text-fill-color: #fbbf24 !important;
-        background: none !important;
-    }
-
-    /* Concise Description */
-    .main-slider__text {
-        font-size: 13.5px !important;
-        line-height: 1.5 !important;
-        color: #cbd5e1 !important;
-        margin: 0 !important;
-        text-shadow: none !important;
-    }
-
-    /* Compact Buttons Beside Text on Desktop */
-    .main-slider__btn-box {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        flex-shrink: 0;
-    }
-
-    .main-slider__btn-box .thm-btn {
-        padding: 8px 18px !important;
-        font-size: 13px !important;
-        min-height: 38px !important;
-        border-radius: 8px !important;
-        gap: 6px !important;
-        font-weight: 600 !important;
-    }
-
-    .thm-btn-alt {
-        background: transparent !important;
-        border: 1.5px solid rgba(255, 255, 255, 0.8) !important;
-        color: #ffffff !important;
-        backdrop-filter: blur(4px);
-    }
-
-    .thm-btn-alt:hover {
-        background: #ffffff !important;
-        color: var(--bg-navy-dark) !important;
-        border-color: #ffffff !important;
-    }
-
-    /* Owl Carousel Navigation Arrows — Centered inside the Hero Image */
-    .main-slider .owl-nav {
-        position: absolute;
-        top: 210px;
-        left: 0;
-        right: 0;
-        transform: translateY(-50%);
-        pointer-events: none;
-        z-index: 15;
-    }
-
-    .main-slider .owl-nav button {
-        pointer-events: auto;
-        width: 44px !important;
-        height: 44px !important;
-        background: rgba(5, 34, 68, 0.65) !important;
-        border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
-        border-radius: 50% !important;
-        color: #ffffff !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        font-size: 14px !important;
-        backdrop-filter: blur(8px) !important;
-        transition: all 0.25s ease !important;
-        position: absolute !important;
-        top: 0 !important;
-    }
-
-    .main-slider .owl-nav button.owl-prev {
-        left: 24px !important;
-    }
-
-    .main-slider .owl-nav button.owl-next {
-        right: 24px !important;
-    }
-
-    .main-slider .owl-nav button:hover {
-        background: #f59e0b !important;
-        color: #052244 !important;
-        border-color: #f59e0b !important;
-        transform: scale(1.08);
-    }
-
-    /* Owl Carousel Dots — Neatly below caption */
-    .main-slider .owl-theme .owl-dots {
-        position: absolute !important;
-        bottom: 12px !important;
-        left: 0 !important;
-        right: 0 !important;
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 6px;
-        padding: 0 !important;
-        margin: 0 !important;
-        height: auto !important;
-        line-height: normal !important;
-        transform: none !important;
-        z-index: 12;
-    }
-
-    .main-slider .owl-theme .owl-dots .owl-dot {
-        margin: 0 !important;
-    }
-
-    .main-slider .owl-theme .owl-dots .owl-dot span {
-        width: 8px !important;
-        height: 8px !important;
-        border-radius: 999px !important;
-        background: rgba(255, 255, 255, 0.45) !important;
-        border: none !important;
-        transition: all 0.3s ease !important;
-        margin: 0 !important;
-    }
-
-    .main-slider .owl-theme .owl-dots .owl-dot span::before {
-        display: none !important;
-    }
-
-    .main-slider .owl-theme .owl-dots .owl-dot.active span,
-    .main-slider .owl-theme .owl-dots .owl-dot:hover span {
-        width: 24px !important;
-        background: #f59e0b !important;
-    }
-
-    /* Floating Portal Gateway (Search & KPI Ribbon) */
-    .portal-gateway-section {
-        position: relative;
-        z-index: 25;
-        margin-top: 36px;
-        margin-bottom: 48px;
-    }
-
-    .portal-gateway-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 30px 36px;
-        box-shadow: 0 18px 45px rgba(8, 47, 92, 0.14);
-    }
-
-    /* Global Search Box */
-    .hero-search-box {
-        background: #f8fafc;
-        border: 1.5px solid #cbd5e1;
-        border-radius: 14px;
-        padding: 6px 10px 6px 18px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        width: 100%;
-        margin-bottom: 16px;
-        transition: all 0.25s ease;
-    }
-
-    .hero-search-box:focus-within {
-        background: #ffffff;
-        border-color: var(--bg-navy-light);
-        box-shadow: 0 0 0 3px rgba(12, 90, 166, 0.16);
-    }
-
-    .hero-search-box input {
-        border: none;
-        outline: none;
-        font-size: 15px;
-        color: #0f172a;
-        flex: 1;
-        background: transparent;
-    }
-
-    .hero-search-box input::placeholder {
-        color: #64748b;
-    }
-
-    /* Native Target Select (Class 'ignore' disables theme nice-select) */
-    .hero-search-target-select {
-        background: #f1f5f9 !important;
-        border: 1px solid #cbd5e1 !important;
-        color: #1e293b !important;
-        font-size: 13px !important;
-        font-weight: 600 !important;
-        padding: 9px 14px !important;
-        border-radius: 8px !important;
-        outline: none !important;
-        cursor: pointer !important;
-        display: block !important;
-        height: auto !important;
-        line-height: 1.4 !important;
-    }
-
-    .hero-search-box .nice-select {
-        display: none !important;
-    }
-
-    .hero-search-box .btn-search {
-        background: linear-gradient(135deg, #0c5aa6 0%, #082f5c 100%);
-        color: #ffffff;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 22px;
-        font-weight: 700;
-        font-size: 14px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.25s ease;
-    }
-
-    .hero-search-box .btn-search:hover {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
-    }
-
-    .hero-quick-tags {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        font-size: 13px;
-        color: #64748b;
-    }
-
-    .hero-quick-tags a {
-        background: #f1f5f9;
-        color: #0f172a;
-        padding: 4px 12px;
-        border-radius: 999px;
-        text-decoration: none;
-        font-size: 12px;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        border: 1px solid #e2e8f0;
-    }
-
-    .hero-quick-tags a:hover {
-        background: #e0f2fe;
-        color: #0369a1;
-        border-color: #bae6fd;
-    }
-
-    /* KPI Items */
-    .gateway-kpi-item {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 12px 14px;
-        border-radius: 14px;
-        background: #f8fafc;
-        border: 1px solid #edf2f7;
-        transition: all 0.25s ease;
-        height: 100%;
-    }
-
-    .gateway-kpi-item:hover {
-        background: #f1f5f9;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(8, 47, 92, 0.06);
-        border-color: #cbd5e1;
-    }
-
-    .gateway-kpi-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        flex-shrink: 0;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .gateway-kpi-num {
-        font-size: 26px;
-        font-weight: 800;
-        color: var(--bg-navy-dark);
-        line-height: 1.1;
-        letter-spacing: -0.5px;
-    }
-
-    .gateway-kpi-label {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-slate-600);
-        line-height: 1.25;
-    }
-
-    /* Section Styling */
-    .section-spacious {
-        padding: 80px 0;
-    }
-
-    .section-title-wrap {
-        margin-bottom: 48px;
-    }
-
-    .section-title-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 13px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        color: var(--bg-navy-light);
-        margin-bottom: 8px;
-    }
-
-    .section-title-main {
-        font-size: 32px;
-        font-weight: 800;
-        color: var(--bg-navy-dark);
-        line-height: 1.25;
-        margin-bottom: 12px;
-        letter-spacing: -0.3px;
-    }
-
-    .section-title-desc {
-        font-size: 16px;
-        color: var(--text-slate-600);
-        max-width: 720px;
-        line-height: 1.65;
-    }
-
-    /* Ecosystem Pillars Grid */
-    .pillar-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 18px;
-        padding: 32px 26px;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .pillar-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-        background: var(--pillar-accent, #0c5aa6);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .pillar-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 20px 35px rgba(8, 47, 92, 0.10);
-        border-color: #cbd5e1;
-    }
-
-    .pillar-card:hover::before {
-        opacity: 1;
-    }
-
-    .pillar-icon-box {
-        width: 60px;
-        height: 60px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 30px;
-        margin-bottom: 20px;
-        background: var(--pillar-bg, #eff6ff);
-        color: var(--pillar-accent, #0c5aa6);
-    }
-
-    .pillar-title {
-        font-size: 20px;
-        font-weight: 700;
-        color: var(--bg-navy-dark);
-        margin-bottom: 10px;
-        line-height: 1.3;
-    }
-
-    .pillar-desc {
-        font-size: 14px;
-        color: var(--text-slate-600);
-        line-height: 1.65;
-        margin-bottom: 20px;
-        flex-grow: 1;
-    }
-
-    .pillar-badge {
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        padding: 4px 10px;
-        border-radius: 999px;
-        margin-bottom: 14px;
-        display: inline-block;
-        width: fit-content;
-        background: var(--pillar-bg, #eff6ff);
-        color: var(--pillar-accent, #0c5aa6);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .pillar-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--pillar-accent, #0c5aa6);
-        text-decoration: none;
-        transition: gap 0.2s ease;
-    }
-
-    .pillar-link iconify-icon {
-        transition: transform 0.25s ease;
-    }
-
-    .pillar-card:hover .pillar-link iconify-icon {
-        transform: translateX(4px);
-    }
-
-    .pillar-link:hover {
-        gap: 10px;
-        color: var(--bg-navy-dark);
-    }
-
-    /* Course Cards */
-    .course-card-modern {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .course-card-modern:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 16px 32px rgba(8, 47, 92, 0.10);
-        border-color: #cbd5e1;
-    }
-
-    .course-thumb-wrap {
-        position: relative;
-        height: 190px;
-        background: #f1f5f9;
-        overflow: hidden;
-    }
-
-    .course-thumb-wrap img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.4s ease;
-    }
-
-    .course-card-modern:hover .course-thumb-wrap img {
-        transform: scale(1.04);
-    }
-
-    .course-level-badge {
-        position: absolute;
-        top: 14px;
-        left: 14px;
-        background: rgba(15, 23, 42, 0.82);
-        backdrop-filter: blur(6px);
-        color: #ffffff;
-        font-size: 11px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 6px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .course-duration-badge {
-        position: absolute;
-        bottom: 14px;
-        right: 14px;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(6px);
-        color: #0f172a;
-        font-size: 12px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-    }
-
-    .course-body-modern {
-        padding: 22px;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
-
-    .course-program-tag {
-        font-size: 12px;
-        font-weight: 700;
-        color: #0284c7;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 8px;
-    }
-
-    .course-title-modern {
-        font-size: 17px;
-        font-weight: 700;
-        line-height: 1.4;
-        color: var(--bg-navy-dark);
-        margin-bottom: 10px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .course-title-modern a {
-        color: inherit;
-        text-decoration: none;
-    }
-
-    .course-title-modern a:hover {
-        color: var(--bg-navy-light);
-    }
-
-    .course-summary-snippet {
-        font-size: 13px;
-        color: var(--text-slate-600);
-        line-height: 1.55;
-        margin-bottom: 16px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .course-meta-row {
-        margin-top: auto;
-        padding-top: 14px;
-        border-top: 1px solid #f1f5f9;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    /* Regulation Cards */
-    .reg-card-modern {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 24px;
-        transition: all 0.3s ease;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .reg-card-modern:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 30px rgba(8, 47, 92, 0.10);
-        border-color: #cbd5e1;
-    }
-
-    .reg-status-badge {
-        font-size: 11px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 999px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .reg-status-badge.active {
-        background: #ecfdf5;
-        color: #065f46;
-        border: 1px solid #a7f3d0;
-    }
-
-    .reg-status-badge.amended {
-        background: #fffbeb;
-        color: #92400e;
-        border: 1px solid #fde68a;
-    }
-
-    .reg-status-badge.revoked {
-        background: #fef2f2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
-    }
-
-    .reg-doc-num {
-        font-size: 13px;
-        font-weight: 700;
-        color: #0c5aa6;
-        margin-bottom: 6px;
-        display: block;
-    }
-
-    .reg-title-modern {
-        font-size: 16px;
-        font-weight: 700;
-        line-height: 1.45;
-        color: var(--bg-navy-dark);
-        margin-bottom: 10px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .reg-title-modern a {
-        color: inherit;
-        text-decoration: none;
-    }
-
-    .reg-title-modern a:hover {
-        color: var(--bg-navy-light);
-    }
-
-    .reg-summary-text {
-        font-size: 13px;
-        color: var(--text-slate-600);
-        line-height: 1.6;
-        margin-bottom: 16px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .reg-actions-row {
-        margin-top: auto;
-        padding-top: 14px;
-        border-top: 1px solid #f1f5f9;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-    }
-
-    /* Lifecycle Stages Roadmap */
-    .stage-card-step {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 18px;
-        padding: 24px 18px;
-        text-align: center;
-        position: relative;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .stage-card-step:hover {
-        transform: translateY(-6px);
-        border-color: #0c5aa6;
-        box-shadow: 0 16px 32px rgba(8, 47, 92, 0.12);
-    }
-
-    .stage-number-badge {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #0c5aa6 0%, #082f5c 100%);
-        color: #ffffff;
-        font-size: 18px;
-        font-weight: 800;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 12px;
-        box-shadow: 0 6px 14px rgba(12, 90, 166, 0.28);
-        border: 3px solid #ffffff;
-        outline: 2px solid #e2e8f0;
-    }
-
-    .stage-step-tag {
-        font-size: 11px;
-        font-weight: 700;
-        color: #0c5aa6;
-        background: #eff6ff;
-        padding: 2px 10px;
-        border-radius: 999px;
-        margin-bottom: 10px;
-        display: inline-block;
-        border: 1px solid #dbeafe;
-    }
-
-    .stage-step-title {
-        font-size: 16px;
-        font-weight: 700;
-        color: var(--bg-navy-dark);
-        margin-bottom: 8px;
-        line-height: 1.35;
-    }
-
-    .stage-step-desc {
-        font-size: 12.5px;
-        color: var(--text-slate-600);
-        line-height: 1.55;
-        margin-bottom: 16px;
-        flex-grow: 1;
-    }
-
-    /* Knowledge Tabs */
-    .knowledge-tab-nav {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-bottom: 36px;
-    }
-
-    .knowledge-tab-btn {
-        background: #ffffff;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 999px;
-        padding: 10px 24px;
-        font-size: 14px;
-        font-weight: 700;
-        color: #334155;
-        cursor: pointer;
-        transition: all 0.25s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .knowledge-tab-btn:hover {
-        background: #f8fafc;
-        color: #082f5c;
-        border-color: #cbd5e1;
-    }
-
-    .knowledge-tab-btn.active {
-        background: linear-gradient(135deg, #052244 0%, #082f5c 100%);
-        color: #ffffff;
-        border-color: #052244;
-        box-shadow: 0 8px 20px rgba(8, 47, 92, 0.22);
-    }
-
-    /* Article Modern Card */
-    .article-card-modern {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        overflow: hidden;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        transition: all 0.3s ease;
-    }
-
-    .article-card-modern:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 28px rgba(8, 47, 92, 0.10);
-    }
-
-    .article-thumb-modern {
-        height: 180px;
-        background: #e2e8f0;
-        overflow: hidden;
-    }
-
-    .article-thumb-modern img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-
-    .article-card-modern:hover .article-thumb-modern img {
-        transform: scale(1.05);
-    }
-
-    /* Template Modern Card */
-    .template-item-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        transition: all 0.25s ease;
-        height: 100%;
-    }
-
-    .template-item-card:hover {
-        border-color: #0c5aa6;
-        background: #f8fafc;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(8, 47, 92, 0.08);
-    }
-
-    .template-file-icon {
-        width: 52px;
-        height: 52px;
-        border-radius: 12px;
-        background: #eff6ff;
-        color: #0284c7;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 26px;
-        flex-shrink: 0;
-    }
-
-    .template-file-icon.excel {
-        background: #ecfdf5;
-        color: #059669;
-    }
-
-    /* Event Card Modern */
-    .event-card-modern {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 24px;
-        display: flex;
-        gap: 20px;
-        align-items: flex-start;
-        transition: all 0.3s ease;
-        height: 100%;
-    }
-
-    .event-card-modern:hover {
-        transform: translateY(-4px);
-        border-color: #0c5aa6;
-        box-shadow: 0 14px 28px rgba(8, 47, 92, 0.10);
-    }
-
-    .event-date-badge {
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-        border-radius: 12px;
-        padding: 12px 14px;
-        text-align: center;
-        flex-shrink: 0;
-        min-width: 72px;
-    }
-
-    .event-date-day {
-        font-size: 24px;
-        font-weight: 800;
-        color: #0c5aa6;
-        line-height: 1;
-        display: block;
-    }
-
-    .event-date-month {
-        font-size: 12px;
-        font-weight: 700;
-        color: #334155;
-        text-transform: uppercase;
-        margin-top: 4px;
-        display: block;
-    }
-
-    /* Biro PBJ Showcase */
-    .biro-showcase-bg {
-        background: #f8fafc;
-        border-top: 1px solid #e2e8f0;
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .patik-chip {
-        font-size: 11.5px;
-        font-weight: 700;
-        padding: 5px 12px;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        border: 1px solid #e2e8f0;
-        background: #ffffff;
-        color: #1e293b;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-        transition: all 0.2s ease;
-    }
-
-    .patik-chip:hover {
-        border-color: #cbd5e1;
-        background: #f8fafc;
-        transform: translateY(-1px);
-    }
-
-    /* Dedicated Modern Styling for "Portal Mitra Ekosistem Nasional & Daerah" */
-    .ecosystem-portal-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 28px 28px 22px;
-        box-shadow: 0 16px 36px rgba(8, 47, 92, 0.08);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .ecosystem-portal-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-        background: linear-gradient(90deg, #0c5aa6 0%, #10b981 50%, #f59e0b 100%);
-    }
-
-    .ecosystem-portal-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 20px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .ecosystem-portal-header-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        background: #eff6ff;
-        color: #0c5aa6;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        flex-shrink: 0;
-        box-shadow: 0 4px 10px rgba(12, 90, 166, 0.12);
-    }
-
-    .ecosystem-portal-title {
-        font-size: 17.5px;
-        font-weight: 800;
-        color: var(--bg-navy-dark);
-        margin: 0 0 3px 0;
-        line-height: 1.3;
-    }
-
-    .ecosystem-portal-subtitle {
-        font-size: 13px;
-        color: var(--text-slate-500);
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    .ecosystem-item-link {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        padding: 13px 16px;
-        background: #ffffff;
-        border: 1.5px solid #edf2f7;
-        border-radius: 14px;
-        text-decoration: none !important;
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        margin-bottom: 10px;
-    }
-
-    .ecosystem-item-link:last-child {
-        margin-bottom: 0;
-    }
-
-    .ecosystem-item-link:hover {
-        background: #f8fafc;
-        border-color: var(--item-accent, #0c5aa6);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(8, 47, 92, 0.08);
-    }
-
-    .ecosystem-item-icon {
-        width: 42px;
-        height: 42px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        flex-shrink: 0;
-        background: var(--item-bg, #eff6ff);
-        color: var(--item-accent, #0c5aa6);
-        transition: transform 0.25s ease;
-    }
-
-    .ecosystem-item-link:hover .ecosystem-item-icon {
-        transform: scale(1.08);
-    }
-
-    .ecosystem-item-content {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .ecosystem-item-name {
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--bg-navy-dark);
-        display: block;
-        line-height: 1.3;
-        margin-bottom: 2px;
-    }
-
-    .ecosystem-item-desc {
-        font-size: 12px;
-        color: var(--text-slate-500);
-        display: block;
-        line-height: 1.4;
-    }
-
-    .ecosystem-item-action {
-        width: 32px;
-        height: 32px;
-        border-radius: 9px;
-        background: #f1f5f9;
-        color: #64748b;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 15px;
-        flex-shrink: 0;
-        transition: all 0.25s ease;
-    }
-
-    .ecosystem-item-link:hover .ecosystem-item-action {
-        background: var(--item-accent, #0c5aa6);
-        color: #ffffff;
-        transform: translate(2px, -2px);
-    }
-
-    .ecosystem-portal-footer {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 16px;
-        padding-top: 12px;
-        border-top: 1px solid #f1f5f9;
-        font-size: 11.5px;
-        color: var(--text-slate-500);
-    }
-
-    /* =========================================================
-       COMPACT VISITOR STATISTICS (PORTAL MITRA STYLE)
-       ========================================================= */
-    .visitor-stats-section {
-        padding: 40px 0 36px;
-        background: #f8fafc;
-        border-top: 1px solid #e2e8f0;
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .visitor-pulse-indicator {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 3px 10px;
-        background: #ecfdf5;
-        border: 1px solid #a7f3d0;
-        border-radius: 999px;
-        font-size: 11px;
-        font-weight: 700;
-        color: #065f46;
-    }
-
-    .visitor-pulse-dot {
-        width: 7px;
-        height: 7px;
-        background-color: #10b981;
-        border-radius: 50%;
-        position: relative;
-        display: inline-block;
-    }
-
-    .visitor-pulse-dot::after {
-        content: '';
-        position: absolute;
-        top: -3px;
-        left: -3px;
-        right: -3px;
-        bottom: -3px;
-        border-radius: 50%;
-        border: 2px solid #10b981;
-        animation: visitor-pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-    }
-
-    @keyframes visitor-pulse-ring {
-        0% {
-            transform: scale(0.5);
-            opacity: 1;
-        }
-
-        50% {
-            opacity: 0.5;
-        }
-
-        100% {
-            transform: scale(2.2);
-            opacity: 0;
-        }
-    }
-
-    .visitor-compact-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 18px;
-        padding: 22px 24px 18px;
-        box-shadow: 0 10px 25px rgba(8, 47, 92, 0.05);
-        position: relative;
-        overflow: hidden;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-
-    .visitor-compact-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-    }
-
-    .visitor-compact-card.card-home::before {
-        background: linear-gradient(90deg, #0c5aa6 0%, #0284c7 60%, #10b981 100%);
-    }
-
-    .visitor-compact-card.card-features::before {
-        background: linear-gradient(90deg, #10b981 0%, #f59e0b 60%, #8b5cf6 100%);
-    }
-
-    .visitor-card-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 14px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .visitor-card-header-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 11px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        flex-shrink: 0;
-    }
-
-    .visitor-card-title {
-        font-size: 16px;
-        font-weight: 800;
-        color: var(--bg-navy-dark, #052244);
-        margin: 0 0 2px 0;
-        line-height: 1.3;
-    }
-
-    .visitor-card-subtitle {
-        font-size: 12px;
-        color: var(--text-slate-500, #64748b);
-        margin: 0;
-        line-height: 1.35;
-    }
-
-    .visitor-home-summary-box {
-        background: #f8fafc;
-        border: 1px solid #edf2f7;
-        border-radius: 12px;
-        padding: 10px 14px;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .visitor-home-summary-num {
-        font-size: 24px;
-        font-weight: 800;
-        color: #0c5aa6;
-        line-height: 1.1;
-    }
-
-    .visitor-home-summary-label {
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: #64748b;
-        margin-bottom: 2px;
-    }
-
-    .visitor-intervals-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        margin-bottom: 12px;
-    }
-
-    .visitor-interval-box {
-        background: #ffffff;
-        border: 1px solid #edf2f7;
-        border-radius: 11px;
-        padding: 9px 12px;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .visitor-interval-box:hover {
-        border-color: #cbd5e1;
-        background: #f8fafc;
-        transform: translateY(-1px);
-    }
-
-    .visitor-interval-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        flex-shrink: 0;
-    }
-
-    .visitor-interval-val {
-        font-size: 16px;
-        font-weight: 800;
-        line-height: 1.2;
-        color: #0f172a;
-    }
-
-    .visitor-interval-lbl {
-        font-size: 11px;
-        color: #64748b;
-        font-weight: 600;
-        line-height: 1.2;
-    }
-
-    .visitor-feature-row {
-        background: #ffffff;
-        border: 1.2px solid #edf2f7;
-        border-radius: 11px;
-        padding: 8px 12px;
-        margin-bottom: 7px;
-        transition: all 0.2s ease;
-        text-decoration: none !important;
-        display: block;
-    }
-
-    .visitor-feature-row:last-child {
-        margin-bottom: 0;
-    }
-
-    .visitor-feature-row:hover {
-        background: #f8fafc;
-        border-color: var(--feat-border, #cbd5e1);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(8, 47, 92, 0.04);
-    }
-
-    .visitor-feature-icon-box {
-        width: 34px;
-        height: 34px;
-        border-radius: 9px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 17px;
-        flex-shrink: 0;
-    }
-
-    .visitor-feature-name {
-        font-size: 13px;
-        font-weight: 700;
-        color: #0f172a;
-        line-height: 1.25;
-        margin-bottom: 1px;
-    }
-
-    .visitor-feature-desc {
-        font-size: 11px;
-        color: #64748b;
-        line-height: 1.2;
-    }
-
-    .visitor-progress-track {
-        height: 4px;
-        background: #e2e8f0;
-        border-radius: 999px;
-        overflow: hidden;
-        margin-top: 6px;
-    }
-
-    .visitor-progress-fill {
-        height: 100%;
-        border-radius: 999px;
-        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .visitor-card-footer {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        margin-top: 12px;
-        padding-top: 10px;
-        border-top: 1px solid #f1f5f9;
-        font-size: 11.5px;
-        color: #64748b;
-    }
-
-    /* Fast Action CTA */
-    .cta-banner-modern {
-        background: linear-gradient(135deg, #052244 0%, #082f5c 50%, #0c5aa6 100%);
-        border-radius: 24px;
-        padding: 60px 48px;
-        color: #ffffff;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 20px 45px rgba(5, 34, 68, 0.25);
-    }
-
-    .cta-banner-modern::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 420px;
-        height: 420px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(245, 158, 11, 0.22) 0%, transparent 70%);
-        pointer-events: none;
-    }
-
-    /* Responsive Breakpoints for Compact Image & Text Below */
-    @media (max-width: 1199px) {
-
-        .main-slider__image-block,
-        .main-slider__hero-img {
-            height: 360px !important;
-            max-height: 360px !important;
-        }
-
-        .main-slider .owl-nav {
-            top: 180px !important;
-        }
-
-        .main-slider__title {
-            font-size: 18px !important;
-        }
-    }
-
-    @media (max-width: 991px) {
-
-        .main-slider__image-block,
-        .main-slider__hero-img {
-            height: 300px !important;
-            max-height: 300px !important;
-        }
-
-        .main-slider .owl-nav {
-            top: 150px !important;
-        }
-
-        .main-slider__caption-inner {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-        }
-
-        .main-slider__caption-block {
-            padding: 12px 0 18px;
-        }
-
-        .main-slider__title {
-            font-size: 17px !important;
-        }
-
-        .section-title-main {
-            font-size: 24px;
-        }
-
-        .portal-gateway-section {
-            margin-top: 28px;
-            margin-bottom: 36px;
-        }
-
-        .portal-gateway-card {
-            padding: 20px 18px;
-        }
-
-        .cta-banner-modern {
-            padding: 36px 20px;
-        }
-    }
-
-    @media (max-width: 767px) {
-
-        .main-slider__image-block,
-        .main-slider__hero-img {
-            height: 220px !important;
-            max-height: 220px !important;
-        }
-
-        .main-slider .owl-nav {
-            display: none !important;
-        }
-
-        .main-slider__caption-block {
-            padding: 10px 0 16px;
-        }
-
-        .main-slider__title {
-            font-size: 15px !important;
-        }
-
-        .main-slider__text {
-            font-size: 12px !important;
-        }
-
-        .main-slider__btn-box .thm-btn {
-            padding: 6px 12px !important;
-            font-size: 12px !important;
-            min-height: 32px !important;
-        }
-
-        .portal-gateway-section {
-            margin-top: 24px;
-            margin-bottom: 32px;
-        }
-
-        .hero-search-box {
-            flex-wrap: wrap;
-        }
-
-        .hero-search-box input {
-            width: 100%;
-        }
-
-        .hero-search-target-select {
-            width: 100%;
-        }
-
-        .hero-search-box .btn-search {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .event-card-modern {
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .visitor-intervals-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .visitor-compact-card {
-            padding: 18px 16px;
-        }
-    }
-</style>
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-home.css') ?>" />
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -1704,7 +55,7 @@ $bulanIndo = [
         <!-- Slide 1: Transformasi & Ekosistem PBJ Lampung -->
         <div class="item">
             <div class="main-slider__image-block">
-                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>" alt="BegawiPengadaan Lampung - Transformasi Digital Pengadaan" class="main-slider__hero-img" width="1920" height="740" />
+                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>" alt="BegawiPengadaan Lampung - Transformasi Digital Pengadaan" class="main-slider__hero-img" width="1920" height="500" />
             </div>
             <div class="main-slider__caption-block">
                 <div class="container">
@@ -1737,7 +88,7 @@ $bulanIndo = [
         <!-- Slide 2: Arena Belajar PBJ -->
         <div class="item">
             <div class="main-slider__image-block">
-                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-2.png') ?>" alt="BegawiPengadaan Lampung - Arena Belajar" class="main-slider__hero-img" width="1920" height="740" />
+                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-2.png') ?>" alt="BegawiPengadaan Lampung - Arena Belajar" class="main-slider__hero-img" width="1920" height="500" />
             </div>
             <div class="main-slider__caption-block">
                 <div class="container">
@@ -1770,7 +121,7 @@ $bulanIndo = [
         <!-- Slide 3: Bunga Rampai & Regulasi -->
         <div class="item">
             <div class="main-slider__image-block">
-                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-3.png') ?>" alt="BegawiPengadaan Lampung - Bunga Rampai &amp; Regulasi" class="main-slider__hero-img" width="1920" height="740" />
+                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-3.png') ?>" alt="BegawiPengadaan Lampung - Bunga Rampai &amp; Regulasi" class="main-slider__hero-img" width="1920" height="500" />
             </div>
             <div class="main-slider__caption-block">
                 <div class="container">
@@ -2823,7 +1174,777 @@ $bulanIndo = [
 </section>
 
 <!-- =========================================================
-     10. BIRO PBJ SETDA PROVINSI LAMPUNG & TAUTAN EKOSISTEM
+     10. TESTIMONI PENGGUNA (FISTUDY SIGNATURE TESTIMONIAL ONE)
+     ========================================================= -->
+<section class="testimonial-one section-testimonies" id="section-testimonies">
+    <div class="testimonial-one__shape-1 float-bob-x">
+        <img src="<?= base_url('assets/main/images/shapes/testimonial-one-shape-1.png') ?>" alt="" loading="lazy">
+    </div>
+    <div class="testimonial-one__shape-2">
+        <img src="<?= base_url('assets/main/images/shapes/testimonial-one-shape-2.png') ?>" alt="" loading="lazy">
+    </div>
+    <div class="container">
+        <!-- FiStudy Section Title -->
+        <div class="section-title text-left sec-title-animation animation-style2">
+            <div class="section-title__tagline-box">
+                <div class="section-title__tagline-shape"></div>
+                <span class="section-title__tagline">Suara Pemangku Kepentingan</span>
+            </div>
+            <h2 class="section-title__title title-animation">
+                Testimoni &amp; Pengalaman Nyata Pengguna BegawiPengadaan <br>
+                <span>Provinsi Lampung <img src="<?= base_url('assets/main/images/shapes/section-title-shape-1.png') ?>" alt=""></span>
+            </h2>
+        </div>
+
+        <!-- Testimony KPI Summary Strip -->
+        <!-- <div class="testimony-kpi-strip">
+            <div class="row g-3 align-items-center">
+                <div class="col-6 col-md-3">
+                    <div class="testimony-kpi-item">
+                        <div class="testimony-kpi-val text-primary">98.4%</div>
+                        <div class="testimony-kpi-lbl">Kepuasan Pengguna</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="testimony-kpi-item border-start">
+                        <div class="testimony-kpi-val text-success">1.250+</div>
+                        <div class="testimony-kpi-lbl">Aparatur PBJ Terbantu</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="testimony-kpi-item border-start-md">
+                        <div class="testimony-kpi-val text-info">55%</div>
+                        <div class="testimony-kpi-lbl">Efisiensi Dokumen PBJ</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="testimony-kpi-item border-start">
+                        <div class="testimony-kpi-val text-warning">100%</div>
+                        <div class="testimony-kpi-lbl">Bebas Sanggahan Banding</div>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+
+        <!-- FiStudy Testimonial Carousel (1 Card per slide) -->
+        <div class="testimonial-one__inner">
+            <div class="testimonial-one__carousel owl-theme owl-carousel">
+                <!-- Slide 1: Ahmad Zulkarnaen, S.T., M.T. -->
+                <div class="item">
+                    <div class="testimonial-one__single testimony-card spotlight-card">
+                        <div class="testimonial-one__img-inner spotlight-photo-frame">
+                            <div class="testimonial-one__img">
+                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-1-1.jpg') ?>" alt="Ahmad Zulkarnaen, S.T., M.T." loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user2.png') ?>'">
+                                <div class="testimonial-one__icon">
+                                    <span class="icon-quote"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="testimonial-one__content">
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 radius-999 text-xs fw-bold">
+                                    <iconify-icon icon="solar:user-bold" class="me-1"></iconify-icon> Pejabat Pembuat Komitmen (PPK)
+                                </span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 radius-999 text-2xs fw-bold">
+                                    <iconify-icon icon="solar:verified-check-bold" class="me-1"></iconify-icon> Terverifikasi SPSE
+                                </span>
+                            </div>
+                            <div class="testimonial-one__client-info">
+                                <h3 class="testimonial-one__client-name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('t1')">Ahmad Zulkarnaen, S.T., M.T.</a>
+                                </h3>
+                                <p class="testimonial-one__client-sub-title">PPK Dinas Bina Marga &amp; Bina Konstruksi Provinsi Lampung</p>
+                            </div>
+                            <p class="testimonial-one__text">
+                                &ldquo;Penyusunan HPS dan spesifikasi teknis untuk paket infrastruktur jalan kini jauh lebih terstandarisasi berkat template dokumen di Bunga Rampai dan sinkronisasi regulasi terpusat. Risiko deviasi hukum saat audit probity berkurang drastis, sehingga eksekusi program fisik berjalan tepat sasaran.&rdquo;
+                            </p>
+                            <div class="fistudy-impact-pill mb-3 d-flex align-items-center gap-2">
+                                <iconify-icon icon="solar:graph-up-bold" class="text-success text-base flex-shrink-0"></iconify-icon>
+                                <span><strong>Dampak Terukur:</strong> Memangkas waktu persiapan lelang hingga 55% &amp; nihil temuan administratif saat audit probity.</span>
+                            </div>
+                            <div class="testimonial-one__ratting-and-social">
+                                <ul class="testimonial-one__ratting list-unstyled">
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                </ul>
+                                <div class="testimonial-one__social ms-auto">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('t1')">
+                                        <span>Detail Ulasan</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2: Rina Widyastuti, S.E., M.Si. -->
+                <div class="item">
+                    <div class="testimonial-one__single testimony-card spotlight-card">
+                        <div class="testimonial-one__img-inner spotlight-photo-frame">
+                            <div class="testimonial-one__img">
+                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-1-2.jpg') ?>" alt="Rina Widyastuti, S.E., M.Si." loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user4.png') ?>'">
+                                <div class="testimonial-one__icon">
+                                    <span class="icon-quote"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="testimonial-one__content">
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 radius-999 text-xs fw-bold">
+                                    <iconify-icon icon="solar:diploma-verified-bold" class="me-1"></iconify-icon> Pokja Pemilihan / UKPBJ
+                                </span>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 radius-999 text-2xs fw-bold">
+                                    <iconify-icon icon="solar:shield-check-bold" class="me-1"></iconify-icon> Akreditasi LKPP
+                                </span>
+                            </div>
+                            <div class="testimonial-one__client-info">
+                                <h3 class="testimonial-one__client-name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('t2')">Rina Widyastuti, S.E., M.Si.</a>
+                                </h3>
+                                <p class="testimonial-one__client-sub-title">Anggota Pokja Pemilihan Biro PBJ Setda Provinsi Lampung</p>
+                            </div>
+                            <p class="testimonial-one__text">
+                                &ldquo;Arena Belajar dan simulasi evaluasi penawaran sangat membantu peningkatan kapasitas anggota Pokja. Ujian sertifikasi dan materi terstruktur meningkatkan kepercayaan diri kami dalam tender bernilai strategis di tingkat provinsi tanpa hambatan sanggahan banding.&rdquo;
+                            </p>
+                            <div class="fistudy-impact-pill mb-3 d-flex align-items-center gap-2">
+                                <iconify-icon icon="solar:shield-check-bold" class="text-success text-base flex-shrink-0"></iconify-icon>
+                                <span><strong>Dampak Terukur:</strong> Evaluasi tender selesai tepat waktu 100% dan bebas sanggahan banding pemohon.</span>
+                            </div>
+                            <div class="testimonial-one__ratting-and-social">
+                                <ul class="testimonial-one__ratting list-unstyled">
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                </ul>
+                                <div class="testimonial-one__social ms-auto">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('t2')">
+                                        <span>Detail Ulasan</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 3: Hendra Kusuma, S.Kom. -->
+                <div class="item">
+                    <div class="testimonial-one__single testimony-card spotlight-card">
+                        <div class="testimonial-one__img-inner spotlight-photo-frame">
+                            <div class="testimonial-one__img">
+                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-2-1.jpg') ?>" alt="Hendra Kusuma, S.Kom." loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user6.png') ?>'">
+                                <div class="testimonial-one__icon">
+                                    <span class="icon-quote"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="testimonial-one__content">
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1 radius-999 text-xs fw-bold">
+                                    <iconify-icon icon="solar:shop-2-bold" class="me-1"></iconify-icon> Mitra Penyedia &amp; UMKM
+                                </span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 radius-999 text-2xs fw-bold">
+                                    <iconify-icon icon="solar:check-circle-bold" class="me-1"></iconify-icon> E-Katalog Aktif
+                                </span>
+                            </div>
+                            <div class="testimonial-one__client-info">
+                                <h3 class="testimonial-one__client-name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('t3')">Hendra Kusuma, S.Kom.</a>
+                                </h3>
+                                <p class="testimonial-one__client-sub-title">Direktur PT Lampung Cipta Mandiri (Penyedia E-Katalog)</p>
+                            </div>
+                            <p class="testimonial-one__text">
+                                &ldquo;Sebagai pelaku usaha lokal di Lampung, portal BegawiPengadaan membuka transparansi penuh. Kami mudah memahami kriteria kualifikasi, etika penawaran, hingga tata cara etalase produk pada e-katalog lokal Pemprov Lampung secara adil.&rdquo;
+                            </p>
+                            <div class="fistudy-impact-pill mb-3 d-flex align-items-center gap-2">
+                                <iconify-icon icon="solar:cart-large-4-bold" class="text-warning text-base flex-shrink-0"></iconify-icon>
+                                <span><strong>Dampak Terukur:</strong> Produk lokal UMKM terserap optimal dalam belanja APBD Pemprov Lampung.</span>
+                            </div>
+                            <div class="testimonial-one__ratting-and-social">
+                                <ul class="testimonial-one__ratting list-unstyled">
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                </ul>
+                                <div class="testimonial-one__social ms-auto">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('t3')">
+                                        <span>Detail Ulasan</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 4: Drs. Bambang Irawan, Ak., CA. -->
+                <div class="item">
+                    <div class="testimonial-one__single testimony-card spotlight-card">
+                        <div class="testimonial-one__img-inner spotlight-photo-frame">
+                            <div class="testimonial-one__img">
+                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-1-3.jpg') ?>" alt="Drs. Bambang Irawan, Ak., CA." loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user1.png') ?>'">
+                                <div class="testimonial-one__icon">
+                                    <span class="icon-quote"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="testimonial-one__content">
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="badge bg-purple-subtle text-purple border border-purple-subtle px-3 py-1 radius-999 text-xs fw-bold" style="background:#f3e8ff; color:#7e22ce; border-color:#e9d5ff;">
+                                    <iconify-icon icon="solar:shield-check-bold" class="me-1"></iconify-icon> Pengawas APIP &amp; Auditor
+                                </span>
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1 radius-999 text-2xs fw-bold">
+                                    <iconify-icon icon="solar:document-text-bold" class="me-1"></iconify-icon> Auditor Probity
+                                </span>
+                            </div>
+                            <div class="testimonial-one__client-info">
+                                <h3 class="testimonial-one__client-name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('t4')">Drs. Bambang Irawan, Ak., CA.</a>
+                                </h3>
+                                <p class="testimonial-one__client-sub-title">Pengendali Teknis Inspektorat Provinsi Lampung</p>
+                            </div>
+                            <p class="testimonial-one__text">
+                                &ldquo;BegawiPengadaan memfasilitasi audit kepatuhan secara objektif. Riwayat versi regulasi dan standar dokumen baku memudahkan kami memverifikasi kesesuaian prosedur dari tahap perencanaan sampai serah terima hasil pekerjaan.&rdquo;
+                            </p>
+                            <div class="fistudy-impact-pill mb-3 d-flex align-items-center gap-2">
+                                <iconify-icon icon="solar:shield-check-bold" class="text-success text-base flex-shrink-0"></iconify-icon>
+                                <span><strong>Dampak Terukur:</strong> Penguatan integritas sistem dan pencegahan dini potensi deviasi PBJ.</span>
+                            </div>
+                            <div class="testimonial-one__ratting-and-social">
+                                <ul class="testimonial-one__ratting list-unstyled">
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                </ul>
+                                <div class="testimonial-one__social ms-auto">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('t4')">
+                                        <span>Detail Ulasan</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 5: dr. Nurul Hidayati, M.Kes. -->
+                <div class="item">
+                    <div class="testimonial-one__single testimony-card spotlight-card">
+                        <div class="testimonial-one__img-inner spotlight-photo-frame">
+                            <div class="testimonial-one__img">
+                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-2-2.jpg') ?>" alt="dr. Nurul Hidayati, M.Kes." loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user3.png') ?>'">
+                                <div class="testimonial-one__icon">
+                                    <span class="icon-quote"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="testimonial-one__content">
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 radius-999 text-xs fw-bold">
+                                    <iconify-icon icon="solar:heart-pulse-bold" class="me-1"></iconify-icon> PPK Pengadaan Alkes &amp; Obat
+                                </span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 radius-999 text-2xs fw-bold">
+                                    <iconify-icon icon="solar:hospital-bold" class="me-1"></iconify-icon> RSUD Abdul Moeloek
+                                </span>
+                            </div>
+                            <div class="testimonial-one__client-info">
+                                <h3 class="testimonial-one__client-name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('t5')">dr. Nurul Hidayati, M.Kes.</a>
+                                </h3>
+                                <p class="testimonial-one__client-sub-title">PPK Pengadaan Alkes RSUD Dr. H. Abdul Moeloek</p>
+                            </div>
+                            <p class="testimonial-one__text">
+                                &ldquo;Pengadaan obat dan alat medis memerlukan ketepatan waktu serta kepatuhan e-katalog nasional yang sangat ketat. Fitur konsultasi dan referensi regulasi di BegawiPengadaan memastikan ketersediaan logistik rumah sakit selalu terjamin.&rdquo;
+                            </p>
+                            <div class="fistudy-impact-pill mb-3 d-flex align-items-center gap-2">
+                                <iconify-icon icon="solar:heart-check-bold" class="text-danger text-base flex-shrink-0"></iconify-icon>
+                                <span><strong>Dampak Terukur:</strong> Ketepatan waktu pasokan medis mencapai 99,2% dengan tata kelola e-katalog akurat.</span>
+                            </div>
+                            <div class="testimonial-one__ratting-and-social">
+                                <ul class="testimonial-one__ratting list-unstyled">
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                </ul>
+                                <div class="testimonial-one__social ms-auto">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('t5')">
+                                        <span>Detail Ulasan</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 6: Surya Darmawan, S.T. -->
+                <div class="item">
+                    <div class="testimonial-one__single testimony-card spotlight-card">
+                        <div class="testimonial-one__img-inner spotlight-photo-frame">
+                            <div class="testimonial-one__img">
+                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-2-3.jpg') ?>" alt="Surya Darmawan, S.T." loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user5.png') ?>'">
+                                <div class="testimonial-one__icon">
+                                    <span class="icon-quote"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="testimonial-one__content">
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-1 radius-999 text-xs fw-bold">
+                                    <iconify-icon icon="solar:hammer-bold" class="me-1"></iconify-icon> Tim Teknis &amp; Pengawas
+                                </span>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 radius-999 text-2xs fw-bold">
+                                    <iconify-icon icon="solar:home-bold" class="me-1"></iconify-icon> Dinas PKP Lampung
+                                </span>
+                            </div>
+                            <div class="testimonial-one__client-info">
+                                <h3 class="testimonial-one__client-name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('t6')">Surya Darmawan, S.T.</a>
+                                </h3>
+                                <p class="testimonial-one__client-sub-title">Tim Teknis Dinas Perumahan &amp; Kawasan Permukiman Lampung</p>
+                            </div>
+                            <p class="testimonial-one__text">
+                                &ldquo;Standarisasi berita acara dan format pemeriksaan pekerjaan di Bunga Rampai mempermudah tim teknis melakukan serah terima fisik di lapangan secara presisi dan sesuai kontrak kerja.&rdquo;
+                            </p>
+                            <div class="fistudy-impact-pill mb-3 d-flex align-items-center gap-2">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-info text-base flex-shrink-0"></iconify-icon>
+                                <span><strong>Dampak Terukur:</strong> 100% berita acara serah terima terdokumentasi rapi dan terverifikasi digital.</span>
+                            </div>
+                            <div class="testimonial-one__ratting-and-social">
+                                <ul class="testimonial-one__ratting list-unstyled">
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                    <li><span class="icon-star"></span></li>
+                                </ul>
+                                <div class="testimonial-one__social ms-auto">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('t6')">
+                                        <span>Detail Ulasan</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================================
+     11. TIM INOVATOR & PENGEMBANG (FISTUDY SIGNATURE TEAM ONE)
+     ========================================================= -->
+<section class="team-one section-team" id="section-team">
+    <div class="team-one__shape-1 shapemover">
+        <img src="<?= base_url('assets/main/images/shapes/team-one-shape-1.png') ?>" alt="" loading="lazy">
+    </div>
+    <div class="team-one__shape-2 float-bob-y">
+        <img src="<?= base_url('assets/main/images/shapes/team-one-shape-2.png') ?>" alt="" loading="lazy">
+    </div>
+    <div class="team-one__shape-3">
+        <img src="<?= base_url('assets/main/images/shapes/team-one-shape-3.png') ?>" alt="" loading="lazy">
+    </div>
+    <div class="team-one__shape-4 float-bob-x">
+        <img src="<?= base_url('assets/main/images/shapes/team-one-shape-4.png') ?>" alt="" loading="lazy">
+    </div>
+    <div class="container">
+        <!-- FiStudy Section Title -->
+        <div class="section-title text-left sec-title-animation animation-style2">
+            <div class="section-title__tagline-box">
+                <div class="section-title__tagline-shape"></div>
+                <span class="section-title__tagline">Kolaborator &amp; Pengembang</span>
+            </div>
+            <h2 class="section-title__title title-animation">
+                Tim Inovator di Balik Ekosistem BegawiPengadaan <br>
+                <span>Provinsi Lampung <img src="<?= base_url('assets/main/images/shapes/section-title-shape-1.png') ?>" alt=""></span>
+            </h2>
+        </div>
+
+        <!-- FiStudy Team Spotlight Carousel (1 Card per slide) -->
+        <div class="team-one__inner">
+            <div class="team-spotlight__carousel owl-theme owl-carousel">
+                <!-- Slide 1: Dr. Ir. Fahrizal Darminto, M.A. -->
+                <div class="item">
+                    <div class="team-spotlight__single team-card spotlight-card">
+                        <div class="team-spotlight__img-box spotlight-photo-frame">
+                            <img src="<?= base_url('assets/main/images/team/team-1-1.jpg') ?>" alt="Dr. Ir. Fahrizal Darminto, M.A." class="team-spotlight__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user1.png') ?>'">
+                            <div class="team-spotlight__overlay"></div>
+                            <div class="team-spotlight__tag">
+                                <iconify-icon icon="solar:crown-star-bold" class="text-warning"></iconify-icon>
+                                <span>Pengarah Strategis PBJ</span>
+                            </div>
+                        </div>
+                        <div class="team-spotlight__content">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 radius-999 text-xs fw-bold">
+                                        <iconify-icon icon="solar:crown-star-bold" class="me-1"></iconify-icon> Pengarah Kebijakan Makro
+                                    </span>
+                                    <span class="badge bg-light text-dark border text-2xs fw-bold px-2 py-1 ms-auto">
+                                        <iconify-icon icon="solar:buildings-bold" class="text-primary me-1"></iconify-icon> Pimpinan Daerah
+                                    </span>
+                                </div>
+                                <h3 class="team-spotlight__name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('tm1')">Dr. Ir. Fahrizal Darminto, M.A.</a>
+                                </h3>
+                                <div class="team-spotlight__sub-title">Sekretaris Daerah Provinsi Lampung</div>
+                                <p class="team-spotlight__text">
+                                    &ldquo;Penguatan tata kelola pengadaan barang dan jasa berbasis digital merupakan komitmen Pemprov Lampung guna memastikan belanja APBD yang transparan, akuntabel, dan berdampak langsung pada kesejahteraan masyarakat.&rdquo;
+                                </p>
+                            </div>
+                            <div>
+                                <div class="team-spotlight__impact-box">
+                                    <iconify-icon icon="solar:shield-check-bold" class="text-primary text-base flex-shrink-0"></iconify-icon>
+                                    <span><strong>Peran Kunci:</strong> Pengarah kebijakan makro regulasi daerah dan akuntabilitas belanja APBD.</span>
+                                </div>
+                                <div class="team-spotlight__actions">
+                                    <span><iconify-icon icon="solar:verified-check-bold" class="text-success me-1"></iconify-icon> Setda Provinsi Lampung</span>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('tm1')">
+                                        <span>Lihat Profil Tim</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2: Slamet Riadi, S.Sos., M.M. -->
+                <div class="item">
+                    <div class="team-spotlight__single team-card spotlight-card">
+                        <div class="team-spotlight__img-box spotlight-photo-frame">
+                            <img src="<?= base_url('assets/main/images/team/team-1-2.jpg') ?>" alt="Slamet Riadi, S.Sos., M.M." class="team-spotlight__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user3.png') ?>'">
+                            <div class="team-spotlight__overlay"></div>
+                            <div class="team-spotlight__tag">
+                                <iconify-icon icon="solar:star-bold" class="text-warning"></iconify-icon>
+                                <span>Kepala Biro PBJ Setda</span>
+                            </div>
+                        </div>
+                        <div class="team-spotlight__content">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 radius-999 text-xs fw-bold">
+                                        <iconify-icon icon="solar:star-bold" class="me-1"></iconify-icon> Inisiator &amp; Pembina
+                                    </span>
+                                    <span class="badge bg-light text-dark border text-2xs fw-bold px-2 py-1 ms-auto">
+                                        <iconify-icon icon="solar:shield-check-bold" class="text-info me-1"></iconify-icon> Biro PBJ Setda
+                                    </span>
+                                </div>
+                                <h3 class="team-spotlight__name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('tm2')">Slamet Riadi, S.Sos., M.M.</a>
+                                </h3>
+                                <div class="team-spotlight__sub-title">Kepala Biro Pengadaan Barang &amp; Jasa Setda Provinsi Lampung</div>
+                                <p class="team-spotlight__text">
+                                    &ldquo;Menginisiasi arsitektur ekosistem BegawiPengadaan, memimpin transformasi UKPBJ Lampung menuju Level 3 (Proaktif) dan pusat keunggulan PBJ berstandar nasional yang transparan dan akuntabel.&rdquo;
+                                </p>
+                            </div>
+                            <div>
+                                <div class="team-spotlight__impact-box">
+                                    <iconify-icon icon="solar:medal-ribbon-star-bold" class="text-primary text-base flex-shrink-0"></iconify-icon>
+                                    <span><strong>Fokus Pembinaan:</strong> Akselerasi kelembagaan UKPBJ Lampung meraih akreditasi Level 3 Proaktif LKPP.</span>
+                                </div>
+                                <div class="team-spotlight__actions">
+                                    <span><iconify-icon icon="solar:verified-check-bold" class="text-success me-1"></iconify-icon> Biro PBJ Setda Lampung</span>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('tm2')">
+                                        <span>Lihat Profil Tim</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 3: Software Engineering & UI/UX Crew -->
+                <div class="item">
+                    <div class="team-spotlight__single team-card spotlight-card">
+                        <div class="team-spotlight__img-box spotlight-photo-frame">
+                            <img src="<?= base_url('assets/main/images/team/team-1-5.jpg') ?>" alt="Software Engineering &amp; UI/UX Crew" class="team-spotlight__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user5.png') ?>'">
+                            <div class="team-spotlight__overlay"></div>
+                            <div class="team-spotlight__tag">
+                                <iconify-icon icon="solar:laptop-bold" class="text-warning"></iconify-icon>
+                                <span>Software Engineering &amp; UX</span>
+                            </div>
+                        </div>
+                        <div class="team-spotlight__content">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1 radius-999 text-xs fw-bold">
+                                        <iconify-icon icon="solar:laptop-bold" class="me-1"></iconify-icon> Rekayasa Perangkat Lunak
+                                    </span>
+                                    <span class="badge bg-light text-dark border text-2xs fw-bold px-2 py-1 ms-auto">
+                                        <iconify-icon icon="solar:code-circle-bold" class="text-warning me-1"></iconify-icon> Full-Stack CI4
+                                    </span>
+                                </div>
+                                <h3 class="team-spotlight__name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('tm3')">Software Engineering &amp; UI/UX Crew</a>
+                                </h3>
+                                <div class="team-spotlight__sub-title">Tim Transformasi Digital BegawiPengadaan</div>
+                                <p class="team-spotlight__text">
+                                    &ldquo;Merancang arsitektur MVC CodeIgniter 4 yang gesit, integrasi database MySQL teroptimasi, tata letak responsif modern WowDash, serta antarmuka interaktif yang mudah diakses oleh seluruh OPD di Lampung.&rdquo;
+                                </p>
+                            </div>
+                            <div>
+                                <div class="team-spotlight__impact-box">
+                                    <iconify-icon icon="solar:code-bold" class="text-warning text-base flex-shrink-0"></iconify-icon>
+                                    <span><strong>Keunggulan Sistem:</strong> 100% Full-Stack Responsif, performa cepat, dan kepatuhan standar BSSN.</span>
+                                </div>
+                                <div class="team-spotlight__actions">
+                                    <span><iconify-icon icon="solar:server-square-bold" class="me-1"></iconify-icon> Perekayasa Sistem SPSE</span>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('tm3')">
+                                        <span>Lihat Profil Tim</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 4: Tim LPSE & Infrastruktur SPSE -->
+                <div class="item">
+                    <div class="team-spotlight__single team-card spotlight-card">
+                        <div class="team-spotlight__img-box spotlight-photo-frame">
+                            <img src="<?= base_url('assets/main/images/team/team-1-4.jpg') ?>" alt="Tim LPSE &amp; Pengelola SPSE" class="team-spotlight__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user4.png') ?>'">
+                            <div class="team-spotlight__overlay"></div>
+                            <div class="team-spotlight__tag">
+                                <iconify-icon icon="solar:server-bold" class="text-info"></iconify-icon>
+                                <span>Tim LPSE &amp; Keamanan SPSE</span>
+                            </div>
+                        </div>
+                        <div class="team-spotlight__content">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-1 radius-999 text-xs fw-bold">
+                                        <iconify-icon icon="solar:server-bold" class="me-1"></iconify-icon> Infrastruktur &amp; Layanan LPSE
+                                    </span>
+                                    <span class="badge bg-light text-dark border text-2xs fw-bold px-2 py-1 ms-auto">
+                                        <iconify-icon icon="solar:shield-check-bold" class="text-info me-1"></iconify-icon> Standar ISO 27001
+                                    </span>
+                                </div>
+                                <h3 class="team-spotlight__name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('tm4')">Tim LPSE &amp; Infrastruktur SPSE</a>
+                                </h3>
+                                <div class="team-spotlight__sub-title">Pengelola Sistem Pengadaan Secara Elektronik Biro PBJ</div>
+                                <p class="team-spotlight__text">
+                                    &ldquo;Menjamin ketersediaan server 24/7 dengan standardisasi ISO 27001 dan rekomendasi BSSN, memastikan kelancaran seluruh proses tender elektronik tanpa downtime di seluruh kabupaten/kota se-Lampung.&rdquo;
+                                </p>
+                            </div>
+                            <div>
+                                <div class="team-spotlight__impact-box">
+                                    <iconify-icon icon="solar:shield-check-bold" class="text-info text-base flex-shrink-0"></iconify-icon>
+                                    <span><strong>Keandalan:</strong> 99,9% Server Uptime dan perlindungan data transaksi pengadaan terenkripsi.</span>
+                                </div>
+                                <div class="team-spotlight__actions">
+                                    <span><iconify-icon icon="solar:database-bold" class="me-1"></iconify-icon> Data Center Pemprov Lampung</span>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('tm4')">
+                                        <span>Lihat Profil Tim</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 5: Tim Pembinaan & Advokasi Hukum PBJ -->
+                <div class="item">
+                    <div class="team-spotlight__single team-card spotlight-card">
+                        <div class="team-spotlight__img-box spotlight-photo-frame">
+                            <img src="<?= base_url('assets/main/images/team/team-1-3.jpg') ?>" alt="Tim Pembinaan &amp; Advokasi Regulasi PBJ" class="team-spotlight__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user6.png') ?>'">
+                            <div class="team-spotlight__overlay"></div>
+                            <div class="team-spotlight__tag">
+                                <iconify-icon icon="solar:document-text-bold" class="text-purple"></iconify-icon>
+                                <span>Advokasi &amp; Harmonisasi Regulasi</span>
+                            </div>
+                        </div>
+                        <div class="team-spotlight__content">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle px-3 py-1 radius-999 text-xs fw-bold" style="background:#f3e8ff; color:#7e22ce; border-color:#e9d5ff;">
+                                        <iconify-icon icon="solar:scale-bold" class="me-1"></iconify-icon> Advokasi &amp; Hukum PBJ
+                                    </span>
+                                    <span class="badge bg-light text-dark border text-2xs fw-bold px-2 py-1 ms-auto">
+                                        <iconify-icon icon="solar:document-bold" class="text-primary me-1"></iconify-icon> Mitigasi Risiko
+                                    </span>
+                                </div>
+                                <h3 class="team-spotlight__name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('tm5')">Tim Pembinaan &amp; Advokasi Hukum PBJ</a>
+                                </h3>
+                                <div class="team-spotlight__sub-title">Biro Pengadaan Barang &amp; Jasa Setda Provinsi Lampung</div>
+                                <p class="team-spotlight__text">
+                                    &ldquo;Menyusun harmonisasi peraturan gubernur, telaah hukum pengadaan, mitigasi risiko sanggahan tender, serta penerbitan panduan teknis yang selaras dengan Perpres No. 12 Tahun 2021 dan LKPP.&rdquo;
+                                </p>
+                            </div>
+                            <div>
+                                <div class="team-spotlight__impact-box">
+                                    <iconify-icon icon="solar:shield-check-bold" class="text-success text-base flex-shrink-0"></iconify-icon>
+                                    <span><strong>Fokus:</strong> Kepastian hukum penuh bagi seluruh Pejabat Pembuat Komitmen dan Pokja Pemilihan.</span>
+                                </div>
+                                <div class="team-spotlight__actions">
+                                    <span><iconify-icon icon="solar:diploma-bold" class="me-1"></iconify-icon> Pendampingan Hukum &amp; Kontrak</span>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('tm5')">
+                                        <span>Lihat Profil Tim</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 6: Tim Fasilitator & Master Trainer PBJ -->
+                <div class="item">
+                    <div class="team-spotlight__single team-card spotlight-card">
+                        <div class="team-spotlight__img-box spotlight-photo-frame">
+                            <img src="<?= base_url('assets/main/images/team/team-1-6.jpg') ?>" alt="Tim Fasilitator &amp; Master Trainer PBJ" class="team-spotlight__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user2.png') ?>'">
+                            <div class="team-spotlight__overlay"></div>
+                            <div class="team-spotlight__tag">
+                                <iconify-icon icon="solar:graduation-cap-bold" class="text-success"></iconify-icon>
+                                <span>Fasilitator &amp; Master Trainer LKPP</span>
+                            </div>
+                        </div>
+                        <div class="team-spotlight__content">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 radius-999 text-xs fw-bold">
+                                        <iconify-icon icon="solar:medal-ribbon-bold" class="me-1"></iconify-icon> Instruktur &amp; Penguji
+                                    </span>
+                                    <span class="badge bg-light text-dark border text-2xs fw-bold px-2 py-1 ms-auto">
+                                        <iconify-icon icon="solar:diploma-verified-bold" class="text-success me-1"></iconify-icon> Sertifikasi LKPP
+                                    </span>
+                                </div>
+                                <h3 class="team-spotlight__name">
+                                    <a href="javascript:void(0)" onclick="openTestimonyModal('tm6')">Tim Fasilitator &amp; Master Trainer PBJ</a>
+                                </h3>
+                                <div class="team-spotlight__sub-title">Instruktur PBJ Terakreditasi LKPP Lampung</div>
+                                <p class="team-spotlight__text">
+                                    &ldquo;Menyusun silabus pembelajaran berbasis kompetensi di Arena Belajar, bank soal ujian sertifikasi level-1, materi bimtek interaktif, serta panduan praktis penanganan sanggahan bagi aparatur se-Lampung.&rdquo;
+                                </p>
+                            </div>
+                            <div>
+                                <div class="team-spotlight__impact-box">
+                                    <iconify-icon icon="solar:book-bookmark-bold" class="text-secondary text-base flex-shrink-0"></iconify-icon>
+                                    <span><strong>Dampak:</strong> Standardisasi kompetensi ratusan ASN pengadaan di lingkungan Pemprov Lampung.</span>
+                                </div>
+                                <div class="team-spotlight__actions">
+                                    <span><iconify-icon icon="solar:users-group-two-rounded-bold" class="me-1"></iconify-icon> Lembaga Sertifikasi Aparatur</span>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1" onclick="openTestimonyModal('tm6')">
+                                        <span>Lihat Profil Tim</span>
+                                        <span class="icon-arrow-up-right-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Values & Commitment Banner -->
+        <div class="team-values-banner">
+            <div class="row g-4 align-items-center">
+                <div class="col-md-4">
+                    <div class="team-value-item">
+                        <div class="team-value-icon">
+                            <iconify-icon icon="solar:shield-check-bold"></iconify-icon>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-white mb-1 text-sm">Budaya Kerja PATIK</h5>
+                            <p class="text-slate-300 mb-0 text-xs">Profesional, Akuntabel, Transparan, Integritas, dan Kredibel tanpa gratifikasi.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="team-value-item">
+                        <div class="team-value-icon">
+                            <iconify-icon icon="solar:medal-star-bold"></iconify-icon>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-white mb-1 text-sm">Standar Mutu Level 3 LKPP</h5>
+                            <p class="text-slate-300 mb-0 text-xs">UKPBJ Lampung bertransformasi proaktif sebagai pusat keunggulan pengadaan nasional.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="team-value-item">
+                        <div class="team-value-icon">
+                            <iconify-icon icon="solar:shop-2-bold"></iconify-icon>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-white mb-1 text-sm">Pemberdayaan UMKM Lokal</h5>
+                            <p class="text-slate-300 mb-0 text-xs">Mendorong penyerapan optimal produk buatan daerah dalam etalase e-katalog lokal.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Modal Detail Testimoni Interaktif -->
+<div class="modal fade" id="testimonyDetailModal" tabindex="-1" aria-labelledby="testimonyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content radius-16 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 radius-999 text-xs fw-bold" id="modalRoleBadge">Peran</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 radius-999 text-2xs fw-bold"><iconify-icon icon="solar:verified-check-bold"></iconify-icon> Terverifikasi</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img src="" id="modalAvatarImg" class="showcase-avatar-photo" alt="" style="width: 54px; height: 54px; display: none;">
+                    <div class="testimony-avatar" id="modalAvatar" style="width: 54px; height: 54px; font-size: 18px; background: #0c5aa6;">AZ</div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0" id="modalAuthorName">Nama Pengguna</h5>
+                        <p class="text-xs text-muted mb-0" id="modalAuthorOrg">Instansi / Organisasi</p>
+                    </div>
+                </div>
+                <div class="testimony-stars mb-3 text-warning">
+                    <iconify-icon icon="solar:star-bold"></iconify-icon>
+                    <iconify-icon icon="solar:star-bold"></iconify-icon>
+                    <iconify-icon icon="solar:star-bold"></iconify-icon>
+                    <iconify-icon icon="solar:star-bold"></iconify-icon>
+                    <iconify-icon icon="solar:star-bold"></iconify-icon>
+                </div>
+                <blockquote class="p-3 bg-light radius-10 border mb-3 text-slate-700" id="modalQuoteText" style="font-size: 14px; line-height: 1.7; border-left: 4px solid #0c5aa6 !important;">
+                    Kutipan ulasan...
+                </blockquote>
+                <div class="p-3 bg-success-subtle radius-10 border border-success-subtle">
+                    <div class="text-2xs fw-bold text-uppercase text-success mb-1"><iconify-icon icon="solar:graph-up-bold" class="me-1"></iconify-icon> Dampak Nyata Terukur:</div>
+                    <div class="text-xs fw-bold text-dark" id="modalImpactText">Dampak terukur</div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                <button type="button" class="btn btn-secondary radius-8 px-4 text-sm" data-bs-dismiss="modal">Tutup</button>
+                <a href="<?= site_url('arena-belajar') ?>" class="btn btn-primary radius-8 px-4 text-sm d-inline-flex align-items-center gap-2">
+                    <span>Eksplorasi Modul</span>
+                    <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     12. BIRO PBJ SETDA PROVINSI LAMPUNG & TAUTAN EKOSISTEM
      ========================================================= -->
 <section class="section-spacious biro-showcase-bg">
     <div class="container">
@@ -2966,6 +2087,8 @@ $bulanIndo = [
     </div>
 </section>
 
+<?= $this->include('landing/components/home_promo_popup') ?>
+
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
@@ -2997,6 +2120,231 @@ $bulanIndo = [
                     searchInput.placeholder = 'Cari artikel, template KAK/HPS, atau studi kasus...';
                 }
             });
+        }
+    });
+
+    // Testimonial & Team Data Store for Interactive Modal
+    const testimonyData = {
+        't1': {
+            name: 'Ahmad Zulkarnaen, S.T., M.T.',
+            org: 'PPK Dinas Bina Marga & Bina Konstruksi Provinsi Lampung',
+            role: 'Pejabat Pembuat Komitmen (PPK)',
+            photo: '<?= base_url('assets/main/images/testimonial/testimonial-1-1.jpg') ?>',
+            avatar: 'AZ',
+            bg: '#0284c7',
+            quote: 'Penyusunan HPS dan spesifikasi teknis untuk paket infrastruktur jalan kini jauh lebih terstandarisasi berkat template dokumen di Bunga Rampai dan sinkronisasi regulasi terpusat. Risiko deviasi hukum saat audit probity berkurang drastis, sehingga eksekusi program fisik berjalan tepat sasaran.',
+            impact: 'Memangkas waktu persiapan lelang hingga 55% & nihil temuan administratif saat audit probity.'
+        },
+        't2': {
+            name: 'Rina Widyastuti, S.E., M.Si.',
+            org: 'Anggota Pokja Pemilihan UKPBJ Setda Provinsi Lampung',
+            role: 'Pokja Pemilihan / UKPBJ',
+            photo: '<?= base_url('assets/main/images/testimonial/testimonial-1-2.jpg') ?>',
+            avatar: 'RW',
+            bg: '#10b981',
+            quote: 'Arena Belajar dan simulasi evaluasi penawaran sangat membantu peningkatan kapasitas anggota Pokja. Ujian sertifikasi dan materi terstruktur meningkatkan kepercayaan diri kami dalam tender bernilai strategis di tingkat provinsi tanpa hambatan sanggahan banding.',
+            impact: 'Evaluasi tender selesai tepat waktu 100% dan bebas sanggahan banding pemohon.'
+        },
+        't3': {
+            name: 'Hendra Kusuma, S.Kom.',
+            org: 'Direktur PT Lampung Cipta Mandiri (Penyedia E-Katalog)',
+            role: 'Mitra Penyedia & UMKM',
+            photo: '<?= base_url('assets/main/images/testimonial/testimonial-2-1.jpg') ?>',
+            avatar: 'HK',
+            bg: '#f59e0b',
+            quote: 'Sebagai pelaku usaha lokal di Lampung, portal BegawiPengadaan membuka transparansi penuh. Kami mudah memahami kriteria kualifikasi, etika penawaran, hingga tata cara etalase produk pada e-katalog lokal Pemprov Lampung secara adil.',
+            impact: 'Produk lokal UMKM terserap optimal dalam belanja APBD Pemprov Lampung.'
+        },
+        't4': {
+            name: 'Drs. Bambang Irawan, Ak., CA.',
+            org: 'Pengendali Teknis Inspektorat Provinsi Lampung',
+            role: 'Pengawas APIP & Auditor',
+            photo: '<?= base_url('assets/main/images/testimonial/testimonial-1-3.jpg') ?>',
+            avatar: 'BI',
+            bg: '#7c3aed',
+            quote: 'BegawiPengadaan memfasilitasi audit kepatuhan secara objektif. Riwayat versi regulasi dan standar dokumen baku memudahkan kami memverifikasi kesesuaian prosedur dari tahap perencanaan sampai serah terima hasil pekerjaan.',
+            impact: 'Penguatan integritas sistem dan pencegahan dini potensi deviasi PBJ.'
+        },
+        't5': {
+            name: 'dr. Nurul Hidayati, M.Kes.',
+            org: 'PPK Pengadaan Alkes RSUD Dr. H. Abdul Moeloek',
+            role: 'PPK Sektor Kesehatan',
+            photo: '<?= base_url('assets/main/images/testimonial/testimonial-2-2.jpg') ?>',
+            avatar: 'NH',
+            bg: '#ef4444',
+            quote: 'Pengadaan obat dan alat medis memerlukan ketepatan waktu serta kepatuhan e-katalog nasional yang sangat ketat. Fitur konsultasi dan referensi regulasi di BegawiPengadaan memastikan ketersediaan logistik rumah sakit selalu terjamin.',
+            impact: 'Ketepatan waktu pasokan medis mencapai 99,2% dengan tata kelola e-katalog akurat.'
+        },
+        't6': {
+            name: 'Surya Darmawan, S.T.',
+            org: 'Tim Teknis Dinas Perumahan & Kawasan Permukiman Lampung',
+            role: 'Tim Teknis & Pengawas',
+            photo: '<?= base_url('assets/main/images/testimonial/testimonial-2-3.jpg') ?>',
+            avatar: 'SD',
+            bg: '#06b6d4',
+            quote: 'Standarisasi berita acara dan format pemeriksaan pekerjaan di Bunga Rampai mempermudah tim teknis melakukan serah terima fisik di lapangan secara presisi dan sesuai kontrak kerja.',
+            impact: '100% berita acara serah terima terdokumentasi rapi dan terverifikasi digital.'
+        },
+        'tm1': {
+            name: 'Dr. Ir. Fahrizal Darminto, M.A.',
+            org: 'Sekretaris Daerah Provinsi Lampung',
+            role: 'Pengarah Strategis PBJ',
+            photo: '<?= base_url('assets/main/images/team/team-1-1.jpg') ?>',
+            avatar: 'FD',
+            bg: '#052244',
+            quote: 'Penguatan tata kelola pengadaan barang dan jasa berbasis digital merupakan komitmen Pemprov Lampung guna memastikan belanja APBD yang transparan, akuntabel, dan berdampak langsung pada kesejahteraan masyarakat.',
+            impact: 'Legitimasi kebijakan makro dan penguatan integritas belanja APBD Provinsi Lampung.'
+        },
+        'tm2': {
+            name: 'Slamet Riadi, S.Sos., M.M.',
+            org: 'Kepala Biro Pengadaan Barang & Jasa Setda Provinsi Lampung',
+            role: 'Inisiator & Pembina Ekosistem',
+            photo: '<?= base_url('assets/main/images/team/team-1-2.jpg') ?>',
+            avatar: 'SR',
+            bg: '#0369a1',
+            quote: 'Menginisiasi arsitektur ekosistem BegawiPengadaan, memimpin transformasi UKPBJ Lampung menuju Level 3 (Proaktif) dan pusat keunggulan PBJ berstandar nasional yang transparan dan adaptif.',
+            impact: 'Akselerasi kelembagaan UKPBJ Lampung meraih akreditasi Level 3 Proaktif LKPP.'
+        },
+        'tm3': {
+            name: 'Software Engineering & UI/UX Crew',
+            org: 'Tim Transformasi Digital BegawiPengadaan',
+            role: 'Software Engineering & UX System',
+            photo: '<?= base_url('assets/main/images/team/team-1-5.jpg') ?>',
+            avatar: 'SE',
+            bg: '#d97706',
+            quote: 'Merancang arsitektur MVC CodeIgniter 4 yang gesit, integrasi database MySQL teroptimasi, tata letak responsif modern WowDash, serta antarmuka interaktif yang mudah diakses oleh seluruh OPD di Lampung.',
+            impact: '100% Full-Stack Responsif, performa tinggi, dan kepatuhan standar keamanan siber SPSE.'
+        },
+        'tm4': {
+            name: 'Tim LPSE & Pengelola SPSE',
+            org: 'Biro Pengadaan Barang & Jasa Setda Provinsi Lampung',
+            role: 'Infrastruktur & Layanan LPSE',
+            photo: '<?= base_url('assets/main/images/team/team-1-4.jpg') ?>',
+            avatar: 'LP',
+            bg: '#0284c7',
+            quote: 'Menjamin ketersediaan server 24/7 dengan standardisasi ISO 27001 dan rekomendasi BSSN, memastikan kelancaran seluruh proses tender elektronik tanpa downtime di seluruh kabupaten/kota se-Lampung.',
+            impact: '99,9% Server Uptime dan perlindungan data transaksi pengadaan terenkripsi.'
+        },
+        'tm5': {
+            name: 'Tim Pembinaan & Advokasi Hukum PBJ',
+            org: 'Biro Pengadaan Barang & Jasa & Biro Hukum Setda Lampung',
+            role: 'Advokasi & Regulasi PBJ',
+            photo: '<?= base_url('assets/main/images/team/team-1-3.jpg') ?>',
+            avatar: 'AH',
+            bg: '#7c3aed',
+            quote: 'Menyusun harmonisasi peraturan gubernur, telaah hukum pengadaan, mitigasi risiko sanggahan tender, serta penerbitan panduan teknis yang selaras dengan Perpres No. 12 Tahun 2021 dan aturan turunan LKPP.',
+            impact: 'Kepastian hukum penuh bagi seluruh Pejabat Pembuat Komitmen dan Pokja Pemilihan.'
+        },
+        'tm6': {
+            name: 'Tim Fasilitator & Master Trainer PBJ',
+            org: 'Instruktur PBJ Terakreditasi LKPP Lampung',
+            role: 'Instruktur & Penjamin Mutu',
+            photo: '<?= base_url('assets/main/images/team/team-1-6.jpg') ?>',
+            avatar: 'TF',
+            bg: '#10b981',
+            quote: 'Menyusun silabus pembelajaran berbasis kompetensi di Arena Belajar, bank soal ujian sertifikasi level-1, simulasi tender interaktif, serta panduan praktis penanganan sanggahan bagi aparatur se-Lampung.',
+            impact: 'Standardisasi kompetensi ASN pengadaan di lingkungan Pemprov Lampung.'
+        }
+    };
+
+    function openTestimonyModal(id) {
+        const data = testimonyData[id];
+        if (!data) return;
+
+        document.getElementById('modalAuthorName').textContent = data.name;
+        document.getElementById('modalAuthorOrg').textContent = data.org;
+        document.getElementById('modalRoleBadge').textContent = data.role;
+        document.getElementById('modalQuoteText').textContent = '“' + data.quote + '”';
+        document.getElementById('modalImpactText').textContent = data.impact;
+
+        const avatarImg = document.getElementById('modalAvatarImg');
+        const avatarFallback = document.getElementById('modalAvatar');
+        if (data.photo && avatarImg) {
+            avatarImg.src = data.photo;
+            avatarImg.style.display = 'block';
+            if (avatarFallback) avatarFallback.style.display = 'none';
+        } else if (avatarFallback) {
+            avatarFallback.textContent = data.avatar || 'AZ';
+            avatarFallback.style.background = data.bg || '#0c5aa6';
+            avatarFallback.style.display = 'flex';
+            if (avatarImg) avatarImg.style.display = 'none';
+        }
+
+        const modalEl = document.getElementById('testimonyDetailModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+    }
+
+    // FiStudy Carousel Initialization for Testimonials & Team
+    $(document).ready(function() {
+        if (typeof $.fn.owlCarousel !== 'undefined') {
+            if ($('.testimonial-one__carousel').length && !$('.testimonial-one__carousel').hasClass('owl-loaded')) {
+                $('.testimonial-one__carousel').owlCarousel({
+                    loop: true,
+                    margin: 24,
+                    nav: true,
+                    dots: true,
+                    smartSpeed: 500,
+                    autoplay: true,
+                    autoplayTimeout: 7500,
+                    navText: [
+                        '<span class="icon-arrow-left-up"></span>',
+                        '<span class="icon-arrow-up-right-2"></span>',
+                    ],
+                    responsive: {
+                        0: {
+                            items: 1
+                        },
+                        768: {
+                            items: 1
+                        },
+                        992: {
+                            items: 1
+                        },
+                        1200: {
+                            items: 1
+                        },
+                        1320: {
+                            items: 1
+                        }
+                    }
+                });
+            }
+
+            if ($('.team-spotlight__carousel').length && !$('.team-spotlight__carousel').hasClass('owl-loaded')) {
+                $('.team-spotlight__carousel').owlCarousel({
+                    loop: true,
+                    margin: 24,
+                    nav: true,
+                    dots: true,
+                    smartSpeed: 500,
+                    autoplay: true,
+                    autoplayTimeout: 8000,
+                    navText: [
+                        '<span class="icon-arrow-left-up"></span>',
+                        '<span class="icon-arrow-up-right-2"></span>',
+                    ],
+                    responsive: {
+                        0: {
+                            items: 1
+                        },
+                        768: {
+                            items: 1
+                        },
+                        992: {
+                            items: 1
+                        },
+                        1200: {
+                            items: 1
+                        },
+                        1320: {
+                            items: 1
+                        }
+                    }
+                });
+            }
         }
     });
 </script>

@@ -388,6 +388,116 @@ class HomeController extends BaseController
             ->with('contact_success', 'Terima kasih atas pesan Anda! Konsultasi dan pertanyaan Anda telah berhasil diteruskan ke Helpdesk Biro Pengadaan Barang dan Jasa Provinsi Lampung. Petugas kami akan segera menindaklanjuti.');
     }
 
+    public function survey(): string
+    {
+        $surveyModel = new \App\Models\SatisfactionSurveyModel();
+        $stats = $surveyModel->getAggregateStats();
+
+        return view('landing/survey/index', [
+            'pageTitle'       => 'Survei Kepuasan Pengguna (IKM) | BegawiPengadaan Provinsi Lampung',
+            'metaDescription' => 'Survei Kepuasan Masyarakat (IKM) Biro Pengadaan Barang dan Jasa Provinsi Lampung. Sampaikan aspirasi, penilaian, dan evaluasi layanan Anda secara transparan dan akuntabel.',
+            'breadcrumbs'     => [
+                ['label' => 'Beranda', 'url' => site_url('/')],
+                ['label' => 'Survei Kepuasan Pengguna'],
+            ],
+            'stats'           => $stats,
+        ]);
+    }
+
+    public function submitSurvey()
+    {
+        $rating = (int) $this->request->getPost('rating_overall');
+        if ($rating < 1 || $rating > 5) {
+            $rating = 5;
+        }
+
+        $isAnonymous = $this->request->getPost('is_anonymous') !== '0';
+        $respondentRole = trim((string) ($this->request->getPost('respondent_role') ?: 'Pengguna Layanan / Masyarakat'));
+        $name = $isAnonymous ? 'Anonim' : trim((string) ($this->request->getPost('respondent_name') ?: 'Anonim'));
+        $institution = $isAnonymous ? null : trim((string) $this->request->getPost('respondent_institution'));
+        $contact = $isAnonymous ? null : trim((string) $this->request->getPost('respondent_contact'));
+        $feedback = trim((string) $this->request->getPost('feedback'));
+        $recommendation = trim((string) ($this->request->getPost('recommendation') ?: 'Pasti Merekomendasikan'));
+
+        $serviceAccess = (int) $this->request->getPost('service_access_rating');
+        $serviceRegulation = (int) $this->request->getPost('service_regulation_rating');
+        $serviceLearning = (int) $this->request->getPost('service_learning_rating');
+        $serviceHelpdesk = (int) $this->request->getPost('service_helpdesk_rating');
+
+        $surveyModel = new \App\Models\SatisfactionSurveyModel();
+        $ticketNumber = $surveyModel->generateTicketNumber();
+
+        $data = [
+            'ticket_number'              => $ticketNumber,
+            'rating_overall'             => $rating,
+            'service_access_rating'      => ($serviceAccess >= 1 && $serviceAccess <= 5) ? $serviceAccess : $rating,
+            'service_regulation_rating'  => ($serviceRegulation >= 1 && $serviceRegulation <= 5) ? $serviceRegulation : $rating,
+            'service_learning_rating'    => ($serviceLearning >= 1 && $serviceLearning <= 5) ? $serviceLearning : $rating,
+            'service_helpdesk_rating'    => ($serviceHelpdesk >= 1 && $serviceHelpdesk <= 5) ? $serviceHelpdesk : $rating,
+            'respondent_role'            => substr($respondentRole, 0, 100),
+            'is_anonymous'               => $isAnonymous ? 1 : 0,
+            'respondent_name'            => substr($name, 0, 150),
+            'respondent_institution'     => $institution ? substr($institution, 0, 150) : null,
+            'respondent_contact'         => $contact ? substr($contact, 0, 100) : null,
+            'feedback'                   => $feedback ? substr($feedback, 0, 2000) : null,
+            'recommendation'             => substr($recommendation, 0, 50),
+            'ip_address'                 => substr((string) $this->request->getIPAddress(), 0, 45),
+            'user_agent'                 => substr((string) $this->request->getUserAgent(), 0, 255),
+        ];
+
+        try {
+            $surveyModel->insert($data);
+        } catch (\Throwable $e) {
+            log_message('error', 'Satisfaction Survey insert error: ' . $e->getMessage());
+        }
+
+        try {
+            $auditService = new \App\Services\AuditService();
+            $auditService->log(null, 'survey.satisfaction_submitted', 'survey', 'satisfaction_surveys', 0, [
+                'ticket_number'   => $ticketNumber,
+                'rating_overall'  => $rating,
+                'respondent_role' => $respondentRole,
+            ]);
+        } catch (\Throwable) {
+        }
+
+        $indonesianMonths = [
+            'January' => 'Januari', 'February' => 'Februari', 'March' => 'Maret',
+            'April' => 'April', 'May' => 'Mei', 'June' => 'Juni',
+            'July' => 'Juli', 'August' => 'Agustus', 'September' => 'September',
+            'October' => 'Oktober', 'November' => 'November', 'December' => 'Desember',
+        ];
+        $formattedDate = strtr(date('d F Y, H:i'), $indonesianMonths) . ' WIB';
+
+        $ratingLabels = [
+            1 => 'Sangat Tidak Puas',
+            2 => 'Kurang Puas',
+            3 => 'Cukup Puas',
+            4 => 'Puas',
+            5 => 'Sangat Puas',
+        ];
+
+        if ($this->request->isAJAX() || $this->request->getHeaderLine('Accept') === 'application/json' || $this->request->getGet('ajax') === '1') {
+            return $this->response->setJSON([
+                'success'         => true,
+                'ticket_number'   => $ticketNumber,
+                'rating_overall'  => $rating,
+                'rating_label'    => $ratingLabels[$rating] ?? 'Puas',
+                'respondent_role' => $respondentRole,
+                'submitted_at'    => $formattedDate,
+                'message'         => 'Terima kasih atas partisipasi Anda! Penilaian Anda telah berhasil tercatat dalam Sistem IKM BegawiPengadaan.',
+            ]);
+        }
+
+        return redirect()->to(site_url('survei-kepuasan'))
+            ->with('survey_success', true)
+            ->with('ticket_number', $ticketNumber)
+            ->with('rating_overall', $rating)
+            ->with('rating_label', $ratingLabels[$rating] ?? 'Puas')
+            ->with('respondent_role', $respondentRole)
+            ->with('submitted_at', $formattedDate);
+    }
+
     public function forbiddenPreview(): string
     {
         return $this->errorPreview(

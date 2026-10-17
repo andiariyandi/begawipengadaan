@@ -10,6 +10,8 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
     $routes->get('tentang', 'HomeController::about', ['as' => 'public.about']);
     $routes->get('kontak', 'HomeController::contact', ['as' => 'public.contact']);
     $routes->post('kontak', 'HomeController::sendContact', ['as' => 'public.contact.send']);
+    $routes->get('survei-kepuasan', 'HomeController::survey', ['as' => 'public.survey']);
+    $routes->post('survei-kepuasan', 'HomeController::submitSurvey', ['as' => 'public.survey.submit']);
 
     $routes->group('arena-belajar', static function ($routes) {
         $routes->get('/', 'ArenaBelajarController::index', ['as' => 'public.learning.index']);
@@ -68,7 +70,9 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
         $routes->get('pembelajaran', 'StatisticPublicController::learning', ['as' => 'public.statistics.learning']);
         $routes->get('event', 'StatisticPublicController::events', ['as' => 'public.statistics.events']);
         $routes->get('kompetensi', 'StatisticPublicController::competency', ['as' => 'public.statistics.competency']);
+        $routes->get('survei-kepuasan', 'StatisticPublicController::satisfactionSurvey', ['as' => 'public.statistics.survey']);
     });
+    $routes->get('survei-kepuasan/hasil', 'StatisticPublicController::satisfactionSurvey', ['as' => 'public.survey.results']);
 
     $routes->group('verifikasi-sertifikat', static function ($routes) {
         $routes->get('/', 'CertificateVerificationController::index', ['as' => 'public.certificate.verify']);

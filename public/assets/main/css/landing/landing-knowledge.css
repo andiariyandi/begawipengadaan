@@ -1,0 +1,442 @@
+/* =========================================================
+   BEGAWIPENGADAAN — BUNGA RAMPAI LANDING SHOWCASE
+   ========================================================= */
+/* Hero Carousel Styling */
+    .knowledge-carousel-slide {
+        position: relative;
+        height: 380px;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #082f5c;
+    }
+
+    @media (min-width: 992px) {
+        .knowledge-carousel-slide {
+            height: 420px;
+        }
+    }
+
+    .knowledge-carousel-slide img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.38;
+        transition: transform 0.6s ease;
+    }
+
+    .knowledge-carousel-slide:hover img {
+        transform: scale(1.03);
+    }
+
+    .knowledge-carousel-gradient {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(8, 47, 92, 0.96) 0%, rgba(8, 47, 92, 0.72) 55%, rgba(8, 47, 92, 0.28) 100%);
+    }
+
+    .knowledge-carousel-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 36px 54px;
+        color: #ffffff;
+        max-width: 780px;
+    }
+
+    @media (max-width: 576px) {
+        .knowledge-carousel-content {
+            padding: 24px;
+        }
+    }
+
+    .knowledge-carousel-control {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(4px);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.8;
+        transition: all 0.2s ease;
+    }
+
+    .knowledge-carousel-control:hover {
+        background: rgba(255, 255, 255, 0.95);
+        color: #082f5c;
+        opacity: 1;
+    }
+
+    .media-avatar-ring {
+        display: inline-block;
+        padding: 2px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    }
+
+    .media-visual-container {
+        position: relative;
+        overflow: hidden;
+        background: #082f5c;
+        border-radius: 0;
+    }
+
+    .media-visual-container img {
+        transition: transform 0.35s ease;
+    }
+
+    .media-visual-container:hover img {
+        transform: scale(1.04);
+    }
+
+    .media-hover-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(8, 47, 92, 0.95) 0%, rgba(8, 47, 92, 0.45) 55%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 16px;
+        color: #ffffff;
+    }
+
+    .media-visual-container:hover .media-hover-overlay {
+        opacity: 1;
+    }
+
+    .media-play-pulse {
+        border-radius: 50%;
+        background: rgba(220, 53, 69, 0.92);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        animation: mediaPulseHome 1.8s infinite;
+    }
+
+    @keyframes mediaPulseHome {
+        0% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 14px rgba(220, 53, 69, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+    }
+
+    .media-visual-container {
+        cursor: pointer;
+    }
+
+    .media-hashtag-pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 20px;
+        background: #f1f5f9;
+        color: #0d6efd;
+        font-size: 11px;
+        font-weight: 600;
+        margin-right: 3px;
+        margin-bottom: 3px;
+        text-decoration: none;
+    }
+
+    /* Lightbox Modal */
+    .media-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(5, 15, 35, 0.92);
+        backdrop-filter: blur(10px);
+        z-index: 99999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+
+    .media-modal-backdrop.is-open {
+        display: flex;
+        opacity: 1;
+    }
+
+    .media-modal-card {
+        background: #ffffff;
+        border-radius: 16px;
+        overflow: hidden;
+        max-width: 1050px;
+        width: 100%;
+        max-height: 90vh;
+        display: flex;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        position: relative;
+        animation: mediaModalPopHome 0.25s ease;
+    }
+
+    @keyframes mediaModalPopHome {
+        from {
+            transform: scale(0.96);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .media-modal-card {
+            flex-direction: column;
+            max-height: 94vh;
+            overflow-y: auto;
+        }
+    }
+
+    .media-modal-close-btn {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.65);
+        color: #ffffff;
+        border: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        font-size: 18px;
+        transition: background 0.15s ease;
+    }
+
+    .media-modal-close-btn:hover {
+        background: rgba(220, 53, 69, 0.9);
+    }
+
+/* =========================================================
+   BEGAWIPENGADAAN — BUNGA RAMPAI CATALOG & ACCORDION
+   ========================================================= */
+/* =========================================================================
+   SOCIAL MEDIA & VISUAL PREVIEW STYLES
+   ========================================================================= */
+    .media-avatar-ring {
+        display: inline-block;
+        padding: 2px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    }
+
+    .media-visual-container {
+        position: relative;
+        overflow: hidden;
+        background: #082f5c;
+        cursor: pointer;
+        border-radius: 0;
+    }
+
+    .media-visual-container img {
+        transition: transform 0.35s ease;
+    }
+
+    .media-visual-container:hover img {
+        transform: scale(1.04);
+    }
+
+    .media-hover-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(8, 47, 92, 0.95) 0%, rgba(8, 47, 92, 0.45) 55%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 20px;
+        color: #ffffff;
+    }
+
+    .media-visual-container:hover .media-hover-overlay {
+        opacity: 1;
+    }
+
+    .media-play-pulse {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(220, 53, 69, 0.92);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        animation: mediaPulse 1.8s infinite;
+        transition: transform 0.2s ease;
+    }
+
+    .media-visual-container:hover .media-play-pulse {
+        transform: scale(1.1);
+    }
+
+    @keyframes mediaPulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 16px rgba(220, 53, 69, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+    }
+
+    .media-like-btn.is-active i {
+        font-weight: 900 !important;
+        color: #dc3545 !important;
+    }
+
+    .media-hashtag-pill {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 20px;
+        background: #f1f5f9;
+        color: #0d6efd;
+        font-size: 11.5px;
+        font-weight: 600;
+        margin-right: 4px;
+        margin-bottom: 4px;
+        text-decoration: none;
+        transition: background 0.15s ease;
+    }
+
+    .media-hashtag-pill:hover {
+        background: #e2e8f0;
+        color: #0b5ed7;
+    }
+
+    /* Lightbox Modal */
+    .media-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(5, 15, 35, 0.92);
+        backdrop-filter: blur(10px);
+        z-index: 99999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+
+    .media-modal-backdrop.is-open {
+        display: flex;
+        opacity: 1;
+    }
+
+    .media-modal-card {
+        background: #ffffff;
+        border-radius: 16px;
+        overflow: hidden;
+        max-width: 1050px;
+        width: 100%;
+        max-height: 90vh;
+        display: flex;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        position: relative;
+        animation: mediaModalPop 0.25s ease;
+    }
+
+    @keyframes mediaModalPop {
+        from {
+            transform: scale(0.96);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .media-modal-card {
+            flex-direction: column;
+            max-height: 94vh;
+            overflow-y: auto;
+        }
+    }
+
+    .media-modal-close-btn {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.65);
+        color: #ffffff;
+        border: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        font-size: 18px;
+        transition: background 0.15s ease;
+    }
+
+    .media-modal-close-btn:hover {
+        background: rgba(220, 53, 69, 0.9);
+    }
+
+/* =========================================================
+   BEGAWIPENGADAAN — BUNGA RAMPAI DETAIL & DOWNLOAD
+   ========================================================= */
+.knowledge-content {
+        color: #334155;
+        font-size: 16px;
+        line-height: 1.85;
+    }
+    .knowledge-content p {
+        margin-bottom: 1.25rem;
+    }
+    .knowledge-content h2, .knowledge-content h3, .knowledge-content h4 {
+        color: #082f5c;
+        font-weight: 700;
+        margin-top: 1.75rem;
+        margin-bottom: 0.75rem;
+    }
+    .knowledge-content blockquote {
+        border-left: 4px solid #0d6efd;
+        padding-left: 1rem;
+        font-style: italic;
+        color: #475569;
+        margin: 1.5rem 0;
+    }
+    .hover-bg-light:hover {
+        background-color: #f8fafc;
+        color: #0d6efd !important;
+    }

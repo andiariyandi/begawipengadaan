@@ -1,955 +1,140 @@
-<?= $this->extend('landing/layouts/public') ?>
+﻿<?= $this->extend('landing/layouts/public') ?>
 
+<?php
+/**
+ * ============================================================================
+ *  BERITA PBJ - Landing Page Indeks (/berita, /berita/kategori/*)
+ *  Pusat informasi publikasi Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.
+ * ============================================================================
+ */
+
+if (! function_exists('newsCategoryColor')) {
+    function newsCategoryColor(string $slug): array
+    {
+        $palette = [
+            ['#0c5aa6', '#e0f2fe'],
+            ['#d97706', '#fef3c7'],
+            ['#16a34a', '#dcfce7'],
+            ['#9333ea', '#faf5ff'],
+            ['#dc2626', '#fee2e2'],
+            ['#0891b2', '#cffafe'],
+            ['#db2777', '#fce7f3'],
+            ['#65a30d', '#ecfccb'],
+        ];
+        $hash = 0;
+        for ($i = 0, $n = strlen($slug); $i < $n; $i++) {
+            $hash = ($hash * 31 + ord($slug[$i])) & 0xfffffff;
+        }
+        return $palette[$hash % count($palette)];
+    }
+}
+
+if (! function_exists('newsAuthorInitials')) {
+    function newsAuthorInitials(?string $name): string
+    {
+        $name = trim((string) $name);
+        if ($name === '') return 'B';
+        $words = preg_split('/\s+/', $name);
+        $initials = '';
+        foreach (array_slice($words, 0, 2) as $w) {
+            $initials .= mb_strtoupper(mb_substr($w, 0, 1));
+        }
+        return $initials ?: 'B';
+    }
+}
+
+if (! function_exists('newsTrendingBadge')) {
+    function newsTrendingBadge(array $item, int $index): ?string
+    {
+        $views = (int) ($item['view_count'] ?? 0);
+        if ($views >= 1000) {
+            return '<span class="berita-card__flag berita-card__flag--hot"><i class="fas fa-fire"></i> Trending</span>';
+        }
+        if (($index ?? 0) < 2) {
+            return '<span class="berita-card__flag berita-card__flag--new"><i class="fas fa-sparkles"></i> Terbaru</span>';
+        }
+        return null;
+    }
+}
+
+$stats = $stats ?? [];
+$stats = array_merge([
+    'total_news'        => 0,
+    'total_categories'  => max(1, count($categories ?? [])),
+    'total_views'       => 0,
+    'this_month'        => 0,
+], $stats);
+?>
 <?= $this->section('pageStyles') ?>
-<style>
-    :root {
-        --news-navy-dark: #052244;
-        --news-navy: #082f5c;
-        --news-blue: #0c5aa6;
-        --news-blue-light: #e0f2fe;
-        --news-gold: #d97706;
-        --news-gold-light: #fef3c7;
-        --news-slate-900: #0f172a;
-        --news-slate-700: #1e293b;
-        --news-slate-500: #334155;
-        --news-slate-200: #cbd5e1;
-        --news-slate-50: #f8fafc;
-    }
-
-    /* 1. Page Hero Banner */
-    .news-hero-banner {
-        background: linear-gradient(135deg, var(--news-navy-dark) 0%, var(--news-navy) 60%, var(--news-blue) 100%);
-        padding: 175px 0 85px;
-        position: relative;
-        overflow: hidden;
-        color: #ffffff;
-    }
-
-    .news-hero-banner::before {
-        content: '';
-        position: absolute;
-        top: -40%;
-        right: -10%;
-        width: 600px;
-        height: 600px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(217, 119, 6, 0.18) 0%, transparent 70%);
-        pointer-events: none;
-    }
-
-    .news-hero-banner::after {
-        content: '';
-        position: absolute;
-        bottom: -20%;
-        left: -10%;
-        width: 500px;
-        height: 500px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(12, 90, 166, 0.35) 0%, transparent 70%);
-        pointer-events: none;
-    }
-
-    .news-breadcrumb {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.16);
-        backdrop-filter: blur(8px);
-        padding: 6px 18px;
-        border-radius: 999px;
-        font-size: 13.5px;
-        font-weight: 600;
-        color: #ffffff;
-        margin-bottom: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .news-breadcrumb a {
-        color: #fde68a;
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-
-    .news-breadcrumb a:hover {
-        color: #ffffff;
-    }
-
-    .news-hero-title {
-        font-size: 42px;
-        font-weight: 800;
-        color: #ffffff;
-        line-height: 1.25;
-        margin-bottom: 16px;
-        letter-spacing: -0.5px;
-    }
-
-    .news-hero-title span {
-        color: #fbbf24;
-    }
-
-    .news-hero-desc {
-        font-size: 16.5px;
-        color: #f1f5f9;
-        line-height: 1.65;
-        max-width: 740px;
-        margin-bottom: 28px;
-        font-weight: 400;
-    }
-
-    /* Hero Search Bar */
-    .news-search-box {
-        background: #ffffff;
-        border-radius: 999px;
-        padding: 8px 10px 8px 24px;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
-        display: flex;
-        align-items: center;
-        max-width: 680px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .news-search-box:focus-within {
-        transform: translateY(-2px);
-        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
-    }
-
-    .news-search-box i.fa-search {
-        color: #64748b;
-        font-size: 18px;
-        margin-right: 12px;
-    }
-
-    .news-search-box input {
-        border: none;
-        outline: none;
-        width: 100%;
-        font-size: 15px;
-        color: var(--news-slate-900);
-        background: transparent;
-        font-weight: 500;
-    }
-
-    .news-search-box input::placeholder {
-        color: #94a3b8;
-    }
-
-    .news-search-box button {
-        background: linear-gradient(135deg, #0284c7 0%, var(--news-blue) 100%);
-        color: #ffffff;
-        border: none;
-        padding: 12px 28px;
-        border-radius: 999px;
-        font-weight: 700;
-        font-size: 14.5px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .news-search-box button:hover {
-        background: linear-gradient(135deg, var(--news-blue) 0%, #0369a1 100%);
-        transform: translateX(2px);
-    }
-
-    /* Hero Quick Suggestion Chips */
-    .news-hero-quick-chips {
-        margin-top: 18px;
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .news-hero-chip {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        color: #ffffff;
-        font-size: 12.5px;
-        font-weight: 600;
-        padding: 5px 14px;
-        border-radius: 999px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        text-decoration: none;
-    }
-
-    .news-hero-chip:hover {
-        background: rgba(255, 255, 255, 0.3);
-        color: #fde68a;
-        transform: translateY(-2px);
-        border-color: rgba(253, 230, 138, 0.6);
-    }
-
-    /* 2. Live KPI Metrics Ribbon */
-    .news-metrics-section {
-        margin-top: -38px;
-        position: relative;
-        z-index: 10;
-        margin-bottom: 48px;
-    }
-
-    .news-metrics-card {
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 24px 32px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e2e8f0;
-    }
-
-    .news-kpi-card-link {
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        border-radius: 12px;
-        padding: 6px 8px;
-        transition: all 0.2s ease;
-    }
-
-    .news-kpi-card-link:hover {
-        background: #f8fafc;
-        transform: translateY(-3px);
-    }
-
-    .news-kpi-item {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-
-    .news-kpi-icon {
-        width: 52px;
-        height: 52px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        flex-shrink: 0;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .news-kpi-num {
-        font-size: 26px;
-        font-weight: 800;
-        color: var(--news-slate-900);
-        line-height: 1.1;
-        margin-bottom: 2px;
-        transition: color 0.2s ease;
-    }
-
-    .news-kpi-card-link:hover .news-kpi-num {
-        color: #0284c7;
-    }
-
-    .news-kpi-label {
-        font-size: 13px;
-        color: #334155;
-        font-weight: 600;
-    }
-
-    /* 3. Category Filter Pills */
-    .news-filter-wrapper {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-bottom: 32px;
-    }
-
-    .news-category-pills {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .news-cat-pill {
-        padding: 8px 18px;
-        border-radius: 999px;
-        font-size: 13.5px;
-        font-weight: 600;
-        color: #334155;
-        background: #f1f5f9;
-        text-decoration: none;
-        border: 1px solid #cbd5e1;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .news-cat-pill:hover {
-        background: #e2e8f0;
-        color: #0f172a;
-        transform: translateY(-1px);
-    }
-
-    .news-cat-pill.active {
-        background: #0284c7;
-        color: #ffffff;
-        border-color: #0284c7;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-    }
-
-    .news-cat-pill .pill-badge {
-        font-size: 11px;
-        padding: 2px 7px;
-        border-radius: 999px;
-        background: rgba(0, 0, 0, 0.08);
-        color: inherit;
-        font-weight: 700;
-    }
-
-    .news-cat-pill.active .pill-badge {
-        background: rgba(255, 255, 255, 0.25);
-        color: #ffffff;
-    }
-
-    .news-sort-select {
-        border-radius: 8px;
-        border: 1px solid #cbd5e1;
-        padding: 8px 14px;
-        font-size: 13.5px;
-        font-weight: 600;
-        color: #0f172a;
-        background-color: #ffffff;
-        outline: none;
-        cursor: pointer;
-        transition: border-color 0.2s ease;
-    }
-
-    .news-sort-select:focus {
-        border-color: #0284c7;
-    }
-
-    /* 4. Headline Showcase Carousel (Up to 5 Featured Articles) */
-    .news-headline-carousel {
-        position: relative;
-        margin-bottom: 40px;
-    }
-
-    .news-headline-card {
-        background: #ffffff;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e2e8f0;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .news-headline-card:hover {
-        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.1);
-    }
-
-    .news-headline-img-wrap {
-        height: 380px;
-        position: relative;
-        overflow: hidden;
-        background: #e2e8f0;
-    }
-
-    .news-headline-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.4s ease;
-    }
-
-    .news-headline-card:hover .news-headline-img {
-        transform: scale(1.03);
-    }
-
-    .news-badge-headline {
-        position: absolute;
-        top: 18px;
-        left: 18px;
-        background: #d97706;
-        color: #ffffff;
-        font-size: 12px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        padding: 7px 16px;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
-        z-index: 2;
-    }
-
-    .news-headline-content {
-        padding: 40px 44px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .news-cat-badge {
-        display: inline-block;
-        background: #e0f2fe;
-        color: #0284c7;
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        padding: 4px 12px;
-        border-radius: 6px;
-        border: 1px solid #bae6fd;
-        margin-bottom: 12px;
-    }
-
-    .news-headline-title {
-        font-size: 26px;
-        font-weight: 800;
-        line-height: 1.35;
-        margin-bottom: 14px;
-        color: var(--news-slate-900);
-    }
-
-    .news-headline-title a {
-        color: inherit;
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-
-    .news-headline-title a:hover {
-        color: #0284c7;
-    }
-
-    .news-headline-desc {
-        font-size: 15px;
-        color: #475569;
-        line-height: 1.65;
-        margin-bottom: 22px;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .news-meta-row {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        flex-wrap: wrap;
-        font-size: 13px;
-        color: #475569;
-        font-weight: 600;
-        margin-bottom: 26px;
-        padding-top: 16px;
-        border-top: 1px solid #f1f5f9;
-    }
-
-    .news-meta-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    /* Carousel Indicators & Controls */
-    .headline-carousel-indicators {
-        position: static;
-        margin: 16px 0 0;
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .headline-carousel-indicators button {
-        background: #f1f5f9 !important;
-        border: 1px solid #cbd5e1 !important;
-        border-radius: 999px !important;
-        padding: 6px 14px !important;
-        height: auto !important;
-        width: auto !important;
-        text-indent: 0 !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 6px !important;
-        font-size: 12px !important;
-        font-weight: 700 !important;
-        color: #475569 !important;
-        opacity: 1 !important;
-        transition: all 0.2s ease !important;
-    }
-
-    .headline-carousel-indicators button.active {
-        background: #0284c7 !important;
-        border-color: #0284c7 !important;
-        color: #ffffff !important;
-        box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25) !important;
-    }
-
-    .headline-carousel-ctrl {
-        width: 44px;
-        height: 44px;
-        background: rgba(255, 255, 255, 0.95);
-        border: 1px solid #cbd5e1;
-        border-radius: 50%;
-        top: 50%;
-        transform: translateY(-50%);
-        opacity: 0.9;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #0f172a;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .headline-carousel-ctrl:hover {
-        background: #0284c7;
-        color: #ffffff;
-        border-color: #0284c7;
-        opacity: 1;
-    }
-
-    .headline-carousel-ctrl.carousel-control-prev {
-        left: -18px;
-    }
-
-    .headline-carousel-ctrl.carousel-control-next {
-        right: -18px;
-    }
-
-    /* 5. News Grid Cards */
-    .news-grid-card {
-        background: #ffffff;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e2e8f0;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    }
-
-    .news-grid-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
-        border-color: #93c5fd;
-    }
-
-    .news-card-thumb-wrap {
-        height: 200px;
-        position: relative;
-        overflow: hidden;
-        background: #e2e8f0;
-    }
-
-    .news-card-thumb {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.35s ease;
-    }
-
-    .news-grid-card:hover .news-card-thumb {
-        transform: scale(1.05);
-    }
-
-    .news-card-cat-badge {
-        position: absolute;
-        top: 14px;
-        left: 14px;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(4px);
-        color: #0f172a;
-        font-size: 11.5px;
-        font-weight: 700;
-        padding: 5px 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-
-    .news-card-read-badge {
-        position: absolute;
-        bottom: 12px;
-        right: 12px;
-        background: rgba(15, 23, 42, 0.85);
-        color: #ffffff;
-        font-size: 11px;
-        font-weight: 600;
-        padding: 4px 10px;
-        border-radius: 6px;
-        backdrop-filter: blur(4px);
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .news-card-body {
-        padding: 24px;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
-
-    .news-card-date {
-        font-size: 12.5px;
-        color: #64748b;
-        font-weight: 600;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .news-card-title {
-        font-size: 17.5px;
-        font-weight: 700;
-        line-height: 1.4;
-        margin-bottom: 10px;
-        color: var(--news-slate-900);
-        height: 48px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .news-card-title a {
-        color: inherit;
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-
-    .news-card-title a:hover {
-        color: #0284c7;
-    }
-
-    .news-card-summary {
-        font-size: 13.5px;
-        color: #475569;
-        line-height: 1.6;
-        margin-bottom: 18px;
-        height: 64px;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .news-card-footer {
-        margin-top: auto;
-        padding-top: 14px;
-        border-top: 1px solid #f1f5f9;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .news-card-author {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 12.5px;
-        font-weight: 700;
-        color: #0f172a;
-    }
-
-    .news-card-author-avatar {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: #e0f2fe;
-        color: #0284c7;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        border: 1px solid #bae6fd;
-    }
-
-    .news-card-link {
-        font-size: 13px;
-        font-weight: 700;
-        color: #0284c7;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        transition: gap 0.2s ease, color 0.2s ease;
-    }
-
-    .news-card-link:hover {
-        color: #0369a1;
-        gap: 7px;
-    }
-
-    /* 6. Sidebar Widgets */
-    .news-sidebar-widget {
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e2e8f0;
-        margin-bottom: 28px;
-    }
-
-    .news-widget-title {
-        font-size: 17px;
-        font-weight: 800;
-        color: var(--news-slate-900);
-        margin-bottom: 18px;
-        padding-bottom: 12px;
-        border-bottom: 2px solid #f1f5f9;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .news-trending-item {
-        display: flex;
-        gap: 14px;
-        align-items: flex-start;
-        padding-bottom: 14px;
-        margin-bottom: 14px;
-        border-bottom: 1px solid #f8fafc;
-    }
-
-    .news-trending-item:last-child {
-        padding-bottom: 0;
-        margin-bottom: 0;
-        border-bottom: none;
-    }
-
-    .news-trending-num {
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        background: #f1f5f9;
-        color: #334155;
-        font-weight: 800;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    .news-trending-item:first-child .news-trending-num {
-        background: #fef3c7;
-        color: #b45309;
-        border: 1px solid #fde68a;
-    }
-
-    .news-trending-content h5 {
-        font-size: 14px;
-        font-weight: 700;
-        line-height: 1.4;
-        margin-bottom: 4px;
-    }
-
-    .news-trending-content h5 a {
-        color: var(--news-slate-900);
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-
-    .news-trending-content h5 a:hover {
-        color: #0284c7;
-    }
-
-    .news-trending-meta {
-        font-size: 11.5px;
-        color: #64748b;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .news-widget-categories {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .news-widget-categories li {
-        margin-bottom: 8px;
-    }
-
-    .news-widget-categories a {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 14px;
-        border-radius: 8px;
-        text-decoration: none;
-        color: #334155;
-        font-size: 13.5px;
-        font-weight: 600;
-        background: #f8fafc;
-        border: 1px solid #f1f5f9;
-        transition: all 0.2s ease;
-    }
-
-    .news-widget-categories a:hover,
-    .news-widget-categories a.active {
-        background: #e0f2fe;
-        color: #0284c7;
-        border-color: #bae6fd;
-    }
-
-    .news-widget-categories .cat-count {
-        background: #ffffff;
-        color: #64748b;
-        font-size: 11px;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 999px;
-        border: 1px solid #e2e8f0;
-    }
-
-    .news-official-banner {
-        background: linear-gradient(135deg, var(--news-navy-dark) 0%, var(--news-navy) 100%);
-        border-radius: 16px;
-        padding: 26px;
-        color: #ffffff;
-        box-shadow: 0 8px 24px rgba(5, 34, 68, 0.25);
-    }
-
-    /* 7. Clean Pagination Bar */
-    .news-pagination-wrap {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        margin-top: 40px;
-    }
-
-    .news-page-btn {
-        min-width: 40px;
-        height: 40px;
-        padding: 0 12px;
-        border-radius: 8px;
-        border: 1px solid #cbd5e1;
-        background: #ffffff;
-        color: #1e293b;
-        font-size: 13.5px;
-        font-weight: 700;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-    }
-
-    .news-page-btn:hover {
-        background: #f1f5f9;
-        color: #0284c7;
-        border-color: #93c5fd;
-    }
-
-    .news-page-btn.active {
-        background: #0284c7;
-        border-color: #0284c7;
-        color: #ffffff;
-        box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
-    }
-
-    .news-page-btn.disabled {
-        opacity: 0.5;
-        pointer-events: none;
-        background: #f8fafc;
-    }
-
-    /* 8. Closing Call-To-Action Banner */
-    .news-closing-cta {
-        background: linear-gradient(135deg, #052244 0%, #082f5c 60%, #0c5aa6 100%);
-        border-radius: 20px;
-        padding: 44px 40px;
-        color: #ffffff;
-        box-shadow: 0 12px 32px rgba(5, 34, 68, 0.28);
-        position: relative;
-        overflow: hidden;
-        margin-top: 50px;
-    }
-
-    .news-closing-cta::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 350px;
-        height: 350px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(217, 119, 6, 0.2) 0%, transparent 70%);
-        pointer-events: none;
-    }
-
-    /* Responsive Queries */
-    @media (max-width: 991.98px) {
-        .news-hero-banner {
-            padding: 150px 0 65px;
-        }
-
-        .news-hero-title {
-            font-size: 32px;
-        }
-
-        .news-headline-img-wrap {
-            height: 260px;
-        }
-
-        .news-headline-content {
-            padding: 28px 24px;
-        }
-
-        .headline-carousel-ctrl.carousel-control-prev {
-            left: 8px;
-        }
-
-        .headline-carousel-ctrl.carousel-control-next {
-            right: 8px;
-        }
-
-        .news-closing-cta {
-            padding: 32px 24px;
-        }
-    }
-</style>
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-news.css') ?>" />
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
-<!-- 1. HERO BANNER -->
-<section class="news-hero-banner">
+<!-- HERO BANNER -->
+<section class="berita-hero">
     <div class="container">
-        <div class="news-breadcrumb">
-            <a href="<?= site_url('/') ?>"><i class="fas fa-home me-1"></i> Beranda</a>
-            <span>/</span>
-            <span>Berita PBJ</span>
+        <nav class="berita-breadcrumb" aria-label="Breadcrumb Berita">
+            <a href="<?= site_url('/') ?>"><i class="fas fa-home"></i> Beranda</a>
+            <span class="sep">/</span>
+            <a href="<?= site_url('berita') ?>">Berita PBJ</a>
             <?php if (! empty($currentCategory)): ?>
-                <span>/</span>
-                <span class="text-white"><?= esc($currentCategory['name']) ?></span>
+                <span class="sep">/</span>
+                <span class="current"><?= esc($currentCategory['name']) ?></span>
+            <?php elseif (! empty($keyword)): ?>
+                <span class="sep">/</span>
+                <span class="current">Pencarian: "<?= esc($keyword) ?>"</span>
             <?php endif; ?>
+        </nav>
+
+        <div class="berita-hero__trust">
+            <i class="fas fa-shield-halved"></i>
+            <span>Siaran Pers Resmi &middot; Pemerintah Provinsi Lampung</span>
         </div>
 
-        <h1 class="news-hero-title">
-            Kabar &amp; Publikasi Resmi <br>
-            <span>Pengadaan Barang/Jasa Provinsi Lampung</span>
+        <div class="berita-hero__pre">Kabar &amp; Publikasi Terkini</div>
+
+        <h1 class="berita-hero__title">
+            <?php if (! empty($currentCategory)): ?>
+                Arsip Berita: <span><?= esc($currentCategory['name']) ?></span>
+            <?php elseif (! empty($keyword)): ?>
+                Hasil Pencarian untuk <span>"<?= esc($keyword) ?>"</span>
+            <?php else: ?>
+                Kabar Resmi <span>Pengadaan Barang/Jasa</span><br>
+                Pemerintah Provinsi Lampung
+            <?php endif; ?>
         </h1>
-        <p class="news-hero-desc">
-            Informasi terkini mengenai kebijakan LKPP, transformasi e-katalog lokal, penguatan integritas tata kelola, kegiatan bimtek aparatur, dan capaian strategis UKPBJ di Provinsi Lampung.
+
+        <p class="berita-hero__lead">
+            Pusat informasi terpercaya mengenai kebijakan LKPP, transformasi e-katalog lokal,
+            penguatan integritas tata kelola, kegiatan bimtek aparatur, capaian strategis UKPBJ,
+            dan perkembangan terbaru pengadaan barang/jasa di lingkungan Pemerintah Provinsi Lampung.
         </p>
 
-        <!-- Search Form -->
-        <form action="<?= site_url('berita') ?>" method="get" class="news-search-box" id="newsHeroSearchForm">
+        <ul class="berita-hero__stats">
+            <li>
+                <i class="fas fa-newspaper"></i>
+                <span><strong><?= number_format($stats['total_news']) ?></strong> Publikasi Tersedia</span>
+            </li>
+            <li>
+                <i class="fas fa-eye"></i>
+                <span><strong><?= number_format($stats['total_views']) ?>+</strong> Pembaca Terjangkau</span>
+            </li>
+            <li>
+                <i class="fas fa-folder-open"></i>
+                <span><strong><?= number_format($stats['total_categories']) ?></strong> Kategori Liputan</span>
+            </li>
+            <li>
+                <i class="fas fa-circle-check"></i>
+                <span>Sumber <strong>Resmi &amp; Terverifikasi</strong></span>
+            </li>
+        </ul>
+
+        <form action="<?= site_url('berita') ?>" method="get" class="berita-hero__search" id="beritaHeroSearchForm">
             <i class="fas fa-search"></i>
-            <input type="text" id="newsHeroSearchInput" name="q" value="<?= esc($keyword ?? '') ?>" placeholder="Cari judul berita, topik kebijakan, atau kata kunci...">
+            <input type="text" id="beritaHeroSearchInput" name="q"
+                value="<?= esc($keyword ?? '') ?>"
+                placeholder="Cari judul berita, topik kebijakan, atau kata kunci...">
             <?php if (! empty($selectedCategory)): ?>
                 <input type="hidden" name="kategori" value="<?= esc($selectedCategory) ?>">
             <?php endif; ?>
@@ -959,338 +144,298 @@
             </button>
         </form>
 
-        <!-- Hero Quick Search Suggestion Chips -->
-        <div class="news-hero-quick-chips">
-            <span class="text-xs fw-semibold text-white-50"><i class="fas fa-lightbulb text-warning me-1"></i> Topik Populer:</span>
-            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('P3DN')">
-                <i class="fas fa-check-circle text-xs text-warning"></i> P3DN &amp; TKDN
+        <div class="berita-hero__chips">
+            <span class="berita-hero__chips-label"><i class="fas fa-lightbulb text-warning"></i> Topik Populer:</span>
+            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('P3DN')">
+                <i class="fas fa-check-circle"></i> P3DN &amp; TKDN
             </button>
-            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('E-Katalog')">
-                <i class="fas fa-shopping-cart text-xs text-info"></i> E-Katalog Lokal
+            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('E-Katalog')">
+                <i class="fas fa-shopping-cart"></i> E-Katalog Lokal
             </button>
-            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('Bimtek')">
-                <i class="fas fa-graduation-cap text-xs text-success"></i> Bimtek SPSE
+            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('Bimtek')">
+                <i class="fas fa-graduation-cap"></i> Bimtek SPSE
             </button>
-            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('Integritas')">
-                <i class="fas fa-shield-alt text-xs text-danger"></i> Integritas PBJ
+            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('Integritas')">
+                <i class="fas fa-shield-alt"></i> Integritas PBJ
             </button>
-            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('UKPBJ')">
-                <i class="fas fa-landmark text-xs text-primary"></i> UKPBJ Proaktif
+            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('UKPBJ')">
+                <i class="fas fa-landmark"></i> UKPBJ Proaktif
             </button>
-            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('Tender')">
-                <i class="fas fa-gavel text-xs text-warning"></i> Klarifikasi Tender
+            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('Tender')">
+                <i class="fas fa-gavel"></i> Klarifikasi Tender
             </button>
         </div>
     </div>
 </section>
 
-<!-- 2. LIVE METRICS RIBBON -->
-<div class="container news-metrics-section">
-    <div class="news-metrics-card">
-        <div class="row g-4">
-            <div class="col-lg-3 col-6">
-                <a href="<?= site_url('berita') ?>" class="news-kpi-card-link" title="Tampilkan Semua Berita PBJ">
-                    <div class="news-kpi-item">
-                        <div class="news-kpi-icon" style="background:#e0f2fe; color:#0284c7;">
-                            <i class="fas fa-newspaper"></i>
-                        </div>
-                        <div>
-                            <div class="news-kpi-num"><?= number_format($stats['total_news'] > 0 ? $stats['total_news'] : 12) ?></div>
-                            <div class="news-kpi-label">Berita Publikasi Resmi</div>
-                        </div>
+<!-- METRICS RIBBON -->
+<div class="container berita-metrics">
+    <div class="row g-3 g-lg-4">
+        <div class="col-lg-3 col-6">
+            <a href="<?= site_url('berita') ?>" class="text-decoration-none" title="Lihat Semua Berita">
+                <div class="berita-metric-card" style="--metric-accent: #0284c7; --metric-bg: #e0f2fe;">
+                    <div class="berita-metric-icon"><i class="fas fa-newspaper"></i></div>
+                    <div>
+                        <div class="berita-metric-value"><?= number_format($stats['total_news']) ?></div>
+                        <div class="berita-metric-label">Total Publikasi Resmi</div>
                     </div>
-                </a>
-            </div>
-            <div class="col-lg-3 col-6">
-                <a href="#kategori-liputan-section" class="news-kpi-card-link" title="Jelajahi Kategori Berita">
-                    <div class="news-kpi-item">
-                        <div class="news-kpi-icon" style="background:#e0f7fa; color:#00838f;">
-                            <i class="fas fa-folder-open"></i>
-                        </div>
-                        <div>
-                            <div class="news-kpi-num"><?= number_format($stats['total_categories'] > 0 ? $stats['total_categories'] : 6) ?></div>
-                            <div class="news-kpi-label">Kategori Liputan PBJ</div>
-                        </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-6">
+            <a href="#kategori-liputan-section" class="text-decoration-none" title="Jelajahi Kategori Berita">
+                <div class="berita-metric-card" style="--metric-accent: #d97706; --metric-bg: #fef3c7;">
+                    <div class="berita-metric-icon"><i class="fas fa-folder-open"></i></div>
+                    <div>
+                        <div class="berita-metric-value"><?= number_format($stats['total_categories']) ?></div>
+                        <div class="berita-metric-label">Kategori Liputan PBJ</div>
                     </div>
-                </a>
-            </div>
-            <div class="col-lg-3 col-6">
-                <a href="<?= site_url('berita?sort=popular') ?>" class="news-kpi-card-link" title="Lihat Berita Paling Banyak Dibaca">
-                    <div class="news-kpi-item">
-                        <div class="news-kpi-icon" style="background:#fef3c7; color:#d97706;">
-                            <i class="fas fa-eye"></i>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-6">
+            <a href="<?= site_url('berita?sort=popular') ?>" class="text-decoration-none" title="Lihat Berita Paling Banyak Dibaca">
+                <div class="berita-metric-card" style="--metric-accent: #16a34a; --metric-bg: #dcfce7;">
+                    <div class="berita-metric-icon"><i class="fas fa-eye"></i></div>
+                    <div>
+                        <div class="berita-metric-value">
+                            <?= number_format($stats['total_views']) ?><span class="unit">+</span>
                         </div>
-                        <div>
-                            <div class="news-kpi-num"><?= number_format($stats['total_views'] > 0 ? $stats['total_views'] : 6800) ?>+</div>
-                            <div class="news-kpi-label">Total Pembaca Terjangkau</div>
-                        </div>
+                        <div class="berita-metric-label">Total Pembaca Terjangkau</div>
                     </div>
-                </a>
-            </div>
-            <div class="col-lg-3 col-6">
-                <a href="<?= site_url('berita?sort=newest') ?>" class="news-kpi-card-link" title="Lihat Berita Terbit Bulan Ini">
-                    <div class="news-kpi-item">
-                        <div class="news-kpi-icon" style="background:#dcfce7; color:#16a34a;">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <div>
-                            <div class="news-kpi-num"><?= number_format($stats['this_month'] > 0 ? $stats['this_month'] : 5) ?></div>
-                            <div class="news-kpi-label">Rilis Bulan Ini</div>
-                        </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-6">
+            <a href="<?= site_url('berita?sort=newest') ?>" class="text-decoration-none" title="Lihat Berita Terbit Bulan Ini">
+                <div class="berita-metric-card" style="--metric-accent: #9333ea; --metric-bg: #faf5ff;">
+                    <div class="berita-metric-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <div>
+                        <div class="berita-metric-value"><?= number_format($stats['this_month']) ?></div>
+                        <div class="berita-metric-label">Rilis Bulan Ini</div>
                     </div>
-                </a>
-            </div>
+                </div>
+            </a>
         </div>
     </div>
 </div>
 
-<!-- 3. MAIN CONTENT AREA -->
+<!-- MAIN CONTENT AREA -->
 <section class="pb-80" id="kategori-liputan-section">
     <div class="container">
-        <!-- Filter Pills & Sorting Row -->
-        <div class="news-filter-wrapper">
-            <div class="news-category-pills">
-                <a href="<?= site_url('berita') . (! empty($keyword) ? '?q=' . urlencode($keyword) : '') ?>"
-                    class="news-cat-pill <?= empty($selectedCategory) ? 'active' : '' ?>">
-                    <span>Semua Kategori</span>
-                    <span class="pill-badge"><?= $stats['total_news'] ?></span>
-                </a>
-                <?php foreach ($categories as $cat): ?>
-                    <a href="<?= site_url('berita/kategori/' . $cat['slug']) . (! empty($keyword) ? '?q=' . urlencode($keyword) : '') ?>"
-                        class="news-cat-pill <?= $selectedCategory === $cat['slug'] ? 'active' : '' ?>">
-                        <span><?= esc($cat['name']) ?></span>
-                        <span class="pill-badge"><?= $cat['news_count'] ?></span>
-                    </a>
-                <?php endforeach; ?>
-            </div>
 
-            <form action="<?= current_url() ?>" method="get" class="d-flex align-items-center gap-2">
-                <?php if (! empty($keyword)): ?>
-                    <input type="hidden" name="q" value="<?= esc($keyword) ?>">
-                <?php endif; ?>
-                <label for="newsSort" class="text-xs fw-bold text-muted text-uppercase mb-0">Urutkan:</label>
-                <select id="newsSort" name="sort" class="news-sort-select" onchange="this.form.submit()">
-                    <option value="newest" <?= $sort === 'newest' ? 'selected' : '' ?>>Terbaru</option>
-                    <option value="popular" <?= $sort === 'popular' ? 'selected' : '' ?>>Terpopuler</option>
-                    <option value="oldest" <?= $sort === 'oldest' ? 'selected' : '' ?>>Terlama</option>
-                </select>
-            </form>
+        <!-- Sticky Filter & Sort Bar -->
+        <div class="berita-filterbar">
+            <div class="berita-filterbar__inner">
+                <div class="berita-catpills">
+                    <a href="<?= site_url('berita') . (! empty($keyword) ? '?q=' . urlencode($keyword) : '') ?>"
+                        class="berita-catpill <?= empty($selectedCategory) ? 'is-active' : '' ?>">
+                        <span class="berita-catpill__dot" style="background:#0284c7"></span>
+                        <span>Semua</span>
+                        <span class="pill-count"><?= (int) $stats['total_news'] ?></span>
+                    </a>
+                    <?php foreach (($categories ?? []) as $cat):
+                        [$fg, $bg] = newsCategoryColor($cat['slug']);
+                    ?>
+                        <a href="<?= site_url('berita/kategori/' . $cat['slug']) . (! empty($keyword) ? '?q=' . urlencode($keyword) : '') ?>"
+                            class="berita-catpill <?= $selectedCategory === $cat['slug'] ? 'is-active' : '' ?>"
+                            style="--cat-accent: <?= $fg ?>">
+                            <span class="berita-catpill__dot" style="background: <?= $fg ?>"></span>
+                            <span><?= esc($cat['name']) ?></span>
+                            <span class="pill-count"><?= (int) $cat['news_count'] ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="berita-filterbar__right">
+                    <?php if (! empty($keyword) || ! empty($selectedCategory)): ?>
+                        <span class="berita-active-filter">
+                            <i class="fas fa-filter"></i>
+                            <?= ! empty($keyword) ? '"' . esc($keyword) . '"' : '' ?>
+                            <a href="<?= ! empty($selectedCategory) ? site_url('berita/kategori/' . $selectedCategory) : site_url('berita') ?>" title="Hapus filter">&times;</a>
+                        </span>
+                    <?php endif; ?>
+
+                    <form action="<?= current_url() ?>" method="get" class="berita-sort">
+                        <?php if (! empty($keyword)): ?>
+                            <input type="hidden" name="q" value="<?= esc($keyword) ?>">
+                        <?php endif; ?>
+                        <select name="sort" class="berita-sort__select" onchange="this.form.submit()" aria-label="Urutkan">
+                            <option value="newest" <?= ($sort ?? 'newest') === 'newest' ? 'selected' : '' ?>>Terbaru</option>
+                            <option value="popular" <?= ($sort ?? '') === 'popular' ? 'selected' : '' ?>>Paling Dilihat</option>
+                            <option value="oldest" <?= ($sort ?? '') === 'oldest' ? 'selected' : '' ?>>Terlama</option>
+                        </select>
+                    </form>
+
+                    <div class="berita-viewtoggle" role="group" aria-label="Ganti tampilan">
+                        <button type="button" id="viewGridBtn" class="is-active" title="Tampilan Grid" aria-label="Tampilan Grid">
+                            <i class="fas fa-grip"></i>
+                        </button>
+                        <button type="button" id="viewListBtn" title="Tampilan Daftar" aria-label="Tampilan Daftar">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <?php if (! empty($keyword)): ?>
-            <!-- Active Search Bar Notification -->
-            <div class="alert alert-info d-flex align-items-center justify-content-between mb-4 radius-12 border-0 shadow-sm" style="background:#e0f2fe; color:#0369a1;">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="fas fa-search text-lg"></i>
-                    <span>Menampilkan hasil pencarian untuk: <strong>"<?= esc($keyword) ?>"</strong> (<?= $totalItems ?> berita ditemukan)</span>
-                </div>
-                <a href="<?= site_url('berita') ?>" class="btn btn-sm btn-outline-primary radius-8 fw-semibold">Reset Pencarian</a>
-            </div>
-        <?php endif; ?>
-
-        <!-- Headline Showcase (Supports up to 5 Featured Articles) -->
-        <?php
-        $headlineList = ! empty($headlineArticles) ? $headlineArticles : (! empty($headlineArticle) ? [$headlineArticle] : []);
-        ?>
+        <!-- Headline Carousel / Single -->
         <?php if (! empty($headlineList)): ?>
-            <?php if (count($headlineList) > 1): ?>
-                <!-- Multi-headline Carousel (Up to 5 Featured News) -->
-                <div id="headlineCarousel" class="carousel slide news-headline-carousel mb-40" data-bs-ride="carousel" data-bs-interval="6500">
-                    <div class="carousel-inner">
-                        <?php foreach ($headlineList as $hIndex => $hItem): ?>
-                            <div class="carousel-item <?= $hIndex === 0 ? 'active' : '' ?>">
-                                <div class="news-headline-card mb-0">
-                                    <div class="row g-0 align-items-center">
-                                        <div class="col-lg-6">
-                                            <div class="news-headline-img-wrap">
-                                                <img src="<?= $hItem['cover_url'] ?: base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>"
-                                                    alt="<?= esc($hItem['title']) ?>"
-                                                    class="news-headline-img">
-                                                <div class="news-badge-headline">
-                                                    <i class="fas fa-star me-1"></i>
-                                                    <span>Berita Utama #<?= $hIndex + 1 ?></span>
-                                                </div>
+            <div class="berita-headline">
+                <?php if (count($headlineList) > 1): ?>
+                    <div id="headlineCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="6000">
+                        <div class="carousel-inner">
+                            <?php foreach ($headlineList as $hIndex => $hItem): ?>
+                                <div class="carousel-item <?= $hIndex === 0 ? 'active' : '' ?>">
+                                    <div class="berita-headline__inner">
+                                        <div class="berita-headline__media">
+                                            <img src="<?= ! empty($hItem['cover_path']) ? base_url($hItem['cover_path']) : base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>"
+                                                alt="<?= esc($hItem['title']) ?>">
+                                            <div class="berita-headline__badges">
+                                                <span class="berita-headline__badge">
+                                                    <i class="fas fa-star"></i> Berita Utama
+                                                </span>
                                             </div>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="news-headline-content">
-                                                <div class="d-flex align-items-center gap-2 mb-2">
-                                                    <span class="news-cat-badge mb-0"><?= esc($hItem['category_name']) ?></span>
-                                                    <span class="badge px-8 py-4 radius-6 text-2xs fw-bold shadow-none" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-size: 11px;">
-                                                        Headline <?= $hIndex + 1 ?> / <?= count($headlineList) ?>
-                                                    </span>
-                                                </div>
-                                                <h2 class="news-headline-title">
+                                            <div class="berita-headline__counter">
+                                                <span class="dot"></span>
+                                                <span>Utama <?= $hIndex + 1 ?> / <?= count($headlineList) ?></span>
+                                            </div>
+                                            <div class="berita-headline__caption">
+                                                <span class="berita-headline__cat">
+                                                    <i class="fas fa-folder-open"></i> <?= esc($hItem['category_name'] ?? 'Berita') ?>
+                                                </span>
+                                                <h2 class="berita-headline__title">
                                                     <a href="<?= site_url('berita/' . $hItem['slug']) ?>">
                                                         <?= esc($hItem['title']) ?>
                                                     </a>
                                                 </h2>
-                                                <p class="news-headline-desc"><?= esc($hItem['summary']) ?></p>
-
-                                                <div class="news-meta-row">
-                                                    <div class="news-meta-item">
-                                                        <i class="far fa-calendar-alt text-primary"></i>
-                                                        <span><?= esc($hItem['date_formatted']) ?></span>
-                                                    </div>
-                                                    <div class="news-meta-item">
-                                                        <i class="far fa-clock text-warning"></i>
-                                                        <span><?= esc($hItem['read_time']) ?> baca</span>
-                                                    </div>
-                                                    <div class="news-meta-item">
-                                                        <i class="far fa-eye text-info"></i>
-                                                        <span><?= number_format($hItem['view_count']) ?> views</span>
-                                                    </div>
-                                                </div>
-
-                                                <div>
-                                                    <a href="<?= site_url('berita/' . $hItem['slug']) ?>" class="btn btn-primary radius-999 px-24 py-11 d-inline-flex align-items-center gap-2 fw-bold text-sm" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none;">
-                                                        <span>Baca Berita Lengkap</span>
-                                                        <i class="fas fa-arrow-right"></i>
-                                                    </a>
+                                                <div class="berita-headline__meta">
+                                                    <span><i class="far fa-calendar-alt"></i><?= esc($hItem['date_formatted'] ?? date('d M Y', strtotime($hItem['published_at'] ?? 'now'))) ?></span>
+                                                    <span><i class="far fa-clock"></i><?= esc($hItem['read_time'] ?? '5') ?> mnt baca</span>
+                                                    <span><i class="far fa-eye"></i><?= number_format($hItem['view_count'] ?? 0) ?> views</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-
-                    <!-- Carousel Indicators (Pills 1..5) -->
-                    <div class="carousel-indicators headline-carousel-indicators">
-                        <?php foreach ($headlineList as $hIndex => $hItem): ?>
-                            <button type="button" data-bs-target="#headlineCarousel" data-bs-slide-to="<?= $hIndex ?>"
-                                class="<?= $hIndex === 0 ? 'active' : '' ?>"
-                                aria-current="<?= $hIndex === 0 ? 'true' : 'false' ?>"
-                                aria-label="Berita Utama <?= $hIndex + 1 ?>">
-                                <span>Utama #<?= $hIndex + 1 ?></span>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-
-                    <!-- Prev/Next Controls -->
-                    <button class="carousel-control-prev headline-carousel-ctrl" type="button" data-bs-target="#headlineCarousel" data-bs-slide="prev" aria-label="Sebelumnya">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button class="carousel-control-next headline-carousel-ctrl" type="button" data-bs-target="#headlineCarousel" data-bs-slide="next" aria-label="Selanjutnya">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            <?php else: ?>
-                <?php $singleArticle = $headlineList[0]; ?>
-                <div class="news-headline-card mb-40">
-                    <div class="row g-0 align-items-center">
-                        <div class="col-lg-6">
-                            <div class="news-headline-img-wrap">
-                                <img src="<?= $singleArticle['cover_url'] ?: base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>"
-                                    alt="<?= esc($singleArticle['title']) ?>"
-                                    class="news-headline-img">
-                                <div class="news-badge-headline">
-                                    <i class="fas fa-star me-1"></i>
-                                    <span>Berita Utama</span>
-                                </div>
-                            </div>
+                            <?php endforeach; ?>
                         </div>
-                        <div class="col-lg-6">
-                            <div class="news-headline-content">
-                                <span class="news-cat-badge"><?= esc($singleArticle['category_name']) ?></span>
-                                <h2 class="news-headline-title">
+                        <button class="berita-headline__nav prev" type="button" data-bs-target="#headlineCarousel" data-bs-slide="prev" aria-label="Sebelumnya">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="berita-headline__nav next" type="button" data-bs-target="#headlineCarousel" data-bs-slide="next" aria-label="Selanjutnya">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <div class="berita-headline__indicators">
+                            <?php foreach ($headlineList as $hIndex => $hItem): ?>
+                                <button type="button" data-bs-target="#headlineCarousel" data-bs-slide-to="<?= $hIndex ?>"
+                                    class="<?= $hIndex === 0 ? 'is-active' : '' ?>"
+                                    aria-label="Slide <?= $hIndex + 1 ?>"></button>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <?php $singleArticle = $headlineList[0]; ?>
+                    <div class="berita-headline-single">
+                        <div class="berita-headline__media">
+                            <img src="<?= ! empty($singleArticle['cover_path']) ? base_url($singleArticle['cover_path']) : base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>"
+                                alt="<?= esc($singleArticle['title']) ?>">
+                            <div class="berita-headline__badges">
+                                <span class="berita-headline__badge">
+                                    <i class="fas fa-star"></i> Berita Utama
+                                </span>
+                            </div>
+                            <div class="berita-headline__caption">
+                                <span class="berita-headline__cat">
+                                    <i class="fas fa-folder-open"></i> <?= esc($singleArticle['category_name'] ?? 'Berita') ?>
+                                </span>
+                                <h2 class="berita-headline__title">
                                     <a href="<?= site_url('berita/' . $singleArticle['slug']) ?>">
                                         <?= esc($singleArticle['title']) ?>
                                     </a>
                                 </h2>
-                                <p class="news-headline-desc"><?= esc($singleArticle['summary']) ?></p>
-
-                                <div class="news-meta-row">
-                                    <div class="news-meta-item">
-                                        <i class="far fa-calendar-alt text-primary"></i>
-                                        <span><?= esc($singleArticle['date_formatted']) ?></span>
-                                    </div>
-                                    <div class="news-meta-item">
-                                        <i class="far fa-clock text-warning"></i>
-                                        <span><?= esc($singleArticle['read_time']) ?> baca</span>
-                                    </div>
-                                    <div class="news-meta-item">
-                                        <i class="far fa-eye text-info"></i>
-                                        <span><?= number_format($singleArticle['view_count']) ?> views</span>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <a href="<?= site_url('berita/' . $singleArticle['slug']) ?>" class="btn btn-primary radius-999 px-24 py-11 d-inline-flex align-items-center gap-2 fw-bold text-sm" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none;">
-                                        <span>Baca Berita Lengkap</span>
-                                        <i class="fas fa-arrow-right"></i>
-                                    </a>
-                                </div>
                             </div>
                         </div>
+                        <div class="berita-headline-single__body">
+                            <p class="berita-headline-single__desc">
+                                <?= esc($singleArticle['summary'] ?? '') ?>
+                            </p>
+                            <div class="berita-headline__meta mb-3">
+                                <span><i class="far fa-calendar-alt"></i><?= esc($singleArticle['date_formatted'] ?? date('d M Y', strtotime($singleArticle['published_at'] ?? 'now'))) ?></span>
+                                <span><i class="far fa-clock"></i><?= esc($singleArticle['read_time'] ?? '5') ?> mnt baca</span>
+                                <span><i class="far fa-eye"></i><?= number_format($singleArticle['view_count'] ?? 0) ?> views</span>
+                            </div>
+                            <a href="<?= site_url('berita/' . $singleArticle['slug']) ?>" class="berita-cta__btn berita-cta__btn--primary" style="display: inline-flex;">
+                                <span>Baca Berita Lengkap</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
                     </div>
-                </div>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
         <?php endif; ?>
 
         <!-- Main Grid & Sidebar Layout -->
         <div class="row g-4">
-            <!-- Left: News Grid -->
             <div class="col-lg-8">
-                <?php if (empty($items) && empty($headlineArticle)): ?>
-                    <div class="news-empty-state text-center p-5 bg-white border radius-16">
-                        <div class="w-64-px h-64-px rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-3 text-2xl text-muted">
-                            <i class="fas fa-newspaper"></i>
-                        </div>
-                        <h4 class="fw-bold mb-2 text-dark">Belum Ada Berita yang Sesuai</h4>
-                        <p class="text-slate-500 mb-4" style="max-width: 480px; margin: 0 auto;">
-                            Tidak ditemukan artikel berita untuk kata kunci atau kategori yang Anda pilih. Coba gunakan kata kunci lain atau tampilkan seluruh berita.
+                <?php
+                    $hasItems    = ! empty($items);
+                    $hasHeadline = ! empty($headlineList);
+                ?>
+                <?php if (! $hasItems && ! $hasHeadline): ?>
+                    <div class="berita-empty">
+                        <div class="berita-empty__icon"><i class="fas fa-newspaper"></i></div>
+                        <h3 class="berita-empty__title">Belum Ada Berita yang Sesuai</h3>
+                        <p class="berita-empty__desc">
+                            Tidak ditemukan artikel berita untuk kata kunci atau kategori yang Anda pilih.
+                            Coba gunakan kata kunci lain atau tampilkan seluruh berita PBJ Lampung.
                         </p>
-                        <a href="<?= site_url('berita') ?>" class="btn btn-primary px-4 py-2 radius-10">
-                            Lihat Semua Berita
+                        <a href="<?= site_url('berita') ?>" class="berita-cta__btn" style="background: var(--berita-blue-500); color: #ffffff;">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Lihat Semua Berita</span>
                         </a>
                     </div>
                 <?php else: ?>
-                    <div class="row g-4">
-                        <?php foreach ($items as $index => $item): ?>
-                            <?php
-                            $sampleImages = [
-                                base_url('assets/main/images/blog/blog-list-1-1.jpg'),
-                                base_url('assets/main/images/blog/blog-list-1-3.jpg'),
-                                base_url('assets/main/images/blog/blog-1-1.jpg'),
-                                base_url('assets/main/images/blog/blog-1-2.jpg'),
-                                base_url('assets/main/images/blog/blog-1-3.jpg'),
-                                base_url('assets/main/images/blog/blog-2-1.jpg'),
-                            ];
-                            $thumbUrl = $item['cover_url'] ?: $sampleImages[$index % count($sampleImages)];
-                            ?>
+
+                    <!-- GRID VIEW -->
+                    <div class="berita-grid row g-4" id="beritaGridView">
+                        <?php foreach ($items as $index => $item):
+                            [$fgColor, $bgColor] = newsCategoryColor($item['category_slug'] ?? $item['slug'] ?? 'default');
+                            $thumb = ! empty($item['cover_path'])
+                                ? base_url($item['cover_path'])
+                                : base_url('assets/main/images/blog/blog-list-1-1.jpg');
+                            $author = $item['author_name'] ?? 'Biro PBJ Setda Lampung';
+                        ?>
                             <div class="col-md-6">
-                                <article class="news-grid-card">
-                                    <div class="news-card-thumb-wrap">
-                                        <img src="<?= $thumbUrl ?>" alt="<?= esc($item['title']) ?>" class="news-card-thumb">
-                                        <span class="news-card-cat-badge"><?= esc($item['category_name']) ?></span>
-                                        <span class="news-card-read-badge">
-                                            <i class="far fa-clock"></i>
-                                            <?= esc($item['read_time']) ?>
+                                <article class="berita-card" style="--cat-accent: <?= $fgColor ?>">
+                                    <a href="<?= site_url('berita/' . $item['slug']) ?>" class="berita-card__media d-block text-decoration-none">
+                                        <img src="<?= $thumb ?>" alt="<?= esc($item['title']) ?>" loading="lazy">
+                                        <span class="berita-card__cat"><?= esc($item['category_name'] ?? 'Berita') ?></span>
+                                        <span class="berita-card__readtime">
+                                            <i class="far fa-clock"></i> <?= esc($item['read_time'] ?? '5') ?> mnt
                                         </span>
-                                    </div>
-                                    <div class="news-card-body">
-                                        <div class="news-card-date">
-                                            <i class="far fa-calendar-alt text-primary"></i>
-                                            <span><?= esc($item['date_formatted']) ?></span>
-                                            <span class="text-slate-300">&middot;</span>
-                                            <span class="text-muted"><i class="far fa-eye"></i> <?= number_format($item['view_count']) ?></span>
+                                        <?= newsTrendingBadge($item, $index) ?>
+                                    </a>
+                                    <div class="berita-card__body">
+                                        <div class="berita-card__meta">
+                                            <span><i class="far fa-calendar-alt"></i> <?= esc($item['date_formatted'] ?? date('d M Y', strtotime($item['published_at'] ?? 'now'))) ?></span>
+                                            <span>&middot;</span>
+                                            <span><i class="far fa-eye"></i> <?= number_format($item['view_count'] ?? 0) ?> views</span>
                                         </div>
-                                        <h3 class="news-card-title">
+                                        <h3 class="berita-card__title">
                                             <a href="<?= site_url('berita/' . $item['slug']) ?>">
                                                 <?= esc($item['title']) ?>
                                             </a>
                                         </h3>
-                                        <p class="news-card-summary">
-                                            <?= esc($item['summary']) ?>
+                                        <p class="berita-card__summary">
+                                            <?= esc($item['summary'] ?? '') ?>
                                         </p>
-                                        <div class="news-card-footer">
-                                            <div class="news-card-author">
-                                                <span class="news-card-author-avatar">B</span>
-                                                <span>Biro PBJ</span>
+                                        <div class="berita-card__footer">
+                                            <div class="berita-card__author">
+                                                <span class="berita-card__author-avatar"><?= newsAuthorInitials($author) ?></span>
+                                                <span><?= esc($author) ?></span>
                                             </div>
-                                            <a href="<?= site_url('berita/' . $item['slug']) ?>" class="news-card-link">
+                                            <a href="<?= site_url('berita/' . $item['slug']) ?>" class="berita-card__cta">
                                                 <span>Baca</span>
                                                 <i class="fas fa-arrow-right"></i>
                                             </a>
@@ -1301,85 +446,132 @@
                         <?php endforeach; ?>
                     </div>
 
-                    <!-- Clean Pagination Bar -->
-                    <?php if ($totalPages > 1): ?>
-                        <?php
-                        $queryParams = [];
-                        if (! empty($keyword)) $queryParams['q'] = $keyword;
-                        if (! empty($sort) && $sort !== 'newest') $queryParams['sort'] = $sort;
-                        $buildUrl = function ($p) use ($queryParams) {
-                            $params = array_merge($queryParams, ['page' => $p]);
-                            return current_url() . '?' . http_build_query($params);
-                        };
+                    <!-- LIST VIEW -->
+                    <div class="berita-list" id="beritaListView">
+                        <?php foreach ($items as $index => $item):
+                            [$fgColor, $bgColor] = newsCategoryColor($item['category_slug'] ?? $item['slug'] ?? 'default');
+                            $thumb = ! empty($item['cover_path'])
+                                ? base_url($item['cover_path'])
+                                : base_url('assets/main/images/blog/blog-list-1-1.jpg');
+                            $author = $item['author_name'] ?? 'Biro PBJ Setda Lampung';
                         ?>
-                        <nav class="news-pagination-wrap" aria-label="Navigasi Halaman Berita">
-                            <a href="<?= $buildUrl(max(1, $currentPage - 1)) ?>"
-                                class="news-page-btn <?= $currentPage <= 1 ? 'disabled' : '' ?>"
-                                aria-label="Halaman Sebelumnya">
-                                <i class="fas fa-chevron-left"></i>
-                                <span class="ms-1 d-none d-sm-inline">Sebelumnya</span>
-                            </a>
+                            <article class="berita-list__item" style="--cat-accent: <?= $fgColor ?>">
+                                <a href="<?= site_url('berita/' . $item['slug']) ?>" class="berita-list__thumb text-decoration-none">
+                                    <img src="<?= $thumb ?>" alt="<?= esc($item['title']) ?>" loading="lazy">
+                                    <span class="berita-list__cat"><?= esc($item['category_name'] ?? 'Berita') ?></span>
+                                </a>
+                                <div class="berita-list__body">
+                                    <h3 class="berita-list__title">
+                                        <a href="<?= site_url('berita/' . $item['slug']) ?>">
+                                            <?= esc($item['title']) ?>
+                                        </a>
+                                    </h3>
+                                    <p class="berita-list__summary"><?= esc($item['summary'] ?? '') ?></p>
+                                    <div class="berita-list__footer">
+                                        <div class="berita-card__meta">
+                                            <span><i class="far fa-calendar-alt"></i> <?= esc($item['date_formatted'] ?? date('d M Y', strtotime($item['published_at'] ?? 'now'))) ?></span>
+                                            <span>&middot;</span>
+                                            <span><i class="far fa-clock"></i> <?= esc($item['read_time'] ?? '5') ?> mnt</span>
+                                            <span>&middot;</span>
+                                            <span><i class="far fa-eye"></i> <?= number_format($item['view_count'] ?? 0) ?> views</span>
+                                        </div>
+                                        <a href="<?= site_url('berita/' . $item['slug']) ?>" class="berita-card__cta">
+                                            <span>Baca Selengkapnya</span>
+                                            <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
 
-                            <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-                                <?php if ($p === 1 || $p === $totalPages || ($p >= $currentPage - 1 && $p <= $currentPage + 1)): ?>
-                                    <a href="<?= $buildUrl($p) ?>"
-                                        class="news-page-btn <?= $p === $currentPage ? 'active' : '' ?>">
-                                        <?= $p ?>
-                                    </a>
-                                <?php elseif ($p === 2 && $currentPage > 3): ?>
-                                    <span class="news-page-btn disabled">...</span>
-                                <?php elseif ($p === $totalPages - 1 && $currentPage < $totalPages - 2): ?>
-                                    <span class="news-page-btn disabled">...</span>
+                    <!-- Smart Pagination -->
+                    <?php if (($totalPages ?? 1) > 1): ?>
+                        <?php
+                            $queryParams = [];
+                            if (! empty($keyword))   $queryParams['q']   = $keyword;
+                            if (! empty($sort) && $sort !== 'newest') $queryParams['sort'] = $sort;
+                            $buildUrl = function ($p) use ($queryParams) {
+                                $params = array_merge($queryParams, ['page' => $p]);
+                                return current_url() . '?' . http_build_query($params);
+                            };
+                            $cp = (int) ($currentPage ?? 1);
+                            $tp = (int) ($totalPages ?? 1);
+                        ?>
+                        <div class="berita-pagination">
+                            <div class="berita-pagination__info">
+                                Halaman <strong><?= $cp ?></strong> dari <strong><?= $tp ?></strong> &middot; <strong><?= number_format($stats['total_news'] ?? 0) ?></strong> total berita
+                            </div>
+                            <nav class="berita-pagination__list" aria-label="Navigasi Halaman">
+                                <a href="<?= $buildUrl(max(1, $cp - 1)) ?>" class="berita-pgbtn <?= $cp <= 1 ? 'is-disabled' : '' ?>" aria-label="Sebelumnya">
+                                    <i class="fas fa-chevron-left"></i>
+                                    <span class="d-none d-sm-inline">Sebelumnya</span>
+                                </a>
+
+                                <?php if ($cp > 3): ?>
+                                    <a href="<?= $buildUrl(1) ?>" class="berita-pgbtn">1</a>
+                                    <?php if ($cp > 4): ?>
+                                        <span class="berita-pgbtn is-ellipsis">&hellip;</span>
+                                    <?php endif; ?>
                                 <?php endif; ?>
-                            <?php endfor; ?>
 
-                            <a href="<?= $buildUrl(min($totalPages, $currentPage + 1)) ?>"
-                                class="news-page-btn <?= $currentPage >= $totalPages ? 'disabled' : '' ?>"
-                                aria-label="Halaman Berikutnya">
-                                <span class="me-1 d-none d-sm-inline">Berikutnya</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </nav>
+                                <?php for ($p = max(1, $cp - 1); $p <= min($tp, $cp + 1); $p++): ?>
+                                    <a href="<?= $buildUrl($p) ?>" class="berita-pgbtn <?= $p === $cp ? 'is-active' : '' ?>"><?= $p ?></a>
+                                <?php endfor; ?>
+
+                                <?php if ($cp < $tp - 2): ?>
+                                    <?php if ($cp < $tp - 3): ?>
+                                        <span class="berita-pgbtn is-ellipsis">&hellip;</span>
+                                    <?php endif; ?>
+                                    <a href="<?= $buildUrl($tp) ?>" class="berita-pgbtn"><?= $tp ?></a>
+                                <?php endif; ?>
+
+                                <a href="<?= $buildUrl(min($tp, $cp + 1)) ?>" class="berita-pgbtn <?= $cp >= $tp ? 'is-disabled' : '' ?>" aria-label="Berikutnya">
+                                    <span class="d-none d-sm-inline">Berikutnya</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </nav>
+                        </div>
                     <?php endif; ?>
                 <?php endif; ?>
             </div>
 
             <!-- Right: Sidebar Widgets -->
             <div class="col-lg-4">
-                <!-- Search Box Widget -->
-                <div class="news-sidebar-widget">
-                    <h4 class="news-widget-title">
-                        <i class="fas fa-search text-primary"></i>
+                <!-- Search Widget -->
+                <div class="berita-widget">
+                    <h4 class="berita-widget__title">
+                        <i class="fas fa-search"></i>
                         <span>Cari Artikel Berita</span>
                     </h4>
-                    <form action="<?= site_url('berita') ?>" method="get">
-                        <div class="input-group">
-                            <input type="text" name="q" class="form-control radius-8 border" placeholder="Kata kunci pengadaan..." value="<?= esc($keyword ?? '') ?>">
-                            <button class="btn btn-primary px-3 radius-8" type="submit" aria-label="Cari">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
+                    <form action="<?= site_url('berita') ?>" method="get" class="berita-searchbox">
+                        <input type="text" name="q" placeholder="Kata kunci pengadaan..." value="<?= esc($keyword ?? '') ?>">
+                        <button type="submit" aria-label="Cari"><i class="fas fa-search"></i></button>
                     </form>
                 </div>
 
                 <!-- Category Directory Widget -->
-                <div class="news-sidebar-widget">
-                    <h4 class="news-widget-title">
-                        <i class="fas fa-folder-open text-warning"></i>
+                <div class="berita-widget">
+                    <h4 class="berita-widget__title accent-gold">
+                        <i class="fas fa-folder-open"></i>
                         <span>Kategori Liputan</span>
                     </h4>
-                    <ul class="news-widget-categories">
+                    <ul class="berita-catlist">
                         <li>
-                            <a href="<?= site_url('berita') ?>" class="<?= empty($selectedCategory) ? 'active' : '' ?>">
-                                <span>Semua Berita</span>
-                                <span class="cat-count"><?= $stats['total_news'] ?></span>
+                            <a href="<?= site_url('berita') ?>" class="<?= empty($selectedCategory) ? 'is-active' : '' ?>">
+                                <span class="left"><span class="dot" style="background:#0284c7"></span>Semua Berita</span>
+                                <span class="count"><?= (int) ($stats['total_news'] ?? 0) ?></span>
                             </a>
                         </li>
-                        <?php foreach ($categories as $cat): ?>
+                        <?php foreach (($categories ?? []) as $cat):
+                            [$fg, $bg] = newsCategoryColor($cat['slug']);
+                        ?>
                             <li>
-                                <a href="<?= site_url('berita/kategori/' . $cat['slug']) ?>" class="<?= $selectedCategory === $cat['slug'] ? 'active' : '' ?>">
-                                    <span><?= esc($cat['name']) ?></span>
-                                    <span class="cat-count"><?= $cat['news_count'] ?></span>
+                                <a href="<?= site_url('berita/kategori/' . $cat['slug']) ?>"
+                                    class="<?= $selectedCategory === $cat['slug'] ? 'is-active' : '' ?>"
+                                    style="--cat-accent: <?= $fg ?>">
+                                    <span class="left"><span class="dot" style="background: <?= $fg ?>"></span><?= esc($cat['name']) ?></span>
+                                    <span class="count"><?= (int) $cat['news_count'] ?></span>
                                 </a>
                             </li>
                         <?php endforeach; ?>
@@ -1387,79 +579,94 @@
                 </div>
 
                 <!-- Trending / Popular News Widget -->
-                <div class="news-sidebar-widget">
-                    <h4 class="news-widget-title">
-                        <i class="fas fa-fire text-danger"></i>
+                <div class="berita-widget">
+                    <h4 class="berita-widget__title accent-red">
+                        <i class="fas fa-fire"></i>
                         <span>Berita Terpopuler</span>
                     </h4>
-                    <?php foreach ($popularNews as $rank => $pop): ?>
-                        <div class="news-trending-item">
-                            <div class="news-trending-num"><?= $rank + 1 ?></div>
-                            <div class="news-trending-content">
-                                <h5>
-                                    <a href="<?= site_url('berita/' . $pop['slug']) ?>">
-                                        <?= esc($pop['title']) ?>
-                                    </a>
-                                </h5>
-                                <div class="news-trending-meta">
-                                    <span><?= date('d M Y', strtotime($pop['published_at'])) ?></span>
-                                    <span>&middot;</span>
-                                    <span><i class="far fa-eye"></i> <?= number_format($pop['view_count']) ?> views</span>
+                    <?php if (empty($popularNews)): ?>
+                        <p class="text-sm text-muted mb-0">Belum ada data popularitas.</p>
+                    <?php else: ?>
+                        <?php foreach (($popularNews ?? []) as $rank => $pop): ?>
+                            <div class="berita-trend">
+                                <div class="berita-trend__rank <?= $rank < 3 ? 'is-top' : '' ?>">
+                                    <?= $rank + 1 ?>
+                                </div>
+                                <div class="berita-trend__body">
+                                    <h5 class="berita-trend__title">
+                                        <a href="<?= site_url('berita/' . $pop['slug']) ?>">
+                                            <?= esc($pop['title']) ?>
+                                        </a>
+                                    </h5>
+                                    <div class="berita-trend__meta">
+                                        <i class="far fa-calendar-alt"></i>
+                                        <span><?= date('d M Y', strtotime($pop['published_at'])) ?></span>
+                                        <span>&middot;</span>
+                                        <i class="far fa-eye"></i>
+                                        <span><?= number_format($pop['view_count']) ?> views</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
 
-                <!-- Official Bulletin / Biro PBJ Notice -->
-                <div class="news-official-banner mb-4">
-                    <span class="badge bg-warning text-dark px-3 py-1 radius-6 text-xs fw-bold mb-3 text-uppercase">Kanal Resmi</span>
-                    <h4 class="text-lg fw-bold mb-2 text-white">Biro Pengadaan Barang &amp; Jasa Setda Provinsi Lampung</h4>
-                    <p class="text-xs text-slate-300 mb-3" style="line-height: 1.6; color: #cbd5e1;">
-                        Seluruh siaran pers, klarifikasi, dan pengumuman resmi dipublikasikan melalui kanal BegawiPengadaan untuk mendukung keterbukaan informasi publik dan akuntabilitas PBJ.
+                <!-- Newsletter Mini Widget -->
+                <div class="berita-newsletter">
+                    <div class="berita-newsletter__icon"><i class="fas fa-envelope-open-text"></i></div>
+                    <h4 class="berita-newsletter__title">Newsletter PBJ Lampung</h4>
+                    <p class="berita-newsletter__lead">
+                        Dapatkan rangkuman mingguan kabar &amp; kebijakan pengadaan langsung ke email Anda.
                     </p>
-                    <div class="d-flex align-items-center gap-2 pt-2 border-top border-white-10" style="border-top: 1px solid rgba(255,255,255,0.15);">
-                        <i class="fas fa-phone-alt text-warning text-sm"></i>
-                        <span class="text-xs text-white">Helpdesk: +62 851-1777-9783</span>
-                    </div>
+                    <form class="berita-newsletter__form" onsubmit="event.preventDefault(); this.querySelector('button').innerHTML='<i class=\'fas fa-check\'></i> OK';">
+                        <input type="email" placeholder="Email Anda" aria-label="Email">
+                        <button type="submit" title="Daftar Newsletter">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Daftar</span>
+                        </button>
+                    </form>
+                    <p class="berita-newsletter__hint">
+                        <i class="fas fa-shield-halved me-1"></i> Privasi Anda terlindungi &middot; Tanpa spam.
+                    </p>
                 </div>
 
-                <!-- Quick Tags Widget -->
-                <div class="news-sidebar-widget">
-                    <h4 class="news-widget-title">
-                        <i class="fas fa-tags text-info"></i>
+                <!-- Tag Cloud Widget -->
+                <div class="berita-widget">
+                    <h4 class="berita-widget__title accent-cyan">
+                        <i class="fas fa-tags"></i>
                         <span>Topik Populer</span>
                     </h4>
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="<?= site_url('berita?q=P3DN') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#P3DN</a>
-                        <a href="<?= site_url('berita?q=Katalog') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#E-Katalog</a>
-                        <a href="<?= site_url('berita?q=Integritas') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#Integritas</a>
-                        <a href="<?= site_url('berita?q=Sertifikasi') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#Sertifikasi Level-1</a>
-                        <a href="<?= site_url('berita?q=Maturitas') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#UKPBJ Proaktif</a>
-                        <a href="<?= site_url('berita?q=Probity') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#Probity Audit</a>
-                        <a href="<?= site_url('berita?q=UMKM') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#UMKM Lokal</a>
+                    <div class="berita-tags">
+                        <a href="<?= site_url('berita?q=P3DN') ?>" class="berita-tag">#P3DN</a>
+                        <a href="<?= site_url('berita?q=Katalog') ?>" class="berita-tag">#E-Katalog</a>
+                        <a href="<?= site_url('berita?q=Integritas') ?>" class="berita-tag">#Integritas</a>
+                        <a href="<?= site_url('berita?q=Sertifikasi') ?>" class="berita-tag">#Sertifikasi</a>
+                        <a href="<?= site_url('berita?q=Maturitas') ?>" class="berita-tag">#UKPBJ Proaktif</a>
+                        <a href="<?= site_url('berita?q=Probity') ?>" class="berita-tag">#Probity Audit</a>
+                        <a href="<?= site_url('berita?q=UMKM') ?>" class="berita-tag">#UMKM Lokal</a>
+                        <a href="<?= site_url('berita?q=Bimtek') ?>" class="berita-tag">#Bimtek SPSE</a>
                     </div>
                 </div>
 
-                <!-- Ecosystem Linkage Widget -->
-                <div class="p-4 bg-light border radius-18 mb-4">
-                    <h5 class="fw-bold text-dark mb-2">Jelajahi Ekosistem BegawiPengadaan</h5>
-                    <p class="text-xs text-slate-500 mb-3" style="color: #64748b;">Tingkatkan wawasan dan kompetensi pengadaan Anda melalui kanal lainnya:</p>
-                    <div class="d-grid gap-2">
-                        <a href="<?= site_url('regulasi') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
-                            <span><i class="fas fa-balance-scale text-warning me-2"></i> Pusat Regulasi PBJ</span>
+                <!-- Eco Linkage Widget -->
+                <div class="berita-eco">
+                    <h5 class="berita-eco__title"><i class="fas fa-compass me-2 text-primary"></i>Jelajahi Ekosistem</h5>
+                    <p class="berita-eco__lead">Tingkatkan wawasan dan kompetensi PBJ Anda melalui kanal lainnya:</p>
+                    <div class="berita-eco__list">
+                        <a href="<?= site_url('regulasi') ?>">
+                            <span class="left"><i class="icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-balance-scale"></i></i>Pusat Regulasi PBJ</span>
                             <i class="fas fa-arrow-right text-muted"></i>
                         </a>
-                        <a href="<?= site_url('arena-belajar') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
-                            <span><i class="fas fa-graduation-cap text-info me-2"></i> Arena Belajar &amp; Sertifikasi</span>
+                        <a href="<?= site_url('arena-belajar') ?>">
+                            <span class="left"><i class="icon" style="background:#cffafe;color:#0891b2"><i class="fas fa-graduation-cap"></i></i>Arena Belajar &amp; Sertifikasi</span>
                             <i class="fas fa-arrow-right text-muted"></i>
                         </a>
-                        <a href="<?= site_url('bunga-rampai') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
-                            <span><i class="fas fa-book-reader text-success me-2"></i> Bunga Rampai &amp; Template</span>
+                        <a href="<?= site_url('bunga-rampai') ?>">
+                            <span class="left"><i class="icon" style="background:#dcfce7;color:#16a34a"><i class="fas fa-book-reader"></i></i>Bunga Rampai &amp; Template</span>
                             <i class="fas fa-arrow-right text-muted"></i>
                         </a>
-                        <a href="<?= site_url('event') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
-                            <span><i class="fas fa-calendar-star text-primary me-2"></i> Agenda &amp; Event PBJ</span>
+                        <a href="<?= site_url('event') ?>">
+                            <span class="left"><i class="icon" style="background:#e0f2fe;color:#0284c7"><i class="fas fa-calendar-star"></i></i>Agenda &amp; Event PBJ</span>
                             <i class="fas fa-arrow-right text-muted"></i>
                         </a>
                     </div>
@@ -1467,23 +674,27 @@
             </div>
         </div>
 
-        <!-- Closing Call-To-Action Banner -->
-        <div class="news-closing-cta">
+        <!-- Closing CTA Banner -->
+        <div class="berita-cta">
             <div class="row align-items-center g-4">
                 <div class="col-lg-8">
-                    <span class="badge bg-warning text-dark px-3 py-1 radius-6 text-xs fw-bold text-uppercase mb-2">Keterbukaan Informasi Publik</span>
-                    <h3 class="text-2xl fw-bold text-white mb-2">Pusat Siaran Pers &amp; Klarifikasi Berita PBJ Lampung</h3>
-                    <p class="text-sm text-slate-200 mb-0" style="max-width: 650px; line-height: 1.6;">
-                        Membutuhkan konfirmasi, klarifikasi berita, atau materi siaran pers resmi terkait pengadaan barang dan jasa Pemerintah Provinsi Lampung? Tim Pejabat Pengelola Informasi &amp; Dokumentasi (PPID) Biro PBJ siap melayani permohonan Anda.
+                    <span class="berita-cta__eyebrow">
+                        <i class="fas fa-bullhorn"></i> Keterbukaan Informasi Publik
+                    </span>
+                    <h3 class="berita-cta__title">Pusat Siaran Pers &amp; Klarifikasi Berita PBJ Lampung</h3>
+                    <p class="berita-cta__lead">
+                        Membutuhkan konfirmasi, klarifikasi berita, atau materi siaran pers resmi terkait
+                        pengadaan barang dan jasa Pemerintah Provinsi Lampung? Tim Pejabat Pengelola
+                        Informasi &amp; Dokumentasi (PPID) Biro PBJ siap melayani permohonan Anda.
                     </p>
                 </div>
-                <div class="col-lg-4 text-lg-end">
-                    <div class="d-flex flex-column flex-sm-row justify-content-lg-end gap-2">
-                        <a href="<?= site_url('kontak') ?>" class="btn btn-warning radius-999 px-20 py-10 fw-bold text-dark d-inline-flex align-items-center justify-content-center gap-2 text-sm shadow-sm">
+                <div class="col-lg-4">
+                    <div class="berita-cta__actions">
+                        <a href="<?= site_url('kontak') ?>" class="berita-cta__btn berita-cta__btn--primary">
                             <i class="fas fa-envelope-open-text"></i>
-                            <span>Hubungi Humas PBJ</span>
+                            <span>Hubungi PPID</span>
                         </a>
-                        <a href="<?= site_url('arena-belajar') ?>" class="btn btn-outline-light radius-999 px-20 py-10 fw-bold d-inline-flex align-items-center justify-content-center gap-2 text-sm">
+                        <a href="<?= site_url('arena-belajar') ?>" class="berita-cta__btn berita-cta__btn--ghost">
                             <i class="fas fa-graduation-cap"></i>
                             <span>Arena Belajar</span>
                         </a>
@@ -1491,21 +702,51 @@
                 </div>
             </div>
         </div>
+
     </div>
 </section>
 
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
-    function applyNewsQuickSearch(term) {
-        const input = document.getElementById('newsHeroSearchInput');
-        const form = document.getElementById('newsHeroSearchForm');
+    function beritaQuickSearch(term) {
+        var input = document.getElementById('beritaHeroSearchInput');
+        var form  = document.getElementById('beritaHeroSearchForm');
         if (input && form) {
             input.value = term;
             form.submit();
         }
     }
+
+    (function () {
+        var gridBtn = document.getElementById('viewGridBtn');
+        var listBtn = document.getElementById('viewListBtn');
+        var grid    = document.getElementById('beritaGridView');
+        var list    = document.getElementById('beritaListView');
+        if (!gridBtn || !listBtn || !grid || !list) return;
+
+        function apply(mode) {
+            if (mode === 'list') {
+                grid.classList.add('is-hidden');
+                list.classList.add('is-active');
+                listBtn.classList.add('is-active');
+                gridBtn.classList.remove('is-active');
+            } else {
+                list.classList.remove('is-active');
+                grid.classList.remove('is-hidden');
+                gridBtn.classList.add('is-active');
+                listBtn.classList.remove('is-active');
+            }
+        }
+
+        try {
+            var saved = localStorage.getItem('berita_view_mode');
+            if (saved === 'list') apply('list');
+        } catch (e) {}
+
+        gridBtn.addEventListener('click', function () { apply('grid'); try { localStorage.setItem('berita_view_mode', 'grid'); } catch (e) {} });
+        listBtn.addEventListener('click', function () { apply('list'); try { localStorage.setItem('berita_view_mode', 'list'); } catch (e) {} });
+    })();
 </script>
 <?= $this->endSection() ?>

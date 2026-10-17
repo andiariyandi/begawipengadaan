@@ -1,5 +1,9 @@
 <?= $this->extend('landing/layouts/public') ?>
 
+<?= $this->section('pageStyles') ?>
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-knowledge.css') ?>" />
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 
 <?php
@@ -32,34 +36,6 @@ $coverImg = ! empty($item['cover_file_id'])
 
 $readingTime = $item['reading_time'] ?? 5;
 ?>
-
-<style>
-    .knowledge-content {
-        color: #334155;
-        font-size: 16px;
-        line-height: 1.85;
-    }
-    .knowledge-content p {
-        margin-bottom: 1.25rem;
-    }
-    .knowledge-content h2, .knowledge-content h3, .knowledge-content h4 {
-        color: #082f5c;
-        font-weight: 700;
-        margin-top: 1.75rem;
-        margin-bottom: 0.75rem;
-    }
-    .knowledge-content blockquote {
-        border-left: 4px solid #0d6efd;
-        padding-left: 1rem;
-        font-style: italic;
-        color: #475569;
-        margin: 1.5rem 0;
-    }
-    .hover-bg-light:hover {
-        background-color: #f8fafc;
-        color: #0d6efd !important;
-    }
-</style>
 
 <!-- =========================================================================
      BREADCRUMB & HEADER
