@@ -16,6 +16,18 @@
         --news-slate-50: #f8fafc;
     }
 
+    /* Reading Progress Bar */
+    #readingProgressBar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #f59e0b 100%);
+        z-index: 99999;
+        width: 0%;
+        transition: width 0.1s linear;
+    }
+
     /* Detail Header Banner */
     .news-detail-header-section {
         background: linear-gradient(135deg, var(--news-navy-dark) 0%, var(--news-navy) 70%, var(--news-blue) 100%);
@@ -117,6 +129,46 @@
         z-index: 5;
     }
 
+    /* Accessibility Toolbar */
+    .news-reading-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding-bottom: 20px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .news-font-control-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 4px 8px;
+        border-radius: 8px;
+    }
+
+    .news-font-btn {
+        background: transparent;
+        border: none;
+        color: #334155;
+        font-weight: 700;
+        font-size: 12.5px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .news-font-btn:hover,
+    .news-font-btn.active {
+        background: #0284c7;
+        color: #ffffff;
+    }
+
     .news-featured-img-wrap {
         border-radius: 14px;
         overflow: hidden;
@@ -158,6 +210,7 @@
         line-height: 1.85;
         color: #1e293b;
         margin-bottom: 36px;
+        transition: font-size 0.2s ease;
     }
 
     .news-article-body p {
@@ -571,6 +624,9 @@
 
 <?= $this->section('content') ?>
 
+<!-- Sticky Reading Progress Bar -->
+<div id="readingProgressBar"></div>
+
 <!-- 1. DETAIL HEADER BANNER -->
 <section class="news-detail-header-section">
     <div class="container">
@@ -628,6 +684,28 @@
             <!-- Left: Main Article -->
             <div class="col-lg-8">
                 <article class="news-article-wrap">
+                    <!-- Reading Accessibility Toolbar -->
+                    <div class="news-reading-toolbar">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-xs fw-bold text-muted text-uppercase">Ukuran Teks:</span>
+                            <div class="news-font-control-group">
+                                <button type="button" class="news-font-btn" onclick="setArticleFontSize('small')" title="Teks Lebih Kecil">A-</button>
+                                <button type="button" class="news-font-btn active" id="btnFontNormal" onclick="setArticleFontSize('normal')" title="Teks Standar">A</button>
+                                <button type="button" class="news-font-btn" onclick="setArticleFontSize('large')" title="Teks Lebih Besar">A+</button>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" onclick="window.print()" class="btn btn-sm btn-light border radius-8 fw-semibold text-xs d-inline-flex align-items-center gap-1 text-slate-700">
+                                <i class="fas fa-print text-primary"></i>
+                                <span>Cetak</span>
+                            </button>
+                            <button type="button" id="btnTopCopyLink" class="btn btn-sm btn-light border radius-8 fw-semibold text-xs d-inline-flex align-items-center gap-1 text-slate-700">
+                                <i class="fas fa-link text-info"></i>
+                                <span>Salin Tautan</span>
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Featured Image -->
                     <div class="news-featured-img-wrap">
                         <img src="<?= ! empty($news['cover_path']) ? base_url($news['cover_path']) : base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>"
@@ -647,7 +725,7 @@
                     <?php endif; ?>
 
                     <!-- Body Content -->
-                    <div class="news-article-body">
+                    <div class="news-article-body" id="articleBodyContent">
                         <?php if (! empty($news['content'])): ?>
                             <?php
                             // Format double newlines into clean paragraphs if plain text
@@ -899,6 +977,10 @@
                             <span><i class="fas fa-book-reader text-success me-2"></i> Bunga Rampai &amp; Template</span>
                             <i class="fas fa-arrow-right text-muted"></i>
                         </a>
+                        <a href="<?= site_url('event') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
+                            <span><i class="fas fa-calendar-star text-primary me-2"></i> Agenda &amp; Event PBJ</span>
+                            <i class="fas fa-arrow-right text-muted"></i>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -917,25 +999,69 @@
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
+    // Reading Progress Bar
+    window.addEventListener('scroll', function() {
+        const docElem = document.documentElement;
+        const docBody = document.body;
+        const scrollTop = docElem['scrollTop'] || docBody['scrollTop'];
+        const scrollBottom = (docElem['scrollHeight'] || docBody['scrollHeight']) - window.innerHeight;
+        const scrollPercent = scrollBottom > 0 ? (scrollTop / scrollBottom) * 100 : 0;
+        const bar = document.getElementById('readingProgressBar');
+        if (bar) {
+            bar.style.width = scrollPercent + '%';
+        }
+    });
+
+    // Font Size Adjuster
+    function setArticleFontSize(size) {
+        const bodyContent = document.getElementById('articleBodyContent');
+        if (!bodyContent) return;
+        
+        document.querySelectorAll('.news-font-btn').forEach(btn => btn.classList.remove('active'));
+        
+        if (size === 'small') {
+            bodyContent.style.fontSize = '14.5px';
+            event.target.classList.add('active');
+        } else if (size === 'large') {
+            bodyContent.style.fontSize = '18.5px';
+            event.target.classList.add('active');
+        } else {
+            bodyContent.style.fontSize = '16.5px';
+            const normalBtn = document.getElementById('btnFontNormal');
+            if (normalBtn) normalBtn.classList.add('active');
+        }
+    }
+
+    // Copy Link functionality
     document.addEventListener('DOMContentLoaded', function() {
         const btnCopy = document.getElementById('btnCopyLink');
+        const btnTopCopy = document.getElementById('btnTopCopyLink');
         const toast = document.getElementById('copyToast');
 
-        if (btnCopy) {
-            btnCopy.addEventListener('click', function() {
-                const url = '<?= $shareUrl ?>';
+        function triggerCopy() {
+            const url = '<?= $shareUrl ?>';
+            if (navigator.clipboard) {
                 navigator.clipboard.writeText(url).then(function() {
-                    if (toast) {
-                        toast.style.display = 'flex';
-                        setTimeout(function() {
-                            toast.style.display = 'none';
-                        }, 3000);
-                    }
+                    showToast();
                 }).catch(function() {
-                    alert('Tautan: ' + url);
+                    prompt('Salin tautan ini:', url);
                 });
-            });
+            } else {
+                prompt('Salin tautan ini:', url);
+            }
         }
+
+        function showToast() {
+            if (toast) {
+                toast.style.display = 'flex';
+                setTimeout(function() {
+                    toast.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        if (btnCopy) btnCopy.addEventListener('click', triggerCopy);
+        if (btnTopCopy) btnTopCopy.addEventListener('click', triggerCopy);
     });
 </script>
 <?= $this->endSection() ?>

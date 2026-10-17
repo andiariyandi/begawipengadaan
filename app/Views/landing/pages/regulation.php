@@ -370,7 +370,7 @@ $renderLegalStatusBadge = function (?string $status): string {
             <div class="arena-search-bar mb-3">
                 <form action="<?= site_url('regulasi') ?>" method="get" class="d-flex align-items-center">
                     <i class="fas fa-search text-muted me-2" style="font-size: 16px;"></i>
-                    <input type="text" name="q" value="<?= esc($keyword) ?>" placeholder="Cari nomor regulasi, topik, kata kunci (contoh: Perpres 12, HPS, Katalog)..." autocomplete="off">
+                    <input type="text" name="q" id="regulationHeroSearch" value="<?= esc($keyword) ?>" placeholder="Cari nomor regulasi, topik, kata kunci (contoh: Perpres 12, HPS, Katalog)..." autocomplete="off">
                     <?php if (! empty($selectedCategory)): ?>
                         <input type="hidden" name="category_id" value="<?= esc($selectedCategory) ?>">
                     <?php endif; ?>
@@ -398,14 +398,15 @@ $renderLegalStatusBadge = function (?string $status): string {
                 </form>
             </div>
 
-            <!-- Quick Jump Search Tags -->
-            <div class="d-flex flex-wrap align-items-center justify-content-center gap-2 mb-4 text-white small" style="opacity: 0.95;">
-                <span class="fw-semibold text-warning"><i class="fas fa-fire me-1"></i> Populer:</span>
-                <a href="<?= site_url('regulasi?q=Perpres+12') ?>" class="badge bg-white bg-opacity-25 text-white text-decoration-none px-2 py-1 radius-6">Perpres 12/2021</a>
-                <a href="<?= site_url('regulasi?q=HPS') ?>" class="badge bg-white bg-opacity-25 text-white text-decoration-none px-2 py-1 radius-6">Pedoman HPS</a>
-                <a href="<?= site_url('regulasi?q=Katalog') ?>" class="badge bg-white bg-opacity-25 text-white text-decoration-none px-2 py-1 radius-6">E-Katalog</a>
-                <a href="<?= site_url('regulasi?q=Pergub+Lampung') ?>" class="badge bg-white bg-opacity-25 text-white text-decoration-none px-2 py-1 radius-6">Pergub Lampung</a>
-                <a href="<?= site_url('regulasi?q=Swakelola') ?>" class="badge bg-white bg-opacity-25 text-white text-decoration-none px-2 py-1 radius-6">Swakelola</a>
+            <!-- Quick Search Suggestion Chips -->
+            <div class="d-flex flex-wrap align-items-center justify-content-center gap-2 mb-4 text-white-50 small">
+                <span class="text-white opacity-75" style="font-size: 12.5px;"><i class="fas fa-bolt text-warning me-1"></i> Topik Populer:</span>
+                <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyRegulationQuickSearch('Perpres 12/2021')">Perpres 12/2021</button>
+                <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyRegulationQuickSearch('Pedoman HPS')">Pedoman HPS</button>
+                <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyRegulationQuickSearch('E-Katalog')">E-Katalog</button>
+                <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyRegulationQuickSearch('Pergub Lampung')">Pergub Lampung</button>
+                <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyRegulationQuickSearch('Swakelola')">Swakelola</button>
+                <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyRegulationQuickSearch('Tender Cepat')">Tender Cepat</button>
             </div>
 
             <!-- Sub-Navigation Category Pills (Unified with Arena Belajar & Bunga Rampai) -->
@@ -456,48 +457,56 @@ $renderLegalStatusBadge = function (?string $status): string {
     <div class="container">
         <div class="row g-3">
             <div class="col-6 col-lg-3">
-                <div class="arena-stat-box">
-                    <div class="arena-stat-icon arena-stat-icon--blue">
-                        <i class="fas fa-book"></i>
+                <a href="<?= site_url('regulasi') ?>" class="text-decoration-none">
+                    <div class="arena-stat-box">
+                        <div class="arena-stat-icon arena-stat-icon--blue">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="arena-stat-content">
+                            <h4><?= number_format((int) ($stats['total'] ?? 0)) ?></h4>
+                            <p>Total Regulasi PBJ</p>
+                        </div>
                     </div>
-                    <div class="arena-stat-content">
-                        <h4><?= number_format((int) ($stats['total'] ?? 0)) ?></h4>
-                        <p>Total Regulasi PBJ</p>
-                    </div>
-                </div>
+                </a>
             </div>
             <div class="col-6 col-lg-3">
-                <div class="arena-stat-box">
-                    <div class="arena-stat-icon arena-stat-icon--green">
-                        <i class="fas fa-check-circle"></i>
+                <a href="<?= site_url('regulasi?status=active') ?>" class="text-decoration-none">
+                    <div class="arena-stat-box">
+                        <div class="arena-stat-icon arena-stat-icon--green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="arena-stat-content">
+                            <h4><?= number_format((int) ($stats['active_count'] ?? $stats['published'] ?? 0)) ?></h4>
+                            <p>Regulasi Masih Berlaku</p>
+                        </div>
                     </div>
-                    <div class="arena-stat-content">
-                        <h4><?= number_format((int) ($stats['active_count'] ?? $stats['published'] ?? 0)) ?></h4>
-                        <p>Regulasi Masih Berlaku</p>
-                    </div>
-                </div>
+                </a>
             </div>
             <div class="col-6 col-lg-3">
-                <div class="arena-stat-box">
-                    <div class="arena-stat-icon arena-stat-icon--amber">
-                        <i class="fas fa-layer-group"></i>
+                <a href="#hierarki-regulasi" class="text-decoration-none">
+                    <div class="arena-stat-box">
+                        <div class="arena-stat-icon arena-stat-icon--amber">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="arena-stat-content">
+                            <h4><?= number_format((int) ($stats['categories'] ?? count($categories))) ?></h4>
+                            <p>Kategori & Tingkatan</p>
+                        </div>
                     </div>
-                    <div class="arena-stat-content">
-                        <h4><?= number_format((int) ($stats['categories'] ?? count($categories))) ?></h4>
-                        <p>Kategori & Tingkatan</p>
-                    </div>
-                </div>
+                </a>
             </div>
             <div class="col-6 col-lg-3">
-                <div class="arena-stat-box">
-                    <div class="arena-stat-icon arena-stat-icon--purple">
-                        <i class="fas fa-download"></i>
+                <a href="<?= site_url('regulasi?sort=downloads') ?>" class="text-decoration-none">
+                    <div class="arena-stat-box">
+                        <div class="arena-stat-icon arena-stat-icon--purple">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="arena-stat-content">
+                            <h4><?= number_format((int) ($stats['downloaded'] ?? 0)) ?></h4>
+                            <p>Total Unduhan Warga</p>
+                        </div>
                     </div>
-                    <div class="arena-stat-content">
-                        <h4><?= number_format((int) ($stats['downloaded'] ?? 0)) ?></h4>
-                        <p>Total Unduhan Warga</p>
-                    </div>
-                </div>
+                </a>
             </div>
         </div>
     </div>
@@ -781,7 +790,7 @@ $renderLegalStatusBadge = function (?string $status): string {
         <div class="row g-4 justify-content-center">
             <!-- Tier 1: UU -->
             <div class="col-xl-4 col-md-6">
-                <div class="norm-tier-card h-100">
+                <div class="norm-tier-card d-flex flex-column h-100">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <span class="badge badge-soft-danger px-2 py-1 radius-6">
                             Tier 1 · UU
@@ -792,15 +801,21 @@ $renderLegalStatusBadge = function (?string $status): string {
                     <p class="mb-3">
                         Landasan konstitusional perbendaharaan negara, anti korupsi, dan cipta kerja yang mendasari tata kelola belanja negara.
                     </p>
-                    <div class="small fw-semibold text-primary">
+                    <div class="small fw-semibold text-primary mb-3">
                         <i class="fas fa-check text-success me-1"></i> UU No. 1/2004, UU No. 6/2023
+                    </div>
+                    <div class="mt-auto pt-2 border-top" style="border-color: #f1f5f9 !important;">
+                        <a href="<?= site_url('regulasi?q=Undang-Undang') ?>" class="btn btn-sm btn-outline-danger radius-8 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+                            <span>Jelajahi UU</span>
+                            <i class="fas fa-arrow-right" style="font-size: 11px;"></i>
+                        </a>
                     </div>
                 </div>
             </div>
 
             <!-- Tier 2: Perpres -->
             <div class="col-xl-4 col-md-6">
-                <div class="norm-tier-card h-100" style="border-left: 4px solid var(--begawi-primary) !important;">
+                <div class="norm-tier-card d-flex flex-column h-100" style="border-left: 4px solid var(--begawi-primary) !important;">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <span class="badge badge-soft-primary px-2 py-1 radius-6">
                             Tier 2 · Perpres (Inti)
@@ -811,15 +826,21 @@ $renderLegalStatusBadge = function (?string $status): string {
                     <p class="mb-3">
                         Regulasi payung utama PBJ Pemerintah yang mengatur para pihak, kewenangan PPK/Pokja, metode pemilihan, dan kontrak.
                     </p>
-                    <div class="small fw-semibold text-primary">
+                    <div class="small fw-semibold text-primary mb-3">
                         <i class="fas fa-check text-success me-1"></i> Perpres No. 16/2018 jo Perpres 12/2021
+                    </div>
+                    <div class="mt-auto pt-2 border-top" style="border-color: #f1f5f9 !important;">
+                        <a href="<?= site_url('regulasi?q=Perpres') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+                            <span>Jelajahi Perpres</span>
+                            <i class="fas fa-arrow-right" style="font-size: 11px;"></i>
+                        </a>
                     </div>
                 </div>
             </div>
 
             <!-- Tier 3: PerLKPP -->
             <div class="col-xl-4 col-md-6">
-                <div class="norm-tier-card h-100">
+                <div class="norm-tier-card d-flex flex-column h-100">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <span class="badge badge-soft-info px-2 py-1 radius-6">
                             Tier 3 · PerLKPP
@@ -830,15 +851,21 @@ $renderLegalStatusBadge = function (?string $status): string {
                     <p class="mb-3">
                         Ketentuan pelaksanaan teknis: pengadaan melalui penyedia, swakelola, e-katalog, toko daring, dan perencanaan.
                     </p>
-                    <div class="small fw-semibold text-primary">
+                    <div class="small fw-semibold text-primary mb-3">
                         <i class="fas fa-check text-success me-1"></i> PerLKPP No. 12/2021, No. 9/2021, No. 3/2021
+                    </div>
+                    <div class="mt-auto pt-2 border-top" style="border-color: #f1f5f9 !important;">
+                        <a href="<?= site_url('regulasi?q=LKPP') ?>" class="btn btn-sm btn-outline-info radius-8 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+                            <span>Jelajahi PerLKPP</span>
+                            <i class="fas fa-arrow-right" style="font-size: 11px;"></i>
+                        </a>
                     </div>
                 </div>
             </div>
 
             <!-- Tier 4: Pergub Lampung -->
             <div class="col-xl-4 col-md-6">
-                <div class="norm-tier-card h-100" style="border-left: 4px solid #16a34a !important;">
+                <div class="norm-tier-card d-flex flex-column h-100" style="border-left: 4px solid #16a34a !important;">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <span class="badge badge-soft-success px-2 py-1 radius-6">
                             Tier 4 · Daerah
@@ -849,15 +876,21 @@ $renderLegalStatusBadge = function (?string $status): string {
                     <p class="mb-3">
                         Implementasi lokal Pemerintah Provinsi Lampung: pemanfaatan e-Katalog Lokal, Bela Pengadaan, dan afirmasi UMKM.
                     </p>
-                    <div class="small fw-semibold text-primary">
+                    <div class="small fw-semibold text-primary mb-3">
                         <i class="fas fa-check text-success me-1"></i> Pergub Lampung No. 35/2022
+                    </div>
+                    <div class="mt-auto pt-2 border-top" style="border-color: #f1f5f9 !important;">
+                        <a href="<?= site_url('regulasi?q=Lampung') ?>" class="btn btn-sm btn-outline-success radius-8 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+                            <span>Jelajahi Pergub</span>
+                            <i class="fas fa-arrow-right" style="font-size: 11px;"></i>
+                        </a>
                     </div>
                 </div>
             </div>
 
             <!-- Tier 5: Surat Edaran -->
             <div class="col-xl-4 col-md-6">
-                <div class="norm-tier-card h-100">
+                <div class="norm-tier-card d-flex flex-column h-100">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <span class="badge badge-soft-warning px-2 py-1 radius-6">
                             Tier 5 · Surat Edaran
@@ -868,15 +901,21 @@ $renderLegalStatusBadge = function (?string $status): string {
                     <p class="mb-3">
                         Pedoman percepatan pelaksanaan tender, penegasan perhitungan HPS yang akuntabel, dan mitigasi risiko audit.
                     </p>
-                    <div class="small fw-semibold text-primary">
+                    <div class="small fw-semibold text-primary mb-3">
                         <i class="fas fa-check text-success me-1"></i> SE Kepala LKPP No. 3/2023
+                    </div>
+                    <div class="mt-auto pt-2 border-top" style="border-color: #f1f5f9 !important;">
+                        <a href="<?= site_url('regulasi?q=Surat+Edaran') ?>" class="btn btn-sm btn-outline-warning text-dark radius-8 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+                            <span>Jelajahi SE</span>
+                            <i class="fas fa-arrow-right" style="font-size: 11px;"></i>
+                        </a>
                     </div>
                 </div>
             </div>
 
             <!-- Tier 6: Standar Dokumen Pemilihan -->
             <div class="col-xl-4 col-md-6">
-                <div class="norm-tier-card h-100">
+                <div class="norm-tier-card d-flex flex-column h-100">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <span class="badge badge-soft-secondary px-2 py-1 radius-6">
                             Tier 6 · SDP & Juknis
@@ -887,8 +926,14 @@ $renderLegalStatusBadge = function (?string $status): string {
                     <p class="mb-3">
                         Format baku model dokumen tender barang, konstruksi, konsultansi, dan jasa lainnya yang disahkan oleh LKPP.
                     </p>
-                    <div class="small fw-semibold text-primary">
+                    <div class="small fw-semibold text-primary mb-3">
                         <i class="fas fa-check text-success me-1"></i> Model SDP Standar LKPP
+                    </div>
+                    <div class="mt-auto pt-2 border-top" style="border-color: #f1f5f9 !important;">
+                        <a href="<?= site_url('regulasi?q=Standar+Dokumen') ?>" class="btn btn-sm btn-outline-secondary radius-8 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+                            <span>Jelajahi SDP</span>
+                            <i class="fas fa-arrow-right" style="font-size: 11px;"></i>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -1004,6 +1049,44 @@ $renderLegalStatusBadge = function (?string $status): string {
 <?php endif; ?>
 
 <!-- =========================================================================
+     CLOSING CALL TO ACTION BANNER (CONSULTATION & ADVOCACY)
+     ========================================================================= -->
+<section class="py-5" style="background: #f8fafc;">
+    <div class="container">
+        <div class="card border-0 radius-20 shadow-sm p-4 p-md-5 overflow-hidden position-relative" style="background: linear-gradient(135deg, #082f5c 0%, #0c5aa6 55%, #198754 100%); color: #ffffff;">
+            <div class="position-absolute end-0 top-0 bottom-0 opacity-10 d-none d-lg-flex align-items-center me-5" style="font-size: 260px; pointer-events: none;">
+                <i class="fas fa-balance-scale"></i>
+            </div>
+            <div class="row align-items-center position-relative z-1">
+                <div class="col-lg-8">
+                    <span class="badge radius-8 px-3 py-2 mb-3 fw-semibold" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(6px); font-size: 12.5px;">
+                        <i class="fas fa-shield-alt text-warning me-1"></i> Advokasi &amp; Kepatuhan Regulasi
+                    </span>
+                    <h3 class="fw-bold mb-2 text-white" style="font-size: 28px; line-height: 1.3;">
+                        Memerlukan Telaah Hukum atau Advokasi Dokumen Pengadaan?
+                    </h3>
+                    <p class="text-white-80 mb-4 mb-lg-0" style="color: rgba(255,255,255,0.9); font-size: 15px; line-height: 1.6; max-width: 680px;">
+                        Biro Pengadaan Barang &amp; Jasa Provinsi Lampung menyediakan layanan konsultasi kepatuhan hukum, pendampingan penyusunan HPS/KAK, dan mediasi sanggahan untuk seluruh OPD dan Pokja Pemilihan se-Provinsi Lampung.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex flex-column flex-sm-row flex-lg-column gap-2 justify-content-lg-end">
+                        <a href="<?= site_url('kontak') ?>" class="btn btn-warning text-dark fw-bold radius-8 px-4 py-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2">
+                            <i class="fas fa-headset"></i>
+                            <span>Hubungi Advokasi PBJ</span>
+                        </a>
+                        <a href="<?= site_url('bunga-rampai') ?>" class="btn btn-outline-light radius-8 px-4 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3);">
+                            <i class="fas fa-book-reader"></i>
+                            <span>Buka Bunga Rampai PBJ</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================================================
      MODAL QUICK PREVIEW DOKUMEN REGULASI
      ========================================================================= -->
 <div class="modal fade" id="regulationQuickPreviewModal" tabindex="-1" aria-labelledby="regulationQuickPreviewModalLabel" aria-hidden="true">
@@ -1056,6 +1139,9 @@ $renderLegalStatusBadge = function (?string $status): string {
             <div class="modal-footer p-3 px-4 d-flex justify-content-between" style="background: #f8fafc; border-top: 1px solid #e2e8f0;">
                 <button type="button" class="btn btn-light border radius-8 px-4 fw-semibold text-secondary" data-bs-dismiss="modal">Tutup</button>
                 <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary radius-8 px-3 fw-semibold" onclick="copyRegulationModalUrl()">
+                        <i class="fas fa-share-alt me-1"></i> Salin Tautan
+                    </button>
                     <a href="#" id="modalDetailBtn" class="btn btn-outline-primary radius-8 px-3 fw-semibold">
                         Halaman Detail Lengkap
                     </a>
@@ -1069,8 +1155,12 @@ $renderLegalStatusBadge = function (?string $status): string {
 </div>
 
 <script>
+    let currentModalDetailUrl = '';
+
     function openRegulationModal(data) {
         if (!data) return;
+        currentModalDetailUrl = data.detail_url || window.location.href;
+
         document.getElementById('modalDocumentNumber').textContent = data.document_number || '-';
         document.getElementById('modalTitle').textContent = data.title || '-';
         document.getElementById('modalCategoryBadge').textContent = data.category_name || 'Regulasi';
@@ -1122,6 +1212,24 @@ $renderLegalStatusBadge = function (?string $status): string {
         if (modalEl && typeof bootstrap !== 'undefined') {
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.show();
+        }
+    }
+
+    function copyRegulationModalUrl() {
+        if (currentModalDetailUrl && navigator.clipboard) {
+            navigator.clipboard.writeText(currentModalDetailUrl).then(() => {
+                alert('Tautan dokumen regulasi berhasil disalin ke clipboard!');
+            });
+        } else {
+            alert('Tautan berhasil disalin!');
+        }
+    }
+
+    function applyRegulationQuickSearch(keyword) {
+        const input = document.getElementById('regulationHeroSearch');
+        if (input) {
+            input.value = keyword;
+            input.closest('form').submit();
         }
     }
 </script>

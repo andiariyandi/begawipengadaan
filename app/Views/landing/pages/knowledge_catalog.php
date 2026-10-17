@@ -314,10 +314,10 @@ $isVisualMediaCategory = in_array($catalogType, ['media', 'videos', 'gallery'], 
             </p>
 
             <!-- Search Bar -->
-            <div class="arena-search-bar mb-4">
+            <div class="arena-search-bar mb-3">
                 <form action="<?= esc($heroMeta['searchUrl']) ?>" method="get" class="d-flex align-items-center">
                     <i class="fas fa-search text-muted me-2" style="font-size: 16px;"></i>
-                    <input type="text" name="q" value="<?= esc($q) ?>" placeholder="<?= esc($heroMeta['searchPlaceholder']) ?>" autocomplete="off">
+                    <input type="text" name="q" id="catalogHeroSearch" value="<?= esc($q) ?>" placeholder="<?= esc($heroMeta['searchPlaceholder']) ?>" autocomplete="off">
                     <?php if ($featuredFilter === '1'): ?>
                         <input type="hidden" name="featured" value="1">
                     <?php endif; ?>
@@ -331,6 +331,28 @@ $isVisualMediaCategory = in_array($catalogType, ['media', 'videos', 'gallery'], 
                         </a>
                     <?php endif; ?>
                 </form>
+            </div>
+
+            <!-- Contextual Quick Keyword Suggestion Chips -->
+            <?php
+            $catalogChips = [
+                'articles'  => ['Perpres 12/2021', 'Penyusunan HPS', 'E-Katalog', 'Mitigasi Risiko', 'Evaluasi Teknis'],
+                'faqs'      => ['Kualifikasi', 'Sanggahan', 'Uang Muka', 'Jaminan', 'Addendum'],
+                'cases'     => ['Audit BPK', 'Keterlambatan', 'Wanprestasi', 'Sengketa Kontrak', 'Pemutusan'],
+                'templates' => ['KAK', 'HPS', 'SPK', 'BAST', 'Surat Perjanjian'],
+                'media'     => ['Infografik', 'Alur Pengadaan', 'Cheat Sheet', 'Diagram Siklus'],
+                'videos'    => ['Tutorial SPSE', 'Webinar', 'Bimtek', 'E-Purchasing'],
+                'gallery'   => ['Bimtek', 'Workshop', 'Rakor', 'Monitoring'],
+            ];
+            $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
+            ?>
+            <div class="d-flex flex-wrap align-items-center justify-content-center gap-2 mb-4 text-white-50 small">
+                <span class="text-white opacity-75" style="font-size: 12.5px;"><i class="fas fa-bolt text-warning me-1"></i> Topik Populer:</span>
+                <?php foreach ($chips as $chip): ?>
+                    <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyCatalogQuickSearch('<?= esc($chip) ?>')">
+                        <?= esc($chip) ?>
+                    </button>
+                <?php endforeach; ?>
             </div>
 
             <!-- Sub-Navigation Pills -->
@@ -1286,6 +1308,14 @@ $isVisualMediaCategory = in_array($catalogType, ['media', 'videos', 'gallery'], 
 
     function copyModalLink() {
         copyMediaShareUrl(currentModalShareTitle);
+    }
+
+    function applyCatalogQuickSearch(keyword) {
+        const input = document.getElementById('catalogHeroSearch');
+        if (input) {
+            input.value = keyword;
+            input.closest('form').submit();
+        }
     }
 </script>
 

@@ -764,6 +764,25 @@ $previewUrl  = site_url('regulasi/' . esc($regulation['slug'] ?? '') . '/preview
                         <i class="fas fa-chevron-right small"></i>
                     </a>
                 </div>
+
+                <!-- Ecosystem Linkage Widget (Arena Belajar & Bunga Rampai) -->
+                <div class="card border-0 radius-16 p-4 mb-4 text-white shadow-sm" style="background: linear-gradient(135deg, #082f5c 0%, #1e3a8a 100%);">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="fas fa-graduation-cap text-warning fs-5"></i>
+                        <h4 class="h6 fw-bold mb-0 text-white">Praktik &amp; Studi Kasus</h4>
+                    </div>
+                    <p class="small text-white-80 mb-3" style="color: rgba(255,255,255,0.85); font-size: 13px; line-height: 1.55;">
+                        Pelajari implementasi regulasi ini lewat studi kasus audit, template dokumen siap pakai, dan kelas kurikulum di BegawiPengadaan.
+                    </p>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="<?= site_url('arena-belajar') ?>" class="btn btn-warning text-dark fw-bold radius-8 btn-sm px-3 py-2 text-center">
+                            <i class="fas fa-graduation-cap me-1"></i> Buka Arena Belajar
+                        </a>
+                        <a href="<?= site_url('bunga-rampai') ?>" class="btn btn-outline-light radius-8 btn-sm px-3 py-2 text-center" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3);">
+                            <i class="fas fa-book-reader me-1"></i> Bunga Rampai Pengetahuan
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
