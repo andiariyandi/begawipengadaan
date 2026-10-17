@@ -277,15 +277,25 @@ $isLoggedIn     = session()->get('isLoggedIn') === true;
             </p>
 
             <!-- Search Bar -->
-            <div class="arena-search-bar mb-4">
+            <div class="arena-search-bar mb-3">
                 <form action="<?= site_url('bunga-rampai/artikel') ?>" method="get" class="d-flex align-items-center">
                     <i class="fas fa-search text-muted me-2" style="font-size: 16px;"></i>
-                    <input type="text" name="q" placeholder="Cari artikel PBJ, format KAK, HPS, mitigasi risiko, studi kasus, atau FAQ..." autocomplete="off">
+                    <input type="text" name="q" id="knowledgeHeroSearch" placeholder="Cari artikel PBJ, format KAK, HPS, mitigasi risiko, studi kasus, atau FAQ..." autocomplete="off">
                     <button type="submit">
                         <i class="fas fa-search me-1"></i>
                         <span>Cari</span>
                     </button>
                 </form>
+            </div>
+
+            <!-- Quick Search Suggestion Chips -->
+            <div class="d-flex flex-wrap align-items-center justify-content-center gap-2 mb-4 text-white-50 small">
+                <span class="text-white opacity-75" style="font-size: 12.5px;"><i class="fas fa-bolt text-warning me-1"></i> Topik Populer:</span>
+                <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyKnowledgeQuickSearch('Perpres 12/2021')">Perpres 12/2021</button>
+                <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyKnowledgeQuickSearch('Penyusunan HPS')">Penyusunan HPS</button>
+                <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyKnowledgeQuickSearch('Format KAK')">Format KAK</button>
+                <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyKnowledgeQuickSearch('Mitigasi Risiko')">Mitigasi Risiko</button>
+                <button type="button" class="btn btn-sm text-white px-3 py-1 radius-20 border-0" style="background: rgba(255,255,255,0.15); font-size: 12px; backdrop-filter: blur(4px);" onclick="applyKnowledgeQuickSearch('Sanggahan')">Sanggahan</button>
             </div>
 
             <!-- Sub-Navigation Pills -->
@@ -334,6 +344,68 @@ $isLoggedIn     = session()->get('isLoggedIn') === true;
         </div>
     </div>
 </section>
+
+<!-- =========================================================================
+     FLOATING KPI STAT STRIP
+     ========================================================================= -->
+<div class="arena-stats-strip">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-xl-3 col-lg-3 col-md-6 col-6">
+                <a href="<?= site_url('bunga-rampai/artikel') ?>" class="text-decoration-none">
+                    <div class="arena-stat-box">
+                        <div class="arena-stat-icon arena-stat-icon--blue">
+                            <i class="fas fa-newspaper"></i>
+                        </div>
+                        <div class="arena-stat-content">
+                            <h4><?= number_format((int) ($stats['total_articles'] ?? 0), 0, ',', '.') ?></h4>
+                            <p>Artikel PBJ Terkini</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-6 col-6">
+                <a href="<?= site_url('bunga-rampai/faq') ?>" class="text-decoration-none">
+                    <div class="arena-stat-box">
+                        <div class="arena-stat-icon arena-stat-icon--green">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="arena-stat-content">
+                            <h4><?= number_format((int) ($stats['total_faqs'] ?? 0), 0, ',', '.') ?></h4>
+                            <p>Tanya Jawab (FAQ)</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-6 col-6">
+                <a href="<?= site_url('bunga-rampai/studi-kasus') ?>" class="text-decoration-none">
+                    <div class="arena-stat-box">
+                        <div class="arena-stat-icon arena-stat-icon--amber">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="arena-stat-content">
+                            <h4><?= number_format((int) ($stats['total_cases'] ?? 0), 0, ',', '.') ?></h4>
+                            <p>Studi Kasus Lapangan</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-6 col-6">
+                <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="text-decoration-none">
+                    <div class="arena-stat-box">
+                        <div class="arena-stat-icon arena-stat-icon--purple">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <div class="arena-stat-content">
+                            <h4><?= number_format((int) ($stats['total_templates'] ?? 0), 0, ',', '.') ?></h4>
+                            <p>Template Dokumen</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Flash Alerts -->
 <?php if ($msg = session()->getFlashdata('success')): ?>
@@ -1196,6 +1268,44 @@ $isLoggedIn     = session()->get('isLoggedIn') === true;
 </section>
 
 <!-- =========================================================================
+     CLOSING CALL TO ACTION BANNER
+     ========================================================================= -->
+<section class="py-5" style="background: #f8fafc;">
+    <div class="container">
+        <div class="card border-0 radius-20 shadow-sm p-4 p-md-5 overflow-hidden position-relative" style="background: linear-gradient(135deg, #082f5c 0%, #0d4b8f 55%, #198754 100%); color: #ffffff;">
+            <div class="position-absolute end-0 top-0 bottom-0 opacity-10 d-none d-lg-flex align-items-center me-5" style="font-size: 260px; pointer-events: none;">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div class="row align-items-center position-relative z-1">
+                <div class="col-lg-8">
+                    <span class="badge radius-8 px-3 py-2 mb-3 fw-semibold" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(6px); font-size: 12.5px;">
+                        <i class="fas fa-hand-holding-heart text-warning me-1"></i> Kolaborasi Berbagi Pengetahuan
+                    </span>
+                    <h3 class="fw-bold mb-2 text-white" style="font-size: 28px; line-height: 1.3;">
+                        Punya Praktik Baik atau Template Dokumen untuk Dibagikan?
+                    </h3>
+                    <p class="text-white-80 mb-4 mb-lg-0" style="color: rgba(255,255,255,0.9); font-size: 15px; line-height: 1.6; max-width: 680px;">
+                        Biro Pengadaan Barang &amp; Jasa Provinsi Lampung memfasilitasi publikasi studi kasus, artikel teknis, dan formulir pengadaan dari seluruh OPD dan pokja pemilihan daerah.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex flex-column flex-sm-row flex-lg-column gap-2 justify-content-lg-end">
+                        <a href="<?= site_url('arena-belajar') ?>" class="btn btn-warning text-dark fw-bold radius-8 px-4 py-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Akses Arena Belajar</span>
+                        </a>
+                        <a href="<?= site_url('regulasi') ?>" class="btn btn-outline-light radius-8 px-4 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3);">
+                            <i class="fas fa-balance-scale"></i>
+                            <span>Katalog Regulasi PBJ</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================================================
      INTERACTIVE LIGHTBOX / PREVIEW MODAL (VANILLA JAVASCRIPT)
      ========================================================================= -->
 <div id="mediaPreviewModal" class="media-modal-backdrop" onclick="handleBackdropClick(event)">
@@ -1358,6 +1468,14 @@ $isLoggedIn     = session()->get('isLoggedIn') === true;
 
     function copyModalLink() {
         copyMediaShareUrl(currentModalShareTitle);
+    }
+
+    function applyKnowledgeQuickSearch(keyword) {
+        const input = document.getElementById('knowledgeHeroSearch');
+        if (input) {
+            input.value = keyword;
+            input.closest('form').submit();
+        }
     }
 </script>
 

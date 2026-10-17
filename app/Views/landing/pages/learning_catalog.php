@@ -562,6 +562,12 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                     <?php endif; ?>
 
                                     <!-- Timeline & Quota Strip -->
+                                    <?php
+                                    $cCapacity = (int) ($item['capacity'] ?? 0);
+                                    $cEnrolled = (int) ($item['enrolled_count'] ?? 0);
+                                    $cRemaining = isset($item['remaining_quota']) ? (int) $item['remaining_quota'] : max(0, $cCapacity - $cEnrolled);
+                                    $cQuotaPercent = $cCapacity > 0 ? min(100, round(($cEnrolled / $cCapacity) * 100)) : 0;
+                                    ?>
                                     <div class="d-flex flex-wrap align-items-center gap-2 py-2 my-2 border-top border-bottom" style="font-size: 12px;">
                                         <span class="text-secondary fw-semibold">
                                             <i class="far fa-calendar-alt text-primary me-1"></i> <?= $startDate ?> - <?= $endDate ?>
@@ -580,6 +586,13 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                             <span class="text-truncate" style="max-width: 140px;" title="<?= esc($item['location_or_link']) ?>">
                                                 <i class="fas fa-map-marker-alt text-danger me-1"></i> <?= esc($item['location_or_link']) ?>
                                             </span>
+                                        <?php endif; ?>
+                                        <?php if ($cCapacity > 0): ?>
+                                            <div class="w-100 mt-1">
+                                                <div class="progress" style="height: 5px; border-radius: 4px; background: #e2e8f0;">
+                                                    <div class="progress-bar <?= $cQuotaPercent >= 90 ? 'bg-danger' : ($cQuotaPercent >= 70 ? 'bg-warning' : 'bg-success') ?>" style="width: <?= $cQuotaPercent ?>%;"></div>
+                                                </div>
+                                            </div>
                                         <?php endif; ?>
                                     </div>
 

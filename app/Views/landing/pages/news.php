@@ -16,7 +16,7 @@
         --news-slate-50: #f8fafc;
     }
 
-    /* Page Hero Banner - Optimized spacing to avoid header collision */
+    /* 1. Page Hero Banner */
     .news-hero-banner {
         background: linear-gradient(135deg, var(--news-navy-dark) 0%, var(--news-navy) 60%, var(--news-blue) 100%);
         padding: 175px 0 85px;
@@ -33,7 +33,7 @@
         width: 600px;
         height: 600px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(217, 119, 6, 0.15) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(217, 119, 6, 0.18) 0%, transparent 70%);
         pointer-events: none;
     }
 
@@ -45,7 +45,7 @@
         width: 500px;
         height: 500px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(12, 90, 166, 0.3) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(12, 90, 166, 0.35) 0%, transparent 70%);
         pointer-events: none;
     }
 
@@ -92,7 +92,7 @@
         color: #f1f5f9;
         line-height: 1.65;
         max-width: 740px;
-        margin-bottom: 32px;
+        margin-bottom: 28px;
         font-weight: 400;
     }
 
@@ -154,6 +154,39 @@
         transform: translateX(2px);
     }
 
+    /* Hero Quick Suggestion Chips */
+    .news-hero-quick-chips {
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .news-hero-chip {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+        font-size: 12.5px;
+        font-weight: 600;
+        padding: 5px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+    }
+
+    .news-hero-chip:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: #fde68a;
+        transform: translateY(-2px);
+        border-color: rgba(253, 230, 138, 0.6);
+    }
+
     /* 2. Live KPI Metrics Ribbon */
     .news-metrics-section {
         margin-top: -38px;
@@ -168,6 +201,20 @@
         padding: 24px 32px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
         border: 1px solid #e2e8f0;
+    }
+
+    .news-kpi-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        border-radius: 12px;
+        padding: 6px 8px;
+        transition: all 0.2s ease;
+    }
+
+    .news-kpi-card-link:hover {
+        background: #f8fafc;
+        transform: translateY(-3px);
     }
 
     .news-kpi-item {
@@ -185,6 +232,7 @@
         justify-content: center;
         font-size: 22px;
         flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     }
 
     .news-kpi-num {
@@ -193,6 +241,11 @@
         color: var(--news-slate-900);
         line-height: 1.1;
         margin-bottom: 2px;
+        transition: color 0.2s ease;
+    }
+
+    .news-kpi-card-link:hover .news-kpi-num {
+        color: #0284c7;
     }
 
     .news-kpi-label {
@@ -236,6 +289,7 @@
     .news-cat-pill:hover {
         background: #e2e8f0;
         color: #0f172a;
+        transform: translateY(-1px);
     }
 
     .news-cat-pill.active {
@@ -269,6 +323,11 @@
         background-color: #ffffff;
         outline: none;
         cursor: pointer;
+        transition: border-color 0.2s ease;
+    }
+
+    .news-sort-select:focus {
+        border-color: #0284c7;
     }
 
     /* 4. Headline Showcase Carousel (Up to 5 Featured Articles) */
@@ -324,6 +383,7 @@
         align-items: center;
         gap: 6px;
         box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+        z-index: 2;
     }
 
     .news-headline-content {
@@ -509,6 +569,7 @@
         padding: 5px 12px;
         border-radius: 999px;
         border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
     .news-card-read-badge {
@@ -805,6 +866,30 @@
         background: #f8fafc;
     }
 
+    /* 8. Closing Call-To-Action Banner */
+    .news-closing-cta {
+        background: linear-gradient(135deg, #052244 0%, #082f5c 60%, #0c5aa6 100%);
+        border-radius: 20px;
+        padding: 44px 40px;
+        color: #ffffff;
+        box-shadow: 0 12px 32px rgba(5, 34, 68, 0.28);
+        position: relative;
+        overflow: hidden;
+        margin-top: 50px;
+    }
+
+    .news-closing-cta::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 350px;
+        height: 350px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(217, 119, 6, 0.2) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
     /* Responsive Queries */
     @media (max-width: 991.98px) {
         .news-hero-banner {
@@ -829,6 +914,10 @@
 
         .headline-carousel-ctrl.carousel-control-next {
             right: 8px;
+        }
+
+        .news-closing-cta {
+            padding: 32px 24px;
         }
     }
 </style>
@@ -858,9 +947,9 @@
         </p>
 
         <!-- Search Form -->
-        <form action="<?= site_url('berita') ?>" method="get" class="news-search-box">
-            <i class="fas fa-search text-slate-400"></i>
-            <input type="text" name="q" value="<?= esc($keyword ?? '') ?>" placeholder="Cari judul berita, topik kebijakan, atau kata kunci...">
+        <form action="<?= site_url('berita') ?>" method="get" class="news-search-box" id="newsHeroSearchForm">
+            <i class="fas fa-search"></i>
+            <input type="text" id="newsHeroSearchInput" name="q" value="<?= esc($keyword ?? '') ?>" placeholder="Cari judul berita, topik kebijakan, atau kata kunci...">
             <?php if (! empty($selectedCategory)): ?>
                 <input type="hidden" name="kategori" value="<?= esc($selectedCategory) ?>">
             <?php endif; ?>
@@ -869,6 +958,29 @@
                 <i class="fas fa-arrow-right"></i>
             </button>
         </form>
+
+        <!-- Hero Quick Search Suggestion Chips -->
+        <div class="news-hero-quick-chips">
+            <span class="text-xs fw-semibold text-white-50"><i class="fas fa-lightbulb text-warning me-1"></i> Topik Populer:</span>
+            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('P3DN')">
+                <i class="fas fa-check-circle text-xs text-warning"></i> P3DN &amp; TKDN
+            </button>
+            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('E-Katalog')">
+                <i class="fas fa-shopping-cart text-xs text-info"></i> E-Katalog Lokal
+            </button>
+            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('Bimtek')">
+                <i class="fas fa-graduation-cap text-xs text-success"></i> Bimtek SPSE
+            </button>
+            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('Integritas')">
+                <i class="fas fa-shield-alt text-xs text-danger"></i> Integritas PBJ
+            </button>
+            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('UKPBJ')">
+                <i class="fas fa-landmark text-xs text-primary"></i> UKPBJ Proaktif
+            </button>
+            <button type="button" class="news-hero-chip" onclick="applyNewsQuickSearch('Tender')">
+                <i class="fas fa-gavel text-xs text-warning"></i> Klarifikasi Tender
+            </button>
+        </div>
     </div>
 </section>
 
@@ -877,55 +989,63 @@
     <div class="news-metrics-card">
         <div class="row g-4">
             <div class="col-lg-3 col-6">
-                <div class="news-kpi-item">
-                    <div class="news-kpi-icon" style="background:#e0f2fe; color:#0284c7;">
-                        <i class="fas fa-newspaper"></i>
+                <a href="<?= site_url('berita') ?>" class="news-kpi-card-link" title="Tampilkan Semua Berita PBJ">
+                    <div class="news-kpi-item">
+                        <div class="news-kpi-icon" style="background:#e0f2fe; color:#0284c7;">
+                            <i class="fas fa-newspaper"></i>
+                        </div>
+                        <div>
+                            <div class="news-kpi-num"><?= number_format($stats['total_news'] > 0 ? $stats['total_news'] : 12) ?></div>
+                            <div class="news-kpi-label">Berita Publikasi Resmi</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="news-kpi-num"><?= number_format($stats['total_news'] > 0 ? $stats['total_news'] : 12) ?></div>
-                        <div class="news-kpi-label">Berita Publikasi Resmi</div>
-                    </div>
-                </div>
+                </a>
             </div>
             <div class="col-lg-3 col-6">
-                <div class="news-kpi-item">
-                    <div class="news-kpi-icon" style="background:#e0f7fa; color:#00838f;">
-                        <i class="fas fa-folder-open"></i>
+                <a href="#kategori-liputan-section" class="news-kpi-card-link" title="Jelajahi Kategori Berita">
+                    <div class="news-kpi-item">
+                        <div class="news-kpi-icon" style="background:#e0f7fa; color:#00838f;">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <div>
+                            <div class="news-kpi-num"><?= number_format($stats['total_categories'] > 0 ? $stats['total_categories'] : 6) ?></div>
+                            <div class="news-kpi-label">Kategori Liputan PBJ</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="news-kpi-num"><?= number_format($stats['total_categories'] > 0 ? $stats['total_categories'] : 6) ?></div>
-                        <div class="news-kpi-label">Kategori Liputan PBJ</div>
-                    </div>
-                </div>
+                </a>
             </div>
             <div class="col-lg-3 col-6">
-                <div class="news-kpi-item">
-                    <div class="news-kpi-icon" style="background:#fef3c7; color:#d97706;">
-                        <i class="fas fa-eye"></i>
+                <a href="<?= site_url('berita?sort=popular') ?>" class="news-kpi-card-link" title="Lihat Berita Paling Banyak Dibaca">
+                    <div class="news-kpi-item">
+                        <div class="news-kpi-icon" style="background:#fef3c7; color:#d97706;">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div>
+                            <div class="news-kpi-num"><?= number_format($stats['total_views'] > 0 ? $stats['total_views'] : 6800) ?>+</div>
+                            <div class="news-kpi-label">Total Pembaca Terjangkau</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="news-kpi-num"><?= number_format($stats['total_views'] > 0 ? $stats['total_views'] : 6800) ?>+</div>
-                        <div class="news-kpi-label">Total Pembaca Terjangkau</div>
-                    </div>
-                </div>
+                </a>
             </div>
             <div class="col-lg-3 col-6">
-                <div class="news-kpi-item">
-                    <div class="news-kpi-icon" style="background:#dcfce7; color:#16a34a;">
-                        <i class="fas fa-calendar-alt"></i>
+                <a href="<?= site_url('berita?sort=newest') ?>" class="news-kpi-card-link" title="Lihat Berita Terbit Bulan Ini">
+                    <div class="news-kpi-item">
+                        <div class="news-kpi-icon" style="background:#dcfce7; color:#16a34a;">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div>
+                            <div class="news-kpi-num"><?= number_format($stats['this_month'] > 0 ? $stats['this_month'] : 5) ?></div>
+                            <div class="news-kpi-label">Rilis Bulan Ini</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="news-kpi-num"><?= number_format($stats['this_month'] > 0 ? $stats['this_month'] : 5) ?></div>
-                        <div class="news-kpi-label">Rilis Bulan Ini</div>
-                    </div>
-                </div>
+                </a>
             </div>
         </div>
     </div>
 </div>
 
 <!-- 3. MAIN CONTENT AREA -->
-<section class="pb-80">
+<section class="pb-80" id="kategori-liputan-section">
     <div class="container">
         <!-- Filter Pills & Sorting Row -->
         <div class="news-filter-wrapper">
@@ -948,7 +1068,7 @@
                 <?php if (! empty($keyword)): ?>
                     <input type="hidden" name="q" value="<?= esc($keyword) ?>">
                 <?php endif; ?>
-                <label for="newsSort" class="text-xs fw-bold text-muted text-uppercase">Urutkan:</label>
+                <label for="newsSort" class="text-xs fw-bold text-muted text-uppercase mb-0">Urutkan:</label>
                 <select id="newsSort" name="sort" class="news-sort-select" onchange="this.form.submit()">
                     <option value="newest" <?= $sort === 'newest' ? 'selected' : '' ?>>Terbaru</option>
                     <option value="popular" <?= $sort === 'popular' ? 'selected' : '' ?>>Terpopuler</option>
@@ -1320,6 +1440,55 @@
                         <a href="<?= site_url('berita?q=UMKM') ?>" class="badge bg-light text-dark p-2 radius-6 text-decoration-none border fw-semibold">#UMKM Lokal</a>
                     </div>
                 </div>
+
+                <!-- Ecosystem Linkage Widget -->
+                <div class="p-4 bg-light border radius-18 mb-4">
+                    <h5 class="fw-bold text-dark mb-2">Jelajahi Ekosistem BegawiPengadaan</h5>
+                    <p class="text-xs text-slate-500 mb-3" style="color: #64748b;">Tingkatkan wawasan dan kompetensi pengadaan Anda melalui kanal lainnya:</p>
+                    <div class="d-grid gap-2">
+                        <a href="<?= site_url('regulasi') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
+                            <span><i class="fas fa-balance-scale text-warning me-2"></i> Pusat Regulasi PBJ</span>
+                            <i class="fas fa-arrow-right text-muted"></i>
+                        </a>
+                        <a href="<?= site_url('arena-belajar') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
+                            <span><i class="fas fa-graduation-cap text-info me-2"></i> Arena Belajar &amp; Sertifikasi</span>
+                            <i class="fas fa-arrow-right text-muted"></i>
+                        </a>
+                        <a href="<?= site_url('bunga-rampai') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
+                            <span><i class="fas fa-book-reader text-success me-2"></i> Bunga Rampai &amp; Template</span>
+                            <i class="fas fa-arrow-right text-muted"></i>
+                        </a>
+                        <a href="<?= site_url('event') ?>" class="btn btn-sm btn-white border d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none text-dark fw-semibold" style="background:#ffffff;">
+                            <span><i class="fas fa-calendar-star text-primary me-2"></i> Agenda &amp; Event PBJ</span>
+                            <i class="fas fa-arrow-right text-muted"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Closing Call-To-Action Banner -->
+        <div class="news-closing-cta">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <span class="badge bg-warning text-dark px-3 py-1 radius-6 text-xs fw-bold text-uppercase mb-2">Keterbukaan Informasi Publik</span>
+                    <h3 class="text-2xl fw-bold text-white mb-2">Pusat Siaran Pers &amp; Klarifikasi Berita PBJ Lampung</h3>
+                    <p class="text-sm text-slate-200 mb-0" style="max-width: 650px; line-height: 1.6;">
+                        Membutuhkan konfirmasi, klarifikasi berita, atau materi siaran pers resmi terkait pengadaan barang dan jasa Pemerintah Provinsi Lampung? Tim Pejabat Pengelola Informasi &amp; Dokumentasi (PPID) Biro PBJ siap melayani permohonan Anda.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex flex-column flex-sm-row justify-content-lg-end gap-2">
+                        <a href="<?= site_url('kontak') ?>" class="btn btn-warning radius-999 px-20 py-10 fw-bold text-dark d-inline-flex align-items-center justify-content-center gap-2 text-sm shadow-sm">
+                            <i class="fas fa-envelope-open-text"></i>
+                            <span>Hubungi Humas PBJ</span>
+                        </a>
+                        <a href="<?= site_url('arena-belajar') ?>" class="btn btn-outline-light radius-999 px-20 py-10 fw-bold d-inline-flex align-items-center justify-content-center gap-2 text-sm">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Arena Belajar</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1329,4 +1498,14 @@
 
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
+<script>
+    function applyNewsQuickSearch(term) {
+        const input = document.getElementById('newsHeroSearchInput');
+        const form = document.getElementById('newsHeroSearchForm');
+        if (input && form) {
+            input.value = term;
+            form.submit();
+        }
+    }
+</script>
 <?= $this->endSection() ?>
