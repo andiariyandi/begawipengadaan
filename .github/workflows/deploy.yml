@@ -1,0 +1,43 @@
+name: Deploy Begawi Pengadaan
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/begawi_deploy
+          chmod 600 ~/.ssh/begawi_deploy
+          ssh-keyscan -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          ssh \
+            -i ~/.ssh/begawi_deploy \
+            -p "${{ secrets.SERVER_PORT }}" \
+            "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" << 'EOF'
+
+          cd /opt/docker/apps/begawi-pengadaan
+
+          git pull origin main
+
+          docker compose run --rm app \
+            composer install \
+            --no-dev \
+            --optimize-autoloader \
+            --no-interaction
+
+          chown -R www-data:www-data writable
+          chmod -R 775 writable
+
+          docker compose up -d --build
+
+          docker compose ps
+          EOF
