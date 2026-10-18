@@ -88,7 +88,7 @@ if (! empty($activeClasses)) {
             <div class="row align-items-center justify-content-between g-3 mb-2">
                 <div class="col-lg-7">
                     <h1 class="evt-hero-title mb-2">
-                        Pusat Pembelajaran PBJ <br>
+                        Pusat Pembelajaran &amp; Kompetensi Pengadaan <br>
                         <span>Pemerintah Provinsi Lampung</span>
                     </h1>
                     <p class="evt-hero-desc mb-0">

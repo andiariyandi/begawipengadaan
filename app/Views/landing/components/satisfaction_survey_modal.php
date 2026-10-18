@@ -165,7 +165,7 @@
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label survey-field-label">Kategori / Peran Pengguna <span class="text-danger">*</span></label>
-                                    <select class="form-select survey-select" name="respondent_role" required>
+                                    <select class="form-select survey-select ignore" name="respondent_role" required>
                                         <option value="Pejabat Pembuat Komitmen (PPK) / Pejabat Pengadaan">Pejabat Pembuat Komitmen (PPK) / Pejabat Pengadaan</option>
                                         <option value="Pokja Pemilihan / Biro Pengadaan UKPBJ">Pokja Pemilihan / Biro Pengadaan UKPBJ</option>
                                         <option value="Penyedia Barang / Jasa (Vendor / Rekanan / UMKM)" selected>Penyedia Barang / Jasa (Vendor / Rekanan / UMKM)</option>

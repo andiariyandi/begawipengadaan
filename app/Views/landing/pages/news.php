@@ -79,20 +79,22 @@ $headlineList = ! empty($headlineArticles) ? $headlineArticles : (! empty($headl
 
         <?php if (! empty($currentCategory) || ! empty($keyword)): ?>
             <!-- Filter Active Notification -->
-            <div class="d-flex align-items-center justify-content-between p-3 mb-4 radius-12 bg-light border">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="fas fa-filter text-primary"></i>
-                    <span class="text-muted small">Menampilkan Berita:</span>
-                    <?php if (! empty($currentCategory)): ?>
-                        <span class="badge bg-primary text-white fw-bold px-3 py-2"><?= esc($currentCategory['name']) ?></span>
-                    <?php endif; ?>
-                    <?php if (! empty($keyword)): ?>
-                        <span class="badge bg-warning text-dark fw-bold px-3 py-2">"<?= esc($keyword) ?>"</span>
-                    <?php endif; ?>
+            <div class="card border-0 shadow-2xs radius-12 p-2 px-3 mb-4 bg-white border" style="border-color: #e2e8f0 !important;">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-filter text-primary" style="font-size: 13px;"></i>
+                        <span class="text-muted small fw-semibold" style="font-size: 12.5px;">Menampilkan Berita:</span>
+                        <?php if (! empty($currentCategory)): ?>
+                            <span class="badge bg-primary text-white fw-bold px-2 py-1 radius-6" style="font-size: 12px;"><?= esc($currentCategory['name']) ?></span>
+                        <?php endif; ?>
+                        <?php if (! empty($keyword)): ?>
+                            <span class="badge bg-warning text-dark fw-bold px-2 py-1 radius-6" style="font-size: 12px;">"<?= esc($keyword) ?>"</span>
+                        <?php endif; ?>
+                    </div>
+                    <a href="<?= site_url('berita') ?>" class="btn btn-sm btn-outline-secondary radius-8 fw-bold py-1 px-2" style="font-size: 12px;">
+                        <i class="fas fa-times me-1"></i> Reset Filter
+                    </a>
                 </div>
-                <a href="<?= site_url('berita') ?>" class="btn btn-sm btn-outline-secondary radius-8 fw-bold">
-                    <i class="fas fa-times me-1"></i> Reset Filter
-                </a>
             </div>
         <?php endif; ?>
 

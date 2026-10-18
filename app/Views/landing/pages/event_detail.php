@@ -1,6 +1,7 @@
 <?= $this->extend('landing/layouts/public') ?>
 
 <?= $this->section('pageStyles') ?>
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-news.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-news.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-news.css') : '1.0' ?>" />
 <link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-events.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-events.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-events.css') : '1.0' ?>" />
 <?= $this->endSection() ?>
 
@@ -9,9 +10,9 @@
 <!-- MAIN DETAIL SECTION — Following Landing News Clean Benchmark -->
 <section class="berita-main-section evt-detail-section">
     <div class="container evt-detail-container">
-        <!-- Breadcrumb Navigation (Clean & Minimalist) -->
-        <nav class="evt-detail-breadcrumb-clean" aria-label="Breadcrumb">
-            <a href="<?= site_url('/') ?>"><iconify-icon icon="solar:home-2-bold" class="align-middle"></iconify-icon> Beranda</a>
+        <!-- Breadcrumb Navigation (Clean & Minimalist Matching Berita) -->
+        <nav class="news-detail-breadcrumb-clean mb-3" aria-label="Breadcrumb">
+            <a href="<?= site_url('/') ?>"><i class="fas fa-home"></i> Beranda</a>
             <span class="sep">/</span>
             <a href="<?= site_url('event') ?>">Event &amp; Agenda PBJ</a>
             <span class="sep">/</span>
@@ -464,16 +465,53 @@
                     </div>
                 </div>
 
-                <!-- Organizer Info Card -->
-                <div class="p-4 bg-light border radius-18 shadow-sm">
-                    <span class="badge bg-primary text-white text-xs fw-bold px-2 py-1 mb-2">Penyelenggara Resmi</span>
-                    <h6 class="fw-bold text-slate-900 mb-1">Biro Pengadaan Barang dan Jasa</h6>
-                    <p class="text-xs text-slate-600 mb-3" style="line-height: 1.6;">
+                <!-- Organizer Info Widget (Consistent with Berita Redaksi Widget) -->
+                <div class="berita-widget">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div style="width: 44px; height: 44px; border-radius: 10px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                            <i class="fas fa-landmark"></i>
+                        </div>
+                        <div>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle small fw-bold" style="font-size: 11.5px;">PENYELENGGARA RESMI</span>
+                            <h6 class="fw-bold mb-0 text-dark" style="font-size: 14px; line-height: 1.35;">Biro Pengadaan Barang &amp; Jasa Setda Provinsi Lampung</h6>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-3" style="font-size: 13px; line-height: 1.6;">
                         Sekretariat Daerah Provinsi Lampung, Kompleks Kantor Gubernur Lampung Jl. Wolter Monginsidi No.69, Bandar Lampung.
                     </p>
-                    <div class="text-xs text-slate-700">
-                        <span class="d-block mb-1">Email: <a href="mailto:biropbj@lampungprov.go.id" class="text-primary fw-semibold text-decoration-none">biropbj@lampungprov.go.id</a></span>
-                        <span>Helpdesk Pengadaan: <strong class="text-slate-900">+62 851-1777-9783</strong></span>
+                    <div class="text-xs text-muted mb-3">
+                        <div class="mb-1"><i class="fas fa-envelope text-primary me-1"></i> <a href="mailto:biropbj@lampungprov.go.id" class="text-primary fw-semibold text-decoration-none">biropbj@lampungprov.go.id</a></div>
+                        <div><i class="fas fa-headset text-success me-1"></i> Helpdesk: <strong class="text-dark">+62 851-1777-9783</strong></div>
+                    </div>
+                    <a href="<?= site_url('kontak') ?>" class="btn btn-sm btn-outline-primary w-100 radius-8 fw-bold" style="font-size: 13px;">
+                        <i class="fas fa-envelope-open-text me-1"></i> Kontak PPID Biro PBJ
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Closing CTA Banner (Matching Berita Detail Style) -->
+        <div class="detail-cta mt-5">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <span class="detail-cta__eyebrow">
+                        <i class="fas fa-calendar-check"></i> Pembinaan Berkelanjutan
+                    </span>
+                    <h3 class="detail-cta__title text-white">Butuh Fasilitasi Bimbingan Teknis atau Klinik Pengadaan?</h3>
+                    <p class="detail-cta__lead text-white" style="opacity: 0.92;">
+                        Tim Pembinaan dan Advokasi Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung siap memberikan pendampingan teknis dan fasilitasi bagi seluruh Organisasi Perangkat Daerah dan pelaku ekosistem pengadaan.
+                    </p>
+                </div>
+                <div class="col-lg-4">
+                    <div class="detail-cta__actions">
+                        <a href="<?= site_url('kontak') ?>" class="detail-cta__btn detail-cta__btn--primary">
+                            <i class="fas fa-envelope-open-text"></i>
+                            <span>Hubungi Kami</span>
+                        </a>
+                        <a href="<?= site_url('event') ?>" class="detail-cta__btn detail-cta__btn--ghost">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Lihat Agenda Lain</span>
+                        </a>
                     </div>
                 </div>
             </div>

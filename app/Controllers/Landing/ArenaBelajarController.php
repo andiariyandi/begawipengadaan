@@ -987,6 +987,10 @@ class ArenaBelajarController extends BaseController
                 ->get()->getRowArray()['cnt'] ?? 0,
         ];
 
+        $topPrograms = $programModel->where('status', 'published')->where('visibility', 'public')->orderBy('id', 'DESC')->findAll(3);
+        $topCourses  = $courseModel->where('status', 'published')->where('visibility', 'public')->orderBy('id', 'DESC')->findAll(3);
+        $topClasses  = $classModel->whereIn('status', ['scheduled', 'active'])->orderBy('id', 'DESC')->findAll(3);
+
         return view('landing/pages/learning_catalog', array_merge([
             'title'           => $pageTitle . ' | Arena Belajar BegawiPengadaan',
             'metaDescription' => $description,
@@ -996,6 +1000,9 @@ class ArenaBelajarController extends BaseController
             'description'     => $description,
             'items'           => $items,
             'stats'           => $stats,
+            'topPrograms'     => $topPrograms,
+            'topCourses'      => $topCourses,
+            'topClasses'      => $topClasses,
             'pager'           => service('pager'),
         ], $extraData));
     }

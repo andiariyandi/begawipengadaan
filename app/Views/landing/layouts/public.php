@@ -62,7 +62,7 @@
     <link rel="stylesheet" href="<?= base_url('assets/main/css/responsive.css') ?>" />
 
         <!-- BegawiPengadaan Landing Design System & Core Styles -->
-    <link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-core.css') ?>" />
+    <link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-core.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-core.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-core.css') : '2.0' ?>" />
 
     <?= $this->renderSection('pageStyles') ?>
 </head>
@@ -82,10 +82,6 @@
 
     <div class="page-wrapper">
         <?= $this->include('landing/components/header') ?>
-
-        <div class="stricky-header stricked-menu main-menu">
-            <div class="sticky-header__content"></div>
-        </div>
 
         <?= $this->renderSection('content') ?>
 
@@ -123,6 +119,32 @@
     <script src="<?= base_url('assets/main/js/gsap/ScrollTrigger.js') ?>"></script>
     <script src="<?= base_url('assets/main/js/gsap/SplitText.js') ?>"></script>
     <script src="<?= base_url('assets/main/js/script.js') ?>"></script>
+
+    <script>
+        (function() {
+            var header = document.querySelector('.main-header');
+            if (header) {
+                var onScroll = function() {
+                    if (window.scrollY > 30) {
+                        header.classList.add('is-scrolled');
+                    } else {
+                        header.classList.remove('is-scrolled');
+                    }
+                };
+                window.addEventListener('scroll', onScroll, { passive: true });
+                onScroll();
+            }
+            
+            var mobileSurveyBtn = document.querySelector('.mobile-survey-btn');
+            if (mobileSurveyBtn) {
+                mobileSurveyBtn.addEventListener('click', function() {
+                    var wrapper = document.querySelector('.mobile-nav__wrapper');
+                    if (wrapper) wrapper.classList.remove('expanded');
+                    document.body.classList.remove('locked');
+                });
+            }
+        })();
+    </script>
 
     <?= $this->renderSection('pageScripts') ?>
 </body>

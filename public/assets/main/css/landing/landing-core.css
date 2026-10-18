@@ -3,44 +3,234 @@
    Extracted from public.php layout
    ========================================================= */
 :root {
-            --begawi-primary: #0c5aa6;
-            --begawi-dark: #082f5c;
-            --begawi-accent: #f3a20b;
-        }
+    --begawi-primary: #0c5aa6;
+    --begawi-dark: #082f5c;
+    --begawi-accent: #f3a20b;
+    --header-height: 78px;
+}
 
-        .main-header {
-            background: linear-gradient(180deg, rgba(5, 34, 68, .96) 0%, rgba(5, 34, 68, .88) 58%, rgba(5, 34, 68, .72) 100%);
-        }
+/* Page body padding to account for fixed single header */
+html {
+    overflow-x: hidden !important;
+    scroll-padding-top: var(--header-height, 78px);
+}
 
-        .landing-home .main-header,
-        .main-header--home {
-            position: relative !important;
-            top: auto !important;
-            left: auto !important;
-            right: auto !important;
-            width: 100% !important;
-            margin: 0 !important;
-            z-index: 999 !important;
-        }
+body.landing-home,
+body.landing-internal {
+    padding-top: var(--header-height, 78px) !important;
+    overflow-x: hidden !important;
+}
 
-        .main-header .main-menu__wrapper {
-            border-bottom: 1px solid rgba(255, 255, 255, .15);
-        }
+@media (max-width: 991px) {
+    :root {
+        --header-height: 72px;
+    }
+    body.landing-home,
+    body.landing-internal {
+        padding-top: 72px !important;
+    }
+}
 
-        .main-header .main-menu__wrapper::before {
-            display: none;
-        }
+/* =========================================================
+   SINGLE UNIFIED NAVBAR (NO DOUBLE UI, NO CONFLICTING CLONES)
+   ========================================================= */
+.main-header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    height: var(--header-height, 78px);
+    z-index: 1050 !important;
+    transition: background-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-        .main-header .main-menu .main-menu__list>li>a,
-        .main-header .main-menu__search {
-            color: #fff;
-        }
+.main-header .main-menu {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
 
-        .main-header .main-menu__list>li.current>a,
-        .main-header .main-menu__list>li:hover>a,
-        .main-header .main-menu__search:hover {
-            color: var(--begawi-accent);
-        }
+.main-header .main-menu__wrapper {
+    height: 100%;
+    padding: 0;
+    transition: background-color 0.28s ease;
+}
+
+.main-header .main-menu__wrapper-inner {
+    height: 100%;
+    min-height: var(--header-height, 78px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.main-header .main-menu__wrapper::before {
+    display: none !important;
+}
+
+/* Dual Logo Adaptive Display */
+.main-header__logo-light,
+.main-header__logo-dark {
+    max-height: 48px !important;
+    width: auto !important;
+    display: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Home Mode at Top: Show light logo */
+.landing-home .main-header:not(.is-scrolled) .main-header__logo-light {
+    display: block !important;
+}
+.landing-home .main-header:not(.is-scrolled) .main-header__logo-dark {
+    display: none !important;
+}
+
+/* Home Mode when Scrolled: Show dark logo */
+.landing-home .main-header.is-scrolled .main-header__logo-light {
+    display: none !important;
+}
+.landing-home .main-header.is-scrolled .main-header__logo-dark {
+    display: block !important;
+}
+
+/* Non-Home (Internal) Pages: Always show dark logo */
+.landing-internal .main-header .main-header__logo-light {
+    display: none !important;
+}
+.landing-internal .main-header .main-header__logo-dark {
+    display: block !important;
+}
+
+/* --- STATE 1: HOME NAVBAR AT TOP (DARK NAVY) --- */
+.landing-home .main-header:not(.is-scrolled) {
+    background: #052244 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22) !important;
+}
+
+.landing-home .main-header:not(.is-scrolled) .main-menu .main-menu__list > li > a {
+    color: #f8fafc !important;
+}
+
+.landing-home .main-header:not(.is-scrolled) .main-menu .main-menu__list > li.current > a,
+.landing-home .main-header:not(.is-scrolled) .main-menu .main-menu__list > li:hover > a {
+    color: var(--begawi-accent, #f3a20b) !important;
+}
+
+.landing-home .main-header:not(.is-scrolled) .main-menu .main-menu__list > li.dropdown > a:after {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.landing-home .main-header:not(.is-scrolled) .main-menu__btn-box-1 .thm-btn {
+    background: transparent !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.85) !important;
+    color: #ffffff !important;
+}
+.landing-home .main-header:not(.is-scrolled) .main-menu__btn-box-1 .thm-btn:hover {
+    background: #ffffff !important;
+    color: #052244 !important;
+    border-color: #ffffff !important;
+}
+
+.landing-home .main-header:not(.is-scrolled) .main-menu__btn-box-2 .thm-btn {
+    background: var(--begawi-accent, #f3a20b) !important;
+    color: #082f5c !important;
+    border: 1.5px solid var(--begawi-accent, #f3a20b) !important;
+    font-weight: 700 !important;
+}
+.landing-home .main-header:not(.is-scrolled) .main-menu__btn-box-2 .thm-btn:hover {
+    background: #ffffff !important;
+    color: #082f5c !important;
+    border-color: #ffffff !important;
+}
+
+.landing-home .main-header:not(.is-scrolled) .mobile-nav__toggler {
+    background: rgba(255, 255, 255, 0.14) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    color: #ffffff !important;
+}
+.landing-home .main-header:not(.is-scrolled) .mobile-nav__toggler i {
+    color: #ffffff !important;
+}
+
+/* --- STATE 2: CLEAN WHITE NAVBAR (HOME SCROLLED + ALL NON-HOME PAGES ALWAYS) --- */
+.landing-home .main-header.is-scrolled,
+.landing-internal .main-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08) !important;
+}
+
+.landing-home .main-header.is-scrolled .main-menu .main-menu__list > li > a,
+.landing-internal .main-header .main-menu .main-menu__list > li > a {
+    color: #0f172a !important;
+    font-weight: 500 !important;
+}
+
+.landing-home .main-header.is-scrolled .main-menu .main-menu__list > li.current > a,
+.landing-home .main-header.is-scrolled .main-menu .main-menu__list > li:hover > a,
+.landing-internal .main-header .main-menu .main-menu__list > li.current > a,
+.landing-internal .main-header .main-menu .main-menu__list > li:hover > a {
+    color: var(--begawi-primary, #0c5aa6) !important;
+}
+
+.landing-home .main-header.is-scrolled .main-menu .main-menu__list > li.dropdown > a:after,
+.landing-internal .main-header .main-menu .main-menu__list > li.dropdown > a:after {
+    color: #64748b !important;
+}
+
+.landing-home .main-header.is-scrolled .main-menu__btn-box-1 .thm-btn,
+.landing-internal .main-header .main-menu__btn-box-1 .thm-btn {
+    background: #f8fafc !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+.landing-home .main-header.is-scrolled .main-menu__btn-box-1 .thm-btn:hover,
+.landing-internal .main-header .main-menu__btn-box-1 .thm-btn:hover {
+    background: var(--begawi-primary, #0c5aa6) !important;
+    border-color: var(--begawi-primary, #0c5aa6) !important;
+    color: #ffffff !important;
+}
+
+.landing-home .main-header.is-scrolled .main-menu__btn-box-2 .thm-btn,
+.landing-internal .main-header .main-menu__btn-box-2 .thm-btn {
+    background: var(--begawi-accent, #f3a20b) !important;
+    color: #082f5c !important;
+    border: 1.5px solid var(--begawi-accent, #f3a20b) !important;
+    font-weight: 700 !important;
+}
+.landing-home .main-header.is-scrolled .main-menu__btn-box-2 .thm-btn:hover,
+.landing-internal .main-header .main-menu__btn-box-2 .thm-btn:hover {
+    background: #082f5c !important;
+    border-color: #082f5c !important;
+    color: #ffffff !important;
+}
+
+.landing-home .main-header.is-scrolled .mobile-nav__toggler,
+.landing-internal .main-header .mobile-nav__toggler {
+    background: #f1f5f9 !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+.landing-home .main-header.is-scrolled .mobile-nav__toggler i,
+.landing-internal .main-header .mobile-nav__toggler i {
+    color: #0f172a !important;
+}
+.landing-home .main-header.is-scrolled .mobile-nav__toggler:hover,
+.landing-internal .main-header .mobile-nav__toggler:hover {
+    background: var(--begawi-primary, #0c5aa6) !important;
+    border-color: var(--begawi-primary, #0c5aa6) !important;
+    color: #ffffff !important;
+}
+.landing-home .main-header.is-scrolled .mobile-nav__toggler:hover i,
+.landing-internal .main-header .mobile-nav__toggler:hover i {
+    color: #ffffff !important;
+}
 
         /* Balanced, elegant menu bar */
         .main-menu__wrapper-inner {
@@ -283,63 +473,94 @@
             color: #fff !important;
         }
 
-        /* Hide Mobile Toggler on PC / Desktop */
+        /* Desktop: Show menu list and right box, hide mobile toggler */
         @media (min-width: 1200px) {
             .main-header .mobile-nav__toggler,
             .main-menu .mobile-nav__toggler,
             .mobile-nav__toggler {
                 display: none !important;
             }
+            .main-header .main-menu__main-menu-box .main-menu__list {
+                display: flex !important;
+            }
+            .main-header .main-menu__right {
+                display: flex !important;
+            }
         }
 
-        /* Show Mobile Toggler ONLY on Mobile & Tablet */
+        /* Mobile & Tablet: Hide menu list and right box, show mobile toggler */
         @media (max-width: 1199.98px) {
+            .main-header .main-menu__main-menu-box .main-menu__list {
+                display: none !important;
+            }
+            .main-header .main-menu__right {
+                display: none !important;
+            }
             .main-header .mobile-nav__toggler,
             .main-menu .mobile-nav__toggler,
             .mobile-nav__toggler {
                 display: inline-flex !important;
                 align-items: center !important;
                 justify-content: center !important;
-                width: 40px !important;
-                height: 40px !important;
-                border-radius: 9px !important;
-                background: rgba(255, 255, 255, 0.16) !important;
-                border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
-                color: #ffffff !important;
+                width: 42px !important;
+                height: 42px !important;
+                border-radius: 10px !important;
                 font-size: 19px !important;
                 cursor: pointer !important;
                 transition: all 0.2s ease !important;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
                 text-decoration: none !important;
             }
 
-            .main-header .mobile-nav__toggler i,
-            .main-menu .mobile-nav__toggler i,
-            .mobile-nav__toggler i {
+            /* Dark navbar toggler (Home at top) */
+            .landing-home .main-header:not(.is-scrolled) .mobile-nav__toggler {
+                background: rgba(255, 255, 255, 0.14) !important;
+                border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+                color: #ffffff !important;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+            }
+            .landing-home .main-header:not(.is-scrolled) .mobile-nav__toggler i {
                 color: #ffffff !important;
                 font-size: 19px !important;
                 line-height: 1 !important;
-                display: inline-block !important;
+            }
+            .landing-home .main-header:not(.is-scrolled) .mobile-nav__toggler:hover,
+            .landing-home .main-header:not(.is-scrolled) .mobile-nav__toggler:focus {
+                background: var(--begawi-accent, #f3a20b) !important;
+                border-color: var(--begawi-accent, #f3a20b) !important;
+                color: #082f5c !important;
+            }
+            .landing-home .main-header:not(.is-scrolled) .mobile-nav__toggler:hover i,
+            .landing-home .main-header:not(.is-scrolled) .mobile-nav__toggler:focus i {
+                color: #082f5c !important;
             }
 
-            .main-header .mobile-nav__toggler:hover,
-            .main-header .mobile-nav__toggler:focus,
-            .main-menu .mobile-nav__toggler:hover,
-            .main-menu .mobile-nav__toggler:focus,
-            .mobile-nav__toggler:hover,
-            .mobile-nav__toggler:focus {
-                background: #f59e0b !important;
-                border-color: #f59e0b !important;
+            /* Light navbar toggler (Home scrolled + All Internal pages) */
+            .landing-home .main-header.is-scrolled .mobile-nav__toggler,
+            .landing-internal .main-header .mobile-nav__toggler {
+                background: #f1f5f9 !important;
+                border: 1.5px solid #cbd5e1 !important;
                 color: #0f172a !important;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
             }
-
-            .main-header .mobile-nav__toggler:hover i,
-            .main-header .mobile-nav__toggler:focus i,
-            .main-menu .mobile-nav__toggler:hover i,
-            .main-menu .mobile-nav__toggler:focus i,
-            .mobile-nav__toggler:hover i,
-            .mobile-nav__toggler:focus i {
+            .landing-home .main-header.is-scrolled .mobile-nav__toggler i,
+            .landing-internal .main-header .mobile-nav__toggler i {
                 color: #0f172a !important;
+                font-size: 19px !important;
+                line-height: 1 !important;
+            }
+            .landing-home .main-header.is-scrolled .mobile-nav__toggler:hover,
+            .landing-home .main-header.is-scrolled .mobile-nav__toggler:focus,
+            .landing-internal .main-header .mobile-nav__toggler:hover,
+            .landing-internal .main-header .mobile-nav__toggler:focus {
+                background: var(--begawi-primary, #0c5aa6) !important;
+                border-color: var(--begawi-primary, #0c5aa6) !important;
+                color: #ffffff !important;
+            }
+            .landing-home .main-header.is-scrolled .mobile-nav__toggler:hover i,
+            .landing-home .main-header.is-scrolled .mobile-nav__toggler:focus i,
+            .landing-internal .main-header .mobile-nav__toggler:hover i,
+            .landing-internal .main-header .mobile-nav__toggler:focus i {
+                color: #ffffff !important;
             }
         }
 
@@ -1016,45 +1237,6 @@
             z-index: 2;
         }
 
-        .landing-internal .main-header {
-            background: transparent;
-        }
-
-        .landing-internal .main-header .main-menu__wrapper {
-            background: #fff;
-            border-bottom-color: rgba(8, 47, 92, .12);
-        }
-
-        .landing-internal .main-header .main-menu .main-menu__list>li>a,
-        .landing-internal .main-header .main-menu__search {
-            color: var(--begawi-dark);
-        }
-
-        .landing-internal .main-header .main-menu__list>li.current>a,
-        .landing-internal .main-header .main-menu__list>li:hover>a,
-        .landing-internal .main-header .main-menu__search:hover {
-            color: var(--begawi-primary);
-        }
-
-        .landing-internal .main-header .main-menu__btn-box-1 .thm-btn {
-            border-color: var(--begawi-primary);
-            color: var(--begawi-primary);
-        }
-
-        .landing-internal .main-header .main-menu__btn-box-1 .thm-btn:hover {
-            background: var(--begawi-primary);
-            color: #fff;
-        }
-
-        .landing-internal .main-header .main-menu__btn-box-2 .thm-btn {
-            background: var(--begawi-primary);
-            color: #fff;
-        }
-
-        .landing-internal .main-header .main-menu__btn-box-2 .thm-btn:hover {
-            background: var(--begawi-dark);
-        }
-
         .main-slider .item {
             padding-top: 220px;
         }
@@ -1726,19 +1908,6 @@
    HEADER & USER PROFILE NAVIGATION DROPDOWN
    Extracted from header.php component
    ========================================================= */
-.main-header--home,
-        .landing-home .main-header {
-            position: relative !important;
-            top: auto !important;
-            left: auto !important;
-            right: auto !important;
-            width: 100% !important;
-            margin: 0 !important;
-            z-index: 999 !important;
-            background: linear-gradient(180deg, rgba(5, 34, 68, 1) 0%, rgba(8, 47, 92, 1) 100%) !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
-        }
-
         .main-menu__user {
             position: relative;
             display: inline-flex;
@@ -1758,7 +1927,7 @@
             font-size: 13.5px;
             font-weight: 600;
             line-height: 1;
-            transition: background-color .15s ease;
+            transition: all .2s ease;
             white-space: nowrap;
         }
 
@@ -1769,15 +1938,30 @@
             color: #fff;
         }
 
-        .stricky-header .main-menu__user-trigger {
-            background: rgba(8, 47, 92, .08);
-            color: #082f5c;
+        .landing-home .main-header.is-scrolled .main-menu__user-trigger,
+        .landing-internal .main-header .main-menu__user-trigger {
+            background: #f1f5f9 !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #0f172a !important;
         }
 
-        .stricky-header .main-menu__user-trigger:hover,
-        .stricky-header .main-menu__user:hover .main-menu__user-trigger {
-            background: rgba(8, 47, 92, .16);
-            color: #082f5c;
+        .landing-home .main-header.is-scrolled .main-menu__user-trigger:hover,
+        .landing-internal .main-header .main-menu__user-trigger:hover,
+        .landing-home .main-header.is-scrolled .main-menu__user:hover .main-menu__user-trigger,
+        .landing-internal .main-header .main-menu__user:hover .main-menu__user-trigger {
+            background: #e2e8f0 !important;
+            border-color: #94a3b8 !important;
+            color: #0c5aa6 !important;
+        }
+
+        .landing-home .main-header.is-scrolled .main-menu__user-name,
+        .landing-internal .main-header .main-menu__user-name {
+            color: #0f172a !important;
+        }
+
+        .landing-home .main-header.is-scrolled .main-menu__user-trigger .icon-down-arrow,
+        .landing-internal .main-header .main-menu__user-trigger .icon-down-arrow {
+            color: #64748b !important;
         }
 
         .main-menu__user-avatar {
@@ -2444,35 +2628,56 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    height: 42px;
-    padding: 0 18px;
+    height: 38px;
+    padding: 0 16px;
     border-radius: 999px;
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(251, 191, 36, 0.28) 100%);
-    border: 1px solid rgba(245, 158, 11, 0.45);
-    color: #ffffff !important;
-    font-size: 14px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+    font-size: 13.5px;
     font-weight: 600;
     line-height: 1;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .main-menu__survey-btn:hover {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    border-color: #d97706;
-    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: #ffffff;
     transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
 }
 
 .main-menu__survey-btn i {
     font-size: 14px;
-    transition: transform 0.25s ease;
+    color: #f3a20b;
+    transition: transform 0.2s ease;
 }
 
 .main-menu__survey-btn:hover i {
     transform: scale(1.15) rotate(5deg);
+}
+
+/* Survei button on White Navbar (Home Scrolled + All Internal Pages) */
+.landing-home .main-header.is-scrolled .main-menu__survey-btn,
+.landing-internal .main-header .main-menu__survey-btn {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+.landing-home .main-header.is-scrolled .main-menu__survey-btn:hover,
+.landing-internal .main-header .main-menu__survey-btn:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #0c5aa6 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.landing-home .main-header.is-scrolled .main-menu__survey-btn i,
+.landing-internal .main-header .main-menu__survey-btn i {
+    color: #f59e0b !important;
 }
 
 .main-menu__survey-nav-item .main-menu__survey-nav-link {
@@ -3106,4 +3311,128 @@
     border-radius: 50%;
     background: rgba(243, 162, 11, 0.15);
     pointer-events: none;
+}
+
+/* =========================================================
+   MOBILE DRAWER & RESPONSIVE POLISH
+   ========================================================= */
+.mobile-nav__wrapper {
+    z-index: 99999 !important;
+}
+
+.mobile-nav__overlay {
+    background-color: rgba(5, 34, 68, 0.75) !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+.mobile-nav__content {
+    background: #052244 !important;
+    width: 320px !important;
+    max-width: 86vw !important;
+    padding: 24px 20px 30px !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 10px 0 40px rgba(0, 0, 0, 0.35) !important;
+}
+
+.mobile-nav__close {
+    top: 20px !important;
+    right: 20px !important;
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-radius: 8px !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.mobile-nav__close:hover {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+.mobile-nav__content .main-menu__list > li > a {
+    color: #f8fafc !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    padding: 12px 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.mobile-nav__content .main-menu__list > li > a:hover {
+    color: var(--begawi-accent, #f3a20b) !important;
+}
+
+.mobile-nav__content .main-menu__list > li > a > button {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #f3a20b !important;
+    border-radius: 6px !important;
+    border: none !important;
+}
+
+.mobile-nav__content .main-menu__list > li > ul {
+    background: rgba(0, 0, 0, 0.25) !important;
+    border-radius: 8px !important;
+    padding: 6px 14px !important;
+    margin: 4px 0 8px !important;
+}
+
+.mobile-nav__content .main-menu__list > li > ul > li > a {
+    color: #cbd5e1 !important;
+    font-size: 13.5px !important;
+    padding: 8px 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.mobile-nav__content .main-menu__list > li > ul > li > a:hover {
+    color: #ffffff !important;
+}
+
+/* Mobile Quick Actions in Drawer */
+.mobile-nav__actions .btn-warning {
+    background: var(--begawi-accent, #f3a20b) !important;
+    border-color: var(--begawi-accent, #f3a20b) !important;
+    color: #082f5c !important;
+    font-weight: 700 !important;
+}
+
+.mobile-nav__contact li a {
+    color: #cbd5e1 !important;
+}
+.mobile-nav__contact li i {
+    color: var(--begawi-accent, #f3a20b) !important;
+}
+
+/* Global Mobile Responsiveness Polish */
+@media (max-width: 767px) {
+    /* Prevent horizontal breakout on small devices */
+    .container, .container-fluid {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+    }
+
+    /* Wrap flex toolbars and filter bars cleanly */
+    .filter-bar, .catalog-filter, .toolbar-filter, .reg-filter-card {
+        flex-wrap: wrap !important;
+    }
+
+    /* Hero section font sizing on mobile */
+    .page-header__inner h2,
+    .arena-hero h1,
+    .berita-hero-modern h1,
+    .evt-hero h1,
+    .reg-hero-modern h1,
+    .stat-hero h1,
+    .about-hero h1 {
+        font-size: 24px !important;
+        line-height: 1.25 !important;
+    }
+
+    /* Ensure table responsiveness */
+    table {
+        max-width: 100% !important;
+    }
 }

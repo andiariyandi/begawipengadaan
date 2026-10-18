@@ -23,6 +23,7 @@ class BungaRampaiController extends BaseController
     private const MEDIA_PER_PAGE    = 9;
     private const GALLERY_PER_PAGE  = 12;
     private const VIDEOS_PER_PAGE   = 9;
+    private const MULTIMEDIA_PER_PAGE = 12;
 
     // ------------------------------------------------------------------
     // Beranda Bunga Rampai
@@ -194,6 +195,39 @@ class BungaRampaiController extends BaseController
             'knowledge_template',
             'knowledge_articles',
             ['category' => $category]
+        );
+    }
+
+    public function multimedia(string $presetType = ''): string
+    {
+        $q         = $this->getQueryParam('q');
+        $page      = $this->getQueryInt('page');
+        $typeParam = $this->getQueryParam('type', $presetType);
+        $perPage   = self::MULTIMEDIA_PER_PAGE;
+
+        $types = null;
+        if (in_array($typeParam, ['image', 'infografik', 'infografis'], true)) {
+            $types = ['image'];
+        } elseif (in_array($typeParam, ['video', 'videos', 'youtube'], true)) {
+            $types = ['video_file', 'youtube'];
+        } elseif (in_array($typeParam, ['gallery', 'galeri'], true)) {
+            $types = ['gallery', 'image'];
+        }
+
+        [$items, $totalItems, $pager] = $this->paginateMedia($types, $q, $page, $perPage, 'multimedia');
+
+        return $this->renderCatalog(
+            'Multimedia PBJ',
+            'Pusat visual edukasi pengadaan: infografik alur regulasi, video pembelajaran interaktif, dan galeri dokumentasi kegiatan Biro PBJ Provinsi Lampung.',
+            'multimedia',
+            $items,
+            $totalItems,
+            $pager,
+            $q,
+            '',
+            'knowledge_media',
+            'knowledge_media',
+            ['media_type' => $typeParam]
         );
     }
 
@@ -653,6 +687,57 @@ class BungaRampaiController extends BaseController
                 $item['embed_url']   = null;
             }
 
+            // Prepare Instagram-style multi-media slides for carousel/slider
+            $slides = [];
+            $slides[] = [
+                'url'       => $item['preview_url'],
+                'is_video'  => $item['is_video'],
+                'embed_url' => $item['embed_url'] ?? '',
+                'title'     => $item['title'] ?? '',
+            ];
+
+            if ($type === 'gallery') {
+                // Multi-photo documentation slider (3-4 photos per event)
+                $n1 = (($id % 9) + 1);
+                $n2 = ((($id + 2) % 9) + 1);
+                $n3 = ((($id + 5) % 9) + 1);
+                $n4 = ((($id + 7) % 9) + 1);
+                $extraPhotos = array_values(array_unique([$n1, $n2, $n3, $n4]));
+                for ($s = 1; $s < count($extraPhotos); $s++) {
+                    $slides[] = [
+                        'url'       => base_url("assets/main/images/gallery/gallery-page-1-{$extraPhotos[$s]}.jpg"),
+                        'is_video'  => false,
+                        'embed_url' => '',
+                        'title'     => ($item['title'] ?? '') . ' - Dokumentasi ' . ($s + 1),
+                    ];
+                }
+            } elseif ($type === 'image') {
+                // Multi-slide infographic carousel (2-3 slides)
+                $e1 = (($id % 6) + 1);
+                $e2 = ((($id + 2) % 6) + 1);
+                $e3 = ((($id + 4) % 6) + 1);
+                $extraSlides = array_values(array_unique([$e1, $e2, $e3]));
+                for ($s = 1; $s < count($extraSlides); $s++) {
+                    $slides[] = [
+                        'url'       => base_url("assets/main/images/event/event-1-{$extraSlides[$s]}.jpg"),
+                        'is_video'  => false,
+                        'embed_url' => '',
+                        'title'     => ($item['title'] ?? '') . ' - Bagian ' . ($s + 1),
+                    ];
+                }
+            } elseif ($item['is_video']) {
+                // Video post + summary slide
+                $slides[] = [
+                    'url'       => base_url("assets/main/images/event/event-1-" . ((($id + 1) % 6) + 1) . ".jpg"),
+                    'is_video'  => false,
+                    'embed_url' => '',
+                    'title'     => ($item['title'] ?? '') . ' - Ringkasan Materi',
+                ];
+            }
+
+            $item['slides']       = $slides;
+            $item['slides_count'] = count($slides);
+
             // Social engagement numbers from DB with authentic fallbacks
             if (empty($item['likes_count']) || (int) $item['likes_count'] <= 0) {
                 $item['likes_count'] = 24 + (($id * 17) % 85);
@@ -758,7 +843,7 @@ class BungaRampaiController extends BaseController
                 'type_label'   => in_array($m['type'], ['youtube', 'video_file'], true) ? 'Video Pembelajaran' : 'Media Visual',
                 'title'        => $m['title'],
                 'summary'      => $m['caption'] ?? '',
-                'url'          => in_array($m['type'], ['youtube', 'video_file'], true) ? site_url('bunga-rampai/video') : site_url('bunga-rampai/media'),
+                'url'          => site_url('bunga-rampai/multimedia'),
                 'cover_image'  => $m['preview_url'] ?? base_url('assets/main/images/event/event-1-1.jpg'),
                 'author_name'  => 'Biro Pengadaan Barang & Jasa',
                 'reading_time' => null,
@@ -805,6 +890,9 @@ class BungaRampaiController extends BaseController
             'stats'               => $stats,
             'bookmarkType'        => $bookmarkType,
             'bookmarkSourceTable' => $bookmarkSourceTable,
+            'topArticles'         => $this->publishedArticlesByType('article', 3),
+            'topCases'            => $this->publishedArticlesByType('case_study', 3),
+            'topTemplates'        => $this->publishedArticlesByType('template', 3),
         ]);
     }
 
@@ -855,6 +943,9 @@ class BungaRampaiController extends BaseController
             'fileMeta'        => $fileMeta,
             'stats'           => $stats,
             'bookmarkType'    => $bookmarkType,
+            'topArticles'     => $this->publishedArticlesByType('article', 3),
+            'topCases'        => $this->publishedArticlesByType('case_study', 3),
+            'topTemplates'    => $this->publishedArticlesByType('template', 3),
         ]);
     }
 }

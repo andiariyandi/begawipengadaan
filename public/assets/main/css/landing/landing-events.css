@@ -146,20 +146,6 @@
         border: 1px solid #cbd5e1;
     }
 
-    /* MAIN HEADER NATURAL FLOW FOR EVENT */
-    .main-header {
-        position: relative !important;
-        top: auto !important;
-        left: auto !important;
-        right: auto !important;
-        width: 100% !important;
-        margin: 0 !important;
-        z-index: 999 !important;
-        background: linear-gradient(180deg, #052244 0%, #082f5c 100%) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18) !important;
-    }
-
     /* MAIN SECTION — Sit with clean, comfortable breathing room below menu bar */
     .evt-main-section,
     .evt-detail-section {

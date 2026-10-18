@@ -36,6 +36,7 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
         $routes->get('template-dokumen', 'BungaRampaiController::templates', ['as' => 'public.knowledge.templates']);
         $routes->get('template-dokumen/(:segment)', 'BungaRampaiController::templateDetail/$1', ['as' => 'public.knowledge.templates.detail']);
         $routes->get('template-dokumen/(:segment)/unduh', 'BungaRampaiController::templateDownload/$1', ['as' => 'public.knowledge.templates.download']);
+        $routes->get('multimedia', 'BungaRampaiController::multimedia', ['as' => 'public.knowledge.multimedia']);
         $routes->get('media', 'BungaRampaiController::media', ['as' => 'public.knowledge.media']);
         $routes->get('video', 'BungaRampaiController::videos', ['as' => 'public.knowledge.videos']);
         $routes->get('galeri', 'BungaRampaiController::gallery', ['as' => 'public.knowledge.gallery']);

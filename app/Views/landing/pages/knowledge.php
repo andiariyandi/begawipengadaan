@@ -5,6 +5,21 @@
 <link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-events.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-events.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-events.css') : '1.0' ?>" />
 <link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-learning.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-learning.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-learning.css') : '1.0' ?>" />
 <link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-knowledge.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-knowledge.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-knowledge.css') : '1.0' ?>" />
+<style>
+    .knowledge-catalog-card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        border: 1px solid #edf2f7 !important;
+    }
+    .knowledge-catalog-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(8, 47, 92, 0.08) !important;
+    }
+    @media (max-width: 767.98px) {
+        .insta-slide {
+            height: 200px !important;
+        }
+    }
+</style>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -210,6 +225,199 @@ if (! empty($carouselSlides)) {
             <!-- Left Column: Main Knowledge Content (col-lg-8) -->
             <div class="col-lg-8">
 
+                <!-- Showcase: Media & Video Pembelajaran (Visual & Multimedia - PALING ATAS) -->
+                <?php if (! empty($mediaItems)): ?>
+                    <div class="mb-4 pb-2">
+                        <div class="d-flex flex-wrap align-items-end justify-content-between mb-3">
+                            <div class="arena-section-head mb-0">
+                                <span class="arena-section-head__tag" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight: 600;">
+                                    <i class="fas fa-photo-video me-1"></i> Multimedia PBJ
+                                </span>
+                                <h3 class="arena-section-head__title" style="font-size: 22px;">Media &amp; Video Pembelajaran</h3>
+                                <p class="arena-section-head__desc mb-0" style="font-size: 14.5px;">
+                                    Infografik alur pengadaan pemerintah, bagan regulasi, tutorial interaktif, dan galeri kegiatan.
+                                </p>
+                            </div>
+                            <div class="d-flex gap-2 mt-2 mt-md-0">
+                                <a href="<?= site_url('bunga-rampai/multimedia') ?>" class="btn btn-outline-primary btn-sm radius-8 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 12.5px;">
+                                    <i class="fas fa-photo-video me-1"></i> Semua Multimedia PBJ &rarr;
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <?php foreach (array_slice($mediaItems, 0, 4) as $med):
+                                $previewImg  = $med['preview_url'] ?? base_url('assets/main/images/event/event-1-1.jpg');
+                                $isVideo     = ! empty($med['is_video']);
+                                $embedUrl    = $med['embed_url'] ?? '';
+                                $extUrl      = $med['external_url'] ?? '';
+                                $slides      = $med['slides'] ?? [];
+                                if (empty($slides)) {
+                                    $slides = [[
+                                        'url'       => $previewImg,
+                                        'is_video'  => $isVideo,
+                                        'embed_url' => $embedUrl,
+                                        'title'     => $med['title'] ?? '',
+                                    ]];
+                                }
+                                $slidesCount = count($slides);
+                                $modalData   = [
+                                    'title'        => $med['title'] ?? '',
+                                    'caption'      => $med['caption'] ?? '',
+                                    'preview_url'  => $previewImg,
+                                    'embed_url'    => $embedUrl,
+                                    'external_url' => $extUrl,
+                                    'is_video'     => $isVideo,
+                                    'likes_count'  => (int) ($med['likes_count'] ?? 24),
+                                    'views_count'  => (int) ($med['views_count'] ?? 150),
+                                    'shares_count' => (int) ($med['shares_count'] ?? 5),
+                                    'date'         => ! empty($med['published_at']) ? date('d M Y', strtotime($med['published_at'])) : 'Terbaru',
+                                    'hashtags'     => $med['hashtags'] ?? [],
+                                    'location'     => $med['location'] ?? '',
+                                    'duration'     => $med['duration'] ?? '',
+                                    'id'           => (int) $med['id'],
+                                    'slides'       => $slides,
+                                    'slides_count' => $slidesCount,
+                                ];
+                                $itemType = (string) ($med['type'] ?? '');
+                                if ($isVideo || in_array($itemType, ['youtube', 'video_file'], true)) {
+                                    $badgeClass = 'bg-danger text-white';
+                                    $badgeIcon  = '<i class="fab fa-youtube me-1"></i> Video PBJ';
+                                } elseif ($itemType === 'gallery') {
+                                    $badgeClass = 'bg-dark text-white';
+                                    $badgeIcon  = '<i class="fas fa-camera me-1"></i> Dokumentasi';
+                                } else {
+                                    $badgeClass = 'bg-primary text-white';
+                                    $badgeIcon  = '<i class="fas fa-image me-1"></i> Infografik';
+                                }
+                            ?>
+                                <div class="col-md-6">
+                                    <article class="card h-100 border-0 shadow-2xs radius-12 overflow-hidden bg-white knowledge-catalog-card position-relative">
+                                        <!-- Post Header (Instagram style) -->
+                                        <div class="d-flex align-items-center justify-content-between p-2 px-3 border-bottom bg-light bg-opacity-50">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="media-avatar-ring">
+                                                    <img src="<?= base_url('assets/main/images/resources/logo-1.png') ?>" alt="Biro PBJ" class="radius-50" style="width: 26px; height: 26px; object-fit: contain; background: #fff; padding: 1px;">
+                                                </div>
+                                                <div>
+                                                    <strong class="text-dark d-block text-truncate" style="font-size: 12px; max-width: 170px;">Biro PBJ Lampung <i class="fas fa-check-circle text-primary" style="font-size: 10px;"></i></strong>
+                                                    <small class="text-muted" style="font-size: 10.5px;"><?= ! empty($med['published_at']) ? esc(date('d M Y', strtotime($med['published_at']))) : 'Terbaru' ?></small>
+                                                </div>
+                                            </div>
+                                            <span class="badge radius-4 px-2 py-1 small fw-semibold <?= $badgeClass ?>" style="font-size: 10px;">
+                                                <?= $badgeIcon ?>
+                                            </span>
+                                        </div>
+
+                                        <!-- Instagram Carousel Slider Container -->
+                                        <?php if ($slidesCount > 1): ?>
+                                            <div class="insta-carousel position-relative" id="instaCarouselHome_<?= (int) $med['id'] ?>" data-item-id="<?= (int) $med['id'] ?>">
+                                                <div class="insta-track" id="instaTrackHome_<?= (int) $med['id'] ?>" style="transform: translateX(0%);">
+                                                    <?php foreach ($slides as $sIdx => $slide):
+                                                        $isSlideVideo = ! empty($slide['is_video']);
+                                                        $slideImg     = $slide['url'] ?? $previewImg;
+                                                    ?>
+                                                        <div class="insta-slide" style="height: 200px;" onclick="openMediaModalSlide(<?= esc(json_encode($modalData)) ?>, <?= $sIdx ?>)">
+                                                            <img src="<?= esc($slideImg) ?>" alt="<?= esc($slide['title'] ?? ($med['title'] ?? 'Media PBJ')) ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/gallery/gallery-page-1-1.jpg') ?>';">
+
+                                                            <?php if ($isSlideVideo): ?>
+                                                                <div class="position-absolute top-50 start-50 translate-middle z-2">
+                                                                    <div class="media-play-pulse" style="width: 44px; height: 44px;">
+                                                                        <i class="fas fa-play ms-1" style="font-size: 16px;"></i>
+                                                                    </div>
+                                                                </div>
+                                                            <?php endif; ?>
+
+                                                            <div class="position-absolute bottom-0 end-0 m-2 z-2">
+                                                                <span class="badge bg-dark bg-opacity-75 text-white radius-20 px-2 py-0 small" style="font-size: 10.5px;">
+                                                                    <i class="fas fa-expand-arrows-alt me-1"></i> Perbesar
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+
+                                                <!-- Instagram Counter Badge Top Right (e.g. 1/4) -->
+                                                <div class="position-absolute top-0 end-0 m-2 z-3">
+                                                    <span class="badge radius-20 px-2 py-1 insta-counter-badge" id="instaCounterHome_<?= (int) $med['id'] ?>" style="background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(6px); color: #fff; font-size: 10.5px; font-weight: 600;">
+                                                        <i class="fas fa-clone me-1 text-white-50"></i> <span class="current-slide">1</span>/<?= $slidesCount ?>
+                                                    </span>
+                                                </div>
+
+                                                <!-- Circular Prev Arrow (Initially Hidden on First Slide) -->
+                                                <button type="button" class="insta-arrow-btn insta-arrow-prev d-none" id="instaPrevHome_<?= (int) $med['id'] ?>" aria-label="Slide Sebelumnya" onclick="navigateInstaSlideHome(event, <?= (int) $med['id'] ?>, -1, <?= $slidesCount ?>)">
+                                                    <i class="fas fa-chevron-left"></i>
+                                                </button>
+
+                                                <!-- Circular Next Arrow -->
+                                                <button type="button" class="insta-arrow-btn insta-arrow-next" id="instaNextHome_<?= (int) $med['id'] ?>" aria-label="Slide Selanjutnya" onclick="navigateInstaSlideHome(event, <?= (int) $med['id'] ?>, 1, <?= $slidesCount ?>)">
+                                                    <i class="fas fa-chevron-right"></i>
+                                                </button>
+
+                                                <!-- Instagram Dots Indicator Bottom Center -->
+                                                <div class="insta-dots-indicator" id="instaDotsHome_<?= (int) $med['id'] ?>">
+                                                    <?php for ($d = 0; $d < $slidesCount; $d++): ?>
+                                                        <span class="insta-dot <?= $d === 0 ? 'active' : '' ?>" onclick="goToInstaSlideHome(event, <?= (int) $med['id'] ?>, <?= $d ?>, <?= $slidesCount ?>)"></span>
+                                                    <?php endfor; ?>
+                                                </div>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="media-visual-container position-relative" style="height: 200px; cursor: pointer;" onclick="openMediaModal(<?= esc(json_encode($modalData)) ?>)">
+                                                <img src="<?= esc($previewImg) ?>" alt="<?= esc($med['title'] ?? 'Media PBJ') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/gallery/gallery-page-1-1.jpg') ?>';">
+
+                                                <?php if ($isVideo): ?>
+                                                    <div class="position-absolute top-50 start-50 translate-middle z-2">
+                                                        <div class="media-play-pulse" style="width: 44px; height: 44px;">
+                                                            <i class="fas fa-play ms-1" style="font-size: 16px;"></i>
+                                                        </div>
+                                                    </div>
+                                                <?php endif; ?>
+
+                                                <div class="position-absolute bottom-0 end-0 m-2 z-2">
+                                                    <span class="badge bg-dark bg-opacity-75 text-white radius-20 px-2 py-0 small" style="font-size: 10.5px;">
+                                                        <i class="fas fa-expand-arrows-alt me-1"></i> Perbesar
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <!-- Card Body -->
+                                        <div class="p-3 d-flex flex-column flex-grow-1">
+                                            <h4 class="fw-bold mb-1 text-truncate" style="font-size: 14.5px; color: #082f5c;">
+                                                <?= esc($med['title'] ?? '(Tanpa judul)') ?>
+                                            </h4>
+                                            <p class="small text-muted mb-2 text-truncate" style="font-size: 12.5px;">
+                                                <?= esc(mb_strimwidth($med['caption'] ?? '', 0, 75, '…')) ?>
+                                            </p>
+                                            <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-auto">
+                                                <div class="d-flex align-items-center gap-2 small text-muted" style="font-size: 11.5px;">
+                                                    <span class="text-danger"><i class="fas fa-heart me-1"></i> <?= (int) ($med['likes_count'] ?? 24) ?></span>
+                                                    <span><i class="fas fa-eye me-1"></i> <?= (int) ($med['views_count'] ?? 150) ?></span>
+                                                    <?php if ($slidesCount > 1): ?>
+                                                        <span class="text-primary"><i class="fas fa-clone me-1"></i> <?= $slidesCount ?></span>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary radius-6 px-2 py-1 fw-semibold" style="font-size: 11.5px;" onclick="openMediaModal(<?= esc(json_encode($modalData)) ?>)">
+                                                        <i class="fas fa-expand me-1"></i> Buka
+                                                    </button>
+                                                    <?= view('landing/components/bookmark_button', [
+                                                        'type'  => 'knowledge_media',
+                                                        'id'    => (int) $med['id'],
+                                                        'title' => $med['title'] ?? null,
+                                                        'size'  => 'sm',
+                                                        'iconOnly' => true,
+                                                    ]) ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <!-- Showcase 1: Rekomendasi Utama Pengetahuan (Pilihan Editor) -->
                 <?php if (! empty($featured)): ?>
                     <div class="mb-4 pb-2">
@@ -282,8 +490,8 @@ if (! empty($carouselSlides)) {
                                                 <span class="arena-card__category mb-0 text-truncate" style="max-width: 180px;">
                                                     <?= esc($feat['procurement_stage'] ?: 'Praktik PBJ') ?>
                                                 </span>
-                                                <span class="badge bg-light text-muted border small" style="font-size: 11px;">
-                                                    <i class="far fa-clock me-1"></i> <?= esc($feat['reading_time'] ?? 5) ?> mnt
+                                                <span class="badge border small" style="font-size: 11px; background: #f8fafc; color: #0f172a; border-color: #cbd5e1; font-weight: 600;">
+                                                    <i class="far fa-clock me-1 text-primary"></i> <?= esc($feat['reading_time'] ?? 5) ?> mnt
                                                 </span>
                                             </div>
                                             <h4 class="arena-card__title">
@@ -367,8 +575,8 @@ if (! empty($carouselSlides)) {
                                                 <span class="arena-card__category mb-0 text-truncate" style="max-width: 170px;">
                                                     <?= esc($art['procurement_stage'] ?: 'Regulasi & Teknis') ?>
                                                 </span>
-                                                <span class="badge bg-light text-muted border small" style="font-size: 11px;">
-                                                    <i class="far fa-calendar-alt me-1"></i> <?= ! empty($art['published_at']) ? esc(date('d M Y', strtotime($art['published_at']))) : 'Terbaru' ?>
+                                                <span class="badge border small" style="font-size: 11px; background: #f8fafc; color: #0f172a; border-color: #cbd5e1; font-weight: 600;">
+                                                    <i class="far fa-calendar-alt me-1 text-primary"></i> <?= ! empty($art['published_at']) ? esc(date('d M Y', strtotime($art['published_at']))) : 'Terbaru' ?>
                                                 </span>
                                             </div>
                                             <h4 class="arena-card__title">
@@ -428,20 +636,20 @@ if (! empty($carouselSlides)) {
                             <?php foreach (array_slice($caseStudies, 0, 4) as $cs):
                                 $sev = strtolower((string) ($cs['case_severity'] ?? ''));
                                 $sevBadge = match ($sev) {
-                                    'critical' => ['label' => 'Risiko Kritis', 'badge' => 'bg-danger text-white', 'icon' => 'fa-exclamation-triangle'],
-                                    'high'     => ['label' => 'Risiko Tinggi', 'badge' => 'bg-warning text-dark', 'icon' => 'fa-exclamation-circle'],
-                                    'low'      => ['label' => 'Risiko Rendah', 'badge' => 'bg-info text-white', 'icon' => 'fa-info-circle'],
-                                    default    => ['label' => 'Risiko Sedang', 'badge' => 'bg-secondary text-white', 'icon' => 'fa-shield-alt'],
+                                    'critical' => ['label' => 'Risiko Kritis', 'badge' => 'background: #fee2e2; color: #991b1b; border: 1px solid #f87171; font-weight: 700;', 'icon' => 'fa-exclamation-triangle'],
+                                    'high'     => ['label' => 'Risiko Tinggi', 'badge' => 'background: #ffedd5; color: #9a3412; border: 1px solid #fb923c; font-weight: 700;', 'icon' => 'fa-exclamation-circle'],
+                                    'low'      => ['label' => 'Risiko Rendah', 'badge' => 'background: #e0f2fe; color: #075985; border: 1px solid #38bdf8; font-weight: 700;', 'icon' => 'fa-info-circle'],
+                                    default    => ['label' => 'Risiko Sedang', 'badge' => 'background: #fef9c3; color: #713f12; border: 1px solid #facc15; font-weight: 700;', 'icon' => 'fa-shield-alt'],
                                 };
                             ?>
                                 <div class="col-md-6">
                                     <article class="arena-card h-100 border-start border-3 border-danger">
                                         <div class="arena-card__body p-3">
                                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                                <span class="badge <?= $sevBadge['badge'] ?> px-2 py-1 radius-4 small" style="font-size: 11px;">
+                                                <span class="badge px-2 py-1 radius-4 small" style="<?= $sevBadge['badge'] ?> font-size: 11px;">
                                                     <i class="fas <?= $sevBadge['icon'] ?> me-1"></i> <?= esc($sevBadge['label']) ?>
                                                 </span>
-                                                <span class="badge bg-light text-secondary border px-2 py-1 radius-4 font-monospace" style="font-size: 11px;">
+                                                <span class="badge border px-2 py-1 radius-4 font-monospace" style="font-size: 11px; background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-weight: 600;">
                                                     <?= esc($cs['procurement_stage'] ?: 'Kasus PBJ') ?>
                                                 </span>
                                             </div>
@@ -454,8 +662,8 @@ if (! empty($carouselSlides)) {
                                                 <?= esc(mb_strimwidth($cs['summary'] ?? '', 0, 85, '…')) ?>
                                             </p>
                                             <?php if (! empty($cs['resolution_summary'])): ?>
-                                                <div class="p-2 radius-6 mb-2 small text-truncate" style="background: #fff7ed; border-left: 2px solid #f97316; color: #9a3412; font-size: 11.5px;">
-                                                    <strong>Pelajaran:</strong> <?= esc(mb_strimwidth($cs['resolution_summary'], 0, 75, '…')) ?>
+                                                <div class="p-2 radius-6 mb-2 small text-truncate" style="background: #fff7ed; border-left: 3px solid #ea580c; color: #7c2d12; font-size: 12px; font-weight: 600;">
+                                                    <strong>Pelajaran:</strong> <?= esc(mb_strimwidth($cs['resolution_summary'], 0, 85, '…')) ?>
                                                 </div>
                                             <?php endif; ?>
                                             <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-auto">
@@ -502,20 +710,20 @@ if (! empty($carouselSlides)) {
                             <?php foreach (array_slice($templates, 0, 4) as $tpl):
                                 $ext = strtoupper($tpl['file_extension'] ?? 'DOCX');
                                 $extBadge = match ($ext) {
-                                    'XLSX', 'XLS' => ['badge' => 'bg-success text-white', 'icon' => 'fa-file-excel'],
-                                    'PDF'         => ['badge' => 'bg-danger text-white', 'icon' => 'fa-file-pdf'],
-                                    default       => ['badge' => 'bg-primary text-white', 'icon' => 'fa-file-word'],
+                                    'XLSX', 'XLS' => ['badge' => 'background: #dcfce7; color: #14532d; border: 1px solid #86efac;', 'icon' => 'fa-file-excel'],
+                                    'PDF'         => ['badge' => 'background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5;', 'icon' => 'fa-file-pdf'],
+                                    default       => ['badge' => 'background: #e0e7ff; color: #312e81; border: 1px solid #a5b4fc;', 'icon' => 'fa-file-word'],
                                 };
                             ?>
                                 <div class="col-md-6">
                                     <article class="arena-card h-100">
                                         <div class="arena-card__body p-3">
                                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                                <span class="badge <?= $extBadge['badge'] ?> px-2 py-1 radius-4 font-monospace fw-bold" style="font-size: 11px;">
+                                                <span class="badge px-2 py-1 radius-4 font-monospace fw-bold" style="<?= $extBadge['badge'] ?> font-size: 11px;">
                                                     <i class="fas <?= $extBadge['icon'] ?> me-1"></i> <?= esc($ext) ?>
                                                 </span>
-                                                <span class="badge bg-light text-dark border px-2 py-1 radius-4 font-monospace" style="font-size: 10.5px;">
-                                                    <?= esc($tpl['document_version'] ?? 'v1.0') ?>
+                                                <span class="badge border px-2 py-1 radius-4 font-monospace" style="font-size: 11px; background: #f8fafc; color: #0f172a; border-color: #cbd5e1; font-weight: 600;">
+                                                    <i class="fas fa-code-branch me-1 text-primary"></i> <?= esc($tpl['document_version'] ?? 'v1.0') ?>
                                                 </span>
                                             </div>
                                             <h4 class="fw-bold mb-1" style="font-size: 15.5px; line-height: 1.4;">
@@ -531,7 +739,7 @@ if (! empty($carouselSlides)) {
                                                     <a href="<?= route_to('public.knowledge.templates.download', $tpl['slug']) ?>" class="btn btn-sm btn-primary radius-6 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 12px;">
                                                         <i class="fas fa-download"></i> Unduh
                                                     </a>
-                                                    <a href="<?= route_to('public.knowledge.templates.detail', $tpl['slug']) ?>" class="btn btn-sm btn-light border radius-6 px-2 py-1 text-muted" style="font-size: 12px;">
+                                                    <a href="<?= route_to('public.knowledge.templates.detail', $tpl['slug']) ?>" class="btn btn-sm radius-6 px-2 py-1 fw-semibold" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; font-size: 12px;">
                                                         Petunjuk
                                                     </a>
                                                 </div>
@@ -549,92 +757,6 @@ if (! empty($carouselSlides)) {
                         </div>
                     <?php endif; ?>
                 </div>
-
-                <!-- Showcase 5: Media & Video Pembelajaran -->
-                <?php if (! empty($mediaItems)): ?>
-                    <div class="mb-4 pb-2">
-                        <div class="d-flex flex-wrap align-items-end justify-content-between mb-3">
-                            <div class="arena-section-head mb-0">
-                                <span class="arena-section-head__tag text-info" style="background: #e0f2fe;">
-                                    <i class="fas fa-photo-video me-1"></i> Visual &amp; Multimedia
-                                </span>
-                                <h3 class="arena-section-head__title" style="font-size: 22px;">Media &amp; Video Pembelajaran</h3>
-                                <p class="arena-section-head__desc mb-0" style="font-size: 14.5px;">
-                                    Infografik alur pengadaan pemerintah, bagan regulasi, dan rekaman tutorial interaktif.
-                                </p>
-                            </div>
-                            <div class="d-flex gap-2 mt-2 mt-md-0">
-                                <a href="<?= route_to('public.knowledge.videos') ?>" class="btn btn-outline-danger btn-sm radius-8 px-3 py-1 fw-semibold" style="font-size: 12.5px;">
-                                    <i class="fab fa-youtube me-1"></i> Video
-                                </a>
-                                <a href="<?= route_to('public.knowledge.media') ?>" class="btn btn-outline-primary btn-sm radius-8 px-3 py-1 fw-semibold" style="font-size: 12.5px;">
-                                    <i class="fas fa-images me-1"></i> Media
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <?php foreach (array_slice($mediaItems, 0, 4) as $med):
-                                $previewImg = $med['preview_url'] ?? base_url('assets/main/images/event/event-1-1.jpg');
-                                $isVideo    = ! empty($med['is_video']);
-                                $embedUrl   = $med['embed_url'] ?? '';
-                                $extUrl     = $med['external_url'] ?? '';
-                                $modalData  = [
-                                    'title'        => $med['title'] ?? '',
-                                    'caption'      => $med['caption'] ?? '',
-                                    'preview_url'  => $previewImg,
-                                    'embed_url'    => $embedUrl,
-                                    'external_url' => $extUrl,
-                                    'is_video'     => $isVideo,
-                                    'likes_count'  => (int) ($med['likes_count'] ?? 24),
-                                    'views_count'  => (int) ($med['views_count'] ?? 150),
-                                    'date'         => ! empty($med['published_at']) ? date('d M Y', strtotime($med['published_at'])) : 'Terbaru',
-                                    'hashtags'     => $med['hashtags'] ?? [],
-                                    'id'           => (int) $med['id'],
-                                ];
-                            ?>
-                                <div class="col-md-6">
-                                    <article class="arena-card h-100">
-                                        <div class="media-visual-container position-relative" style="height: 160px;" onclick="openMediaModal(<?= esc(json_encode($modalData)) ?>)">
-                                            <img src="<?= esc($previewImg) ?>" alt="<?= esc($med['title'] ?? 'Media PBJ') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/gallery/gallery-page-1-1.jpg') ?>';">
-                                            <div class="arena-card__badge-row">
-                                                <span class="badge radius-4 px-2 py-1 small <?= $isVideo ? 'bg-danger text-white' : 'bg-primary text-white' ?>">
-                                                    <?= $isVideo ? '<i class="fab fa-youtube me-1"></i> Video' : '<i class="fas fa-image me-1"></i> Infografik' ?>
-                                                </span>
-                                            </div>
-                                            <?php if ($isVideo): ?>
-                                                <div class="position-absolute top-50 start-50 translate-middle z-2">
-                                                    <div class="media-play-pulse" style="width: 42px; height: 42px;">
-                                                        <i class="fas fa-play ms-1" style="font-size: 15px;"></i>
-                                                    </div>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="arena-card__body p-3">
-                                            <h4 class="fw-bold mb-1 text-truncate" style="font-size: 15px; color: #082f5c;">
-                                                <?= esc($med['title'] ?? '(Tanpa judul)') ?>
-                                            </h4>
-                                            <p class="small text-muted mb-2 text-truncate" style="font-size: 12.5px;">
-                                                <?= esc(mb_strimwidth($med['caption'] ?? '', 0, 75, '…')) ?>
-                                            </p>
-                                            <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-auto">
-                                                <button type="button" class="btn btn-sm btn-outline-primary radius-6 px-2 py-1 fw-semibold" style="font-size: 12px;" onclick="openMediaModal(<?= esc(json_encode($modalData)) ?>)">
-                                                    <i class="fas fa-expand me-1"></i> Buka Media
-                                                </button>
-                                                <?= view('landing/components/bookmark_button', [
-                                                    'type'  => 'knowledge_media',
-                                                    'id'    => (int) $med['id'],
-                                                    'title' => $med['title'] ?? null,
-                                                    'size'  => 'sm',
-                                                ]) ?>
-                                            </div>
-                                        </div>
-                                    </article>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
 
                 <!-- Showcase 6: FAQ Accordion -->
                 <?php if (! empty($faqs)): ?>
@@ -664,11 +786,11 @@ if (! empty($carouselSlides)) {
                                             <?= nl2br(esc($faq['content'] ?? $faq['summary'] ?? '')) ?>
                                             <div class="mt-2 pt-2 d-flex flex-wrap align-items-center justify-content-between gap-2 border-top">
                                                 <?php if (! empty($faq['legal_basis'])): ?>
-                                                    <span class="badge bg-light text-secondary border px-2 py-1 small" style="font-size: 11px;">
+                                                    <span class="badge border px-2 py-1 small" style="font-size: 11.5px; background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-weight: 600;">
                                                         <i class="fas fa-balance-scale me-1 text-primary"></i> <?= esc($faq['legal_basis']) ?>
                                                     </span>
                                                 <?php else: ?>
-                                                    <span class="text-muted small" style="font-size: 11.5px;">Sesuai regulasi PBJ terbaru</span>
+                                                    <span class="small fw-semibold" style="font-size: 11.5px; color: #475569;">Sesuai regulasi PBJ terbaru</span>
                                                 <?php endif; ?>
                                                 <?= view('landing/components/bookmark_button', [
                                                     'type'  => 'knowledge_faq',
@@ -706,11 +828,11 @@ if (! empty($carouselSlides)) {
                         <button type="submit" aria-label="Cari"><i class="fas fa-search"></i></button>
                     </form>
                     <div class="d-flex flex-wrap gap-1 mt-3">
-                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Perpres 12/2021')) ?>" class="badge bg-light text-dark border text-decoration-none">Perpres 12/2021</a>
-                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Penyusunan HPS')) ?>" class="badge bg-light text-dark border text-decoration-none">Penyusunan HPS</a>
-                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Format KAK')) ?>" class="badge bg-light text-dark border text-decoration-none">Format KAK</a>
-                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Mitigasi Risiko')) ?>" class="badge bg-light text-dark border text-decoration-none">Mitigasi Risiko</a>
-                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Sanggahan')) ?>" class="badge bg-light text-dark border text-decoration-none">Sanggahan</a>
+                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Perpres 12/2021')) ?>" class="badge border text-decoration-none" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-size: 11.5px; font-weight: 600;">Perpres 12/2021</a>
+                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Penyusunan HPS')) ?>" class="badge border text-decoration-none" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-size: 11.5px; font-weight: 600;">Penyusunan HPS</a>
+                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Format KAK')) ?>" class="badge border text-decoration-none" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-size: 11.5px; font-weight: 600;">Format KAK</a>
+                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Mitigasi Risiko')) ?>" class="badge border text-decoration-none" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-size: 11.5px; font-weight: 600;">Mitigasi Risiko</a>
+                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Sanggahan')) ?>" class="badge border text-decoration-none" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-size: 11.5px; font-weight: 600;">Sanggahan</a>
                     </div>
                 </div>
 
@@ -741,17 +863,9 @@ if (! empty($carouselSlides)) {
                             <span class="left"><span class="dot" style="background:#d97706"></span>Template Dokumen</span>
                             <span class="count"><?= (int) ($stats['total_templates'] ?? 0) ?></span>
                         </a>
-                        <a href="<?= site_url('bunga-rampai/media') ?>" class="arena-nav-pill">
-                            <span class="left"><span class="dot" style="background:#0891b2"></span>Media &amp; Infografik</span>
-                            <span class="count"><?= (int) ($stats['total_media'] ?? 0) ?></span>
-                        </a>
-                        <a href="<?= site_url('bunga-rampai/video') ?>" class="arena-nav-pill">
-                            <span class="left"><span class="dot" style="background:#e11d48"></span>Video PBJ</span>
-                            <span class="count"><?= (int) ($stats['total_videos'] ?? 0) ?></span>
-                        </a>
-                        <a href="<?= site_url('bunga-rampai/galeri') ?>" class="arena-nav-pill">
-                            <span class="left"><span class="dot" style="background:#9333ea"></span>Galeri Kegiatan</span>
-                            <span class="count"><?= (int) ($stats['total_gallery'] ?? 0) ?></span>
+                        <a href="<?= site_url('bunga-rampai/multimedia') ?>" class="arena-nav-pill">
+                            <span class="left"><span class="dot" style="background:#0891b2"></span>Multimedia PBJ</span>
+                            <span class="count"><?= (int) (($stats['total_media'] ?? 0) + ($stats['total_videos'] ?? 0) + ($stats['total_gallery'] ?? 0)) ?></span>
                         </a>
                     </nav>
                 </div>
@@ -909,7 +1023,7 @@ if (! empty($carouselSlides)) {
                         <span>Nilai Integritas PBJ</span>
                     </h4>
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-success-subtle text-success text-xs fw-bold px-2 py-1">Pilar Tata Kelola</span>
+                        <span class="badge radius-6 px-2 py-1" style="background: #dcfce7; color: #15803d; border: 1px solid #86efac; font-size: 11px; font-weight: 700;">Pilar Tata Kelola</span>
                         <span class="fw-bold text-dark" style="font-size: 13.5px;">Membangun Budaya Pengadaan Berintegritas &amp; Akuntabel</span>
                     </div>
                     <div class="d-flex flex-column gap-2 pt-1">
@@ -917,21 +1031,21 @@ if (! empty($carouselSlides)) {
                             <i class="fas fa-check-circle text-primary mt-1" style="font-size: 13px;"></i>
                             <div>
                                 <strong class="d-block text-dark" style="font-size: 12.5px;">Standar LKPP RI &amp; Perpres PBJ</strong>
-                                <small class="text-muted" style="font-size: 11.5px; line-height: 1.4;">Diverifikasi selaras peraturan perundang-undangan pengadaan nasional terkini.</small>
+                                <small style="color: #334155; font-size: 12px; line-height: 1.45;">Diverifikasi selaras peraturan perundang-undangan pengadaan nasional terkini.</small>
                             </div>
                         </div>
                         <div class="d-flex align-items-start gap-2 p-2 radius-8 bg-light border">
                             <i class="fas fa-check-circle text-success mt-1" style="font-size: 13px;"></i>
                             <div>
                                 <strong class="d-block text-dark" style="font-size: 12.5px;">Template Bebas Akses</strong>
-                                <small class="text-muted" style="font-size: 11.5px; line-height: 1.4;">Standar format KAK, HPS, SPK, dan BAST siap pakai untuk seluruh perangkat daerah.</small>
+                                <small style="color: #334155; font-size: 12px; line-height: 1.45;">Standar format KAK, HPS, SPK, dan BAST siap pakai untuk seluruh perangkat daerah.</small>
                             </div>
                         </div>
                         <div class="d-flex align-items-start gap-2 p-2 radius-8 bg-light border">
                             <i class="fas fa-check-circle text-info mt-1" style="font-size: 13px;"></i>
                             <div>
                                 <strong class="d-block text-dark" style="font-size: 12.5px;">Praktik Nyata Antar-OPD</strong>
-                                <small class="text-muted" style="font-size: 11.5px; line-height: 1.4;">Kolaborasi pengalaman mitigasi risiko antara PPK, Pokja Pemilihan, dan Penyedia.</small>
+                                <small style="color: #334155; font-size: 12px; line-height: 1.45;">Kolaborasi pengalaman mitigasi risiko antara PPK, Pokja Pemilihan, dan Penyedia.</small>
                             </div>
                         </div>
                     </div>
@@ -995,7 +1109,22 @@ if (! empty($carouselSlides)) {
         <button type="button" class="media-modal-close-btn" onclick="closeMediaModal()" aria-label="Tutup Preview">&times;</button>
 
         <!-- Left: Big Media Stage -->
-        <div class="d-flex align-items-center justify-content-center p-0 flex-grow-1" style="background: #000000; min-height: 380px; max-height: 80vh;">
+        <div class="d-flex align-items-center justify-content-center p-0 flex-grow-1 position-relative" style="background: #000000; min-height: 380px; max-height: 80vh;">
+            <!-- Modal Slide Counter Badge Top Left -->
+            <div class="position-absolute top-0 start-0 m-3 z-3 d-none" id="modalSlideCounter">
+                <span class="badge radius-20 px-2 py-1" style="background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(6px); color: #fff; font-size: 11px; font-weight: 600;">
+                    <i class="fas fa-clone me-1 text-white-50"></i> <span id="modalCurrentSlide">1</span>/<span id="modalTotalSlides">1</span>
+                </span>
+            </div>
+
+            <!-- Slide Navigation Arrows -->
+            <button type="button" class="modal-slide-arrow modal-slide-prev d-none" id="modalSlidePrev" aria-label="Slide Sebelumnya" onclick="navigateModalSlide(-1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button type="button" class="modal-slide-arrow modal-slide-next d-none" id="modalSlideNext" aria-label="Slide Selanjutnya" onclick="navigateModalSlide(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+
             <div id="modalImageContainer" class="w-100 h-100 d-flex align-items-center justify-content-center">
                 <img id="modalPreviewImage" src="" alt="Preview Media" class="w-100 h-100 object-fit-contain" style="max-height: 80vh;">
             </div>
@@ -1054,13 +1183,22 @@ if (! empty($carouselSlides)) {
 
 <script>
     let currentModalShareTitle = '';
+    let currentModalData = null;
+    let currentModalSlideIndex = 0;
 
     function openMediaModal(data) {
+        openMediaModalSlide(data, 0);
+    }
+
+    function openMediaModalSlide(data, initialSlideIndex) {
         const modal = document.getElementById('mediaPreviewModal');
         if (!modal) return;
 
+        currentModalData = data;
         currentModalShareTitle = data.title || '';
+        currentModalSlideIndex = initialSlideIndex || 0;
 
+        // Set Text Content
         document.getElementById('modalTitle').textContent = data.title || '(Tanpa Judul)';
         document.getElementById('modalCaption').textContent = data.caption || 'Tidak ada deskripsi.';
         document.getElementById('modalDate').textContent = data.date || 'Terbaru';
@@ -1078,6 +1216,7 @@ if (! empty($carouselSlides)) {
             }
         }
 
+        // Hashtags
         const htContainer = document.getElementById('modalHashtags');
         htContainer.innerHTML = '';
         if (Array.isArray(data.hashtags)) {
@@ -1089,23 +1228,8 @@ if (! empty($carouselSlides)) {
             });
         }
 
-        const imgBox = document.getElementById('modalImageContainer');
-        const vidBox = document.getElementById('modalVideoContainer');
-        const imgEl = document.getElementById('modalPreviewImage');
-        const vidIframe = document.getElementById('modalPreviewIframe');
+        // External Link Button
         const extBtn = document.getElementById('modalExternalBtn');
-
-        if (data.is_video && data.embed_url) {
-            imgBox.classList.add('d-none');
-            vidBox.classList.remove('d-none');
-            vidIframe.src = data.embed_url;
-        } else {
-            vidBox.classList.add('d-none');
-            imgBox.classList.remove('d-none');
-            vidIframe.src = '';
-            imgEl.src = data.preview_url || '';
-        }
-
         if (data.external_url) {
             extBtn.href = data.external_url;
             extBtn.classList.remove('d-none');
@@ -1113,8 +1237,75 @@ if (! empty($carouselSlides)) {
             extBtn.classList.add('d-none');
         }
 
+        // Render current slide
+        renderModalSlide(currentModalSlideIndex);
+
+        // Open
         modal.classList.add('is-open');
         document.body.style.overflow = 'hidden';
+    }
+
+    function renderModalSlide(slideIndex) {
+        if (!currentModalData) return;
+        const slides = Array.isArray(currentModalData.slides) && currentModalData.slides.length > 0
+            ? currentModalData.slides
+            : [{
+                url: currentModalData.preview_url,
+                is_video: currentModalData.is_video,
+                embed_url: currentModalData.embed_url,
+                title: currentModalData.title
+            }];
+
+        const totalSlides = slides.length;
+        currentModalSlideIndex = Math.max(0, Math.min(slideIndex, totalSlides - 1));
+        const slide = slides[currentModalSlideIndex];
+
+        const imgBox = document.getElementById('modalImageContainer');
+        const vidBox = document.getElementById('modalVideoContainer');
+        const imgEl = document.getElementById('modalPreviewImage');
+        const vidIframe = document.getElementById('modalPreviewIframe');
+
+        if (slide.is_video && slide.embed_url) {
+            imgBox.classList.add('d-none');
+            vidBox.classList.remove('d-none');
+            vidIframe.src = slide.embed_url;
+        } else {
+            vidBox.classList.add('d-none');
+            imgBox.classList.remove('d-none');
+            vidIframe.src = '';
+            imgEl.src = slide.url || currentModalData.preview_url || '';
+        }
+
+        // Navigation arrows & counter badge in modal
+        const prevBtn = document.getElementById('modalSlidePrev');
+        const nextBtn = document.getElementById('modalSlideNext');
+        const counterWrap = document.getElementById('modalSlideCounter');
+        const currentSpan = document.getElementById('modalCurrentSlide');
+        const totalSpan = document.getElementById('modalTotalSlides');
+
+        if (totalSlides > 1) {
+            if (counterWrap) counterWrap.classList.remove('d-none');
+            if (currentSpan) currentSpan.textContent = currentModalSlideIndex + 1;
+            if (totalSpan) totalSpan.textContent = totalSlides;
+
+            if (prevBtn) {
+                if (currentModalSlideIndex > 0) prevBtn.classList.remove('d-none');
+                else prevBtn.classList.add('d-none');
+            }
+            if (nextBtn) {
+                if (currentModalSlideIndex < totalSlides - 1) nextBtn.classList.remove('d-none');
+                else nextBtn.classList.add('d-none');
+            }
+        } else {
+            if (counterWrap) counterWrap.classList.add('d-none');
+            if (prevBtn) prevBtn.classList.add('d-none');
+            if (nextBtn) nextBtn.classList.add('d-none');
+        }
+    }
+
+    function navigateModalSlide(direction) {
+        if (!currentModalData) return;
+        renderModalSlide(currentModalSlideIndex + direction);
     }
 
     function closeMediaModal() {
@@ -1124,6 +1315,7 @@ if (! empty($carouselSlides)) {
         document.body.style.overflow = '';
         const vidIframe = document.getElementById('modalPreviewIframe');
         if (vidIframe) vidIframe.src = '';
+        currentModalData = null;
     }
 
     function handleBackdropClick(e) {
@@ -1133,10 +1325,68 @@ if (! empty($carouselSlides)) {
     }
 
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeMediaModal();
+        const modal = document.getElementById('mediaPreviewModal');
+        if (modal && modal.classList.contains('is-open')) {
+            if (e.key === 'Escape') {
+                closeMediaModal();
+            } else if (e.key === 'ArrowLeft') {
+                navigateModalSlide(-1);
+            } else if (e.key === 'ArrowRight') {
+                navigateModalSlide(1);
+            }
         }
     });
+
+    // Instagram Slider in Home / Landing View Logic
+    const instaSlideStatesHome = {};
+
+    function navigateInstaSlideHome(event, itemId, direction, totalSlides) {
+        if (event) event.stopPropagation();
+        const current = instaSlideStatesHome[itemId] || 0;
+        const target = Math.max(0, Math.min(current + direction, totalSlides - 1));
+        goToInstaSlideHome(event, itemId, target, totalSlides);
+    }
+
+    function goToInstaSlideHome(event, itemId, targetIndex, totalSlides) {
+        if (event) event.stopPropagation();
+        instaSlideStatesHome[itemId] = targetIndex;
+
+        const track = document.getElementById('instaTrackHome_' + itemId);
+        if (track) {
+            track.style.transform = 'translateX(-' + (targetIndex * 100) + '%)';
+        }
+
+        const counter = document.getElementById('instaCounterHome_' + itemId);
+        if (counter) {
+            const span = counter.querySelector('.current-slide');
+            if (span) span.textContent = targetIndex + 1;
+        }
+
+        const prevBtn = document.getElementById('instaPrevHome_' + itemId);
+        const nextBtn = document.getElementById('instaNextHome_' + itemId);
+
+        if (prevBtn) {
+            if (targetIndex > 0) prevBtn.classList.remove('d-none');
+            else prevBtn.classList.add('d-none');
+        }
+
+        if (nextBtn) {
+            if (targetIndex < totalSlides - 1) nextBtn.classList.remove('d-none');
+            else nextBtn.classList.add('d-none');
+        }
+
+        const dotsWrap = document.getElementById('instaDotsHome_' + itemId);
+        if (dotsWrap) {
+            const dots = dotsWrap.querySelectorAll('.insta-dot');
+            dots.forEach((dot, idx) => {
+                if (idx === targetIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+    }
 
     function copyMediaShareUrl(title) {
         if (navigator.clipboard) {

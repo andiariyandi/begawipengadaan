@@ -1,117 +1,116 @@
 <?= $this->extend('landing/layouts/public') ?>
 
 <?= $this->section('pageStyles') ?>
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-news.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-news.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-news.css') : '1.0' ?>" />
 <link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-events.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-events.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-events.css') : '1.0' ?>" />
+<style>
+    .evt-headline__meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+</style>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
-<!-- MAIN EVENT CONTENT SECTION — Following Landing News UI Benchmark -->
+<?php
+$dashboardTypes = [
+    'webinar'     => 'Webinar',
+    'bimtek'      => 'Bimtek',
+    'workshop'    => 'Workshop',
+    'sosialisasi' => 'Sosialisasi',
+    'seminar'     => 'Seminar',
+    'pelatihan'   => 'Pelatihan',
+    'rakor'       => 'Rapat Koordinasi',
+    'klinik'      => 'Klinik PBJ',
+];
+?>
+
+<!-- MAIN EVENT CONTENT SECTION — Fully Harmonized with Berita PBJ UI -->
 <section class="berita-main-section evt-main-section" id="kategori-liputan-section">
     <div class="container">
-        <!-- Compact Breadcrumb + Header Title & Unified Search -->
-        <div class="evt-hero-banner mb-3">
-            <div class="evt-breadcrumb">
-                <a href="<?= site_url('/') ?>"><iconify-icon icon="solar:home-2-bold" class="align-middle"></iconify-icon> Beranda</a>
-                <span>/</span>
-                <span>Event &amp; Agenda PBJ</span>
-                <?php if (! empty($selectedType)): ?>
-                    <span>/</span>
-                    <span class="fw-bold text-dark"><?= ucfirst($selectedType) ?></span>
-                <?php endif; ?>
-            </div>
 
-            <div class="row align-items-center justify-content-between g-3 mb-2">
-                <div class="col-lg-7">
-                    <h1 class="evt-hero-title mb-2">
-                        Agenda Kegiatan &amp; Pembinaan <br>
-                        <span>Pengadaan Barang/Jasa Provinsi Lampung</span>
-                    </h1>
-                    <p class="evt-hero-desc mb-0">
-                        Ikuti webinar nasional, bimbingan teknis bersertifikat, rapat koordinasi terpadu, dan lokakarya mitigasi risiko pengadaan bersama instruktur ahli LKPP dan Biro PBJ Setda Provinsi Lampung.
-                    </p>
-                </div>
-                <div class="col-lg-5">
-                    <!-- Search Form -->
-                    <form action="<?= site_url('event') ?>" method="get" class="evt-search-box ms-lg-auto">
-                        <iconify-icon icon="solar:magnifer-linear" class="text-slate-500 text-xl"></iconify-icon>
-                        <input type="text" name="q" value="<?= esc($keyword ?? '') ?>" placeholder="Cari webinar, bimtek kualifikasi, atau topik kegiatan...">
-                        <?php if (! empty($selectedType)): ?>
-                            <input type="hidden" name="tipe" value="<?= esc($selectedType) ?>">
-                        <?php endif; ?>
-                        <?php if (! empty($selectedMode)): ?>
-                            <input type="hidden" name="mode" value="<?= esc($selectedMode) ?>">
-                        <?php endif; ?>
-                        <button type="submit">
-                            <span>Cari Agenda</span>
-                            <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
-                        </button>
-                    </form>
-                </div>
-            </div>
+        <!-- Breadcrumb Navigation & Magazine Title (Following Landing News Benchmark) -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <nav class="news-detail-breadcrumb-clean m-0" aria-label="Breadcrumb">
+                <a href="<?= site_url('/') ?>"><i class="fas fa-home"></i> Beranda</a>
+                <span class="sep">/</span>
+                <span class="current">Agenda Kegiatan &amp; Pembinaan &middot; Pengadaan Barang/Jasa Provinsi Lampung</span>
+                <?php if (! empty($selectedType)): ?>
+                    <span class="sep">/</span>
+                    <span class="badge bg-primary text-white text-uppercase px-2 py-1 radius-6 text-xs fw-bold"><?= ucfirst($selectedType) ?></span>
+                <?php endif; ?>
+            </nav>
         </div>
 
+        <?php if (! empty($keyword) || ! empty($selectedType) || ! empty($selectedMode)): ?>
+            <!-- Filter Active Notification (Compact & Clean) -->
+            <div class="card border-0 shadow-2xs radius-12 p-2 px-3 mb-4 bg-white border" style="border-color: #e2e8f0 !important;">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <i class="fas fa-filter text-primary" style="font-size: 13px;"></i>
+                        <span class="text-muted small fw-semibold" style="font-size: 12.5px;">Filter Aktif:</span>
+                        <?php if (! empty($selectedType)): ?>
+                            <span class="badge bg-primary text-white fw-bold px-2 py-1 radius-6" style="font-size: 12px;"><?= esc($dashboardTypes[$selectedType] ?? ucfirst($selectedType)) ?></span>
+                        <?php endif; ?>
+                        <?php if (! empty($selectedMode)): ?>
+                            <span class="badge bg-info text-white fw-bold px-2 py-1 radius-6" style="font-size: 12px;">Moda: <?= ucfirst($selectedMode) ?></span>
+                        <?php endif; ?>
+                        <?php if (! empty($keyword)): ?>
+                            <span class="badge bg-warning text-dark fw-bold px-2 py-1 radius-6" style="font-size: 12px;">"<?= esc($keyword) ?>"</span>
+                        <?php endif; ?>
+                    </div>
+                    <a href="<?= site_url('event') ?>" class="btn btn-sm btn-outline-secondary radius-8 fw-bold py-1 px-2" style="font-size: 12px;">
+                        <i class="fas fa-times me-1"></i> Reset Filter
+                    </a>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <?php if (! empty($sliderEvents) && $currentPage === 1 && empty($keyword) && empty($selectedType) && empty($selectedMode)): ?>
-            <!-- EVENT HEADLINE SLIDER (Agenda Utama / Pinned / Coming Soon Carousel) -->
-            <div class="evt-headline mb-4">
+            <!-- EVENT HEADLINE SLIDER (Exact Berita Magazine Slider Format) -->
+            <div class="berita-headline mb-4">
                 <div id="eventHeadlineCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="6000">
                     <div class="carousel-inner radius-16 overflow-hidden">
                         <?php foreach ($sliderEvents as $sIndex => $sItem):
                             $sCover = ! empty($sItem['cover_url']) ? $sItem['cover_url'] : base_url('assets/main/images/blog/blog-details-img-1.jpg');
-                            $badgeFlagClass = match ($sItem['status']) {
-                                'open_registration' => 'evt-badge-flag--open',
-                                'coming_soon'       => 'evt-badge-flag--coming',
-                                default             => 'evt-badge-flag--featured',
-                            };
-                            $badgeFlagText = match ($sItem['status']) {
-                                'open_registration' => '<span class="dot"></span> Pendaftaran Dibuka',
-                                'coming_soon'       => '<iconify-icon icon="solar:clock-circle-bold"></iconify-icon> Segera Hadir',
-                                default             => '<iconify-icon icon="solar:star-bold"></iconify-icon> Agenda Sorotan',
-                            };
                         ?>
                             <div class="carousel-item <?= $sIndex === 0 ? 'active' : '' ?>">
-                                <div class="evt-headline__inner">
-                                    <div class="evt-headline__media">
+                                <div class="berita-headline__inner news-headline-card">
+                                    <div class="berita-headline__media">
                                         <img src="<?= $sCover ?>" alt="<?= esc($sItem['title']) ?>" loading="<?= $sIndex === 0 ? 'eager' : 'lazy' ?>">
-                                        <div class="evt-headline__badges">
-                                            <span class="evt-badge-flag <?= $badgeFlagClass ?>">
-                                                <?= $badgeFlagText ?>
+                                        <div class="berita-headline__badges">
+                                            <span class="berita-headline__badge">
+                                                <i class="fas fa-star text-warning me-1"></i> Agenda Sorotan
                                             </span>
-                                            <span class="evt-badge-pill"><?= esc($sItem['type_label']) ?></span>
-                                            <span class="evt-badge-pill"><?= esc($sItem['mode_label']) ?></span>
                                             <?php if (! empty($sItem['certificate_enabled'])): ?>
-                                                <span class="evt-badge-pill evt-badge-pill--cert">
-                                                    <iconify-icon icon="solar:diploma-verified-bold" class="align-middle"></iconify-icon> E-Sertifikat
+                                                <span class="badge bg-success text-white px-2 py-1 radius-6 text-xs fw-bold">
+                                                    <i class="fas fa-certificate me-1"></i> E-Sertifikat
                                                 </span>
                                             <?php endif; ?>
                                         </div>
-                                        <div class="evt-headline__counter">
+                                        <div class="berita-headline__counter">
                                             <span class="dot"></span>
-                                            <span class="d-none d-sm-inline">Agenda Sorotan </span><span>#<?= $sIndex + 1 ?> / <?= count($sliderEvents) ?></span>
+                                            <span>Sorotan #<?= $sIndex + 1 ?> / <?= count($sliderEvents) ?></span>
                                         </div>
-                                        <div class="evt-headline__caption">
-                                            <div class="evt-headline__meta-row">
-                                                <span><iconify-icon icon="solar:calendar-date-bold" class="text-warning align-middle"></iconify-icon> <?= esc($sItem['start_date']) ?></span>
-                                                <span>&bull;</span>
-                                                <span><iconify-icon icon="solar:clock-circle-bold" class="text-info align-middle"></iconify-icon> <?= esc($sItem['time_range']) ?></span>
-                                                <span>&bull;</span>
-                                                <span><iconify-icon icon="solar:map-point-bold" class="text-danger align-middle"></iconify-icon> <?= esc($sItem['location']) ?></span>
-                                                <span>&bull;</span>
-                                                <span>
-                                                    <iconify-icon icon="solar:users-group-rounded-bold" class="text-success align-middle"></iconify-icon>
-                                                    <?= $sItem['is_unlimited'] ? 'Kuota Terbuka' : 'Sisa ' . $sItem['remaining'] . ' Kursi' ?>
-                                                </span>
-                                            </div>
-                                            <h2 class="evt-headline__title">
+                                        <div class="berita-headline__caption">
+                                            <span class="berita-headline__cat">
+                                                <i class="fas fa-calendar-alt"></i> <?= esc($sItem['type_label']) ?> &middot; <?= esc($sItem['mode_label']) ?>
+                                            </span>
+                                            <h2 class="berita-headline__title">
                                                 <a href="<?= site_url('event/' . $sItem['slug']) ?>">
                                                     <?= esc($sItem['title']) ?>
                                                 </a>
                                             </h2>
-                                            <div class="evt-headline__action">
-                                                <a href="<?= site_url('event/' . $sItem['slug']) ?>" class="btn btn-sm btn-primary px-3 py-1 radius-8 fw-bold d-inline-flex align-items-center gap-1 shadow-sm">
-                                                    <span>Daftar / Detail Agenda</span>
-                                                    <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
-                                                </a>
+                                            <div class="berita-headline__meta">
+                                                <span><i class="far fa-calendar-alt"></i> <?= esc($sItem['start_date']) ?></span>
+                                                <span><i class="far fa-clock"></i> <?= esc($sItem['time_range']) ?></span>
+                                                <span><i class="fas fa-map-marker-alt text-danger"></i> <?= esc($sItem['location']) ?></span>
+                                                <span>
+                                                    <i class="fas fa-users text-success"></i>
+                                                    <?= $sItem['is_unlimited'] ? 'Kuota Terbuka' : 'Sisa ' . $sItem['remaining'] . ' Kursi' ?>
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -120,15 +119,15 @@
                         <?php endforeach; ?>
                     </div>
                     <?php if (count($sliderEvents) > 1): ?>
-                        <button class="evt-headline__nav prev" type="button" data-bs-target="#eventHeadlineCarousel" data-bs-slide="prev" aria-label="Sebelumnya">
-                            <iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon>
+                        <button class="berita-headline__nav prev" type="button" data-bs-target="#eventHeadlineCarousel" data-bs-slide="prev" aria-label="Sebelumnya">
+                            <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button class="evt-headline__nav next" type="button" data-bs-target="#eventHeadlineCarousel" data-bs-slide="next" aria-label="Selanjutnya">
-                            <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon>
+                        <button class="berita-headline__nav next" type="button" data-bs-target="#eventHeadlineCarousel" data-bs-slide="next" aria-label="Selanjutnya">
+                            <i class="fas fa-chevron-right"></i>
                         </button>
-                        <div class="evt-headline__indicators">
+                        <div class="berita-headline__indicators">
                             <?php foreach ($sliderEvents as $sIndex => $sItem): ?>
-                                <button type="button" data-bs-target="#eventHeadlineCarousel" data-bs-slide-to="<?= $sIndex ?>" class="<?= $sIndex === 0 ? 'active' : '' ?>" aria-label="Slide <?= $sIndex + 1 ?>"></button>
+                                <button type="button" data-bs-target="#eventHeadlineCarousel" data-bs-slide-to="<?= $sIndex ?>" class="<?= $sIndex === 0 ? 'is-active' : '' ?>" aria-label="Slide <?= $sIndex + 1 ?>"></button>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
@@ -136,119 +135,61 @@
             </div>
         <?php endif; ?>
 
-        <!-- 2. LIVE METRICS RIBBON (Strictly Real Data, Zero Dummy Fallback) -->
-        <div class="evt-metrics-section mb-4">
-            <div class="evt-metrics-card">
-                <div class="row g-3">
-                    <div class="col-lg-3 col-6">
-                        <div class="evt-kpi-item">
-                            <div class="evt-kpi-icon text-primary bg-primary-subtle">
-                                <iconify-icon icon="solar:calendar-bold"></iconify-icon>
-                            </div>
-                            <div>
-                                <div class="evt-kpi-num"><?= number_format($stats['total_events']) ?></div>
-                                <div class="evt-kpi-label">Total Agenda Terdaftar</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-6">
-                        <div class="evt-kpi-item">
-                            <div class="evt-kpi-icon text-success bg-success-subtle">
-                                <iconify-icon icon="solar:clock-circle-bold"></iconify-icon>
-                            </div>
-                            <div>
-                                <div class="evt-kpi-num"><?= number_format($stats['upcoming_events']) ?></div>
-                                <div class="evt-kpi-label">Kegiatan Mendatang</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-6">
-                        <div class="evt-kpi-item">
-                            <div class="evt-kpi-icon text-warning bg-warning-subtle">
-                                <iconify-icon icon="solar:user-check-bold"></iconify-icon>
-                            </div>
-                            <div>
-                                <div class="evt-kpi-num"><?= number_format($stats['open_registration']) ?></div>
-                                <div class="evt-kpi-label">Pendaftaran Dibuka</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-6">
-                        <div class="evt-kpi-item">
-                            <div class="evt-kpi-icon text-info bg-info-subtle">
-                                <iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon>
-                            </div>
-                            <div>
-                                <div class="evt-kpi-num"><?= number_format($stats['total_attendees']) ?></div>
-                                <div class="evt-kpi-label">Peserta Terdaftar</div>
-                            </div>
-                        </div>
-                    </div>
+        <!-- View Mode Navigation Tabs & Filters (Clean Compact Toolbar) -->
+        <div class="card border-0 shadow-2xs radius-12 p-2 px-3 mb-3 bg-white border" style="border-color: #e2e8f0 !important;">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="evt-view-tabs d-flex flex-wrap align-items-center gap-1 p-0 bg-transparent">
+                    <span class="small fw-bold text-muted me-1 d-none d-sm-inline" style="font-size: 12px;"><i class="fas fa-layer-group text-primary me-1"></i> Tampilan:</span>
+                    <a href="<?= site_url('event') ?>" class="evt-view-tab <?= $viewMode === 'all' ? 'active' : '' ?>">
+                        <i class="fas fa-th-large me-1"></i>
+                        <span>Semua Kegiatan</span>
+                    </a>
+                    <a href="<?= site_url('event/agenda') ?>" class="evt-view-tab <?= $viewMode === 'upcoming' ? 'active' : '' ?>">
+                        <i class="far fa-clock me-1"></i>
+                        <span>Agenda Mendatang</span>
+                    </a>
+                    <a href="<?= site_url('event/kalender') ?>" class="evt-view-tab <?= $viewMode === 'calendar' ? 'active' : '' ?>">
+                        <i class="far fa-calendar-alt me-1"></i>
+                        <span>Kalender Kegiatan</span>
+                    </a>
                 </div>
-            </div>
-        </div>
 
-        <!-- View Mode Navigation Tabs & Filters -->
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
-            <div class="evt-view-tabs">
-                <a href="<?= site_url('event') ?>" class="evt-view-tab <?= $viewMode === 'all' ? 'active' : '' ?>">
-                    <iconify-icon icon="solar:widget-2-bold"></iconify-icon>
-                    <span>Semua Kegiatan</span>
-                </a>
-                <a href="<?= site_url('event/agenda') ?>" class="evt-view-tab <?= $viewMode === 'upcoming' ? 'active' : '' ?>">
-                    <iconify-icon icon="solar:clock-circle-bold"></iconify-icon>
-                    <span>Agenda Mendatang</span>
-                </a>
-                <a href="<?= site_url('event/kalender') ?>" class="evt-view-tab <?= $viewMode === 'calendar' ? 'active' : '' ?>">
-                    <iconify-icon icon="solar:calendar-date-bold"></iconify-icon>
-                    <span>Kalender Kegiatan</span>
-                </a>
-            </div>
-
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-xs text-slate-600 fw-bold">Moda:</span>
-                <a href="<?= site_url('event' . ($selectedType ? '?tipe=' . $selectedType . '&' : '?') . 'mode=online') ?>" class="badge <?= $selectedMode === 'online' ? 'bg-success text-white' : 'bg-light text-dark border' ?> text-decoration-none p-2 radius-6">Online</a>
-                <a href="<?= site_url('event' . ($selectedType ? '?tipe=' . $selectedType . '&' : '?') . 'mode=offline') ?>" class="badge <?= $selectedMode === 'offline' ? 'bg-primary text-white' : 'bg-light text-dark border' ?> text-decoration-none p-2 radius-6">Offline</a>
-                <a href="<?= site_url('event' . ($selectedType ? '?tipe=' . $selectedType . '&' : '?') . 'mode=hybrid') ?>" class="badge <?= $selectedMode === 'hybrid' ? 'bg-warning text-dark' : 'bg-light text-dark border' ?> text-decoration-none p-2 radius-6">Hybrid</a>
-                <?php if (! empty($selectedMode)): ?>
-                    <a href="<?= site_url('event' . ($selectedType ? '?tipe=' . $selectedType : '')) ?>" class="text-xs text-danger text-decoration-none ms-1" title="Reset Mode">&times; Reset</a>
-                <?php endif; ?>
+                <div class="d-flex align-items-center gap-1 ms-auto">
+                    <span class="text-xs text-slate-600 fw-bold me-1"><i class="fas fa-broadcast-tower text-info me-1"></i> Moda:</span>
+                    <a href="<?= site_url('event' . ($selectedType ? '?tipe=' . $selectedType . '&' : '?') . 'mode=online') ?>" class="badge <?= $selectedMode === 'online' ? 'bg-success text-white' : 'bg-light text-dark border' ?> text-decoration-none px-2 py-1 radius-6" style="font-size: 11.5px;">Online</a>
+                    <a href="<?= site_url('event' . ($selectedType ? '?tipe=' . $selectedType . '&' : '?') . 'mode=offline') ?>" class="badge <?= $selectedMode === 'offline' ? 'bg-primary text-white' : 'bg-light text-dark border' ?> text-decoration-none px-2 py-1 radius-6" style="font-size: 11.5px;">Offline</a>
+                    <a href="<?= site_url('event' . ($selectedType ? '?tipe=' . $selectedType . '&' : '?') . 'mode=hybrid') ?>" class="badge <?= $selectedMode === 'hybrid' ? 'bg-warning text-dark' : 'bg-light text-dark border' ?> text-decoration-none px-2 py-1 radius-6" style="font-size: 11.5px;">Hybrid</a>
+                    <?php if (! empty($selectedMode)): ?>
+                        <a href="<?= site_url('event' . ($selectedType ? '?tipe=' . $selectedType : '')) ?>" class="text-xs text-danger text-decoration-none ms-1" title="Reset Mode">&times; Reset</a>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
 
         <!-- Filter Pills by Type (Supporting all 8 dashboard types) -->
-        <div class="evt-filter-wrapper mb-4">
-            <div class="evt-pill-group">
-                <a href="<?= site_url('event') ?>" class="evt-pill <?= empty($selectedType) ? 'active' : '' ?>">
-                    <span>Semua Tipe</span>
-                    <span class="badge bg-light text-dark radius-999"><?= $stats['total_events'] ?></span>
-                </a>
-                <?php
-                $dashboardTypes = [
-                    'webinar'     => 'Webinar',
-                    'bimtek'      => 'Bimtek',
-                    'workshop'    => 'Workshop',
-                    'sosialisasi' => 'Sosialisasi',
-                    'seminar'     => 'Seminar',
-                    'pelatihan'   => 'Pelatihan',
-                    'rakor'       => 'Rapat Koordinasi',
-                    'klinik'      => 'Klinik PBJ',
-                ];
-                ?>
-                <?php foreach ($dashboardTypes as $tKey => $tLabel): ?>
-                    <a href="<?= site_url('event?tipe=' . $tKey . (! empty($selectedMode) ? '&mode=' . $selectedMode : '')) ?>" class="evt-pill <?= $selectedType === $tKey ? 'active' : '' ?>">
-                        <span><?= esc($tLabel) ?></span>
-                        <span class="badge bg-light text-dark radius-999"><?= $typeCounts[$tKey] ?? 0 ?></span>
+        <div class="card border-0 shadow-2xs radius-12 p-2 px-3 mb-4 bg-white border" style="border-color: #e2e8f0 !important;">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="evt-pill-group">
+                    <span class="small fw-bold text-muted me-1 d-none d-sm-inline" style="font-size: 12px;"><i class="fas fa-tags text-warning me-1"></i> Tipe:</span>
+                    <a href="<?= site_url('event' . (! empty($selectedMode) ? '?mode=' . $selectedMode : '')) ?>" class="evt-pill <?= empty($selectedType) ? 'active' : '' ?>">
+                        <span>Semua Tipe</span>
+                        <span class="badge bg-light text-dark radius-999"><?= $stats['total_events'] ?></span>
                     </a>
-                <?php endforeach; ?>
-            </div>
-
-            <?php if (! empty($keyword)): ?>
-                <div class="text-sm text-slate-700">
-                    Pencarian: <strong>"<?= esc($keyword) ?>"</strong>
-                    <a href="<?= site_url('event') ?>" class="text-danger ms-2"><iconify-icon icon="solar:close-circle-bold"></iconify-icon> Reset</a>
+                    <?php foreach ($dashboardTypes as $tKey => $tLabel): ?>
+                        <a href="<?= site_url('event?tipe=' . $tKey . (! empty($selectedMode) ? '&mode=' . $selectedMode : '')) ?>" class="evt-pill <?= $selectedType === $tKey ? 'active' : '' ?>">
+                            <span><?= esc($tLabel) ?></span>
+                            <span class="badge bg-light text-dark radius-999"><?= $typeCounts[$tKey] ?? 0 ?></span>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
-            <?php endif; ?>
+
+                <?php if (! empty($keyword)): ?>
+                    <div class="text-sm text-slate-700 bg-light px-2 py-1 radius-8 border">
+                        Pencarian: <strong>"<?= esc($keyword) ?>"</strong>
+                        <a href="<?= site_url('event') ?>" class="text-danger ms-2"><i class="fas fa-times-circle"></i> Reset</a>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
 
         <!-- CALENDAR VIEW MODE (if tab is calendar) -->
@@ -256,30 +197,30 @@
             <div class="row g-4">
                 <div class="col-lg-8">
                     <?php if (empty($calendarGrouped)): ?>
-                        <div class="text-center p-5 bg-white border radius-18">
-                            <h5 class="fw-bold mb-2 text-slate-900">Belum ada kalender agenda terjadwal</h5>
-                            <p class="text-slate-600">Pantau terus pembaharuan agenda melalui kanal resmi BegawiPengadaan.</p>
+                        <div class="text-center p-5 bg-white border radius-16 shadow-2xs">
+                            <h5 class="fw-bold mb-2 text-dark">Belum ada kalender agenda terjadwal</h5>
+                            <p class="text-muted small">Pantau terus pembaharuan agenda melalui kanal resmi BegawiPengadaan.</p>
                         </div>
                     <?php else: ?>
                         <?php foreach ($calendarGrouped as $monthName => $cEvents): ?>
-                            <h3 class="evt-calendar-month-header">
-                                <iconify-icon icon="solar:calendar-mark-bold" class="text-primary"></iconify-icon>
+                            <h3 class="evt-calendar-month-header mb-3">
+                                <i class="fas fa-calendar-check text-primary me-2"></i>
                                 <span><?= esc($monthName) ?></span>
                             </h3>
-                            <div class="d-grid gap-2">
+                            <div class="d-grid gap-2 mb-4">
                                 <?php foreach ($cEvents as $ce): ?>
                                     <?php
                                     $ceStart = ! empty($ce['start_at']) ? strtotime($ce['start_at']) : time();
                                     $ceEnd   = ! empty($ce['end_at']) ? strtotime($ce['end_at']) : $ceStart;
                                     ?>
-                                    <div class="evt-timeline-item">
+                                    <div class="evt-timeline-item p-3 bg-white border radius-12 shadow-2xs d-flex align-items-center gap-3">
                                         <div class="d-flex align-items-center gap-3" style="min-width: 140px;">
                                             <div class="text-center p-2 bg-light border radius-10" style="min-width: 50px;">
                                                 <strong class="d-block text-lg text-primary"><?= date('d', $ceStart) ?></strong>
-                                                <small class="text-slate-600 text-uppercase text-xs fw-bold"><?= date('M', $ceStart) ?></small>
+                                                <small class="text-muted text-uppercase text-xs fw-bold"><?= date('M', $ceStart) ?></small>
                                             </div>
-                                            <div class="text-xs text-slate-600">
-                                                <span class="d-block fw-semibold text-slate-900"><?= date('H:i', $ceStart) ?> WIB</span>
+                                            <div class="text-xs text-muted">
+                                                <span class="d-block fw-semibold text-dark"><?= date('H:i', $ceStart) ?> WIB</span>
                                                 <span class="badge bg-light text-dark border"><?= ucfirst($ce['mode']) ?></span>
                                             </div>
                                         </div>
@@ -287,12 +228,12 @@
                                             <div class="d-flex align-items-center gap-2 mb-1">
                                                 <span class="badge bg-primary-subtle text-primary text-xs text-uppercase fw-bold"><?= esc($ce['type']) ?></span>
                                                 <?php if (! empty($ce['certificate_enabled'])): ?>
-                                                    <span class="badge bg-success-subtle text-success text-xs fw-bold"><iconify-icon icon="solar:diploma-verified-bold"></iconify-icon> E-Sertifikat</span>
+                                                    <span class="badge bg-success-subtle text-success text-xs fw-bold"><i class="fas fa-certificate me-1"></i> E-Sertifikat</span>
                                                 <?php endif; ?>
-                                                <span class="text-xs text-slate-600"><iconify-icon icon="solar:map-point-linear" class="text-danger"></iconify-icon> <?= esc($ce['location'] ?: 'Online') ?></span>
+                                                <span class="text-xs text-muted"><i class="fas fa-map-marker-alt text-danger me-1"></i> <?= esc($ce['location'] ?: 'Online') ?></span>
                                             </div>
                                             <h5 class="h6 fw-bold mb-0">
-                                                <a href="<?= site_url('event/' . $ce['slug']) ?>" class="text-slate-900 text-decoration-none">
+                                                <a href="<?= site_url('event/' . $ce['slug']) ?>" class="text-dark text-decoration-none">
                                                     <?= esc($ce['title']) ?>
                                                 </a>
                                             </h5>
@@ -309,105 +250,146 @@
                     <?php endif; ?>
                 </div>
 
-                <!-- Calendar Sidebar -->
+                <!-- Calendar Sidebar (Using identical Berita Widget style) -->
                 <div class="col-lg-4">
-                    <div class="evt-sidebar-widget">
-                        <h4 class="evt-widget-title">
-                            <iconify-icon icon="solar:bell-bold" class="text-warning"></iconify-icon>
+                    <div class="berita-widget">
+                        <h4 class="berita-widget__title accent-gold">
+                            <i class="fas fa-info-circle text-warning"></i>
                             <span>Informasi Jadwal Acara</span>
                         </h4>
-                        <p class="text-xs text-slate-600 mb-3" style="line-height: 1.6;">
+                        <p class="text-muted small mb-3" style="font-size: 13.5px; line-height: 1.6;">
                             Jadwal pelaksanaan disusun secara berkala oleh Biro Pengadaan Barang dan Jasa Provinsi Lampung. Peserta yang terdaftar akan menerima notifikasi resmi.
                         </p>
-                        <a href="<?= site_url('event') ?>" class="btn btn-primary w-100 radius-10 fw-bold">Kembali ke Tampilan Katalog</a>
+                        <a href="<?= site_url('event') ?>" class="btn btn-primary w-100 radius-8 fw-bold" style="font-size: 13px;">
+                            <i class="fas fa-th-large me-1"></i> Kembali ke Katalog Acara
+                        </a>
+                    </div>
+
+                    <!-- Statistik Agenda PBJ in Calendar view -->
+                    <div class="berita-widget berita-stats-widget">
+                        <h4 class="berita-widget__title accent-blue">
+                            <i class="fas fa-chart-line text-primary"></i>
+                            <span>Statistik Agenda PBJ</span>
+                        </h4>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="<?= site_url('event') ?>" class="text-decoration-none">
+                                    <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                        <div class="fw-bold text-dark" style="font-size: 18px;"><?= number_format($stats['total_events']) ?></div>
+                                        <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Total Agenda Terdaftar</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="<?= site_url('event/agenda') ?>" class="text-decoration-none">
+                                    <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                        <div class="fw-bold text-warning-emphasis" style="font-size: 18px;"><?= number_format($stats['upcoming_events']) ?></div>
+                                        <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Kegiatan Mendatang</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="<?= site_url('event') ?>" class="text-decoration-none">
+                                    <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                        <div class="fw-bold text-success" style="font-size: 18px;"><?= number_format($stats['open_registration']) ?></div>
+                                        <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Pendaftaran Dibuka</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="<?= site_url('event') ?>" class="text-decoration-none">
+                                    <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                        <div class="fw-bold text-primary" style="font-size: 18px;"><?= number_format($stats['total_attendees']) ?></div>
+                                        <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Peserta Terdaftar</small>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- STANDARD CATALOG / AGENDA VIEW -->
         <?php else: ?>
-            <!-- Main Grid & Sidebar Layout -->
+            <!-- Main Grid & Sidebar Layout (Matching Berita Layout) -->
             <div class="row g-4">
                 <!-- Left: Events Grid -->
                 <div class="col-lg-8">
                     <?php if (empty($items)): ?>
-                        <div class="text-center p-5 bg-white border radius-18">
-                            <div class="mb-3 text-slate-400" style="font-size: 48px;">
-                                <iconify-icon icon="solar:calendar-minimalistic-linear"></iconify-icon>
-                            </div>
-                            <h4 class="fw-bold mb-2 text-slate-900">Tidak Ada Kegiatan yang Sesuai</h4>
-                            <p class="text-slate-600 mb-4">Gunakan kata kunci atau kombinasi filter lain untuk menemukan agenda pengadaan yang Anda cari.</p>
-                            <a href="<?= site_url('event') ?>" class="btn btn-primary px-4 py-2 radius-10 fw-bold">Lihat Semua Event</a>
+                        <div class="berita-empty">
+                            <div class="berita-empty__icon"><i class="fas fa-calendar-times"></i></div>
+                            <h3 class="berita-empty__title">Tidak Ada Kegiatan yang Sesuai</h3>
+                            <p class="berita-empty__desc">
+                                Tidak ditemukan agenda untuk kata kunci atau kombinasi filter yang Anda pilih. Coba gunakan kata kunci lain atau tampilkan seluruh agenda pembinaan PBJ Lampung.
+                            </p>
+                            <a href="<?= site_url('event') ?>" class="berita-cta__btn" style="background: var(--berita-blue-500); color: #ffffff;">
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Lihat Semua Kegiatan</span>
+                            </a>
                         </div>
                     <?php else: ?>
-                        <div class="row g-4">
+                        <div class="row g-4" id="eventGridView">
                             <?php foreach ($items as $item): ?>
-                                <?php
-                                $modeClass = match ($item['mode']) {
-                                    'online'  => 'evt-mode-online',
-                                    'offline' => 'evt-mode-offline',
-                                    default   => 'evt-mode-hybrid',
-                                };
-                                ?>
                                 <div class="col-md-6">
-                                    <article class="evt-card">
-                                        <div class="evt-card-header">
+                                    <article class="berita-card news-grid-card">
+                                        <a href="<?= site_url('event/' . $item['slug']) ?>" class="berita-card__media d-block text-decoration-none position-relative">
                                             <?php if (! empty($item['cover_url'])): ?>
-                                                <img src="<?= $item['cover_url'] ?>" alt="<?= esc($item['title']) ?>" class="evt-card-img" loading="lazy">
+                                                <img src="<?= $item['cover_url'] ?>" alt="<?= esc($item['title']) ?>" loading="lazy">
                                             <?php else: ?>
-                                                <div class="evt-card-placeholder">
-                                                    <iconify-icon icon="solar:calendar-date-bold" style="font-size: 42px; color: var(--evt-gold); margin-bottom: 8px;"></iconify-icon>
-                                                    <span class="badge bg-warning text-dark text-xs fw-bold px-2 py-1 radius-6 mb-1"><?= esc($item['type_label']) ?></span>
-                                                    <small class="text-white-50 text-xs">BegawiPengadaan Lampung</small>
+                                                <div class="d-flex flex-column align-items-center justify-content-center h-100 bg-dark text-white p-3 text-center" style="background: linear-gradient(135deg, #052244 0%, #0a3d74 100%) !important;">
+                                                    <i class="fas fa-calendar-alt fa-3x text-warning mb-2"></i>
+                                                    <span class="badge bg-warning text-dark text-xs fw-bold"><?= esc($item['type_label']) ?></span>
+                                                    <small class="text-white-50 text-xs mt-1">BegawiPengadaan Lampung</small>
                                                 </div>
                                             <?php endif; ?>
-                                            <div class="evt-date-badge">
-                                                <span class="evt-date-day"><?= esc($item['start_day']) ?></span>
-                                                <span class="evt-date-month"><?= esc($item['start_month']) ?></span>
-                                            </div>
-                                            <span class="evt-mode-pill <?= $modeClass ?>">
-                                                <?= esc($item['mode']) ?>
+                                            <span class="berita-card__cat" style="background: <?= $item['mode'] === 'online' ? '#16a34a' : ($item['mode'] === 'offline' ? '#0c5aa6' : '#d97706') ?>">
+                                                <i class="fas fa-broadcast-tower me-1"></i> <?= esc(ucfirst($item['mode'])) ?>
                                             </span>
-                                        </div>
-                                        <div class="evt-card-body">
-                                            <div class="evt-card-meta">
-                                                <span class="badge bg-primary-subtle text-primary text-xs text-uppercase fw-bold"><?= esc($item['type_label']) ?></span>
+                                            <span class="berita-card__readtime">
+                                                <i class="far fa-calendar-alt"></i> <?= esc($item['start_day']) ?> <?= esc($item['start_month']) ?>
+                                            </span>
+                                        </a>
+
+                                        <div class="berita-card__body">
+                                            <div class="berita-card__meta mb-2">
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 text-xs fw-bold"><?= esc($item['type_label']) ?></span>
                                                 <?php if (! empty($item['certificate_enabled'])): ?>
-                                                    <span class="badge bg-success-subtle text-success text-xs fw-bold"><iconify-icon icon="solar:diploma-verified-bold"></iconify-icon> Sertifikat</span>
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 text-xs fw-bold"><i class="fas fa-certificate me-1"></i> Sertifikat</span>
                                                 <?php endif; ?>
                                                 <span>&middot;</span>
-                                                <span><iconify-icon icon="solar:clock-circle-linear" class="align-middle text-primary"></iconify-icon> <?= esc($item['time_range']) ?></span>
+                                                <span class="text-muted"><i class="far fa-clock text-primary"></i> <?= esc($item['time_range']) ?></span>
                                             </div>
 
-                                            <h3 class="evt-card-title">
+                                            <h3 class="berita-card__title">
                                                 <a href="<?= site_url('event/' . $item['slug']) ?>">
                                                     <?= esc($item['title']) ?>
                                                 </a>
                                             </h3>
 
-                                            <p class="evt-card-summary">
+                                            <p class="berita-card__summary">
                                                 <?= esc($item['summary']) ?>
                                             </p>
 
-                                            <div class="evt-card-location">
-                                                <iconify-icon icon="solar:map-point-bold" class="text-danger flex-shrink-0 text-base"></iconify-icon>
-                                                <span><?= esc($item['location']) ?></span>
+                                            <div class="small text-muted mb-3 d-flex align-items-center gap-1" style="font-size: 12px;">
+                                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                                <span class="text-truncate"><?= esc($item['location']) ?></span>
                                             </div>
 
-                                            <div class="evt-card-footer">
-                                                <div class="evt-seats-badge">
+                                            <div class="berita-card__footer mt-auto">
+                                                <div class="text-xs fw-semibold">
                                                     <?php if ($item['is_past']): ?>
                                                         <span class="badge bg-secondary-subtle text-secondary">Kegiatan Selesai</span>
                                                     <?php elseif ($item['is_unlimited']): ?>
-                                                        <span class="text-slate-600">Kuota: <strong>Fleksibel</strong></span>
+                                                        <span class="text-success"><i class="fas fa-check-circle me-1"></i> Kuota Fleksibel</span>
                                                     <?php elseif ($item['remaining'] > 0): ?>
-                                                        Sisa: <strong><?= $item['remaining'] ?> kuota</strong>
+                                                        <span class="text-primary"><i class="fas fa-user-check me-1"></i> Sisa <?= $item['remaining'] ?> Kursi</span>
                                                     <?php else: ?>
-                                                        <span class="badge bg-warning-subtle text-warning">Kuota Penuh <?= ! empty($item['waitlist_enabled']) ? '(Waitlist)' : '' ?></span>
+                                                        <span class="badge bg-warning-subtle text-warning">Kuota Penuh</span>
                                                     <?php endif; ?>
                                                 </div>
-                                                <a href="<?= site_url('event/' . $item['slug']) ?>" class="btn btn-sm btn-outline-primary px-3 py-1 radius-8 fw-bold">
-                                                    Detail &rarr;
+                                                <a href="<?= site_url('event/' . $item['slug']) ?>" class="berita-card__cta">
+                                                    <span>Detail Acara</span>
+                                                    <i class="fas fa-arrow-right"></i>
                                                 </a>
                                             </div>
                                         </div>
@@ -416,7 +398,7 @@
                             <?php endforeach; ?>
                         </div>
 
-                        <!-- Pagination Bar -->
+                        <!-- Pagination Bar (Harmonized with Berita Pagination) -->
                         <?php if ($totalPages > 1): ?>
                             <?php
                             $queryParams = [];
@@ -429,121 +411,247 @@
                                 return current_url() . '?' . http_build_query($params);
                             };
                             ?>
-                            <nav class="evt-pagination-wrap" aria-label="Navigasi Halaman Event">
-                                <a href="<?= $buildEvtUrl(max(1, $currentPage - 1)) ?>"
-                                    class="evt-page-btn <?= $currentPage <= 1 ? 'disabled' : '' ?>">
-                                    <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
-                                    <span class="ms-1 d-none d-sm-inline">Sebelumnya</span>
-                                </a>
+                            <div class="berita-pagination mt-4">
+                                <div class="berita-pagination__info">
+                                    Halaman <strong><?= $currentPage ?></strong> dari <strong><?= $totalPages ?></strong> &middot; <strong><?= number_format($stats['total_events'] ?? 0) ?></strong> total kegiatan
+                                </div>
+                                <nav class="berita-pagination__list" aria-label="Navigasi Halaman Event">
+                                    <a href="<?= $buildEvtUrl(max(1, $currentPage - 1)) ?>"
+                                        class="berita-pgbtn <?= $currentPage <= 1 ? 'is-disabled' : '' ?>"
+                                        aria-label="Sebelumnya">
+                                        <i class="fas fa-chevron-left"></i>
+                                        <span class="d-none d-sm-inline">Sebelumnya</span>
+                                    </a>
 
-                                <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-                                    <?php if ($p === 1 || $p === $totalPages || ($p >= $currentPage - 1 && $p <= $currentPage + 1)): ?>
-                                        <a href="<?= $buildEvtUrl($p) ?>"
-                                            class="evt-page-btn <?= $p === $currentPage ? 'active' : '' ?>">
-                                            <?= $p ?>
-                                        </a>
-                                    <?php elseif ($p === 2 && $currentPage > 3): ?>
-                                        <span class="evt-page-btn disabled">...</span>
-                                    <?php elseif ($p === $totalPages - 1 && $currentPage < $totalPages - 2): ?>
-                                        <span class="evt-page-btn disabled">...</span>
-                                    <?php endif; ?>
-                                <?php endfor; ?>
+                                    <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+                                        <?php if ($p === 1 || $p === $totalPages || ($p >= $currentPage - 1 && $p <= $currentPage + 1)): ?>
+                                            <a href="<?= $buildEvtUrl($p) ?>"
+                                                class="berita-pgbtn <?= $p === $currentPage ? 'is-active' : '' ?>">
+                                                <?= $p ?>
+                                            </a>
+                                        <?php elseif ($p === 2 && $currentPage > 3): ?>
+                                            <span class="berita-pgbtn is-ellipsis">&hellip;</span>
+                                        <?php elseif ($p === $totalPages - 1 && $currentPage < $totalPages - 2): ?>
+                                            <span class="berita-pgbtn is-ellipsis">&hellip;</span>
+                                        <?php endif; ?>
+                                    <?php endfor; ?>
 
-                                <a href="<?= $buildEvtUrl(min($totalPages, $currentPage + 1)) ?>"
-                                    class="evt-page-btn <?= $currentPage >= $totalPages ? 'disabled' : '' ?>">
-                                    <span class="me-1 d-none d-sm-inline">Berikutnya</span>
-                                    <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
-                                </a>
-                            </nav>
+                                    <a href="<?= $buildEvtUrl(min($totalPages, $currentPage + 1)) ?>"
+                                        class="berita-pgbtn <?= $currentPage >= $totalPages ? 'is-disabled' : '' ?>"
+                                        aria-label="Berikutnya">
+                                        <span class="d-none d-sm-inline">Berikutnya</span>
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </nav>
+                            </div>
                         <?php endif; ?>
                     <?php endif; ?>
                 </div>
 
-                <!-- Right: Sidebar -->
+                <!-- Right: Sidebar (100% Matching Berita Widgets Structure) -->
                 <div class="col-lg-4">
-                    <!-- Quick Search Widget -->
-                    <div class="evt-sidebar-widget">
-                        <h4 class="evt-widget-title">
-                            <iconify-icon icon="solar:magnifer-bold" class="text-primary"></iconify-icon>
+                    <!-- 1. Search Widget -->
+                    <div class="berita-widget">
+                        <h4 class="berita-widget__title">
+                            <i class="fas fa-search"></i>
                             <span>Cari Agenda PBJ</span>
                         </h4>
-                        <form action="<?= site_url('event') ?>" method="get">
-                            <div class="input-group">
-                                <input type="text" name="q" class="form-control radius-8 border" placeholder="Topik atau narasumber..." value="<?= esc($keyword ?? '') ?>">
-                                <button class="btn btn-primary px-3 radius-8" type="submit">
-                                    <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
-                                </button>
-                            </div>
+                        <form action="<?= site_url('event') ?>" method="get" class="berita-searchbox evt-search-box" id="eventSidebarSearchForm">
+                            <input type="text" id="eventSidebarSearchInput" name="q" placeholder="Cari webinar, bimtek, topik..." value="<?= esc($keyword ?? '') ?>">
+                            <?php if (! empty($selectedType)): ?>
+                                <input type="hidden" name="tipe" value="<?= esc($selectedType) ?>">
+                            <?php endif; ?>
+                            <?php if (! empty($selectedMode)): ?>
+                                <input type="hidden" name="mode" value="<?= esc($selectedMode) ?>">
+                            <?php endif; ?>
+                            <button type="submit" aria-label="Cari"><i class="fas fa-search"></i></button>
                         </form>
                     </div>
 
-                    <!-- Type Filter Widget (All 8 dashboard types) -->
-                    <div class="evt-sidebar-widget">
-                        <h4 class="evt-widget-title">
-                            <iconify-icon icon="solar:layers-bold" class="text-warning"></iconify-icon>
-                            <span>Tipe Kegiatan</span>
+                    <!-- 2. Category / Tipe Kegiatan Directory Widget -->
+                    <div class="berita-widget">
+                        <h4 class="berita-widget__title accent-gold">
+                            <i class="fas fa-folder-open"></i>
+                            <span>Kategori Liputan &amp; Tipe</span>
                         </h4>
-                        <div class="d-grid gap-2">
-                            <?php foreach ($dashboardTypes as $tKey => $tLabel): ?>
-                                <a href="<?= site_url('event?tipe=' . $tKey . (! empty($selectedMode) ? '&mode=' . $selectedMode : '')) ?>" class="d-flex align-items-center justify-content-between p-2 radius-8 text-decoration-none <?= $selectedType === $tKey ? 'bg-primary-subtle text-primary fw-bold' : 'text-slate-700 bg-light' ?>">
-                                    <span><?= esc($tLabel) ?></span>
-                                    <span class="badge bg-white text-muted border"><?= $typeCounts[$tKey] ?? 0 ?></span>
+                        <ul class="berita-catlist">
+                            <li>
+                                <a href="<?= site_url('event' . (! empty($selectedMode) ? '?mode=' . $selectedMode : '')) ?>" class="news-cat-pill <?= empty($selectedType) ? 'is-active' : '' ?>">
+                                    <span class="left"><span class="dot" style="background:#0284c7"></span>Semua Tipe</span>
+                                    <span class="count"><?= (int) ($stats['total_events'] ?? 0) ?></span>
                                 </a>
+                            </li>
+                            <?php foreach ($dashboardTypes as $tKey => $tLabel):
+                                $dotColor = match ($tKey) {
+                                    'webinar'     => '#0284c7',
+                                    'bimtek'      => '#16a34a',
+                                    'workshop'    => '#d97706',
+                                    'sosialisasi' => '#9333ea',
+                                    'seminar'     => '#dc2626',
+                                    'pelatihan'   => '#0891b2',
+                                    'rakor'       => '#db2777',
+                                    'klinik'      => '#65a30d',
+                                    default       => '#475569',
+                                };
+                            ?>
+                                <li>
+                                    <a href="<?= site_url('event?tipe=' . $tKey . (! empty($selectedMode) ? '&mode=' . $selectedMode : '')) ?>"
+                                        class="news-cat-pill <?= $selectedType === $tKey ? 'is-active' : '' ?>"
+                                        style="--cat-accent: <?= $dotColor ?>">
+                                        <span class="left"><span class="dot" style="background: <?= $dotColor ?>"></span><?= esc($tLabel) ?></span>
+                                        <span class="count"><?= (int) ($typeCounts[$tKey] ?? 0) ?></span>
+                                    </a>
+                                </li>
                             <?php endforeach; ?>
-                        </div>
+                        </ul>
                     </div>
 
-                    <!-- Upcoming Top 3 Events -->
-                    <div class="evt-sidebar-widget">
-                        <h4 class="evt-widget-title">
-                            <iconify-icon icon="solar:fire-bold" class="text-danger"></iconify-icon>
+                    <!-- 3. Trending / Upcoming Events Widget -->
+                    <div class="berita-widget">
+                        <h4 class="berita-widget__title accent-red">
+                            <i class="fas fa-fire"></i>
                             <span>Kegiatan Terdekat</span>
                         </h4>
                         <?php if (empty($upcomingSidebar)): ?>
-                            <p class="text-xs text-slate-500 mb-0">Belum ada agenda mendatang dalam waktu dekat.</p>
+                            <p class="text-sm text-muted mb-0">Belum ada kegiatan terdekat.</p>
                         <?php else: ?>
-                            <?php foreach ($upcomingSidebar as $us): ?>
-                                <div class="mb-3 pb-3 border-bottom">
-                                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                        <span class="badge bg-primary-subtle text-primary text-xs text-uppercase fw-bold"><?= esc($us['type']) ?></span>
-                                        <?php if (! empty($us['certificate_enabled'])): ?>
-                                            <span class="badge bg-success-subtle text-success text-xs fw-bold">Sertifikat</span>
-                                        <?php endif; ?>
-                                        <small class="text-slate-500 fw-semibold"><?= date('d M Y', strtotime($us['start_at'])) ?></small>
+                            <?php foreach ($upcomingSidebar as $rank => $us): ?>
+                                <div class="berita-trend">
+                                    <div class="berita-trend__rank <?= $rank < 3 ? 'is-top' : '' ?>">
+                                        <?= $rank + 1 ?>
                                     </div>
-                                    <h6 class="fw-bold mb-1">
-                                        <a href="<?= site_url('event/' . $us['slug']) ?>" class="text-slate-900 text-decoration-none">
-                                            <?= esc($us['title']) ?>
-                                        </a>
-                                    </h6>
-                                    <small class="text-slate-600 d-block"><iconify-icon icon="solar:map-point-linear" class="text-danger"></iconify-icon> <?= esc($us['location'] ?: 'Online via Zoom') ?></small>
+                                    <div class="berita-trend__body">
+                                        <h5 class="berita-trend__title">
+                                            <a href="<?= site_url('event/' . $us['slug']) ?>">
+                                                <?= esc($us['title']) ?>
+                                            </a>
+                                        </h5>
+                                        <div class="berita-trend__meta">
+                                            <i class="far fa-calendar-alt"></i>
+                                            <span><?= date('d M Y', strtotime($us['start_at'])) ?></span>
+                                            <span>&middot;</span>
+                                            <i class="fas fa-map-marker-alt text-danger"></i>
+                                            <span><?= esc($us['location'] ?: 'Online via Zoom') ?></span>
+                                        </div>
+                                    </div>
                                 </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
 
-                    <!-- Host / Biro PBJ Notice Box -->
-                    <div class="p-4 bg-dark text-white border radius-18 shadow-sm" style="background: linear-gradient(135deg, #052244 0%, #0a3d74 100%) !important;">
-                        <span class="badge bg-warning text-dark text-xs fw-bold px-2 py-1 mb-2">Biro PBJ Setda Lampung</span>
-                        <h5 class="fw-bold text-white mb-2">Layanan Pembinaan &amp; Advokasi</h5>
-                        <p class="text-xs text-slate-300 mb-3" style="line-height: 1.65;">
+                    <!-- 4. Informasi Statistik Agenda PBJ (4-Box Grid) -->
+                    <div class="berita-widget berita-stats-widget">
+                        <h4 class="berita-widget__title accent-blue">
+                            <i class="fas fa-chart-line text-primary"></i>
+                            <span>Statistik Agenda PBJ</span>
+                        </h4>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="<?= site_url('event') ?>" class="text-decoration-none">
+                                    <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                        <div class="fw-bold text-dark" style="font-size: 18px;"><?= number_format($stats['total_events']) ?></div>
+                                        <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Total Agenda Terdaftar</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="<?= site_url('event/agenda') ?>" class="text-decoration-none">
+                                    <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                        <div class="fw-bold text-warning-emphasis" style="font-size: 18px;"><?= number_format($stats['upcoming_events']) ?></div>
+                                        <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Kegiatan Mendatang</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="<?= site_url('event') ?>" class="text-decoration-none">
+                                    <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                        <div class="fw-bold text-success" style="font-size: 18px;"><?= number_format($stats['open_registration']) ?></div>
+                                        <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Pendaftaran Dibuka</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="<?= site_url('event') ?>" class="text-decoration-none">
+                                    <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                        <div class="fw-bold text-primary" style="font-size: 18px;"><?= number_format($stats['total_attendees']) ?></div>
+                                        <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Peserta Terdaftar</small>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Official Penyelenggara & Biro PBJ Bulletin -->
+                    <div class="berita-widget">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div style="width: 44px; height: 44px; border-radius: 10px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                                <i class="fas fa-landmark"></i>
+                            </div>
+                            <div>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle small fw-bold" style="font-size: 11.5px;">PENYELENGGARA RESMI</span>
+                                <h5 class="fw-bold mb-0 text-dark" style="font-size: 14.5px; line-height: 1.35;">Biro Pengadaan Barang &amp; Jasa Setda Provinsi Lampung</h5>
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-3" style="font-size: 13.5px; line-height: 1.6;">
                             Seluruh kegiatan peningkatan kapasitas diselenggarakan secara resmi untuk mendukung profesionalisme SDM pengadaan di Lingkungan Pemerintah Provinsi Lampung.
                         </p>
-                        <div class="text-xs text-warning fw-semibold d-flex align-items-center gap-1">
-                            <iconify-icon icon="solar:phone-bold"></iconify-icon>
-                            <span>Helpdesk PBJ: +62 851-1777-9783</span>
+                        <a href="<?= site_url('kontak') ?>" class="btn btn-sm btn-outline-primary w-100 radius-8 fw-bold" style="font-size: 13px;">
+                            <i class="fas fa-headset me-1"></i> Helpdesk PBJ: +62 851-1777-9783
+                        </a>
+                    </div>
+
+                    <!-- 6. Tag Cloud Widget -->
+                    <div class="berita-widget">
+                        <h4 class="berita-widget__title accent-cyan">
+                            <i class="fas fa-tags"></i>
+                            <span>Topik Populer</span>
+                        </h4>
+                        <div class="berita-tags">
+                            <a href="<?= site_url('event?q=Webinar') ?>" class="berita-tag">#WebinarNasional</a>
+                            <a href="<?= site_url('event?q=Bimtek') ?>" class="berita-tag">#BimtekSPSE</a>
+                            <a href="<?= site_url('event?q=Sertifikasi') ?>" class="berita-tag">#SertifikasiPBJ</a>
+                            <a href="<?= site_url('event?q=Mitigasi') ?>" class="berita-tag">#MitigasiRisiko</a>
+                            <a href="<?= site_url('event?q=E-Katalog') ?>" class="berita-tag">#E-KatalogV6</a>
+                            <a href="<?= site_url('event?q=P3DN') ?>" class="berita-tag">#P3DNLampung</a>
                         </div>
                     </div>
                 </div>
             </div>
         <?php endif; ?>
+
+        <!-- Closing CTA Banner (Matching Berita CTA Style) -->
+        <div class="berita-cta mt-5">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <span class="berita-cta__eyebrow">
+                        <i class="fas fa-calendar-check"></i> Agenda Pembinaan Berkelanjutan
+                    </span>
+                    <h3 class="berita-cta__title text-white">Tingkatkan Kompetensi Pengadaan Anda Bersama Ahli LKPP &amp; PBJ</h3>
+                    <p class="berita-cta__lead text-white" style="opacity: 0.92;">
+                        Ingin mengadakan bimbingan teknis khusus, klinik pengadaan, atau konsultasi pendampingan untuk OPD/Instansi Anda? Hubungi Tim Pembinaan Biro PBJ Provinsi Lampung.
+                    </p>
+                </div>
+                <div class="col-lg-4">
+                    <div class="berita-cta__actions">
+                        <a href="<?= site_url('kontak') ?>" class="berita-cta__btn berita-cta__btn--primary">
+                            <i class="fas fa-envelope-open-text"></i>
+                            <span>Hubungi Tim Pembinaan</span>
+                        </a>
+                        <a href="<?= site_url('arena-belajar') ?>" class="berita-cta__btn berita-cta__btn--ghost">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Arena Belajar</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </section>
 
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
     (function() {
         // Bulletproof zero-jitter clamping at scroll extremities for ultra-smooth scrolling

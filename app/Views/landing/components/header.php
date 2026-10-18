@@ -24,9 +24,8 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
     || in_array('admin', $roles, true)
     || in_array('super_admin', $roles, true);
 $isHomeView = !empty($isHome);
-$isFlowHeader = $isHomeView || $isPrefixActive('berita') || $isPrefixActive('event') || $isPrefixActive('arena-belajar');
 ?>
-<header class="main-header <?= $isFlowHeader ? 'main-header--home' : '' ?>" style="<?= $isFlowHeader ? 'position: relative !important; top: auto !important; left: auto !important; right: auto !important; width: 100% !important; margin: 0 !important; z-index: 999 !important; background: #052244 !important;' : '' ?>">
+<header class="main-header">
 
     <nav class="main-menu">
         <div class="main-menu__wrapper">
@@ -35,7 +34,8 @@ $isFlowHeader = $isHomeView || $isPrefixActive('berita') || $isPrefixActive('eve
                     <div class="main-menu__left">
                         <div class="main-menu__logo">
                             <a href="<?= site_url('/') ?>" aria-label="Beranda BegawiPengadaan">
-                                <img src="<?= base_url('assets/main/images/resources/logo-1.png') ?>" alt="BegawiPengadaan">
+                                <img src="<?= base_url('assets/main/images/resources/logo-1.png') ?>" alt="BegawiPengadaan" class="main-header__logo-light">
+                                <img src="<?= base_url('assets/main/images/resources/logo-4.png') ?>" alt="BegawiPengadaan" class="main-header__logo-dark">
                             </a>
                         </div>
                     </div>
@@ -65,9 +65,7 @@ $isFlowHeader = $isHomeView || $isPrefixActive('berita') || $isPrefixActive('eve
                                     <li><a href="<?= site_url('bunga-rampai/faq') ?>">Tanya Jawab (FAQ)</a></li>
                                     <li><a href="<?= site_url('bunga-rampai/studi-kasus') ?>">Studi Kasus Lapangan</a></li>
                                     <li><a href="<?= site_url('bunga-rampai/template-dokumen') ?>">Template Dokumen Kerja</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/media') ?>">Media &amp; Infografis</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/video') ?>">Video Edukasi PBJ</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/galeri') ?>">Galeri Kegiatan</a></li>
+                                    <li><a href="<?= site_url('bunga-rampai/multimedia') ?>">Multimedia PBJ</a></li>
                                 </ul>
                             </li>
                             <li class="dropdown <?= $isPrefixActive('regulasi') ? 'current' : '' ?>">

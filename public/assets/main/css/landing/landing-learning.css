@@ -1042,43 +1042,43 @@ section.py-5[style*="min-height: 60vh"] .progress {
         padding: 16px 18px !important;
     }
 
-    /* Mobile Hamburger Toggler Contrast Button */
-    .main-header .mobile-nav__toggler,
-    .mobile-nav__toggler {
+    /* Mobile Hamburger Toggler Contrast Button (High Contrast on White Navbar) */
+    .landing-internal .main-header .mobile-nav__toggler,
+    .main-header .mobile-nav__toggler {
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        width: 40px !important;
-        height: 40px !important;
-        border-radius: 9px !important;
-        background: rgba(255, 255, 255, 0.18) !important;
-        border: 1.5px solid rgba(255, 255, 255, 0.38) !important;
-        color: #ffffff !important;
+        width: 42px !important;
+        height: 42px !important;
+        border-radius: 10px !important;
+        background: #f1f5f9 !important;
+        border: 1.5px solid #cbd5e1 !important;
+        color: #0f172a !important;
         font-size: 19px !important;
         cursor: pointer !important;
         transition: all 0.2s ease !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22) !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
         text-decoration: none !important;
     }
 
-    .main-header .mobile-nav__toggler i,
-    .mobile-nav__toggler i {
-        color: #ffffff !important;
+    .landing-internal .main-header .mobile-nav__toggler i,
+    .main-header .mobile-nav__toggler i {
+        color: #0f172a !important;
         font-size: 19px !important;
         line-height: 1 !important;
         display: inline-block !important;
     }
 
-    .main-header .mobile-nav__toggler:hover,
-    .mobile-nav__toggler:hover {
-        background: #f59e0b !important;
-        border-color: #f59e0b !important;
-        color: #0f172a !important;
+    .landing-internal .main-header .mobile-nav__toggler:hover,
+    .main-header .mobile-nav__toggler:hover {
+        background: var(--begawi-primary, #0c5aa6) !important;
+        border-color: var(--begawi-primary, #0c5aa6) !important;
+        color: #ffffff !important;
     }
 
-    .main-header .mobile-nav__toggler:hover i,
-    .mobile-nav__toggler:hover i {
-        color: #0f172a !important;
+    .landing-internal .main-header .mobile-nav__toggler:hover i,
+    .main-header .mobile-nav__toggler:hover i {
+        color: #ffffff !important;
     }
 }
 

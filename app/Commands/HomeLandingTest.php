@@ -155,7 +155,6 @@ class HomeLandingTest extends BaseCommand
         $this->testModule("Interactive Testimonies Spotlight Slider Section", function () use ($html) {
             $this->assert(str_contains($html, 'section-testimonies'), "Testimonies section container present");
             $this->assert(str_contains($html, 'Testimoni &amp; Pengalaman Nyata Pengguna BegawiPengadaan'), "Testimonies heading present");
-            $this->assert(str_contains($html, 'testimony-kpi-strip'), "Testimony KPI strip present");
             $this->assert(str_contains($html, 'testimony-card'), "Testimony cards present");
             $this->assert(str_contains($html, 'spotlight-photo-frame'), "Prominent spotlight photo frame present");
             $this->assert(str_contains($html, 'Ahmad Zulkarnaen, S.T., M.T.'), "PPK testimony author present");

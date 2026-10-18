@@ -440,3 +440,115 @@
         background-color: #f8fafc;
         color: #0d6efd !important;
     }
+
+/* =========================================================================
+   INSTAGRAM SLIDER & CAROUSEL COMPONENT
+   ========================================================================= */
+.insta-carousel {
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+    background: #0b1329;
+}
+
+.insta-track {
+    display: flex;
+    width: 100%;
+    transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.insta-slide {
+    flex: 0 0 100%;
+    width: 100%;
+    position: relative;
+    cursor: pointer;
+}
+
+.insta-arrow-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    color: #0f172a;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+    z-index: 10;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.insta-arrow-btn:hover {
+    background: #ffffff;
+    color: #0284c7;
+    transform: translateY(-50%) scale(1.08);
+}
+
+.insta-arrow-prev { left: 10px; }
+.insta-arrow-next { right: 10px; }
+
+.insta-dots-indicator {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.insta-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.insta-dot.active {
+    width: 8px;
+    height: 8px;
+    background: #38bdf8;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.9);
+}
+
+/* Modal Stage Slider Controls */
+.modal-slide-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.72);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    z-index: 15;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-slide-arrow:hover {
+    background: rgba(2, 132, 199, 0.92);
+    border-color: #38bdf8;
+    transform: translateY(-50%) scale(1.08);
+}
+
+.modal-slide-prev { left: 14px; }
+.modal-slide-next { right: 14px; }

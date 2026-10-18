@@ -179,7 +179,7 @@
 
                             <div class="col-12">
                                 <label for="service_type" class="contact-label">Kategori Layanan *</label>
-                                <select id="service_type" name="service_type" class="contact-input" required>
+                                <select id="service_type" name="service_type" class="contact-input ignore form-select" required>
                                     <option value="" disabled <?= old('service_type') ? '' : 'selected' ?>>Pilih Kategori Permohonan / Layanan...</option>
                                     <?php foreach ($serviceCategories as $cat): ?>
                                         <option value="<?= esc($cat) ?>" <?= old('service_type') === $cat ? 'selected' : '' ?>><?= esc($cat) ?></option>

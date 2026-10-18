@@ -167,6 +167,16 @@ class KnowledgeLandingTest extends BaseCommand
             $failed++;
         }
 
+        // Multimedia catalog (Integrated Unified Page)
+        $htmlMultimedia = $controller->multimedia();
+        if (str_contains($htmlMultimedia, 'Multimedia PBJ') && str_contains($htmlMultimedia, 'Feed Instagram')) {
+            CLI::write('  [OK] Multimedia Catalog: Unified page rendered with Instagram slider & filters', 'green');
+            $passed++;
+        } else {
+            CLI::write('  [FAIL] Multimedia Catalog: Render failure', 'red');
+            $failed++;
+        }
+
         // -------------------------------------------------------------
         // TEST 4: Detail Pages & File Download
         // -------------------------------------------------------------

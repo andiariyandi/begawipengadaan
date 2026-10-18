@@ -60,7 +60,7 @@ class RegulationLandingTest extends BaseCommand
             CLI::write("  - [ID: {$co['id']}] [{$co['key']}] {$co['name']}", 'white');
         }
 
-        $sample = $db->table('regulations')->where('deleted_at', null)->where('workflow_status', 'published')->get()->getRowArray();
+        $sample = $db->table('regulations')->where('deleted_at', null)->where('workflow_status', 'published')->where('visibility', 'public')->get()->getRowArray();
         if ($sample) {
             CLI::write(">>> TEST 2: Detail Regulation (/regulasi/{$sample['slug']})", 'cyan');
             try {

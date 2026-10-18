@@ -1,51 +1,125 @@
 <?= $this->extend('landing/layouts/public') ?>
 
+<?= $this->section('pageStyles') ?>
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-news.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-news.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-news.css') : '1.0' ?>" />
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-events.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-events.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-events.css') : '1.0' ?>" />
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-learning.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-learning.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-learning.css') : '1.0' ?>" />
+<style>
+    .ikm-grand-badge {
+        background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%);
+        border-radius: 16px;
+    }
+    .metric-icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    .aspect-badge-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .survey-cta-banner {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+</style>
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 
-<!-- Page Header -->
-<section class="page-header">
-    <div class="page-header__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/page-header-bg.jpg') ?>);"></div>
+<!-- MAIN SURVEY IKM SECTION -->
+<section class="berita-main-section evt-main-section pt-2 pt-md-3 pt-lg-4 pb-5" style="background: #fafbfc; min-height: 80vh;">
     <div class="container">
-        <div class="page-header__inner">
-            <h2>Hasil Survei Kepuasan Publik (IKM)</h2>
-            <ul class="thm-breadcrumb list-unstyled">
-                <li><a href="<?= site_url('/') ?>">Beranda</a></li>
-                <li><span>/</span></li>
-                <li><a href="<?= site_url('statistik') ?>">Statistik</a></li>
-                <li><span>/</span></li>
-                <li>Survei Kepuasan (IKM)</li>
-            </ul>
-        </div>
-    </div>
-</section>
 
-<!-- Main Results Content -->
-<section class="survey-results-section py-5">
-    <div class="container">
-        
-        <!-- Header Banner & Hero Summary -->
-        <div class="survey-results-hero p-4 p-md-5 rounded-4 mb-5 border shadow-sm">
-            <div class="row align-items-center g-4">
+        <!-- Compact Breadcrumb + Header Title Banner -->
+        <div class="evt-hero-banner mb-3 mb-md-4">
+            <div class="arena-breadcrumb evt-breadcrumb mb-2">
+                <a href="<?= site_url('/') ?>"><iconify-icon icon="solar:home-2-bold" class="align-middle"></iconify-icon> Beranda</a>
+                <span class="sep">/</span>
+                <a href="<?= site_url('statistik') ?>">Statistik</a>
+                <span class="sep">/</span>
+                <span class="current">Survei Kepuasan (IKM)</span>
+            </div>
+
+            <div class="row align-items-center justify-content-between g-3 mb-2">
                 <div class="col-lg-8">
-                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2 rounded-pill fw-semibold mb-3">
-                        <i class="fas fa-award me-1"></i> <?= esc($analytics['legal_basis'] ?? 'PermenPAN-RB No. 14/2017') ?>
+                    <span class="arena-section-head__tag mb-1 d-inline-block">
+                        <i class="fas fa-award me-1 text-primary"></i> <?= esc($analytics['legal_basis'] ?? 'PermenPAN-RB No. 14/2017') ?>
                     </span>
-                    <h2 class="fw-bold text-dark mb-3">Indeks Kepuasan Masyarakat (IKM) Biro Pengadaan Barang &amp; Jasa</h2>
-                    <p class="text-muted mb-4 lead" style="font-size: 16px;">
+                    <h1 class="evt-hero-title mb-2">
+                        Indeks Kepuasan Masyarakat <span>(IKM)</span> <br>
+                        <span>Biro Pengadaan Barang &amp; Jasa Provinsi Lampung</span>
+                    </h1>
+                    <p class="evt-hero-desc mb-0">
                         Laporan resmi transparansi mutu pelayanan publik Pemerintah Provinsi Lampung. Evaluasi ini dihimpun secara objektif dan berkala dari seluruh pemangku kepentingan: Penyedia, PPK, Pokja Pemilihan, APIP, dan masyarakat umum.
                     </p>
-                    <div class="d-flex flex-wrap gap-3">
-                        <button type="button" class="thm-btn px-4 py-2" data-bs-toggle="modal" data-bs-target="#modalSurveyKepuasan">
-                            <i class="fas fa-edit me-2"></i><span>Isi Survei Kepuasan</span>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <button type="button" class="btn btn-primary fw-bold radius-12 px-3 py-2 shadow-sm d-inline-flex align-items-center gap-2 mb-2" data-bs-toggle="modal" data-bs-target="#modalSurveyKepuasan" style="font-size: 13.5px;">
+                        <i class="fas fa-edit"></i> Isi Survei Kepuasan
+                    </button>
+                    <a href="<?= site_url('statistik') ?>" class="btn btn-outline-secondary fw-bold radius-12 px-3 py-2 shadow-sm d-inline-flex align-items-center gap-2 mb-2 ms-sm-2" style="font-size: 13.5px;">
+                        <i class="fas fa-chart-line"></i> Statistik Publik
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sub-Navigation Category Tabs -->
+        <div class="card border-0 shadow-2xs radius-12 p-2 px-3 mb-4 bg-white border" style="border-color: #e2e8f0 !important;">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex flex-wrap align-items-center gap-1">
+                    <span class="small fw-bold text-muted me-1" style="font-size: 12px;"><i class="fas fa-filter text-primary me-1"></i> Klaster:</span>
+                    <a href="<?= site_url('statistik') ?>" class="arena-filter-pill arena-filter-pill--inactive">
+                        Semua Data
+                    </a>
+                    <a href="<?= site_url('statistik/pembelajaran') ?>" class="arena-filter-pill arena-filter-pill--inactive">
+                        <i class="fas fa-graduation-cap me-1"></i> Pembelajaran
+                    </a>
+                    <a href="<?= site_url('statistik/event') ?>" class="arena-filter-pill arena-filter-pill--inactive">
+                        <i class="far fa-calendar-check me-1"></i> Event &amp; Agenda
+                    </a>
+                    <a href="<?= site_url('statistik/kompetensi') ?>" class="arena-filter-pill arena-filter-pill--inactive">
+                        <i class="fas fa-certificate me-1"></i> Sertifikasi PBJ
+                    </a>
+                    <a href="<?= site_url('statistik/survei-kepuasan') ?>" class="arena-filter-pill arena-filter-pill--active">
+                        <i class="fas fa-star text-warning me-1"></i> Survei IKM
+                    </a>
+                </div>
+                <div class="text-muted small fw-semibold d-none d-sm-inline-flex" style="font-size: 12px;">
+                    <i class="fas fa-sync-alt me-1 text-success align-middle"></i> Terverifikasi Akuntabel
+                </div>
+            </div>
+        </div>
+
+        <!-- Header Banner & Hero Summary -->
+        <div class="survey-results-hero p-4 p-md-5 rounded-4 mb-4 bg-white border shadow-sm" style="border-color: #e2e8f0 !important;">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold mb-3">
+                        <i class="fas fa-shield-alt me-1"></i> Transparansi Mutu Berkelanjutan
+                    </span>
+                    <h2 class="fw-bold text-dark mb-3">Evaluasi Akuntabilitas &amp; Reformasi Birokrasi PBJ</h2>
+                    <p class="text-muted mb-4 lead" style="font-size: 15px; line-height: 1.7;">
+                        Survei Kepuasan Masyarakat merupakan instrumen pengukuran komprehensif tingkat kepuasan terhadap 9 unsur pelayanan pengadaan barang dan jasa sesuai amanat regulasi nasional. Hasil pengukuran ini secara terbuka menjadi tolok ukur perbaikan sistem, transparansi, dan akselerasi transformasi digital UKPBJ Provinsi Lampung.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-warning text-dark fw-bold px-4 py-2 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalSurveyKepuasan">
+                            <i class="fas fa-edit me-1"></i> Berikan Penilaian Sekarang
                         </button>
-                        <a href="<?= site_url('statistik') ?>" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold d-inline-flex align-items-center">
-                            <i class="fas fa-chart-line me-2"></i>Lihat Statistik Publik Lainnya
-                        </a>
                     </div>
                 </div>
                 <div class="col-lg-4">
                     <!-- Grand IKM Badge Card -->
-                    <div class="ikm-grand-badge p-4 rounded-4 text-center text-white shadow">
+                    <div class="ikm-grand-badge p-4 text-center text-white shadow">
                         <div class="small text-white-50 text-uppercase fw-bold letter-spacing-1 mb-1">Capaian Indeks IKM</div>
                         <div class="ikm-grand-score display-4 fw-extrabold mb-1">
                             <?= esc($analytics['avg_overall'] ?? '4.86') ?>
