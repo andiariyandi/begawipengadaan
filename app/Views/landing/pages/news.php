@@ -1,4 +1,4 @@
-﻿<?= $this->extend('landing/layouts/public') ?>
+<?= $this->extend('landing/layouts/public') ?>
 
 <?php
 /**
@@ -64,233 +64,53 @@ $stats = array_merge([
     'total_views'       => 0,
     'this_month'        => 0,
 ], $stats);
+
+$headlineList = ! empty($headlineArticles) ? $headlineArticles : (! empty($headlineArticle) ? [$headlineArticle] : []);
 ?>
 <?= $this->section('pageStyles') ?>
-<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-news.css') ?>" />
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-news.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-news.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-news.css') : '1.0' ?>" />
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
-<!-- HERO BANNER -->
-<section class="berita-hero">
-    <div class="container">
-        <nav class="berita-breadcrumb" aria-label="Breadcrumb Berita">
-            <a href="<?= site_url('/') ?>"><i class="fas fa-home"></i> Beranda</a>
-            <span class="sep">/</span>
-            <a href="<?= site_url('berita') ?>">Berita PBJ</a>
-            <?php if (! empty($currentCategory)): ?>
-                <span class="sep">/</span>
-                <span class="current"><?= esc($currentCategory['name']) ?></span>
-            <?php elseif (! empty($keyword)): ?>
-                <span class="sep">/</span>
-                <span class="current">Pencarian: "<?= esc($keyword) ?>"</span>
-            <?php endif; ?>
-        </nav>
-
-        <div class="berita-hero__trust">
-            <i class="fas fa-shield-halved"></i>
-            <span>Siaran Pers Resmi &middot; Pemerintah Provinsi Lampung</span>
-        </div>
-
-        <div class="berita-hero__pre">Kabar &amp; Publikasi Terkini</div>
-
-        <h1 class="berita-hero__title">
-            <?php if (! empty($currentCategory)): ?>
-                Arsip Berita: <span><?= esc($currentCategory['name']) ?></span>
-            <?php elseif (! empty($keyword)): ?>
-                Hasil Pencarian untuk <span>"<?= esc($keyword) ?>"</span>
-            <?php else: ?>
-                Kabar Resmi <span>Pengadaan Barang/Jasa</span><br>
-                Pemerintah Provinsi Lampung
-            <?php endif; ?>
-        </h1>
-
-        <p class="berita-hero__lead">
-            Pusat informasi terpercaya mengenai kebijakan LKPP, transformasi e-katalog lokal,
-            penguatan integritas tata kelola, kegiatan bimtek aparatur, capaian strategis UKPBJ,
-            dan perkembangan terbaru pengadaan barang/jasa di lingkungan Pemerintah Provinsi Lampung.
-        </p>
-
-        <ul class="berita-hero__stats">
-            <li>
-                <i class="fas fa-newspaper"></i>
-                <span><strong><?= number_format($stats['total_news']) ?></strong> Publikasi Tersedia</span>
-            </li>
-            <li>
-                <i class="fas fa-eye"></i>
-                <span><strong><?= number_format($stats['total_views']) ?>+</strong> Pembaca Terjangkau</span>
-            </li>
-            <li>
-                <i class="fas fa-folder-open"></i>
-                <span><strong><?= number_format($stats['total_categories']) ?></strong> Kategori Liputan</span>
-            </li>
-            <li>
-                <i class="fas fa-circle-check"></i>
-                <span>Sumber <strong>Resmi &amp; Terverifikasi</strong></span>
-            </li>
-        </ul>
-
-        <form action="<?= site_url('berita') ?>" method="get" class="berita-hero__search" id="beritaHeroSearchForm">
-            <i class="fas fa-search"></i>
-            <input type="text" id="beritaHeroSearchInput" name="q"
-                value="<?= esc($keyword ?? '') ?>"
-                placeholder="Cari judul berita, topik kebijakan, atau kata kunci...">
-            <?php if (! empty($selectedCategory)): ?>
-                <input type="hidden" name="kategori" value="<?= esc($selectedCategory) ?>">
-            <?php endif; ?>
-            <button type="submit">
-                <span>Cari Berita</span>
-                <i class="fas fa-arrow-right"></i>
-            </button>
-        </form>
-
-        <div class="berita-hero__chips">
-            <span class="berita-hero__chips-label"><i class="fas fa-lightbulb text-warning"></i> Topik Populer:</span>
-            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('P3DN')">
-                <i class="fas fa-check-circle"></i> P3DN &amp; TKDN
-            </button>
-            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('E-Katalog')">
-                <i class="fas fa-shopping-cart"></i> E-Katalog Lokal
-            </button>
-            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('Bimtek')">
-                <i class="fas fa-graduation-cap"></i> Bimtek SPSE
-            </button>
-            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('Integritas')">
-                <i class="fas fa-shield-alt"></i> Integritas PBJ
-            </button>
-            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('UKPBJ')">
-                <i class="fas fa-landmark"></i> UKPBJ Proaktif
-            </button>
-            <button type="button" class="berita-hero__chip" onclick="beritaQuickSearch('Tender')">
-                <i class="fas fa-gavel"></i> Klarifikasi Tender
-            </button>
-        </div>
-    </div>
-</section>
-
-<!-- METRICS RIBBON -->
-<div class="container berita-metrics">
-    <div class="row g-3 g-lg-4">
-        <div class="col-lg-3 col-6">
-            <a href="<?= site_url('berita') ?>" class="text-decoration-none" title="Lihat Semua Berita">
-                <div class="berita-metric-card" style="--metric-accent: #0284c7; --metric-bg: #e0f2fe;">
-                    <div class="berita-metric-icon"><i class="fas fa-newspaper"></i></div>
-                    <div>
-                        <div class="berita-metric-value"><?= number_format($stats['total_news']) ?></div>
-                        <div class="berita-metric-label">Total Publikasi Resmi</div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-6">
-            <a href="#kategori-liputan-section" class="text-decoration-none" title="Jelajahi Kategori Berita">
-                <div class="berita-metric-card" style="--metric-accent: #d97706; --metric-bg: #fef3c7;">
-                    <div class="berita-metric-icon"><i class="fas fa-folder-open"></i></div>
-                    <div>
-                        <div class="berita-metric-value"><?= number_format($stats['total_categories']) ?></div>
-                        <div class="berita-metric-label">Kategori Liputan PBJ</div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-6">
-            <a href="<?= site_url('berita?sort=popular') ?>" class="text-decoration-none" title="Lihat Berita Paling Banyak Dibaca">
-                <div class="berita-metric-card" style="--metric-accent: #16a34a; --metric-bg: #dcfce7;">
-                    <div class="berita-metric-icon"><i class="fas fa-eye"></i></div>
-                    <div>
-                        <div class="berita-metric-value">
-                            <?= number_format($stats['total_views']) ?><span class="unit">+</span>
-                        </div>
-                        <div class="berita-metric-label">Total Pembaca Terjangkau</div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-6">
-            <a href="<?= site_url('berita?sort=newest') ?>" class="text-decoration-none" title="Lihat Berita Terbit Bulan Ini">
-                <div class="berita-metric-card" style="--metric-accent: #9333ea; --metric-bg: #faf5ff;">
-                    <div class="berita-metric-icon"><i class="fas fa-calendar-alt"></i></div>
-                    <div>
-                        <div class="berita-metric-value"><?= number_format($stats['this_month']) ?></div>
-                        <div class="berita-metric-label">Rilis Bulan Ini</div>
-                    </div>
-                </div>
-            </a>
-        </div>
-    </div>
-</div>
-
 <!-- MAIN CONTENT AREA -->
-<section class="pb-80" id="kategori-liputan-section">
+<section class="berita-main-section" id="kategori-liputan-section">
     <div class="container">
 
-        <!-- Sticky Filter & Sort Bar -->
-        <div class="berita-filterbar">
-            <div class="berita-filterbar__inner">
-                <div class="berita-catpills">
-                    <a href="<?= site_url('berita') . (! empty($keyword) ? '?q=' . urlencode($keyword) : '') ?>"
-                        class="berita-catpill <?= empty($selectedCategory) ? 'is-active' : '' ?>">
-                        <span class="berita-catpill__dot" style="background:#0284c7"></span>
-                        <span>Semua</span>
-                        <span class="pill-count"><?= (int) $stats['total_news'] ?></span>
-                    </a>
-                    <?php foreach (($categories ?? []) as $cat):
-                        [$fg, $bg] = newsCategoryColor($cat['slug']);
-                    ?>
-                        <a href="<?= site_url('berita/kategori/' . $cat['slug']) . (! empty($keyword) ? '?q=' . urlencode($keyword) : '') ?>"
-                            class="berita-catpill <?= $selectedCategory === $cat['slug'] ? 'is-active' : '' ?>"
-                            style="--cat-accent: <?= $fg ?>">
-                            <span class="berita-catpill__dot" style="background: <?= $fg ?>"></span>
-                            <span><?= esc($cat['name']) ?></span>
-                            <span class="pill-count"><?= (int) $cat['news_count'] ?></span>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-
-                <div class="berita-filterbar__right">
-                    <?php if (! empty($keyword) || ! empty($selectedCategory)): ?>
-                        <span class="berita-active-filter">
-                            <i class="fas fa-filter"></i>
-                            <?= ! empty($keyword) ? '"' . esc($keyword) . '"' : '' ?>
-                            <a href="<?= ! empty($selectedCategory) ? site_url('berita/kategori/' . $selectedCategory) : site_url('berita') ?>" title="Hapus filter">&times;</a>
-                        </span>
+        <?php if (! empty($currentCategory) || ! empty($keyword)): ?>
+            <!-- Filter Active Notification -->
+            <div class="d-flex align-items-center justify-content-between p-3 mb-4 radius-12 bg-light border">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-filter text-primary"></i>
+                    <span class="text-muted small">Menampilkan Berita:</span>
+                    <?php if (! empty($currentCategory)): ?>
+                        <span class="badge bg-primary text-white fw-bold px-3 py-2"><?= esc($currentCategory['name']) ?></span>
                     <?php endif; ?>
-
-                    <form action="<?= current_url() ?>" method="get" class="berita-sort">
-                        <?php if (! empty($keyword)): ?>
-                            <input type="hidden" name="q" value="<?= esc($keyword) ?>">
-                        <?php endif; ?>
-                        <select name="sort" class="berita-sort__select" onchange="this.form.submit()" aria-label="Urutkan">
-                            <option value="newest" <?= ($sort ?? 'newest') === 'newest' ? 'selected' : '' ?>>Terbaru</option>
-                            <option value="popular" <?= ($sort ?? '') === 'popular' ? 'selected' : '' ?>>Paling Dilihat</option>
-                            <option value="oldest" <?= ($sort ?? '') === 'oldest' ? 'selected' : '' ?>>Terlama</option>
-                        </select>
-                    </form>
-
-                    <div class="berita-viewtoggle" role="group" aria-label="Ganti tampilan">
-                        <button type="button" id="viewGridBtn" class="is-active" title="Tampilan Grid" aria-label="Tampilan Grid">
-                            <i class="fas fa-grip"></i>
-                        </button>
-                        <button type="button" id="viewListBtn" title="Tampilan Daftar" aria-label="Tampilan Daftar">
-                            <i class="fas fa-list"></i>
-                        </button>
-                    </div>
+                    <?php if (! empty($keyword)): ?>
+                        <span class="badge bg-warning text-dark fw-bold px-3 py-2">"<?= esc($keyword) ?>"</span>
+                    <?php endif; ?>
                 </div>
+                <a href="<?= site_url('berita') ?>" class="btn btn-sm btn-outline-secondary radius-8 fw-bold">
+                    <i class="fas fa-times me-1"></i> Reset Filter
+                </a>
             </div>
-        </div>
+        <?php endif; ?>
 
         <!-- Headline Carousel / Single -->
         <?php if (! empty($headlineList)): ?>
-            <div class="berita-headline">
+            <div class="berita-headline mb-4">
                 <?php if (count($headlineList) > 1): ?>
                     <div id="headlineCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="6000">
-                        <div class="carousel-inner">
-                            <?php foreach ($headlineList as $hIndex => $hItem): ?>
+                        <div class="carousel-inner radius-16 overflow-hidden">
+                            <?php foreach ($headlineList as $hIndex => $hItem):
+                                $hThumb = ! empty($hItem['cover_path'])
+                                    ? base_url($hItem['cover_path'])
+                                    : (! empty($hItem['cover_url']) ? $hItem['cover_url'] : base_url('assets/main/images/blog/blog-details-img-1.jpg'));
+                            ?>
                                 <div class="carousel-item <?= $hIndex === 0 ? 'active' : '' ?>">
-                                    <div class="berita-headline__inner">
+                                    <div class="berita-headline__inner news-headline-card">
                                         <div class="berita-headline__media">
-                                            <img src="<?= ! empty($hItem['cover_path']) ? base_url($hItem['cover_path']) : base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>"
-                                                alt="<?= esc($hItem['title']) ?>">
+                                            <img src="<?= $hThumb ?>" alt="<?= esc($hItem['title']) ?>" loading="lazy">
                                             <div class="berita-headline__badges">
                                                 <span class="berita-headline__badge">
                                                     <i class="fas fa-star"></i> Berita Utama
@@ -298,7 +118,7 @@ $stats = array_merge([
                                             </div>
                                             <div class="berita-headline__counter">
                                                 <span class="dot"></span>
-                                                <span>Utama <?= $hIndex + 1 ?> / <?= count($headlineList) ?></span>
+                                                <span>Utama #<?= $hIndex + 1 ?> / <?= count($headlineList) ?></span>
                                             </div>
                                             <div class="berita-headline__caption">
                                                 <span class="berita-headline__cat">
@@ -310,9 +130,9 @@ $stats = array_merge([
                                                     </a>
                                                 </h2>
                                                 <div class="berita-headline__meta">
-                                                    <span><i class="far fa-calendar-alt"></i><?= esc($hItem['date_formatted'] ?? date('d M Y', strtotime($hItem['published_at'] ?? 'now'))) ?></span>
-                                                    <span><i class="far fa-clock"></i><?= esc($hItem['read_time'] ?? '5') ?> mnt baca</span>
-                                                    <span><i class="far fa-eye"></i><?= number_format($hItem['view_count'] ?? 0) ?> views</span>
+                                                    <span><i class="far fa-calendar-alt"></i> <?= esc($hItem['date_formatted'] ?? date('d M Y', strtotime($hItem['published_at'] ?? 'now'))) ?></span>
+                                                    <span><i class="far fa-clock"></i> <?= esc($hItem['read_time'] ?? '5') ?> mnt baca</span>
+                                                    <span><i class="far fa-eye"></i> <?= number_format($hItem['view_count'] ?? 0) ?> views</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -335,11 +155,15 @@ $stats = array_merge([
                         </div>
                     </div>
                 <?php else: ?>
-                    <?php $singleArticle = $headlineList[0]; ?>
-                    <div class="berita-headline-single">
+                    <?php
+                    $singleArticle = $headlineList[0];
+                    $sThumb = ! empty($singleArticle['cover_path'])
+                        ? base_url($singleArticle['cover_path'])
+                        : (! empty($singleArticle['cover_url']) ? $singleArticle['cover_url'] : base_url('assets/main/images/blog/blog-details-img-1.jpg'));
+                    ?>
+                    <div class="berita-headline-single news-headline-card radius-16 overflow-hidden">
                         <div class="berita-headline__media">
-                            <img src="<?= ! empty($singleArticle['cover_path']) ? base_url($singleArticle['cover_path']) : base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>"
-                                alt="<?= esc($singleArticle['title']) ?>">
+                            <img src="<?= $sThumb ?>" alt="<?= esc($singleArticle['title']) ?>" loading="lazy">
                             <div class="berita-headline__badges">
                                 <span class="berita-headline__badge">
                                     <i class="fas fa-star"></i> Berita Utama
@@ -356,14 +180,14 @@ $stats = array_merge([
                                 </h2>
                             </div>
                         </div>
-                        <div class="berita-headline-single__body">
-                            <p class="berita-headline-single__desc">
+                        <div class="berita-headline-single__body p-4">
+                            <p class="berita-headline-single__desc text-muted mb-3" style="font-size: 15px; line-height: 1.65;">
                                 <?= esc($singleArticle['summary'] ?? '') ?>
                             </p>
                             <div class="berita-headline__meta mb-3">
-                                <span><i class="far fa-calendar-alt"></i><?= esc($singleArticle['date_formatted'] ?? date('d M Y', strtotime($singleArticle['published_at'] ?? 'now'))) ?></span>
-                                <span><i class="far fa-clock"></i><?= esc($singleArticle['read_time'] ?? '5') ?> mnt baca</span>
-                                <span><i class="far fa-eye"></i><?= number_format($singleArticle['view_count'] ?? 0) ?> views</span>
+                                <span><i class="far fa-calendar-alt"></i> <?= esc($singleArticle['date_formatted'] ?? date('d M Y', strtotime($singleArticle['published_at'] ?? 'now'))) ?></span>
+                                <span><i class="far fa-clock"></i> <?= esc($singleArticle['read_time'] ?? '5') ?> mnt baca</span>
+                                <span><i class="far fa-eye"></i> <?= number_format($singleArticle['view_count'] ?? 0) ?> views</span>
                             </div>
                             <a href="<?= site_url('berita/' . $singleArticle['slug']) ?>" class="berita-cta__btn berita-cta__btn--primary" style="display: inline-flex;">
                                 <span>Baca Berita Lengkap</span>
@@ -379,8 +203,8 @@ $stats = array_merge([
         <div class="row g-4">
             <div class="col-lg-8">
                 <?php
-                    $hasItems    = ! empty($items);
-                    $hasHeadline = ! empty($headlineList);
+                $hasItems    = ! empty($items);
+                $hasHeadline = ! empty($headlineList);
                 ?>
                 <?php if (! $hasItems && ! $hasHeadline): ?>
                     <div class="berita-empty">
@@ -403,11 +227,11 @@ $stats = array_merge([
                             [$fgColor, $bgColor] = newsCategoryColor($item['category_slug'] ?? $item['slug'] ?? 'default');
                             $thumb = ! empty($item['cover_path'])
                                 ? base_url($item['cover_path'])
-                                : base_url('assets/main/images/blog/blog-list-1-1.jpg');
+                                : (! empty($item['cover_url']) ? $item['cover_url'] : base_url('assets/main/images/blog/blog-list-1-1.jpg'));
                             $author = $item['author_name'] ?? 'Biro PBJ Setda Lampung';
                         ?>
                             <div class="col-md-6">
-                                <article class="berita-card" style="--cat-accent: <?= $fgColor ?>">
+                                <article class="berita-card news-grid-card" style="--cat-accent: <?= $fgColor ?>">
                                     <a href="<?= site_url('berita/' . $item['slug']) ?>" class="berita-card__media d-block text-decoration-none">
                                         <img src="<?= $thumb ?>" alt="<?= esc($item['title']) ?>" loading="lazy">
                                         <span class="berita-card__cat"><?= esc($item['category_name'] ?? 'Berita') ?></span>
@@ -452,10 +276,10 @@ $stats = array_merge([
                             [$fgColor, $bgColor] = newsCategoryColor($item['category_slug'] ?? $item['slug'] ?? 'default');
                             $thumb = ! empty($item['cover_path'])
                                 ? base_url($item['cover_path'])
-                                : base_url('assets/main/images/blog/blog-list-1-1.jpg');
+                                : (! empty($item['cover_url']) ? $item['cover_url'] : base_url('assets/main/images/blog/blog-list-1-1.jpg'));
                             $author = $item['author_name'] ?? 'Biro PBJ Setda Lampung';
                         ?>
-                            <article class="berita-list__item" style="--cat-accent: <?= $fgColor ?>">
+                            <article class="berita-list__item news-grid-card" style="--cat-accent: <?= $fgColor ?>">
                                 <a href="<?= site_url('berita/' . $item['slug']) ?>" class="berita-list__thumb text-decoration-none">
                                     <img src="<?= $thumb ?>" alt="<?= esc($item['title']) ?>" loading="lazy">
                                     <span class="berita-list__cat"><?= esc($item['category_name'] ?? 'Berita') ?></span>
@@ -488,15 +312,15 @@ $stats = array_merge([
                     <!-- Smart Pagination -->
                     <?php if (($totalPages ?? 1) > 1): ?>
                         <?php
-                            $queryParams = [];
-                            if (! empty($keyword))   $queryParams['q']   = $keyword;
-                            if (! empty($sort) && $sort !== 'newest') $queryParams['sort'] = $sort;
-                            $buildUrl = function ($p) use ($queryParams) {
-                                $params = array_merge($queryParams, ['page' => $p]);
-                                return current_url() . '?' . http_build_query($params);
-                            };
-                            $cp = (int) ($currentPage ?? 1);
-                            $tp = (int) ($totalPages ?? 1);
+                        $queryParams = [];
+                        if (! empty($keyword))   $queryParams['q']   = $keyword;
+                        if (! empty($sort) && $sort !== 'newest') $queryParams['sort'] = $sort;
+                        $buildUrl = function ($p) use ($queryParams) {
+                            $params = array_merge($queryParams, ['page' => $p]);
+                            return current_url() . '?' . http_build_query($params);
+                        };
+                        $cp = (int) ($currentPage ?? 1);
+                        $tp = (int) ($totalPages ?? 1);
                         ?>
                         <div class="berita-pagination">
                             <div class="berita-pagination__info">
@@ -544,8 +368,8 @@ $stats = array_merge([
                         <i class="fas fa-search"></i>
                         <span>Cari Artikel Berita</span>
                     </h4>
-                    <form action="<?= site_url('berita') ?>" method="get" class="berita-searchbox">
-                        <input type="text" name="q" placeholder="Kata kunci pengadaan..." value="<?= esc($keyword ?? '') ?>">
+                    <form action="<?= site_url('berita') ?>" method="get" class="berita-searchbox news-search-box" id="beritaSidebarSearchForm">
+                        <input type="text" id="beritaSidebarSearchInput" name="q" placeholder="Kata kunci pengadaan..." value="<?= esc($keyword ?? '') ?>">
                         <button type="submit" aria-label="Cari"><i class="fas fa-search"></i></button>
                     </form>
                 </div>
@@ -558,8 +382,8 @@ $stats = array_merge([
                     </h4>
                     <ul class="berita-catlist">
                         <li>
-                            <a href="<?= site_url('berita') ?>" class="<?= empty($selectedCategory) ? 'is-active' : '' ?>">
-                                <span class="left"><span class="dot" style="background:#0284c7"></span>Semua Berita</span>
+                            <a href="<?= site_url('berita') ?>" class="news-cat-pill <?= empty($selectedCategory) ? 'is-active' : '' ?>">
+                                <span class="left"><span class="dot" style="background:#0284c7"></span>Semua Kategori</span>
                                 <span class="count"><?= (int) ($stats['total_news'] ?? 0) ?></span>
                             </a>
                         </li>
@@ -568,7 +392,7 @@ $stats = array_merge([
                         ?>
                             <li>
                                 <a href="<?= site_url('berita/kategori/' . $cat['slug']) ?>"
-                                    class="<?= $selectedCategory === $cat['slug'] ? 'is-active' : '' ?>"
+                                    class="news-cat-pill <?= $selectedCategory === $cat['slug'] ? 'is-active' : '' ?>"
                                     style="--cat-accent: <?= $fg ?>">
                                     <span class="left"><span class="dot" style="background: <?= $fg ?>"></span><?= esc($cat['name']) ?></span>
                                     <span class="count"><?= (int) $cat['news_count'] ?></span>
@@ -611,23 +435,65 @@ $stats = array_merge([
                     <?php endif; ?>
                 </div>
 
-                <!-- Newsletter Mini Widget -->
-                <div class="berita-newsletter">
-                    <div class="berita-newsletter__icon"><i class="fas fa-envelope-open-text"></i></div>
-                    <h4 class="berita-newsletter__title">Newsletter PBJ Lampung</h4>
-                    <p class="berita-newsletter__lead">
-                        Dapatkan rangkuman mingguan kabar &amp; kebijakan pengadaan langsung ke email Anda.
+                <!-- Informasi Statistik Berita PBJ (di bawah Berita Terpopuler) -->
+                <div class="berita-widget berita-stats-widget">
+                    <h4 class="berita-widget__title accent-blue">
+                        <i class="fas fa-chart-line text-primary"></i>
+                        <span>Statistik Publikasi</span>
+                    </h4>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a href="<?= site_url('berita') ?>" class="text-decoration-none">
+                                <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                    <div class="fw-bold text-dark" style="font-size: 18px;"><?= number_format($stats['total_news']) ?></div>
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Berita Publikasi Resmi</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="<?= site_url('berita') ?>" class="text-decoration-none">
+                                <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                    <div class="fw-bold text-warning-emphasis" style="font-size: 18px;"><?= number_format($stats['total_categories']) ?></div>
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Kategori Liputan PBJ</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="<?= site_url('berita?sort=popular') ?>" class="text-decoration-none">
+                                <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                    <div class="fw-bold text-success" style="font-size: 18px;"><?= number_format($stats['total_views']) ?>+</div>
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Total Pembaca Terjangkau</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="<?= site_url('berita?sort=newest') ?>" class="text-decoration-none">
+                                <div class="p-2 radius-8 border bg-light h-100 transition-all hover-shadow-sm text-center">
+                                    <div class="fw-bold text-primary" style="font-size: 18px;"><?= number_format($stats['this_month']) ?></div>
+                                    <small class="text-muted d-block fw-semibold" style="font-size: 11px; line-height: 1.25;">Rilis Bulan Ini</small>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Official Redaksi & PPID Bulletin -->
+                <div class="berita-widget">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div style="width: 44px; height: 44px; border-radius: 10px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                            <i class="fas fa-landmark"></i>
+                        </div>
+                        <div>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle small fw-bold" style="font-size: 11.5px;">REDAKSI RESMI</span>
+                            <h5 class="fw-bold mb-0 text-dark" style="font-size: 14.5px; line-height: 1.35;">Biro Pengadaan Barang &amp; Jasa Setda Provinsi Lampung</h5>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-3" style="font-size: 13.5px; line-height: 1.6;">
+                        Kanal siaran pers dan publikasi berita resmi pengelolaan pengadaan barang/jasa Pemerintah Provinsi Lampung yang terverifikasi dan akuntabel.
                     </p>
-                    <form class="berita-newsletter__form" onsubmit="event.preventDefault(); this.querySelector('button').innerHTML='<i class=\'fas fa-check\'></i> OK';">
-                        <input type="email" placeholder="Email Anda" aria-label="Email">
-                        <button type="submit" title="Daftar Newsletter">
-                            <i class="fas fa-paper-plane"></i>
-                            <span>Daftar</span>
-                        </button>
-                    </form>
-                    <p class="berita-newsletter__hint">
-                        <i class="fas fa-shield-halved me-1"></i> Privasi Anda terlindungi &middot; Tanpa spam.
-                    </p>
+                    <a href="<?= site_url('kontak') ?>" class="btn btn-sm btn-outline-primary w-100 radius-8 fw-bold" style="font-size: 13px;">
+                        <i class="fas fa-envelope-open-text me-1"></i> Kontak PPID Biro PBJ
+                    </a>
                 </div>
 
                 <!-- Tag Cloud Widget -->
@@ -647,30 +513,6 @@ $stats = array_merge([
                         <a href="<?= site_url('berita?q=Bimtek') ?>" class="berita-tag">#Bimtek SPSE</a>
                     </div>
                 </div>
-
-                <!-- Eco Linkage Widget -->
-                <div class="berita-eco">
-                    <h5 class="berita-eco__title"><i class="fas fa-compass me-2 text-primary"></i>Jelajahi Ekosistem</h5>
-                    <p class="berita-eco__lead">Tingkatkan wawasan dan kompetensi PBJ Anda melalui kanal lainnya:</p>
-                    <div class="berita-eco__list">
-                        <a href="<?= site_url('regulasi') ?>">
-                            <span class="left"><i class="icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-balance-scale"></i></i>Pusat Regulasi PBJ</span>
-                            <i class="fas fa-arrow-right text-muted"></i>
-                        </a>
-                        <a href="<?= site_url('arena-belajar') ?>">
-                            <span class="left"><i class="icon" style="background:#cffafe;color:#0891b2"><i class="fas fa-graduation-cap"></i></i>Arena Belajar &amp; Sertifikasi</span>
-                            <i class="fas fa-arrow-right text-muted"></i>
-                        </a>
-                        <a href="<?= site_url('bunga-rampai') ?>">
-                            <span class="left"><i class="icon" style="background:#dcfce7;color:#16a34a"><i class="fas fa-book-reader"></i></i>Bunga Rampai &amp; Template</span>
-                            <i class="fas fa-arrow-right text-muted"></i>
-                        </a>
-                        <a href="<?= site_url('event') ?>">
-                            <span class="left"><i class="icon" style="background:#e0f2fe;color:#0284c7"><i class="fas fa-calendar-star"></i></i>Agenda &amp; Event PBJ</span>
-                            <i class="fas fa-arrow-right text-muted"></i>
-                        </a>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -681,8 +523,8 @@ $stats = array_merge([
                     <span class="berita-cta__eyebrow">
                         <i class="fas fa-bullhorn"></i> Keterbukaan Informasi Publik
                     </span>
-                    <h3 class="berita-cta__title">Pusat Siaran Pers &amp; Klarifikasi Berita PBJ Lampung</h3>
-                    <p class="berita-cta__lead">
+                    <h3 class="berita-cta__title text-white">Pusat Siaran Pers &amp; Klarifikasi Berita PBJ Lampung</h3>
+                    <p class="berita-cta__lead text-white" style="opacity: 0.92;">
                         Membutuhkan konfirmasi, klarifikasi berita, atau materi siaran pers resmi terkait
                         pengadaan barang dan jasa Pemerintah Provinsi Lampung? Tim Pejabat Pengelola
                         Informasi &amp; Dokumentasi (PPID) Biro PBJ siap melayani permohonan Anda.
@@ -711,19 +553,19 @@ $stats = array_merge([
 <?= $this->section('pageScripts') ?>
 <script>
     function beritaQuickSearch(term) {
-        var input = document.getElementById('beritaHeroSearchInput');
-        var form  = document.getElementById('beritaHeroSearchForm');
+        var input = document.getElementById('beritaSidebarSearchInput');
+        var form = document.getElementById('beritaSidebarSearchForm');
         if (input && form) {
             input.value = term;
             form.submit();
         }
     }
 
-    (function () {
+    (function() {
         var gridBtn = document.getElementById('viewGridBtn');
         var listBtn = document.getElementById('viewListBtn');
-        var grid    = document.getElementById('beritaGridView');
-        var list    = document.getElementById('beritaListView');
+        var grid = document.getElementById('beritaGridView');
+        var list = document.getElementById('beritaListView');
         if (!gridBtn || !listBtn || !grid || !list) return;
 
         function apply(mode) {
@@ -745,8 +587,18 @@ $stats = array_merge([
             if (saved === 'list') apply('list');
         } catch (e) {}
 
-        gridBtn.addEventListener('click', function () { apply('grid'); try { localStorage.setItem('berita_view_mode', 'grid'); } catch (e) {} });
-        listBtn.addEventListener('click', function () { apply('list'); try { localStorage.setItem('berita_view_mode', 'list'); } catch (e) {} });
+        gridBtn.addEventListener('click', function() {
+            apply('grid');
+            try {
+                localStorage.setItem('berita_view_mode', 'grid');
+            } catch (e) {}
+        });
+        listBtn.addEventListener('click', function() {
+            apply('list');
+            try {
+                localStorage.setItem('berita_view_mode', 'list');
+            } catch (e) {}
+        });
     })();
 </script>
 <?= $this->endSection() ?>

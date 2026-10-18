@@ -38,12 +38,10 @@ class NewsLandingTest extends BaseCommand
             $this->assert(is_string($html) && strlen($html) > 1000, "Berita HTML output produced and length > 1000 chars");
         });
 
-        // 2. Test Hero Banner & Search
-        $this->testModule("Hero Banner, Search & Breadcrumb", function () use ($html) {
-            $this->assert(str_contains($html, 'Kabar &amp; Publikasi Resmi'), "Hero title present");
-            $this->assert(str_contains($html, 'Pengadaan Barang/Jasa Provinsi Lampung'), "Hero subtitle present");
-            $this->assert(str_contains($html, 'news-search-box'), "Hero search form present");
-            $this->assert(str_contains($html, 'Beranda'), "Breadcrumb beranda present");
+        // 2. Test Direct Magazine Header & Search
+        $this->testModule("Direct Magazine Header & Search", function () use ($html) {
+            $this->assert(str_contains($html, 'news-search-box'), "Search form present");
+            $this->assert(str_contains($html, 'Berita Utama'), "Headline card present");
         });
 
         // 3. Test Live KPI Metrics Ribbon
@@ -125,13 +123,11 @@ class NewsLandingTest extends BaseCommand
             $this->assert($caught, "PageNotFoundException thrown for invalid news slug");
         });
 
-        // 9. Test Header Sub-menu
-        $this->testModule("Navigation Header Sub-menu for Berita", function () {
+        // 9. Test Header Direct Link for Berita
+        $this->testModule("Navigation Header Link for Berita", function () {
             $headerFile = APPPATH . 'Views/landing/components/header.php';
             $content = file_get_contents($headerFile);
-            $this->assert(str_contains($content, '<li><a href="<?= site_url(\'berita\') ?>">Semua Berita PBJ</a></li>'), "Semua Berita PBJ menu item present");
-            $this->assert(str_contains($content, 'site_url(\'berita/kategori/kebijakan-regulasi\')'), "Kebijakan & Regulasi sub-menu present");
-            $this->assert(str_contains($content, 'site_url(\'berita/kategori/e-katalog-digital\')'), "E-Katalog sub-menu present");
+            $this->assert(str_contains($content, 'site_url(\'berita\')'), "Direct Berita navigation link present");
         });
 
         // 10. Test View Count Increments by +1 on Every Open (Non-unique)

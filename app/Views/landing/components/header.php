@@ -24,8 +24,9 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
     || in_array('admin', $roles, true)
     || in_array('super_admin', $roles, true);
 $isHomeView = !empty($isHome);
+$isFlowHeader = $isHomeView || $isPrefixActive('berita') || $isPrefixActive('event') || $isPrefixActive('arena-belajar');
 ?>
-<header class="main-header <?= $isHomeView ? 'main-header--home' : '' ?>" style="<?= $isHomeView ? 'position: relative !important; top: auto !important; left: auto !important; right: auto !important; width: 100% !important; margin: 0 !important; z-index: 999 !important; background: #052244 !important;' : '' ?>">
+<header class="main-header <?= $isFlowHeader ? 'main-header--home' : '' ?>" style="<?= $isFlowHeader ? 'position: relative !important; top: auto !important; left: auto !important; right: auto !important; width: 100% !important; margin: 0 !important; z-index: 999 !important; background: #052244 !important;' : '' ?>">
 
     <nav class="main-menu">
         <div class="main-menu__wrapper">
@@ -43,18 +44,18 @@ $isHomeView = !empty($isHome);
                         <a href="#" class="mobile-nav__toggler"><i class="fa fa-bars"></i></a>
                         <ul class="main-menu__list">
                             <li class="<?= $isActive('') ? 'current' : '' ?>"><a href="<?= site_url('/') ?>">Beranda</a></li>
-                            <li class="<?= $isPrefixActive('tentang') ? 'current' : '' ?>">
+                            <li class="dropdown <?= $isPrefixActive('tentang') ? 'current' : '' ?>">
                                 <a href="<?= site_url('tentang') ?>">Tentang</a>
-                            </li>
-                            <li class="dropdown <?= $isPrefixActive('arena-belajar') ? 'current' : '' ?>">
-                                <a href="<?= site_url('arena-belajar') ?>">Arena Belajar</a>
                                 <ul class="shadow-box">
-                                    <li><a href="<?= site_url('arena-belajar') ?>">Eksplorasi Pembelajaran</a></li>
-                                    <li><a href="<?= site_url('arena-belajar/program') ?>">Program Pembelajaran</a></li>
-                                    <li><a href="<?= site_url('arena-belajar/course') ?>">Course PBJ</a></li>
-                                    <li><a href="<?= site_url('arena-belajar/kelas') ?>">Kelas &amp; Batch</a></li>
-                                    <li><a href="<?= site_url('arena-belajar/pengajar') ?>">Instruktur &amp; Pengajar</a></li>
+                                    <li><a href="<?= site_url('tentang') ?>">Profil Biro PBJ</a></li>
+                                    <li><a href="<?= site_url('tentang#visi-misi') ?>">Visi &amp; Misi 2024–2029</a></li>
+                                    <li><a href="<?= site_url('tentang#pilar') ?>">5 Pilar Ekosistem BegawiPengadaan</a></li>
+                                    <li><a href="<?= site_url('tentang#struktur') ?>">Struktur Organisasi</a></li>
+                                    <li><a href="<?= site_url('tentang#maklumat') ?>">Maklumat Pelayanan UKPBJ</a></li>
                                 </ul>
+                            </li>
+                            <li class=" <?= $isPrefixActive('arena-belajar') ? 'current' : '' ?>">
+                                <a href="<?= site_url('arena-belajar') ?>">Arena Belajar</a>
                             </li>
                             <li class="dropdown <?= $isPrefixActive('bunga-rampai') ? 'current' : '' ?>">
                                 <a href="<?= site_url('bunga-rampai') ?>">Bunga Rampai</a>
@@ -80,7 +81,7 @@ $isHomeView = !empty($isHome);
                                     <li><a href="<?= site_url('regulasi?category=surat-edaran') ?>">Surat Edaran (SE) PBJ</a></li>
                                 </ul>
                             </li>
-                            <li class=" <?= $isPrefixActive('berita') ? 'current' : '' ?>">
+                            <li class="<?= $isPrefixActive('berita') ? 'current' : '' ?>">
                                 <a href="<?= site_url('berita') ?>">Berita</a>
                             </li>
                             <li class="dropdown <?= $isPrefixActive('event') ? 'current' : '' ?>">

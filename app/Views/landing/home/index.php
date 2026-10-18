@@ -253,9 +253,9 @@ $bulanIndo = [
             <p class="section-title-desc mx-auto">Dirancang untuk memenuhi seluruh siklus kebutuhan Pejabat Pembuat Komitmen (PPK), Pokja Pemilihan, Pejabat Pengadaan, Penyedia Barang/Jasa, dan Auditor di Provinsi Lampung.</p>
         </div>
 
-        <div class="row g-4">
+        <div class="row g-3 g-md-4">
             <!-- Pilar 1: Arena Belajar -->
-            <div class="col-lg-4 col-md-6">
+            <div class="col-12 col-md-6 col-lg-4">
                 <div class="pillar-card" style="--pillar-accent: #0c5aa6; --pillar-bg: #eff6ff;">
                     <div class="pillar-icon-box">
                         <iconify-icon icon="solar:mortarboard-bold"></iconify-icon>
@@ -263,6 +263,10 @@ $bulanIndo = [
                     <span class="pillar-badge">E-Learning &amp; Sertifikasi</span>
                     <h3 class="pillar-title">Arena Belajar</h3>
                     <p class="pillar-desc">Pusat pelatihan mandiri berbasis e-learning, program sertifikasi PBJ, modul berjenjang, dan kelas interaktif bersama instruktur terakreditasi LKPP.</p>
+                    <div class="pillar-stat-row">
+                        <span class="pillar-stat"><strong><?= max(18, $stats['total_courses'] ?? 0) ?></strong> Kursus</span>
+                        <span class="pillar-stat"><strong>4</strong> Program</span>
+                    </div>
                     <a href="<?= site_url('arena-belajar') ?>" class="pillar-link">
                         <span>Eksplorasi Pembelajaran</span>
                         <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
@@ -271,7 +275,7 @@ $bulanIndo = [
             </div>
 
             <!-- Pilar 2: Bunga Rampai -->
-            <div class="col-lg-4 col-md-6">
+            <div class="col-12 col-md-6 col-lg-4">
                 <div class="pillar-card" style="--pillar-accent: #10b981; --pillar-bg: #ecfdf5;">
                     <div class="pillar-icon-box">
                         <iconify-icon icon="solar:book-bookmark-bold"></iconify-icon>
@@ -279,6 +283,10 @@ $bulanIndo = [
                     <span class="pillar-badge">Dokumen &amp; Studi Kasus</span>
                     <h3 class="pillar-title">Bunga Rampai PBJ</h3>
                     <p class="pillar-desc">Ensiklopedia literasi praktis: artikel wawasan, template dokumen kerja (KAK, HPS, Kontrak), studi kasus penanganan sanggah, dan galeri multimedia.</p>
+                    <div class="pillar-stat-row">
+                        <span class="pillar-stat"><strong><?= max(45, $stats['total_knowledge'] ?? 0) ?></strong> Artikel &amp; Template</span>
+                        <span class="pillar-stat"><strong>5</strong> Topik</span>
+                    </div>
                     <a href="<?= site_url('bunga-rampai') ?>" class="pillar-link">
                         <span>Buka Bunga Rampai</span>
                         <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
@@ -287,7 +295,7 @@ $bulanIndo = [
             </div>
 
             <!-- Pilar 3: Regulasi PBJ -->
-            <div class="col-lg-4 col-md-6">
+            <div class="col-12 col-md-6 col-lg-4">
                 <div class="pillar-card" style="--pillar-accent: #f59e0b; --pillar-bg: #fffbeb;">
                     <div class="pillar-icon-box">
                         <iconify-icon icon="solar:scale-bold"></iconify-icon>
@@ -295,6 +303,10 @@ $bulanIndo = [
                     <span class="pillar-badge">Produk Hukum Resmi</span>
                     <h3 class="pillar-title">Regulasi &amp; Payung Hukum</h3>
                     <p class="pillar-desc">Koleksi terstruktur peraturan perundang-undangan (Perpres, PerLKPP, Perda Lampung, Surat Edaran), riwayat naskah versi, dan silsilah relasi aturan hukum.</p>
+                    <div class="pillar-stat-row">
+                        <span class="pillar-stat"><strong><?= max(24, $stats['total_regulations'] ?? 0) ?></strong> Regulasi</span>
+                        <span class="pillar-stat"><strong>5</strong> Kategori</span>
+                    </div>
                     <a href="<?= site_url('regulasi') ?>" class="pillar-link">
                         <span>Pusat Regulasi PBJ</span>
                         <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
@@ -303,7 +315,7 @@ $bulanIndo = [
             </div>
 
             <!-- Pilar 4: Klinik Konsultasi & FAQ -->
-            <div class="col-lg-6 col-md-6">
+            <div class="col-12 col-md-6 col-lg-6">
                 <div class="pillar-card" style="--pillar-accent: #8b5cf6; --pillar-bg: #f5f3ff;">
                     <div class="pillar-icon-box">
                         <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
@@ -311,6 +323,10 @@ $bulanIndo = [
                     <span class="pillar-badge">Helpdesk &amp; Mitigasi</span>
                     <h3 class="pillar-title">Klinik Konsultasi &amp; Tanya Jawab</h3>
                     <p class="pillar-desc">Bimbingan teknis terarah dan tanya jawab spesifik mengenai persoalan regulasi, kendala pemilihan penyedia, penyesuaian harga, serta tata cara mitigasi risiko audit kepengadaan.</p>
+                    <div class="pillar-stat-row">
+                        <span class="pillar-stat"><strong><?= max(5, count($faqs)) ?></strong> FAQ Aktif</span>
+                        <span class="pillar-stat"><strong>24/7</strong> Helpdesk</span>
+                    </div>
                     <a href="<?= site_url('bunga-rampai/faq') ?>" class="pillar-link">
                         <span>Lihat FAQ &amp; Bimbingan</span>
                         <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
@@ -319,7 +335,7 @@ $bulanIndo = [
             </div>
 
             <!-- Pilar 5: Verifikasi Sertifikat Digital -->
-            <div class="col-lg-6 col-md-6">
+            <div class="col-12 col-md-6 col-lg-6">
                 <div class="pillar-card" style="--pillar-accent: #0284c7; --pillar-bg: #f0f9ff;">
                     <div class="pillar-icon-box">
                         <iconify-icon icon="solar:diploma-verified-bold"></iconify-icon>
@@ -327,6 +343,10 @@ $bulanIndo = [
                     <span class="pillar-badge">Validasi QR Code</span>
                     <h3 class="pillar-title">Verifikasi Sertifikat Digital</h3>
                     <p class="pillar-desc">Validasi keabsahan sertifikat pelatihan, bukti tanda lulus, dan kompetensi yang diterbitkan resmi oleh Biro Pengadaan Barang dan Jasa Provinsi Lampung.</p>
+                    <div class="pillar-stat-row">
+                        <span class="pillar-stat"><strong>QR Code</strong> Validasi</span>
+                        <span class="pillar-stat"><strong>SSL</strong> Aman</span>
+                    </div>
                     <a href="<?= site_url('verifikasi-sertifikat') ?>" class="pillar-link">
                         <span>Cek Keabsahan Sertifikat</span>
                         <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
@@ -357,7 +377,7 @@ $bulanIndo = [
             </a>
         </div>
 
-        <div class="row g-4">
+        <div class="row g-3 g-md-4">
             <?php if (empty($courses)): ?>
                 <?php
                 $mockCourses = [
@@ -365,16 +385,24 @@ $bulanIndo = [
                     ['title' => 'Teknik Penyusunan HPS & Spesifikasi Teknis yang Akuntabel', 'level' => 'Menengah', 'hours' => '16 JP', 'program' => 'Teknis PPK', 'slug' => 'penyusunan-hps-spesifikasi'],
                     ['title' => 'Tata Kelola Pengadaan Melalui E-Katalog & E-Purchasing V6', 'level' => 'Pemula', 'hours' => '12 JP', 'program' => 'Katalog PBJ', 'slug' => 'tata-kelola-e-katalog'],
                 ];
+                $ci = 0;
                 foreach ($mockCourses as $c): ?>
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-12 col-md-6 col-lg-4">
                         <div class="course-card-modern">
                             <div class="course-thumb-wrap">
                                 <img src="<?= base_url('assets/main/images/resources/courses-1-1.jpg') ?>" alt="<?= esc($c['title']) ?>">
+                                <?php if ($ci === 0): ?>
+                                    <span class="course-popular-ribbon"><iconify-icon icon="solar:star-bold"></iconify-icon> Populer</span>
+                                <?php endif; ?>
                                 <span class="course-level-badge"><?= esc($c['level']) ?></span>
                                 <span class="course-duration-badge">
                                     <iconify-icon icon="solar:clock-circle-linear"></iconify-icon>
                                     <?= esc($c['hours']) ?>
                                 </span>
+                                <div class="course-overlay-cta">
+                                    <iconify-icon icon="solar:play-circle-bold"></iconify-icon>
+                                    <span>Lihat Detail</span>
+                                </div>
                             </div>
                             <div class="course-body-modern">
                                 <span class="course-program-tag"><?= esc($c['program']) ?></span>
@@ -391,9 +419,9 @@ $bulanIndo = [
                             </div>
                         </div>
                     </div>
-                <?php endforeach; ?>
+                <?php $ci++; endforeach; ?>
             <?php else: ?>
-                <?php foreach ($courses as $c): ?>
+                <?php $ci = 0; foreach ($courses as $c): ?>
                     <?php
                     $lvl = strtolower((string) ($c['level'] ?? 'basic'));
                     $lvlText = match ($lvl) {
@@ -413,15 +441,22 @@ $bulanIndo = [
                         ? base_url('file/' . (int) ($c['cover_file_id'] ?? 0))
                         : (! empty($c['cover_url']) ? $c['cover_url'] : base_url('assets/main/images/resources/courses-1-1.jpg'));
                     ?>
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-12 col-md-6 col-lg-4">
                         <div class="course-card-modern">
                             <div class="course-thumb-wrap">
                                 <img src="<?= esc($thumbImg) ?>" alt="<?= esc($c['title']) ?>" onerror="this.src='<?= base_url('assets/main/images/resources/courses-1-1.jpg') ?>'">
+                                <?php if ($ci === 0): ?>
+                                    <span class="course-popular-ribbon"><iconify-icon icon="solar:star-bold"></iconify-icon> Populer</span>
+                                <?php endif; ?>
                                 <span class="course-level-badge"><?= esc($lvlText) ?></span>
                                 <span class="course-duration-badge">
                                     <iconify-icon icon="solar:clock-circle-linear"></iconify-icon>
                                     <?= $durationJp ?> JP
                                 </span>
+                                <a href="<?= site_url('arena-belajar/course/' . esc($c['slug'])) ?>" class="course-overlay-cta">
+                                    <iconify-icon icon="solar:play-circle-bold"></iconify-icon>
+                                    <span>Lihat Detail</span>
+                                </a>
                             </div>
                             <div class="course-body-modern">
                                 <span class="course-program-tag"><?= esc($c['program_title'] ?? 'Arena Belajar') ?></span>
@@ -439,14 +474,14 @@ $bulanIndo = [
                             </div>
                         </div>
                     </div>
-                <?php endforeach; ?>
+                <?php $ci++; endforeach; ?>
             <?php endif; ?>
         </div>
     </div>
 </section>
 
 <!-- =========================================================
-     5. TAHAPAN SIKLUS PENGADAAN INTERAKTIF
+     5. TAHAPAN SIKLUS PENGADAAN INTERAKTIF (TIMELINE)
      ========================================================= -->
 <section class="section-spacious bg-white">
     <div class="container">
@@ -459,59 +494,62 @@ $bulanIndo = [
             <p class="section-title-desc mx-auto">Telusuri regulasi, standar dokumen, dan materi pembelajaran yang spesifik disesuaikan dengan setiap tahapan siklus PBJ.</p>
         </div>
 
-        <div class="row g-3 row-cols-lg-5 row-cols-md-3 row-cols-sm-2 row-cols-1">
-            <!-- Tahap 1 -->
-            <div class="col">
-                <div class="stage-card-step">
-                    <div class="stage-number-badge">1</div>
-                    <span class="stage-step-tag">SiRUP &amp; Identifikasi</span>
-                    <h4 class="stage-step-title">Perencanaan Pengadaan</h4>
-                    <p class="stage-step-desc">Identifikasi kebutuhan, penetapan barang/jasa, cara pengadaan, jadwal, dan pengumuman SiRUP.</p>
-                    <a href="<?= site_url('regulasi?stage_id=1') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
+        <div class="timeline-rail-wrap">
+            <div class="timeline-progress-rail" aria-hidden="true"></div>
+            <div class="row g-3 row-cols-lg-5 row-cols-md-3 row-cols-sm-2 row-cols-1 timeline-grid">
+                <!-- Tahap 1 -->
+                <div class="col">
+                    <div class="stage-card-step timeline-step" style="--step-accent: #0c5aa6; --step-accent-bg: #eff6ff;">
+                        <div class="stage-number-badge">1</div>
+                        <span class="stage-step-tag">SiRUP &amp; Identifikasi</span>
+                        <h4 class="stage-step-title">Perencanaan Pengadaan</h4>
+                        <p class="stage-step-desc">Identifikasi kebutuhan, penetapan barang/jasa, cara pengadaan, jadwal, dan pengumuman SiRUP.</p>
+                        <a href="<?= site_url('regulasi?stage_id=1') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Tahap 2 -->
-            <div class="col">
-                <div class="stage-card-step">
-                    <div class="stage-number-badge">2</div>
-                    <span class="stage-step-tag">HPS &amp; Spesifikasi/KAK</span>
-                    <h4 class="stage-step-title">Persiapan Pengadaan</h4>
-                    <p class="stage-step-desc">Penyusunan Spesifikasi Teknis/KAK, Harga Perkiraan Sendiri (HPS), dan rancangan kontrak.</p>
-                    <a href="<?= site_url('regulasi?stage_id=2') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
+                <!-- Tahap 2 -->
+                <div class="col">
+                    <div class="stage-card-step timeline-step" style="--step-accent: #0284c7; --step-accent-bg: #f0f9ff;">
+                        <div class="stage-number-badge">2</div>
+                        <span class="stage-step-tag">HPS &amp; Spesifikasi/KAK</span>
+                        <h4 class="stage-step-title">Persiapan Pengadaan</h4>
+                        <p class="stage-step-desc">Penyusunan Spesifikasi Teknis/KAK, Harga Perkiraan Sendiri (HPS), dan rancangan kontrak.</p>
+                        <a href="<?= site_url('regulasi?stage_id=2') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Tahap 3 -->
-            <div class="col">
-                <div class="stage-card-step">
-                    <div class="stage-number-badge">3</div>
-                    <span class="stage-step-tag">E-Purchasing &amp; Tender</span>
-                    <h4 class="stage-step-title">Pemilihan Penyedia</h4>
-                    <p class="stage-step-desc">Pelaksanaan E-Purchasing (Katalog), Tender, Seleksi, Pengadaan Langsung, dan Evaluasi Penawaran.</p>
-                    <a href="<?= site_url('regulasi?stage_id=3') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
+                <!-- Tahap 3 -->
+                <div class="col">
+                    <div class="stage-card-step timeline-step" style="--step-accent: #10b981; --step-accent-bg: #ecfdf5;">
+                        <div class="stage-number-badge">3</div>
+                        <span class="stage-step-tag">E-Purchasing &amp; Tender</span>
+                        <h4 class="stage-step-title">Pemilihan Penyedia</h4>
+                        <p class="stage-step-desc">Pelaksanaan E-Purchasing (Katalog), Tender, Seleksi, Pengadaan Langsung, dan Evaluasi Penawaran.</p>
+                        <a href="<?= site_url('regulasi?stage_id=3') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Tahap 4 -->
-            <div class="col">
-                <div class="stage-card-step">
-                    <div class="stage-number-badge">4</div>
-                    <span class="stage-step-tag">SPPBJ &amp; Kontrak</span>
-                    <h4 class="stage-step-title">Pelaksanaan Kontrak</h4>
-                    <p class="stage-step-desc">Penerbitan SPPBJ, SPMK, pengawasan pekerjaan, addendum kontrak, dan mitigasi risiko.</p>
-                    <a href="<?= site_url('regulasi?stage_id=4') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
+                <!-- Tahap 4 -->
+                <div class="col">
+                    <div class="stage-card-step timeline-step" style="--step-accent: #f59e0b; --step-accent-bg: #fffbeb;">
+                        <div class="stage-number-badge">4</div>
+                        <span class="stage-step-tag">SPPBJ &amp; Kontrak</span>
+                        <h4 class="stage-step-title">Pelaksanaan Kontrak</h4>
+                        <p class="stage-step-desc">Penerbitan SPPBJ, SPMK, pengawasan pekerjaan, addendum kontrak, dan mitigasi risiko.</p>
+                        <a href="<?= site_url('regulasi?stage_id=4') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Tahap 5 -->
-            <div class="col">
-                <div class="stage-card-step">
-                    <div class="stage-number-badge">5</div>
-                    <span class="stage-step-tag">BAST &amp; Pembayaran</span>
-                    <h4 class="stage-step-title">Serah Terima Hasil</h4>
-                    <p class="stage-step-desc">Pemeriksaan hasil pekerjaan, Berita Acara Serah Terima (BAST), pembayaran, dan evaluasi kinerja penyedia.</p>
-                    <a href="<?= site_url('regulasi?stage_id=5') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
+                <!-- Tahap 5 -->
+                <div class="col">
+                    <div class="stage-card-step timeline-step" style="--step-accent: #d97706; --step-accent-bg: #fef3c7;">
+                        <div class="stage-number-badge">5</div>
+                        <span class="stage-step-tag">BAST &amp; Pembayaran</span>
+                        <h4 class="stage-step-title">Serah Terima Hasil</h4>
+                        <p class="stage-step-desc">Pemeriksaan hasil pekerjaan, Berita Acara Serah Terima (BAST), pembayaran, dan evaluasi kinerja penyedia.</p>
+                        <a href="<?= site_url('regulasi?stage_id=5') ?>" class="btn btn-sm btn-outline-primary w-100 radius-6">Regulasi Terkait</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -538,7 +576,7 @@ $bulanIndo = [
             </a>
         </div>
 
-        <div class="row g-4">
+        <div class="row g-3 g-md-4">
             <?php if (empty($regulations)): ?>
                 <?php
                 $mockRegs = [
@@ -547,8 +585,9 @@ $bulanIndo = [
                     ['num' => 'Peraturan Gubernur Lampung No. 34 Tahun 2023', 'issuer' => 'Gubernur Lampung', 'title' => 'Tata Cara Pelaksanaan E-Purchasing dan Pengadaan Langsung di Lingkungan Pemerintah Provinsi Lampung', 'status' => 'active', 'year' => '2023', 'slug' => 'pergub-lampung-34-2023'],
                 ];
                 foreach ($mockRegs as $r): ?>
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-12 col-md-6 col-lg-4">
                         <div class="reg-card-modern">
+                            <span class="reg-corner-ribbon"><iconify-icon icon="solar:check-circle-bold"></iconify-icon> Berlaku</span>
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="reg-status-badge active">
                                     <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Berlaku
@@ -569,10 +608,17 @@ $bulanIndo = [
                 <?php endforeach; ?>
             <?php else: ?>
                 <?php foreach ($regulations as $r): ?>
-                    <div class="col-lg-4 col-md-6">
+                    <?php $legalStatus = strtolower((string) ($r['legal_status'] ?? 'active')); ?>
+                    <div class="col-12 col-md-6 col-lg-4">
                         <div class="reg-card-modern">
+                            <?php if (in_array($legalStatus, ['active', 'berlaku'], true)): ?>
+                                <span class="reg-corner-ribbon ribbon-active"><iconify-icon icon="solar:check-circle-bold"></iconify-icon> Berlaku</span>
+                            <?php elseif (in_array($legalStatus, ['amended', 'diubah'], true)): ?>
+                                <span class="reg-corner-ribbon ribbon-amended"><iconify-icon icon="solar:pen-bold"></iconify-icon> Diubah</span>
+                            <?php else: ?>
+                                <span class="reg-corner-ribbon ribbon-revoked"><iconify-icon icon="solar:close-circle-bold"></iconify-icon> Dicabut</span>
+                            <?php endif; ?>
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <?php $legalStatus = strtolower((string) ($r['legal_status'] ?? 'active')); ?>
                                 <?php if (in_array($legalStatus, ['active', 'berlaku'], true)): ?>
                                     <span class="reg-status-badge active"><iconify-icon icon="solar:check-circle-bold"></iconify-icon> Berlaku</span>
                                 <?php elseif (in_array($legalStatus, ['amended', 'diubah'], true)): ?>
@@ -636,18 +682,22 @@ $bulanIndo = [
             <button class="knowledge-tab-btn active" id="tab-art-btn" data-bs-toggle="pill" data-bs-target="#tab-articles" type="button" role="tab">
                 <iconify-icon icon="solar:document-text-bold"></iconify-icon>
                 <span>Artikel PBJ</span>
+                <span class="tab-counter"><?= max(4, count($articles)) ?></span>
             </button>
             <button class="knowledge-tab-btn" id="tab-tpl-btn" data-bs-toggle="pill" data-bs-target="#tab-templates" type="button" role="tab">
                 <iconify-icon icon="solar:file-download-bold"></iconify-icon>
                 <span>Template Dokumen</span>
+                <span class="tab-counter"><?= max(4, count($templates)) ?></span>
             </button>
             <button class="knowledge-tab-btn" id="tab-cs-btn" data-bs-toggle="pill" data-bs-target="#tab-cases" type="button" role="tab">
                 <iconify-icon icon="solar:shield-warning-bold"></iconify-icon>
                 <span>Studi Kasus</span>
+                <span class="tab-counter"><?= max(4, count($caseStudies)) ?></span>
             </button>
             <button class="knowledge-tab-btn" id="tab-faq-btn" data-bs-toggle="pill" data-bs-target="#tab-faqs" type="button" role="tab">
                 <iconify-icon icon="solar:question-circle-bold"></iconify-icon>
                 <span>Tanya Jawab (FAQ)</span>
+                <span class="tab-counter"><?= max(5, count($faqs)) ?></span>
             </button>
         </div>
 
@@ -655,7 +705,7 @@ $bulanIndo = [
         <div class="tab-content">
             <!-- Pane 1: Artikel -->
             <div class="tab-pane fade show active" id="tab-articles" role="tabpanel">
-                <div class="row g-4">
+                <div class="row g-3 g-md-4">
                     <?php if (empty($articles)): ?>
                         <div class="col-12 text-center py-4">
                             <p class="text-muted">Koleksi artikel wawasan PBJ dapat ditelusuri di portal Bunga Rampai.</p>
@@ -663,7 +713,7 @@ $bulanIndo = [
                         </div>
                     <?php else: ?>
                         <?php foreach ($articles as $art): ?>
-                            <div class="col-lg-3 col-md-6">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <div class="article-card-modern">
                                     <div class="article-thumb-modern">
                                         <img src="<?= ! empty($art['cover_path']) ? base_url('file/' . (int) ($art['cover_file_id'] ?? 0)) : base_url('assets/main/images/blog/blog-1-1.jpg') ?>" alt="<?= esc($art['title']) ?>" onerror="this.src='<?= base_url('assets/main/images/blog/blog-1-1.jpg') ?>'">
@@ -696,9 +746,9 @@ $bulanIndo = [
 
             <!-- Pane 2: Template Dokumen -->
             <div class="tab-pane fade" id="tab-templates" role="tabpanel">
-                <div class="row g-3">
+                <div class="row g-3 g-md-3">
                     <?php if (empty($templates)): ?>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <div class="template-item-card">
                                 <div class="template-file-icon"><iconify-icon icon="solar:document-bold"></iconify-icon></div>
                                 <div class="flex-grow-1">
@@ -708,7 +758,7 @@ $bulanIndo = [
                                 <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="btn btn-sm btn-outline-primary">Unduh</a>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <div class="template-item-card">
                                 <div class="template-file-icon excel"><iconify-icon icon="solar:file-spreadsheet-bold"></iconify-icon></div>
                                 <div class="flex-grow-1">
@@ -725,7 +775,7 @@ $bulanIndo = [
                                 || str_contains(strtolower($tpl['title']), 'kertas kerja')
                                 || str_contains(strtolower($tpl['title']), 'hps');
                             ?>
-                            <div class="col-md-6">
+                            <div class="col-12 col-md-6">
                                 <div class="template-item-card">
                                     <div class="template-file-icon <?= $isExcel ? 'excel' : '' ?>">
                                         <iconify-icon icon="<?= $isExcel ? 'solar:file-spreadsheet-bold' : 'solar:document-bold' ?>"></iconify-icon>
@@ -755,9 +805,9 @@ $bulanIndo = [
 
             <!-- Pane 3: Studi Kasus -->
             <div class="tab-pane fade" id="tab-cases" role="tabpanel">
-                <div class="row g-4">
+                <div class="row g-3 g-md-4">
                     <?php if (empty($caseStudies)): ?>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <div class="card p-24 radius-12 border bg-light h-100">
                                 <span class="badge bg-warning-50 text-warning-700 px-2 py-1 text-xs fw-bold mb-2" style="width: fit-content;">Kasus Pemilihan</span>
                                 <h5 class="text-base fw-bold mb-2">Penanganan Sanggahan Terkait Sertifikat Badan Usaha (SBU) yang Habis Masa Berlaku</h5>
@@ -765,7 +815,7 @@ $bulanIndo = [
                                 <a href="<?= site_url('bunga-rampai/studi-kasus') ?>" class="text-primary text-sm fw-bold text-decoration-none">Pelajari Solusi Kasus &rarr;</a>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <div class="card p-24 radius-12 border bg-light h-100">
                                 <span class="badge bg-info-50 text-info-700 px-2 py-1 text-xs fw-bold mb-2" style="width: fit-content;">Kasus Kontrak</span>
                                 <h5 class="text-base fw-bold mb-2">Pemberian Kesempatan 50 Hari Kalender &amp; Mekanisme Denda Keterlambatan</h5>
@@ -775,7 +825,7 @@ $bulanIndo = [
                         </div>
                     <?php else: ?>
                         <?php foreach ($caseStudies as $cs): ?>
-                            <div class="col-md-6">
+                            <div class="col-12 col-md-6">
                                 <div class="card p-24 radius-12 border bg-light h-100">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
                                         <span class="badge bg-info-subtle text-info px-2 py-1 text-xs fw-bold">
@@ -879,9 +929,9 @@ $bulanIndo = [
             </a>
         </div>
 
-        <div class="row g-4">
+        <div class="row g-3 g-md-4">
             <?php if (empty($upcomingEvents)): ?>
-                <div class="col-lg-4 col-md-6">
+                <div class="col-12 col-md-6 col-lg-4">
                     <div class="event-card-modern">
                         <div class="event-date-badge">
                             <span class="event-date-day">28</span>
@@ -895,7 +945,7 @@ $bulanIndo = [
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="col-12 col-md-6 col-lg-4">
                     <div class="event-card-modern">
                         <div class="event-date-badge">
                             <span class="event-date-day">12</span>
@@ -909,7 +959,7 @@ $bulanIndo = [
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="col-12 col-md-6 col-lg-4">
                     <div class="event-card-modern">
                         <div class="event-date-badge">
                             <span class="event-date-day">20</span>
@@ -939,7 +989,7 @@ $bulanIndo = [
                     };
                     $typeLabel = ucfirst((string) ($evt['type'] ?? 'Webinar'));
                     ?>
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-12 col-md-6 col-lg-4">
                         <div class="event-card-modern">
                             <div class="event-date-badge">
                                 <span class="event-date-day"><?= $dayNum ?></span>
@@ -1005,9 +1055,9 @@ $bulanIndo = [
             </p>
         </div>
 
-        <div class="row g-3 align-items-stretch">
+        <div class="row g-3 g-md-3 align-items-stretch">
             <!-- Kolom 1: Akses Landing Page Utama (Home) -->
-            <div class="col-lg-5">
+            <div class="col-12 col-lg-5">
                 <div class="visitor-compact-card card-home">
                     <div>
                         <!-- Header -->
@@ -1105,7 +1155,7 @@ $bulanIndo = [
             </div>
 
             <!-- Kolom 2: Distribusi Pemanfaatan Fitur Unggulan (5 Fitur) -->
-            <div class="col-lg-7">
+            <div class="col-12 col-lg-7">
                 <div class="visitor-compact-card card-features">
                     <div>
                         <!-- Header -->
@@ -1858,7 +1908,7 @@ $bulanIndo = [
         <!-- Team Values & Commitment Banner -->
         <div class="team-values-banner">
             <div class="row g-4 align-items-center">
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <div class="team-value-item">
                         <div class="team-value-icon">
                             <iconify-icon icon="solar:shield-check-bold"></iconify-icon>
@@ -1869,7 +1919,7 @@ $bulanIndo = [
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <div class="team-value-item">
                         <div class="team-value-icon">
                             <iconify-icon icon="solar:medal-star-bold"></iconify-icon>
@@ -1880,7 +1930,7 @@ $bulanIndo = [
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <div class="team-value-item">
                         <div class="team-value-icon">
                             <iconify-icon icon="solar:shop-2-bold"></iconify-icon>
@@ -1948,8 +1998,8 @@ $bulanIndo = [
      ========================================================= -->
 <section class="section-spacious biro-showcase-bg">
     <div class="container">
-        <div class="row align-items-center g-4">
-            <div class="col-lg-6">
+        <div class="row align-items-center g-3 g-md-4">
+            <div class="col-12 col-lg-6">
                 <div class="section-title-tag">
                     <iconify-icon icon="solar:city-bold"></iconify-icon>
                     <span>Tentang Penyelenggara</span>
@@ -1966,7 +2016,7 @@ $bulanIndo = [
                     <span class="patik-chip"><iconify-icon icon="solar:medal-ribbon-star-bold" class="text-danger"></iconify-icon><strong>K</strong> &middot; Kredibel</span>
                 </div>
                 <div class="row g-3">
-                    <div class="col-sm-6">
+                    <div class="col-12 col-sm-6">
                         <div class="d-flex align-items-center gap-3 p-3 bg-white border radius-12">
                             <div class="text-warning text-2xl"><iconify-icon icon="solar:shield-check-bold"></iconify-icon></div>
                             <div>
@@ -1975,7 +2025,7 @@ $bulanIndo = [
                             </div>
                         </div>
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-12 col-sm-6">
                         <div class="d-flex align-items-center gap-3 p-3 bg-white border radius-12">
                             <div class="text-info text-2xl"><iconify-icon icon="solar:users-group-two-rounded-bold"></iconify-icon></div>
                             <div>
@@ -1986,7 +2036,7 @@ $bulanIndo = [
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
+            <div class="col-12 col-lg-6">
                 <div class="ecosystem-portal-card">
                     <div class="ecosystem-portal-header">
                         <div class="d-flex align-items-center gap-3">
@@ -2064,15 +2114,15 @@ $bulanIndo = [
     <div class="container">
         <div class="cta-banner-modern">
             <div class="row align-items-center">
-                <div class="col-lg-8">
+                <div class="col-12 col-lg-8">
                     <span class="badge bg-warning text-dark px-3 py-1 radius-6 text-xs fw-bold mb-3 text-uppercase">Mari Bergabung Bersama BegawiPengadaan</span>
                     <h3 class="text-3xl fw-bold text-white mb-3">Tingkatkan Profesionalisme &amp; Kepatuhan Pengadaan Anda</h3>
                     <p class="text-slate-300 mb-0" style="max-width: 600px; font-size: 16px;">
                         Daftar akun sebagai aparatur pemerintah, staf pengadaan, atau penyedia barang/jasa untuk mengikuti kelas terstruktur, mengunduh template dokumen, dan memperoleh sertifikat kompetensi.
                     </p>
                 </div>
-                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
-                    <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                <div class="col-12 col-lg-4 text-center text-lg-end mt-3 mt-lg-0">
+                    <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-lg-end">
                         <a href="<?= route_to('dashboard.auth.register') ?>" class="btn btn-warning px-24 py-12 radius-10 fw-bold text-dark d-inline-flex align-items-center gap-2">
                             <span>Daftar Akun Baru</span>
                             <iconify-icon icon="solar:user-plus-bold"></iconify-icon>

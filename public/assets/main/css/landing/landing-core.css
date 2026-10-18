@@ -283,10 +283,64 @@
             color: #fff !important;
         }
 
-        .main-header .mobile-nav__toggler {
-            color: #fff !important;
-            font-size: 20px;
-            padding: 6px;
+        /* Hide Mobile Toggler on PC / Desktop */
+        @media (min-width: 1200px) {
+            .main-header .mobile-nav__toggler,
+            .main-menu .mobile-nav__toggler,
+            .mobile-nav__toggler {
+                display: none !important;
+            }
+        }
+
+        /* Show Mobile Toggler ONLY on Mobile & Tablet */
+        @media (max-width: 1199.98px) {
+            .main-header .mobile-nav__toggler,
+            .main-menu .mobile-nav__toggler,
+            .mobile-nav__toggler {
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 40px !important;
+                height: 40px !important;
+                border-radius: 9px !important;
+                background: rgba(255, 255, 255, 0.16) !important;
+                border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+                color: #ffffff !important;
+                font-size: 19px !important;
+                cursor: pointer !important;
+                transition: all 0.2s ease !important;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+                text-decoration: none !important;
+            }
+
+            .main-header .mobile-nav__toggler i,
+            .main-menu .mobile-nav__toggler i,
+            .mobile-nav__toggler i {
+                color: #ffffff !important;
+                font-size: 19px !important;
+                line-height: 1 !important;
+                display: inline-block !important;
+            }
+
+            .main-header .mobile-nav__toggler:hover,
+            .main-header .mobile-nav__toggler:focus,
+            .main-menu .mobile-nav__toggler:hover,
+            .main-menu .mobile-nav__toggler:focus,
+            .mobile-nav__toggler:hover,
+            .mobile-nav__toggler:focus {
+                background: #f59e0b !important;
+                border-color: #f59e0b !important;
+                color: #0f172a !important;
+            }
+
+            .main-header .mobile-nav__toggler:hover i,
+            .main-header .mobile-nav__toggler:focus i,
+            .main-menu .mobile-nav__toggler:hover i,
+            .main-menu .mobile-nav__toggler:focus i,
+            .mobile-nav__toggler:hover i,
+            .mobile-nav__toggler:focus i {
+                color: #0f172a !important;
+            }
         }
 
         .site-footer__copyright-text a {

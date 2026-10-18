@@ -1,4 +1,4 @@
-﻿<?= $this->extend('landing/layouts/public') ?>
+<?= $this->extend('landing/layouts/public') ?>
 
 <?php
 /**
@@ -53,7 +53,7 @@ if (is_string($rawTags) && trim($rawTags) !== '') {
 
 $authorName = $news['author_name'] ?? 'Biro PBJ Setda Lampung';
 $authorBio  = $news['author_bio'] ?? null;
-$authorRole = $news['author_role'] ?? 'Tim Komunikasi Publik &middot; Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung';
+$authorRole = $news['author_role'] ?? 'Tim Komunikasi Publik &middot; Biro Pengadaan Barang &amp; Jasa Sekretariat Daerah Provinsi Lampung';
 $authorInit = newsAuthorInitials($authorName);
 
 $sourceName = $news['source_name'] ?? null;
@@ -79,7 +79,7 @@ $catSlug = $news['category_slug'] ?? 'umum';
 ?>
 
 <?= $this->section('pageStyles') ?>
-<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-news.css') ?>" />
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-news.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-news.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-news.css') : '1.0' ?>" />
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -87,69 +87,87 @@ $catSlug = $news['category_slug'] ?? 'umum';
 <!-- Reading Progress Bar -->
 <div id="readingProgressBar" aria-hidden="true"></div>
 
-<!-- Hero -->
-<section class="news-detail-hero">
+<!-- MAIN SECTION — Following Landing News UI Benchmark -->
+<section class="berita-main-section news-detail-section">
     <div class="container">
-        <nav class="news-detail-breadcrumb" aria-label="Breadcrumb">
+
+        <!-- Breadcrumb Navigation (Clean & Minimalist) -->
+        <nav class="news-detail-breadcrumb-clean" aria-label="Breadcrumb">
             <a href="<?= site_url('/') ?>"><i class="fas fa-home"></i> Beranda</a>
             <span class="sep">/</span>
             <a href="<?= site_url('berita') ?>">Berita PBJ</a>
             <span class="sep">/</span>
-            <a href="<?= site_url('berita/kategori/' . urlencode($catSlug)) ?>" style="color: #fde68a;"><?= esc($news['category_name'] ?? 'Berita') ?></a>
+            <a href="<?= site_url('berita/kategori/' . urlencode($catSlug)) ?>"><?= esc($news['category_name'] ?? 'Berita') ?></a>
             <span class="sep">/</span>
-            <span class="current"><?= esc(mb_strimwidth($news['title'] ?? '', 0, 56, '...')) ?></span>
+            <span class="current text-truncate"><?= esc(mb_strimwidth($news['title'] ?? '', 0, 52, '...')) ?></span>
         </nav>
 
-        <?php if (! empty($news['category_name'])): ?>
-            <a href="<?= site_url('berita/kategori/' . urlencode($catSlug)) ?>" class="news-detail-cat">
-                <i class="fas fa-folder-open"></i> <?= esc($news['category_name']) ?>
-            </a>
-        <?php endif; ?>
-
-        <h1 class="news-detail-title"><?= esc($news['title']) ?></h1>
-
-        <?php if (! empty($news['summary'])): ?>
-            <p class="news-detail-excerpt"><?= esc($news['summary']) ?></p>
-        <?php endif; ?>
-
-        <div class="news-detail-meta">
-            <div class="author-chip">
-                <span class="avatar"><?= esc($authorInit) ?></span>
-                <span>Oleh <strong><?= esc($authorName) ?></strong></span>
-            </div>
-            <div><i class="far fa-calendar-alt"></i> <time datetime="<?= esc($publishedAt) ?>"><?= esc($dateLong) ?></time></div>
-            <div><i class="far fa-clock"></i> <?= esc($readTimeClean) ?></div>
-            <div><i class="far fa-eye"></i> <?= number_format($news['view_count'] ?? 0) ?> kali dibaca</div>
-        </div>
-    </div>
-</section>
-
-<!-- Cover Image -->
-<div class="container">
-    <div class="news-cover-wrap">
-        <div class="news-cover">
-            <img src="<?= $coverUrl ?>" alt="<?= esc($news['title']) ?>" loading="lazy">
-            <div class="news-cover__pulse">
-                <span class="dot"></span>
-                <span>Berita Resmi PBJ</span>
-            </div>
-            <?php if (! empty($news['cover_caption'])): ?>
-                <div class="news-cover__caption">
-                    <i class="fas fa-camera"></i>
-                    <span><?= esc($news['cover_caption']) ?></span>
+        <!-- TOP NEWS COVER IMAGE — "yang paling atas adalah gambar dari berita" -->
+        <div class="news-detail-cover mb-4">
+            <div class="news-detail-cover__media">
+                <img src="<?= $coverUrl ?>" alt="<?= esc($news['title']) ?>" loading="eager">
+                <div class="news-detail-cover__badges">
+                    <span class="news-detail-cover__badge">
+                        <span class="dot"></span> Berita Resmi PBJ
+                    </span>
+                    <?php if (! empty($news['category_name'])): ?>
+                        <a href="<?= site_url('berita/kategori/' . urlencode($catSlug)) ?>" class="news-detail-cover__cat">
+                            <i class="fas fa-folder-open"></i> <?= esc($news['category_name']) ?>
+                        </a>
+                    <?php endif; ?>
                 </div>
-            <?php endif; ?>
+                <?php if (! empty($news['cover_caption'])): ?>
+                    <div class="news-detail-cover__caption">
+                        <i class="fas fa-camera"></i>
+                        <span><?= esc($news['cover_caption']) ?></span>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
-    </div>
-</div>
 
-<!-- Main Content -->
-<section class="pt-50 pb-80">
-    <div class="container">
+        <!-- 2-COLUMN MAIN CONTENT GRID -->
         <div class="row g-4">
-            <!-- Left: Article -->
+            <!-- Left: Article Column -->
             <div class="col-lg-8">
                 <article class="news-article">
+                    <!-- Clean Article Meta Bar -->
+                    <div class="news-detail-meta-clean">
+                        <div class="author-chip">
+                            <span class="avatar"><?= esc($authorInit) ?></span>
+                            <span>Oleh <strong><?= esc($authorName) ?></strong></span>
+                        </div>
+                        <span class="meta-divider d-none d-sm-inline">&middot;</span>
+                        <div class="meta-item"><i class="far fa-calendar-alt text-primary"></i> <time datetime="<?= esc($publishedAt) ?>"><?= esc($dateLong) ?></time></div>
+                        <span class="meta-divider d-none d-sm-inline">&middot;</span>
+                        <div class="meta-item"><i class="far fa-clock text-warning"></i> <?= esc($readTimeClean) ?></div>
+                        <span class="meta-divider d-none d-sm-inline">&middot;</span>
+                        <div class="meta-item"><i class="far fa-eye text-info"></i> <?= number_format($news['view_count'] ?? 0) ?> views</div>
+                    </div>
+
+                    <!-- Article Title H1 -->
+                    <h1 class="news-detail-title-clean"><?= esc($news['title']) ?></h1>
+
+                    <!-- Lead / Summary Box -->
+                    <?php if (! empty($news['summary'])): ?>
+                        <div class="news-lead-summary-box mb-4">
+                            <p class="news-detail-excerpt mb-0">
+                                <?= esc($news['summary']) ?>
+                            </p>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Key Takeaways for Stakeholders -->
+                    <div class="news-key-takeaways p-3 p-md-4 radius-14 mb-4 border" style="background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border-color: #bfdbfe !important;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-lightbulb text-warning fs-5"></i>
+                            <h4 class="fw-bold mb-0 text-dark" style="font-size: 16.5px;">Poin Penting untuk Pemangku Kepentingan</h4>
+                        </div>
+                        <p class="text-secondary mb-0" style="font-size: 14.5px; line-height: 1.65;">
+                            <?= esc($news['summary'] ?: 'Publikasi resmi ini merangkum arahan kebijakan dan tata kelola pengadaan barang/jasa di lingkungan Pemerintah Provinsi Lampung untuk transparansi, akuntabilitas, dan efisiensi belanja publik.') ?>
+                        </p>
+                    </div>
+
+                    <!-- Article Body Content -->
                     <div class="news-article-body" id="articleBodyContent">
                         <?= $news['content'] /* HTML allowed in article body */ ?>
 
@@ -210,7 +228,7 @@ $catSlug = $news['category_slug'] ?? 'umum';
                                 <?= esc($authorBio) ?>
                             <?php else: ?>
                                 Penulis aktif yang mengelola publikasi berita dan dokumentasi kegiatan
-                                di lingkungan Biro Pengadaan Barang dan Jasa Sekretariat Daerah
+                                di lingkungan Biro Pengadaan Barang &amp; Jasa Sekretariat Daerah
                                 Provinsi Lampung. Kontribusi artikel ini telah melalui proses
                                 verifikasi redaksi PPID sesuai UU No. 14 Tahun 2008 tentang
                                 Keterbukaan Informasi Publik.
@@ -222,22 +240,28 @@ $catSlug = $news['category_slug'] ?? 'umum';
                 <!-- Prev / Next Navigation -->
                 <div class="news-prevnext">
                     <a href="<?= ! empty($prevNews) ? site_url('berita/' . $prevNews['slug']) : '#' ?>"
-                        class="news-prevnext__item <?= empty($prevNews) ? 'is-disabled' : '' ?>">
+                        class="news-prevnext__item <?= empty($prevNews) ? 'is-disabled' : '' ?>"
+                        <?= ! empty($prevNews) ? 'title="' . esc($prevNews['title']) . '"' : '' ?>>
                         <div class="news-prevnext__icon"><i class="fas fa-arrow-left"></i></div>
                         <div class="news-prevnext__body">
-                            <div class="news-prevnext__hint">Berita Sebelumnya</div>
+                            <div class="news-prevnext__hint">
+                                <span>Berita Sebelumnya</span>
+                            </div>
                             <div class="news-prevnext__title">
-                                <?= ! empty($prevNews) ? esc($prevNews['title']) : 'Tidak ada berita sebelumnya' ?>
+                                <?= ! empty($prevNews) ? esc(mb_strimwidth($prevNews['title'], 0, 72, '...')) : 'Tidak ada berita sebelumnya' ?>
                             </div>
                         </div>
                     </a>
                     <a href="<?= ! empty($nextNews) ? site_url('berita/' . $nextNews['slug']) : '#' ?>"
-                        class="news-prevnext__item is-next <?= empty($nextNews) ? 'is-disabled' : '' ?>">
+                        class="news-prevnext__item is-next <?= empty($nextNews) ? 'is-disabled' : '' ?>"
+                        <?= ! empty($nextNews) ? 'title="' . esc($nextNews['title']) . '"' : '' ?>>
                         <div class="news-prevnext__icon"><i class="fas fa-arrow-right"></i></div>
                         <div class="news-prevnext__body">
-                            <div class="news-prevnext__hint">Berita Selanjutnya</div>
+                            <div class="news-prevnext__hint">
+                                <span>Berita Selanjutnya</span>
+                            </div>
                             <div class="news-prevnext__title">
-                                <?= ! empty($nextNews) ? esc($nextNews['title']) : 'Tidak ada berita selanjutnya' ?>
+                                <?= ! empty($nextNews) ? esc(mb_strimwidth($nextNews['title'], 0, 72, '...')) : 'Tidak ada berita selanjutnya' ?>
                             </div>
                         </div>
                     </a>
@@ -247,10 +271,22 @@ $catSlug = $news['category_slug'] ?? 'umum';
             <!-- Right: Sticky Sidebar -->
             <div class="col-lg-4">
                 <aside class="detail-sidebar">
+                    <!-- Search Widget -->
+                    <div class="detail-widget">
+                        <h4 class="detail-widget__title">
+                            <i class="fas fa-search text-primary"></i>
+                            <span>Cari Artikel Berita</span>
+                        </h4>
+                        <form action="<?= site_url('berita') ?>" method="get" class="berita-searchbox news-search-box">
+                            <input type="text" name="q" placeholder="Kata kunci pengadaan..." aria-label="Cari Berita">
+                            <button type="submit" aria-label="Cari"><i class="fas fa-search"></i></button>
+                        </form>
+                    </div>
+
                     <!-- Sticky TOC -->
                     <div class="detail-widget" id="detailTocWidget">
                         <h4 class="detail-widget__title">
-                            <i class="fas fa-list-ol"></i>
+                            <i class="fas fa-list-ol text-primary"></i>
                             <span>Daftar Isi</span>
                         </h4>
                         <ul class="detail-toc" id="detailTocList">
@@ -388,8 +424,8 @@ $catSlug = $news['category_slug'] ?? 'umum';
                     <span class="detail-cta__eyebrow">
                         <i class="fas fa-bullhorn"></i> Keterbukaan Informasi Publik
                     </span>
-                    <h3 class="detail-cta__title">Pusat Siaran Pers &amp; Klarifikasi Berita PBJ Lampung</h3>
-                    <p class="detail-cta__lead">
+                    <h3 class="detail-cta__title text-white">Pusat Siaran Pers &amp; Klarifikasi Berita PBJ Lampung</h3>
+                    <p class="detail-cta__lead text-white" style="opacity: 0.92;">
                         Membutuhkan konfirmasi, klarifikasi berita, atau materi siaran pers resmi terkait
                         pengadaan barang dan jasa Pemerintah Provinsi Lampung? Tim PPID Biro PBJ siap
                         melayani permohonan Anda.
