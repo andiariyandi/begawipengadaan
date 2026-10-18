@@ -54,7 +54,7 @@ $trainerRoleLabel = static function (?string $role): string {
 ?>
 
 <!-- 1. Hero Card: Informasi Kelas & Konteks Pembelajaran (FiStudy DNA) -->
-<div class="card border-0 rounded-4 shadow-sm p-4 p-lg-5 mb-4 bg-white">
+<div class="ws-page-header">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <div class="d-flex flex-wrap align-items-center gap-2">
             <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2 rounded-pill text-uppercase">

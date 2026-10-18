@@ -26,7 +26,7 @@ class ParticipantController extends BaseController
         return $this->runAction(fn() => $this->learning->enroll($this->userId(), $classId), 'Enrollment berhasil dikirim.');
     }
 
-    public function myClasses(): string
+    public function myClasses()
     {
         $userId = $this->userId();
         $db = db_connect();
@@ -194,10 +194,16 @@ class ParticipantController extends BaseController
         ]);
     }
 
-    public function classDetail(string $classId): string
+    public function classDetail(string $classId)
     {
         $userId = $this->userId();
         $classIdInt = (int) $classId;
+        if ($classIdInt <= 0 || ! is_numeric($classId)) {
+            $classRow = db_connect()->table('learning_classes')->select('id')->where('code', $classId)->get()->getRowArray();
+            if ($classRow) {
+                $classIdInt = (int) $classRow['id'];
+            }
+        }
         $state = $this->resolveClassLearningState($classIdInt, $userId);
 
         return view('main/workspace/pages/detail_kelas', [
@@ -220,10 +226,16 @@ class ParticipantController extends BaseController
         ]);
     }
 
-    public function study(string $classId): string
+    public function study(string $classId)
     {
         $userId = $this->userId();
         $classIdInt = (int) $classId;
+        if ($classIdInt <= 0 || ! is_numeric($classId)) {
+            $classRow = db_connect()->table('learning_classes')->select('id')->where('code', $classId)->get()->getRowArray();
+            if ($classRow) {
+                $classIdInt = (int) $classRow['id'];
+            }
+        }
         $state = $this->resolveClassLearningState($classIdInt, $userId);
 
         if ($state['enrollmentStatus'] === 'pending') {
@@ -277,6 +289,7 @@ class ParticipantController extends BaseController
         // Renders unified Learning Room
         return view('main/workspace/pages/belajar', [
             'pageTitle'      => 'Learning Room | ' . ($state['class']['name'] ?? 'Kelas'),
+            'hideSidebar'    => true,
             'breadcrumbTail' => [
                 ['label' => 'Kelas Saya', 'url' => route_to('workspace.participant.classes')],
                 ['label' => $state['class']['name'] ?? 'Kelas', 'url' => route_to('workspace.participant.class.detail', (string) $classIdInt)],
@@ -297,7 +310,7 @@ class ParticipantController extends BaseController
         ]);
     }
 
-    public function lessonDetail(string $lessonId): string
+    public function lessonDetail(string $lessonId)
     {
         $userId = $this->userId();
         $db = db_connect();
@@ -381,6 +394,7 @@ class ParticipantController extends BaseController
 
         return view('main/workspace/pages/belajar', [
             'pageTitle'      => $lesson['title'] . ' | ' . ($state['class']['name'] ?? 'Learning Room'),
+            'hideSidebar'    => true,
             'breadcrumbTail' => [
                 ['label' => 'Kelas Saya', 'url' => route_to('workspace.participant.classes')],
                 ['label' => $state['class']['name'] ?? 'Kelas', 'url' => route_to('workspace.participant.class.detail', (string) $classIdInt)],
@@ -405,7 +419,7 @@ class ParticipantController extends BaseController
         ]);
     }
 
-    public function progress(string $classId): string
+    public function progress(string $classId)
     {
         $this->userId();
         $items = db_connect()->table('learning_progress lp')
@@ -467,7 +481,7 @@ class ParticipantController extends BaseController
         return $this->postTest($classId);
     }
 
-    public function assignments(string $classId): string
+    public function assignments(string $classId)
     {
         $userId = $this->userId();
         $classIdInt = (int) $classId;
@@ -512,7 +526,7 @@ class ParticipantController extends BaseController
         ]);
     }
 
-    public function allAssignments(): string
+    public function allAssignments()
     {
         $userId = $this->userId();
         $db = db_connect();
@@ -572,7 +586,7 @@ class ParticipantController extends BaseController
         ]);
     }
 
-    public function allAssessments(): string
+    public function allAssessments()
     {
         $userId = $this->userId();
         $db = db_connect();
@@ -629,7 +643,7 @@ class ParticipantController extends BaseController
         ]);
     }
 
-    public function myEvents(): string
+    public function myEvents()
     {
         $userId = $this->userId();
         $db = db_connect();
@@ -744,7 +758,7 @@ class ParticipantController extends BaseController
         ]);
     }
 
-    public function eventDetail(string $idOrSlug): string
+    public function eventDetail(string $idOrSlug)
     {
         $userId = $this->userId();
         $db = db_connect();
@@ -829,7 +843,7 @@ class ParticipantController extends BaseController
         ]);
     }
 
-    public function myAttendance(): string
+    public function myAttendance()
     {
         $userId = $this->userId();
         $db = db_connect();
@@ -895,7 +909,7 @@ class ParticipantController extends BaseController
         }
     }
 
-    public function assignmentSubmission(string $classId): string
+    public function assignmentSubmission(string $classId)
     {
         $userId = $this->userId();
         $classIdInt = (int) $classId;
@@ -943,7 +957,7 @@ class ParticipantController extends BaseController
         ]);
     }
 
-    public function assignmentRevision(string $classId): string
+    public function assignmentRevision(string $classId)
     {
         return $this->assignmentSubmission($classId);
     }
@@ -985,7 +999,7 @@ class ParticipantController extends BaseController
         }
     }
 
-    public function feedback(string $classId): string
+    public function feedback(string $classId)
     {
         $userId = $this->userId();
         $classIdInt = (int) $classId;
@@ -1153,6 +1167,38 @@ class ParticipantController extends BaseController
                 ->get()->getRowArray();
         }
 
+        // If no specific attempt requested or attempt was omitted in URL, check for ongoing active attempt
+        if ($attempt === null) {
+            $attempt = $db->table('quiz_attempts')
+                ->where(['quiz_id' => $quizId, 'enrollment_id' => (int) $enrollment['id'], 'status' => 'started'])
+                ->orderBy('id', 'DESC')
+                ->get()->getRowArray();
+        }
+
+        // Timer calculation
+        $durationMinutes   = (int) ($quiz['duration_minutes'] ?? 0);
+        $remainingSeconds  = null;
+        $deadlineTimestamp = null;
+
+        if ($attempt !== null && (string) ($attempt['status'] ?? '') === 'started') {
+            if ($durationMinutes > 0 && ! empty($attempt['started_at'])) {
+                $startedTimestamp  = strtotime($attempt['started_at']);
+                $deadlineTimestamp = $startedTimestamp + ($durationMinutes * 60);
+                $remainingSeconds  = $deadlineTimestamp - time();
+
+                // If timer expired while away or on reload
+                if ($remainingSeconds <= 0) {
+                    try {
+                        $this->learning->submitQuiz($userId, (int) $attempt['id'], []);
+                        return redirect()->to(route_to('workspace.participant.quiz.take', (string) $quizId) . '?attempt=' . $attempt['id'])
+                            ->with('error', 'Waktu pengerjaan ujian telah habis. Jawaban Anda telah otomatis dikumpulkan.');
+                    } catch (\Throwable $e) {
+                        log_message('error', 'Auto-submit on expired timer failed: ' . $e->getMessage());
+                    }
+                }
+            }
+        }
+
         $latest = $db->table('quiz_attempts')
             ->where(['quiz_id' => $quizId, 'enrollment_id' => (int) $enrollment['id']])
             ->orderBy('attempt_number', 'DESC')
@@ -1162,23 +1208,27 @@ class ParticipantController extends BaseController
             ->countAllResults();
 
         return view('main/workspace/pages/quiz_take', [
-            'pageTitle'      => $quiz['title'] ?? 'Quiz',
-            'breadcrumbTail' => [
+            'pageTitle'         => $quiz['title'] ?? 'Quiz',
+            'hideSidebar'       => true,
+            'breadcrumbTail'    => [
                 ['label' => 'Kelas Saya', 'url' => route_to('workspace.participant.classes')],
                 ['label' => $quiz['class_name'] ?? 'Kelas', 'url' => route_to('workspace.participant.class.detail', (string) $classId)],
                 ['label' => 'Belajar', 'url' => route_to('workspace.participant.study', (string) $classId)],
                 ['label' => $quiz['title'] ?? 'Quiz'],
             ],
-            'quiz'             => $quiz,
-            'questions'        => $questions,
+            'quiz'              => $quiz,
+            'questions'         => $questions,
             'optionsByQuestion' => $optionsByQuestion,
-            'attempt'          => $attempt,
-            'attemptCount'     => $attemptCount,
-            'attemptLimit'     => (int) ($quiz['attempt_limit'] ?? 1),
-            'latest'           => $latest,
-            'remaining'        => max(0, (int) ($quiz['attempt_limit'] ?? 1) - $attemptCount),
-            'classContext'     => $state['class'],
-            'state'            => $state,
+            'attempt'           => $attempt,
+            'attemptCount'      => $attemptCount,
+            'attemptLimit'      => (int) ($quiz['attempt_limit'] ?? 1),
+            'latest'            => $latest,
+            'remaining'         => max(0, (int) ($quiz['attempt_limit'] ?? 1) - $attemptCount),
+            'classContext'      => $state['class'],
+            'state'             => $state,
+            'durationMinutes'   => $durationMinutes,
+            'remainingSeconds'  => $remainingSeconds,
+            'deadlineTimestamp' => $deadlineTimestamp,
         ]);
     }
 
@@ -1195,6 +1245,12 @@ class ParticipantController extends BaseController
         $quiz = $db->table('quizzes')->where('id', (int) $attempt['quiz_id'])->get()->getRowArray();
         if (! $quiz) {
             return redirect()->back()->with('error', 'Quiz tidak ditemukan.');
+        }
+
+        // If attempt was already submitted or graded
+        if ((string) ($attempt['status'] ?? '') !== 'started') {
+            return redirect()->to(route_to('workspace.participant.quiz.take', (string) $quiz['id']) . '?attempt=' . $attemptId)
+                ->with('info', 'Ujian telah selesai dikumpulkan sebelumnya.');
         }
         $classId = (int) $quiz['class_id'];
 
@@ -1301,7 +1357,7 @@ class ParticipantController extends BaseController
         }
     }
 
-    public function certificates(): string
+    public function certificates()
     {
         $userId = $this->userId();
         $db = db_connect();
@@ -1334,7 +1390,7 @@ class ParticipantController extends BaseController
         ]);
     }
 
-    public function certificateDetail(string $id): string
+    public function certificateDetail(string $id)
     {
         $userId = $this->userId();
         $certificate = db_connect()->table('certificates c')

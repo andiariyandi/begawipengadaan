@@ -166,6 +166,30 @@ class LearningService
     public function startQuiz(int $userId, int $quizId): int
     {
         $context = $this->quizContext($userId, $quizId);
+
+        // Check if there is already an active (started) attempt for this quiz & enrollment
+        $activeAttempt = $this->db->table('quiz_attempts')
+            ->where(['quiz_id' => $quizId, 'enrollment_id' => $context['enrollment']['id'], 'status' => 'started'])
+            ->orderBy('id', 'DESC')
+            ->get()->getRowArray();
+
+        if ($activeAttempt) {
+            $durationMinutes = (int) ($context['quiz']['duration_minutes'] ?? 0);
+            if ($durationMinutes > 0 && ! empty($activeAttempt['started_at'])) {
+                $deadline = strtotime($activeAttempt['started_at']) + ($durationMinutes * 60);
+                if (time() >= $deadline) {
+                    // Time expired while away; auto-submit the expired attempt
+                    $this->submitQuiz($userId, (int) $activeAttempt['id'], []);
+                } else {
+                    // Attempt is still ongoing and has time left
+                    return (int) $activeAttempt['id'];
+                }
+            } else {
+                // No time limit; resume ongoing attempt
+                return (int) $activeAttempt['id'];
+            }
+        }
+
         $attempts = $this->db->table('quiz_attempts')
             ->where(['quiz_id' => $quizId, 'enrollment_id' => $context['enrollment']['id']])
             ->countAllResults();

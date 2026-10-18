@@ -2,12 +2,12 @@
 
 <?= $this->section('content') ?>
 <!-- Header Section -->
-<div class="bg-white border rounded-4 p-4 p-lg-5 mb-4 shadow-sm">
+<div class="ws-page-header">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <p class="text-uppercase text-muted small fw-semibold mb-2"><?= esc($sectionContent['eyebrow'] ?? 'Kegiatan & Pelatihan') ?></p>
-            <h1 class="h3 fw-bold mb-2" style="color: #082f5c;"><?= esc($pageTitle ?? 'Event Saya') ?></h1>
-            <p class="text-muted mb-0"><?= esc($sectionContent['description'] ?? 'Daftar seminar, workshop, webinar, dan bimbingan teknis yang Anda ikuti.') ?></p>
+            <span class="ws-eyebrow"><i class="fas fa-calendar-alt"></i> <?= esc($sectionContent['eyebrow'] ?? 'Kegiatan & Pelatihan') ?></span>
+            <h1><?= esc($pageTitle ?? 'Event Saya') ?></h1>
+            <p><?= esc($sectionContent['description'] ?? 'Daftar seminar, workshop, webinar, dan bimbingan teknis yang Anda ikuti.') ?></p>
         </div>
         <div class="d-flex flex-wrap gap-2">
             <!-- Cari Event Baru: HANYA eksplorasi yang diarahkan ke Landing Page Event Publik -->
@@ -23,7 +23,7 @@
     <div class="row g-4 mb-4">
         <?php foreach ($sectionContent['cards'] as $card): ?>
             <div class="col-sm-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                     <span class="text-muted small fw-semibold text-uppercase"><?= esc($card['title']) ?></span>
                     <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= esc($card['value']) ?></div>
                     <small class="text-muted"><?= esc($card['meta'] ?? '') ?></small>

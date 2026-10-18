@@ -3,20 +3,24 @@
 <?= $this->section('content') ?>
 <?= view('dashboard/components/flash_message') ?>
 
-<div class="bg-white border rounded p-4 p-lg-5 mb-4">
-    <p class="text-uppercase text-muted small mb-2"><?= esc($sectionContent['eyebrow'] ?? 'Assessment dan Feedback') ?></p>
-    <h1 class="mb-3"><?= esc($pageTitle ?? 'Penilaian') ?></h1>
-    <p class="mb-0"><?= esc($sectionContent['description'] ?? 'Pantau pre-test, quiz, post-test, grading, nilai, dan feedback pembelajaran.') ?></p>
+<div class="ws-page-header">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <span class="ws-eyebrow"><i class="fas fa-clipboard-check"></i> <?= esc($sectionContent['eyebrow'] ?? 'Assessment dan Feedback') ?></span>
+            <h1><?= esc($pageTitle ?? 'Penilaian') ?></h1>
+            <p><?= esc($sectionContent['description'] ?? 'Pantau pre-test, quiz, post-test, grading, nilai, dan feedback pembelajaran.') ?></p>
+        </div>
+    </div>
 </div>
 
 <?php if (!empty($sectionContent['cards'])): ?>
     <div class="row g-4 mb-4">
         <?php foreach ($sectionContent['cards'] as $card): ?>
             <div class="col-md-4">
-                <div class="bg-white border rounded p-4 h-100">
-                    <p class="text-muted mb-2"><?= esc($card['title']) ?></p>
-                    <strong class="display-6"><?= esc($card['value']) ?></strong>
-                    <small class="d-block text-muted mt-2"><?= esc($card['meta'] ?? '') ?></small>
+                <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                    <span class="text-muted small fw-semibold text-uppercase"><?= esc($card['title']) ?></span>
+                    <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= esc($card['value']) ?></div>
+                    <small class="d-block text-muted"><?= esc($card['meta'] ?? '') ?></small>
                 </div>
             </div>
         <?php endforeach; ?>

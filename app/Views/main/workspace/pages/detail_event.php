@@ -47,7 +47,7 @@ if ($hasAttended) {
 ?>
 
 <!-- Header Event Section -->
-<div class="bg-white border rounded-4 p-4 p-lg-5 mb-4 shadow-sm position-relative overflow-hidden">
+<div class="ws-page-header position-relative overflow-hidden">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
         <div class="d-flex flex-wrap align-items-center gap-2">
             <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill small fw-semibold">

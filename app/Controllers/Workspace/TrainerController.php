@@ -921,15 +921,19 @@ class TrainerController extends BaseController
                 }
             }
 
+            $durationMinutesPost = $this->request->getPost('duration_minutes');
+            $durationMinutes     = ($durationMinutesPost !== null && $durationMinutesPost !== '') ? max(0, (int) $durationMinutesPost) : null;
+
             $quizId = (new QuizModel())->insert([
-                'class_id'      => (int) $classId,
-                'lesson_id'     => $lessonId,
-                'type'          => $type,
-                'title'         => $title,
-                'instructions'  => (string) $this->request->getPost('instructions'),
-                'attempt_limit' => max(1, (int) $this->request->getPost('attempt_limit')),
-                'is_required'   => $this->request->getPost('is_required') ? 1 : 0,
-                'status'        => (string) ($this->request->getPost('status') ?: 'draft'),
+                'class_id'         => (int) $classId,
+                'lesson_id'        => $lessonId,
+                'type'             => $type,
+                'title'            => $title,
+                'instructions'     => (string) $this->request->getPost('instructions'),
+                'duration_minutes' => $durationMinutes,
+                'attempt_limit'    => max(1, (int) $this->request->getPost('attempt_limit')),
+                'is_required'      => $this->request->getPost('is_required') ? 1 : 0,
+                'status'           => (string) ($this->request->getPost('status') ?: 'draft'),
             ], true);
 
             return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, (string) $quizId))->with('success', 'Ujian dibuat. Silakan tambahkan soal.');
@@ -954,12 +958,16 @@ class TrainerController extends BaseController
         }
 
         if ($this->request->getMethod() === 'POST' && $this->request->getPost('_action') === 'update_meta') {
+            $durationMinutesPost = $this->request->getPost('duration_minutes');
+            $durationMinutes     = ($durationMinutesPost !== null && $durationMinutesPost !== '') ? max(0, (int) $durationMinutesPost) : null;
+
             (new QuizModel())->update((int) $quizId, [
-                'title'         => trim((string) $this->request->getPost('title')),
-                'instructions'  => (string) $this->request->getPost('instructions'),
-                'attempt_limit' => max(1, (int) $this->request->getPost('attempt_limit')),
-                'is_required'   => $this->request->getPost('is_required') ? 1 : 0,
-                'status'        => (string) ($this->request->getPost('status') ?: $quiz['status']),
+                'title'            => trim((string) $this->request->getPost('title')),
+                'instructions'     => (string) $this->request->getPost('instructions'),
+                'duration_minutes' => $durationMinutes,
+                'attempt_limit'    => max(1, (int) $this->request->getPost('attempt_limit')),
+                'is_required'      => $this->request->getPost('is_required') ? 1 : 0,
+                'status'           => (string) ($this->request->getPost('status') ?: $quiz['status']),
             ]);
             return redirect()->back()->with('success', 'Ujian berhasil diperbarui.');
         }

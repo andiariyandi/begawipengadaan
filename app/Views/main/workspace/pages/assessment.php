@@ -2,12 +2,14 @@
 
 <?= $this->section('content') ?>
 <!-- Header -->
-<div class="bg-white border rounded-4 p-4 p-lg-5 mb-4 shadow-sm">
+<div class="ws-page-header">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <p class="text-uppercase text-muted small fw-semibold mb-2"><?= esc($sectionContent['eyebrow'] ?? 'Evaluasi Pembelajaran') ?></p>
-            <h1 class="h3 fw-bold mb-2" style="color: #082f5c;"><?= esc($pageTitle ?? 'Assessment Saya') ?></h1>
-            <p class="text-muted mb-0"><?= esc($sectionContent['description'] ?? 'Pre-test, Quiz berkala, dan Post-test untuk mengukur pemahaman materi.') ?></p>
+            <span class="ws-eyebrow">
+                <i class="fas fa-clipboard-check"></i> <?= esc($sectionContent['eyebrow'] ?? 'Evaluasi Pembelajaran') ?>
+            </span>
+            <h1><?= esc($pageTitle ?? 'Assessment Saya') ?></h1>
+            <p><?= esc($sectionContent['description'] ?? 'Pre-test, Quiz berkala, dan Post-test untuk mengukur pemahaman materi.') ?></p>
         </div>
     </div>
 </div>

@@ -2,12 +2,12 @@
 
 <?= $this->section('content') ?>
 <!-- Header -->
-<div class="bg-white border rounded-4 p-4 p-lg-5 mb-4 shadow-sm">
+<div class="ws-page-header">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <p class="text-uppercase text-muted small fw-semibold mb-2">Pencapaian Kompetensi</p>
-            <h1 class="h3 fw-bold mb-2" style="color: #082f5c;"><?= esc($pageTitle ?? 'Sertifikat Saya') ?></h1>
-            <p class="text-muted mb-0">Lihat sertifikat kelulusan yang telah diterbitkan serta verifikasi keabsahan dokumen.</p>
+            <span class="ws-eyebrow"><i class="fas fa-award"></i> Pencapaian Kompetensi</span>
+            <h1><?= esc($pageTitle ?? 'Sertifikat Saya') ?></h1>
+            <p>Lihat sertifikat kelulusan yang telah diterbitkan serta verifikasi keabsahan dokumen.</p>
         </div>
         <div>
             <a href="<?= route_to('public.certificate.verify') ?>" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3">

@@ -5,31 +5,41 @@ $grouped = $grouped ?? [];
 $totalBookmarks = 0;
 foreach ($grouped as $g) { $totalBookmarks += count($g['items'] ?? []); }
 ?>
-<div class="bg-white border rounded p-4 p-lg-5 mb-4">
-    <p class="text-uppercase text-muted small mb-2">Personal</p>
-    <h1 class="mb-2">Bookmark Saya</h1>
-    <p class="mb-0">Akses cepat ke konten yang Anda simpan dari Bunga Rampai, Regulasi, Berita, Event, dan Arena Belajar.</p>
-    <p class="small text-muted mt-12 mb-0">Total: <strong><?= (int) $totalBookmarks ?></strong> bookmark tersimpan.</p>
+<div class="ws-page-header">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <span class="ws-eyebrow"><i class="fas fa-bookmark"></i> Personal</span>
+            <h1>Bookmark Saya</h1>
+            <p>Akses cepat ke konten yang Anda simpan dari Bunga Rampai, Regulasi, Berita, Event, dan Arena Belajar.</p>
+        </div>
+        <div>
+            <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-semibold">
+                <i class="fas fa-bookmark me-1"></i> Total <?= (int) $totalBookmarks ?> Tersimpan
+            </span>
+        </div>
+    </div>
 </div>
 
 <?php if ($msg = session()->getFlashdata('success')): ?>
-    <div class="alert alert-success radius-8 mb-3"><?= esc($msg) ?></div>
+    <div class="alert alert-success rounded-4 mb-3"><?= esc($msg) ?></div>
 <?php endif; ?>
 <?php if ($msg = session()->getFlashdata('info')): ?>
-    <div class="alert alert-info radius-8 mb-3"><?= esc($msg) ?></div>
+    <div class="alert alert-info rounded-4 mb-3"><?= esc($msg) ?></div>
 <?php endif; ?>
 <?php if ($msg = session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger radius-8 mb-3"><?= esc($msg) ?></div>
+    <div class="alert alert-danger rounded-4 mb-3"><?= esc($msg) ?></div>
 <?php endif; ?>
 
 <?php if ($totalBookmarks === 0): ?>
-    <div class="bg-white border rounded p-4">
-        <p class="text-secondary-light mb-0">Belum ada bookmark. Buka halaman publik mana pun dan klik tombol <strong>Simpan</strong> untuk menambahkannya.</p>
+    <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
+        <i class="fas fa-bookmark fs-1 text-muted opacity-50 mb-3"></i>
+        <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Bookmark</h2>
+        <p class="text-muted mb-0">Buka halaman publik mana pun dan klik tombol <strong>Simpan</strong> untuk menambahkannya.</p>
     </div>
 <?php else: ?>
     <?php foreach ($grouped as $type => $group): ?>
         <?php if (empty($group['items'])) { continue; } ?>
-        <div class="bg-white border rounded p-4 mb-3">
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <h2 class="h5 mb-0"><?= esc($group['label']) ?></h2>
                 <span class="badge bg-primary-subtle text-primary-emphasis"><?= count($group['items']) ?></span>

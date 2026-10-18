@@ -1,17 +1,19 @@
 <?= $this->extend('main/workspace/layouts/workspace') ?>
 <?= $this->section('content') ?>
 
-<div class="bg-white border rounded p-4 p-lg-5 mb-4">
+<div class="ws-page-header">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <p class="text-uppercase text-muted small mb-2"><?= esc($sectionContent['eyebrow'] ?? 'Pusat Informasi') ?></p>
-            <h1 class="h3 mb-2"><?= esc($sectionContent['title'] ?? 'Notifikasi') ?></h1>
-            <p class="text-muted mb-0"><?= esc($sectionContent['description'] ?? 'Pusat pembaruan pembelajaran, tugas, penilaian, dan sistem.') ?></p>
+            <span class="ws-eyebrow"><i class="fas fa-bell"></i> <?= esc($sectionContent['eyebrow'] ?? 'Pusat Informasi') ?></span>
+            <h1><?= esc($sectionContent['title'] ?? 'Notifikasi') ?></h1>
+            <p><?= esc($sectionContent['description'] ?? 'Pusat pembaruan pembelajaran, tugas, penilaian, dan sistem.') ?></p>
         </div>
         <?php if (! empty($sectionContent['unread'])): ?>
             <form action="<?= route_to('workspace.notifications.read-all') ?>" method="post">
                 <?= csrf_field() ?>
-                <button type="submit" class="btn btn-outline-primary btn-sm">Tandai Semua Dibaca</button>
+                <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                    <i class="fas fa-check-double me-1"></i> Tandai Semua Dibaca
+                </button>
             </form>
         <?php endif; ?>
     </div>
@@ -21,27 +23,25 @@
     <div class="row g-3 mb-4">
         <?php foreach ($sectionContent['cards'] as $card): ?>
             <div class="col-sm-6 col-lg-3">
-                <div class="card h-100 border rounded shadow-sm">
-                    <div class="card-body">
-                        <span class="text-muted small text-uppercase fw-semibold"><?= esc($card['title']) ?></span>
-                        <div class="display-6 fw-bold my-2 text-primary"><?= esc($card['value']) ?></div>
-                        <span class="text-secondary small"><?= esc($card['meta'] ?? '') ?></span>
-                    </div>
+                <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                    <span class="text-muted small text-uppercase fw-semibold"><?= esc($card['title']) ?></span>
+                    <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= esc($card['value']) ?></div>
+                    <span class="text-secondary small"><?= esc($card['meta'] ?? '') ?></span>
                 </div>
             </div>
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
 
-<div class="card border rounded shadow-sm">
-    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0 fs-6 fw-bold">Daftar Notifikasi</h5>
+<div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden">
+    <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+        <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">Daftar Notifikasi</h2>
         <?php if (! empty($sectionContent['unread'])): ?>
-            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1">
                 <?= esc($sectionContent['unread']) ?> belum dibaca
             </span>
         <?php else: ?>
-            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Semua sudah dibaca</span>
+            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill px-3 py-1">Semua sudah dibaca</span>
         <?php endif; ?>
     </div>
     <div class="card-body p-0">

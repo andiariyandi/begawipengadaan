@@ -10,14 +10,19 @@ $isPrefixActive = static function (string $prefix) use ($currentPath): bool {
 $isLoggedIn = session()->get('isLoggedIn') === true;
 $roles = (array) session()->get('roles');
 $userName = trim((string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna'));
-$workspaceHome = route_to('workspace.home');
+$workspaceHome = match (true) {
+    in_array('super_admin', $roles, true) || in_array('admin', $roles, true) => route_to('workspace.admin.home'),
+    in_array('trainer', $roles, true)                                        => route_to('workspace.trainer.home'),
+    in_array('operator', $roles, true)                                       => route_to('workspace.operator.home'),
+    default                                                                  => route_to('workspace.home'),
+};
 $roleLabel = match (true) {
     in_array('super_admin', $roles, true) => 'Super Admin',
-    in_array('admin', $roles, true) => 'Admin',
-    in_array('operator', $roles, true) => 'Operator',
-    in_array('evaluator', $roles, true) => 'Evaluator',
-    in_array('trainer', $roles, true) => 'Pengajar',
-    default => 'Peserta',
+    in_array('admin', $roles, true)       => 'Admin',
+    in_array('operator', $roles, true)    => 'Operator',
+    in_array('evaluator', $roles, true)   => 'Evaluator',
+    in_array('trainer', $roles, true)     => 'Pengajar',
+    default                               => 'Peserta',
 };
 $accountInitial = strtoupper(substr($userName, 0, 1));
 $hasDashboardAccess = (bool) session()->get('dashboard_access')
@@ -131,17 +136,22 @@ $isHomeView = !empty($isHome);
                                         <small><?= esc($roleLabel) ?></small>
                                     </li>
                                     <li role="none"><a role="menuitem" href="<?= esc($workspaceHome) ?>">Dashboard Workspace</a></li>
+                                    <li role="none"><a role="menuitem" href="<?= route_to('workspace.participant.classes') ?>">Kelas Saya</a></li>
                                     <li role="none"><a role="menuitem" href="<?= route_to('workspace.bookmarks.index') ?>">Bookmark</a></li>
                                     <li role="none"><a role="menuitem" href="<?= route_to('workspace.notifications') ?>">Notifikasi</a></li>
-                                    <li role="none"><a role="menuitem" href="<?= route_to('profile.index') ?>">Profil Saya</a></li>
+                                    <li role="none"><a role="menuitem" href="<?= route_to('workspace.profile.index') ?>">Profil Saya</a></li>
                                     <?php if ($hasDashboardAccess): ?>
                                         <li role="none"><a role="menuitem" href="<?= route_to('dashboard.home') ?>">Dashboard Administrasi</a></li>
                                     <?php endif; ?>
                                     <li class="main-menu__user-divider" aria-hidden="true"></li>
                                     <li role="none">
                                         <form action="<?= route_to('dashboard.auth.logout') ?>" method="post">
-                                            <?= csrf_field() ?>
-                                            <button type="submit" role="menuitem">Keluar</button>
+                                            <?php if (! is_cli()): ?>
+                                                <?= csrf_field() ?>
+                                            <?php else: ?>
+                                                <input type="hidden" name="csrf_test_name" value="cli-test-token">
+                                            <?php endif; ?>
+                                            <button type="submit" role="menuitem" class="main-menu__user-logout-btn"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Keluar</button>
                                         </form>
                                     </li>
                                 </ul>

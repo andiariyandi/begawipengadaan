@@ -1,17 +1,27 @@
 <?= $this->extend('main/workspace/layouts/workspace') ?>
 <?= $this->section('content') ?>
-<div class="bg-white border rounded p-4 p-lg-5 mb-4">
-    <p class="text-uppercase text-muted small mb-2"><?= esc($sectionContent['eyebrow']) ?></p>
-    <h1 class="mb-3">Kelas Saya</h1>
-    <p class="mb-0"><?= esc($sectionContent['description']) ?></p>
+<div class="ws-page-header">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <span class="ws-eyebrow"><i class="fas fa-graduation-cap"></i> <?= esc($sectionContent['eyebrow']) ?></span>
+            <h1>Kelas Saya</h1>
+            <p><?= esc($sectionContent['description']) ?></p>
+        </div>
+    </div>
 </div>
 <div class="row g-4 mb-4">
     <?php foreach ($sectionContent['cards'] as $card): ?>
-        <div class="col-md-4"><div class="bg-white border rounded p-4 h-100"><p class="text-muted"><?= esc($card['title']) ?></p><strong class="display-6"><?= esc($card['value']) ?></strong><small class="d-block text-muted mt-2"><?= esc($card['meta']) ?></small></div></div>
+        <div class="col-md-4">
+            <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                <span class="text-muted small fw-semibold text-uppercase"><?= esc($card['title']) ?></span>
+                <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= esc($card['value']) ?></div>
+                <small class="d-block text-muted"><?= esc($card['meta']) ?></small>
+            </div>
+        </div>
     <?php endforeach; ?>
 </div>
-<div class="bg-white border rounded p-4">
-    <h2 class="h4 mb-3"><?= $sectionContent['items'] && is_array($sectionContent['items'][0] ?? null) ? 'Kelas terdaftar' : 'Materi dan kelas yang tersedia' ?></h2>
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+    <h2 class="h5 fw-bold mb-3" style="color: #082f5c;"><?= $sectionContent['items'] && is_array($sectionContent['items'][0] ?? null) ? 'Kelas terdaftar' : 'Materi dan kelas yang tersedia' ?></h2>
     <?php if (empty($sectionContent['items'])): ?>
         <p class="text-muted mb-0">Belum ada kelas aktif.</p>
     <?php else: ?>

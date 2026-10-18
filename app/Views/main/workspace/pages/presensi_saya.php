@@ -2,12 +2,12 @@
 
 <?= $this->section('content') ?>
 <!-- Header -->
-<div class="bg-white border rounded-4 p-4 p-lg-5 mb-4 shadow-sm">
+<div class="ws-page-header">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <p class="text-uppercase text-muted small fw-semibold mb-2"><?= esc($sectionContent['eyebrow'] ?? 'Catatan Kehadiran') ?></p>
-            <h1 class="h3 fw-bold mb-2" style="color: #082f5c;"><?= esc($pageTitle ?? 'Presensi Saya') ?></h1>
-            <p class="text-muted mb-0"><?= esc($sectionContent['description'] ?? 'Rekap log presensi dan kehadiran Anda pada event serta sesi pembelajaran.') ?></p>
+            <span class="ws-eyebrow"><i class="fas fa-user-check"></i> <?= esc($sectionContent['eyebrow'] ?? 'Catatan Kehadiran') ?></span>
+            <h1><?= esc($pageTitle ?? 'Presensi Saya') ?></h1>
+            <p><?= esc($sectionContent['description'] ?? 'Rekap log presensi dan kehadiran Anda pada event serta sesi pembelajaran.') ?></p>
         </div>
         <div class="d-flex flex-wrap gap-2">
             <a href="<?= route_to('workspace.participant.events') ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
@@ -25,7 +25,7 @@
     <div class="row g-4 mb-4">
         <?php foreach ($sectionContent['cards'] as $card): ?>
             <div class="col-sm-6 col-lg-6">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                     <span class="text-muted small fw-semibold text-uppercase"><?= esc($card['title']) ?></span>
                     <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= esc($card['value']) ?></div>
                     <small class="text-muted"><?= esc($card['meta'] ?? '') ?></small>

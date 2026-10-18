@@ -299,6 +299,9 @@ $filters        = $filters ?? [];
                                     </td>
                                     <td class="text-center text-sm font-monospace">
                                         <?= (int) ($q['attempt_limit'] ?? 1) ?>x
+                                        <?php if (! empty($q['duration_minutes'])): ?>
+                                            <div class="text-xxs text-primary fw-semibold mt-1"><?= (int) $q['duration_minutes'] ?> mnt</div>
+                                        <?php endif; ?>
                                         <?php if ((int) ($q['attempt_count'] ?? 0) > 0): ?>
                                             <div class="text-xxs text-secondary-light mt-1"><?= (int) $q['attempt_count'] ?> pengerjaan</div>
                                         <?php endif; ?>
@@ -707,7 +710,7 @@ $filters        = $filters ?? [];
                     </div>
 
                     <div class="row gy-16 mb-16">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold text-sm mb-6" for="quiz_type">Tipe Kuis</label>
                             <select id="quiz_type" name="type" class="form-select radius-8">
                                 <option value="lesson_quiz">Kuis Modul</option>
@@ -715,8 +718,12 @@ $filters        = $filters ?? [];
                                 <option value="post_test">Post-Test (Ujian Kelulusan)</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-sm mb-6" for="quiz_attempts">Batas Percobaan (Attempt)</label>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-sm mb-6" for="quiz_duration">Durasi Timer (Menit)</label>
+                            <input id="quiz_duration" type="number" min="0" name="duration_minutes" class="form-control radius-8" placeholder="0 = Bebas">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-sm mb-6" for="quiz_attempts">Attempt Limit</label>
                             <input id="quiz_attempts" type="number" min="1" name="attempt_limit" class="form-control radius-8" value="3" required>
                         </div>
                     </div>
@@ -906,6 +913,7 @@ function openCreateQuizModal() {
     document.getElementById('quizModalTitle').innerText = 'Tambah Kuis Pembelajaran';
     document.getElementById('quiz_title').value = '';
     document.getElementById('quiz_type').value = 'lesson_quiz';
+    document.getElementById('quiz_duration').value = '';
     document.getElementById('quiz_attempts').value = '3';
     document.getElementById('quiz_instructions').value = '';
     document.getElementById('quiz_status').value = 'published';
@@ -919,6 +927,7 @@ function populateEditQuiz(quiz) {
     document.getElementById('quiz_class_id').value = quiz.class_id;
     document.getElementById('quiz_title').value = quiz.title || '';
     document.getElementById('quiz_type').value = quiz.type || 'lesson_quiz';
+    document.getElementById('quiz_duration').value = quiz.duration_minutes || '';
     document.getElementById('quiz_attempts').value = quiz.attempt_limit || '1';
     document.getElementById('quiz_instructions').value = quiz.instructions || '';
     document.getElementById('quiz_status').value = quiz.status || 'published';

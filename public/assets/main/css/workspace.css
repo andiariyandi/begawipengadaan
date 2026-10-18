@@ -21,486 +21,20 @@
 }
 
 /* ==========================================================================
-   1. MAIN HEADER & MENUBAR FLOW (PREVENTS COLLISION & OVERLAPPING)
-   ========================================================================== */
+   1. CANONICAL NAVBAR HARMONY (MANAGED BY LANDING-CORE.CSS)
+   ==========================================================================
+   Workspace seamlessly inherits the canonical fixed navbar from landing-core.css,
+   ensuring 100% UI and visual layout consistency with the BegawiPengadaan landing pages.
+*/
 
-/* Header sits naturally in normal document flow (NOT absolute!) */
-body.landing-internal .main-header,
-.workspace-header,
-.main-header {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    width: 100% !important;
-    background: #082f5c !important;
-    z-index: 100 !important;
-    box-shadow: 0 4px 20px rgba(5, 34, 68, 0.22);
-    margin: 0 !important;
-    float: none !important;
-    clear: both !important;
-}
-
-/* Top contact bar */
-.main-header .main-menu__top {
-    position: relative !important;
-    background-color: #052244 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    display: block !important;
-}
-
-.main-header .main-menu__top-inner {
-    padding: 8px 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    flex-wrap: nowrap !important;
-}
-
-.main-header .main-menu__top-inner p,
-.main-header .main-menu__top-inner a {
-    color: rgba(255, 255, 255, 0.82) !important;
-    font-size: 13px !important;
-    margin: 0 !important;
-    line-height: 1.4 !important;
-    text-decoration: none !important;
-}
-
-.main-header .main-menu__contact-list {
-    margin: 0 !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 24px !important;
-}
-
-.main-header .main-menu__contact-list li {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    margin: 0 !important;
-}
-
-.main-header .main-menu__contact-list li::before {
-    display: none !important;
-}
-
-.main-header .main-menu__contact-list .icon {
-    font-size: 14px !important;
-    color: var(--ws-orange) !important;
-}
-
-/* Main Navigation Bar Container */
-.main-header .main-menu {
-    position: relative !important;
-    background: #082f5c !important;
-    display: block !important;
-}
-
-.main-header .main-menu__wrapper {
-    position: relative !important;
-    background: #082f5c !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-    display: block !important;
-}
-
-.main-header .main-menu__wrapper::before {
-    display: none !important;
-}
-
-.main-header .main-menu__wrapper > .container {
-    max-width: 1440px !important;
-    padding-left: 20px !important;
-    padding-right: 20px !important;
-}
-
-/* Critical: Never allow wrapper items to wrap onto a second line! */
-.main-header .main-menu__wrapper-inner {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    flex-wrap: nowrap !important;
-    min-height: 76px !important;
-    gap: 16px !important;
-}
-
-/* Left Column: Logo & Eksplorasi */
-.main-header .main-menu__left {
-    display: flex !important;
-    align-items: center !important;
-    gap: 18px !important;
-    flex-shrink: 0 !important;
-}
-
-.main-header .main-menu__logo img {
-    max-height: 50px !important;
-    width: auto !important;
-    display: block !important;
-}
-
-.main-header .main-menu__category-box {
-    margin-left: 2px !important;
-    flex-shrink: 0 !important;
-}
-
-.main-header .main-menu__category-btn {
-    padding: 10px 18px !important;
-    border-radius: 999px !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
-    color: #ffffff !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    cursor: pointer !important;
-    transition: all .2s ease !important;
-}
-
-.main-header .main-menu__category-btn:hover {
-    background: rgba(255, 255, 255, 0.16) !important;
-}
-
-.main-header .main-menu__category-btn p {
-    color: #ffffff !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    margin: 0 !important;
-}
-
-.main-header .main-menu__category-btn i,
-.main-header .main-menu__category-btn span {
-    color: var(--ws-orange) !important;
-}
-
-/* Center Column: Main Navigation Menu List */
-.main-header .main-menu__main-menu-box {
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-    display: flex !important;
-    justify-content: center !important;
-    padding: 0 8px !important;
-}
-
-.main-header .main-menu__list {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-wrap: nowrap !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    list-style: none !important;
-    gap: 0 !important;
-}
-
-.main-header .main-menu .main-menu__list > li {
-    padding-top: 24px !important;
-    padding-bottom: 24px !important;
-    position: relative !important;
-    list-style: none !important;
-}
-
-.main-header .main-menu .main-menu__list > li + li {
-    margin-left: 16px !important;
-}
-
-.main-header .main-menu .main-menu__list > li > a {
-    font-size: 14px !important;
-    font-weight: 500 !important;
-    color: #ffffff !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    white-space: nowrap !important;
-    text-decoration: none !important;
-    transition: color .2s ease !important;
-}
-
-.main-header .main-menu .main-menu__list > li:hover > a,
-.main-header .main-menu .main-menu__list > li.current > a {
-    color: var(--ws-orange) !important;
-}
-
-/* Navigation Dropdown Sub-menus */
-.main-header .main-menu .main-menu__list > li > ul.shadow-box {
-    background: #ffffff !important;
-    box-shadow: 0 12px 36px rgba(8, 47, 92, 0.16) !important;
-    border-radius: 12px !important;
-    border: 1px solid var(--ws-border) !important;
-    padding: 8px !important;
-    min-width: 220px !important;
-}
-
-.main-header .main-menu .main-menu__list > li > ul > li {
-    list-style: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.main-header .main-menu .main-menu__list > li > ul > li > a {
-    color: var(--ws-navy) !important;
-    font-size: 13.5px !important;
-    font-weight: 500 !important;
-    padding: 8px 14px !important;
-    border-radius: 6px !important;
-    display: block !important;
-    text-decoration: none !important;
-    transition: all .15s ease !important;
-}
-
-.main-header .main-menu .main-menu__list > li > ul > li:hover > a {
-    color: var(--ws-orange) !important;
-    background: var(--ws-accent-light) !important;
-}
-
-/* Right Column: Search Box & User Profile Trigger */
-.main-header .main-menu__right {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    flex-shrink: 0 !important;
-}
-
-.main-header .main-menu__search-cart-box {
-    display: flex !important;
-    align-items: center !important;
-}
-
-.main-header .main-menu__search {
-    color: #ffffff !important;
-    font-size: 17px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-decoration: none !important;
-    transition: color .2s ease !important;
-}
-
-.main-header .main-menu__search:hover {
-    color: var(--ws-orange) !important;
-}
-
-/* Responsive Menubar Density Adjustments */
-@media (max-width: 1440px) {
-    .main-header .main-menu__category-box {
-        display: none !important;
-    }
-    .main-header .main-menu .main-menu__list > li + li {
-        margin-left: 12px !important;
-    }
-    .main-header .main-menu .main-menu__list > li > a {
-        font-size: 13.5px !important;
-    }
-}
-
-@media (max-width: 1199px) {
-    .main-header .main-menu__main-menu-box {
-        display: none !important;
-    }
-    .main-header .mobile-nav__toggler {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        color: #ffffff !important;
-        font-size: 22px !important;
-        margin-left: 12px !important;
-        cursor: pointer !important;
-    }
-}
 
 /* ==========================================================================
-   2. USER PROFILE DROPDOWN MENU
+   2. USER LOGOUT STYLING IN DROPDOWN
    ========================================================================== */
-.main-menu__user {
-    position: relative !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    margin-left: 4px !important;
-}
-
-.main-menu__user-trigger {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 9px !important;
-    padding: 5px 14px 5px 6px !important;
-    border-radius: 999px !important;
-    background: rgba(255, 255, 255, 0.12) !important;
-    border: 1px solid rgba(255, 255, 255, 0.22) !important;
-    color: #ffffff !important;
-    text-decoration: none !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    line-height: 1 !important;
-    transition: all .2s ease !important;
-    white-space: nowrap !important;
-    cursor: pointer !important;
-}
-
-.main-menu__user-trigger:hover,
-.main-menu__user:hover .main-menu__user-trigger,
-.main-menu__user.is-open .main-menu__user-trigger {
-    background: rgba(255, 255, 255, 0.24) !important;
-    color: #ffffff !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
-}
-
-.main-menu__user-avatar {
-    width: 32px !important;
-    height: 32px !important;
-    border-radius: 50% !important;
-    background: var(--ws-orange) !important;
-    color: #ffffff !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    line-height: 1 !important;
-    box-shadow: 0 2px 6px rgba(255, 107, 53, 0.35) !important;
-}
-
-.main-menu__user-name {
-    max-width: 140px !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    display: inline-block !important;
-    color: #ffffff !important;
-}
-
-.main-menu__user-trigger .icon-down-arrow {
-    font-size: 10px !important;
-    opacity: .8 !important;
-    color: #ffffff !important;
-    transition: transform .2s ease !important;
-}
-
-.main-menu__user.is-open .main-menu__user-trigger .icon-down-arrow {
-    transform: rotate(180deg) !important;
-}
-
-.main-menu__user-menu {
-    position: absolute !important;
-    top: calc(100% + 10px) !important;
-    right: 0 !important;
-    min-width: 260px !important;
-    margin: 0 !important;
-    padding: 8px !important;
-    list-style: none !important;
-    background: #ffffff !important;
-    border: 1px solid var(--ws-border) !important;
-    border-radius: 14px !important;
-    box-shadow: 0 16px 40px rgba(8, 47, 92, 0.16) !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    transform: translateY(-6px) !important;
-    transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s !important;
-    z-index: 1050 !important;
-}
-
-.main-menu__user:hover .main-menu__user-menu,
-.main-menu__user.is-open .main-menu__user-menu {
-    visibility: visible !important;
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    transition: opacity .18s ease, transform .18s ease, visibility 0s !important;
-}
-
-.main-menu__user-meta {
-    padding: 12px 14px 10px !important;
-    border-bottom: 1px solid var(--ws-border-light) !important;
-    margin: 0 0 6px !important;
-    list-style: none !important;
-}
-
-.main-menu__user-meta strong {
-    display: block !important;
-    color: var(--ws-navy) !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    line-height: 1.3 !important;
-}
-
-.main-menu__user-meta small {
-    display: inline-block !important;
-    color: var(--ws-orange) !important;
-    font-weight: 600 !important;
-    font-size: 11px !important;
-    text-transform: uppercase !important;
-    letter-spacing: .05em !important;
-    margin-top: 3px !important;
-    background: var(--ws-accent-light) !important;
-    padding: 2px 8px !important;
-    border-radius: 999px !important;
-}
-
-.main-menu__user-meta p {
-    color: var(--ws-text-muted) !important;
-    font-size: 11px !important;
-    margin: 4px 0 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-}
-
-.main-menu__user-menu > li {
-    list-style: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.main-menu__user-menu a,
-.main-menu__user-menu button {
+.main-menu__user-logout-btn {
     display: flex !important;
     align-items: center !important;
-    gap: 10px !important;
-    width: 100% !important;
-    text-align: left !important;
-    background: transparent !important;
-    border: 0 !important;
-    padding: 9px 12px !important;
-    font-size: 13.5px !important;
-    color: var(--ws-text) !important;
-    text-decoration: none !important;
-    border-radius: 8px !important;
-    cursor: pointer !important;
-    font-family: inherit !important;
-    font-weight: 500 !important;
-    transition: all .15s ease !important;
-}
-
-.main-menu__user-menu a:hover,
-.main-menu__user-menu button:hover {
-    background: var(--ws-accent-light) !important;
-    color: var(--ws-orange) !important;
-}
-
-.main-menu__user-menu a i,
-.main-menu__user-menu button i {
-    width: 16px !important;
-    text-align: center !important;
-    font-size: 13px !important;
-    color: var(--ws-navy) !important;
-    transition: color .15s ease !important;
-}
-
-.main-menu__user-menu a:hover i,
-.main-menu__user-menu button:hover i {
-    color: var(--ws-orange) !important;
-}
-
-.main-menu__user-divider {
-    height: 1px !important;
-    background: var(--ws-border-light) !important;
-    margin: 6px 4px !important;
-    list-style: none !important;
-}
-
-.main-menu__user-menu form {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.main-menu__user-logout-btn {
+    gap: 8px !important;
     color: #dc3545 !important;
 }
 
@@ -514,28 +48,29 @@ body.landing-internal .main-header,
 }
 
 /* ==========================================================================
-   3. WORKSPACE BREADCRUMB (NATURAL FLOW BELOW HEADER)
+   3. WORKSPACE BREADCRUMB (INTEGRATED BEGAWI DESIGN SYSTEM)
    ========================================================================== */
 .workspace-breadcrumb {
     position: relative !important;
     display: block !important;
     width: 100% !important;
-    background: linear-gradient(135deg, #052244 0%, #082f5c 100%) !important;
-    padding: 24px 0 !important;
+    background: linear-gradient(135deg, #052244 0%, #093766 50%, #0c5aa6 100%) !important;
+    padding: 28px 0 !important;
     color: #ffffff !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 4px 16px rgba(5, 34, 68, 0.12) !important;
     clear: both !important;
     z-index: 10 !important;
 }
 
 .workspace-breadcrumb h2 {
     color: #ffffff !important;
-    font-size: 22px !important;
+    font-size: 1.55rem !important;
     font-weight: 700 !important;
     margin: 0 !important;
     line-height: 1.3 !important;
     font-family: var(--fistudy-font, "Outfit", sans-serif) !important;
+    letter-spacing: -0.015em !important;
 }
 
 .workspace-breadcrumb .thm-breadcrumb {
@@ -550,9 +85,10 @@ body.landing-internal .main-header,
 }
 
 .workspace-breadcrumb .thm-breadcrumb a {
-    color: rgba(255, 255, 255, 0.72) !important;
+    color: rgba(255, 255, 255, 0.78) !important;
     text-decoration: none !important;
     transition: color .2s ease !important;
+    font-weight: 500 !important;
 }
 
 .workspace-breadcrumb .thm-breadcrumb a:hover {
@@ -560,22 +96,22 @@ body.landing-internal .main-header,
 }
 
 .workspace-breadcrumb .thm-breadcrumb li span {
-    color: rgba(255, 255, 255, 0.4) !important;
+    color: rgba(255, 255, 255, 0.35) !important;
 }
 
 .workspace-breadcrumb .thm-breadcrumb li.current {
-    color: var(--ws-orange) !important;
+    color: var(--ws-accent, #f3a20b) !important;
     font-weight: 600 !important;
 }
 
 /* ==========================================================================
-   4. WORKSPACE SHELL CONTAINER (NATURAL FLOW BELOW BREADCRUMB)
+   4. WORKSPACE SHELL CONTAINER
    ========================================================================== */
 .workspace-shell {
     position: relative !important;
     display: block !important;
     width: 100% !important;
-    background-color: var(--ws-bg) !important;
+    background-color: #f8fafc !important;
     padding: 36px 0 72px !important;
     min-height: 520px !important;
     clear: both !important;
@@ -593,36 +129,202 @@ body.landing-internal .main-header,
     min-width: 0 !important;
 }
 
-aside.col-lg-3.col-xl-3.workspace-sidebar-wrap,
-aside.workspace-sidebar-wrap {
-    flex: 0 0 25% !important;
-    max-width: 25% !important;
-    padding-left: 0 !important;
-    padding-right: 12px !important;
-}
+@media (min-width: 992px) {
+    aside.workspace-sidebar-wrap {
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+        width: 25% !important;
+    }
 
-main.col-lg-9.col-xl-9.workspace-content,
-main.workspace-content {
-    flex: 0 0 75% !important;
-    max-width: 75% !important;
-    padding-left: 12px !important;
-    padding-right: 0 !important;
-    min-height: 480px !important;
+    main.workspace-content {
+        flex: 0 0 75% !important;
+        max-width: 75% !important;
+        width: 75% !important;
+    }
+
+    .workspace-shell--learning-room main.workspace-content,
+    main.workspace-content.col-12 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
 }
 
 /* ==========================================================================
-   5. WORKSPACE LEFT SIDEBAR (FISTUDY CARD STYLE)
+   UNIFIED PAGE HEADER COMPONENT (FOR ALL WORKSPACE SUBPAGES)
+   ========================================================================== */
+.ws-page-header {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 24px 28px !important;
+    margin-bottom: 24px !important;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
+    transition: all 0.2s ease !important;
+}
+
+.ws-page-header .ws-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #0c5aa6;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+}
+
+.ws-page-header h1 {
+    color: #082f5c !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    margin-bottom: 6px !important;
+    font-family: var(--fistudy-font, "Outfit", sans-serif) !important;
+    letter-spacing: -0.01em !important;
+}
+
+.ws-page-header p {
+    color: #64748b !important;
+    font-size: 0.9rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 0 !important;
+}
+
+.card .display-6 {
+    font-size: 1.85rem !important;
+    font-weight: 700 !important;
+    color: #082f5c !important;
+    font-family: var(--fistudy-font, "Outfit", sans-serif) !important;
+    line-height: 1.15 !important;
+    margin: 6px 0 !important;
+}
+
+.badge.bg-primary-subtle {
+    background-color: #eff6ff !important;
+    color: #0c5aa6 !important;
+    border: 1px solid #bfdbfe !important;
+}
+.badge.bg-success-subtle {
+    background-color: #ecfdf5 !important;
+    color: #047857 !important;
+    border: 1px solid #a7f3d0 !important;
+}
+.badge.bg-warning-subtle {
+    background-color: #fffbeb !important;
+    color: #b45309 !important;
+    border: 1px solid #fde68a !important;
+}
+.badge.bg-danger-subtle {
+    background-color: #fef2f2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fecaca !important;
+}
+.badge.bg-secondary-subtle {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* ==========================================================================
+   WORKSPACE UI COMPONENTS: NAV-PILLS, BUTTONS, TABLES, FORMS
+   ========================================================================== */
+.nav-pills .nav-link {
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px !important;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 8px 18px !important;
+    transition: all 0.18s ease;
+}
+.nav-pills .nav-link:hover {
+    background: #eff6ff;
+    color: #0c5aa6;
+    border-color: #bfdbfe;
+}
+.nav-pills .nav-link.active {
+    background: #0c5aa6 !important;
+    color: #ffffff !important;
+    border-color: #0c5aa6 !important;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(12, 90, 166, 0.22);
+}
+
+.table thead th {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 12px 16px !important;
+}
+.table tbody td {
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    font-size: 0.875rem !important;
+    vertical-align: middle;
+}
+.table-responsive {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.form-control, .form-select {
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: 0.9rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #0c5aa6;
+    box-shadow: 0 0 0 3px rgba(12, 90, 166, 0.12);
+}
+
+.btn-primary {
+    background-color: #0c5aa6 !important;
+    border-color: #0c5aa6 !important;
+    box-shadow: 0 2px 6px rgba(12, 90, 166, 0.18);
+}
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #082f5c !important;
+    border-color: #082f5c !important;
+}
+.btn-outline-primary {
+    color: #0c5aa6 !important;
+    border-color: #0c5aa6 !important;
+}
+.btn-outline-primary:hover, .btn-outline-primary:focus {
+    background-color: #0c5aa6 !important;
+    border-color: #0c5aa6 !important;
+    color: #ffffff !important;
+}
+
+/* ==========================================================================
+   5. WORKSPACE LEFT SIDEBAR (ELEVATED BEGAWI CARD)
    ========================================================================== */
 .workspace-sidebar {
     position: relative !important;
-    background: var(--ws-card-bg) !important;
-    border: 1px solid var(--ws-border) !important;
-    border-radius: 14px !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
     padding: 22px 18px !important;
-    box-shadow: 0 8px 24px rgba(8, 47, 92, 0.05) !important;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
+    transition: all .2s ease !important;
 }
 
 .workspace-sidebar__identity {
@@ -631,26 +333,26 @@ main.workspace-content {
     gap: 12px !important;
     padding-bottom: 16px !important;
     margin-bottom: 16px !important;
-    border-bottom: 1px solid var(--ws-border-light) !important;
+    border-bottom: 1px solid #f1f5f9 !important;
 }
 
 .workspace-sidebar__identity .avatar {
-    flex: 0 0 44px !important;
-    width: 44px !important;
-    height: 44px !important;
+    flex: 0 0 46px !important;
+    width: 46px !important;
+    height: 46px !important;
     border-radius: 50% !important;
-    background: var(--ws-orange) !important;
+    background: linear-gradient(135deg, #0c5aa6 0%, #082f5c 100%) !important;
     color: #ffffff !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     font-weight: 700 !important;
     font-size: 17px !important;
-    box-shadow: 0 3px 10px rgba(255, 107, 53, 0.28) !important;
+    box-shadow: 0 4px 12px rgba(12, 90, 166, 0.22) !important;
 }
 
 .workspace-sidebar__identity strong {
-    color: var(--ws-navy) !important;
+    color: #082f5c !important;
     font-size: 14.5px !important;
     font-weight: 700 !important;
     line-height: 1.3 !important;
@@ -661,19 +363,24 @@ main.workspace-content {
 }
 
 .workspace-sidebar__identity span {
-    color: var(--ws-text-muted) !important;
-    font-size: 11.5px !important;
+    display: inline-block !important;
+    color: #0c5aa6 !important;
+    background: #eff6ff !important;
+    border: 1px solid #dbeafe !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    padding: 2px 8px !important;
+    border-radius: 999px !important;
+    margin-top: 3px !important;
     line-height: 1.3 !important;
-    display: block !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
+    text-transform: uppercase !important;
+    letter-spacing: .03em !important;
 }
 
 .workspace-sidebar__group {
     margin: 0 0 16px !important;
     padding: 0 0 14px !important;
-    border-bottom: 1px solid var(--ws-border-light) !important;
+    border-bottom: 1px solid #f1f5f9 !important;
 }
 
 .workspace-sidebar__group:last-child {
@@ -683,14 +390,13 @@ main.workspace-content {
 }
 
 .workspace-sidebar__group > h2 {
-    color: var(--ws-navy) !important;
+    color: #64748b !important;
     font-size: 11px !important;
     font-weight: 700 !important;
     letter-spacing: .08em !important;
     text-transform: uppercase !important;
     margin: 0 0 10px !important;
     line-height: 1.4 !important;
-    opacity: .75 !important;
 }
 
 .workspace-sidebar__link {
@@ -701,9 +407,9 @@ main.workspace-content {
     width: 100% !important;
     padding: 9px 12px !important;
     margin: 0 0 3px !important;
-    border-radius: 9px !important;
+    border-radius: 10px !important;
     border-left: 3px solid transparent !important;
-    color: var(--ws-text) !important;
+    color: #334155 !important;
     font-size: 13.5px !important;
     line-height: 1.3 !important;
     text-decoration: none !important;
@@ -713,14 +419,14 @@ main.workspace-content {
 }
 
 .workspace-sidebar__link:hover {
-    background: var(--ws-accent-light) !important;
-    color: var(--ws-orange-hover) !important;
+    background: #f1f5f9 !important;
+    color: #0c5aa6 !important;
 }
 
 .workspace-sidebar__link.is-active {
-    background: var(--ws-accent-light) !important;
-    color: var(--ws-orange) !important;
-    border-left-color: var(--ws-orange) !important;
+    background: #eff6ff !important;
+    color: #0c5aa6 !important;
+    border-left-color: #0c5aa6 !important;
     font-weight: 600 !important;
 }
 
@@ -728,94 +434,103 @@ main.workspace-content {
     width: 16px !important;
     text-align: center !important;
     font-size: 13px !important;
-    color: var(--ws-navy) !important;
+    color: #64748b !important;
     transition: color .15s !important;
 }
 
 .workspace-sidebar__link:hover i,
 .workspace-sidebar__link.is-active i {
-    color: var(--ws-orange) !important;
+    color: #0c5aa6 !important;
 }
 
 .workspace-sidebar__link.is-disabled {
-    color: #a3adba !important;
+    color: #94a3b8 !important;
     cursor: default !important;
 }
 
 .workspace-sidebar__link.is-disabled small {
-    color: #b0b7c2 !important;
+    color: #94a3b8 !important;
     font-size: 11px !important;
 }
 
 /* ==========================================================================
-   6. STICKY HEADER (WHEN SCROLLED)
+   6. RESPONSIVE MEDIA QUERIES (MOBILE OPTIMIZED)
    ========================================================================== */
-.stricky-header.main-menu {
-    background-color: #082f5c !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-}
-
-.stricky-header .main-menu__wrapper-inner {
-    flex-wrap: nowrap !important;
-    min-height: 70px !important;
-}
-
-.stricky-header .main-menu .main-menu__list > li + li {
-    margin-left: 14px !important;
-}
-
-.stricky-header .main-menu .main-menu__list > li > a {
-    color: #ffffff !important;
-    font-size: 14px !important;
-}
-
-.stricky-header .main-menu .main-menu__list > li.current > a,
-.stricky-header .main-menu .main-menu__list > li:hover > a {
-    color: var(--ws-orange) !important;
-}
-
-.stricky-header .main-menu__wrapper::before {
-    display: none !important;
-}
-
-/* ==========================================================================
-   7. RESPONSIVE MEDIA QUERIES
-   ========================================================================== */
-@media (max-width: 1199px) {
+@media (max-width: 1199px) and (min-width: 992px) {
     aside.workspace-sidebar-wrap {
-        flex: 0 0 32% !important;
-        max-width: 32% !important;
+        flex: 0 0 28% !important;
+        max-width: 28% !important;
+        width: 28% !important;
     }
     main.workspace-content {
-        flex: 0 0 68% !important;
-        max-width: 68% !important;
+        flex: 0 0 72% !important;
+        max-width: 72% !important;
+        width: 72% !important;
+    }
+    .workspace-shell--learning-room main.workspace-content,
+    main.workspace-content.col-12 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
 }
 
-@media (max-width: 991px) {
+@media (max-width: 991.98px) {
+    .workspace-breadcrumb {
+        padding: 22px 0 !important;
+    }
+    .workspace-breadcrumb h2 {
+        font-size: 1.3rem !important;
+    }
     .workspace-shell {
-        padding-top: 24px !important;
+        padding: 24px 0 48px !important;
     }
-    .workspace-shell > .container > .row {
-        display: block !important;
+    aside.workspace-sidebar-wrap {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        margin-bottom: 24px !important;
     }
-    aside.workspace-sidebar-wrap,
     main.workspace-content {
         flex: 0 0 100% !important;
         max-width: 100% !important;
-        padding: 0 !important;
+        width: 100% !important;
     }
-    .workspace-sidebar {
-        margin-bottom: 24px !important;
+}
+
+@media (max-width: 767.98px) {
+    .workspace-breadcrumb {
+        padding: 16px 0 !important;
     }
-    .main-menu__user-name {
-        display: none !important;
+    .workspace-breadcrumb h2 {
+        font-size: 1.15rem !important;
     }
-    .main-menu__user-trigger {
-        padding: 4px !important;
+    .workspace-breadcrumb .thm-breadcrumb {
+        font-size: 12px !important;
+        gap: 6px !important;
     }
-    .main-menu__user-menu {
-        right: 0 !important;
+    .workspace-shell {
+        padding: 16px 0 36px !important;
+    }
+    .ws-page-header {
+        padding: 18px 20px !important;
+        border-radius: 14px !important;
+        margin-bottom: 18px !important;
+    }
+    .ws-page-header h1 {
+        font-size: 1.25rem !important;
+    }
+    .ws-hero-card {
+        padding: 22px 20px !important;
+        border-radius: 16px !important;
+    }
+    .ws-stat-card,
+    .ws-class-card,
+    .ws-feed-card {
+        border-radius: 14px !important;
+    }
+    .card .display-6 {
+        font-size: 1.5rem !important;
     }
 }
 

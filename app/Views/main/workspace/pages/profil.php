@@ -2,14 +2,14 @@
 
 <?= $this->section('content') ?>
 <!-- Header -->
-<div class="bg-white border rounded-4 p-4 p-lg-5 mb-4 shadow-sm">
-    <div class="row align-items-center g-4">
-        <div class="col-lg-8">
-            <p class="text-uppercase text-muted small fw-semibold mb-2">Manajemen Profil</p>
-            <h1 class="h3 fw-bold mb-2" style="color: #082f5c;"><?= esc($user['name'] ?? $userName ?? 'Profil Pengguna') ?></h1>
-            <p class="text-muted mb-0">Kelola identitas, alamat, data profil spesifik, dan keamanan akun Anda.</p>
+<div class="ws-page-header">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <span class="ws-eyebrow"><i class="fas fa-user-circle"></i> Manajemen Profil</span>
+            <h1><?= esc($user['name'] ?? $userName ?? 'Profil Pengguna') ?></h1>
+            <p>Kelola identitas, alamat, data profil spesifik, dan keamanan akun Anda.</p>
         </div>
-        <div class="col-lg-4 text-lg-end">
+        <div>
             <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-semibold fs-6">
                 <i class="fas fa-id-badge me-1"></i> <?= esc(strtoupper($user['profile_type'] ?? 'PUBLIC')) ?>
             </span>

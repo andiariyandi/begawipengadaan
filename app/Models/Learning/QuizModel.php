@@ -12,6 +12,6 @@ class QuizModel extends Model
     protected $useTimestamps = true;
     protected $allowedFields = [
         'class_id', 'lesson_id', 'type', 'title', 'instructions',
-        'attempt_limit', 'is_required', 'status',
+        'duration_minutes', 'attempt_limit', 'is_required', 'status',
     ];
 }

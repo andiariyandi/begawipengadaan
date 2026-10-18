@@ -124,7 +124,7 @@ $globalItems = [
     ['Aktivitas Saya', route_to('workspace.activity'), 'fas fa-history'],
 ];
 ?>
-<aside class="workspace-sidebar-wrap">
+<aside class="col-lg-3 col-xl-3 workspace-sidebar-wrap">
     <div class="workspace-sidebar">
         <div class="workspace-sidebar__identity">
             <span class="avatar"><?= esc($initials ?: 'U') ?></span>

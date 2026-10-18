@@ -12,17 +12,19 @@ $sectionContent   = $sectionContent ?? [];
 ?>
 
 <!-- 1. HEADER SECTION (FISTUDY DNA) -->
-<div class="card border-0 rounded-4 shadow-sm p-4 p-lg-5 mb-4 bg-white">
+<div class="ws-page-header">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <p class="text-uppercase text-muted small fw-bold mb-2"><?= esc($sectionContent['eyebrow'] ?? 'Aktivitas Belajar & Penugasan') ?></p>
-            <h1 class="h3 fw-bold mb-2" style="color: #082f5c;"><?= esc($pageTitle ?? 'Tugas Pembelajaran') ?></h1>
-            <p class="text-muted mb-0"><?= esc($sectionContent['description'] ?? 'Kelola tugas aktif, pengumpulan lembar kerja, berkas tugas, revisi, dan pemantauan feedback pengajar.') ?></p>
+            <span class="ws-eyebrow">
+                <i class="fas fa-tasks"></i> <?= esc($sectionContent['eyebrow'] ?? 'Aktivitas Belajar & Penugasan') ?>
+            </span>
+            <h1><?= esc($pageTitle ?? 'Tugas Pembelajaran') ?></h1>
+            <p><?= esc($sectionContent['description'] ?? 'Kelola tugas aktif, pengumpulan lembar kerja, berkas tugas, revisi, dan pemantauan feedback pengajar.') ?></p>
         </div>
         <?php if (! empty($activeAssignment)): ?>
             <div>
                 <a href="<?= site_url('workspace/peserta/kelas/' . esc($activeAssignment['class_id']) . '/tugas') ?>" class="btn btn-outline-secondary rounded-pill px-4 btn-sm">
-                    <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar Tugas
+                    <i class="fas fa-arrow-left me-1"></i> Kembali ke Daftar Tugas
                 </a>
             </div>
         <?php endif; ?>
@@ -60,8 +62,8 @@ $sectionContent   = $sectionContent ?? [];
                 </div>
             </div>
             <div>
-                <a href="<?= route_to('workspace.participant.study', (string) $activeAssignment['class_id']) ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                    <i class="bi bi-mortarboard me-1"></i> Ke Ruang Belajar
+                <a href="<?= route_to('workspace.participant.class.detail', (string) $activeAssignment['class_id']) ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Kembali ke Kelas
                 </a>
             </div>
         </div>

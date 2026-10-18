@@ -66,13 +66,22 @@ $lessons   = $lessons ?? [];
                     <small class="text-muted">Kuis modul akan terbuka bagi peserta setelah seluruh materi pada modul terkait selesai dipelajari.</small>
                 </div>
 
-                <div class="col-6 col-md-4">
-                    <label class="form-label fw-semibold text-navy small mb-1">Batas Percobaan (Attempt Limit)</label>
-                    <input type="number" name="attempt_limit" min="1" value="1" class="form-control rounded-3 py-2">
-                    <small class="text-muted" style="font-size: 0.72rem;">Jumlah maksimum peserta dapat mengulang kuis</small>
+                <div class="col-6 col-md-3">
+                    <label class="form-label fw-semibold text-navy small mb-1">Durasi Timer (Menit)</label>
+                    <div class="input-group">
+                        <input type="number" name="duration_minutes" min="0" value="" class="form-control rounded-start-3 py-2" placeholder="0 = Bebas">
+                        <span class="input-group-text bg-light text-muted small">Mnt</span>
+                    </div>
+                    <small class="text-muted" style="font-size: 0.72rem;">0 / kosong = tanpa batas waktu</small>
                 </div>
 
-                <div class="col-6 col-md-4">
+                <div class="col-6 col-md-3">
+                    <label class="form-label fw-semibold text-navy small mb-1">Batas Percobaan (Attempt Limit)</label>
+                    <input type="number" name="attempt_limit" min="1" value="1" class="form-control rounded-3 py-2">
+                    <small class="text-muted" style="font-size: 0.72rem;">Jumlah maks mengulang kuis</small>
+                </div>
+
+                <div class="col-6 col-md-3">
                     <label class="form-label fw-semibold text-navy small mb-1">Status Publikasi</label>
                     <select name="status" class="form-select rounded-3 py-2">
                         <option value="published">Published (Aktifkan)</option>
@@ -80,11 +89,11 @@ $lessons   = $lessons ?? [];
                     </select>
                 </div>
 
-                <div class="col-12 col-md-4 d-flex align-items-center">
+                <div class="col-6 col-md-3 d-flex align-items-center">
                     <div class="form-check mt-3">
                         <input type="checkbox" name="is_required" value="1" id="is_required" class="form-check-input" checked>
                         <label class="form-check-label fw-semibold text-navy small" for="is_required">
-                            Wajib Dikerjakan untuk Kelulusan
+                            Wajib Lulus
                         </label>
                     </div>
                 </div>

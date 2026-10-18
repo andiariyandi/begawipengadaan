@@ -68,15 +68,16 @@ $trainerRoleLabel = static function (?string $role): string {
 ?>
 
 <!-- 1. Header Section -->
-<div class="bg-white border rounded-4 p-4 p-lg-5 mb-4 shadow-sm">
+<div class="ws-page-header">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <p class="text-uppercase text-muted small fw-semibold mb-2"><?= esc($sectionContent['eyebrow'] ?? 'Arena Belajar & Kompetensi') ?></p>
-            <h1 class="h3 fw-bold mb-2" style="color: #082f5c;"><?= esc($pageTitle ?? 'Pembelajaran & Kelas Saya') ?></h1>
-            <p class="text-muted mb-0"><?= esc($sectionContent['description'] ?? 'Pantau progres belajar, akses ruang kelas interaktif, evaluasi materi & kuis, hingga perolehan sertifikat kelulusan resmi Anda.') ?></p>
+            <span class="ws-eyebrow">
+                <i class="fas fa-graduation-cap"></i> <?= esc($sectionContent['eyebrow'] ?? 'Arena Belajar & Kompetensi') ?>
+            </span>
+            <h1><?= esc($pageTitle ?? 'Pembelajaran & Kelas Saya') ?></h1>
+            <p><?= esc($sectionContent['description'] ?? 'Pantau progres belajar, akses ruang kelas interaktif, evaluasi materi & kuis, hingga perolehan sertifikat kelulusan resmi Anda.') ?></p>
         </div>
         <div class="d-flex flex-wrap gap-2">
-            <!-- Jelajahi Kelas Baru: HANYA eksplorasi yang diarahkan ke Katalog Kelas Publik -->
             <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                 <i class="fas fa-search me-1"></i> Cari Kelas Baru
             </a>

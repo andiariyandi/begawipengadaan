@@ -1,17 +1,39 @@
 (function ($) {
-  "use strict";
+  // Polyfill / safe stubs for optional plugins to prevent any TypeError if a vendor script is omitted
+  var noopPlugins = ['niceSelect', 'owlCarousel', 'marquee', 'appear', 'countdown', 'slider', 'isotope', 'magnificPopup', 'ajaxChimp', 'validate', 'jarallax'];
+  for (var i = 0; i < noopPlugins.length; i++) {
+    var pName = noopPlugins[i];
+    if (!$.fn[pName]) {
+      $.fn[pName] = function () {
+        return this;
+      };
+    }
+  }
 
+  if (typeof window.WOW === 'undefined') {
+    window.WOW = function () {
+      return { init: function () {} };
+    };
+  }
 
-
+  if (typeof window.AOS === 'undefined') {
+    window.AOS = { init: function () {} };
+  }
 
   /*--------------------------------------------------------------
     RegisterPlugin, ScrollTrigger, SplitText
   --------------------------------------------------------------*/
-  gsap.registerPlugin(ScrollTrigger, SplitText);
-  gsap.config({
-    nullTargetWarn: false,
-    trialWarn: false
-  });
+  if (typeof gsap !== 'undefined') {
+    if (typeof ScrollTrigger !== 'undefined' && typeof SplitText !== 'undefined') {
+      gsap.registerPlugin(ScrollTrigger, SplitText);
+    } else if (typeof ScrollTrigger !== 'undefined') {
+      gsap.registerPlugin(ScrollTrigger);
+    }
+    gsap.config({
+      nullTargetWarn: false,
+      trialWarn: false
+    });
+  }
 
 
   // Preloader
@@ -21,7 +43,7 @@
 
 
   // AOS Animation
-  if ($("[data-aos]").length) {
+  if ($("[data-aos]").length && typeof AOS !== 'undefined') {
     AOS.init({
       duration: '1200',
       disable: 'false',
@@ -1056,7 +1078,7 @@
 
 
 
-  if ($(".wow").length) {
+  if ($(".wow").length && typeof WOW !== 'undefined') {
     var wow = new WOW({
       boxClass: "wow", // animated element css class (default is wow)
       animateClass: "animated", // animation css class (default is animated)
@@ -1328,7 +1350,7 @@
   // Animation gsap 
   function title_animation() {
     var tg_var = jQuery('.sec-title-animation');
-    if (!tg_var.length) {
+    if (!tg_var.length || typeof gsap === 'undefined' || typeof SplitText === 'undefined') {
       return;
     }
     const quotes = document.querySelectorAll(".sec-title-animation .title-animation");
@@ -1386,7 +1408,9 @@
       });
     });
   }
-  ScrollTrigger.addEventListener("refresh", title_animation);
+  if (typeof ScrollTrigger !== 'undefined') {
+    ScrollTrigger.addEventListener("refresh", title_animation);
+  }
 
 
 
@@ -1578,7 +1602,9 @@
 
 
 
-  $('select:not(.ignore)').niceSelect();
+  if (typeof $.fn.niceSelect === 'function') {
+    $('select:not(.ignore):not(.form-select)').niceSelect();
+  }
 
 
 

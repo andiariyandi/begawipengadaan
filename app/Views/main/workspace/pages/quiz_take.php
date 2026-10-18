@@ -2,16 +2,19 @@
 
 <?= $this->section('content') ?>
 <?php
-$quiz         = $quiz ?? [];
-$questions    = $questions ?? [];
+$quiz              = $quiz ?? [];
+$questions         = $questions ?? [];
 $optionsByQuestion = $optionsByQuestion ?? [];
-$attempt      = $attempt ?? null;
-$latest       = $latest ?? null;
-$attemptCount = (int) ($attemptCount ?? 0);
-$attemptLimit = (int) ($attemptLimit ?? 1);
-$remaining    = (int) ($remaining ?? max(0, $attemptLimit - $attemptCount));
-$classId      = (int) ($quiz['class_id'] ?? 0);
-$totalQ       = count($questions);
+$attempt           = $attempt ?? null;
+$latest            = $latest ?? null;
+$attemptCount      = (int) ($attemptCount ?? 0);
+$attemptLimit      = (int) ($attemptLimit ?? 1);
+$remaining         = (int) ($remaining ?? max(0, $attemptLimit - $attemptCount));
+$classId           = (int) ($quiz['class_id'] ?? 0);
+$totalQ            = count($questions);
+$durationMinutes   = (int) ($durationMinutes ?? ($quiz['duration_minutes'] ?? 0));
+$remainingSeconds  = $remainingSeconds ?? null;
+$deadlineTimestamp = $deadlineTimestamp ?? null;
 
 $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
     'pre_test'  => ['label' => 'Pre-Test',   'class' => 'bg-warning text-dark'],
@@ -20,17 +23,85 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
 };
 ?>
 
+<style>
+.ws-quiz-timer-card {
+    background: #ffffff;
+    border-left: 5px solid #082f5c !important;
+    transition: all 0.3s ease;
+}
+.ws-timer-icon-circle {
+    width: 48px;
+    height: 48px;
+    background: rgba(8, 47, 92, 0.08);
+    color: #082f5c;
+    transition: all 0.3s ease;
+}
+.ws-palette-timer-box {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+.timer-state-warning.ws-quiz-timer-card {
+    border-left-color: #f59e0b !important;
+    background: #fffbeb;
+}
+.timer-state-warning .ws-timer-icon-circle {
+    background: #fef3c7;
+    color: #d97706;
+}
+.timer-state-warning #bannerTimerDisplay,
+.timer-state-warning #paletteTimerDisplay {
+    color: #b45309 !important;
+}
+.timer-state-warning.ws-palette-timer-box {
+    border-color: #fcd34d;
+    background: #fffbeb;
+}
+.timer-state-danger.ws-quiz-timer-card {
+    border-left-color: #ef4444 !important;
+    background: #fef2f2;
+    animation: quizTimerPulse 1.2s infinite;
+}
+.timer-state-danger .ws-timer-icon-circle {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.timer-state-danger #bannerTimerDisplay,
+.timer-state-danger #paletteTimerDisplay {
+    color: #dc2626 !important;
+}
+.timer-state-danger.ws-palette-timer-box {
+    border-color: #fca5a5;
+    background: #fef2f2;
+    animation: quizTimerPulse 1.2s infinite;
+}
+@keyframes quizTimerPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.015); }
+    100% { transform: scale(1); }
+}
+</style>
+
 <!-- 1. QUIZ HERO & INFO CARD (FISTUDY DNA) -->
-<div class="card border-0 rounded-4 shadow-sm p-4 p-lg-5 mb-4 bg-white">
+<div class="ws-page-header">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <div>
-            <a href="<?= route_to('workspace.participant.study', (string) $classId) ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3 mb-2">
-                <i class="bi bi-arrow-left me-1"></i> Kembali ke Learning Room
+            <a href="<?= route_to('workspace.participant.class.detail', (string) $classId) ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3 mb-2">
+                <i class="bi bi-arrow-left me-1"></i> Kembali ke Kelas
             </a>
             <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                 <span class="badge <?= $typeBadge['class'] ?> text-uppercase px-3 py-1 rounded-pill fw-bold">
                     <?= esc($typeBadge['label']) ?>
                 </span>
+                <?php if ($durationMinutes > 0): ?>
+                    <span class="badge bg-warning-subtle text-dark border border-warning px-3 py-1 rounded-pill fw-semibold">
+                        <i class="bi bi-clock-history me-1 text-warning"></i> Waktu: <?= $durationMinutes ?> Menit
+                    </span>
+                <?php else: ?>
+                    <span class="badge bg-light text-muted border px-3 py-1 rounded-pill">
+                        <i class="bi bi-infinity me-1"></i> Tanpa Batas Waktu
+                    </span>
+                <?php endif; ?>
                 <span class="badge bg-light text-muted border px-3 py-1 rounded-pill">
                     Percobaan: <strong class="text-dark"><?= $attemptCount ?></strong> dari <strong class="text-dark"><?= $attemptLimit ?></strong>
                 </span>
@@ -71,6 +142,30 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
         <div class="col-lg-8 col-xl-8">
             <form id="quizAttemptForm" method="post" action="<?= route_to('workspace.participant.quiz.submit', (int) $attempt['id']) ?>">
                 <?= csrf_field() ?>
+
+                <?php if ($durationMinutes > 0 && $remainingSeconds !== null): ?>
+                    <!-- STICKY TIMER BANNER -->
+                    <div class="card border-0 rounded-4 shadow-sm mb-4 ws-quiz-timer-card sticky-top" id="quizStickyTimerBanner" style="top: 80px; z-index: 1020;">
+                        <div class="card-body p-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="ws-timer-icon-circle rounded-circle d-flex align-items-center justify-content-center" id="timerIconCircle">
+                                    <i class="bi bi-clock-history fs-4"></i>
+                                </div>
+                                <div>
+                                    <span class="d-block text-muted small fw-semibold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Sisa Waktu Pengerjaan</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="fs-3 fw-bold font-monospace text-dark" id="bannerTimerDisplay">--:--</span>
+                                        <span class="badge bg-light text-muted border small" id="bannerTimerStatus">Timer Berjalan</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end text-muted small d-none d-md-block">
+                                <span>Alokasi Waktu: <strong><?= $durationMinutes ?> Menit</strong></span><br>
+                                <span class="text-xs text-secondary-light">Jawaban tersimpan otomatis saat reload</span>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
                 <div class="d-flex align-items-center justify-content-between p-3 px-4 bg-white border rounded-4 shadow-sm mb-4">
                     <div class="d-flex align-items-center gap-2">
@@ -169,6 +264,18 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
                     </h2>
                     <span class="badge bg-light text-muted border small"><?= $totalQ ?> Butir</span>
                 </div>
+
+                <?php if ($durationMinutes > 0 && $remainingSeconds !== null): ?>
+                    <!-- SIDEBAR PALETTE TIMER BOX -->
+                    <div class="p-3 rounded-4 mb-3 text-center ws-palette-timer-box" id="paletteTimerBox">
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+                            <i class="bi bi-stopwatch text-primary fs-5" id="paletteTimerIcon"></i>
+                            <span class="small fw-semibold text-muted text-uppercase" style="font-size: 11px;">Sisa Waktu</span>
+                        </div>
+                        <div class="display-6 fw-bold font-monospace text-dark" id="paletteTimerDisplay">--:--</div>
+                        <small class="text-muted d-block mt-1" style="font-size: 11px;" id="paletteTimerNotice">Otomatis submit saat 00:00</small>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Real-time Counters -->
                 <div class="row g-2 mb-3 text-center">
@@ -284,6 +391,54 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
         const confirmAlertContainer = document.getElementById('confirmAlertContainer');
         const bsModal = new bootstrap.Modal(confirmModalEl);
 
+        const attemptId = <?= (int) ($attempt['id'] ?? 0) ?>;
+        const storageKey = 'bp_quiz_answers_' + attemptId;
+
+        // 1. Restore previously selected answers from localStorage (resilience against reload/accidental refresh)
+        if (attemptId > 0) {
+            try {
+                const savedRaw = localStorage.getItem(storageKey);
+                if (savedRaw) {
+                    const savedAnswers = JSON.parse(savedRaw);
+                    if (typeof savedAnswers === 'object' && savedAnswers !== null) {
+                        Object.keys(savedAnswers).forEach(function(qId) {
+                            const optId = savedAnswers[qId];
+                            const radio = document.querySelector(`input.quiz-radio[name="answers[${qId}]"][value="${optId}"]`);
+                            if (radio) {
+                                radio.checked = true;
+                            }
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn('Gagal membaca jawaban localStorage', e);
+            }
+        }
+
+        function persistAnswers() {
+            if (attemptId <= 0) return;
+            const currentAnswers = {};
+            radios.forEach(function(r) {
+                if (r.checked) {
+                    const nameMatch = r.name.match(/answers\[(\d+)\]/);
+                    if (nameMatch) {
+                        currentAnswers[nameMatch[1]] = r.value;
+                    }
+                }
+            });
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(currentAnswers));
+            } catch (e) {
+                console.warn('Gagal menyimpan jawaban ke localStorage', e);
+            }
+        }
+
+        function clearPersistedAnswers() {
+            try {
+                localStorage.removeItem(storageKey);
+            } catch (e) {}
+        }
+
         let activeQuestionIndex = 1;
 
         // Function to scroll smoothly to a question card
@@ -386,10 +541,11 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
         radios.forEach(radio => {
             radio.addEventListener('change', function() {
                 updateStats();
+                persistAnswers();
             });
         });
 
-        // Initial stat run
+        // Initial stat run (reflects any restored answers from localStorage)
         updateStats();
 
         // Jump to first unanswered question
@@ -453,9 +609,103 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
             btnFinalConfirmSubmit.addEventListener('click', function() {
                 btnFinalConfirmSubmit.disabled = true;
                 btnFinalConfirmSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengirimkan...';
+                clearPersistedAnswers();
                 form.submit();
             });
         }
+
+        <?php if ($durationMinutes > 0 && $remainingSeconds !== null): ?>
+        // COUNTDOWN TIMER ENGINE (Reload & Expiration resilient)
+        (function() {
+            const serverRemainingSec = <?= (int) $remainingSeconds ?>;
+            const clientEndTime = Date.now() + (serverRemainingSec * 1000);
+            const bannerDisplay = document.getElementById('bannerTimerDisplay');
+            const paletteDisplay = document.getElementById('paletteTimerDisplay');
+            const bannerCard = document.getElementById('quizStickyTimerBanner');
+            const paletteBox = document.getElementById('paletteTimerBox');
+            const bannerStatus = document.getElementById('bannerTimerStatus');
+            let hasAutoSubmitted = false;
+
+            function formatTime(totalSeconds) {
+                const h = Math.floor(totalSeconds / 3600);
+                const m = Math.floor((totalSeconds % 3600) / 60);
+                const s = totalSeconds % 60;
+                const pad = (n) => String(n).padStart(2, '0');
+                if (h > 0) {
+                    return `${pad(h)}:${pad(m)}:${pad(s)}`;
+                }
+                return `${pad(m)}:${pad(s)}`;
+            }
+
+            function tickTimer() {
+                if (hasAutoSubmitted) return;
+                const now = Date.now();
+                const distance = Math.max(0, Math.floor((clientEndTime - now) / 1000));
+                const formatted = formatTime(distance);
+
+                if (bannerDisplay) bannerDisplay.textContent = formatted;
+                if (paletteDisplay) paletteDisplay.textContent = formatted;
+
+                // Visual alerts
+                if (distance <= 60) {
+                    if (bannerCard && !bannerCard.classList.contains('timer-state-danger')) {
+                        bannerCard.className = 'card border-0 rounded-4 shadow-sm mb-4 ws-quiz-timer-card sticky-top timer-state-danger';
+                    }
+                    if (paletteBox && !paletteBox.classList.contains('timer-state-danger')) {
+                        paletteBox.className = 'p-3 rounded-4 mb-3 text-center ws-palette-timer-box timer-state-danger';
+                    }
+                    if (bannerStatus) {
+                        bannerStatus.className = 'badge bg-danger text-white small';
+                        bannerStatus.textContent = 'Waktu Kritis!';
+                    }
+                } else if (distance <= 300) {
+                    if (bannerCard && !bannerCard.classList.contains('timer-state-warning')) {
+                        bannerCard.className = 'card border-0 rounded-4 shadow-sm mb-4 ws-quiz-timer-card sticky-top timer-state-warning';
+                    }
+                    if (paletteBox && !paletteBox.classList.contains('timer-state-warning')) {
+                        paletteBox.className = 'p-3 rounded-4 mb-3 text-center ws-palette-timer-box timer-state-warning';
+                    }
+                    if (bannerStatus) {
+                        bannerStatus.className = 'badge bg-warning text-dark small';
+                        bannerStatus.textContent = 'Sisa < 5 Menit';
+                    }
+                }
+
+                // Time expired -> Auto submit
+                if (distance <= 0) {
+                    hasAutoSubmitted = true;
+                    clearInterval(timerInterval);
+                    if (bannerDisplay) bannerDisplay.textContent = '00:00';
+                    if (paletteDisplay) paletteDisplay.textContent = '00:00';
+
+                    // Lock interactions
+                    radios.forEach(r => r.disabled = true);
+                    if (btnMainSubmit) btnMainSubmit.disabled = true;
+                    if (btnSidebarSubmit) btnSidebarSubmit.disabled = true;
+                    if (btnFinalConfirmSubmit) btnFinalConfirmSubmit.disabled = true;
+
+                    if (bsModal) {
+                        try { bsModal.hide(); } catch (e) {}
+                    }
+
+                    // Floating Notification
+                    const alertEl = document.createElement('div');
+                    alertEl.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:99999;min-width:340px;max-width:92%;box-shadow:0 12px 30px rgba(0,0,0,0.3);';
+                    alertEl.className = 'alert alert-danger rounded-4 text-center fw-bold py-3 px-4';
+                    alertEl.innerHTML = '<div class="d-flex align-items-center justify-content-center gap-2"><span class="spinner-border spinner-border-sm"></span> <span>Waktu pengerjaan telah habis! Mengumpulkan jawaban Anda secara otomatis...</span></div>';
+                    document.body.appendChild(alertEl);
+
+                    clearPersistedAnswers();
+                    setTimeout(function() {
+                        form.submit();
+                    }, 1200);
+                }
+            }
+
+            tickTimer();
+            const timerInterval = setInterval(tickTimer, 1000);
+        })();
+        <?php endif; ?>
     });
     </script>
 
@@ -469,8 +719,8 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
                 <p class="text-muted mb-4 mx-auto" style="max-width: 480px;">
                     Ujian / kuis ini belum memiliki daftar pertanyaan aktif dari instruktur. Silakan periksa kembali nanti atau hubungi pengajar Anda.
                 </p>
-                <a href="<?= route_to('workspace.participant.study', (string) $classId) ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                    Kembali ke Ruang Belajar
+                <a href="<?= route_to('workspace.participant.class.detail', (string) $classId) ?>" class="btn btn-outline-secondary rounded-pill px-4">
+                    Kembali ke Kelas
                 </a>
             </div>
         <?php elseif ($remaining <= 0): ?>
@@ -482,8 +732,8 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
                 <p class="text-muted mb-4 mx-auto" style="max-width: 480px;">
                     Anda telah menggunakan seluruh kuota kesempatan pengerjaan (<strong><?= $attemptLimit ?>x</strong>) untuk evaluasi ini.
                 </p>
-                <a href="<?= route_to('workspace.participant.study', (string) $classId) ?>" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
-                    Kembali ke Ruang Belajar
+                <a href="<?= route_to('workspace.participant.class.detail', (string) $classId) ?>" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                    Kembali ke Kelas
                 </a>
             </div>
         <?php else: ?>
@@ -492,8 +742,14 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
                     <i class="bi bi-mortarboard fs-1"></i>
                 </div>
                 <h2 class="h4 fw-bold mb-2" style="color: #082f5c;">Siap Memulai <?= esc($typeBadge['label']) ?>?</h2>
-                <p class="text-muted mb-4 mx-auto" style="max-width: 520px;">
-                    Terdapat <strong><?= $totalQ ?></strong> butir soal pertanyaan. Anda memiliki sisa kesempatan pengerjaan: <strong class="text-primary"><?= $remaining ?> kali</strong>. Pastikan koneksi internet Anda stabil sebelum memulai.
+                <p class="text-muted mb-4 mx-auto" style="max-width: 540px;">
+                    Terdapat <strong><?= $totalQ ?></strong> butir soal pertanyaan.
+                    <?php if ($durationMinutes > 0): ?>
+                        Alokasi waktu pengerjaan: <strong class="text-warning-emphasis"><i class="bi bi-clock-history me-1"></i><?= $durationMinutes ?> Menit</strong>.
+                    <?php else: ?>
+                        Alokasi waktu: <strong class="text-dark">Tanpa Batas Waktu</strong>.
+                    <?php endif; ?>
+                    Anda memiliki sisa kesempatan pengerjaan: <strong class="text-primary"><?= $remaining ?> kali</strong>. Pastikan koneksi internet Anda stabil sebelum memulai.
                 </p>
                 <form method="post" action="<?= route_to('workspace.participant.quiz.start', (int) $quiz['id']) ?>" class="d-inline">
                     <?= csrf_field() ?>
