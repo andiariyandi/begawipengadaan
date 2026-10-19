@@ -125,9 +125,12 @@ $dashboardTypes = [
                         <button class="berita-headline__nav next" type="button" data-bs-target="#eventHeadlineCarousel" data-bs-slide="next" aria-label="Selanjutnya">
                             <i class="fas fa-chevron-right"></i>
                         </button>
-                        <div class="berita-headline__indicators">
+                        <div class="carousel-indicators berita-headline__indicators evt-headline__indicators mb-0">
                             <?php foreach ($sliderEvents as $sIndex => $sItem): ?>
-                                <button type="button" data-bs-target="#eventHeadlineCarousel" data-bs-slide-to="<?= $sIndex ?>" class="<?= $sIndex === 0 ? 'is-active' : '' ?>" aria-label="Slide <?= $sIndex + 1 ?>"></button>
+                                <button type="button" data-bs-target="#eventHeadlineCarousel" data-bs-slide-to="<?= $sIndex ?>"
+                                    class="<?= $sIndex === 0 ? 'active is-active' : '' ?>"
+                                    <?= $sIndex === 0 ? 'aria-current="true"' : '' ?>
+                                    aria-label="Slide <?= $sIndex + 1 ?>"></button>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
@@ -671,5 +674,62 @@ $dashboardTypes = [
             passive: true
         });
     })();
+
+    // Initialize Event Headline Carousel safely and synchronize indicator dots
+    document.addEventListener('DOMContentLoaded', function () {
+        var carouselEl = document.getElementById('eventHeadlineCarousel');
+        if (carouselEl) {
+            var myCarousel = null;
+            if (typeof bootstrap !== 'undefined' && typeof bootstrap.Carousel !== 'undefined') {
+                try {
+                    myCarousel = (typeof bootstrap.Carousel.getInstance === 'function' ? bootstrap.Carousel.getInstance(carouselEl) : null) || new bootstrap.Carousel(carouselEl, {
+                        interval: 6000,
+                        ride: 'carousel',
+                        wrap: true,
+                        pause: 'hover'
+                    });
+                } catch (err) {}
+            }
+
+            var indicatorButtons = carouselEl.querySelectorAll('.berita-headline__indicators button, .evt-headline__indicators button, .carousel-indicators button');
+
+            function syncIndicatorDots(targetIdx) {
+                if (!indicatorButtons || indicatorButtons.length === 0) return;
+                indicatorButtons.forEach(function (btn, idx) {
+                    if (idx === targetIdx) {
+                        btn.classList.add('active', 'is-active');
+                        btn.setAttribute('aria-current', 'true');
+                    } else {
+                        btn.classList.remove('active', 'is-active');
+                        btn.removeAttribute('aria-current');
+                    }
+                });
+            }
+
+            carouselEl.addEventListener('slide.bs.carousel', function (e) {
+                if (typeof e.to !== 'undefined') {
+                    syncIndicatorDots(e.to);
+                }
+            });
+
+            carouselEl.addEventListener('slid.bs.carousel', function (e) {
+                if (typeof e.to !== 'undefined') {
+                    syncIndicatorDots(e.to);
+                }
+            });
+
+            indicatorButtons.forEach(function (btn, idx) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (myCarousel && typeof myCarousel.to === 'function') {
+                        myCarousel.to(idx);
+                    } else if (window.jQuery && typeof jQuery(carouselEl).carousel === 'function') {
+                        jQuery(carouselEl).carousel(idx);
+                    }
+                    syncIndicatorDots(idx);
+                });
+            });
+        }
+    });
 </script>
 <?= $this->endSection() ?>

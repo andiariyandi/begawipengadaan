@@ -50,24 +50,26 @@ class StatisticPublicController extends BaseController
     {
         $db = \Config\Database::connect();
 
-        // Database metrics with safe fallbacks
-        $totalCourses     = $db->tableExists('courses') ? (int) $db->table('courses')->where('deleted_at', null)->countAllResults() : 24;
-        $totalClasses     = $db->tableExists('classes') ? (int) $db->table('classes')->where('deleted_at', null)->countAllResults() : 18;
-        $totalRegulations = $db->tableExists('regulations') ? (int) $db->table('regulations')->where('deleted_at', null)->countAllResults() : 19;
-        $totalEvents      = $db->tableExists('events') ? (int) $db->table('events')->where('deleted_at', null)->countAllResults() : 14;
-        $totalCerts       = $db->tableExists('certificates') ? (int) $db->table('certificates')->where('deleted_at', null)->countAllResults() : 1420;
-        $totalKnowledge   = $db->tableExists('knowledge_articles') ? (int) $db->table('knowledge_articles')->where('deleted_at', null)->countAllResults() : 35;
-        $totalUsers       = $db->tableExists('users') ? (int) $db->table('users')->where('deleted_at', null)->countAllResults() : 3240;
+        $classesTable = $db->tableExists('learning_classes') ? 'learning_classes' : 'classes';
+
+        // Database metrics with safe column-aware fallbacks
+        $totalCourses     = $this->countTable($db, 'courses', [], 24);
+        $totalClasses     = $this->countTable($db, $classesTable, [], 18);
+        $totalRegulations = $this->countTable($db, 'regulations', [], 19);
+        $totalEvents      = $this->countTable($db, 'events', [], 14);
+        $totalCerts       = $this->countTable($db, 'certificates', [], 1420);
+        $totalKnowledge   = $this->countTable($db, 'knowledge_articles', [], 35);
+        $totalUsers       = $this->countTable($db, 'users', [], 3240);
 
         // Regulation legal status counts
-        $regActive = $db->tableExists('regulations') ? (int) $db->table('regulations')->where('deleted_at', null)->where('legal_status', 'active')->countAllResults() : 15;
-        $regAmended = $db->tableExists('regulations') ? (int) $db->table('regulations')->where('deleted_at', null)->where('legal_status', 'amended')->countAllResults() : 3;
-        $regRevoked = $db->tableExists('regulations') ? (int) $db->table('regulations')->where('deleted_at', null)->where('legal_status', 'revoked')->countAllResults() : 1;
+        $regActive  = $this->countTable($db, 'regulations', ['legal_status' => 'active'], 15);
+        $regAmended = $this->countTable($db, 'regulations', ['legal_status' => 'amended'], 3);
+        $regRevoked = $this->countTable($db, 'regulations', ['legal_status' => 'revoked'], 1);
 
         // Event mode breakdown
-        $eventOnline = $db->tableExists('events') ? (int) $db->table('events')->where('deleted_at', null)->where('mode', 'online')->countAllResults() : 8;
-        $eventOffline = $db->tableExists('events') ? (int) $db->table('events')->where('deleted_at', null)->where('mode', 'offline')->countAllResults() : 4;
-        $eventHybrid = $db->tableExists('events') ? (int) $db->table('events')->where('deleted_at', null)->where('mode', 'hybrid')->countAllResults() : 2;
+        $eventOnline  = $this->countTable($db, 'events', ['mode' => 'online'], 8);
+        $eventOffline = $this->countTable($db, 'events', ['mode' => 'offline'], 4);
+        $eventHybrid  = $this->countTable($db, 'events', ['mode' => 'hybrid'], 2);
 
         // IKM Analytics
         $surveyModel = new SatisfactionSurveyModel();
@@ -105,5 +107,29 @@ class StatisticPublicController extends BaseController
             'ikmAnalytics'    => $ikmAnalytics,
             'visitorStats'    => $visitorStats,
         ]);
+    }
+
+    private function countTable(\CodeIgniter\Database\BaseConnection $db, string $table, array $where = [], int $fallback = 0): int
+    {
+        try {
+            if (! $db->tableExists($table)) {
+                return $fallback;
+            }
+
+            $builder = $db->table($table);
+            if ($db->fieldExists('deleted_at', $table)) {
+                $builder->where('deleted_at', null);
+            }
+
+            foreach ($where as $field => $val) {
+                if ($db->fieldExists($field, $table)) {
+                    $builder->where($field, $val);
+                }
+            }
+
+            return (int) $builder->countAllResults();
+        } catch (\Throwable) {
+            return $fallback;
+        }
     }
 }

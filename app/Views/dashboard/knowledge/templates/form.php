@@ -150,19 +150,74 @@ $currentDocCat = $row['document_category'] ?? 'kak';
                 </div>
             </div>
 
+            <!-- Cover Gambar Template -->
+            <div class="card border-0 radius-16 shadow-sm mb-24 bg-white">
+                <div class="card-header border-bottom p-20 bg-white d-flex align-items-center gap-2">
+                    <iconify-icon icon="solar:camera-bold" class="text-primary-600 text-xl"></iconify-icon>
+                    <h6 class="text-base fw-bold mb-0">Cover / Poster Template</h6>
+                </div>
+                <div class="card-body p-24">
+                    <div class="alert alert-info bg-info-50 border-info-200 radius-12 p-16 mb-16">
+                        <div class="d-flex align-items-start gap-2">
+                            <iconify-icon icon="solar:info-circle-bold" class="text-info-600 text-xl flex-shrink-0 mt-1"></iconify-icon>
+                            <div class="text-xs">
+                                <strong class="d-block text-info-900 mb-1">Rekomendasi Cover Template:</strong>
+                                <ul class="mb-0 ps-16 text-secondary-light">
+                                    <li>Ukuran: <strong class="text-info-800">1200 x 630 px</strong> (Landscape 16:9)</li>
+                                    <li>Format: <strong>JPG, PNG, WEBP</strong> (Maks 3MB)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border radius-12 p-12 text-center bg-neutral-50 mb-16 position-relative" style="min-height: 140px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                        <?php
+                            $coverUrl = ! empty($row['cover_url']) ? (str_starts_with($row['cover_url'], 'http') ? $row['cover_url'] : base_url($row['cover_url'])) : null;
+                        ?>
+                        <img id="templateCoverPreview" src="<?= esc($coverUrl ?? '') ?>" alt="Preview Cover" class="w-100 radius-8 object-fit-cover <?= empty($coverUrl) ? 'd-none' : '' ?>" style="max-height: 180px;">
+                        <div id="templateCoverPlaceholder" class="<?= ! empty($coverUrl) ? 'd-none' : '' ?> text-secondary-light py-20">
+                            <iconify-icon icon="solar:gallery-broken" class="text-4xl mb-1 text-neutral-400"></iconify-icon>
+                            <span class="d-block text-xs">Belum ada cover dipilih</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label fw-semibold text-primary-light text-sm mb-8">Pilih Berkas Cover (Gambar)</label>
+                        <input type="file" name="cover" class="form-control radius-8" accept="image/jpeg,image/png,image/webp" onchange="previewImageFile(this, 'templateCoverPreview', 'templateCoverPlaceholder')">
+                    </div>
+                </div>
+            </div>
+
             <!-- Status Alur Kerja -->
             <div class="card border-0 radius-16 shadow-sm mb-24 bg-white">
                 <div class="card-header border-bottom p-20 bg-white d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:settings-bold" class="text-primary-600 text-xl"></iconify-icon>
-                    <h6 class="text-base fw-bold mb-0">Status Publikasi</h6>
+                    <h6 class="text-base fw-bold mb-0">Status Publikasi &amp; Sorotan</h6>
                 </div>
                 <div class="card-body p-24">
-                    <label class="form-label fw-semibold text-primary-light text-sm mb-8">Status <span class="text-danger">*</span></label>
-                    <select name="status" class="form-select radius-8" required>
-                        <?php foreach ($statusOptions as $k => $label): ?>
-                            <option value="<?= $k ?>" <?= $currentStatus === $k ? 'selected' : '' ?>><?= esc($label) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="mb-20">
+                        <label class="form-label fw-semibold text-primary-light text-sm mb-8">Status <span class="text-danger">*</span></label>
+                        <select name="status" class="form-select radius-8" required>
+                            <?php foreach ($statusOptions as $k => $label): ?>
+                                <option value="<?= $k ?>" <?= $currentStatus === $k ? 'selected' : '' ?>><?= esc($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="p-16 border radius-12 bg-neutral-50">
+                        <div class="form-check form-switch mb-12">
+                            <input class="form-check-input" type="checkbox" name="featured" value="1" id="featured" <?= ! empty($row['featured']) ? 'checked' : '' ?>>
+                            <label class="form-check-label fw-semibold text-sm text-dark" for="featured">
+                                <i class="fas fa-star text-warning me-1"></i> Template Pilihan / Unggulan
+                            </label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="carousel_enabled" value="1" id="carousel_enabled" <?= ! empty($row['carousel_enabled']) ? 'checked' : '' ?>>
+                            <label class="form-check-label fw-semibold text-sm text-dark" for="carousel_enabled">
+                                Tampilkan di Slider Sorotan Beranda
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -181,4 +236,24 @@ $currentDocCat = $row['document_category'] ?? 'kak';
         </div>
     </div>
 </form>
+
+<script>
+function previewImageFile(input, imgId, placeholderId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById(imgId);
+            const placeholder = document.getElementById(placeholderId);
+            if (img) {
+                img.src = e.target.result;
+                img.classList.remove('d-none');
+            }
+            if (placeholder) {
+                placeholder.classList.add('d-none');
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 <?= $this->endSection() ?>

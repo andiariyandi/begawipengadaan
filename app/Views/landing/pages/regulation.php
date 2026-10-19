@@ -262,34 +262,43 @@ $bgSliderCovers = [
 ];
 
 // Assemble Hero Slider Items (Layout Agenda, Arena Belajar & Bunga Rampai Style)
-$sliderItems = [];
-$headlineSource = ! empty($popular) ? $popular : array_slice($regulations, 0, 4);
-foreach (array_slice($headlineSource, 0, 4) as $sIdx => $hItem) {
-    $cover = $bgSliderCovers[$sIdx % count($bgSliderCovers)];
-    $sStatus = strtolower((string) ($hItem['legal_status'] ?? 'active'));
-    $tagClass = match ($sStatus) {
-        'amended', 'diubah'  => 'evt-badge-flag--coming',
-        'revoked', 'dicabut' => 'evt-badge-flag--closed',
-        default              => 'evt-badge-flag--open',
-    };
-    $statusTag = match ($sStatus) {
-        'amended', 'diubah'  => '<iconify-icon icon="solar:danger-triangle-bold" class="align-middle"></iconify-icon> Diubah',
-        'revoked', 'dicabut' => '<iconify-icon icon="solar:close-circle-bold" class="align-middle"></iconify-icon> Dicabut',
-        default              => '<iconify-icon icon="solar:check-circle-bold" class="align-middle"></iconify-icon> Berlaku Resmi',
-    };
-    $sliderItems[] = [
-        'title'       => ($hItem['document_number'] ?? 'Regulasi PBJ') . ' &mdash; ' . ($hItem['title'] ?? ''),
-        'url'         => site_url('regulasi/' . esc($hItem['slug'] ?? '')),
-        'cover_url'   => $cover,
-        'tag_class'   => $tagClass,
-        'status_tag'  => $statusTag,
-        'type_label'  => $hItem['category_name'] ?? 'Regulasi PBJ',
-        'badge_extra' => 'Tahun ' . ($hItem['document_year'] ?? date('Y')),
-        'meta_1'      => '<iconify-icon icon="solar:buildings-bold" class="text-warning align-middle"></iconify-icon> ' . esc($hItem['issuer_name'] ?? 'Pemerintah'),
-        'meta_2'      => '<iconify-icon icon="solar:calendar-date-bold" class="text-info align-middle"></iconify-icon> ' . (! empty($hItem['official_date']) ? date('d M Y', strtotime($hItem['official_date'])) : 'Terbaru'),
-        'meta_3'      => '<iconify-icon icon="solar:download-square-bold" class="text-success align-middle"></iconify-icon> ' . number_format((int) ($hItem['download_count'] ?? 0)) . 'x Unduh',
-        'action_text' => 'Baca Regulasi',
-    ];
+$sliderItems = ! empty($sliderItems) ? $sliderItems : [];
+if (empty($sliderItems)) {
+    $headlineSource = ! empty($popular) ? $popular : array_slice($regulations, 0, 4);
+    foreach (array_slice($headlineSource, 0, 4) as $sIdx => $hItem) {
+        if (! empty($hItem['cover_file_id'])) {
+            $cover = site_url('file/' . (int) $hItem['cover_file_id']);
+        } elseif (! empty($hItem['cover_image_path'])) {
+            $cover = base_url($hItem['cover_image_path']);
+        } else {
+            $cover = $bgSliderCovers[$sIdx % count($bgSliderCovers)];
+        }
+        $sStatus = strtolower((string) ($hItem['legal_status'] ?? 'active'));
+        $tagClass = match ($sStatus) {
+            'amended', 'diubah'  => 'evt-badge-flag--coming',
+            'revoked', 'dicabut' => 'evt-badge-flag--closed',
+            default              => 'evt-badge-flag--open',
+        };
+        $statusTag = match ($sStatus) {
+            'amended', 'diubah'  => '<iconify-icon icon="solar:danger-triangle-bold" class="align-middle"></iconify-icon> Diubah',
+            'revoked', 'dicabut' => '<iconify-icon icon="solar:close-circle-bold" class="align-middle"></iconify-icon> Dicabut',
+            default              => '<iconify-icon icon="solar:check-circle-bold" class="align-middle"></iconify-icon> Berlaku Resmi',
+        };
+        $sliderItems[] = [
+            'id'          => (int) $hItem['id'],
+            'title'       => ($hItem['document_number'] ?? 'Regulasi PBJ') . ' &mdash; ' . ($hItem['title'] ?? ''),
+            'url'         => site_url('regulasi/' . esc($hItem['slug'] ?? '')),
+            'cover_url'   => $cover,
+            'tag_class'   => $tagClass,
+            'status_tag'  => $statusTag,
+            'type_label'  => $hItem['category_name'] ?? 'Regulasi PBJ',
+            'badge_extra' => 'Tahun ' . ($hItem['document_year'] ?? date('Y')),
+            'meta_1'      => '<iconify-icon icon="solar:buildings-bold" class="text-warning align-middle"></iconify-icon> ' . esc($hItem['issuer_name'] ?? 'Pemerintah'),
+            'meta_2'      => '<iconify-icon icon="solar:calendar-date-bold" class="text-info align-middle"></iconify-icon> ' . (! empty($hItem['official_date']) ? date('d M Y', strtotime($hItem['official_date'])) : 'Terbaru'),
+            'meta_3'      => '<iconify-icon icon="solar:download-square-bold" class="text-success align-middle"></iconify-icon> ' . number_format((int) ($hItem['download_count'] ?? 0)) . 'x Unduh',
+            'action_text' => 'Baca Regulasi',
+        ];
+    }
 }
 
 // Reusable card renderer matching Bunga Rampai arena-card standard (High-Contrast Badges)
@@ -298,7 +307,13 @@ $renderArenaRegulationCard = function (array $reg, int $idx = 0) {
     $downloadUrl = site_url('regulasi/' . esc($reg['slug']) . '/unduh');
     $hasFile = ! empty($reg['current_file_id']);
     $fileSizeKb = ! empty($reg['file_size']) ? number_format((float) $reg['file_size'] / 1024, 0) : null;
-    $coverImg = base_url('assets/main/images/blog/blog-2-' . (($idx % 4) + 1) . '.jpg');
+    if (! empty($reg['cover_file_id'])) {
+        $coverImg = site_url('file/' . (int) $reg['cover_file_id']);
+    } elseif (! empty($reg['cover_image_path'])) {
+        $coverImg = base_url($reg['cover_image_path']);
+    } else {
+        $coverImg = base_url('assets/main/images/blog/blog-2-' . (($idx % 4) + 1) . '.jpg');
+    }
     $sStatus = strtolower((string) ($reg['legal_status'] ?? 'active'));
 
     $statusPill = match ($sStatus) {
@@ -522,9 +537,9 @@ $renderArenaRegulationCard = function (array $reg, int $idx = 0) {
                         <button class="evt-headline__nav next" type="button" data-bs-target="#regulationHeadlineCarousel" data-bs-slide="next" aria-label="Selanjutnya">
                             <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon>
                         </button>
-                        <div class="evt-headline__indicators">
+                        <div class="carousel-indicators evt-headline__indicators">
                             <?php foreach ($sliderItems as $sIndex => $sItem): ?>
-                                <button type="button" data-bs-target="#regulationHeadlineCarousel" data-bs-slide-to="<?= $sIndex ?>" class="<?= $sIndex === 0 ? 'active' : '' ?>" aria-label="Slide <?= $sIndex + 1 ?>"></button>
+                                <button type="button" data-bs-target="#regulationHeadlineCarousel" data-bs-slide-to="<?= $sIndex ?>" class="<?= $sIndex === 0 ? 'active' : '' ?>" aria-current="<?= $sIndex === 0 ? 'true' : 'false' ?>" aria-label="Slide <?= $sIndex + 1 ?>"></button>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
@@ -1127,8 +1142,14 @@ $renderArenaRegulationCard = function (array $reg, int $idx = 0) {
 
         const modalEl = document.getElementById('regulationQuickPreviewModal');
         if (modalEl && typeof bootstrap !== 'undefined') {
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-            modal.show();
+            try {
+                const modal = (typeof bootstrap.Modal.getInstance === 'function' ? bootstrap.Modal.getInstance(modalEl) : null) || new bootstrap.Modal(modalEl);
+                modal.show();
+            } catch (e) {
+                if (window.jQuery && typeof jQuery(modalEl).modal === 'function') {
+                    jQuery(modalEl).modal('show');
+                }
+            }
         }
     }
 
@@ -1153,6 +1174,61 @@ $renderArenaRegulationCard = function (array $reg, int $idx = 0) {
     document.addEventListener('DOMContentLoaded', function() {
         if (window.jQuery && typeof window.jQuery.fn.niceSelect === 'function') {
             window.jQuery('.reg-select-pill select').niceSelect('destroy');
+        }
+
+        // Initialize Carousel safely and synchronize indicator dots
+        const carouselEl = document.getElementById('regulationHeadlineCarousel');
+        if (carouselEl) {
+            let myCarousel = null;
+            if (typeof bootstrap !== 'undefined' && typeof bootstrap.Carousel !== 'undefined') {
+                try {
+                    myCarousel = (typeof bootstrap.Carousel.getInstance === 'function' ? bootstrap.Carousel.getInstance(carouselEl) : null) || new bootstrap.Carousel(carouselEl, {
+                        interval: 6000,
+                        ride: 'carousel',
+                        wrap: true,
+                        pause: 'hover'
+                    });
+                } catch (err) {}
+            }
+
+            const indicatorButtons = carouselEl.querySelectorAll('.evt-headline__indicators button, .carousel-indicators button');
+
+            function syncIndicatorDots(targetIdx) {
+                if (!indicatorButtons || indicatorButtons.length === 0) return;
+                indicatorButtons.forEach(function (btn, idx) {
+                    if (idx === targetIdx) {
+                        btn.classList.add('active');
+                        btn.setAttribute('aria-current', 'true');
+                    } else {
+                        btn.classList.remove('active');
+                        btn.removeAttribute('aria-current');
+                    }
+                });
+            }
+
+            carouselEl.addEventListener('slide.bs.carousel', function (e) {
+                if (typeof e.to !== 'undefined') {
+                    syncIndicatorDots(e.to);
+                }
+            });
+
+            carouselEl.addEventListener('slid.bs.carousel', function (e) {
+                if (typeof e.to !== 'undefined') {
+                    syncIndicatorDots(e.to);
+                }
+            });
+
+            indicatorButtons.forEach(function (btn, idx) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (myCarousel && typeof myCarousel.to === 'function') {
+                        myCarousel.to(idx);
+                    } else if (window.jQuery && typeof jQuery(carouselEl).carousel === 'function') {
+                        jQuery(carouselEl).carousel(idx);
+                    }
+                    syncIndicatorDots(idx);
+                });
+            });
         }
     });
 </script>

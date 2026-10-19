@@ -1031,10 +1031,22 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                             ?>
                                 <div class="col-12">
                                     <article class="card h-100 border-0 shadow-2xs radius-12 p-3 d-flex flex-column knowledge-catalog-card bg-white border">
+                                        <?php
+                                            $isCoverImg = false;
+                                            if (! empty($item['file_original_name'])) {
+                                                $cExt = strtolower(pathinfo($item['file_original_name'], PATHINFO_EXTENSION));
+                                                $isCoverImg = in_array($cExt, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'], true);
+                                            }
+                                            $tmplCover = ! empty($item['cover_url']) ? $item['cover_url'] : (! empty($item['cover_file_id']) && $isCoverImg ? site_url('file/' . (int) $item['cover_file_id']) : null);
+                                        ?>
                                         <div class="d-flex align-items-start gap-3 mb-2">
-                                            <div class="d-flex align-items-center justify-content-center radius-10 flex-shrink-0 fw-bold shadow-xs" style="width: 46px; height: 46px; <?= esc($extBadgeColor) ?>; font-size: 13px;">
-                                                <?= esc($ext) ?>
-                                            </div>
+                                            <?php if ($tmplCover): ?>
+                                                <img src="<?= esc($tmplCover) ?>" alt="<?= esc($item['title']) ?>" class="radius-10 flex-shrink-0 object-fit-cover shadow-xs border" style="width: 52px; height: 52px;">
+                                            <?php else: ?>
+                                                <div class="d-flex align-items-center justify-content-center radius-10 flex-shrink-0 fw-bold shadow-xs" style="width: 46px; height: 46px; <?= esc($extBadgeColor) ?>; font-size: 13px;">
+                                                    <?= esc($ext) ?>
+                                                </div>
+                                            <?php endif; ?>
                                             <div class="flex-grow-1">
                                                 <div class="d-flex flex-wrap align-items-center gap-1 mb-1">
                                                     <span class="badge border px-2 py-0 small" style="background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; font-size: 11px; font-weight: 600;">Standar PBJ</span>

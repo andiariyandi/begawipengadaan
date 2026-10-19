@@ -20,7 +20,7 @@ $formAction = $isEdit ? route_to('dashboard.learning.classes.update', $class['id
 
 <div class="card">
     <div class="card-body p-24">
-        <form method="post" action="<?= esc($formAction) ?>">
+        <form method="post" action="<?= esc($formAction) ?>" enctype="multipart/form-data">
             <?= csrf_field() ?>
 
             <!-- 1. INFORMASI DASAR KELAS -->
@@ -82,6 +82,85 @@ $formAction = $isEdit ? route_to('dashboard.learning.classes.update', $class['id
                             <option value="completed" <?= in_array($status, ['completed', 'closed'], true) ? 'selected' : '' ?>>Selesai (Completed)</option>
                             <option value="draft" <?= $status === 'draft' ? 'selected' : '' ?>>Draft</option>
                         </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="featured" name="featured" value="1" <?= old('featured', $class['featured'] ?? 0) ? 'checked' : '' ?>>
+                            <label class="form-check-label fw-semibold text-primary-light text-sm ms-2" for="featured">
+                                <iconify-icon icon="solar:star-bold" class="text-warning align-middle"></iconify-icon>
+                                Tampilkan sebagai Sorotan / Unggulan di Slider Arena Belajar
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. GAMBAR SAMPUL & BANNER KELAS -->
+            <div class="mb-24">
+                <h6 class="text-md fw-semibold text-primary-600 border-bottom pb-8 mb-16 d-flex align-items-center gap-2">
+                    <iconify-icon icon="solar:gallery-wide-outline" class="text-lg"></iconify-icon>
+                    <span>2. Gambar Sampul & Banner Batch Kelas</span>
+                </h6>
+
+                <!-- Box Rekomendasi Dimensi & Ukuran -->
+                <div class="alert alert-info border border-info-200 bg-info-50 text-info-900 radius-8 p-16 mb-20">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="w-36-px h-36-px rounded-circle bg-info-100 text-info-600 d-flex justify-content-center align-items-center flex-shrink-0">
+                            <iconify-icon icon="solar:ruler-pen-bold" class="text-xl"></iconify-icon>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-sm fw-semibold text-info-900 mb-1">Panduan & Rekomendasi Banner Kelas</h6>
+                            <p class="text-xs text-info-800 mb-2">Unggah poster/banner khusus batch kelas ini (bila kosong, sistem otomatis mewarisi banner dari Course induk):</p>
+                            <ul class="text-xs text-info-900 mb-0 ps-16">
+                                <li><strong>Dimensi Ideal:</strong> <code>1200 x 675 px</code> atau <code>800 x 500 px</code> (Rasio 16:9 atau 16:10)</li>
+                                <li><strong>Format:</strong> JPG, JPEG, PNG, atau WebP (maks. 2 MB)</li>
+                                <li><strong>Tampilan:</strong> Tampil pada slider sorotan Arena Belajar, kartu katalog kelas, dan ruang belajar peserta.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row gy-20">
+                    <div class="col-lg-7">
+                        <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="cover_image">
+                            Unggah File Gambar Cover / Poster Kelas
+                        </label>
+                        <input id="cover_image" type="file" name="cover_image" class="form-control radius-8" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="previewClassCover(this)">
+                        <small class="text-secondary-light text-xs mt-4 d-block">Pilih file gambar berformat JPG, PNG, atau WEBP (maks. 2 MB).</small>
+
+                        <!-- Accordion URL Alternatif -->
+                        <div class="mt-16 p-12 radius-8 border bg-neutral-50">
+                            <a class="text-xs fw-semibold text-primary-600 d-inline-flex align-items-center gap-1 text-decoration-none" data-bs-toggle="collapse" href="#collapseClassUrl" role="button" aria-expanded="false" aria-controls="collapseClassUrl">
+                                <iconify-icon icon="solar:link-circle-outline" class="text-base"></iconify-icon>
+                                <span>Atau gunakan URL Gambar Eksternal / Path Aset Statis</span>
+                                <iconify-icon icon="solar:alt-arrow-down-linear" class="text-xs"></iconify-icon>
+                            </a>
+                            <div class="collapse mt-10 <?= (! empty($class['cover_url']) && ! str_contains($class['cover_url'], 'uploads/learning/')) ? 'show' : '' ?>" id="collapseClassUrl">
+                                <label class="form-label fw-semibold text-primary-light text-xs mb-4" for="cover_url">URL Gambar / Path Aset</label>
+                                <input id="cover_url" type="text" name="cover_url" class="form-control radius-8 text-sm" value="<?= esc(old('cover_url', $class['cover_url'] ?? '')) ?>" placeholder="https://... atau assets/main/images/course/course-list-img-1.jpg" oninput="previewClassUrl(this.value)">
+                                <small class="text-secondary-light text-xs">Kosongkan jika telah mengunggah file gambar di atas.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5">
+                        <label class="form-label fw-semibold text-primary-light text-sm mb-8">Pratinjau Cover Kelas</label>
+                        <?php
+                        $existingCover = old('cover_url', $class['cover_url'] ?? '');
+                        $previewSrc = ! empty($existingCover)
+                            ? (str_starts_with($existingCover, 'http') ? $existingCover : base_url($existingCover))
+                            : '';
+                        ?>
+                        <div id="class_preview_wrapper" class="p-12 radius-8 border bg-neutral-50 text-center <?= empty($previewSrc) ? 'd-none' : '' ?>">
+                            <div class="d-flex align-items-center justify-content-between mb-8">
+                                <span class="text-xs fw-semibold text-secondary-light">Tampilan Cover:</span>
+                                <span id="class_preview_badge" class="badge bg-success-100 text-success-600 text-xs px-8 py-2 radius-4">Gambar Terpasang</span>
+                            </div>
+                            <div class="ratio ratio-16x9 rounded-8 overflow-hidden border bg-neutral-200">
+                                <img id="class_preview_img" src="<?= esc($previewSrc) ?>" alt="Cover Kelas" class="w-100 h-100 object-fit-cover">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -181,4 +260,30 @@ $formAction = $isEdit ? route_to('dashboard.learning.classes.update', $class['id
         </form>
     </div>
 </div>
+<script>
+function previewClassCover(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('class_preview_img');
+            const wrap = document.getElementById('class_preview_wrapper');
+            const badge = document.getElementById('class_preview_badge');
+            if (img) img.src = e.target.result;
+            if (wrap) wrap.classList.remove('d-none');
+            if (badge) badge.textContent = 'File Gambar Baru';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+function previewClassUrl(url) {
+    if (url && url.trim() !== '') {
+        const img = document.getElementById('class_preview_img');
+        const wrap = document.getElementById('class_preview_wrapper');
+        const badge = document.getElementById('class_preview_badge');
+        if (img) img.src = url;
+        if (wrap) wrap.classList.remove('d-none');
+        if (badge) badge.textContent = 'URL Terpasang';
+    }
+}
+</script>
 <?= $this->endSection() ?>

@@ -270,6 +270,7 @@ class CourseController extends BaseController
             'duration_minutes'    => $this->request->getPost('duration_minutes') ? (int) $this->request->getPost('duration_minutes') : null,
             'status'              => $this->request->getPost('status') ?: 'draft',
             'visibility'          => $this->request->getPost('visibility') ?: 'public',
+            'featured'            => $this->request->getPost('featured') ? 1 : 0,
             'cover_file_id'       => $coverFileId,
             'cover_url'           => $coverUrl,
         ];

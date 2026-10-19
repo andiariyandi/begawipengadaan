@@ -52,104 +52,159 @@ $bulanIndo = [
      ========================================================= -->
 <section class="main-slider">
     <div class="main-slider__carousel owl-carousel owl-theme">
-        <!-- Slide 1: Transformasi & Ekosistem PBJ Lampung -->
-        <div class="item">
-            <div class="main-slider__image-block">
-                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>" alt="BegawiPengadaan Lampung - Transformasi Digital Pengadaan" class="main-slider__hero-img" width="1920" height="500" />
-            </div>
-            <div class="main-slider__caption-block">
-                <div class="container">
-                    <div class="main-slider__caption-inner">
-                        <div class="main-slider__caption-text">
-                            <div class="main-slider__sub-title-box">
-                                <div class="main-slider__sub-title-shape"></div>
-                                <h5 class="main-slider__sub-title">Pemerintah Provinsi Lampung &middot; Biro PBJ Setda</h5>
+        <?php if (!empty($sliders)): ?>
+            <?php foreach ($sliders as $s): ?>
+                <?php
+                $img = str_starts_with($s['image_url'] ?? '', 'http') ? $s['image_url'] : base_url($s['image_url'] ?? 'assets/main/images/backgrounds/slider-1-1.png');
+                $btnUrl = !empty($s['button_url'] ?? $s['primary_btn_url'] ?? null) ? (str_starts_with($s['button_url'] ?? $s['primary_btn_url'], 'http') ? ($s['button_url'] ?? $s['primary_btn_url']) : site_url($s['button_url'] ?? $s['primary_btn_url'])) : null;
+                $secBtnUrl = !empty($s['secondary_button_url'] ?? $s['secondary_btn_url'] ?? null) ? (str_starts_with($s['secondary_button_url'] ?? $s['secondary_btn_url'], 'http') ? ($s['secondary_button_url'] ?? $s['secondary_btn_url']) : site_url($s['secondary_button_url'] ?? $s['secondary_btn_url'])) : null;
+                $headingText = $s['title'] ?? $s['heading'] ?? 'BegawiPengadaan Lampung';
+                $badgeText = $s['badge_text'] ?? $s['badge_title'] ?? '';
+                $descText = $s['subtitle'] ?? $s['description'] ?? '';
+                $btnText = $s['button_text'] ?? $s['primary_btn_text'] ?? '';
+                $secBtnText = $s['secondary_button_text'] ?? $s['secondary_btn_text'] ?? '';
+                ?>
+                <div class="item">
+                    <div class="main-slider__image-block">
+                        <img src="<?= esc($img) ?>" alt="<?= esc(strip_tags($headingText)) ?>" class="main-slider__hero-img" width="1920" height="500" />
+                    </div>
+                    <div class="main-slider__caption-block">
+                        <div class="container">
+                            <div class="main-slider__caption-inner">
+                                <div class="main-slider__caption-text">
+                                    <?php if (!empty($badgeText)): ?>
+                                        <?php $badgeDisplay = str_replace(['·', '•'], '&middot;', esc($badgeText)); ?>
+                                        <div class="main-slider__sub-title-box">
+                                            <div class="main-slider__sub-title-shape"></div>
+                                            <h5 class="main-slider__sub-title"><?= $badgeDisplay ?></h5>
+                                        </div>
+                                    <?php endif; ?>
+                                    <h2 class="main-slider__title">
+                                        <?= $headingText ?>
+                                    </h2>
+                                    <?php if (!empty($descText)): ?>
+                                        <p class="main-slider__text">
+                                            <?= esc($descText) ?>
+                                        </p>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="main-slider__btn-box">
+                                    <?php if (!empty($btnText) && $btnUrl): ?>
+                                        <a href="<?= esc($btnUrl) ?>" class="thm-btn">
+                                            <span class="icon-angles-right"></span><?= esc($btnText) ?>
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php if (!empty($secBtnText) && $secBtnUrl): ?>
+                                        <a href="<?= esc($secBtnUrl) ?>" class="thm-btn thm-btn-alt">
+                                            <span class="icon-angles-right"></span><?= esc($secBtnText) ?>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
                             </div>
-                            <h2 class="main-slider__title">
-                                Transformasi Digital Terpadu <span>Pengadaan Barang &amp; Jasa</span>
-                            </h2>
-                            <p class="main-slider__text">
-                                Integrasi Arena Belajar aparatur, repositori dokumen Bunga Rampai, dan pusat regulasi PBJ terpadu.
-                            </p>
                         </div>
-                        <div class="main-slider__btn-box">
-                            <a href="<?= site_url('regulasi') ?>" class="thm-btn">
-                                <span class="icon-angles-right"></span>Pusat Regulasi PBJ
-                            </a>
-                            <a href="<?= site_url('arena-belajar') ?>" class="thm-btn thm-btn-alt">
-                                <span class="icon-angles-right"></span>Arena Belajar
-                            </a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <!-- Slide 1: Transformasi & Ekosistem PBJ Lampung -->
+            <div class="item">
+                <div class="main-slider__image-block">
+                    <img src="<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>" alt="BegawiPengadaan Lampung - Transformasi Digital Pengadaan" class="main-slider__hero-img" width="1920" height="500" />
+                </div>
+                <div class="main-slider__caption-block">
+                    <div class="container">
+                        <div class="main-slider__caption-inner">
+                            <div class="main-slider__caption-text">
+                                <div class="main-slider__sub-title-box">
+                                    <div class="main-slider__sub-title-shape"></div>
+                                    <h5 class="main-slider__sub-title">Pemerintah Provinsi Lampung &middot; Biro PBJ Setda</h5>
+                                </div>
+                                <h2 class="main-slider__title">
+                                    Transformasi Digital Terpadu <span>Pengadaan Barang &amp; Jasa</span>
+                                </h2>
+                                <p class="main-slider__text">
+                                    Integrasi Arena Belajar aparatur, repositori dokumen Bunga Rampai, dan pusat regulasi PBJ terpadu.
+                                </p>
+                            </div>
+                            <div class="main-slider__btn-box">
+                                <a href="<?= site_url('regulasi') ?>" class="thm-btn">
+                                    <span class="icon-angles-right"></span>Pusat Regulasi PBJ
+                                </a>
+                                <a href="<?= site_url('arena-belajar') ?>" class="thm-btn thm-btn-alt">
+                                    <span class="icon-angles-right"></span>Arena Belajar
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Slide 2: Arena Belajar PBJ -->
-        <div class="item">
-            <div class="main-slider__image-block">
-                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-2.png') ?>" alt="BegawiPengadaan Lampung - Arena Belajar" class="main-slider__hero-img" width="1920" height="500" />
-            </div>
-            <div class="main-slider__caption-block">
-                <div class="container">
-                    <div class="main-slider__caption-inner">
-                        <div class="main-slider__caption-text">
-                            <div class="main-slider__sub-title-box">
-                                <div class="main-slider__sub-title-shape"></div>
-                                <h5 class="main-slider__sub-title">Arena Belajar &middot; Sertifikasi Kompetensi PBJ</h5>
+            <!-- Slide 2: Arena Belajar PBJ -->
+            <div class="item">
+                <div class="main-slider__image-block">
+                    <img src="<?= base_url('assets/main/images/backgrounds/slider-1-2.png') ?>" alt="BegawiPengadaan Lampung - Arena Belajar" class="main-slider__hero-img" width="1920" height="500" />
+                </div>
+                <div class="main-slider__caption-block">
+                    <div class="container">
+                        <div class="main-slider__caption-inner">
+                            <div class="main-slider__caption-text">
+                                <div class="main-slider__sub-title-box">
+                                    <div class="main-slider__sub-title-shape"></div>
+                                    <h5 class="main-slider__sub-title">Arena Belajar &middot; Sertifikasi Kompetensi PBJ</h5>
+                                </div>
+                                <h2 class="main-slider__title">
+                                    Tingkatkan Keahlian PBJ <span>Bersama Instruktur Ahli LKPP</span>
+                                </h2>
+                                <p class="main-slider__text">
+                                    Modul berjenjang terakreditasi LKPP, pembelajaran terjadwal, dan sertifikat resmi Pemprov Lampung.
+                                </p>
                             </div>
-                            <h2 class="main-slider__title">
-                                Tingkatkan Keahlian PBJ <span>Bersama Instruktur Ahli LKPP</span>
-                            </h2>
-                            <p class="main-slider__text">
-                                Modul berjenjang terakreditasi LKPP, pembelajaran terjadwal, dan sertifikat resmi Pemprov Lampung.
-                            </p>
-                        </div>
-                        <div class="main-slider__btn-box">
-                            <a href="<?= site_url('arena-belajar/course') ?>" class="thm-btn">
-                                <span class="icon-angles-right"></span>Katalog Kursus
-                            </a>
-                            <a href="<?= site_url('arena-belajar/program') ?>" class="thm-btn thm-btn-alt">
-                                <span class="icon-angles-right"></span>Sertifikasi PBJ
-                            </a>
+                            <div class="main-slider__btn-box">
+                                <a href="<?= site_url('arena-belajar/course') ?>" class="thm-btn">
+                                    <span class="icon-angles-right"></span>Katalog Kursus
+                                </a>
+                                <a href="<?= site_url('arena-belajar/program') ?>" class="thm-btn thm-btn-alt">
+                                    <span class="icon-angles-right"></span>Sertifikasi PBJ
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Slide 3: Bunga Rampai & Regulasi -->
-        <div class="item">
-            <div class="main-slider__image-block">
-                <img src="<?= base_url('assets/main/images/backgrounds/slider-1-3.png') ?>" alt="BegawiPengadaan Lampung - Bunga Rampai &amp; Regulasi" class="main-slider__hero-img" width="1920" height="500" />
-            </div>
-            <div class="main-slider__caption-block">
-                <div class="container">
-                    <div class="main-slider__caption-inner">
-                        <div class="main-slider__caption-text">
-                            <div class="main-slider__sub-title-box">
-                                <div class="main-slider__sub-title-shape"></div>
-                                <h5 class="main-slider__sub-title">Bunga Rampai &middot; Dokumen &amp; Praktik Baik</h5>
+            <!-- Slide 3: Bunga Rampai & Regulasi -->
+            <div class="item">
+                <div class="main-slider__image-block">
+                    <img src="<?= base_url('assets/main/images/backgrounds/slider-1-3.png') ?>" alt="BegawiPengadaan Lampung - Bunga Rampai &amp; Regulasi" class="main-slider__hero-img" width="1920" height="500" />
+                </div>
+                <div class="main-slider__caption-block">
+                    <div class="container">
+                        <div class="main-slider__caption-inner">
+                            <div class="main-slider__caption-text">
+                                <div class="main-slider__sub-title-box">
+                                    <div class="main-slider__sub-title-shape"></div>
+                                    <h5 class="main-slider__sub-title">Bunga Rampai &middot; Dokumen &amp; Praktik Baik</h5>
+                                </div>
+                                <h2 class="main-slider__title">
+                                    Template Dokumen KAK, HPS <span>&amp; Mitigasi Risiko Audit Pengadaan</span>
+                                </h2>
+                                <p class="main-slider__text">
+                                    Unduh format dokumen kerja siap pakai (DOCX/XLSX), telaah sengketa sanggahan, dan alur tata kelola PBJ.
+                                </p>
                             </div>
-                            <h2 class="main-slider__title">
-                                Template Dokumen KAK, HPS <span>&amp; Mitigasi Risiko Audit Pengadaan</span>
-                            </h2>
-                            <p class="main-slider__text">
-                                Unduh format dokumen kerja siap pakai (DOCX/XLSX), telaah sengketa sanggahan, dan alur tata kelola PBJ.
-                            </p>
-                        </div>
-                        <div class="main-slider__btn-box">
-                            <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="thm-btn">
-                                <span class="icon-angles-right"></span>Template Dokumen
-                            </a>
-                            <a href="<?= site_url('bunga-rampai/studi-kasus') ?>" class="thm-btn thm-btn-alt">
-                                <span class="icon-angles-right"></span>Studi Kasus
-                            </a>
+                            <div class="main-slider__btn-box">
+                                <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="thm-btn">
+                                    <span class="icon-angles-right"></span>Template Dokumen
+                                </a>
+                                <a href="<?= site_url('bunga-rampai/studi-kasus') ?>" class="thm-btn thm-btn-alt">
+                                    <span class="icon-angles-right"></span>Studi Kasus
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        <?php endif; ?>
     </div>
 </section>
 
@@ -1286,299 +1341,115 @@ $bulanIndo = [
         <!-- Testimonial Carousel (Bubble Chat Design, Multi-Card, Loop) -->
         <div class="testimonial-one__inner">
             <div class="testimonial-one__carousel owl-theme owl-carousel">
-                <!-- Slide 1: Ahmad Zulkarnaen, S.T., M.T. -->
-                <div class="item">
-                    <div class="testimony-chat-card testimony-card spotlight-card" onclick="openTestimonyModal('t1')" role="button" tabindex="0" title="Klik untuk ulasan lengkap">
-                        <!-- Chat Speech Bubble -->
-                        <div class="testimony-bubble">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="testimony-stars d-flex align-items-center gap-1">
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <span class="text-xs fw-bold text-dark ms-1">5.0</span>
+                <?php if (!empty($testimonials)): ?>
+                    <?php foreach ($testimonials as $tIdx => $t): ?>
+                        <?php
+                        $tId = 't' . ($tIdx + 1);
+                        $avatar = str_starts_with($t['avatar_url'] ?? '', 'http') ? $t['avatar_url'] : base_url($t['avatar_url'] ?? 'assets/dashboard/images/users/user1.png');
+                        $rating = !empty($t['rating']) ? (float) $t['rating'] : 5.0;
+                        $tRole = $t['role_title'] ?? $t['role'] ?? '';
+                        $tImpact = $t['impact_statement'] ?? $t['impact_metric'] ?? '';
+                        $tCat = $t['category'] ?? $t['badge_category'] ?? '';
+                        ?>
+                        <div class="item">
+                            <div class="testimony-chat-card testimony-card spotlight-card" onclick="openTestimonyModal('<?= $tId ?>')" role="button" tabindex="0" title="Klik untuk ulasan lengkap">
+                                <!-- Chat Speech Bubble -->
+                                <div class="testimony-bubble">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div class="testimony-stars d-flex align-items-center gap-1">
+                                            <?php for ($star = 1; $star <= 5; $star++): ?>
+                                                <iconify-icon icon="solar:star-bold" class="<?= $star <= round($rating) ? 'text-warning' : 'text-slate-300' ?>"></iconify-icon>
+                                            <?php endfor; ?>
+                                            <span class="text-xs fw-bold text-dark ms-1"><?= number_format($rating, 1) ?></span>
+                                        </div>
+                                        <div class="testimony-quote-icon">
+                                            <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
+                                        </div>
+                                    </div>
+                                    <p class="testimony-bubble__text">
+                                        &ldquo;<?= esc($t['quote'] ?? '') ?>&rdquo;
+                                    </p>
+                                    <?php if (!empty($tImpact)): ?>
+                                        <div class="testimony-bubble__impact mt-auto">
+                                            <iconify-icon icon="solar:graph-up-bold" class="text-success text-xs"></iconify-icon>
+                                            <span><?= esc($tImpact) ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="testimony-bubble__tail"></div>
                                 </div>
-                                <div class="testimony-quote-icon">
-                                    <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
-                                </div>
-                            </div>
-                            <p class="testimony-bubble__text">
-                                &ldquo;Penyusunan HPS dan spesifikasi teknis untuk paket infrastruktur jalan kini jauh lebih terstandarisasi berkat template dokumen di Bunga Rampai dan sinkronisasi regulasi terpusat. Risiko deviasi hukum saat audit probity berkurang drastis.&rdquo;
-                            </p>
-                            <div class="testimony-bubble__impact mt-auto">
-                                <iconify-icon icon="solar:graph-up-bold" class="text-success text-xs"></iconify-icon>
-                                <span>Efisiensi persiapan lelang 55% &amp; probity nihil temuan</span>
-                            </div>
-                            <div class="testimony-bubble__tail"></div>
-                        </div>
 
-                        <!-- Identitas Penulis -->
-                        <div class="testimony-author-bar d-flex align-items-center gap-3">
-                            <div class="testimony-author__avatar spotlight-photo-frame">
-                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-1-1.jpg') ?>" alt="Ahmad Zulkarnaen, S.T., M.T." class="testimony-author__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user2.png') ?>'">
+                                <!-- Identitas Penulis -->
+                                <div class="testimony-author-bar d-flex align-items-center gap-3">
+                                    <div class="testimony-author__avatar spotlight-photo-frame">
+                                        <img src="<?= esc($avatar) ?>" alt="<?= esc($t['name'] ?? '') ?>" class="testimony-author__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user1.png') ?>'">
+                                    </div>
+                                    <div class="testimony-author__info">
+                                        <h4 class="testimony-author__name"><?= esc($t['name'] ?? '') ?></h4>
+                                        <span class="testimony-author__org"><?= esc($t['organization'] ?? '') ?></span>
+                                        <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
+                                            <?php if (!empty($tRole)): ?>
+                                                <span class="badge-soft-primary px-2 py-0-5 radius-999 text-2xs fw-bold">
+                                                    <iconify-icon icon="solar:user-bold" class="me-1"></iconify-icon> <?= esc($tRole) ?>
+                                                </span>
+                                            <?php endif; ?>
+                                            <?php if (!empty($tCat)): ?>
+                                                <span class="badge-soft-success px-2 py-0-5 radius-999 text-2xs fw-bold d-none d-sm-inline-flex">
+                                                    <iconify-icon icon="solar:verified-check-bold" class="me-1"></iconify-icon> <?= esc($tCat) ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="testimony-author__info">
-                                <h4 class="testimony-author__name">Ahmad Zulkarnaen, S.T., M.T.</h4>
-                                <span class="testimony-author__org">PPK Dinas Bina Marga &amp; Bina Konstruksi</span>
-                                <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
-                                    <span class="badge-soft-primary px-2 py-0-5 radius-999 text-2xs fw-bold">
-                                        <iconify-icon icon="solar:user-bold" class="me-1"></iconify-icon> PPK Pengadaan
-                                    </span>
-                                    <span class="badge-soft-success px-2 py-0-5 radius-999 text-2xs fw-bold d-none d-sm-inline-flex">
-                                        <iconify-icon icon="solar:verified-check-bold" class="me-1"></iconify-icon> Terverifikasi
-                                    </span>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <!-- Slide 1: Ahmad Zulkarnaen, S.T., M.T. -->
+                    <div class="item">
+                        <div class="testimony-chat-card testimony-card spotlight-card" onclick="openTestimonyModal('t1')" role="button" tabindex="0" title="Klik untuk ulasan lengkap">
+                            <div class="testimony-bubble">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="testimony-stars d-flex align-items-center gap-1">
+                                        <iconify-icon icon="solar:star-bold"></iconify-icon>
+                                        <iconify-icon icon="solar:star-bold"></iconify-icon>
+                                        <iconify-icon icon="solar:star-bold"></iconify-icon>
+                                        <iconify-icon icon="solar:star-bold"></iconify-icon>
+                                        <iconify-icon icon="solar:star-bold"></iconify-icon>
+                                        <span class="text-xs fw-bold text-dark ms-1">5.0</span>
+                                    </div>
+                                    <div class="testimony-quote-icon">
+                                        <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
+                                    </div>
+                                </div>
+                                <p class="testimony-bubble__text">
+                                    &ldquo;Penyusunan HPS dan spesifikasi teknis untuk paket infrastruktur jalan kini jauh lebih terstandarisasi berkat template dokumen di Bunga Rampai dan sinkronisasi regulasi terpusat. Risiko deviasi hukum saat audit probity berkurang drastis.&rdquo;
+                                </p>
+                                <div class="testimony-bubble__impact mt-auto">
+                                    <iconify-icon icon="solar:graph-up-bold" class="text-success text-xs"></iconify-icon>
+                                    <span>Efisiensi persiapan lelang 55% &amp; probity nihil temuan</span>
+                                </div>
+                                <div class="testimony-bubble__tail"></div>
+                            </div>
+                            <div class="testimony-author-bar d-flex align-items-center gap-3">
+                                <div class="testimony-author__avatar spotlight-photo-frame">
+                                    <img src="<?= base_url('assets/main/images/testimonial/testimonial-1-1.jpg') ?>" alt="Ahmad Zulkarnaen, S.T., M.T." class="testimony-author__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user2.png') ?>'">
+                                </div>
+                                <div class="testimony-author__info">
+                                    <h4 class="testimony-author__name">Ahmad Zulkarnaen, S.T., M.T.</h4>
+                                    <span class="testimony-author__org">PPK Dinas Bina Marga &amp; Bina Konstruksi</span>
+                                    <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
+                                        <span class="badge-soft-primary px-2 py-0-5 radius-999 text-2xs fw-bold">
+                                            <iconify-icon icon="solar:user-bold" class="me-1"></iconify-icon> PPK Pengadaan
+                                        </span>
+                                        <span class="badge-soft-success px-2 py-0-5 radius-999 text-2xs fw-bold d-none d-sm-inline-flex">
+                                            <iconify-icon icon="solar:verified-check-bold" class="me-1"></iconify-icon> Terverifikasi
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Slide 2: Rina Widyastuti, S.E., M.Si. -->
-                <div class="item">
-                    <div class="testimony-chat-card testimony-card spotlight-card" onclick="openTestimonyModal('t2')" role="button" tabindex="0" title="Klik untuk ulasan lengkap">
-                        <!-- Chat Speech Bubble -->
-                        <div class="testimony-bubble">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="testimony-stars d-flex align-items-center gap-1">
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <span class="text-xs fw-bold text-dark ms-1">5.0</span>
-                                </div>
-                                <div class="testimony-quote-icon">
-                                    <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
-                                </div>
-                            </div>
-                            <p class="testimony-bubble__text">
-                                &ldquo;Arena Belajar dan simulasi evaluasi penawaran sangat membantu peningkatan kapasitas anggota Pokja. Ujian sertifikasi dan materi terstruktur meningkatkan kepercayaan diri kami dalam tender bernilai strategis di tingkat provinsi.&rdquo;
-                            </p>
-                            <div class="testimony-bubble__impact mt-auto">
-                                <iconify-icon icon="solar:shield-check-bold" class="text-success text-xs"></iconify-icon>
-                                <span>Evaluasi tender tepat waktu 100% &amp; nihil sanggahan</span>
-                            </div>
-                            <div class="testimony-bubble__tail"></div>
-                        </div>
-
-                        <!-- Identitas Penulis -->
-                        <div class="testimony-author-bar d-flex align-items-center gap-3">
-                            <div class="testimony-author__avatar spotlight-photo-frame">
-                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-1-2.jpg') ?>" alt="Rina Widyastuti, S.E., M.Si." class="testimony-author__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user4.png') ?>'">
-                            </div>
-                            <div class="testimony-author__info">
-                                <h4 class="testimony-author__name">Rina Widyastuti, S.E., M.Si.</h4>
-                                <span class="testimony-author__org">Pokja Pemilihan Biro PBJ Setda Lampung</span>
-                                <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
-                                    <span class="badge-soft-success px-2 py-0-5 radius-999 text-2xs fw-bold">
-                                        <iconify-icon icon="solar:diploma-verified-bold" class="me-1"></iconify-icon> Pokja UKPBJ
-                                    </span>
-                                    <span class="badge-soft-primary px-2 py-0-5 radius-999 text-2xs fw-bold d-none d-sm-inline-flex">
-                                        <iconify-icon icon="solar:shield-check-bold" class="me-1"></iconify-icon> Akreditasi LKPP
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 3: Hendra Kusuma, S.Kom. -->
-                <div class="item">
-                    <div class="testimony-chat-card testimony-card spotlight-card" onclick="openTestimonyModal('t3')" role="button" tabindex="0" title="Klik untuk ulasan lengkap">
-                        <!-- Chat Speech Bubble -->
-                        <div class="testimony-bubble">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="testimony-stars d-flex align-items-center gap-1">
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <span class="text-xs fw-bold text-dark ms-1">5.0</span>
-                                </div>
-                                <div class="testimony-quote-icon">
-                                    <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
-                                </div>
-                            </div>
-                            <p class="testimony-bubble__text">
-                                &ldquo;Sebagai pelaku usaha lokal di Lampung, portal BegawiPengadaan membuka transparansi penuh. Kami mudah memahami kriteria kualifikasi, etika penawaran, hingga tata cara etalase produk pada e-katalog lokal secara adil.&rdquo;
-                            </p>
-                            <div class="testimony-bubble__impact mt-auto">
-                                <iconify-icon icon="solar:cart-large-4-bold" class="text-warning text-xs"></iconify-icon>
-                                <span>Penyerapan produk UMKM lokal optimal di belanja APBD</span>
-                            </div>
-                            <div class="testimony-bubble__tail"></div>
-                        </div>
-
-                        <!-- Identitas Penulis -->
-                        <div class="testimony-author-bar d-flex align-items-center gap-3">
-                            <div class="testimony-author__avatar spotlight-photo-frame">
-                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-2-1.jpg') ?>" alt="Hendra Kusuma, S.Kom." class="testimony-author__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user6.png') ?>'">
-                            </div>
-                            <div class="testimony-author__info">
-                                <h4 class="testimony-author__name">Hendra Kusuma, S.Kom.</h4>
-                                <span class="testimony-author__org">Direktur PT Lampung Cipta Mandiri</span>
-                                <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
-                                    <span class="badge-soft-warning px-2 py-0-5 radius-999 text-2xs fw-bold">
-                                        <iconify-icon icon="solar:shop-2-bold" class="me-1"></iconify-icon> Mitra Penyedia UMKM
-                                    </span>
-                                    <span class="badge-soft-success px-2 py-0-5 radius-999 text-2xs fw-bold d-none d-sm-inline-flex">
-                                        <iconify-icon icon="solar:check-circle-bold" class="me-1"></iconify-icon> E-Katalog
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 4: Drs. Bambang Irawan, Ak., CA. -->
-                <div class="item">
-                    <div class="testimony-chat-card testimony-card spotlight-card" onclick="openTestimonyModal('t4')" role="button" tabindex="0" title="Klik untuk ulasan lengkap">
-                        <!-- Chat Speech Bubble -->
-                        <div class="testimony-bubble">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="testimony-stars d-flex align-items-center gap-1">
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <span class="text-xs fw-bold text-dark ms-1">5.0</span>
-                                </div>
-                                <div class="testimony-quote-icon">
-                                    <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
-                                </div>
-                            </div>
-                            <p class="testimony-bubble__text">
-                                &ldquo;BegawiPengadaan memfasilitasi audit kepatuhan secara objektif. Riwayat versi regulasi dan standar dokumen baku memudahkan kami memverifikasi kesesuaian prosedur dari perencanaan sampai serah terima.&rdquo;
-                            </p>
-                            <div class="testimony-bubble__impact mt-auto">
-                                <iconify-icon icon="solar:shield-check-bold" class="text-primary text-xs"></iconify-icon>
-                                <span>Mitigasi dini deviasi PBJ &amp; penguatan integritas audit</span>
-                            </div>
-                            <div class="testimony-bubble__tail"></div>
-                        </div>
-
-                        <!-- Identitas Penulis -->
-                        <div class="testimony-author-bar d-flex align-items-center gap-3">
-                            <div class="testimony-author__avatar spotlight-photo-frame">
-                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-1-3.jpg') ?>" alt="Drs. Bambang Irawan, Ak., CA." class="testimony-author__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user1.png') ?>'">
-                            </div>
-                            <div class="testimony-author__info">
-                                <h4 class="testimony-author__name">Drs. Bambang Irawan, Ak., CA.</h4>
-                                <span class="testimony-author__org">Inspektorat Provinsi Lampung</span>
-                                <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
-                                    <span class="badge-soft-primary px-2 py-0-5 radius-999 text-2xs fw-bold">
-                                        <iconify-icon icon="solar:shield-check-bold" class="me-1"></iconify-icon> Pengawas APIP
-                                    </span>
-                                    <span class="badge-soft-info px-2 py-0-5 radius-999 text-2xs fw-bold d-none d-sm-inline-flex">
-                                        <iconify-icon icon="solar:document-text-bold" class="me-1"></iconify-icon> Auditor
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 5: dr. Nurul Hidayati, M.Kes. -->
-                <div class="item">
-                    <div class="testimony-chat-card testimony-card spotlight-card" onclick="openTestimonyModal('t5')" role="button" tabindex="0" title="Klik untuk ulasan lengkap">
-                        <!-- Chat Speech Bubble -->
-                        <div class="testimony-bubble">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="testimony-stars d-flex align-items-center gap-1">
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <span class="text-xs fw-bold text-dark ms-1">5.0</span>
-                                </div>
-                                <div class="testimony-quote-icon">
-                                    <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
-                                </div>
-                            </div>
-                            <p class="testimony-bubble__text">
-                                &ldquo;Pengadaan obat dan alat medis memerlukan ketepatan waktu serta kepatuhan e-katalog nasional yang sangat ketat. Fitur konsultasi dan regulasi BegawiPengadaan memastikan ketersediaan logistik RS selalu terjamin.&rdquo;
-                            </p>
-                            <div class="testimony-bubble__impact mt-auto">
-                                <iconify-icon icon="solar:heart-check-bold" class="text-danger text-xs"></iconify-icon>
-                                <span>Ketepatan pasokan medis 99,2% &amp; tata kelola akurat</span>
-                            </div>
-                            <div class="testimony-bubble__tail"></div>
-                        </div>
-
-                        <!-- Identitas Penulis -->
-                        <div class="testimony-author-bar d-flex align-items-center gap-3">
-                            <div class="testimony-author__avatar spotlight-photo-frame">
-                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-2-2.jpg') ?>" alt="dr. Nurul Hidayati, M.Kes." class="testimony-author__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user3.png') ?>'">
-                            </div>
-                            <div class="testimony-author__info">
-                                <h4 class="testimony-author__name">dr. Nurul Hidayati, M.Kes.</h4>
-                                <span class="testimony-author__org">RSUD Dr. H. Abdul Moeloek Lampung</span>
-                                <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
-                                    <span class="badge-soft-danger px-2 py-0-5 radius-999 text-2xs fw-bold">
-                                        <iconify-icon icon="solar:heart-pulse-bold" class="me-1"></iconify-icon> PPK Medis
-                                    </span>
-                                    <span class="badge-soft-success px-2 py-0-5 radius-999 text-2xs fw-bold d-none d-sm-inline-flex">
-                                        <iconify-icon icon="solar:hospital-bold" class="me-1"></iconify-icon> RSUD
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 6: Surya Darmawan, S.T. -->
-                <div class="item">
-                    <div class="testimony-chat-card testimony-card spotlight-card" onclick="openTestimonyModal('t6')" role="button" tabindex="0" title="Klik untuk ulasan lengkap">
-                        <!-- Chat Speech Bubble -->
-                        <div class="testimony-bubble">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="testimony-stars d-flex align-items-center gap-1">
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                    <span class="text-xs fw-bold text-dark ms-1">5.0</span>
-                                </div>
-                                <div class="testimony-quote-icon">
-                                    <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
-                                </div>
-                            </div>
-                            <p class="testimony-bubble__text">
-                                &ldquo;Standarisasi berita acara dan format pemeriksaan pekerjaan di Bunga Rampai mempermudah tim teknis melakukan serah terima fisik di lapangan secara presisi dan sesuai kontrak kerja.&rdquo;
-                            </p>
-                            <div class="testimony-bubble__impact mt-auto">
-                                <iconify-icon icon="solar:check-circle-bold" class="text-info text-xs"></iconify-icon>
-                                <span>100% berita acara serah terima terverifikasi digital</span>
-                            </div>
-                            <div class="testimony-bubble__tail"></div>
-                        </div>
-
-                        <!-- Identitas Penulis -->
-                        <div class="testimony-author-bar d-flex align-items-center gap-3">
-                            <div class="testimony-author__avatar spotlight-photo-frame">
-                                <img src="<?= base_url('assets/main/images/testimonial/testimonial-2-3.jpg') ?>" alt="Surya Darmawan, S.T." class="testimony-author__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user5.png') ?>'">
-                            </div>
-                            <div class="testimony-author__info">
-                                <h4 class="testimony-author__name">Surya Darmawan, S.T.</h4>
-                                <span class="testimony-author__org">Dinas Perumahan &amp; Kawasan Permukiman</span>
-                                <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
-                                    <span class="badge-soft-info px-2 py-0-5 radius-999 text-2xs fw-bold">
-                                        <iconify-icon icon="solar:hammer-bold" class="me-1"></iconify-icon> Tim Teknis
-                                    </span>
-                                    <span class="badge-soft-primary px-2 py-0-5 radius-999 text-2xs fw-bold d-none d-sm-inline-flex">
-                                        <iconify-icon icon="solar:home-bold" class="me-1"></iconify-icon> Pengawas Fisik
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -1615,197 +1486,65 @@ $bulanIndo = [
         <!-- Team Photo Card Slider Carousel (4-5 Cards Desktop, Loop, Photos with Badges) -->
         <div class="team-one__inner">
             <div class="team-spotlight__carousel owl-theme owl-carousel">
-                <!-- Slide 1: Dr. Ir. Fahrizal Darminto, M.A. -->
-                <div class="item">
-                    <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('tm1')" role="button" tabindex="0" title="Klik untuk profil lengkap">
-                        <div class="team-photo-card__frame spotlight-photo-frame">
-                            <img src="<?= base_url('assets/main/images/team/team-1-1.jpg') ?>" alt="Dr. Ir. Fahrizal Darminto, M.A." class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user1.png') ?>'">
-                            <div class="team-photo-card__badges">
-                                <span class="team-photo-card__badge badge-soft-primary">
-                                    <iconify-icon icon="solar:crown-star-bold" class="text-warning"></iconify-icon>
-                                    <span>Pengarah Strategis</span>
-                                </span>
-                            </div>
-                            <div class="team-photo-card__overlay">
-                                <div class="team-photo-card__meta">
-                                    <h4 class="team-photo-card__name">Dr. Ir. Fahrizal Darminto, M.A.</h4>
-                                    <span class="team-photo-card__role">Sekretaris Daerah Prov. Lampung</span>
+                <?php if (!empty($teamMembers)): ?>
+                    <?php foreach ($teamMembers as $mIdx => $m): ?>
+                        <?php
+                        $tmId = 'tm' . ($mIdx + 1);
+                        $photo = str_starts_with($m['photo_url'] ?? '', 'http') ? $m['photo_url'] : base_url($m['photo_url'] ?? 'assets/dashboard/images/users/user1.png');
+                        $soc = !empty($m['social_links']) ? (is_array($m['social_links']) ? $m['social_links'] : json_decode($m['social_links'], true)) : [];
+                        $mBadge = $m['badge_category'] ?? $soc['badge'] ?? '';
+                        $mRole = $m['role_title'] ?? $m['role'] ?? '';
+                        ?>
+                        <div class="item">
+                            <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('<?= $tmId ?>')" role="button" tabindex="0" title="Klik untuk profil lengkap">
+                                <div class="team-photo-card__frame spotlight-photo-frame">
+                                    <img src="<?= esc($photo) ?>" alt="<?= esc($m['name'] ?? '') ?>" class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user1.png') ?>'">
+                                    <?php if (!empty($mBadge)): ?>
+                                        <div class="team-photo-card__badges">
+                                            <span class="team-photo-card__badge badge-soft-primary">
+                                                <iconify-icon icon="solar:star-bold" class="text-warning"></iconify-icon>
+                                                <span><?= esc($mBadge) ?></span>
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="team-photo-card__overlay">
+                                        <div class="team-photo-card__meta">
+                                            <h4 class="team-photo-card__name"><?= esc($m['name'] ?? '') ?></h4>
+                                            <span class="team-photo-card__role"><?= esc($mRole) ?></span>
+                                        </div>
+                                        <div class="team-photo-card__action">
+                                            <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="team-photo-card__action">
-                                    <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <!-- Slide 1: Dr. Ir. Fahrizal Darminto, M.A. -->
+                    <div class="item">
+                        <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('tm1')" role="button" tabindex="0" title="Klik untuk profil lengkap">
+                            <div class="team-photo-card__frame spotlight-photo-frame">
+                                <img src="<?= base_url('assets/main/images/team/team-1-1.jpg') ?>" alt="Dr. Ir. Fahrizal Darminto, M.A." class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user1.png') ?>'">
+                                <div class="team-photo-card__badges">
+                                    <span class="team-photo-card__badge badge-soft-primary">
+                                        <iconify-icon icon="solar:crown-star-bold" class="text-warning"></iconify-icon>
+                                        <span>Pengarah Strategis</span>
+                                    </span>
+                                </div>
+                                <div class="team-photo-card__overlay">
+                                    <div class="team-photo-card__meta">
+                                        <h4 class="team-photo-card__name">Dr. Ir. Fahrizal Darminto, M.A.</h4>
+                                        <span class="team-photo-card__role">Sekretaris Daerah Prov. Lampung</span>
+                                    </div>
+                                    <div class="team-photo-card__action">
+                                        <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Slide 2: Slamet Riadi, S.Sos., M.M. -->
-                <div class="item">
-                    <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('tm2')" role="button" tabindex="0" title="Klik untuk profil lengkap">
-                        <div class="team-photo-card__frame spotlight-photo-frame">
-                            <img src="<?= base_url('assets/main/images/team/team-1-2.jpg') ?>" alt="Slamet Riadi, S.Sos., M.M." class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user3.png') ?>'">
-                            <div class="team-photo-card__badges">
-                                <span class="team-photo-card__badge badge-soft-primary">
-                                    <iconify-icon icon="solar:star-bold" class="text-warning"></iconify-icon>
-                                    <span>Inisiator &amp; Pembina</span>
-                                </span>
-                            </div>
-                            <div class="team-photo-card__overlay">
-                                <div class="team-photo-card__meta">
-                                    <h4 class="team-photo-card__name">Slamet Riadi, S.Sos., M.M.</h4>
-                                    <span class="team-photo-card__role">Kepala Biro PBJ Setda Lampung</span>
-                                </div>
-                                <div class="team-photo-card__action">
-                                    <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 3: Software Engineering & UI/UX Crew -->
-                <div class="item">
-                    <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('tm3')" role="button" tabindex="0" title="Klik untuk profil lengkap">
-                        <div class="team-photo-card__frame spotlight-photo-frame">
-                            <img src="<?= base_url('assets/main/images/team/team-1-5.jpg') ?>" alt="Software Engineering &amp; UI/UX Crew" class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user5.png') ?>'">
-                            <div class="team-photo-card__badges">
-                                <span class="team-photo-card__badge badge-soft-warning">
-                                    <iconify-icon icon="solar:laptop-bold" class="text-warning"></iconify-icon>
-                                    <span>Rekayasa Perangkat Lunak</span>
-                                </span>
-                            </div>
-                            <div class="team-photo-card__overlay">
-                                <div class="team-photo-card__meta">
-                                    <h4 class="team-photo-card__name">Software Engineering &amp; UI/UX Crew</h4>
-                                    <span class="team-photo-card__role">Tim Transformasi Digital PBJ</span>
-                                </div>
-                                <div class="team-photo-card__action">
-                                    <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 4: Tim LPSE & Pengelola SPSE -->
-                <div class="item">
-                    <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('tm4')" role="button" tabindex="0" title="Klik untuk profil lengkap">
-                        <div class="team-photo-card__frame spotlight-photo-frame">
-                            <img src="<?= base_url('assets/main/images/team/team-1-4.jpg') ?>" alt="Tim LPSE &amp; Pengelola SPSE" class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user4.png') ?>'">
-                            <div class="team-photo-card__badges">
-                                <span class="team-photo-card__badge badge-soft-info">
-                                    <iconify-icon icon="solar:server-square-bold" class="text-info"></iconify-icon>
-                                    <span>Infrastruktur &amp; SPSE</span>
-                                </span>
-                            </div>
-                            <div class="team-photo-card__overlay">
-                                <div class="team-photo-card__meta">
-                                    <h4 class="team-photo-card__name">Tim LPSE &amp; Pengelola SPSE</h4>
-                                    <span class="team-photo-card__role">Keamanan ISO 27001 BSSN</span>
-                                </div>
-                                <div class="team-photo-card__action">
-                                    <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 5: Tim Pembinaan & Advokasi Hukum PBJ -->
-                <div class="item">
-                    <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('tm5')" role="button" tabindex="0" title="Klik untuk profil lengkap">
-                        <div class="team-photo-card__frame spotlight-photo-frame">
-                            <img src="<?= base_url('assets/main/images/team/team-1-3.jpg') ?>" alt="Tim Pembinaan &amp; Advokasi Regulasi PBJ" class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user6.png') ?>'">
-                            <div class="team-photo-card__badges">
-                                <span class="team-photo-card__badge badge-soft-primary">
-                                    <iconify-icon icon="solar:scale-bold" class="text-primary"></iconify-icon>
-                                    <span>Advokasi &amp; Hukum PBJ</span>
-                                </span>
-                            </div>
-                            <div class="team-photo-card__overlay">
-                                <div class="team-photo-card__meta">
-                                    <h4 class="team-photo-card__name">Tim Pembinaan &amp; Advokasi Hukum</h4>
-                                    <span class="team-photo-card__role">Mitigasi Risiko &amp; Kontrak Kerja</span>
-                                </div>
-                                <div class="team-photo-card__action">
-                                    <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 6: Tim Fasilitator & Master Trainer PBJ -->
-                <div class="item">
-                    <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('tm6')" role="button" tabindex="0" title="Klik untuk profil lengkap">
-                        <div class="team-photo-card__frame spotlight-photo-frame">
-                            <img src="<?= base_url('assets/main/images/team/team-1-6.jpg') ?>" alt="Tim Fasilitator &amp; Master Trainer PBJ" class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user2.png') ?>'">
-                            <div class="team-photo-card__badges">
-                                <span class="team-photo-card__badge badge-soft-success">
-                                    <iconify-icon icon="solar:graduation-cap-bold" class="text-success"></iconify-icon>
-                                    <span>Instruktur LKPP</span>
-                                </span>
-                            </div>
-                            <div class="team-photo-card__overlay">
-                                <div class="team-photo-card__meta">
-                                    <h4 class="team-photo-card__name">Tim Fasilitator &amp; Master Trainer</h4>
-                                    <span class="team-photo-card__role">Uji Sertifikasi &amp; Bimtek ASN</span>
-                                </div>
-                                <div class="team-photo-card__action">
-                                    <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 7: Pengawas APIP & Audit Probity -->
-                <div class="item">
-                    <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('tm7')" role="button" tabindex="0" title="Klik untuk profil lengkap">
-                        <div class="team-photo-card__frame spotlight-photo-frame">
-                            <img src="<?= base_url('assets/main/images/testimonial/testimonial-1-3.jpg') ?>" alt="Tim Pengawas APIP &amp; Audit PBJ" class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user1.png') ?>'">
-                            <div class="team-photo-card__badges">
-                                <span class="team-photo-card__badge badge-soft-primary">
-                                    <iconify-icon icon="solar:shield-check-bold" class="text-primary"></iconify-icon>
-                                    <span>Pengawas APIP</span>
-                                </span>
-                            </div>
-                            <div class="team-photo-card__overlay">
-                                <div class="team-photo-card__meta">
-                                    <h4 class="team-photo-card__name">Tim Pengawas APIP &amp; Audit</h4>
-                                    <span class="team-photo-card__role">Inspektorat Provinsi Lampung</span>
-                                </div>
-                                <div class="team-photo-card__action">
-                                    <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 8: Helpdesk & Layanan Konsultasi LPSE -->
-                <div class="item">
-                    <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('tm8')" role="button" tabindex="0" title="Klik untuk profil lengkap">
-                        <div class="team-photo-card__frame spotlight-photo-frame">
-                            <img src="<?= base_url('assets/main/images/testimonial/testimonial-1-2.jpg') ?>" alt="Helpdesk &amp; Layanan Konsultasi LPSE" class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user2.png') ?>'">
-                            <div class="team-photo-card__badges">
-                                <span class="team-photo-card__badge badge-soft-info">
-                                    <iconify-icon icon="solar:headphones-round-bold" class="text-info"></iconify-icon>
-                                    <span>Helpdesk &amp; Konsultasi</span>
-                                </span>
-                            </div>
-                            <div class="team-photo-card__overlay">
-                                <div class="team-photo-card__meta">
-                                    <h4 class="team-photo-card__name">Layanan Konsultasi &amp; Helpdesk</h4>
-                                    <span class="team-photo-card__role">Pendampingan Pokja &amp; Penyedia</span>
-                                </div>
-                                <div class="team-photo-card__action">
-                                    <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -1957,47 +1696,77 @@ $bulanIndo = [
                     </div>
 
                     <div class="ecosystem-items-list">
-                        <!-- Portal 1: LPSE Lampung -->
-                        <a href="https://lpse.lampungprov.go.id" target="_blank" rel="noopener noreferrer" class="ecosystem-item-link" style="--item-accent: #0284c7; --item-bg: #eff6ff;">
-                            <div class="ecosystem-item-icon">
-                                <iconify-icon icon="solar:server-square-bold"></iconify-icon>
-                            </div>
-                            <div class="ecosystem-item-content">
-                                <strong class="ecosystem-item-name">LPSE Provinsi Lampung</strong>
-                                <span class="ecosystem-item-desc">Sistem Pengadaan Secara Elektronik (SPSE)</span>
-                            </div>
-                            <div class="ecosystem-item-action">
-                                <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                            </div>
-                        </a>
+                        <?php if (!empty($externalPortals)): ?>
+                            <?php foreach ($externalPortals as $p): ?>
+                                <?php
+                                $pName = $p['name'] ?? $p['portal_name'] ?? '';
+                                $pDesc = $p['description'] ?? '';
+                                $pUrl = $p['url'] ?? '#';
+                                $pIcon = !empty($p['logo_url']) ? $p['logo_url'] : (!empty($p['icon']) ? $p['icon'] : 'solar:global-bold');
+                                $pCat = $p['category'] ?? 'nasional';
+                                $pAccent = !empty($p['accent_color']) ? $p['accent_color'] : ($pCat === 'daerah' ? '#0284c7' : '#10b981');
+                                $pBg = !empty($p['bg_color']) ? $p['bg_color'] : ($pCat === 'daerah' ? '#eff6ff' : '#ecfdf5');
+                                ?>
+                                <a href="<?= esc($pUrl) ?>" target="_blank" rel="noopener noreferrer" class="ecosystem-item-link" style="--item-accent: <?= esc($pAccent) ?>; --item-bg: <?= esc($pBg) ?>;">
+                                    <div class="ecosystem-item-icon">
+                                        <?php if (str_contains($pIcon, '/') || str_contains($pIcon, '.')): ?>
+                                            <img src="<?= esc(str_starts_with($pIcon, 'http') ? $pIcon : base_url($pIcon)) ?>" alt="<?= esc($pName) ?>" style="width: 22px; height: 22px; object-fit: contain;">
+                                        <?php else: ?>
+                                            <iconify-icon icon="<?= esc($pIcon) ?>"></iconify-icon>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="ecosystem-item-content">
+                                        <strong class="ecosystem-item-name"><?= esc($pName) ?></strong>
+                                        <span class="ecosystem-item-desc"><?= esc($pDesc) ?></span>
+                                    </div>
+                                    <div class="ecosystem-item-action">
+                                        <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+                                    </div>
+                                </a>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <!-- Portal 1: LPSE Lampung -->
+                            <a href="https://lpse.lampungprov.go.id" target="_blank" rel="noopener noreferrer" class="ecosystem-item-link" style="--item-accent: #0284c7; --item-bg: #eff6ff;">
+                                <div class="ecosystem-item-icon">
+                                    <iconify-icon icon="solar:server-square-bold"></iconify-icon>
+                                </div>
+                                <div class="ecosystem-item-content">
+                                    <strong class="ecosystem-item-name">LPSE Provinsi Lampung</strong>
+                                    <span class="ecosystem-item-desc">Sistem Pengadaan Secara Elektronik (SPSE)</span>
+                                </div>
+                                <div class="ecosystem-item-action">
+                                    <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+                                </div>
+                            </a>
 
-                        <!-- Portal 2: SiRUP LKPP -->
-                        <a href="https://sirup.lkpp.go.id" target="_blank" rel="noopener noreferrer" class="ecosystem-item-link" style="--item-accent: #10b981; --item-bg: #ecfdf5;">
-                            <div class="ecosystem-item-icon">
-                                <iconify-icon icon="solar:document-add-bold"></iconify-icon>
-                            </div>
-                            <div class="ecosystem-item-content">
-                                <strong class="ecosystem-item-name">SiRUP LKPP</strong>
-                                <span class="ecosystem-item-desc">Sistem Informasi Rencana Umum Pengadaan</span>
-                            </div>
-                            <div class="ecosystem-item-action">
-                                <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                            </div>
-                        </a>
+                            <!-- Portal 2: SiRUP LKPP -->
+                            <a href="https://sirup.lkpp.go.id" target="_blank" rel="noopener noreferrer" class="ecosystem-item-link" style="--item-accent: #10b981; --item-bg: #ecfdf5;">
+                                <div class="ecosystem-item-icon">
+                                    <iconify-icon icon="solar:document-add-bold"></iconify-icon>
+                                </div>
+                                <div class="ecosystem-item-content">
+                                    <strong class="ecosystem-item-name">SiRUP LKPP</strong>
+                                    <span class="ecosystem-item-desc">Sistem Informasi Rencana Umum Pengadaan</span>
+                                </div>
+                                <div class="ecosystem-item-action">
+                                    <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+                                </div>
+                            </a>
 
-                        <!-- Portal 3: E-Katalog LKPP -->
-                        <a href="https://e-katalog.lkpp.go.id" target="_blank" rel="noopener noreferrer" class="ecosystem-item-link" style="--item-accent: #f59e0b; --item-bg: #fffbeb;">
-                            <div class="ecosystem-item-icon">
-                                <iconify-icon icon="solar:cart-large-4-bold"></iconify-icon>
-                            </div>
-                            <div class="ecosystem-item-content">
-                                <strong class="ecosystem-item-name">Katalog Elektronik (E-Katalog LKPP)</strong>
-                                <span class="ecosystem-item-desc">Belanja pengadaan daring komoditas nasional &amp; lokal</span>
-                            </div>
-                            <div class="ecosystem-item-action">
-                                <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                            </div>
-                        </a>
+                            <!-- Portal 3: E-Katalog LKPP -->
+                            <a href="https://e-katalog.lkpp.go.id" target="_blank" rel="noopener noreferrer" class="ecosystem-item-link" style="--item-accent: #f59e0b; --item-bg: #fffbeb;">
+                                <div class="ecosystem-item-icon">
+                                    <iconify-icon icon="solar:cart-large-4-bold"></iconify-icon>
+                                </div>
+                                <div class="ecosystem-item-content">
+                                    <strong class="ecosystem-item-name">Katalog Elektronik (E-Katalog LKPP)</strong>
+                                    <span class="ecosystem-item-desc">Belanja pengadaan daring komoditas nasional &amp; lokal</span>
+                                </div>
+                                <div class="ecosystem-item-action">
+                                    <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+                                </div>
+                            </a>
+                        <?php endif; ?>
                     </div>
 
                     <div class="ecosystem-portal-footer">
@@ -2077,7 +1846,47 @@ $bulanIndo = [
     });
 
     // Testimonial & Team Data Store for Interactive Modal
-    const testimonyData = {
+    <?php
+    $modalItems = [];
+    if (!empty($testimonials)) {
+        foreach ($testimonials as $tIdx => $t) {
+            $key = 't' . ($tIdx + 1);
+            $avatar = str_starts_with($t['avatar_url'] ?? '', 'http') ? $t['avatar_url'] : base_url($t['avatar_url'] ?? 'assets/dashboard/images/users/user1.png');
+            $words = explode(' ', trim($t['name'] ?? ''));
+            $initials = strtoupper(substr($words[0] ?? 'A', 0, 1) . substr($words[1] ?? 'Z', 0, 1));
+            $modalItems[$key] = [
+                'name'   => $t['name'] ?? '',
+                'org'    => $t['organization'] ?? '',
+                'role'   => $t['role_title'] ?? $t['role'] ?? '',
+                'photo'  => $avatar,
+                'avatar' => $initials,
+                'bg'     => '#0284c7',
+                'quote'  => $t['quote'] ?? '',
+                'impact' => $t['impact_statement'] ?? $t['impact_metric'] ?? '',
+            ];
+        }
+    }
+    if (!empty($teamMembers)) {
+        foreach ($teamMembers as $mIdx => $m) {
+            $key = 'tm' . ($mIdx + 1);
+            $photo = str_starts_with($m['photo_url'] ?? '', 'http') ? $m['photo_url'] : base_url($m['photo_url'] ?? 'assets/dashboard/images/users/user1.png');
+            $words = explode(' ', trim($m['name'] ?? ''));
+            $initials = strtoupper(substr($words[0] ?? 'A', 0, 1) . substr($words[1] ?? 'Z', 0, 1));
+            $modalItems[$key] = [
+                'name'   => $m['name'] ?? '',
+                'org'    => $m['organization'] ?? $m['institution'] ?? 'Biro PBJ Setda Prov. Lampung',
+                'role'   => $m['role_title'] ?? $m['role'] ?? '',
+                'photo'  => $photo,
+                'avatar' => $initials,
+                'bg'     => '#052244',
+                'quote'  => $m['bio'] ?? $m['quote'] ?? '',
+                'impact' => $m['impact_statement'] ?? $m['impact_metric'] ?? '',
+            ];
+        }
+    }
+    ?>
+    const dynamicTestimonyData = <?= json_encode($modalItems, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
+    const defaultTestimonyData = {
         't1': {
             name: 'Ahmad Zulkarnaen, S.T., M.T.',
             org: 'PPK Dinas Bina Marga & Bina Konstruksi Provinsi Lampung',
@@ -2219,6 +2028,7 @@ $bulanIndo = [
             impact: '99% tingkat penyelesaian kendala teknis SPSE dalam kurun waktu kurang dari 24 jam.'
         }
     };
+    const testimonyData = Object.keys(dynamicTestimonyData).length > 0 ? dynamicTestimonyData : defaultTestimonyData;
 
     function openTestimonyModal(id) {
         const data = testimonyData[id];

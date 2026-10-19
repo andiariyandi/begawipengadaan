@@ -165,24 +165,49 @@ class EventPublicController extends BaseController
                 'certificate_enabled'  => (int) ($row['certificate_enabled'] ?? 0),
                 'registration_open_at' => $row['registration_open_at'],
                 'registration_close_at' => $row['registration_close_at'],
-                'cover_url'            => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
+                'cover_url'            => ! empty($row['cover_file_id']) ? site_url('file/' . (int) $row['cover_file_id']) : (! empty($row['cover_path']) ? (str_starts_with($row['cover_path'], 'http') ? $row['cover_path'] : base_url($row['cover_path'])) : null),
             ];
         }, $rawItems);
 
-        // Featured Slider Events (Up to 5 featured, pinned, coming soon, or upcoming open events)
+        // Featured Slider Events (respect spotlight_mode & spotlight_limit settings)
         $sliderEvents = [];
+        $spotlightMode  = (string) (setting('event.spotlight_mode') ?? 'all');
+        $spotlightLimit = (int) (setting('event.spotlight_limit') ?? 5);
+        if ($spotlightLimit < 3) {
+            $spotlightLimit = 3;
+        } elseif ($spotlightLimit > 15) {
+            $spotlightLimit = 15;
+        }
+
         if ($currentPage === 1 && empty($keyword) && empty($type) && empty($mode)) {
-            $sliderRaw = $this->db->table('events e')
+            $sliderBuilder = $this->db->table('events e')
                 ->select('e.*, COALESCE(u.name, u.username, "Biro PBJ Setda Lampung") AS creator_name, fa.path AS cover_path')
                 ->join('users u', 'u.id = e.created_by', 'left')
                 ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
                 ->where('e.deleted_at', null)
-                ->where('e.visibility', 'public')
-                ->where('e.end_at >=', $now)
+                ->where('e.visibility', 'public');
+
+            if ($spotlightMode === 'featured') {
+                $sliderBuilder->where('e.is_featured', 1);
+            } elseif ($spotlightMode === 'upcoming') {
+                $sliderBuilder->where('e.end_at >=', $now);
+            } elseif ($spotlightMode !== 'all' && ! empty($spotlightMode)) {
+                $sliderBuilder->where('e.type', $spotlightMode);
+            }
+
+            $sliderRaw = $sliderBuilder
+                ->orderBy('e.carousel_enabled', 'DESC')
+                ->orderBy('CASE WHEN e.carousel_order IS NULL THEN 9999 ELSE e.carousel_order END', 'ASC', false)
+                ->orderBy('e.is_featured', 'DESC')
                 ->orderBy('CASE WHEN e.status = "open_registration" THEN 0 WHEN e.status = "coming_soon" THEN 1 ELSE 2 END', 'ASC', false)
                 ->orderBy('e.start_at', 'ASC')
-                ->limit(5)
+                ->limit($spotlightLimit)
                 ->get()->getResultArray();
+
+            // If no events match specific spotlight filter, fallback to general upcoming / open events
+            if (empty($sliderRaw) && ! empty($rawItems)) {
+                $sliderRaw = array_slice($rawItems, 0, min($spotlightLimit, count($rawItems)));
+            }
 
             $sliderEvents = array_map(function ($row) use ($now) {
                 $start = ! empty($row['start_at']) ? strtotime($row['start_at']) : time();
@@ -197,6 +222,13 @@ class EventPublicController extends BaseController
                 $isUnlimited = ($capacity <= 0);
                 $remaining   = $isUnlimited ? null : max(0, $capacity - $regCount);
                 $isPast      = strtotime($row['end_at']) < strtotime($now);
+
+                $coverUrl = null;
+                if (! empty($row['cover_file_id'])) {
+                    $coverUrl = site_url('file/' . (int) $row['cover_file_id']);
+                } elseif (! empty($row['cover_path'])) {
+                    $coverUrl = str_starts_with($row['cover_path'], 'http') ? $row['cover_path'] : base_url($row['cover_path']);
+                }
 
                 return [
                     'id'                   => (int) $row['id'],
@@ -228,7 +260,7 @@ class EventPublicController extends BaseController
                     'certificate_enabled'  => (int) ($row['certificate_enabled'] ?? 0),
                     'registration_open_at' => $row['registration_open_at'],
                     'registration_close_at' => $row['registration_close_at'],
-                    'cover_url'            => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
+                    'cover_url'            => $coverUrl,
                 ];
             }, $sliderRaw);
         }

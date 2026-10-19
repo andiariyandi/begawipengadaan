@@ -37,13 +37,13 @@
         }
 
         .auth-left__content h2 {
-            color: #101828;
+            color: var(--text-primary-light, #101828);
             font-weight: 700;
             margin-top: 24px;
         }
 
         .auth-left__content p {
-            color: #667085;
+            color: var(--text-secondary-light, #667085);
             font-size: 16px;
             margin-bottom: 0;
         }
@@ -73,13 +73,17 @@
                         class="auth-left__image"
                         alt="BegawiPengadaan">
                     <h2>BegawiPengadaan</h2>
-                    <p>Platform informasi, pembelajaran, dan ekosistem Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.</p>
+                    <p>BEGAWI PBJ (Bimbingan Edukasi & Gerakan Akselerasi Wawasan PBJ) Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.</p>
                 </div>
             </div>
         </div>
 
+        <?php
+        $renderedContainerClass = trim((string) $this->renderSection('containerClass'));
+        $containerClass = $renderedContainerClass !== '' ? $renderedContainerClass : ($authContainerClass ?? 'max-w-500-px');
+        ?>
         <div class="auth-right py-32 px-24 d-flex flex-column justify-content-center">
-            <div class="max-w-464-px mx-auto w-100">
+            <div class="<?= esc($containerClass) ?> mx-auto w-100">
                 <?= $this->renderSection('content') ?>
             </div>
         </div>

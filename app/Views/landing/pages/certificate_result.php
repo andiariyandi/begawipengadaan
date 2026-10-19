@@ -30,10 +30,14 @@
                         <!-- Header with Emblem -->
                         <div class="cert-official-header">
                             <div class="cert-official-emblem">
-                                <img src="<?= base_url('assets/main/images/resources/logo-4.png') ?>" alt="BegawiPengadaan Lampung">
+                                <?php
+                                $certLogo = setting('organization.logo_url');
+                                $certLogoSrc = ! empty($certLogo) ? (str_starts_with($certLogo, 'http') ? $certLogo : base_url($certLogo)) : base_url('assets/main/images/resources/logo-4.png');
+                                ?>
+                                <img src="<?= esc($certLogoSrc) ?>" alt="BegawiPengadaan Lampung" style="object-fit: contain;">
                                 <div class="cert-official-emblem__text">
-                                    <h4>Pemerintah Provinsi Lampung</h4>
-                                    <p>Biro Pengadaan Barang dan Jasa Sekretariat Daerah</p>
+                                    <h4><?= esc(setting('organization.provincial_unit', 'Pemerintah Provinsi Lampung')) ?></h4>
+                                    <p><?= esc(setting('organization.agency_name', 'Biro Pengadaan Barang dan Jasa Sekretariat Daerah')) ?></p>
                                 </div>
                             </div>
                             <div class="text-md-end text-center mt-2 mt-md-0">

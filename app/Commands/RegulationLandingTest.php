@@ -107,6 +107,55 @@ class RegulationLandingTest extends BaseCommand
             }
         }
 
+        // 6. Carousel Headline & Indicators Verification
+        CLI::write(">>> TEST 6: Hero Carousel & Indicator Dots Verification", 'cyan');
+        try {
+            $_GET = [];
+            $indexHtml = $controller->index();
+            $hasCarousel       = str_contains($indexHtml, 'id="regulationHeadlineCarousel"');
+            $hasIndicators     = str_contains($indexHtml, 'carousel-indicators evt-headline__indicators');
+            $hasSlideTo        = str_contains($indexHtml, 'data-bs-slide-to="0"');
+            $hasAriaCurrent    = str_contains($indexHtml, 'aria-current="true"');
+            $hasSyncScript     = str_contains($indexHtml, 'syncIndicatorDots');
+            $hasSafeModal      = str_contains($indexHtml, 'bootstrap.Modal.getInstance(modalEl)') || ! str_contains($indexHtml, 'bootstrap.Modal.getOrCreateInstance');
+
+            if ($hasCarousel && $hasIndicators && $hasSlideTo && $hasAriaCurrent && $hasSyncScript && $hasSafeModal) {
+                $passed++;
+                CLI::write("  [OK] Hero Carousel, Indicators, Dot Sync Script, and Safe Modal verified 100%", 'green');
+            } else {
+                $failed++;
+                CLI::error("  [FAIL] Carousel check failed: carousel={$hasCarousel}, indicators={$hasIndicators}, slideTo={$hasSlideTo}, ariaCurrent={$hasAriaCurrent}, syncScript={$hasSyncScript}, safeModal={$hasSafeModal}");
+            }
+        } catch (\Throwable $e) {
+            $failed++;
+            CLI::error('  [FAIL] Carousel test error: ' . $e->getMessage());
+        }
+
+        // 7. Regulation Settings & Service Verification
+        CLI::write(">>> TEST 7: Regulation Settings & Service Integration", 'cyan');
+        try {
+            $settingService = new \App\Services\SystemSettingService();
+            $mode  = $settingService->get('regulation.spotlight_mode', 'all');
+            $limit = (int) $settingService->get('regulation.spotlight_limit', 6);
+
+            $pubSvc = new \App\Services\Regulation\RegulationPublicService();
+            $spotlights = $pubSvc->spotlightRegulations($mode, $limit);
+
+            $settingController = new \App\Controllers\Admin\SettingController();
+            $adminSettingsHtml = $settingController->regulation();
+
+            if (! empty($adminSettingsHtml) && is_array($spotlights)) {
+                $passed++;
+                CLI::write("  [OK] Regulation settings loaded (mode: {$mode}, limit: {$limit}) and admin form rendered successfully", 'green');
+            } else {
+                $failed++;
+                CLI::error("  [FAIL] Regulation settings check failed");
+            }
+        } catch (\Throwable $e) {
+            $failed++;
+            CLI::error('  [FAIL] Settings test error: ' . $e->getMessage());
+        }
+
         CLI::newLine();
         CLI::write("==================================================================", 'yellow');
         CLI::write("TEST RESULTS: {$passed} Passed, {$failed} Failed", $failed > 0 ? 'red' : 'green');

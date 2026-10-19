@@ -90,6 +90,7 @@ class CaseStudyController extends BaseKnowledgeController
         $fileId = $this->uploadFileAsset($file, 'case_study_cover', 'public');
         if ($fileId !== null) {
             $payload['cover_file_id'] = $fileId;
+            $payload['cover_url'] = site_url('file/' . $fileId);
         }
         $model->insert($payload);
         $id = (int) $model->getInsertID();
@@ -176,6 +177,7 @@ class CaseStudyController extends BaseKnowledgeController
         $fileId = $this->uploadFileAsset($file, 'case_study_cover', 'public');
         if ($fileId !== null) {
             $payload['cover_file_id'] = $fileId;
+            $payload['cover_url'] = site_url('file/' . $fileId);
         }
         $model->update((int) $id, $payload);
         $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn($v) => $v > 0));

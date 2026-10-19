@@ -39,6 +39,8 @@ class ArenaBelajarController extends BaseController
         $featuredPrograms = $programModel
             ->where('status', 'published')
             ->where('visibility', 'public')
+            ->orderBy('carousel_enabled', 'DESC')
+            ->orderBy('CASE WHEN carousel_order IS NULL THEN 9999 ELSE carousel_order END', 'ASC', false)
             ->orderBy('featured', 'DESC')
             ->orderBy('id', 'DESC')
             ->findAll(4);
@@ -52,18 +54,23 @@ class ArenaBelajarController extends BaseController
         }
         unset($prog);
 
-        // 3. Popular & Top Courses (limit 6)
-        $popularCourses = $courseModel
+        // 3. Featured & Top Courses (for Spotlight & Showcase)
+        $featuredCourses = $courseModel
             ->select('courses.*, programs.title AS program_title, programs.slug AS program_slug')
             ->join('programs', 'programs.id = courses.program_id')
             ->where('courses.status', 'published')
             ->where('courses.visibility', 'public')
             ->where('programs.status', 'published')
             ->where('programs.visibility', 'public')
+            ->orderBy('courses.carousel_enabled', 'DESC')
+            ->orderBy('CASE WHEN courses.carousel_order IS NULL THEN 9999 ELSE courses.carousel_order END', 'ASC', false)
+            ->orderBy('courses.featured', 'DESC')
             ->orderBy('courses.id', 'DESC')
             ->findAll(6);
 
-        // 4. Active & Scheduled Classes Ready to Enroll (limit 4)
+        $popularCourses = $featuredCourses;
+
+        // 4. Active & Scheduled Classes Ready to Enroll (prioritize featured classes)
         $activeClasses = $classModel
             ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, courses.cover_url AS course_cover_url, programs.title AS program_title')
             ->join('courses', 'courses.id = learning_classes.course_id')
@@ -71,8 +78,11 @@ class ArenaBelajarController extends BaseController
             ->whereIn('learning_classes.status', ['scheduled', 'active'])
             ->where('courses.status', 'published')
             ->where('courses.visibility', 'public')
+            ->orderBy('learning_classes.carousel_enabled', 'DESC')
+            ->orderBy('CASE WHEN learning_classes.carousel_order IS NULL THEN 9999 ELSE learning_classes.carousel_order END', 'ASC', false)
+            ->orderBy('learning_classes.featured', 'DESC')
             ->orderBy('learning_classes.start_at', 'ASC')
-            ->findAll(4);
+            ->findAll(6);
 
         foreach ($activeClasses as &$cl) {
             $cl['trainers'] = $db->table('class_trainers ct')
@@ -104,15 +114,21 @@ class ArenaBelajarController extends BaseController
             ->limit(4)
             ->get()->getResultArray();
 
+        $spotlightMode = (string) setting('learning.spotlight_mode', 'all');
+        $spotlightLimit = (int) setting('learning.spotlight_limit', 6);
+
         return view('landing/pages/learning', [
             'title'            => 'Arena Belajar | BegawiPengadaan',
             'metaDescription'  => 'Pusat pembelajaran, program terstruktur, course mandiri, kelas aktif, dan pengajar Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.',
             'metaKeywords'     => 'Arena Belajar, pembelajaran PBJ, pelatihan pengadaan, sertifikasi PBJ, BegawiPengadaan',
             'stats'            => $stats,
             'featuredPrograms' => $featuredPrograms,
+            'featuredCourses'  => $featuredCourses,
             'popularCourses'   => $popularCourses,
             'activeClasses'    => $activeClasses,
             'featuredTrainers' => $trainersQuery,
+            'spotlightMode'    => $spotlightMode,
+            'spotlightLimit'   => $spotlightLimit,
         ]);
     }
 

@@ -7,7 +7,7 @@
         <span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span>
     </a>
 
-    <h4 class="mb-8 fw-bold text-dark"><?= esc($pageTitle ?? 'Status Akun Pengguna') ?></h4>
+    <h4 class="mb-8 fw-bold text-primary-light"><?= esc($pageTitle ?? 'Status Akun Pengguna') ?></h4>
     <p class="mb-0 text-secondary-light text-sm"><?= esc($pageDescription ?? 'Informasi tahapan dan status verifikasi akun Anda di platform BegawiPengadaan.') ?></p>
 </div>
 
@@ -63,17 +63,17 @@
     <div class="card border border-neutral-200 radius-12 p-24 mb-24 bg-neutral-50 shadow-none">
         <div class="d-flex align-items-center justify-content-between mb-16 pb-12 border-bottom">
             <span class="text-secondary-light text-sm">Nama Akun:</span>
-            <strong class="text-dark"><?= esc($user['name'] ?? $user['username'] ?? '-') ?></strong>
+            <strong class="text-primary-light"><?= esc($user['name'] ?? $user['username'] ?? '-') ?></strong>
         </div>
         <div class="d-flex align-items-center justify-content-between mb-16 pb-12 border-bottom">
             <span class="text-secondary-light text-sm">Alamat Email:</span>
-            <span class="text-dark fw-medium text-sm"><?= esc($user['email'] ?? '-') ?></span>
+            <span class="text-primary-light fw-medium text-sm"><?= esc($user['email'] ?? '-') ?></span>
         </div>
         <div class="d-flex align-items-center justify-content-between mb-16">
             <span class="text-secondary-light text-sm">Status Saat Ini:</span>
             <span class="badge px-12 py-6 radius-8 fw-semibold text-xs <?= $badgeClass ?>"><?= esc($statusLabel) ?></span>
         </div>
-        <div class="p-16 bg-white border border-neutral-200 radius-8">
+        <div class="p-16 bg-base border border-neutral-200 radius-8">
             <p class="text-xs text-secondary-light mb-0 lh-base"><?= esc($statusDesc) ?></p>
         </div>
     </div>

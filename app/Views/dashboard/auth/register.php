@@ -7,7 +7,7 @@
         <span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span>
     </a>
 
-    <h4 class="mb-8 fw-bold text-dark"><?= esc($pageTitle ?? 'Buat Akun BegawiPengadaan') ?></h4>
+    <h4 class="mb-8 fw-bold text-primary-light"><?= esc($pageTitle ?? 'Buat Akun BegawiPengadaan') ?></h4>
     <p class="mb-0 text-secondary-light text-sm"><?= esc($pageDescription ?? 'Langkah 1 dari 4 — Daftarkan data akun dasar dan pilih tipe profil Anda.') ?></p>
 </div>
 
@@ -171,19 +171,14 @@
 
     <div class="mb-24">
         <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="profile-type">Tipe Profil Pengguna</label>
-        <div class="icon-field">
-            <span class="icon top-50 translate-middle-y">
-                <iconify-icon icon="solar:users-group-two-rounded-bold" class="text-lg text-secondary-light"></iconify-icon>
-            </span>
-            <?php $selType = old('profile_type', $registrationData['profile_type'] ?? ''); ?>
-            <select class="form-select h-56-px bg-neutral-50 radius-12 ps-48" name="profile_type" id="profile-type" required>
-                <option value="">-- Pilih Tipe Profil Pendaftar --</option>
-                <option value="asn" <?= $selType === 'asn' ? 'selected' : '' ?>>Aparatur Sipil Negara (ASN)</option>
-                <option value="provider" <?= $selType === 'provider' ? 'selected' : '' ?>>Penyedia Barang / Jasa (Vendor)</option>
-                <option value="academic" <?= $selType === 'academic' ? 'selected' : '' ?>>Akademisi / Peneliti / Mahasiswa</option>
-                <option value="public" <?= $selType === 'public' ? 'selected' : '' ?>>Masyarakat Umum / Pemerhati Pengadaan</option>
-            </select>
-        </div>
+        <?php $selType = old('profile_type', $registrationData['profile_type'] ?? ''); ?>
+        <select class="form-select h-56-px bg-neutral-50 radius-12" name="profile_type" id="profile-type" required>
+            <option value="">-- Pilih Tipe Profil Pendaftar --</option>
+            <option value="asn" <?= $selType === 'asn' ? 'selected' : '' ?>>Aparatur Sipil Negara (ASN)</option>
+            <option value="provider" <?= $selType === 'provider' ? 'selected' : '' ?>>Penyedia Barang / Jasa (Vendor)</option>
+            <option value="academic" <?= $selType === 'academic' ? 'selected' : '' ?>>Akademisi / Peneliti / Mahasiswa</option>
+            <option value="public" <?= $selType === 'public' ? 'selected' : '' ?>>Masyarakat Umum / Pemerhati Pengadaan</option>
+        </select>
     </div>
 
     <button type="submit" class="btn btn-primary text-sm fw-semibold px-12 py-16 w-100 radius-12 d-flex align-items-center justify-content-center gap-2 shadow-sm">

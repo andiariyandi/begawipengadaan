@@ -38,9 +38,14 @@ $isHomeView = !empty($isHome);
                 <div class="main-menu__wrapper-inner">
                     <div class="main-menu__left">
                         <div class="main-menu__logo">
+                            <?php
+                            $customLogo = setting('organization.logo_url');
+                            $logoLightSrc = ! empty($customLogo) ? (str_starts_with($customLogo, 'http') ? $customLogo : base_url($customLogo)) : base_url('assets/main/images/resources/logo-1.png');
+                            $logoDarkSrc = ! empty($customLogo) ? (str_starts_with($customLogo, 'http') ? $customLogo : base_url($customLogo)) : base_url('assets/main/images/resources/logo-4.png');
+                            ?>
                             <a href="<?= site_url('/') ?>" aria-label="Beranda BegawiPengadaan">
-                                <img src="<?= base_url('assets/main/images/resources/logo-1.png') ?>" alt="BegawiPengadaan" class="main-header__logo-light">
-                                <img src="<?= base_url('assets/main/images/resources/logo-4.png') ?>" alt="BegawiPengadaan" class="main-header__logo-dark">
+                                <img src="<?= esc($logoLightSrc) ?>" alt="BegawiPengadaan" class="main-header__logo-light">
+                                <img src="<?= esc($logoDarkSrc) ?>" alt="BegawiPengadaan" class="main-header__logo-dark">
                             </a>
                         </div>
                     </div>

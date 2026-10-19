@@ -302,11 +302,12 @@ class LearningClassController extends BaseController
         if (! $this->canManageClasses()) {
             return $this->forbidClassManagement();
         }
-        if ($this->classModel->find($id) === null) {
+        $class = $this->classModel->find($id);
+        if ($class === null) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas tidak ditemukan.');
         }
 
-        $data = $this->validatedClassData();
+        $data = $this->validatedClassData($class['cover_url'] ?? null, $class['cover_file_id'] ?? null);
         if ($data === null) {
             return redirect()->back()->withInput();
         }
@@ -344,7 +345,7 @@ class LearningClassController extends BaseController
         return redirect()->to(route_to('dashboard.learning.classes'))->with('success', 'Kelas berhasil dihapus.');
     }
 
-    private function validatedClassData(): ?array
+    private function validatedClassData(?string $existingCoverUrl = null, ?int $existingCoverFileId = null): ?array
     {
         if (! $this->validate([
             'course_id' => 'required|is_natural_no_zero',
@@ -360,6 +361,64 @@ class LearningClassController extends BaseController
             return null;
         }
 
+        // Handle uploaded cover image file
+        $file = $this->request->getFile('cover_image');
+        $uploadedUrl = null;
+        $uploadedFileId = null;
+
+        if ($file && $file->isValid() && ! $file->hasMoved()) {
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            $mime = $file->getMimeType();
+            if (! in_array($mime, $allowedMimes, true)) {
+                session()->setFlashdata('error', 'Format file gambar harus JPG, PNG, atau WEBP.');
+                return null;
+            }
+            if ($file->getSize() > 2097152) {
+                session()->setFlashdata('error', 'Ukuran file gambar maksimal 2 MB.');
+                return null;
+            }
+
+            $targetDir = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'learning' . DIRECTORY_SEPARATOR . 'classes';
+            if (! is_dir($targetDir)) {
+                @mkdir($targetDir, 0755, true);
+            }
+
+            $storedName = $file->getRandomName();
+            if ($file->move($targetDir, $storedName)) {
+                $uploadedUrl = 'uploads/learning/classes/' . $storedName;
+
+                try {
+                    $now = date('Y-m-d H:i:s');
+                    $db = db_connect();
+                    $db->table('file_assets')->insert([
+                        'disk'             => 'local',
+                        'path'             => $uploadedUrl,
+                        'original_name'    => $file->getClientName() ?: $storedName,
+                        'stored_name'      => $storedName,
+                        'extension'        => $file->getClientExtension() ?: 'jpg',
+                        'mime_type'        => $mime,
+                        'size_bytes'       => (int) ($file->getSize() ?: 0),
+                        'visibility'       => 'public',
+                        'lifecycle_status' => 'available',
+                        'resource_type'    => 'class_cover',
+                        'resource_id'      => null,
+                        'uploaded_by'      => (int) session()->get('user_id'),
+                        'available_at'     => $now,
+                        'created_at'       => $now,
+                        'updated_at'       => $now,
+                        'deleted_at'       => null,
+                    ]);
+                    $uploadedFileId = (int) $db->insertID();
+                } catch (\Throwable $e) {
+                    log_message('error', 'Class cover asset registration failed: ' . $e->getMessage());
+                }
+            }
+        }
+
+        $urlPost = $this->request->getPost('cover_url');
+        $coverUrl = $uploadedUrl ?: (trim((string) $urlPost) ?: $existingCoverUrl);
+        $coverFileId = $uploadedFileId ?: ($this->request->getPost('cover_file_id') ? (int) $this->request->getPost('cover_file_id') : $existingCoverFileId);
+
         $rawStatus = (string) $this->request->getPost('status');
         $status = match ($rawStatus) {
             'open', 'scheduled'   => 'scheduled',
@@ -374,6 +433,9 @@ class LearningClassController extends BaseController
             'name'                  => trim((string) $this->request->getPost('name')),
             'description'           => $this->request->getPost('description'),
             'status'                => $status,
+            'featured'              => $this->request->getPost('featured') ? 1 : 0,
+            'cover_file_id'         => $coverFileId,
+            'cover_url'             => $coverUrl,
             'learning_method'       => $this->request->getPost('learning_method') ?: 'online',
             'location_or_link'      => trim((string) $this->request->getPost('location_or_link')) ?: null,
             'target_audience'       => $this->request->getPost('target_audience'),

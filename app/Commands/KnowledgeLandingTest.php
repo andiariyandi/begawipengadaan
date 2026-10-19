@@ -52,6 +52,9 @@ class KnowledgeLandingTest extends BaseCommand
             'Media & Video'         => 'Media &amp; Video Pembelajaran',
             'FAQ Accordion Preview' => 'Pertanyaan Sering Muncul (FAQ)',
             'Pillars of Integrity'  => 'Membangun Budaya Pengadaan Berintegritas &amp; Akuntabel',
+            'Carousel Indicators'   => 'carousel-indicators evt-headline__indicators',
+            'Carousel Slide-To'     => 'data-bs-slide-to="0"',
+            'Indicators Sync Script'=> 'syncIndicatorDots',
         ];
 
         foreach ($guestChecks as $label => $needle) {

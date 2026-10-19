@@ -1,3 +1,49 @@
+<?php
+$popupEnabled = setting('announcement.popup_enabled', '1');
+if ($popupEnabled !== '1' && $popupEnabled !== 1 && $popupEnabled !== true && $popupEnabled !== 'true') {
+    return;
+}
+
+// Announcements fallback
+if (!isset($announcements) || empty($announcements)) {
+    $db = \Config\Database::connect();
+    try {
+        $announcements = $db->table('site_announcements')->where('is_active', 1)->orderBy('sort_order', 'ASC')->get()->getResultArray();
+    } catch (\Throwable) {
+        $announcements = [];
+    }
+}
+
+if (empty($announcements)) {
+    $announcements = [
+        [
+            'title'          => 'Bimbingan Teknis & Uji Sertifikasi PBJ Level-1 Terpadu',
+            'badge_category' => 'AGENDA & BIMTEK 2026',
+            'content'        => 'Pendaftaran gelombang baru program sertifikasi dan pelatihan kompetensi pengadaan barang/jasa bagi aparatur Pemprov Lampung kini dibuka.',
+            'image_url'      => 'assets/main/images/event/event-details-top-img-1.jpg',
+            'action_text'    => 'Lihat Jadwal Agenda',
+            'action_url'     => 'event',
+        ],
+        [
+            'title'          => 'Tingkatkan Keahlian Mandiri Melalui Silabus & Kursus Terakreditasi',
+            'badge_category' => 'ARENA BELAJAR APARATUR',
+            'content'        => 'Akses materi silabus berjenjang, modul manajemen kontrak, latihan soal ujian berkala, dan kurikulum standar LKPP secara gratis.',
+            'image_url'      => 'assets/main/images/resources/course-details-img-1.jpg',
+            'action_text'    => 'Eksplorasi Kursus',
+            'action_url'     => 'arena-belajar',
+        ],
+        [
+            'title'          => 'Repositori Dokumen Kerja KAK, HPS & Kumpulan Regulasi PBJ',
+            'badge_category' => 'REGULASI & BUNGA RAMPAI',
+            'content'        => 'Dapatkan template dokumen pengadaan siap pakai (DOCX/XLSX), telaah silsilah aturan Perpres/PerLKPP, serta infografis panduan mitigasi risiko.',
+            'image_url'      => 'assets/main/images/resources/video-one-img-1.jpg',
+            'action_text'    => 'Unduh Dokumen Kerja',
+            'action_url'     => 'bunga-rampai',
+        ],
+    ];
+}
+?>
+
 <!-- =========================================================
      BEGAWIPENGADAAN — POPUP PROMO & PENGUMUMAN KHUSUS HOMEPAGE
      Responsive Image Slider Carousel dengan Tombol Close
@@ -16,7 +62,7 @@
             <div class="home-promo-header">
                 <div class="home-promo-header-badge">
                     <span class="home-promo-pulse"></span>
-                    <span class="home-promo-badge-text">PENGUMUMAN RESMI PBJ PROVINSI LAMPUNG</span>
+                    <span class="home-promo-badge-text"><?= esc(setting('announcement.popup_badge', 'PENGUMUMAN RESMI PBJ PROVINSI LAMPUNG')) ?></span>
                 </div>
             </div>
 
@@ -24,87 +70,54 @@
             <div id="homePromoCarousel" class="carousel slide home-promo-carousel" data-bs-ride="carousel" data-bs-interval="5500" data-bs-pause="hover">
                 <!-- Carousel Indicators -->
                 <div class="carousel-indicators home-promo-indicators">
-                    <button type="button" data-bs-target="#homePromoCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#homePromoCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                    <button type="button" data-bs-target="#homePromoCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                    <?php foreach ($announcements as $index => $item): ?>
+                        <button type="button" data-bs-target="#homePromoCarousel" data-bs-slide-to="<?= $index ?>" class="<?= $index === 0 ? 'active' : '' ?>" <?= $index === 0 ? 'aria-current="true"' : '' ?> aria-label="Slide <?= $index + 1 ?>"></button>
+                    <?php endforeach; ?>
                 </div>
 
                 <!-- Carousel Slides -->
                 <div class="carousel-inner home-promo-slides">
-                    <!-- Slide 1: Agenda & Bimtek -->
-                    <div class="carousel-item active">
-                        <div class="home-promo-slide-media">
-                            <img src="<?= base_url('assets/main/images/event/event-details-top-img-1.jpg') ?>" class="home-promo-img" alt="Bimtek & Uji Kompetensi PBJ Lampung" loading="lazy">
-                            <div class="home-promo-img-gradient"></div>
-                            <span class="home-promo-category-pill bg-amber">AGENDA &amp; BIMTEK 2026</span>
-                        </div>
-                        <div class="home-promo-content">
-                            <h3 class="home-promo-title" id="homePromoTitle">Bimbingan Teknis &amp; Uji Sertifikasi PBJ Level-1 Terpadu</h3>
-                            <p class="home-promo-desc">
-                                Pendaftaran gelombang baru program sertifikasi dan pelatihan kompetensi pengadaan barang/jasa bagi aparatur Pemprov Lampung kini dibuka.
-                            </p>
-                            <div class="home-promo-actions">
-                                <a href="<?= site_url('event') ?>" class="home-promo-btn-primary">
-                                    <i class="fas fa-calendar-check"></i>
-                                    <span>Lihat Jadwal Agenda</span>
-                                </a>
-                                <button type="button" class="home-promo-btn-dismiss home-promo-dismiss-action">Tutup</button>
+                    <?php foreach ($announcements as $index => $item): ?>
+                        <?php
+                        $imgSrc = str_starts_with($item['image_url'] ?? '', 'http') ? $item['image_url'] : base_url($item['image_url'] ?? 'assets/main/images/event/event-details-top-img-1.jpg');
+                        $actionUrl = $item['cta_url'] ?? $item['action_url'] ?? '/';
+                        $actionHref = str_starts_with($actionUrl, 'http') ? $actionUrl : site_url($actionUrl);
+                        $badge = !empty($item['badge_text']) ? $item['badge_text'] : (!empty($item['badge_category']) ? $item['badge_category'] : 'PENGUMUMAN');
+                        $content = $item['message'] ?? $item['content'] ?? '';
+                        $actionText = !empty($item['cta_label']) ? $item['cta_label'] : (!empty($item['action_text']) ? $item['action_text'] : 'Lihat Detail');
+                        ?>
+                        <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                            <div class="home-promo-slide-media">
+                                <img src="<?= esc($imgSrc) ?>" class="home-promo-img" alt="<?= esc($item['title'] ?? '') ?>" loading="lazy">
+                                <div class="home-promo-img-gradient"></div>
+                                <span class="home-promo-category-pill bg-amber"><?= esc($badge) ?></span>
+                            </div>
+                            <div class="home-promo-content">
+                                <h3 class="home-promo-title" <?= $index === 0 ? 'id="homePromoTitle"' : '' ?>><?= esc($item['title'] ?? '') ?></h3>
+                                <p class="home-promo-desc">
+                                    <?= esc($content) ?>
+                                </p>
+                                <div class="home-promo-actions">
+                                    <a href="<?= esc($actionHref) ?>" class="home-promo-btn-primary">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <span><?= esc($actionText) ?></span>
+                                    </a>
+                                    <button type="button" class="home-promo-btn-dismiss home-promo-dismiss-action">Tutup</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Slide 2: Arena Belajar -->
-                    <div class="carousel-item">
-                        <div class="home-promo-slide-media">
-                            <img src="<?= base_url('assets/main/images/resources/course-details-img-1.jpg') ?>" class="home-promo-img" alt="Arena Belajar Mandiri BegawiPBJ" loading="lazy">
-                            <div class="home-promo-img-gradient"></div>
-                            <span class="home-promo-category-pill bg-sky">ARENA BELAJAR APARATUR</span>
-                        </div>
-                        <div class="home-promo-content">
-                            <h3 class="home-promo-title">Tingkatkan Keahlian Mandiri Melalui Silabus &amp; Kursus Terakreditasi</h3>
-                            <p class="home-promo-desc">
-                                Akses materi silabus berjenjang, modul manajemen kontrak, latihan soal ujian berkala, dan kurikulum standar LKPP secara gratis.
-                            </p>
-                            <div class="home-promo-actions">
-                                <a href="<?= site_url('arena-belajar') ?>" class="home-promo-btn-primary">
-                                    <i class="fas fa-graduation-cap"></i>
-                                    <span>Eksplorasi Kursus</span>
-                                </a>
-                                <button type="button" class="home-promo-btn-dismiss home-promo-dismiss-action">Tutup</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Slide 3: Regulasi & Bunga Rampai -->
-                    <div class="carousel-item">
-                        <div class="home-promo-slide-media">
-                            <img src="<?= base_url('assets/main/images/resources/video-one-img-1.jpg') ?>" class="home-promo-img" alt="Pusat Regulasi & Template Dokumen" loading="lazy">
-                            <div class="home-promo-img-gradient"></div>
-                            <span class="home-promo-category-pill bg-emerald">REGULASI &amp; BUNGA RAMPAI</span>
-                        </div>
-                        <div class="home-promo-content">
-                            <h3 class="home-promo-title">Repositori Dokumen Kerja KAK, HPS &amp; Kumpulan Regulasi PBJ</h3>
-                            <p class="home-promo-desc">
-                                Dapatkan template dokumen pengadaan siap pakai (DOCX/XLSX), telaah silsilah aturan Perpres/PerLKPP, serta infografis panduan mitigasi risiko.
-                            </p>
-                            <div class="home-promo-actions">
-                                <a href="<?= site_url('bunga-rampai') ?>" class="home-promo-btn-primary">
-                                    <i class="fas fa-file-download"></i>
-                                    <span>Unduh Dokumen Kerja</span>
-                                </a>
-                                <button type="button" class="home-promo-btn-dismiss home-promo-dismiss-action">Tutup</button>
-                            </div>
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
 
                 <!-- Carousel Controls (Prev & Next) -->
-                <button class="carousel-control-prev home-promo-nav-btn home-promo-prev" type="button" data-bs-target="#homePromoCarousel" data-bs-slide="prev" aria-label="Slide Sebelumnya">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="carousel-control-next home-promo-nav-btn home-promo-next" type="button" data-bs-target="#homePromoCarousel" data-bs-slide="next" aria-label="Slide Selanjutnya">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                <?php if (count($announcements) > 1): ?>
+                    <button class="carousel-control-prev home-promo-nav-btn home-promo-prev" type="button" data-bs-target="#homePromoCarousel" data-bs-slide="prev" aria-label="Slide Sebelumnya">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="carousel-control-next home-promo-nav-btn home-promo-next" type="button" data-bs-target="#homePromoCarousel" data-bs-slide="next" aria-label="Slide Selanjutnya">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                <?php endif; ?>
             </div>
 
             <!-- Popup Footer Controls -->

@@ -13,7 +13,7 @@
         </span>
     </div>
 
-    <h4 class="mb-8 fw-bold text-dark"><?= esc($pageTitle ?? 'Pendaftaran Berhasil Dikirim') ?></h4>
+    <h4 class="mb-8 fw-bold text-primary-light"><?= esc($pageTitle ?? 'Pendaftaran Berhasil Dikirim') ?></h4>
     <p class="text-secondary-light text-sm mb-0"><?= esc($pageDescription ?? 'Permohonan akun Anda telah tersimpan dan masuk antrean verifikasi.') ?></p>
 </div>
 
@@ -25,7 +25,7 @@
             <iconify-icon icon="solar:check-read-linear"></iconify-icon>
         </span>
         <div>
-            <h6 class="text-sm fw-bold mb-2">1. Data Pendaftaran Diterima</h6>
+            <h6 class="text-sm fw-bold mb-2 text-primary-light">1. Data Pendaftaran Diterima</h6>
             <p class="text-secondary-light text-xs mb-0">Informasi identitas, domisili, dan profil spesifik Anda telah tercatat aman di basis data.</p>
         </div>
     </div>
@@ -35,7 +35,7 @@
             2
         </span>
         <div>
-            <h6 class="text-sm fw-bold mb-2">2. Validasi Operator & Admin</h6>
+            <h6 class="text-sm fw-bold mb-2 text-primary-light">2. Validasi Operator & Admin</h6>
             <p class="text-secondary-light text-xs mb-0">Tim verifikator Biro Pengadaan Barang & Jasa akan memverifikasi kesesuaian data identitas Anda.</p>
         </div>
     </div>
@@ -45,7 +45,7 @@
             3
         </span>
         <div>
-            <h6 class="text-sm fw-bold mb-2">3. Akun Aktif & Siap Digunakan</h6>
+            <h6 class="text-sm fw-bold mb-2 text-primary-light">3. Akun Aktif & Siap Digunakan</h6>
             <p class="text-secondary-light text-xs mb-0">Setelah disetujui, akun langsung berstatus aktif dan dapat mengakses layanan pembelajaran serta agenda.</p>
         </div>
     </div>

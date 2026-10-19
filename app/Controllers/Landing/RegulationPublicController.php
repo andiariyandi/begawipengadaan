@@ -55,6 +55,10 @@ class RegulationPublicController extends BaseController
 
         $result = $this->svc->list($page, 9, $categoryId, $keyword, $legalStatus, $year, $stageId, $sort);
 
+        $spotlightMode  = (string) setting('regulation.spotlight_mode', 'all');
+        $spotlightLimit = (int) setting('regulation.spotlight_limit', 6);
+        $sliderItems    = $this->getCarouselSlides($spotlightMode, $spotlightLimit);
+
         return view('landing/pages/regulation', [
             'title'               => 'Pusat Regulasi & Tata Kelola PBJ Lampung | BegawiPengadaan',
             'metaDescription'     => 'Kompilasi regulasi Pengadaan Barang/Jasa Pemerintah terlengkap: Perpres 12/2021, Peraturan LKPP, Peraturan Daerah Lampung, status keberlakuan hukum, riwayat versi, dan unduh dokumen resmi.',
@@ -69,6 +73,9 @@ class RegulationPublicController extends BaseController
             'competencies'        => $this->svc->competencies(),
             'stats'               => $this->svc->stats(),
             'popular'             => $this->svc->popular(4),
+            'sliderItems'         => $sliderItems,
+            'spotlightMode'       => $spotlightMode,
+            'spotlightLimit'      => $spotlightLimit,
             'years'               => $this->svc->distinctYears(),
             'keyword'             => $keyword,
             'selectedCategory'    => $categoryId,
@@ -99,6 +106,10 @@ class RegulationPublicController extends BaseController
 
         $result = $this->svc->list($page, 9, (int) $category['id'], $keyword, $legalStatus, $year, $stageId, $sort);
 
+        $spotlightMode  = (string) setting('regulation.spotlight_mode', 'all');
+        $spotlightLimit = (int) setting('regulation.spotlight_limit', 6);
+        $sliderItems    = $this->getCarouselSlides($spotlightMode, $spotlightLimit);
+
         return view('landing/pages/regulation', [
             'title'               => 'Kategori ' . $category['name'] . ' | Regulasi PBJ Lampung',
             'metaDescription'     => 'Kumpulan dokumen ' . $category['name'] . ' Pengadaan Barang/Jasa Pemerintah Provinsi Lampung dengan filter status hukum dan unduh berkas.',
@@ -113,6 +124,9 @@ class RegulationPublicController extends BaseController
             'competencies'        => $this->svc->competencies(),
             'stats'               => $this->svc->stats(),
             'popular'             => $this->svc->popular(4),
+            'sliderItems'         => $sliderItems,
+            'spotlightMode'       => $spotlightMode,
+            'spotlightLimit'      => $spotlightLimit,
             'years'               => $this->svc->distinctYears(),
             'keyword'             => $keyword,
             'selectedCategory'    => (int) $category['id'],
@@ -296,5 +310,63 @@ class RegulationPublicController extends BaseController
         }
 
         return $candidate;
+    }
+
+    /**
+     * Build carousel slide items for hero slider with cover image resolution and rich metadata.
+     */
+    private function getCarouselSlides(string $mode = 'all', int $limit = 6): array
+    {
+        $rawItems = $this->svc->spotlightRegulations($mode, $limit);
+        $slides   = [];
+
+        $bgSliderCovers = [
+            base_url('assets/main/images/backgrounds/slider-1-1.png'),
+            base_url('assets/main/images/blog/blog-2-1.jpg'),
+            base_url('assets/main/images/blog/blog-2-2.jpg'),
+            base_url('assets/main/images/blog/blog-2-3.jpg'),
+            base_url('assets/main/images/blog/blog-2-4.jpg'),
+        ];
+
+        foreach ($rawItems as $sIdx => $hItem) {
+            if (! empty($hItem['cover_file_id'])) {
+                $coverUrl = site_url('file/' . (int) $hItem['cover_file_id']);
+            } elseif (! empty($hItem['cover_image_path'])) {
+                $coverUrl = base_url($hItem['cover_image_path']);
+            } else {
+                $coverUrl = $bgSliderCovers[$sIdx % count($bgSliderCovers)];
+            }
+
+            $sStatus  = strtolower((string) ($hItem['legal_status'] ?? 'active'));
+            $tagClass = match ($sStatus) {
+                'amended', 'diubah'  => 'evt-badge-flag--coming',
+                'revoked', 'dicabut' => 'evt-badge-flag--closed',
+                default              => 'evt-badge-flag--open',
+            };
+            $statusTag = match ($sStatus) {
+                'amended', 'diubah'  => '<iconify-icon icon="solar:danger-triangle-bold" class="align-middle"></iconify-icon> Diubah',
+                'revoked', 'dicabut' => '<iconify-icon icon="solar:close-circle-bold" class="align-middle"></iconify-icon> Dicabut',
+                default              => '<iconify-icon icon="solar:check-circle-bold" class="align-middle"></iconify-icon> Berlaku Resmi',
+            };
+
+            $slides[] = [
+                'id'          => (int) $hItem['id'],
+                'title'       => ($hItem['document_number'] ?? 'Regulasi PBJ') . ' &mdash; ' . ($hItem['title'] ?? ''),
+                'raw_title'   => $hItem['title'] ?? '',
+                'doc_number'  => $hItem['document_number'] ?? '',
+                'url'         => site_url('regulasi/' . esc($hItem['slug'] ?? '')),
+                'cover_url'   => $coverUrl,
+                'tag_class'   => $tagClass,
+                'status_tag'  => $statusTag,
+                'type_label'  => $hItem['category_name'] ?? 'Regulasi PBJ',
+                'badge_extra' => 'Tahun ' . ($hItem['document_year'] ?? date('Y')),
+                'meta_1'      => '<iconify-icon icon="solar:buildings-bold" class="text-warning align-middle"></iconify-icon> ' . esc($hItem['issuer_name'] ?? 'Pemerintah'),
+                'meta_2'      => '<iconify-icon icon="solar:calendar-date-bold" class="text-info align-middle"></iconify-icon> ' . (! empty($hItem['official_date']) ? date('d M Y', strtotime($hItem['official_date'])) : 'Terbaru'),
+                'meta_3'      => '<iconify-icon icon="solar:download-square-bold" class="text-success align-middle"></iconify-icon> ' . number_format((int) ($hItem['download_count'] ?? 0)) . 'x Unduh',
+                'action_text' => 'Baca Regulasi',
+            ];
+        }
+
+        return $slides;
     }
 }

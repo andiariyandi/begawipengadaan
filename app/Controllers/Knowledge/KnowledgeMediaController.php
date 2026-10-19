@@ -246,12 +246,43 @@ class KnowledgeMediaController extends BaseKnowledgeController
         $fileId = $this->uploadFileAsset($file, 'media_' . $type, 'public');
         if ($fileId !== null) {
             $payload['file_id'] = $fileId;
+            $payload['cover_url'] = site_url('file/' . $fileId);
         }
 
         $thumb = $this->request->getFile('thumbnail');
         $thumbId = $this->uploadFileAsset($thumb, 'media_thumbnail_' . $type, 'public');
         if ($thumbId !== null) {
             $payload['thumbnail_file_id'] = $thumbId;
+        }
+
+        // Handle Instagram-like multi-slides upload (slide_files[])
+        $slideFiles = (array) $this->request->getFileMultiple('slide_files');
+        $uploadedSlides = $this->uploadMultipleFileAssets($slideFiles, 'media_slide', 'public');
+
+        $slidesData = [];
+        // If primary file is uploaded, set it as Slide #1
+        if (! empty($payload['file_id'])) {
+            $slidesData[] = [
+                'file_id'  => $payload['file_id'],
+                'url'      => site_url('file/' . $payload['file_id']),
+                'title'    => $payload['title'] ?? 'Slide 1',
+                'is_video' => in_array($type, ['video_file', 'youtube', 'video'], true),
+            ];
+        }
+
+        // Append the additional uploaded slides
+        foreach ($uploadedSlides as $sItem) {
+            $slidesData[] = $sItem;
+        }
+
+        // If no primary file was given but slide files were uploaded, use slide 1 as primary
+        if (empty($payload['file_id']) && ! empty($uploadedSlides)) {
+            $payload['file_id'] = $uploadedSlides[0]['file_id'];
+            $payload['cover_url'] = $uploadedSlides[0]['url'];
+        }
+
+        if (! empty($slidesData)) {
+            $payload['slides_data'] = json_encode($slidesData, JSON_UNESCAPED_SLASHES);
         }
 
         $model->insert($payload);
@@ -369,12 +400,45 @@ class KnowledgeMediaController extends BaseKnowledgeController
         $fileId = $this->uploadFileAsset($file, 'media_' . $payload['type'], 'public');
         if ($fileId !== null) {
             $payload['file_id'] = $fileId;
+            $payload['cover_url'] = site_url('file/' . $fileId);
         }
 
         $thumb = $this->request->getFile('thumbnail');
         $thumbId = $this->uploadFileAsset($thumb, 'media_thumbnail_' . $payload['type'], 'public');
         if ($thumbId !== null) {
             $payload['thumbnail_file_id'] = $thumbId;
+        }
+
+        // Handle existing slides preservation
+        $existingSlidesPost = $this->request->getPost('existing_slides');
+        $preservedSlides = [];
+        if (! empty($existingSlidesPost)) {
+            if (is_string($existingSlidesPost)) {
+                $decoded = json_decode($existingSlidesPost, true);
+                if (is_array($decoded)) {
+                    $preservedSlides = $decoded;
+                }
+            } elseif (is_array($existingSlidesPost)) {
+                $preservedSlides = $existingSlidesPost;
+            }
+        } elseif (! empty($row['slides_data'])) {
+            $decoded = json_decode((string) $row['slides_data'], true);
+            if (is_array($decoded)) {
+                $preservedSlides = $decoded;
+            }
+        }
+
+        // Handle newly uploaded slide files (slide_files[])
+        $slideFiles = (array) $this->request->getFileMultiple('slide_files');
+        $uploadedSlides = $this->uploadMultipleFileAssets($slideFiles, 'media_slide', 'public');
+
+        $finalSlides = array_merge($preservedSlides, $uploadedSlides);
+        if (! empty($finalSlides)) {
+            $payload['slides_data'] = json_encode($finalSlides, JSON_UNESCAPED_SLASHES);
+            if (empty($payload['file_id']) && empty($row['file_id']) && ! empty($finalSlides[0]['file_id'])) {
+                $payload['file_id'] = (int) $finalSlides[0]['file_id'];
+                $payload['cover_url'] = $finalSlides[0]['url'] ?? site_url('file/' . (int) $finalSlides[0]['file_id']);
+            }
         }
 
         $model->update((int) $id, $payload);

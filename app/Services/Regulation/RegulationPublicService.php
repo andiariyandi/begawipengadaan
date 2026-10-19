@@ -44,6 +44,7 @@ class RegulationPublicService
             ->select('r.id, r.title, r.slug, r.document_number, r.document_year,
                       r.issuer_name, r.official_date, r.effective_date, r.summary,
                       r.official_source_url, r.legal_status, r.workflow_status, r.visibility,
+                      r.cover_file_id, r.cover_image_path, r.is_featured, r.carousel_enabled, r.carousel_order,
                       r.published_at, r.published_by, r.created_at,
                       rc.id AS category_id, rc.name AS category_name, rc.slug AS category_slug,
                       v.version_number AS current_version_number, v.file_id AS current_file_id,
@@ -217,16 +218,66 @@ class RegulationPublicService
     {
         return db_connect()->table('regulations r')
             ->select('r.id, r.slug, r.title, r.document_number, r.document_year, r.legal_status,
-                      rc.name AS category_name, COUNT(rd.id) AS download_count')
-            ->join('regulation_downloads rd', 'rd.regulation_id = r.id', 'left')
+                      r.issuer_name, r.official_date, r.effective_date, r.summary,
+                      r.cover_file_id, r.cover_image_path, r.is_featured, r.carousel_enabled, r.carousel_order,
+                      rc.name AS category_name,
+                      (SELECT COUNT(rd.id) FROM regulation_downloads rd WHERE rd.regulation_id = r.id) AS download_count')
             ->join('regulation_categories rc', 'rc.id = r.category_id', 'left')
             ->where('r.workflow_status', 'published')
             ->where('r.visibility', 'public')
             ->where('r.deleted_at', null)
-            ->groupBy('r.id')
             ->orderBy('download_count', 'DESC')
+            ->orderBy('r.published_at', 'DESC')
             ->limit($limit)
             ->get()->getResultArray();
+    }
+
+    /**
+     * Fetch regulations for the landing page hero headline carousel based on spotlight mode & limit.
+     */
+    public function spotlightRegulations(string $mode = 'all', int $limit = 6): array
+    {
+        $limit = max(1, min(15, $limit));
+        $db = db_connect();
+
+        $builder = $db->table('regulations r')
+            ->select('r.id, r.slug, r.title, r.document_number, r.document_year, r.legal_status,
+                      r.issuer_name, r.official_date, r.effective_date, r.summary,
+                      r.cover_file_id, r.cover_image_path, r.is_featured, r.carousel_enabled, r.carousel_order,
+                      r.published_at,
+                      rc.name AS category_name, rc.slug AS category_slug,
+                      (SELECT COUNT(rd.id) FROM regulation_downloads rd WHERE rd.regulation_id = r.id) AS download_count')
+            ->join('regulation_categories rc', 'rc.id = r.category_id', 'left')
+            ->where('r.workflow_status', 'published')
+            ->where('r.visibility', 'public')
+            ->where('r.deleted_at', null);
+
+        if ($mode === 'featured') {
+            $builder->groupStart()
+                ->where('r.carousel_enabled', 1)
+                ->orWhere('r.is_featured', 1)
+                ->groupEnd();
+        } elseif ($mode !== 'all' && $mode !== '') {
+            $builder->where('rc.slug', $mode);
+        }
+
+        // Prioritize carousel_enabled, is_featured, carousel_order, then download count & published date
+        $builder->orderBy('r.carousel_enabled', 'DESC')
+            ->orderBy('r.is_featured', 'DESC')
+            ->orderBy('CASE WHEN r.carousel_order IS NULL THEN 1 ELSE 0 END', 'ASC', false)
+            ->orderBy('r.carousel_order', 'ASC')
+            ->orderBy('download_count', 'DESC')
+            ->orderBy('r.published_at', 'DESC')
+            ->limit($limit);
+
+        $results = $builder->get()->getResultArray();
+
+        // Graceful fallback to all regulations if specific filter mode returned no results
+        if (empty($results) && $mode !== 'all') {
+            return $this->spotlightRegulations('all', $limit);
+        }
+
+        return $results;
     }
 
     /**

@@ -75,6 +75,8 @@ class DocumentTemplateController extends BaseKnowledgeController
             'document_version'  => trim((string) $this->request->getPost('document_version')) ?: 'v1.0',
             'workflow_status'   => $status,
             'visibility'        => 'public',
+            'featured'          => $this->request->getPost('featured') ? 1 : 0,
+            'carousel_enabled'  => $this->request->getPost('carousel_enabled') ? 1 : 0,
             'author_id'         => $this->currentUserId(),
             'created_at'        => $now,
             'updated_at'        => $now,
@@ -83,10 +85,23 @@ class DocumentTemplateController extends BaseKnowledgeController
             $payload['published_at'] = $now;
             $payload['published_by'] = $this->currentUserId();
         }
+
+        // 1. Cover Image Upload
+        $coverFile = $this->request->getFile('cover');
+        $coverId = $this->uploadFileAsset($coverFile, 'template_cover', 'public');
+        if ($coverId !== null) {
+            $payload['cover_file_id'] = $coverId;
+            $payload['cover_url'] = site_url('file/' . $coverId);
+        }
+
+        // 2. Downloadable Document File
         $file = $this->request->getFile('template_file');
         $fileId = $this->uploadFileAsset($file, 'template_file', 'public');
         if ($fileId !== null) {
-            $payload['cover_file_id'] = $fileId;
+            $payload['attachment_file_id'] = $fileId;
+            if (empty($payload['cover_file_id'])) {
+                $payload['cover_file_id'] = $fileId;
+            }
         }
         $model->insert($payload);
         $id = (int) $model->getInsertID();
@@ -163,16 +178,31 @@ class DocumentTemplateController extends BaseKnowledgeController
             'document_category' => trim((string) $this->request->getPost('document_category')) ?: 'kak',
             'document_version'  => trim((string) $this->request->getPost('document_version')) ?: 'v1.0',
             'workflow_status'   => $status,
+            'featured'          => $this->request->getPost('featured') ? 1 : 0,
+            'carousel_enabled'  => $this->request->getPost('carousel_enabled') ? 1 : 0,
             'updated_at'        => $now,
         ];
         if ($status === 'published' && empty($row['published_at'])) {
             $payload['published_at'] = $now;
             $payload['published_by'] = $this->currentUserId();
         }
+
+        // 1. Cover Image Upload
+        $coverFile = $this->request->getFile('cover');
+        $coverId = $this->uploadFileAsset($coverFile, 'template_cover', 'public');
+        if ($coverId !== null) {
+            $payload['cover_file_id'] = $coverId;
+            $payload['cover_url'] = site_url('file/' . $coverId);
+        }
+
+        // 2. Downloadable Document File
         $file = $this->request->getFile('template_file');
         $fileId = $this->uploadFileAsset($file, 'template_file', 'public');
         if ($fileId !== null) {
-            $payload['cover_file_id'] = $fileId;
+            $payload['attachment_file_id'] = $fileId;
+            if (empty($payload['cover_file_id']) && empty($row['cover_file_id'])) {
+                $payload['cover_file_id'] = $fileId;
+            }
         }
         $model->update((int) $id, $payload);
         $cats = array_values(array_filter(array_map('intval', (array) $this->request->getPost('categories')), static fn($v) => $v > 0));

@@ -46,9 +46,14 @@ $catalogUrlMap = [
 $catalogTitle = $catalogTitleMap[$catalogType] ?? 'Artikel PBJ';
 $catalogUrl   = $catalogUrlMap[$catalogType] ?? site_url('bunga-rampai/artikel');
 
-$coverImg = ! empty($item['cover_file_id'])
-    ? site_url('file/' . (int) $item['cover_file_id'])
-    : null;
+$isCoverImg = false;
+if (! empty($item['file_original_name'])) {
+    $cExt = strtolower(pathinfo($item['file_original_name'], PATHINFO_EXTENSION));
+    $isCoverImg = in_array($cExt, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'], true);
+}
+$coverImg = ! empty($item['cover_url'])
+    ? $item['cover_url']
+    : (! empty($item['cover_file_id']) && $isCoverImg ? site_url('file/' . (int) $item['cover_file_id']) : null);
 
 $readingTime = $item['reading_time'] ?? 5;
 

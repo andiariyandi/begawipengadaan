@@ -40,6 +40,32 @@
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Maksimum Percobaan Quiz / Evaluasi</label>
                     <input type="number" name="max_quiz_attempts" class="form-control radius-8" value="<?= esc($settings['max_quiz_attempts'] ?? '3') ?>" required>
                 </div>
+                <div class="col-12 mt-12">
+                    <h6 class="text-md fw-semibold text-primary-600 border-bottom pb-8 mb-16 d-flex align-items-center gap-2">
+                        <iconify-icon icon="solar:slider-vertical-bold" class="text-lg"></iconify-icon>
+                        <span>Konfigurasi Slider Sorotan Arena Belajar (Landing Page)</span>
+                    </h6>
+                    <p class="text-secondary-light text-xs mb-16">Tentukan jenis konten yang diutamakan pada slider sorotan hero di landing page <code>/arena-belajar</code>. Pengunjung juga dapat berpindah kategori secara interaktif.</p>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="spotlight_mode">Mode Tampilan Sorotan Default</label>
+                    <?php $spMode = $settings['spotlight_mode'] ?? 'all'; ?>
+                    <select id="spotlight_mode" name="spotlight_mode" class="form-select radius-8">
+                        <option value="all" <?= $spMode === 'all' ? 'selected' : '' ?>>Kombinasi Semua (Program, Course, dan Kelas)</option>
+                        <option value="program" <?= $spMode === 'program' ? 'selected' : '' ?>>Hanya Program Kurikulum</option>
+                        <option value="course" <?= $spMode === 'course' ? 'selected' : '' ?>>Hanya Course PBJ</option>
+                        <option value="class" <?= $spMode === 'class' ? 'selected' : '' ?>>Hanya Batch Kelas Siap Daftar</option>
+                    </select>
+                    <small class="text-secondary-light text-xs">Pilihan ini menentukan item yang dimuat ke dalam headline carousel.</small>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="spotlight_limit">Batas Maksimal Item Sorotan</label>
+                    <input id="spotlight_limit" type="number" min="3" max="15" name="spotlight_limit" class="form-control radius-8" value="<?= esc($settings['spotlight_limit'] ?? '6') ?>" required>
+                    <small class="text-secondary-light text-xs">Jumlah slide maksimal yang ditampilkan dalam headline carousel (3 - 15 item).</small>
+                </div>
+
                 <div class="col-12">
                     <div class="form-switch switch-primary d-flex align-items-center gap-12">
                         <input type="hidden" name="auto_approval" value="0">

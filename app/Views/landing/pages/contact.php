@@ -12,13 +12,13 @@
         <div class="row justify-content-center">
             <div class="col-xl-10">
                 <div class="contact-badge-pill">
-                    <i class="fas fa-headset"></i> Layanan Bantuan &amp; Helpdesk Pengadaan Barang/Jasa
+                    <i class="fas fa-headset"></i> <?= esc($pageBanner['badge_label'] ?? 'Layanan Bantuan & Helpdesk Pengadaan Barang/Jasa') ?>
                 </div>
                 <h1 class="contact-hero__title">
-                    Hubungi Biro PBJ &amp; <span>Helpdesk LPSE</span>
+                    <?= !empty($pageBanner['title']) ? $pageBanner['title'] : 'Hubungi Biro PBJ & <span>Helpdesk LPSE</span>' ?>
                 </h1>
                 <p class="contact-hero__subtitle">
-                    Pemerintah Provinsi Lampung siap memberikan layanan konsultasi teknis, fasilitasi SPSE, pendampingan regulasi, dan informasi pelatihan kompetensi pengadaan barang/jasa.
+                    <?= esc($pageBanner['subtitle'] ?? 'Pemerintah Provinsi Lampung siap memberikan layanan konsultasi teknis, fasilitasi SPSE, pendampingan regulasi, dan informasi pelatihan kompetensi pengadaan barang/jasa.') ?>
                 </p>
             </div>
         </div>

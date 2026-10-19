@@ -1035,11 +1035,19 @@
       });
       self.find("button").on("click", function (e) {
         e.preventDefault();
+        e.stopPropagation();
         let self = $(this);
         self.toggleClass("expanded");
         self.parent().toggleClass("expanded");
         self.parent().parent().children("ul").slideToggle();
       });
+
+      if (self.attr("href") === "#" || !self.attr("href")) {
+        self.on("click", function (e) {
+          e.preventDefault();
+          $(this).find("button").trigger("click");
+        });
+      }
     });
   }
 

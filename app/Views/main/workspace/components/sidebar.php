@@ -31,6 +31,9 @@ $isCurrent = static function (?string $url) use ($currentPath): bool {
         return false;
     }
     $path = trim(parse_url($url, PHP_URL_PATH) ?? '', '/');
+    if ($path === '' || $path === 'workspace') {
+        return $currentPath === $path;
+    }
     return $currentPath === $path || str_starts_with($currentPath, $path . '/');
 };
 
@@ -86,8 +89,6 @@ $menuItems = match ($primaryRole) {
         ['Assessment', route_to('workspace.trainer.all-quizzes'), 'fas fa-clipboard-check'],
         ['Peserta', route_to('workspace.trainer.all-participants'), 'fas fa-users'],
         ['Progress Peserta', route_to('workspace.trainer.all-progress'), 'fas fa-chart-line'],
-        ['Aktivitas', route_to('workspace.activity'), 'fas fa-history'],
-        ['Profil', route_to('workspace.profile.index'), 'fas fa-user-circle'],
     ],
     'operator' => [
         ['Beranda', route_to('workspace.operator.home'), 'fas fa-home'],
@@ -99,8 +100,7 @@ $menuItems = match ($primaryRole) {
         ['Monitoring Pembelajaran', route_to('workspace.operator.learning-monitoring'), 'fas fa-chart-line'],
         ['Verifikasi Sertifikat', route_to('workspace.operator.certificates'), 'fas fa-award'],
         ['Evaluasi & Override', route_to('workspace.operator.evaluations'), 'fas fa-clipboard-check'],
-        ['Aktivitas', route_to('workspace.operator.activity-monitoring'), 'fas fa-history'],
-        ['Profil', route_to('workspace.profile.index'), 'fas fa-user-circle'],
+        ['Aktivitas Sistem', route_to('workspace.operator.activity-monitoring'), 'fas fa-history'],
     ],
     default => [ // participant
         ['Beranda', route_to('workspace.home'), 'fas fa-home'],
@@ -126,13 +126,13 @@ $globalItems = [
 ?>
 <aside class="col-lg-3 col-xl-3 workspace-sidebar-wrap">
     <div class="workspace-sidebar">
-        <div class="workspace-sidebar__identity">
+        <a href="<?= esc(route_to('workspace.profile.index')) ?>" class="workspace-sidebar__identity text-decoration-none" title="Lihat dan kelola profil">
             <span class="avatar"><?= esc($initials ?: 'U') ?></span>
             <div>
                 <strong><?= esc($displayName) ?></strong>
                 <span><?= esc($roleLabel) ?></span>
             </div>
-        </div>
+        </a>
 
         <!-- Mobile Toggle Button (Visible only on screens < lg) -->
         <button class="btn btn-outline-primary btn-sm w-100 d-lg-none mt-3 mb-2 rounded-pill d-flex align-items-center justify-content-between px-3" 

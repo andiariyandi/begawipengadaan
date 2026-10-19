@@ -6,7 +6,6 @@ use App\Controllers\BaseController;
 use App\Models\UserModel;
 use App\Models\WilayahModel;
 use App\Services\AuditService;
-use Config\ProfileOptions;
 
 /**
  * Workspace Profile controller.
@@ -42,7 +41,6 @@ class ProfileController extends BaseController
                 ? ($db->table($detailTables[$profileType])->where('user_id', $user['id'])->get()->getRowArray() ?: [])
                 : [],
             'profileType' => $profileType,
-            'options'     => new ProfileOptions(),
             'provinces'   => (new WilayahModel())->provinces(),
         ]);
     }
@@ -93,22 +91,22 @@ class ProfileController extends BaseController
         $detailTables = $this->detailTables();
 
         $rules = [
-            'username' => 'required|min_length[3]|max_length[100]|is_unique[users.username,id,' . $userId . ']',
-            'email'    => 'required|valid_email|is_unique[users.email,id,' . $userId . ']',
-            'full_name' => 'required|max_length[150]',
-            'phone' => 'required|max_length[25]',
-            'province_code' => 'required|regex_match[/^\d{2}$/]|is_not_unique[wilayah.kode]',
-            'regency_code'  => 'required|regex_match[/^\d{2}\.\d{2}$/]|is_not_unique[wilayah.kode]',
-            'district_code' => 'required|regex_match[/^\d{2}\.\d{2}\.\d{2}$/]|is_not_unique[wilayah.kode]',
+            'username'      => 'required|min_length[3]|max_length[100]|is_unique[users.username,id,' . $userId . ']',
+            'email'         => 'required|valid_email|is_unique[users.email,id,' . $userId . ']',
+            'full_name'     => 'required|max_length[150]',
+            'phone'         => 'permit_empty|max_length[25]',
+            'province_code' => 'permit_empty|regex_match[/^\d{2}$/]|is_not_unique[wilayah.kode]',
+            'regency_code'  => 'permit_empty|regex_match[/^\d{2}\.\d{2}$/]|is_not_unique[wilayah.kode]',
+            'district_code' => 'permit_empty|regex_match[/^\d{2}\.\d{2}\.\d{2}$/]|is_not_unique[wilayah.kode]',
             'village_code'  => 'permit_empty|regex_match[/^\d{2}\.\d{2}\.\d{2}\.\d{4}$/]|is_not_unique[wilayah.kode]',
         ];
 
         if ($profileType === 'asn') {
-            $rules['identity_number'] = 'required|max_length[25]|is_unique[user_asn_profiles.identity_number,user_id,' . $userId . ']';
+            $rules['identity_number'] = 'permit_empty|max_length[25]|is_unique[asn_profiles.identity_number,user_id,' . $userId . ']';
         } elseif ($profileType === 'provider') {
-            $rules['nib'] = 'required|max_length[30]|is_unique[user_provider_profiles.nib,user_id,' . $userId . ']';
+            $rules['nib'] = 'permit_empty|max_length[30]|is_unique[provider_profiles.nib,user_id,' . $userId . ']';
         } elseif ($profileType === 'public') {
-            $rules['nik'] = 'required|max_length[32]|is_unique[user_public_profiles.nik,user_id,' . $userId . ']';
+            $rules['nik'] = 'permit_empty|max_length[32]|is_unique[public_profiles.nik,user_id,' . $userId . ']';
         }
 
         if (! $this->validate($rules)) {
@@ -116,14 +114,21 @@ class ProfileController extends BaseController
                 ->with('error', 'Data profil tidak valid atau sudah digunakan pengguna lain.');
         }
 
-        if (! (new WilayahModel())->isValidHierarchy(
-            (string) $this->request->getPost('province_code'),
-            (string) $this->request->getPost('regency_code'),
-            (string) $this->request->getPost('district_code'),
-            (string) $this->request->getPost('village_code')
-        )) {
-            return redirect()->back()->withInput()
-                ->with('error', 'Kombinasi wilayah domisili tidak valid.');
+        $provinceCode = trim((string) $this->request->getPost('province_code'));
+        $regencyCode  = trim((string) $this->request->getPost('regency_code'));
+        $districtCode = trim((string) $this->request->getPost('district_code'));
+        $villageCode  = trim((string) $this->request->getPost('village_code')) ?: null;
+
+        if ($provinceCode !== '' && $regencyCode !== '' && $districtCode !== '') {
+            if (! (new WilayahModel())->isValidHierarchy(
+                $provinceCode,
+                $regencyCode,
+                $districtCode,
+                $villageCode
+            )) {
+                return redirect()->back()->withInput()
+                    ->with('error', 'Kombinasi wilayah domisili tidak valid.');
+            }
         }
 
         $now = date('Y-m-d H:i:s');
@@ -140,17 +145,33 @@ class ProfileController extends BaseController
                 ->with('error', 'Profil gagal diperbarui.');
         }
 
+        $addressVal = trim((string) ($this->request->getPost('address_line') ?? $this->request->getPost('address') ?? ''));
+
         $profileData = [
-            'province_code' => trim((string) $this->request->getPost('province_code')),
-            'regency_code'  => trim((string) $this->request->getPost('regency_code')),
-            'district_code' => trim((string) $this->request->getPost('district_code')),
-            'village_code'  => trim((string) $this->request->getPost('village_code')) ?: null,
-            'updated_at'    => $now,
+            'updated_at'   => $now,
+            'address_line' => $addressVal,
         ];
-        if ($this->request->getPost('address_line') !== null) {
-            $profileData['address_line'] = trim((string) $this->request->getPost('address_line'));
+        if ($provinceCode !== '') {
+            $profileData['province_code'] = $provinceCode;
         }
-        $db->table('user_profiles')->where('user_id', $userId)->update($profileData);
+        if ($regencyCode !== '') {
+            $profileData['regency_code'] = $regencyCode;
+        }
+        if ($districtCode !== '') {
+            $profileData['district_code'] = $districtCode;
+        }
+        if ($villageCode !== null) {
+            $profileData['village_code'] = $villageCode;
+        }
+
+        $existingProfile = $db->table('user_profiles')->where('user_id', $userId)->get()->getRowArray();
+        if ($existingProfile) {
+            $db->table('user_profiles')->where('user_id', $userId)->update($profileData);
+        } else {
+            $profileData['user_id']    = $userId;
+            $profileData['created_at'] = $now;
+            $db->table('user_profiles')->insert($profileData);
+        }
 
         if (isset($detailTables[$profileType])) {
             $table = $detailTables[$profileType];
@@ -192,23 +213,31 @@ class ProfileController extends BaseController
                 ->with('error', 'Data pengguna tidak ditemukan.');
         }
 
+        $currPassword    = (string) $this->request->getPost('current_password');
+        $newPassword     = (string) ($this->request->getPost('password') ?: $this->request->getPost('new_password'));
+        $confirmPassword = (string) ($this->request->getPost('password_confirmation') ?: $this->request->getPost('confirm_password'));
+
         $rules = [
-            'current_password'      => 'required',
-            'password'              => 'required|min_length[12]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/\d/]|regex_match[/[^\w\s]/]',
-            'password_confirmation' => 'required|matches[password]',
+            'current_password' => 'required',
+            'new_password'     => 'required|min_length[8]',
+            'confirm_password' => 'required|matches[new_password]',
         ];
 
-        if (! $this->validate($rules)) {
+        if (! $this->validateData([
+            'current_password' => $currPassword,
+            'new_password'     => $newPassword,
+            'confirm_password' => $confirmPassword,
+        ], $rules)) {
             return redirect()->back()
-                ->with('error', 'Password baru minimal 12 karakter dengan huruf besar, kecil, angka, dan simbol. Konfirmasi harus sama.');
+                ->with('error', 'Password baru minimal 8 karakter dan konfirmasi password harus sesuai.');
         }
 
-        if (! password_verify((string) $this->request->getPost('current_password'), (string) ($user['password_hash'] ?? ''))) {
+        if (! password_verify($currPassword, (string) ($user['password_hash'] ?? ''))) {
             return redirect()->back()->with('error', 'Password saat ini tidak sesuai.');
         }
 
         if (! $model->update($userId, [
-            'password_hash' => password_hash((string) $this->request->getPost('password'), PASSWORD_DEFAULT),
+            'password_hash' => password_hash($newPassword, PASSWORD_DEFAULT),
         ])) {
             return redirect()->back()->with('error', 'Password gagal diperbarui.');
         }

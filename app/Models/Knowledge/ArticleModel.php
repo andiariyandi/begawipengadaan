@@ -15,7 +15,7 @@ class ArticleModel extends Model
         'type', 'title', 'slug', 'summary', 'content',
         'workflow_status', 'visibility',
         'featured', 'carousel_enabled', 'carousel_order',
-        'cover_file_id',
+        'cover_file_id', 'cover_url', 'attachment_file_id',
         'reading_time', 'source_url', 'organization_unit', 'procurement_stage',
         'case_severity', 'resolution_summary', 'legal_basis', 'sort_order',
         'document_category', 'document_version',

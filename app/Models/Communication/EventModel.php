@@ -15,6 +15,7 @@ class EventModel extends Model
     protected $allowedFields = [
         'title', 'slug', 'type', 'mode', 'status', 'visibility',
         'summary', 'description', 'cover_file_id',
+        'is_featured', 'carousel_enabled', 'carousel_order',
         'start_at', 'end_at', 'location', 'meeting_url',
         'registration_open_at', 'registration_close_at',
         'capacity', 'waitlist_enabled', 'certificate_enabled',

@@ -13,23 +13,65 @@ class AuditService
         $this->auditLogModel = new AuditLogModel();
     }
 
-    public function log(?int $userId, string $action, ?string $module = null, ?string $targetType = null, ?int $targetId = null, array $metadata = []): void
-    {
-        $metadata = $this->redact($metadata);
+    public function log(
+        ?int $userId,
+        string $action,
+        ?string $module = null,
+        ?string $targetType = null,
+        $targetId = null,
+        $metadata = []
+    ): void {
+        $beforeSnapshot = null;
+        $afterSnapshot  = null;
+
+        if (is_array($targetId)) {
+            // Alternative signature: ($userId, $action, $resourceType, $resourceId, $beforeSnapshot, $afterSnapshot)
+            $resourceType   = $module ?: $targetType;
+            $resourceId     = is_numeric($targetType) ? (int) $targetType : null;
+            $beforeSnapshot = json_encode($this->redact($targetId), JSON_UNESCAPED_UNICODE);
+            $afterSnapshot  = is_array($metadata) ? json_encode($this->redact($metadata), JSON_UNESCAPED_UNICODE) : null;
+            $reasonData     = is_array($metadata) ? $metadata : [];
+        } else {
+            // Canonical signature: ($userId, $action, $module, $targetType, $targetId, $metadata)
+            if (is_numeric($targetType) && $targetId === null) {
+                // Handles calls like: log($actorId, 'created', 'team_members', (string) $insertId, null, $data)
+                $resourceType = $module;
+                $resourceId   = (int) $targetType;
+            } else {
+                $resourceType = $targetType ?: $module;
+                $resourceId   = is_numeric($targetId) ? (int) $targetId : null;
+            }
+
+            $metaArray = is_array($metadata) ? $metadata : [];
+            if (isset($metaArray['before']) && is_array($metaArray['before'])) {
+                $beforeSnapshot = json_encode($this->redact($metaArray['before']), JSON_UNESCAPED_UNICODE);
+            }
+            if (isset($metaArray['after']) && is_array($metaArray['after'])) {
+                $afterSnapshot = json_encode($this->redact($metaArray['after']), JSON_UNESCAPED_UNICODE);
+            }
+            $reasonData = $metaArray;
+        }
+
+        $reason = ! empty($reasonData) ? json_encode($this->redact($reasonData), JSON_UNESCAPED_UNICODE) : null;
 
         $request = service('request');
-
-        $actorId = ($userId !== null && $userId > 0) ? $userId : null;
+        $actorId = null;
+        if ($userId !== null && $userId > 0) {
+            $userExists = \Config\Database::connect()->table('users')->where('id', $userId)->countAllResults() > 0;
+            if ($userExists) {
+                $actorId = $userId;
+            }
+        }
 
         $this->auditLogModel->insert([
             'actor_id'          => $actorId,
             'action'            => $action,
-            'resource_type'     => $targetType,
-            'resource_id'       => $targetId,
+            'resource_type'     => $resourceType,
+            'resource_id'       => $resourceId,
             'result'            => 'success',
-            'before_snapshot'   => null,
-            'after_snapshot'    => null,
-            'reason'            => $metadata ? json_encode($metadata, JSON_THROW_ON_ERROR) : null,
+            'before_snapshot'   => $beforeSnapshot,
+            'after_snapshot'    => $afterSnapshot,
+            'reason'            => $reason,
             'ip_hash'           => hash('sha256', $this->safeIp($request)),
             'user_agent_hash'   => hash('sha256', $this->safeUserAgent($request)),
             'request_id'        => null,

@@ -1200,6 +1200,45 @@ class WorkspaceSmoke extends BaseCommand
                 $failed++;
             }
 
+            // =========================================================================
+            // Profile Page & Active Navigation Verification
+            // =========================================================================
+            CLI::newLine();
+            CLI::write("Testing Workspace Profile View & Controller...", "yellow");
+
+            $session->set([
+                'isLoggedIn' => true,
+                'user_id'    => 31,
+                'name'       => 'Participant Schema V4',
+                'username'   => 'participant_v4',
+                'email'      => 'participant.v4@example.com',
+                'roles'      => ['participant'],
+            ]);
+
+            $profileController = new \App\Controllers\Workspace\ProfileController();
+            $profileController->initController(
+                service('request'),
+                service('response'),
+                service('logger')
+            );
+
+            $profileView = $profileController->index();
+            $profileHtml = is_string($profileView) ? $profileView : (string) ($profileView->getBody() ?? '');
+
+            $hasProfileHeader   = str_contains($profileHtml, 'Manajemen Profil');
+            $hasAccountSection  = str_contains($profileHtml, 'Data Identitas Akun');
+            $hasPasswordSection = str_contains($profileHtml, 'Ubah Kata Sandi');
+            $hasAddressSection  = str_contains($profileHtml, 'Alamat & Wilayah');
+            $hasStatusSection   = str_contains($profileHtml, 'Status Akun');
+
+            if ($hasProfileHeader && $hasAccountSection && $hasPasswordSection && $hasAddressSection && $hasStatusSection) {
+                CLI::write(" [PASS] ProfileController index(): Profile page rendered with identity, address, and password forms", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] ProfileController index() rendered output missing critical profile sections");
+                $failed++;
+            }
+
         } catch (\Throwable $e) {
             CLI::error(" [ERR] Canonical Homepages Verification error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
             $failed++;

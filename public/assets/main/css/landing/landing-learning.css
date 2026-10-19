@@ -1357,8 +1357,37 @@ section.py-5[style*="min-height: 60vh"] .progress {
         right: 6px !important;
     }
 
-    .evt-headline__indicators {
-        display: none !important;
+    .evt-headline__indicators,
+    .carousel-indicators.evt-headline__indicators {
+        display: flex !important;
+        position: absolute !important;
+        bottom: 10px !important;
+        right: 14px !important;
+        left: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        z-index: 10 !important;
+        gap: 5px !important;
+    }
+
+    .evt-headline__indicators button,
+    .carousel-indicators.evt-headline__indicators button {
+        width: 16px !important;
+        height: 5px !important;
+        border-radius: 999px !important;
+        background: rgba(255, 255, 255, 0.5) !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transition: all 0.25s ease !important;
+        opacity: 0.8 !important;
+    }
+
+    .evt-headline__indicators button.active,
+    .carousel-indicators.evt-headline__indicators button.active {
+        width: 26px !important;
+        background: #fbbf24 !important;
+        opacity: 1 !important;
     }
 
     /* 6. Showcase Section Headers */
@@ -1780,5 +1809,69 @@ section.py-5[style*="min-height: 60vh"] .progress {
         font-size: 11.5px !important;
     }
 }
+
+/* ==========================================================================
+   ARENA BELAJAR COURSE BADGE
+   ========================================================================== */
+.evt-badge-flag--course {
+    background: #6366f1;
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   ARENA HEADLINE CAROUSEL INDICATORS (DOTS - DESKTOP & GLOBAL)
+   ========================================================================== */
+.evt-headline__indicators,
+.carousel-indicators.evt-headline__indicators {
+    position: absolute !important;
+    bottom: 16px !important;
+    right: 28px !important;
+    left: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    z-index: 25 !important;
+    list-style: none !important;
+    pointer-events: auto !important;
+}
+
+.evt-headline__indicators button,
+.carousel-indicators.evt-headline__indicators button {
+    box-sizing: border-box !important;
+    flex: 0 0 auto !important;
+    width: 22px !important;
+    height: 7px !important;
+    border-radius: 999px !important;
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    background: rgba(255, 255, 255, 0.55) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0.8 !important;
+    text-indent: 0 !important;
+}
+
+.evt-headline__indicators button:hover,
+.carousel-indicators.evt-headline__indicators button:hover {
+    background: rgba(255, 255, 255, 0.9) !important;
+    opacity: 1 !important;
+    transform: scaleY(1.2) !important;
+}
+
+.evt-headline__indicators button.active,
+.carousel-indicators.evt-headline__indicators button.active {
+    width: 38px !important;
+    background: #fbbf24 !important;
+    opacity: 1 !important;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.9), 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+}
+
 
 

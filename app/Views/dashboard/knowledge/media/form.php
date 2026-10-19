@@ -39,6 +39,13 @@ $action = $isEdit ? route_to('dashboard.knowledge.media-gallery.edit', (string) 
 
 $fileImgUrl = ! empty($row['file_id']) ? base_url('file/' . (int) $row['file_id']) : null;
 $thumbImgUrl = ! empty($row['thumbnail_file_id']) ? base_url('file/' . (int) $row['thumbnail_file_id']) : null;
+$existingSlides = [];
+if (! empty($row['slides_data'])) {
+    $decoded = json_decode((string) $row['slides_data'], true);
+    if (is_array($decoded)) {
+        $existingSlides = $decoded;
+    }
+}
 ?>
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
@@ -163,6 +170,68 @@ $thumbImgUrl = ! empty($row['thumbnail_file_id']) ? base_url('file/' . (int) $ro
                                 <input type="number" name="shares_count" min="0" class="form-control radius-8" value="<?= (int) old('shares_count', $row['shares_count'] ?? 12) ?>">
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Galeri Multi-Slide Postingan (Instagram Carousel Slider) -->
+            <div class="card radius-12 border mb-24 bg-base mt-24">
+                <div class="card-header border-bottom py-16 px-24 bg-base d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <iconify-icon icon="solar:slider-vertical-bold" class="text-primary-600 text-xl"></iconify-icon>
+                        <h6 class="text-md fw-semibold text-primary-light mb-0">Galeri Multi-Slide (Instagram Carousel Slider)</h6>
+                    </div>
+                    <span class="badge bg-primary-100 text-primary-600 radius-4 px-10 py-4 text-xs fw-semibold">
+                        <iconify-icon icon="solar:slider-vertical-bold" class="me-1"></iconify-icon> Multi-Slide Feed
+                    </span>
+                </div>
+                <div class="card-body p-24">
+                    <p class="text-xs text-secondary-light mb-16">
+                        Unggah 2 atau lebih slide gambar untuk postingan ini agar tampil sebagai carousel slider interaktif bergaya Instagram (lengkap dengan panah navigasi, nomor slide, swipe, dan titik indikator) di beranda dan katalog Bunga Rampai.
+                    </p>
+
+                    <!-- Existing Slides List (if any) -->
+                    <?php if (! empty($existingSlides)): ?>
+                        <div class="mb-20">
+                            <label class="form-label fw-semibold text-primary-light text-xs mb-8">Slide yang Sudah Aktif Saat Ini (<?= count($existingSlides) ?> slide):</label>
+                            <div class="row g-2" id="existingSlidesContainer">
+                                <?php foreach ($existingSlides as $esIdx => $es): 
+                                    $sImg = ! empty($es['file_id']) ? site_url('file/' . (int) $es['file_id']) : ($es['url'] ?? '');
+                                ?>
+                                    <div class="col-6 col-md-3 existing-slide-item" id="slideItem_<?= $esIdx ?>">
+                                        <div class="position-relative radius-8 overflow-hidden border border-neutral-200 bg-neutral-50 p-1">
+                                            <img src="<?= esc($sImg) ?>" alt="Slide <?= $esIdx + 1 ?>" class="w-100 object-fit-cover radius-6" style="height: 110px;">
+                                            <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 start-0 m-2 px-8 py-2 text-2xs">
+                                                #<?= $esIdx + 1 ?>
+                                            </span>
+                                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 p-0 radius-50 d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 10px;" onclick="removeExistingSlide(<?= $esIdx ?>)" title="Hapus Slide">
+                                                <iconify-icon icon="solar:close-circle-bold"></iconify-icon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <input type="hidden" name="existing_slides" id="existingSlidesInput" value="<?= esc(json_encode($existingSlides)) ?>">
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Upload New Slides -->
+                    <div class="mb-16">
+                        <label class="form-label fw-semibold text-primary-light text-xs mb-8">
+                            <iconify-icon icon="solar:add-circle-bold" class="text-primary-600 me-1"></iconify-icon> Tambah Slide Gambar Baru (Pilih Banyak Sekaligus)
+                        </label>
+                        <input type="file" name="slide_files[]" id="slideFilesInput" class="form-control form-control-sm radius-8" multiple accept="image/jpeg,image/png,image/webp" onchange="previewMultiSlideFiles(this)">
+                        <span class="text-2xs text-secondary-light mt-1 d-block">
+                            Dapat memilih lebih dari 1 file sekaligus (format JPG, PNG, WEBP, maks 5MB per file). Disarankan menggunakan rasio gambar seragam (1:1 atau 4:5).
+                        </span>
+                    </div>
+
+                    <!-- Live Preview of Newly Selected Slides -->
+                    <div id="newSlidesPreviewContainer" class="d-none">
+                        <label class="form-label fw-semibold text-success-main text-xs mb-8">
+                            <iconify-icon icon="solar:eye-bold" class="me-1"></iconify-icon> Pratinjau File Slide Baru yang Dipilih:
+                        </label>
+                        <div class="row g-2" id="newSlidesPreviewGrid"></div>
                     </div>
                 </div>
             </div>
@@ -351,5 +420,49 @@ document.addEventListener('DOMContentLoaded', function() {
         handleMediaTypeChange(typeSelect.value);
     }
 });
+
+let existingSlidesList = <?= ! empty($existingSlides) ? json_encode($existingSlides) : '[]' ?>;
+
+function removeExistingSlide(index) {
+    if (confirm('Hapus slide ini dari galeri postingan?')) {
+        const itemEl = document.getElementById('slideItem_' + index);
+        if (itemEl) itemEl.remove();
+        existingSlidesList.splice(index, 1);
+        const input = document.getElementById('existingSlidesInput');
+        if (input) input.value = JSON.stringify(existingSlidesList);
+    }
+}
+
+function previewMultiSlideFiles(input) {
+    const container = document.getElementById('newSlidesPreviewContainer');
+    const grid = document.getElementById('newSlidesPreviewGrid');
+    if (!container || !grid) return;
+    grid.innerHTML = '';
+
+    if (input.files && input.files.length > 0) {
+        container.classList.remove('d-none');
+        Array.from(input.files).forEach((file, idx) => {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-md-3';
+                col.innerHTML = `
+                    <div class="position-relative radius-8 overflow-hidden border bg-white p-1 shadow-2xs">
+                        <img src="${e.target.result}" class="w-100 object-fit-cover radius-6" style="height: 100px;">
+                        <span class="badge bg-primary text-white position-absolute top-0 start-0 m-2 px-2 py-0" style="font-size: 10px;">
+                            Baru #${idx + 1}
+                        </span>
+                        <div class="text-truncate text-secondary-light px-1 mt-1" style="font-size: 10px;">${file.name}</div>
+                    </div>
+                `;
+                grid.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        });
+    } else {
+        container.classList.add('d-none');
+    }
+}
 </script>
 <?= $this->endSection() ?>

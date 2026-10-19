@@ -1726,9 +1726,11 @@ $err          = session()->getFlashdata('error');
                             </span>
                         </div>
 
-                        <?php if (! empty($item['course_cover_url'])): ?>
+                        <?php 
+                        $effectiveClassCover = ! empty($item['cover_url']) ? $item['cover_url'] : ($item['course_cover_url'] ?? '');
+                        if (! empty($effectiveClassCover)): ?>
                             <?php
-                            $classCover = str_starts_with($item['course_cover_url'], 'http') ? $item['course_cover_url'] : base_url($item['course_cover_url']);
+                            $classCover = str_starts_with($effectiveClassCover, 'http') ? $effectiveClassCover : base_url($effectiveClassCover);
                             ?>
                             <div class="radius-12 overflow-hidden mb-3" style="max-height: 160px;">
                                 <img src="<?= esc($classCover) ?>" alt="<?= esc($item['name']) ?>" class="w-100" style="object-fit: cover; max-height: 160px;">

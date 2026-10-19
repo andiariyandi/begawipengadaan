@@ -80,6 +80,15 @@ $formAction = $isEdit ? route_to('dashboard.learning.courses.update', $course['i
                             <option value="internal" <?= $vis === 'internal' ? 'selected' : '' ?>>Internal</option>
                         </select>
                     </div>
+                    <div class="col-md-4 d-flex align-items-center">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" role="switch" id="featured" name="featured" value="1" <?= old('featured', $course['featured'] ?? 0) ? 'checked' : '' ?>>
+                            <label class="form-check-label fw-semibold text-primary-light text-sm ms-2" for="featured">
+                                <iconify-icon icon="solar:star-bold" class="text-warning align-middle"></iconify-icon>
+                                Sorotan / Unggulan di Arena Belajar
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 

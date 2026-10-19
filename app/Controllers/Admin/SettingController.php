@@ -46,9 +46,35 @@ class SettingController extends BaseController
         ]);
     }
 
+    public function knowledge(): string
+    {
+        return $this->view('Pengaturan Bunga Rampai', 'knowledge-settings', 'knowledge', [
+            'settings' => $this->settingService->getGroup('knowledge'),
+            'group'    => 'knowledge',
+        ]);
+    }
+
+    public function regulation(): string
+    {
+        return $this->view('Pengaturan Regulasi', 'regulation-settings', 'regulation', [
+            'settings'   => $this->settingService->getGroup('regulation'),
+            'categories' => (new \App\Models\Regulation\RegulationCategoryModel())->listAll(),
+            'group'      => 'regulation',
+        ]);
+    }
+
+    public function news(): string
+    {
+        return $this->view('Pengaturan Berita & Artikel', 'news-settings', 'news', [
+            'settings'   => $this->settingService->getGroup('news'),
+            'categories' => (new \App\Models\Communication\NewsCategoryModel())->findAll(),
+            'group'      => 'news',
+        ]);
+    }
+
     public function event(): string
     {
-        return $this->view('Pengaturan Event', 'event-settings', 'event', [
+        return $this->view('Pengaturan Event & Agenda', 'event-settings', 'event', [
             'settings' => $this->settingService->getGroup('event'),
             'group'    => 'event',
         ]);
@@ -100,6 +126,9 @@ class SettingController extends BaseController
             'general'      => $this->general(),
             'organization' => $this->organization(),
             'learning'     => $this->learning(),
+            'knowledge', 'bunga-rampai' => $this->knowledge(),
+            'regulation', 'regulasi'    => $this->regulation(),
+            'news', 'berita'            => $this->news(),
             'event'        => $this->event(),
             'certificate'  => $this->certificate(),
             'notification' => $this->notification(),
@@ -120,6 +149,9 @@ class SettingController extends BaseController
             'pengaturan-umum', 'general-settings', 'general'             => 'general',
             'pengaturan-organisasi', 'organization-settings', 'organization' => 'organization',
             'pengaturan-pembelajaran', 'learning-settings', 'learning'   => 'learning',
+            'pengaturan-bunga-rampai', 'knowledge-settings', 'knowledge', 'bunga-rampai' => 'knowledge',
+            'pengaturan-regulasi', 'regulation-settings', 'regulation', 'regulasi' => 'regulation',
+            'pengaturan-berita', 'news-settings', 'news', 'berita'       => 'news',
             'pengaturan-event', 'event-settings', 'event'                => 'event',
             'pengaturan-sertifikat', 'certificate-settings', 'certificate' => 'certificate',
             'pengaturan-notifikasi', 'notification-settings', 'notification' => 'notification',

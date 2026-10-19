@@ -100,7 +100,7 @@ body {
 <?php
 $isEdit = ($formMode ?? 'create') === 'edit';
 $item = $item ?? [];
-$coverUrl = ! empty($item['cover_file_id']) ? base_url('file/' . (int) $item['cover_file_id']) : null;
+$coverUrl = ! empty($item['cover_file_id']) ? site_url('file/' . (int) $item['cover_file_id']) : (! empty($item['cover_path']) ? (str_starts_with($item['cover_path'], 'http') ? $item['cover_path'] : base_url($item['cover_path'])) : null);
 ?>
 
 <!-- Header Toolbar -->
@@ -530,8 +530,62 @@ if (empty($openAt) || empty($code)) {
         </div>
     </div>
 
+    <!-- Bagian 7: Pengaturan Sorotan & Hero Slider (Landing Page) -->
+    <div class="card mb-24 radius-12 border overflow-hidden">
+        <div class="card-header bg-base border-bottom py-16 px-24 d-flex align-items-center gap-3">
+            <div class="w-40-px h-40-px rounded-circle bg-warning-100 text-warning-main d-flex align-items-center justify-content-center">
+                <iconify-icon icon="solar:star-bold" class="text-xl"></iconify-icon>
+            </div>
+            <div>
+                <h6 class="fw-semibold mb-1 text-primary-light">7. Sorotan &amp; Hero Slider (Landing Page)</h6>
+                <p class="text-secondary-light text-xs mb-0">Atur apakah agenda ini ditampilkan pada headline hero carousel dan sebagai agenda unggulan.</p>
+            </div>
+        </div>
+        <div class="card-body p-24">
+            <div class="row gy-3">
+                <div class="col-md-6">
+                    <div class="p-16 radius-8 border border-neutral-200 bg-neutral-50 h-100 d-flex flex-column justify-content-between">
+                        <div class="d-flex align-items-center justify-content-between mb-8">
+                            <label class="form-check-label fw-semibold text-primary-light text-sm mb-0 cursor-pointer d-flex align-items-center gap-2" for="featuredSwitch">
+                                <iconify-icon icon="solar:star-bold" class="text-warning-main"></iconify-icon>
+                                <span>Jadikan Event Unggulan</span>
+                            </label>
+                            <div class="form-switch switch-warning d-inline-flex">
+                                <input class="form-check-input cursor-pointer" type="checkbox" name="is_featured" value="1" id="featuredSwitch" <?= ! empty($item['is_featured']) ? 'checked' : '' ?>>
+                            </div>
+                        </div>
+                        <p class="text-secondary-light text-xs mb-0">
+                            Event unggulan mendapatkan badge khusus dan diprioritaskan pada filter kurasi sorotan di portal publik.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="p-16 radius-8 border border-neutral-200 bg-neutral-50 h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-8">
+                            <label class="form-check-label fw-semibold text-primary-light text-sm mb-0 cursor-pointer d-flex align-items-center gap-2" for="carouselSwitch">
+                                <iconify-icon icon="solar:slider-vertical-bold" class="text-primary-600"></iconify-icon>
+                                <span>Tampilkan di Hero Slider</span>
+                            </label>
+                            <div class="form-switch switch-primary d-inline-flex">
+                                <input class="form-check-input cursor-pointer" type="checkbox" name="carousel_enabled" value="1" id="carouselSwitch" <?= ! empty($item['carousel_enabled']) ? 'checked' : '' ?>>
+                            </div>
+                        </div>
+                        <p class="text-secondary-light text-xs mb-12">
+                            Agenda akan dimuat ke dalam banner hero carousel di landing page <code>/event</code>.
+                        </p>
+                        <div class="pt-10 border-top border-neutral-200">
+                            <label class="form-label text-xs fw-semibold text-primary-light mb-1" for="carousel_order">Urutan Slide (Order):</label>
+                            <input type="number" min="1" max="99" id="carousel_order" name="carousel_order" class="form-control form-control-sm radius-8" value="<?= esc($item['carousel_order'] ?? '') ?>" placeholder="Urutan (cth: 1, 2, 3...)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Action Buttons Bar -->
-    <div class="card p-20 radius-12 border bg-white d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24 shadow-sm" style="border-color: #cbd5e1;">
+    <div class="card p-20 radius-12 border bg-base d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24 shadow-sm">
         <div class="d-flex align-items-center gap-2">
             <a href="<?= site_url('dashboard/komunikasi/event-agenda') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-10 fw-semibold text-sm text-neutral-700" style="border-color: #cbd5e1;">
                 Batal

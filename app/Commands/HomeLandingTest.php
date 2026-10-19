@@ -264,6 +264,29 @@ class HomeLandingTest extends BaseCommand
             $this->assert(str_contains($surveyResultsHtml, 'Aspirasi &amp; Ulasan Publik Terverifikasi') || str_contains($surveyResultsHtml, 'Aspirasi & Ulasan'), "Public feedback section present");
         });
 
+        // 19. Public Statistics Portal (/statistik and sub-routes)
+        $this->testModule("Public Statistics Portal (/statistik & Klaster Tabs)", function () {
+            $statController = new \App\Controllers\Landing\StatisticPublicController();
+            $statController->initController(service('request'), service('response'), service('logger'));
+
+            // Test /statistik (all)
+            $indexHtml = $statController->index();
+            $this->assert(str_contains($indexHtml, 'Pusat Statistik'), "Portal title present");
+            $this->assert(str_contains($indexHtml, 'Regulasi PBJ'), "Regulasi KPI card present");
+            $this->assert(str_contains($indexHtml, 'Sertifikat Digital'), "Sertifikat KPI card present");
+            $this->assert(str_contains($indexHtml, 'Agenda Pembinaan'), "Agenda Pembinaan KPI card present");
+
+            // Test sub-tabs (/statistik/pembelajaran, /event, /kompetensi)
+            $learningHtml = $statController->learning();
+            $this->assert(str_contains($learningHtml, 'Klaster Pembelajaran'), "Learning cluster tab renders OK");
+
+            $eventsHtml = $statController->events();
+            $this->assert(str_contains($eventsHtml, 'Event &amp; Agenda') || str_contains($eventsHtml, 'Event & Agenda'), "Events tab renders OK");
+
+            $compHtml = $statController->competency();
+            $this->assert(str_contains($compHtml, 'Sertifikasi PBJ'), "Competency tab renders OK");
+        });
+
         // Summary
         CLI::newLine();
         CLI::write("==================================================================", "cyan");

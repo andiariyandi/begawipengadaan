@@ -21,10 +21,8 @@ class RoleRequestController extends BaseController
                 ->with('error', 'Silakan masuk terlebih dahulu.');
         }
 
-        return view('landing/user/profile', [
-            'title'    => 'Pengajuan Role',
-            'subTitle' => 'Pengajuan Role',
-        ]);
+        return redirect()->to(route_to('workspace.profile.index'))
+            ->with('message', 'Pengajuan perubahan role dapat dilakukan melalui pembaruan kelengkapan profil akun Anda.');
     }
 
     public function create()

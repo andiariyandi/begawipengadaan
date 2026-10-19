@@ -624,7 +624,8 @@
         transition: all 0.2s ease;
         padding: 0;
     }
-    .berita-headline__indicators button.is-active {
+    .berita-headline__indicators button.is-active,
+    .berita-headline__indicators button.active {
         background: #ffffff;
         width: 28px;
     }

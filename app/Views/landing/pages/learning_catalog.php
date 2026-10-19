@@ -445,8 +445,9 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                 <?php
                                 $imgIdx = ($index % 6) + 1;
                                 $defaultImg = "assets/main/images/resources/course-list-img-{$imgIdx}.jpg";
-                                $imgSrc = ! empty($item['course_cover_url'])
-                                    ? (str_starts_with($item['course_cover_url'], 'http') ? $item['course_cover_url'] : base_url($item['course_cover_url']))
+                                $classCover = ! empty($item['cover_url']) ? $item['cover_url'] : ($item['course_cover_url'] ?? '');
+                                $imgSrc = ! empty($classCover)
+                                    ? (str_starts_with($classCover, 'http') ? $classCover : base_url($classCover))
                                     : base_url($defaultImg);
                                 $status = $item['status'] ?? 'scheduled';
                                 $statusBadge = $status === 'active'

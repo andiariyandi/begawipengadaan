@@ -12,13 +12,13 @@
         <div class="row justify-content-center">
             <div class="col-xl-10">
                 <div class="about-badge-pill">
-                    <i class="fas fa-landmark"></i> Biro Pengadaan Barang dan Jasa Setda Provinsi Lampung
+                    <i class="fas fa-landmark"></i> <?= esc($pageBanner['badge_label'] ?? 'Biro Pengadaan Barang dan Jasa Setda Provinsi Lampung') ?>
                 </div>
                 <h1 class="about-hero__title">
-                    Membangun Ekosistem Pengadaan Digital <span>Berintegritas &amp; Berdampak</span>
+                    <?= !empty($pageBanner['title']) ? $pageBanner['title'] : 'Membangun Ekosistem Pengadaan Digital <span>Berintegritas &amp; Berdampak</span>' ?>
                 </h1>
                 <p class="about-hero__subtitle">
-                    BegawiPengadaan merupakan pusat inovasi, pembelajaran digital, regulasi hukum, dan intelijen pengadaan terpadu yang dirancang untuk mewujudkan tata kelola Pengadaan Barang/Jasa Pemerintah Provinsi Lampung yang transparan, profesional, dan akuntabel.
+                    <?= esc($pageBanner['subtitle'] ?? 'BegawiPengadaan merupakan pusat inovasi, pembelajaran digital, regulasi hukum, dan intelijen pengadaan terpadu yang dirancang untuk mewujudkan tata kelola Pengadaan Barang/Jasa Pemerintah Provinsi Lampung yang transparan, profesional, dan akuntabel.') ?>
                 </p>
             </div>
         </div>
@@ -34,12 +34,9 @@
                 <h2 class="abt-sec-title">
                     Makna <span>"Begawi"</span> dalam Pengadaan Modern
                 </h2>
-                <p class="abt-sec-desc mb-4">
-                    Kata <strong>"Begawi"</strong> berakar dari kearifan bahasa dan adat budaya Lampung yang mencerminkan etos kerja luhur, bergotong-royong, dan mengabdi dengan penuh kesungguhan serta kehormatan.
-                </p>
-                <p class="abt-sec-desc mb-4">
-                    Dalam konteks pengadaan barang dan jasa modern, BegawiPengadaan hadir mengintegrasikan semangat pengabdian tersebut dengan teknologi digital tingkat lanjut. Tujuannya adalah menjadikan seluruh proses pengadaan di Provinsi Lampung tidak sekadar taat administratif, melainkan memberikan nilai manfaat nyata bagi kemakmuran masyarakat Bumi Ruwa Jurai.
-                </p>
+                <div class="abt-sec-desc mb-4">
+                    <?= nl2br(esc(setting('organization.philosophy', "Kata \"Begawi\" berakar dari kearifan bahasa dan adat budaya Lampung yang mencerminkan etos kerja luhur, bergotong-royong, dan mengabdi dengan penuh kesungguhan serta kehormatan.\n\nDalam konteks pengadaan barang dan jasa modern, BegawiPengadaan hadir mengintegrasikan semangat pengabdian tersebut dengan teknologi digital tingkat lanjut. Tujuannya adalah menjadikan seluruh proses pengadaan di Provinsi Lampung tidak sekadar taat administratif, melainkan memberikan nilai manfaat nyata bagi kemakmuran masyarakat Bumi Ruwa Jurai."))) ?>
+                </div>
                 <div class="d-flex flex-wrap gap-3">
                     <a href="<?= site_url('arena-belajar') ?>" class="thm-btn">
                         <i class="fas fa-graduation-cap me-1"></i> Jelajahi Arena Belajar
@@ -53,10 +50,14 @@
             <div class="col-lg-6">
                 <div class="abt-philo-card">
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <img src="<?= base_url('assets/main/images/resources/logo-4.png') ?>" alt="BegawiPengadaan" height="50">
+                        <?php
+                        $abtLogo = setting('organization.logo_url');
+                        $abtLogoSrc = ! empty($abtLogo) ? (str_starts_with($abtLogo, 'http') ? $abtLogo : base_url($abtLogo)) : base_url('assets/main/images/resources/logo-4.png');
+                        ?>
+                        <img src="<?= esc($abtLogoSrc) ?>" alt="BegawiPengadaan" height="50" style="object-fit: contain;">
                         <div>
-                            <h4 class="text-white fw-bold mb-0">UKPBJ Level Proaktif</h4>
-                            <span class="badge bg-warning text-dark fw-bold">Pemerintah Provinsi Lampung</span>
+                            <h4 class="text-white fw-bold mb-0"><?= esc(setting('organization.institution_level', 'UKPBJ Level Proaktif')) ?></h4>
+                            <span class="badge bg-warning text-dark fw-bold"><?= esc(setting('organization.provincial_unit', 'Pemerintah Provinsi Lampung')) ?></span>
                         </div>
                     </div>
                     <p class="abt-philo-quote">
@@ -98,7 +99,7 @@
                     </div>
                     <h3 class="fw-bold text-dark h4 mb-3">Visi Utama</h3>
                     <p class="text-muted leading-relaxed" style="font-size: 1.05rem;">
-                        <em>"Terwujudnya Tata Kelola Pengadaan Barang dan Jasa Pemerintah Provinsi Lampung yang Profesional, Transparan, Akuntabel, dan Menjadi Penggerak Utama Pertumbuhan Ekonomi Lokal yang Inklusif."</em>
+                        <em>"<?= esc(setting('organization.vision', 'Terwujudnya Tata Kelola Pengadaan Barang dan Jasa Pemerintah Provinsi Lampung yang Profesional, Transparan, Akuntabel, dan Menjadi Penggerak Utama Pertumbuhan Ekonomi Lokal yang Inklusif.')) ?>"</em>
                     </p>
                     <div class="mt-4 pt-3 border-top">
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fw-bold">
@@ -114,22 +115,43 @@
                         <i class="fas fa-tasks"></i>
                     </div>
                     <h3 class="fw-bold text-dark h4 mb-3">5 Misi Strategis</h3>
+                    <?php
+                    $missionItems = setting('vision_mission.mission_items');
+                    $missions = [];
+                    if (!empty($missionItems)) {
+                        $decoded = json_decode($missionItems, true);
+                        if (is_array($decoded)) {
+                            $missions = $decoded;
+                        } else {
+                            $missions = array_filter(array_map('trim', explode("\n", $missionItems)));
+                        }
+                    }
+                    if (empty($missions)) {
+                        $missionRaw = setting('organization.mission', '');
+                        if (!empty($missionRaw)) {
+                            $missions = array_filter(array_map('trim', explode("\n", $missionRaw)));
+                        }
+                    }
+                    if (empty($missions)) {
+                        $missions = [
+                            'Peningkatan Kompetensi Berkelanjutan: Mengembangkan kapasitas SDM PBJ melalui Arena Belajar digital, bimtek teknis, dan sertifikasi terstandarisasi.',
+                            'Penguatan Tata Kelola & Advokasi: Memberikan layanan pembinaan, pendampingan hukum, dan mitigasi risiko pengadaan bagi seluruh OPD.',
+                            'Akselerasi E-Purchasing & UMKM: Mengoptimalkan E-Katalog Lokal Lampung dan Toko Daring guna menyerap produk dalam negeri (P3DN).',
+                            'Pusat Literasi & Regulasi Terbuka: Menjamin kemudahan akses regulasi, standar dokumen, dan telaah hukum melalui Bunga Rampai.',
+                            'Government Intelligence PBJ: Mengintegrasikan data pengadaan untuk pelaporan analitik, monitoring kinerja, dan pengambilan keputusan pimpinan.',
+                        ];
+                    }
+                    ?>
                     <ul class="abt-vm-list">
-                        <li>
-                            <strong>Peningkatan Kompetensi Berkelanjutan:</strong> Mengembangkan kapasitas SDM PBJ melalui Arena Belajar digital, bimtek teknis, dan sertifikasi terstandarisasi.
-                        </li>
-                        <li>
-                            <strong>Penguatan Tata Kelola &amp; Advokasi:</strong> Memberikan layanan pembinaan, pendampingan hukum, dan mitigasi risiko pengadaan bagi seluruh OPD.
-                        </li>
-                        <li>
-                            <strong>Akselerasi E-Purchasing &amp; UMKM:</strong> Mengoptimalkan E-Katalog Lokal Lampung dan Toko Daring guna menyerap produk dalam negeri (P3DN).
-                        </li>
-                        <li>
-                            <strong>Pusat Literasi &amp; Regulasi Terbuka:</strong> Menjamin kemudahan akses regulasi, standar dokumen, dan telaah hukum melalui Bunga Rampai.
-                        </li>
-                        <li>
-                            <strong>Government Intelligence PBJ:</strong> Mengintegrasikan data pengadaan untuk pelaporan analitik, monitoring kinerja, dan pengambilan keputusan pimpinan.
-                        </li>
+                        <?php foreach ($missions as $m): ?>
+                            <?php
+                            $parts = explode(':', $m, 2);
+                            if (count($parts) === 2): ?>
+                                <li><strong><?= esc(trim($parts[0])) ?>:</strong> <?= esc(trim($parts[1])) ?></li>
+                            <?php else: ?>
+                                <li><?= esc($m) ?></li>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
                     </ul>
                 </div>
             </div>
@@ -384,7 +406,7 @@
                     </div>
                     <h3 class="fw-bold text-dark mb-3">Janji Integritas Pelayanan UKPBJ Lampung</h3>
                     <p class="text-muted leading-relaxed mb-4" style="font-size: 1.05rem;">
-                        <em>"Dengan ini, kami pimpinan dan seluruh aparatur Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung menyatakan sanggup menyelenggarakan pelayanan pengadaan barang dan jasa sesuai standar pelayanan yang telah ditetapkan, memberikan pelayanan yang profesional, transparan, akuntabel, bebas dari gratifikasi dan korupsi, serta siap menerima sanksi sesuai peraturan perundang-undangan apabila tidak menepati janji ini."</em>
+                        <em><?= esc(setting('organization.service_pledge', '"Dengan ini, kami pimpinan dan seluruh aparatur Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung menyatakan sanggup menyelenggarakan pelayanan pengadaan barang dan jasa sesuai standar pelayanan yang telah ditetapkan, memberikan pelayanan yang profesional, transparan, akuntabel, bebas dari gratifikasi dan korupsi, serta siap menerima sanksi sesuai peraturan perundang-undangan apabila tidak menepati janji ini."')) ?></em>
                     </p>
                     <div class="d-flex flex-wrap justify-content-center gap-4 text-muted small fw-bold">
                         <span><i class="fas fa-check-circle text-success me-1"></i> Layanan Cepat 1x24 Jam</span>

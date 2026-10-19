@@ -23,7 +23,16 @@ $activeClasses    = $activeClasses ?? [];
 $featuredTrainers = $featuredTrainers ?? [];
 $isLoggedIn       = session()->get('isLoggedIn') === true;
 
-// Assemble Hero Slider Items (Layout Agenda Style: Programs & Classes)
+// Assemble Hero Slider Items (Layout Agenda Style: Programs, Courses, and Classes)
+$featuredPrograms = $featuredPrograms ?? [];
+$featuredCourses  = $featuredCourses ?? [];
+$popularCourses   = $popularCourses ?? [];
+$activeClasses    = $activeClasses ?? [];
+$featuredTrainers = $featuredTrainers ?? [];
+$isLoggedIn       = session()->get('isLoggedIn') === true;
+$spotlightMode    = $spotlightMode ?? 'all';
+$spotlightLimit   = (int) ($spotlightLimit ?? 6);
+
 $sliderItems = [];
 $bgSliderCovers = [
     base_url('assets/main/images/course/course-details-img-1.jpg'),
@@ -32,16 +41,20 @@ $bgSliderCovers = [
     base_url('assets/main/images/course/course-list-img-3.jpg'),
 ];
 
+$progItems = [];
 if (! empty($featuredPrograms)) {
-    foreach (array_slice($featuredPrograms, 0, 3) as $fIdx => $fProg) {
-        $cover = ! empty($fProg['cover_url']) ? $fProg['cover_url'] : $bgSliderCovers[$fIdx % count($bgSliderCovers)];
-        $sliderItems[] = [
+    foreach ($featuredPrograms as $fIdx => $fProg) {
+        $cover = ! empty($fProg['cover_url'])
+            ? (str_starts_with($fProg['cover_url'], 'http') ? $fProg['cover_url'] : base_url($fProg['cover_url']))
+            : $bgSliderCovers[$fIdx % count($bgSliderCovers)];
+        $progItems[] = [
+            'category'    => 'program',
             'title'       => $fProg['title'],
             'url'         => route_to('public.learning.program.detail', $fProg['slug']),
             'cover_url'   => $cover,
             'tag_class'   => 'evt-badge-flag--featured',
             'status_tag'  => '<iconify-icon icon="solar:star-bold" class="align-middle"></iconify-icon> Kurikulum Unggulan',
-            'type_label'  => 'Program PBJ',
+            'type_label'  => 'Program Kurikulum',
             'badge_extra' => 'Standar LKPP RI',
             'meta_1'      => '<iconify-icon icon="solar:layers-minimalistic-bold" class="text-warning align-middle"></iconify-icon> ' . (int) ($fProg['course_count'] ?? 0) . ' Course Terpadu',
             'meta_2'      => '<iconify-icon icon="solar:shield-check-bold" class="text-info align-middle"></iconify-icon> Jalur Kompetensi',
@@ -51,22 +64,76 @@ if (! empty($featuredPrograms)) {
     }
 }
 
+$courseItems = [];
+if (! empty($featuredCourses)) {
+    foreach ($featuredCourses as $cIdx => $fCourse) {
+        $cover = ! empty($fCourse['cover_url'])
+            ? (str_starts_with($fCourse['cover_url'], 'http') ? $fCourse['cover_url'] : base_url($fCourse['cover_url']))
+            : $bgSliderCovers[($cIdx + 1) % count($bgSliderCovers)];
+        $isFeat = (int) ($fCourse['featured'] ?? 0) === 1;
+        $courseItems[] = [
+            'category'    => 'course',
+            'title'       => $fCourse['title'],
+            'url'         => route_to('public.learning.course.detail', $fCourse['slug']),
+            'cover_url'   => $cover,
+            'tag_class'   => $isFeat ? 'evt-badge-flag--course' : 'evt-badge-flag--coming',
+            'status_tag'  => '<iconify-icon icon="solar:book-bookmark-bold" class="align-middle"></iconify-icon> ' . ($isFeat ? 'Course Pilihan' : 'Course Mandiri'),
+            'type_label'  => 'Course PBJ',
+            'badge_extra' => ucfirst($fCourse['level'] ?? 'Dasar') . ' Level',
+            'meta_1'      => '<iconify-icon icon="solar:clock-circle-bold" class="text-warning align-middle"></iconify-icon> ' . (! empty($fCourse['duration_minutes']) ? (int) $fCourse['duration_minutes'] . ' Menit' : 'Belajar Mandiri'),
+            'meta_2'      => '<iconify-icon icon="solar:folder-with-files-bold" class="text-info align-middle"></iconify-icon> ' . esc($fCourse['program_title'] ?? 'Kurikulum PBJ'),
+            'meta_3'      => '<iconify-icon icon="solar:laptop-minimalistic-bold" class="text-success align-middle"></iconify-icon> Pembelajaran Digital LMS',
+            'action_text' => 'Pelajari Course Ini',
+        ];
+    }
+}
+
+$classItems = [];
 if (! empty($activeClasses)) {
-    foreach (array_slice($activeClasses, 0, 2) as $cIdx => $aCls) {
-        $cover = ! empty($aCls['course_cover_url']) ? $aCls['course_cover_url'] : $bgSliderCovers[($cIdx + 2) % count($bgSliderCovers)];
-        $sliderItems[] = [
+    foreach ($activeClasses as $kIdx => $aCls) {
+        $effectiveClassCover = ! empty($aCls['cover_url']) ? $aCls['cover_url'] : ($aCls['course_cover_url'] ?? '');
+        $cover = ! empty($effectiveClassCover)
+            ? (str_starts_with($effectiveClassCover, 'http') ? $effectiveClassCover : base_url($effectiveClassCover))
+            : $bgSliderCovers[($kIdx + 2) % count($bgSliderCovers)];
+
+        $classItems[] = [
+            'category'    => 'class',
             'title'       => $aCls['name'],
             'url'         => route_to('public.learning.class.detail', $aCls['code']),
             'cover_url'   => $cover,
             'tag_class'   => 'evt-badge-flag--open',
-            'status_tag'  => '<span class="dot"></span> Pendaftaran Dibuka',
-            'type_label'  => 'Batch Kelas Aktif',
-            'badge_extra' => 'Fasilitator Terverifikasi',
-            'meta_1'      => '<iconify-icon icon="solar:calendar-date-bold" class="text-warning align-middle"></iconify-icon> Mulai: ' . esc($aCls['start_at'] ?? 'Segera'),
+            'status_tag'  => '<span class="dot"></span> ' . ($aCls['status'] === 'active' ? 'Sedang Berjalan' : 'Pendaftaran Dibuka'),
+            'type_label'  => 'Batch Kelas Terbuka',
+            'badge_extra' => strtoupper($aCls['learning_method'] ?? 'Online') . ' Pelatihan',
+            'meta_1'      => '<iconify-icon icon="solar:calendar-date-bold" class="text-warning align-middle"></iconify-icon> Mulai: ' . (! empty($aCls['start_at']) ? date('d M Y', strtotime($aCls['start_at'])) : 'Segera'),
             'meta_2'      => '<iconify-icon icon="solar:notebook-bold" class="text-info align-middle"></iconify-icon> ' . esc($aCls['course_title'] ?? 'Course PBJ'),
-            'meta_3'      => '<iconify-icon icon="solar:users-group-rounded-bold" class="text-success align-middle"></iconify-icon> ' . ((int) ($aCls['capacity'] ?? 0) > 0 ? 'Kuota ' . (int) $aCls['capacity'] . ' Peserta' : 'Kuota Terbuka'),
+            'meta_3'      => '<iconify-icon icon="solar:users-group-rounded-bold" class="text-success align-middle"></iconify-icon> ' . ((int) ($aCls['capacity'] ?? 0) > 0 ? 'Kuota ' . (int) $aCls['capacity'] . ' Peserta' : 'Kuota Fleksibel'),
             'action_text' => 'Detail &amp; Daftar Kelas',
         ];
+    }
+}
+
+// Assemble based on admin spotlight mode & limit
+if ($spotlightMode === 'program') {
+    $sliderItems = array_slice($progItems, 0, $spotlightLimit);
+} elseif ($spotlightMode === 'course') {
+    $sliderItems = array_slice($courseItems, 0, $spotlightLimit);
+} elseif ($spotlightMode === 'class') {
+    $sliderItems = array_slice($classItems, 0, $spotlightLimit);
+} else {
+    // Interleave all three categories up to $spotlightLimit
+    $sliderItems = [];
+    $maxCount = max(count($progItems), count($courseItems), count($classItems));
+    for ($i = 0; $i < $maxCount; $i++) {
+        if (isset($progItems[$i]) && count($sliderItems) < $spotlightLimit) {
+            $sliderItems[] = $progItems[$i];
+        }
+        if (isset($courseItems[$i]) && count($sliderItems) < $spotlightLimit) {
+            $sliderItems[] = $courseItems[$i];
+        }
+        if (isset($classItems[$i]) && count($sliderItems) < $spotlightLimit) {
+            $sliderItems[] = $classItems[$i];
+        }
     }
 }
 ?>
@@ -166,9 +233,9 @@ if (! empty($activeClasses)) {
                         <button class="evt-headline__nav next" type="button" data-bs-target="#arenaHeadlineCarousel" data-bs-slide="next" aria-label="Selanjutnya">
                             <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon>
                         </button>
-                        <div class="evt-headline__indicators">
+                        <div class="carousel-indicators evt-headline__indicators">
                             <?php foreach ($sliderItems as $sIndex => $sItem): ?>
-                                <button type="button" data-bs-target="#arenaHeadlineCarousel" data-bs-slide-to="<?= $sIndex ?>" class="<?= $sIndex === 0 ? 'active' : '' ?>" aria-label="Slide <?= $sIndex + 1 ?>"></button>
+                                <button type="button" data-bs-target="#arenaHeadlineCarousel" data-bs-slide-to="<?= $sIndex ?>" class="<?= $sIndex === 0 ? 'active' : '' ?>" aria-current="<?= $sIndex === 0 ? 'true' : 'false' ?>" aria-label="Slide <?= $sIndex + 1 ?>"></button>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
@@ -207,8 +274,9 @@ if (! empty($activeClasses)) {
                                 <?php
                                 $imgIndex = (($index + 2) % 6) + 1;
                                 $defaultImg = "assets/main/images/resources/course-list-img-{$imgIndex}.jpg";
-                                $coverImg = ! empty($class['course_cover_url'])
-                                    ? (str_starts_with($class['course_cover_url'], 'http') ? $class['course_cover_url'] : base_url($class['course_cover_url']))
+                                $effectiveClassCover = ! empty($class['cover_url']) ? $class['cover_url'] : ($class['course_cover_url'] ?? '');
+                                $coverImg = ! empty($effectiveClassCover)
+                                    ? (str_starts_with($effectiveClassCover, 'http') ? $effectiveClassCover : base_url($effectiveClassCover))
                                     : base_url($defaultImg);
 
                                 $method = strtolower((string) ($class['learning_method'] ?? 'online'));
@@ -926,4 +994,88 @@ if (! empty($activeClasses)) {
     }
 </script>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('pageScripts') ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var carouselEl = document.getElementById('arenaHeadlineCarousel');
+        if (!carouselEl) return;
+
+        // Initialize or get Bootstrap carousel instance safely across all Bootstrap 5 versions (including 5.0.0-beta3)
+        var myCarousel = null;
+        if (window.bootstrap && bootstrap.Carousel) {
+            if (typeof bootstrap.Carousel.getOrCreateInstance === 'function') {
+                myCarousel = bootstrap.Carousel.getOrCreateInstance(carouselEl, {
+                    interval: 6000,
+                    ride: 'carousel',
+                    wrap: true,
+                    pause: 'hover'
+                });
+            } else if (typeof bootstrap.Carousel.getInstance === 'function') {
+                myCarousel = bootstrap.Carousel.getInstance(carouselEl);
+                if (!myCarousel) {
+                    try {
+                        myCarousel = new bootstrap.Carousel(carouselEl, {
+                            interval: 6000,
+                            ride: 'carousel',
+                            wrap: true,
+                            pause: 'hover'
+                        });
+                    } catch (err) {}
+                }
+            } else {
+                try {
+                    myCarousel = new bootstrap.Carousel(carouselEl, {
+                        interval: 6000,
+                        ride: 'carousel',
+                        wrap: true,
+                        pause: 'hover'
+                    });
+                } catch (err) {}
+            }
+        }
+
+        var indicatorButtons = carouselEl.querySelectorAll('.evt-headline__indicators button, .carousel-indicators button');
+
+        function syncIndicatorDots(targetIdx) {
+            if (!indicatorButtons || indicatorButtons.length === 0) return;
+            indicatorButtons.forEach(function (btn, idx) {
+                if (idx === targetIdx) {
+                    btn.classList.add('active');
+                    btn.setAttribute('aria-current', 'true');
+                } else {
+                    btn.classList.remove('active');
+                    btn.removeAttribute('aria-current');
+                }
+            });
+        }
+
+        // Listen for slide start and slide complete events to guarantee 100% synchronization
+        carouselEl.addEventListener('slide.bs.carousel', function (e) {
+            if (typeof e.to !== 'undefined') {
+                syncIndicatorDots(e.to);
+            }
+        });
+
+        carouselEl.addEventListener('slid.bs.carousel', function (e) {
+            if (typeof e.to !== 'undefined') {
+                syncIndicatorDots(e.to);
+            }
+        });
+
+        // Click handler for dots to ensure explicit navigation
+        indicatorButtons.forEach(function (btn, idx) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (myCarousel && typeof myCarousel.to === 'function') {
+                    myCarousel.to(idx);
+                } else if (window.jQuery && typeof jQuery(carouselEl).carousel === 'function') {
+                    jQuery(carouselEl).carousel(idx);
+                }
+                syncIndicatorDots(idx);
+            });
+        });
+    });
+</script>
 <?= $this->endSection() ?>

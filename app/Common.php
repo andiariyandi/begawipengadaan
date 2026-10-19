@@ -45,3 +45,18 @@ if (! function_exists('csrf_field')) {
         return '<input type="hidden"' . ($id !== null ? ' id="' . esc($id, 'attr') . '"' : '') . ' name="' . csrf_token() . '" value="' . csrf_hash() . '" />';
     }
 }
+
+if (! function_exists('setting')) {
+    /**
+     * Retrieve a site setting by key, e.g. setting('organization.agency_name') or setting('agency_name')
+     */
+    function setting(string $key, mixed $default = null): mixed
+    {
+        static $service = null;
+        if ($service === null) {
+            $service = new \App\Services\SystemSettingService();
+        }
+        return $service->getSetting($key, $default);
+    }
+}
+

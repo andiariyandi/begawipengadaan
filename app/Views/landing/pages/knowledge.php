@@ -210,9 +210,9 @@ if (! empty($carouselSlides)) {
                         <button class="evt-headline__nav next" type="button" data-bs-target="#knowledgeHeadlineCarousel" data-bs-slide="next" aria-label="Selanjutnya">
                             <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon>
                         </button>
-                        <div class="evt-headline__indicators">
+                        <div class="carousel-indicators evt-headline__indicators">
                             <?php foreach ($sliderItems as $sIndex => $sItem): ?>
-                                <button type="button" data-bs-target="#knowledgeHeadlineCarousel" data-bs-slide-to="<?= $sIndex ?>" class="<?= $sIndex === 0 ? 'active' : '' ?>" aria-label="Slide <?= $sIndex + 1 ?>"></button>
+                                <button type="button" data-bs-target="#knowledgeHeadlineCarousel" data-bs-slide-to="<?= $sIndex ?>" class="<?= $sIndex === 0 ? 'active' : '' ?>" aria-current="<?= $sIndex === 0 ? 'true' : 'false' ?>" aria-label="Slide <?= $sIndex + 1 ?>"></button>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
@@ -1411,4 +1411,88 @@ if (! empty($carouselSlides)) {
     }
 </script>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('pageScripts') ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var carouselEl = document.getElementById('knowledgeHeadlineCarousel');
+        if (!carouselEl) return;
+
+        // Initialize or get Bootstrap carousel instance safely across all Bootstrap 5 versions (including 5.0.0-beta3)
+        var myCarousel = null;
+        if (window.bootstrap && bootstrap.Carousel) {
+            if (typeof bootstrap.Carousel.getOrCreateInstance === 'function') {
+                myCarousel = bootstrap.Carousel.getOrCreateInstance(carouselEl, {
+                    interval: 6000,
+                    ride: 'carousel',
+                    wrap: true,
+                    pause: 'hover'
+                });
+            } else if (typeof bootstrap.Carousel.getInstance === 'function') {
+                myCarousel = bootstrap.Carousel.getInstance(carouselEl);
+                if (!myCarousel) {
+                    try {
+                        myCarousel = new bootstrap.Carousel(carouselEl, {
+                            interval: 6000,
+                            ride: 'carousel',
+                            wrap: true,
+                            pause: 'hover'
+                        });
+                    } catch (err) {}
+                }
+            } else {
+                try {
+                    myCarousel = new bootstrap.Carousel(carouselEl, {
+                        interval: 6000,
+                        ride: 'carousel',
+                        wrap: true,
+                        pause: 'hover'
+                    });
+                } catch (err) {}
+            }
+        }
+
+        var indicatorButtons = carouselEl.querySelectorAll('.evt-headline__indicators button, .carousel-indicators button');
+
+        function syncIndicatorDots(targetIdx) {
+            if (!indicatorButtons || indicatorButtons.length === 0) return;
+            indicatorButtons.forEach(function (btn, idx) {
+                if (idx === targetIdx) {
+                    btn.classList.add('active');
+                    btn.setAttribute('aria-current', 'true');
+                } else {
+                    btn.classList.remove('active');
+                    btn.removeAttribute('aria-current');
+                }
+            });
+        }
+
+        // Listen for slide start and slide complete events to guarantee 100% synchronization
+        carouselEl.addEventListener('slide.bs.carousel', function (e) {
+            if (typeof e.to !== 'undefined') {
+                syncIndicatorDots(e.to);
+            }
+        });
+
+        carouselEl.addEventListener('slid.bs.carousel', function (e) {
+            if (typeof e.to !== 'undefined') {
+                syncIndicatorDots(e.to);
+            }
+        });
+
+        // Click handler for dots to ensure explicit navigation
+        indicatorButtons.forEach(function (btn, idx) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (myCarousel && typeof myCarousel.to === 'function') {
+                    myCarousel.to(idx);
+                } else if (window.jQuery && typeof jQuery(carouselEl).carousel === 'function') {
+                    jQuery(carouselEl).carousel(idx);
+                }
+                syncIndicatorDots(idx);
+            });
+        });
+    });
+</script>
 <?= $this->endSection() ?>

@@ -12,6 +12,8 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
     $routes->post('kontak', 'HomeController::sendContact', ['as' => 'public.contact.send']);
     $routes->get('survei-kepuasan', 'HomeController::survey', ['as' => 'public.survey']);
     $routes->post('survei-kepuasan', 'HomeController::submitSurvey', ['as' => 'public.survey.submit']);
+    $routes->post('newsletter/subscribe', 'HomeController::subscribeNewsletter', ['as' => 'public.newsletter.subscribe']);
+
 
     $routes->group('arena-belajar', static function ($routes) {
         $routes->get('/', 'ArenaBelajarController::index', ['as' => 'public.learning.index']);
@@ -672,7 +674,26 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('kehadiran/(:segment)/catatan', 'AttendanceController::record/$1');
 
         $routes->get('waitlist-pembatalan', 'EventRegistrationController::waitlistAndCancellation', ['as' => 'dashboard.communication.waitlist-cancellations']);
+        // Pesan Masuk (Inbox)
+        $routes->get('pesan-masuk', '\App\Controllers\Admin\Communication\ContactMessageController::index', ['as' => 'dashboard.communication.inbox']);
+        $routes->get('pesan-masuk/detail/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::detail/$1', ['as' => 'dashboard.communication.inbox.detail']);
+        $routes->post('pesan-masuk/update-status/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::updateStatus/$1', ['as' => 'dashboard.communication.inbox.update-status']);
+        $routes->get('pesan-masuk/hapus/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::delete/$1', ['as' => 'dashboard.communication.inbox.delete']);
+
+        // WhatsApp Helpdesk Widget
+        $routes->get('whatsapp-widget', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::index', ['as' => 'dashboard.communication.helpdesk']);
+        $routes->post('whatsapp-widget/pengaturan', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::saveSettings', ['as' => 'dashboard.communication.helpdesk.settings']);
+        $routes->post('whatsapp-widget/simpan-topic', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::storeTopic', ['as' => 'dashboard.communication.helpdesk.topic.store']);
+        $routes->post('whatsapp-widget/ubah-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::updateTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.update']);
+        $routes->get('whatsapp-widget/hapus-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::deleteTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.delete']);
+        $routes->get('whatsapp-widget/toggle-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::toggleTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.toggle']);
+
+        // Newsletter
+        $routes->get('newsletter', '\App\Controllers\Admin\Communication\NewsletterController::index', ['as' => 'dashboard.communication.newsletter']);
+        $routes->get('newsletter/export', '\App\Controllers\Admin\Communication\NewsletterController::exportCsv', ['as' => 'dashboard.communication.newsletter.export']);
+        $routes->get('newsletter/hapus/(:segment)', '\App\Controllers\Admin\Communication\NewsletterController::delete/$1', ['as' => 'dashboard.communication.newsletter.delete']);
     });
+
 
     $routes->group('sertifikat', ['namespace' => 'App\Controllers\Certificate'], static function ($routes) {
         // 1. Overview Sertifikat
@@ -755,7 +776,96 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('riwayat-export', 'DashboardController::exportHistory', ['as' => 'dashboard.reports.export-history']);
     });
 
+    $routes->group('landing', ['namespace' => 'App\Controllers\Admin\Landing'], static function ($routes) {
+        // Pusat Manajemen Carousel & Sorotan Terpusat (Arena, Bunga Rampai, Regulasi, Berita, Event)
+        $routes->get('sorotan-carousel', 'SpotlightHubController::index', ['as' => 'dashboard.landing.spotlight_hub']);
+        $routes->post('sorotan-carousel/toggle', 'SpotlightHubController::toggle', ['as' => 'dashboard.landing.spotlight_hub.toggle']);
+        $routes->post('sorotan-carousel/update-order', 'SpotlightHubController::updateOrder', ['as' => 'dashboard.landing.spotlight_hub.order']);
+        $routes->post('sorotan-carousel/pengaturan', 'SpotlightHubController::saveSettings', ['as' => 'dashboard.landing.spotlight_hub.settings']);
+        $routes->get('sorotan-carousel/search-available', 'SpotlightHubController::searchAvailable', ['as' => 'dashboard.landing.spotlight_hub.search']);
+
+        // Slider & Hero
+        $routes->get('slider', 'SliderController::index', ['as' => 'dashboard.landing.sliders']);
+        $routes->get('slider/tambah', 'SliderController::create', ['as' => 'dashboard.landing.sliders.create']);
+        $routes->post('slider/simpan', 'SliderController::store', ['as' => 'dashboard.landing.sliders.store']);
+        $routes->get('slider/ubah/(:segment)', 'SliderController::edit/$1', ['as' => 'dashboard.landing.sliders.edit']);
+        $routes->post('slider/ubah/(:segment)', 'SliderController::update/$1', ['as' => 'dashboard.landing.sliders.update']);
+        $routes->get('slider/hapus/(:segment)', 'SliderController::delete/$1', ['as' => 'dashboard.landing.sliders.delete']);
+        $routes->get('slider/toggle/(:segment)', 'SliderController::toggle/$1', ['as' => 'dashboard.landing.sliders.toggle']);
+
+        // Popup Pengumuman & Promo
+        $routes->get('pengumuman', 'AnnouncementController::index', ['as' => 'dashboard.landing.announcements']);
+        $routes->post('pengumuman/pengaturan', 'AnnouncementController::saveSettings', ['as' => 'dashboard.landing.announcements.settings']);
+        $routes->get('pengumuman/tambah', 'AnnouncementController::create', ['as' => 'dashboard.landing.announcements.create']);
+        $routes->post('pengumuman/simpan', 'AnnouncementController::store', ['as' => 'dashboard.landing.announcements.store']);
+        $routes->get('pengumuman/ubah/(:segment)', 'AnnouncementController::edit/$1', ['as' => 'dashboard.landing.announcements.edit']);
+        $routes->post('pengumuman/ubah/(:segment)', 'AnnouncementController::update/$1', ['as' => 'dashboard.landing.announcements.update']);
+        $routes->get('pengumuman/hapus/(:segment)', 'AnnouncementController::delete/$1', ['as' => 'dashboard.landing.announcements.delete']);
+        $routes->get('pengumuman/toggle/(:segment)', 'AnnouncementController::toggle/$1', ['as' => 'dashboard.landing.announcements.toggle']);
+
+        // Profil Lembaga, Visi Misi, Filosofi
+        $routes->get('profil-lembaga', 'InstitutionProfileController::index', ['as' => 'dashboard.landing.profile']);
+        $routes->post('profil-lembaga', 'InstitutionProfileController::save', ['as' => 'dashboard.landing.profile.save']);
+
+        // Pilar, Budaya, Hierarki, Roadmap
+        $routes->get('pilar-hierarki', 'HighlightFeatureController::index', ['as' => 'dashboard.landing.highlights']);
+        $routes->get('pilar-hierarki/tambah', 'HighlightFeatureController::create', ['as' => 'dashboard.landing.highlights.create']);
+        $routes->post('pilar-hierarki/simpan', 'HighlightFeatureController::store', ['as' => 'dashboard.landing.highlights.store']);
+        $routes->get('pilar-hierarki/ubah/(:segment)', 'HighlightFeatureController::edit/$1', ['as' => 'dashboard.landing.highlights.edit']);
+        $routes->post('pilar-hierarki/ubah/(:segment)', 'HighlightFeatureController::update/$1', ['as' => 'dashboard.landing.highlights.update']);
+        $routes->get('pilar-hierarki/hapus/(:segment)', 'HighlightFeatureController::delete/$1', ['as' => 'dashboard.landing.highlights.delete']);
+        $routes->get('pilar-hierarki/toggle/(:segment)', 'HighlightFeatureController::toggle/$1', ['as' => 'dashboard.landing.highlights.toggle']);
+
+        // Portal Eksternal
+        $routes->get('portal-eksternal', 'ExternalPortalController::index', ['as' => 'dashboard.landing.portals']);
+        $routes->get('portal-eksternal/tambah', 'ExternalPortalController::create', ['as' => 'dashboard.landing.portals.create']);
+        $routes->post('portal-eksternal/simpan', 'ExternalPortalController::store', ['as' => 'dashboard.landing.portals.store']);
+        $routes->get('portal-eksternal/ubah/(:segment)', 'ExternalPortalController::edit/$1', ['as' => 'dashboard.landing.portals.edit']);
+        $routes->post('portal-eksternal/ubah/(:segment)', 'ExternalPortalController::update/$1', ['as' => 'dashboard.landing.portals.update']);
+        $routes->get('portal-eksternal/hapus/(:segment)', 'ExternalPortalController::delete/$1', ['as' => 'dashboard.landing.portals.delete']);
+        $routes->get('portal-eksternal/toggle/(:segment)', 'ExternalPortalController::toggle/$1', ['as' => 'dashboard.landing.portals.toggle']);
+
+        // Testimoni Pengguna
+        $routes->get('testimoni', 'TestimonialController::index', ['as' => 'dashboard.landing.testimonials']);
+        $routes->get('testimoni/tambah', 'TestimonialController::create', ['as' => 'dashboard.landing.testimonials.create']);
+        $routes->post('testimoni/simpan', 'TestimonialController::store', ['as' => 'dashboard.landing.testimonials.store']);
+        $routes->get('testimoni/ubah/(:segment)', 'TestimonialController::edit/$1', ['as' => 'dashboard.landing.testimonials.edit']);
+        $routes->post('testimoni/ubah/(:segment)', 'TestimonialController::update/$1', ['as' => 'dashboard.landing.testimonials.update']);
+        $routes->get('testimoni/hapus/(:segment)', 'TestimonialController::delete/$1', ['as' => 'dashboard.landing.testimonials.delete']);
+        $routes->get('testimoni/toggle/(:segment)', 'TestimonialController::toggle/$1', ['as' => 'dashboard.landing.testimonials.toggle']);
+
+        // Tim Inovator
+        $routes->get('tim', 'TeamMemberController::index', ['as' => 'dashboard.landing.team']);
+        $routes->get('tim/tambah', 'TeamMemberController::create', ['as' => 'dashboard.landing.team.create']);
+        $routes->post('tim/simpan', 'TeamMemberController::store', ['as' => 'dashboard.landing.team.store']);
+        $routes->get('tim/ubah/(:segment)', 'TeamMemberController::edit/$1', ['as' => 'dashboard.landing.team.edit']);
+        $routes->post('tim/ubah/(:segment)', 'TeamMemberController::update/$1', ['as' => 'dashboard.landing.team.update']);
+        $routes->get('tim/hapus/(:segment)', 'TeamMemberController::delete/$1', ['as' => 'dashboard.landing.team.delete']);
+        $routes->get('tim/toggle/(:segment)', 'TeamMemberController::toggle/$1', ['as' => 'dashboard.landing.team.toggle']);
+
+        // Banner Halaman Publik
+        $routes->get('banner-halaman', 'PageBannerController::index', ['as' => 'dashboard.landing.banners']);
+        $routes->get('banner-halaman/ubah/(:segment)', 'PageBannerController::edit/$1', ['as' => 'dashboard.landing.banners.edit']);
+        $routes->post('banner-halaman/ubah/(:segment)', 'PageBannerController::update/$1', ['as' => 'dashboard.landing.banners.update']);
+
+        // Kategori Layanan
+        $routes->get('kategori-layanan', 'ServiceCategoryController::index', ['as' => 'dashboard.landing.categories']);
+        $routes->get('kategori-layanan/tambah', 'ServiceCategoryController::create', ['as' => 'dashboard.landing.categories.create']);
+        $routes->post('kategori-layanan/simpan', 'ServiceCategoryController::store', ['as' => 'dashboard.landing.categories.store']);
+        $routes->get('kategori-layanan/ubah/(:segment)', 'ServiceCategoryController::edit/$1', ['as' => 'dashboard.landing.categories.edit']);
+        $routes->post('kategori-layanan/ubah/(:segment)', 'ServiceCategoryController::update/$1', ['as' => 'dashboard.landing.categories.update']);
+        $routes->get('kategori-layanan/hapus/(:segment)', 'ServiceCategoryController::delete/$1', ['as' => 'dashboard.landing.categories.delete']);
+        $routes->get('kategori-layanan/toggle/(:segment)', 'ServiceCategoryController::toggle/$1', ['as' => 'dashboard.landing.categories.toggle']);
+    });
+
+    $routes->group('survei-kepuasan', ['namespace' => 'App\Controllers\Admin\Survey'], static function ($routes) {
+        $routes->get('/', 'SatisfactionSurveyAdminController::index', ['as' => 'dashboard.survey.index']);
+        $routes->post('update-aspect/(:segment)', 'SatisfactionSurveyAdminController::updateAspect/$1', ['as' => 'dashboard.survey.aspect.update']);
+        $routes->get('hapus/(:segment)', 'SatisfactionSurveyAdminController::deleteResponse/$1', ['as' => 'dashboard.survey.response.delete']);
+    });
+
     $routes->group('sistem', static function ($routes) {
+
         $routes->get('approval', 'ApprovalController::index', ['as' => 'dashboard.system.approvals']);
         $routes->get('approval/riwayat', 'ApprovalController::history', ['as' => 'dashboard.system.approvals.history']);
         $routes->get('approval/(:segment)/setujui', 'ApprovalController::approve/$1', ['as' => 'dashboard.system.approvals.approve']);
@@ -776,6 +886,9 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('pengaturan-umum', 'SettingController::general', ['as' => 'dashboard.system.settings.general']);
         $routes->get('pengaturan-organisasi', 'SettingController::organization', ['as' => 'dashboard.system.settings.organization']);
         $routes->get('pengaturan-pembelajaran', 'SettingController::learning', ['as' => 'dashboard.system.settings.learning']);
+        $routes->get('pengaturan-bunga-rampai', 'SettingController::knowledge', ['as' => 'dashboard.system.settings.knowledge']);
+        $routes->get('pengaturan-regulasi', 'SettingController::regulation', ['as' => 'dashboard.system.settings.regulation']);
+        $routes->get('pengaturan-berita', 'SettingController::news', ['as' => 'dashboard.system.settings.news']);
         $routes->get('pengaturan-event', 'SettingController::event', ['as' => 'dashboard.system.settings.event']);
         $routes->get('pengaturan-sertifikat', 'SettingController::certificate', ['as' => 'dashboard.system.settings.certificate']);
         $routes->get('pengaturan-notifikasi', 'SettingController::notification', ['as' => 'dashboard.system.settings.notification']);

@@ -2,11 +2,31 @@
 /**
  * WhatsApp Floating Chat Widget for BegawiPengadaan Lampung
  * Position: Bottom-Left Corner
- * Directs to: Official Helpdesk PBJ WhatsApp (+62 851-1777-9783)
+ * Directs to: Official Helpdesk PBJ WhatsApp
  */
-$waPhone        = '6285117779783';
+$waEnabled = setting('helpdesk.wa_enabled', '1');
+if ($waEnabled !== '1' && $waEnabled !== 1 && $waEnabled !== true && $waEnabled !== 'true') {
+    return;
+}
+
+$waPhoneRaw     = setting('helpdesk.wa_phone', '6285117779783');
+$waPhone        = preg_replace('/[^0-9]/', '', $waPhoneRaw);
+$welcomeMsg     = setting('helpdesk.wa_welcome_text', 'Halo! Selamat datang di <strong>BegawiPengadaan</strong> 👋<br><br>Ada yang bisa kami bantu terkait regulasi PBJ, pelatihan di Arena Belajar, atau template dokumen kerja?');
+$teaserText     = setting('helpdesk.wa_teaser_text', 'Butuh bantuan seputar PBJ? Chat kami! 👋');
 $defaultMessage = 'Halo Helpdesk BegawiPengadaan Provinsi Lampung, saya ingin berkonsultasi mengenai pengadaan barang dan jasa.';
 $defaultWaUrl   = 'https://wa.me/' . $waPhone . '?text=' . rawurlencode($defaultMessage);
+
+// Load helpdesk topics from database
+$db = \Config\Database::connect();
+$helpdeskTopics = [];
+try {
+    $helpdeskTopics = $db->table('helpdesk_topics')
+        ->where('is_active', 1)
+        ->orderBy('sort_order', 'ASC')
+        ->get()->getResultArray();
+} catch (\Throwable) {
+    $helpdeskTopics = [];
+}
 ?>
 
 <!-- =========================================================
@@ -45,9 +65,7 @@ $defaultWaUrl   = 'https://wa.me/' . $waPhone . '?text=' . rawurlencode($default
             <div class="bp-wa-bubble">
                 <div class="bp-wa-bubble-sender">Helpdesk PBJ Lampung</div>
                 <div class="bp-wa-bubble-text">
-                    Halo! Selamat datang di <strong>BegawiPengadaan</strong> 👋
-                    <br><br>
-                    Ada yang bisa kami bantu terkait regulasi PBJ, pelatihan di Arena Belajar, atau template dokumen kerja?
+                    <?= $welcomeMsg ?>
                 </div>
                 <div class="bp-wa-bubble-meta">
                     <span class="bp-wa-time" id="bpWaTime">Sekarang</span>
@@ -58,18 +76,27 @@ $defaultWaUrl   = 'https://wa.me/' . $waPhone . '?text=' . rawurlencode($default
             <!-- Quick Question Chips -->
             <div class="bp-wa-quick-chips">
                 <p class="bp-wa-chips-title">Pilih topik cepat:</p>
-                <button type="button" class="bp-wa-chip" data-msg="Halo Helpdesk BegawiPengadaan, saya ingin konsultasi mengenai regulasi PBJ terbaru (Perpres/PerLKPP).">
-                    <iconify-icon icon="solar:document-text-bold"></iconify-icon> Regulasi &amp; Payung Hukum
-                </button>
-                <button type="button" class="bp-wa-chip" data-msg="Halo Helpdesk BegawiPengadaan, saya butuh informasi seputar kursus dan sertifikasi di Arena Belajar.">
-                    <iconify-icon icon="solar:graduation-cap-bold"></iconify-icon> Arena Belajar &amp; Kursus
-                </button>
-                <button type="button" class="bp-wa-chip" data-msg="Halo Helpdesk BegawiPengadaan, saya ingin bertanya tentang template dokumen kerja di Bunga Rampai.">
-                    <iconify-icon icon="solar:folder-with-files-bold"></iconify-icon> Template Bunga Rampai
-                </button>
-                <button type="button" class="bp-wa-chip" data-msg="Halo Helpdesk BegawiPengadaan, saya butuh bantuan teknis terkait akun atau portal LPSE/SPSE.">
-                    <iconify-icon icon="solar:shield-check-bold"></iconify-icon> Bantuan Akun &amp; SPSE
-                </button>
+                <?php if (!empty($helpdeskTopics)): ?>
+                    <?php foreach ($helpdeskTopics as $topic): ?>
+                        <?php $topicIcon = !empty($topic['icon_class']) ? $topic['icon_class'] : (!empty($topic['icon']) ? $topic['icon'] : 'solar:chat-round-dots-bold'); ?>
+                        <button type="button" class="bp-wa-chip" data-msg="<?= esc($topic['default_message'] ?? '') ?>">
+                            <iconify-icon icon="<?= esc($topicIcon) ?>"></iconify-icon> <?= esc($topic['topic_title'] ?? '') ?>
+                        </button>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <button type="button" class="bp-wa-chip" data-msg="Halo Helpdesk BegawiPengadaan, saya ingin konsultasi mengenai regulasi PBJ terbaru (Perpres/PerLKPP).">
+                        <iconify-icon icon="solar:document-text-bold"></iconify-icon> Regulasi &amp; Payung Hukum
+                    </button>
+                    <button type="button" class="bp-wa-chip" data-msg="Halo Helpdesk BegawiPengadaan, saya butuh informasi seputar kursus dan sertifikasi di Arena Belajar.">
+                        <iconify-icon icon="solar:graduation-cap-bold"></iconify-icon> Arena Belajar &amp; Kursus
+                    </button>
+                    <button type="button" class="bp-wa-chip" data-msg="Halo Helpdesk BegawiPengadaan, saya ingin bertanya tentang template dokumen kerja di Bunga Rampai.">
+                        <iconify-icon icon="solar:folder-with-files-bold"></iconify-icon> Template Bunga Rampai
+                    </button>
+                    <button type="button" class="bp-wa-chip" data-msg="Halo Helpdesk BegawiPengadaan, saya butuh bantuan teknis terkait akun atau portal LPSE/SPSE.">
+                        <iconify-icon icon="solar:shield-check-bold"></iconify-icon> Bantuan Akun &amp; SPSE
+                    </button>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -99,7 +126,7 @@ $defaultWaUrl   = 'https://wa.me/' . $waPhone . '?text=' . rawurlencode($default
 
         <!-- Teaser Speech Bubble (Displays briefly or until closed) -->
         <div class="bp-wa-teaser" id="bpWaTeaser">
-            <span>Butuh bantuan seputar PBJ? Chat kami! 👋</span>
+            <span><?= esc($teaserText) ?></span>
             <button type="button" class="bp-wa-teaser-close" id="bpWaTeaserClose" aria-label="Tutup Pesan">&times;</button>
         </div>
     </div>

@@ -71,7 +71,9 @@ class BungaRampaiController extends BaseController
         $templates      = $this->publishedArticlesByType('template', 4);
         $faqs           = $this->publishedArticlesByType('faq', 6);
         $mediaItems     = $this->publishedMedia(null, 6);
-        $carouselSlides = $this->getCarouselSlides();
+        $spotlightMode  = (string) setting('knowledge.spotlight_mode', 'all');
+        $spotlightLimit = (int) setting('knowledge.spotlight_limit', 6);
+        $carouselSlides = $this->getCarouselSlides($spotlightMode, $spotlightLimit);
 
         return view('landing/pages/knowledge', [
             'title'           => 'Bunga Rampai PBJ Lampung | Pusat Pengetahuan & Praktik Baik',
@@ -81,6 +83,8 @@ class BungaRampaiController extends BaseController
             'description'     => 'Referensi pengetahuan Pengadaan Barang/Jasa terlengkap untuk aparatur pemerintah daerah, pokja pemilihan, penyedia, dan pemangku kepentingan.',
             'stats'           => $stats,
             'carouselSlides'  => $carouselSlides,
+            'spotlightMode'   => $spotlightMode,
+            'spotlightLimit'  => $spotlightLimit,
             'featured'        => $featured,
             'articles'        => $articles,
             'caseStudies'     => $caseStudies,
@@ -345,11 +349,12 @@ class BungaRampaiController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Template tidak ditemukan.');
         }
 
-        if (empty($row['cover_file_id'])) {
+        $downloadFileId = ! empty($row['attachment_file_id']) ? (int) $row['attachment_file_id'] : (int) ($row['cover_file_id'] ?? 0);
+        if (empty($downloadFileId)) {
             return redirect()->back()->with('error', 'File lampiran belum tersedia untuk template ini.');
         }
 
-        $file = $this->db->table('file_assets')->where('id', (int) $row['cover_file_id'])->get()->getRowArray();
+        $file = $this->db->table('file_assets')->where('id', $downloadFileId)->get()->getRowArray();
         if ($file === null) {
             return redirect()->back()->with('error', 'File template tidak ditemukan di sistem.');
         }
@@ -674,6 +679,9 @@ class BungaRampaiController extends BaseController
             } elseif (! empty($item['thumbnail_file_id'])) {
                 $item['preview_url'] = site_url('file/' . (int) $item['thumbnail_file_id']);
                 $item['embed_url']   = null;
+            } elseif (! empty($item['cover_url'])) {
+                $item['preview_url'] = $item['cover_url'];
+                $item['embed_url']   = null;
             } elseif (! empty($item['file_id'])) {
                 $item['preview_url'] = site_url('file/' . (int) $item['file_id']);
                 $item['embed_url']   = null;
@@ -688,51 +696,72 @@ class BungaRampaiController extends BaseController
             }
 
             // Prepare Instagram-style multi-media slides for carousel/slider
+            // 1. Check if actual uploaded slides exist from Dashboard (slides_data JSON)
             $slides = [];
-            $slides[] = [
-                'url'       => $item['preview_url'],
-                'is_video'  => $item['is_video'],
-                'embed_url' => $item['embed_url'] ?? '',
-                'title'     => $item['title'] ?? '',
-            ];
+            if (! empty($item['slides_data'])) {
+                $parsedSlides = is_string($item['slides_data']) ? json_decode($item['slides_data'], true) : $item['slides_data'];
+                if (is_array($parsedSlides) && ! empty($parsedSlides)) {
+                    foreach ($parsedSlides as $sIdx => $pSlide) {
+                        $sUrl = $pSlide['url'] ?? (! empty($pSlide['file_id']) ? site_url('file/' . (int) $pSlide['file_id']) : '');
+                        if (! empty($sUrl)) {
+                            $slides[] = [
+                                'url'       => $sUrl,
+                                'is_video'  => ! empty($pSlide['is_video']),
+                                'embed_url' => $pSlide['embed_url'] ?? '',
+                                'title'     => $pSlide['title'] ?? (($item['title'] ?? '') . ' - Slide ' . ($sIdx + 1)),
+                            ];
+                        }
+                    }
+                }
+            }
 
-            if ($type === 'gallery') {
-                // Multi-photo documentation slider (3-4 photos per event)
-                $n1 = (($id % 9) + 1);
-                $n2 = ((($id + 2) % 9) + 1);
-                $n3 = ((($id + 5) % 9) + 1);
-                $n4 = ((($id + 7) % 9) + 1);
-                $extraPhotos = array_values(array_unique([$n1, $n2, $n3, $n4]));
-                for ($s = 1; $s < count($extraPhotos); $s++) {
-                    $slides[] = [
-                        'url'       => base_url("assets/main/images/gallery/gallery-page-1-{$extraPhotos[$s]}.jpg"),
-                        'is_video'  => false,
-                        'embed_url' => '',
-                        'title'     => ($item['title'] ?? '') . ' - Dokumentasi ' . ($s + 1),
-                    ];
-                }
-            } elseif ($type === 'image') {
-                // Multi-slide infographic carousel (2-3 slides)
-                $e1 = (($id % 6) + 1);
-                $e2 = ((($id + 2) % 6) + 1);
-                $e3 = ((($id + 4) % 6) + 1);
-                $extraSlides = array_values(array_unique([$e1, $e2, $e3]));
-                for ($s = 1; $s < count($extraSlides); $s++) {
-                    $slides[] = [
-                        'url'       => base_url("assets/main/images/event/event-1-{$extraSlides[$s]}.jpg"),
-                        'is_video'  => false,
-                        'embed_url' => '',
-                        'title'     => ($item['title'] ?? '') . ' - Bagian ' . ($s + 1),
-                    ];
-                }
-            } elseif ($item['is_video']) {
-                // Video post + summary slide
+            // 2. Fallback for items without stored slides_data
+            if (empty($slides)) {
                 $slides[] = [
-                    'url'       => base_url("assets/main/images/event/event-1-" . ((($id + 1) % 6) + 1) . ".jpg"),
-                    'is_video'  => false,
-                    'embed_url' => '',
-                    'title'     => ($item['title'] ?? '') . ' - Ringkasan Materi',
+                    'url'       => $item['preview_url'],
+                    'is_video'  => $item['is_video'],
+                    'embed_url' => $item['embed_url'] ?? '',
+                    'title'     => $item['title'] ?? '',
                 ];
+
+                if ($type === 'gallery') {
+                    // Multi-photo documentation slider (3-4 photos per event)
+                    $n1 = (($id % 9) + 1);
+                    $n2 = ((($id + 2) % 9) + 1);
+                    $n3 = ((($id + 5) % 9) + 1);
+                    $n4 = ((($id + 7) % 9) + 1);
+                    $extraPhotos = array_values(array_unique([$n1, $n2, $n3, $n4]));
+                    for ($s = 1; $s < count($extraPhotos); $s++) {
+                        $slides[] = [
+                            'url'       => base_url("assets/main/images/gallery/gallery-page-1-{$extraPhotos[$s]}.jpg"),
+                            'is_video'  => false,
+                            'embed_url' => '',
+                            'title'     => ($item['title'] ?? '') . ' - Dokumentasi ' . ($s + 1),
+                        ];
+                    }
+                } elseif ($type === 'image') {
+                    // Multi-slide infographic carousel (2-3 slides)
+                    $e1 = (($id % 6) + 1);
+                    $e2 = ((($id + 2) % 6) + 1);
+                    $e3 = ((($id + 4) % 6) + 1);
+                    $extraSlides = array_values(array_unique([$e1, $e2, $e3]));
+                    for ($s = 1; $s < count($extraSlides); $s++) {
+                        $slides[] = [
+                            'url'       => base_url("assets/main/images/event/event-1-{$extraSlides[$s]}.jpg"),
+                            'is_video'  => false,
+                            'embed_url' => '',
+                            'title'     => ($item['title'] ?? '') . ' - Bagian ' . ($s + 1),
+                        ];
+                    }
+                } elseif ($item['is_video']) {
+                    // Video post + summary slide
+                    $slides[] = [
+                        'url'       => base_url("assets/main/images/event/event-1-" . ((($id + 1) % 6) + 1) . ".jpg"),
+                        'is_video'  => false,
+                        'embed_url' => '',
+                        'title'     => ($item['title'] ?? '') . ' - Ringkasan Materi',
+                    ];
+                }
             }
 
             $item['slides']       = $slides;
@@ -774,43 +803,30 @@ class BungaRampaiController extends BaseController
     }
 
     /**
-     * Fetch active slides for the hero spotlight carousel.
+     * Fetch active slides for the hero spotlight carousel based on dashboard configuration.
      *
+     * @param string $mode 'all', 'article', 'case_study', 'template', or 'multimedia'
+     * @param int $limit Maximum number of slides
      * @return array<int, array<string, mixed>>
      */
-    private function getCarouselSlides(): array
+    private function getCarouselSlides(string $mode = 'all', int $limit = 6): array
     {
-        $articles = $this->db->table('knowledge_articles ka')
-            ->select('ka.*, u.name AS author_name, fa.path AS cover_path, fa.original_name AS file_original_name')
-            ->join('users u', 'u.id = ka.author_id', 'left')
-            ->join('file_assets fa', 'fa.id = ka.cover_file_id', 'left')
-            ->where('ka.workflow_status', 'published')
-            ->where('ka.visibility', 'public')
-            ->where('ka.deleted_at IS NULL', null, false)
-            ->where('ka.carousel_enabled', 1)
-            ->orderBy('ka.carousel_order', 'ASC')
-            ->orderBy('ka.published_at', 'DESC')
-            ->limit(5)
-            ->get()->getResultArray();
+        $limit = max(1, min(12, $limit));
 
-        $media = $this->db->table('knowledge_media km')
-            ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type, fa.path AS file_path, ft.original_name AS thumb_original_name, ft.path AS thumb_path')
-            ->join('file_assets fa', 'fa.id = km.file_id', 'left')
-            ->join('file_assets ft', 'ft.id = km.thumbnail_file_id', 'left')
-            ->where('km.workflow_status', 'published')
-            ->where('km.visibility', 'public')
-            ->where('km.carousel_enabled', 1)
-            ->orderBy('km.sort_order', 'ASC')
-            ->limit(3)
-            ->get()->getResultArray();
+        $formatArticle = function (array $a): array {
+            $isCoverImg = false;
+            if (! empty($a['file_original_name'])) {
+                $ext = strtolower(pathinfo($a['file_original_name'], PATHINFO_EXTENSION));
+                $isCoverImg = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'], true);
+            }
 
-        $this->enrichMediaItems($media);
-
-        $slides = [];
-        foreach ($articles as $a) {
-            $coverImg = ! empty($a['cover_file_id'])
-                ? site_url('file/' . (int) $a['cover_file_id'])
-                : base_url('assets/main/images/blog/blog-2-' . (((int) $a['id'] % 4) + 1) . '.jpg');
+            if (! empty($a['cover_url'])) {
+                $coverImg = $a['cover_url'];
+            } elseif (! empty($a['cover_file_id']) && $isCoverImg) {
+                $coverImg = site_url('file/' . (int) $a['cover_file_id']);
+            } else {
+                $coverImg = base_url('assets/main/images/blog/blog-2-' . (((int) $a['id'] % 4) + 1) . '.jpg');
+            }
 
             $fRoute = match ($a['type']) {
                 'case_study' => 'public.knowledge.case-study.detail',
@@ -818,7 +834,7 @@ class BungaRampaiController extends BaseController
                 default      => 'public.knowledge.article.detail',
             };
 
-            $slides[] = [
+            return [
                 'type'         => $a['type'],
                 'type_label'   => match ($a['type']) {
                     'case_study' => 'Studi Kasus',
@@ -835,12 +851,19 @@ class BungaRampaiController extends BaseController
                 'date'         => ! empty($a['published_at']) ? date('d M Y', strtotime($a['published_at'])) : 'Terbaru',
                 'is_media'     => false,
             ];
-        }
+        };
 
-        foreach ($media as $m) {
-            $slides[] = [
+        $formatMedia = function (array $m): array {
+            $typeLabel = match ($m['type'] ?? '') {
+                'youtube', 'video_file', 'video' => 'Video Edukasi',
+                'gallery'                         => 'Galeri Foto',
+                'infographic'                     => 'Infografik PBJ',
+                default                           => 'Multimedia PBJ',
+            };
+
+            return [
                 'type'         => $m['type'],
-                'type_label'   => in_array($m['type'], ['youtube', 'video_file'], true) ? 'Video Pembelajaran' : 'Media Visual',
+                'type_label'   => $typeLabel,
                 'title'        => $m['title'],
                 'summary'      => $m['caption'] ?? '',
                 'url'          => site_url('bunga-rampai/multimedia'),
@@ -851,9 +874,92 @@ class BungaRampaiController extends BaseController
                 'date'         => ! empty($m['published_at']) ? date('d M Y', strtotime($m['published_at'])) : 'Terbaru',
                 'is_media'     => true,
             ];
+        };
+
+        $fetchArticles = function (?string $articleType, int $maxCount): array {
+            $builder = $this->db->table('knowledge_articles ka')
+                ->select('ka.*, u.name AS author_name, fa.path AS cover_path, fa.original_name AS file_original_name')
+                ->join('users u', 'u.id = ka.author_id', 'left')
+                ->join('file_assets fa', 'fa.id = ka.cover_file_id', 'left')
+                ->where('ka.workflow_status', 'published')
+                ->where('ka.visibility', 'public')
+                ->where('ka.deleted_at IS NULL', null, false);
+
+            if ($articleType !== null) {
+                $builder->where('ka.type', $articleType);
+            } else {
+                $builder->whereIn('ka.type', ['article', 'case_study', 'template']);
+            }
+
+            return $builder->orderBy('ka.carousel_enabled', 'DESC')
+                ->orderBy('ka.featured', 'DESC')
+                ->orderBy('ka.carousel_order', 'ASC')
+                ->orderBy('ka.published_at', 'DESC')
+                ->limit($maxCount)
+                ->get()->getResultArray();
+        };
+
+        $fetchMedia = function (int $maxCount): array {
+            $items = $this->db->table('knowledge_media km')
+                ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type, fa.path AS file_path, ft.original_name AS thumb_original_name, ft.path AS thumb_path')
+                ->join('file_assets fa', 'fa.id = km.file_id', 'left')
+                ->join('file_assets ft', 'ft.id = km.thumbnail_file_id', 'left')
+                ->where('km.workflow_status', 'published')
+                ->where('km.visibility', 'public')
+                ->orderBy('km.carousel_enabled', 'DESC')
+                ->orderBy('km.featured', 'DESC')
+                ->orderBy('km.sort_order', 'ASC')
+                ->orderBy('km.published_at', 'DESC')
+                ->limit($maxCount)
+                ->get()->getResultArray();
+
+            $this->enrichMediaItems($items);
+            return $items;
+        };
+
+        if ($mode === 'article' || $mode === 'case_study' || $mode === 'template') {
+            $rows = $fetchArticles($mode, $limit);
+            return array_map($formatArticle, $rows);
         }
 
-        return $slides;
+        if ($mode === 'multimedia') {
+            $rows = $fetchMedia($limit);
+            return array_map($formatMedia, $rows);
+        }
+
+        // Default 'all': fetch and interleave across all 4 knowledge pillars
+        $articlesRaw  = $fetchArticles('article', $limit);
+        $casesRaw     = $fetchArticles('case_study', $limit);
+        $templatesRaw = $fetchArticles('template', $limit);
+        $mediaRaw     = $fetchMedia($limit);
+
+        $artSlides  = array_map($formatArticle, $articlesRaw);
+        $caseSlides = array_map($formatArticle, $casesRaw);
+        $tmplSlides = array_map($formatArticle, $templatesRaw);
+        $medSlides  = array_map($formatMedia, $mediaRaw);
+
+        $combined = [];
+        $maxPerGroup = max(count($artSlides), count($medSlides), count($caseSlides), count($tmplSlides));
+        for ($i = 0; $i < $maxPerGroup; $i++) {
+            if (isset($artSlides[$i])) {
+                $combined[] = $artSlides[$i];
+                if (count($combined) >= $limit) break;
+            }
+            if (isset($medSlides[$i])) {
+                $combined[] = $medSlides[$i];
+                if (count($combined) >= $limit) break;
+            }
+            if (isset($caseSlides[$i])) {
+                $combined[] = $caseSlides[$i];
+                if (count($combined) >= $limit) break;
+            }
+            if (isset($tmplSlides[$i])) {
+                $combined[] = $tmplSlides[$i];
+                if (count($combined) >= $limit) break;
+            }
+        }
+
+        return $combined;
     }
 
     // ------------------------------------------------------------------
@@ -925,8 +1031,9 @@ class BungaRampaiController extends BaseController
         }
 
         $fileMeta = null;
-        if (! empty($row['cover_file_id'])) {
-            $fileMeta = $this->db->table('file_assets')->where('id', (int) $row['cover_file_id'])->get()->getRowArray() ?: null;
+        $attachmentId = ! empty($row['attachment_file_id']) ? (int) $row['attachment_file_id'] : (int) ($row['cover_file_id'] ?? 0);
+        if (! empty($attachmentId)) {
+            $fileMeta = $this->db->table('file_assets')->where('id', $attachmentId)->get()->getRowArray() ?: null;
         }
 
         $stats = $this->getKnowledgeStats();

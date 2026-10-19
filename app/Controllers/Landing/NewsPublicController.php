@@ -123,27 +123,45 @@ class NewsPublicController extends BaseController
                 'date_formatted' => ! empty($row['published_at']) ? date('d M Y', strtotime($row['published_at'])) : date('d M Y'),
                 'view_count'    => (int) ($row['view_count'] ?? 0),
                 'read_time'     => $readTime,
-                'cover_url'     => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
+                'cover_url'     => ! empty($row['cover_file_id']) ? site_url('file/' . (int) $row['cover_file_id']) : (! empty($row['cover_path']) ? (str_starts_with($row['cover_path'], 'http') ? $row['cover_path'] : base_url($row['cover_path'])) : null),
             ];
         }, $rawItems);
 
-        // Featured / Headline News (support up to 5 featured articles, only on page 1 when not searching)
+        // Featured / Headline News (respect spotlight_mode & spotlight_limit settings)
         $headlineArticles = [];
+        $spotlightMode  = (string) (setting('news.spotlight_mode') ?? 'all');
+        $spotlightLimit = (int) (setting('news.spotlight_limit') ?? 5);
+        if ($spotlightLimit < 3) {
+            $spotlightLimit = 3;
+        } elseif ($spotlightLimit > 15) {
+            $spotlightLimit = 15;
+        }
+
         if ($currentPage === 1 && empty($keyword) && empty($categorySlug)) {
-            $rawHeadlines = $this->db->table('news n')
-                ->select('n.id, n.title, n.slug, n.summary, n.content, n.published_at, n.view_count, n.reading_time, nc.name AS category_name, nc.slug AS category_slug, fa.path AS cover_path')
+            $hBuilder = $this->db->table('news n')
+                ->select('n.id, n.title, n.slug, n.summary, n.content, n.published_at, n.view_count, n.reading_time, n.cover_file_id, n.carousel_enabled, n.carousel_order, n.is_featured, nc.name AS category_name, nc.slug AS category_slug, fa.path AS cover_path')
                 ->join('news_categories nc', 'nc.id = n.category_id', 'left')
                 ->join('file_assets fa', 'fa.id = n.cover_file_id', 'left')
                 ->where('n.deleted_at', null)
-                ->where('n.workflow_status', 'published')
-                ->where('n.is_featured', 1)
+                ->where('n.workflow_status', 'published');
+
+            if ($spotlightMode === 'featured') {
+                $hBuilder->where('n.is_featured', 1);
+            } elseif ($spotlightMode !== 'all' && ! empty($spotlightMode)) {
+                $hBuilder->where('nc.slug', $spotlightMode);
+            }
+
+            $rawHeadlines = $hBuilder
+                ->orderBy('n.carousel_enabled', 'DESC')
+                ->orderBy('CASE WHEN n.carousel_order IS NULL THEN 9999 ELSE n.carousel_order END', 'ASC', false)
+                ->orderBy('n.is_featured', 'DESC')
                 ->orderBy('n.published_at', 'DESC')
-                ->limit(5)
+                ->limit($spotlightLimit)
                 ->get()->getResultArray();
 
-            // If no articles are marked is_featured = 1, fallback to latest published items (up to 5)
+            // If no articles match the spotlight filter, fallback to latest published items
             if (empty($rawHeadlines) && ! empty($rawItems)) {
-                $rawHeadlines = array_slice($rawItems, 0, min(5, count($rawItems)));
+                $rawHeadlines = array_slice($rawItems, 0, min($spotlightLimit, count($rawItems)));
             }
 
             $headlineIds = array_column($rawHeadlines, 'id');
@@ -151,6 +169,13 @@ class NewsPublicController extends BaseController
             $headlineArticles = array_map(function ($row) {
                 $words = str_word_count(strip_tags((string) ($row['content'] ?? '')));
                 $readTime = ! empty($row['reading_time']) ? $row['reading_time'] : (max(1, (int) ceil($words / 180)) . ' menit');
+
+                $coverUrl = null;
+                if (! empty($row['cover_file_id'])) {
+                    $coverUrl = site_url('file/' . (int) $row['cover_file_id']);
+                } elseif (! empty($row['cover_path'])) {
+                    $coverUrl = str_starts_with($row['cover_path'], 'http') ? $row['cover_path'] : base_url($row['cover_path']);
+                }
 
                 return [
                     'id'            => (int) $row['id'],
@@ -164,7 +189,7 @@ class NewsPublicController extends BaseController
                     'date_formatted' => ! empty($row['published_at']) ? date('d M Y', strtotime($row['published_at'])) : date('d M Y'),
                     'view_count'    => (int) ($row['view_count'] ?? 0),
                     'read_time'     => $readTime,
-                    'cover_url'     => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
+                    'cover_url'     => $coverUrl,
                 ];
             }, $rawHeadlines);
 

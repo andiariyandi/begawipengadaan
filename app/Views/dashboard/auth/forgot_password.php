@@ -7,7 +7,7 @@
         <span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span>
     </a>
 
-    <h4 class="mb-8 fw-bold text-dark"><?= esc($pageTitle ?? 'Lupa Kata Sandi') ?></h4>
+    <h4 class="mb-8 fw-bold text-primary-light"><?= esc($pageTitle ?? 'Lupa Kata Sandi') ?></h4>
     <p class="mb-0 text-secondary-light text-sm"><?= esc($pageDescription ?? 'Masukkan alamat email akun Anda untuk menerima instruksi pemulihan kata sandi.') ?></p>
 </div>
 
