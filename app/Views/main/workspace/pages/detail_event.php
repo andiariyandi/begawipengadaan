@@ -47,7 +47,7 @@ if ($hasAttended) {
 ?>
 
 <!-- Header Event Section -->
-<div class="bg-white border rounded-4 p-4 p-lg-5 mb-4 shadow-sm position-relative overflow-hidden">
+<div class="ws-page-header position-relative overflow-hidden">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
         <div class="d-flex flex-wrap align-items-center gap-2">
             <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill small fw-semibold">
@@ -123,8 +123,8 @@ if ($hasAttended) {
 </div>
 
 <!-- SECTION: STATUS KEIKUTSERTAAN (TIMELINE PESERTA) -->
-<div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-white">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-3 bg-white">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <span class="text-uppercase text-muted small fw-semibold">Perjalanan Partisipasi</span>
             <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">Status Keikutsertaan</h2>
@@ -318,26 +318,26 @@ if ($hasAttended) {
 </div>
 
 <!-- SECTION: PRESENSI KEHADIRAN (CARD KHUSUS) -->
-<div id="presensi" class="mb-4">
+<div id="presensi" class="mb-3">
     <?php if ($hasAttended): ?>
         <!-- HASIL PRESENSI: SUDAH HADIR / BERHASIL -->
-        <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white position-relative overflow-hidden" style="border-left: 6px solid #28a745 !important;">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white position-relative overflow-hidden" style="border-left: 6px solid #28a745 !important;">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-2">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-success text-white" style="width: 54px; height: 54px;">
-                        <i class="fas fa-check-circle fs-3"></i>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-success text-white" style="width: 44px; height: 44px;">
+                        <i class="fas fa-check-circle fs-4"></i>
                     </div>
                     <div>
-                        <h2 class="h4 fw-bold text-success mb-1">✓ Kehadiran berhasil dicatat</h2>
+                        <h2 class="h5 fw-bold text-success mb-1">✓ Kehadiran berhasil dicatat</h2>
                         <p class="text-muted mb-0 small">Data kehadiran Anda telah diverifikasi dan sah dalam sistem BegawiPengadaan.</p>
                     </div>
                 </div>
-                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold">
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill fw-semibold">
                     <i class="fas fa-user-check me-1"></i> Status: Hadir (Terverifikasi)
                 </span>
             </div>
 
-            <div class="row g-3 p-3 bg-light rounded-4 mt-2">
+            <div class="row g-2 g-md-3 p-3 bg-light rounded-3 mt-2">
                 <div class="col-sm-4">
                     <small class="text-muted d-block mb-1">Nama Event:</small>
                     <strong class="text-dark d-block"><?= esc($event['title']) ?></strong>
@@ -351,7 +351,7 @@ if ($hasAttended) {
                 </div>
                 <div class="col-sm-4">
                     <small class="text-muted d-block mb-1">Metode Presensi:</small>
-                    <span class="badge bg-white text-dark border px-3 py-1 rounded-pill small">
+                    <span class="badge bg-white text-dark border px-2 py-1 rounded-pill small">
                         <i class="fas fa-key text-primary me-1"></i> Kode Kehadiran Mandiri
                     </span>
                 </div>
@@ -359,15 +359,15 @@ if ($hasAttended) {
         </div>
     <?php else: ?>
         <!-- FORM PRESENSI KEHADIRAN (BELUM HADIR) -->
-        <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
-            <div class="row align-items-center g-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+            <div class="row align-items-center g-3">
                 <div class="col-lg-6">
                     <div class="d-flex align-items-center gap-3 mb-2">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(8,47,92,0.08); color: #082f5c;">
-                            <i class="fas fa-qrcode fs-4"></i>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: rgba(8,47,92,0.08); color: #082f5c;">
+                            <i class="fas fa-qrcode fs-5"></i>
                         </div>
                         <div>
-                            <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">Presensi Kehadiran</h2>
+                            <h2 class="h6 fw-bold mb-0" style="color: #082f5c;">Presensi Kehadiran</h2>
                             <small class="text-muted">Masukkan kode sandi presensi yang dibagikan oleh panitia</small>
                         </div>
                     </div>
@@ -416,30 +416,30 @@ if ($hasAttended) {
 </div>
 
 <!-- SECTION: INFORMASI EVENT & TAUTAN SESI -->
-<div class="row g-4 mb-4">
+<div class="row g-3 mb-3">
     <!-- Left: Deskripsi & Jadwal -->
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white h-100">
+        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white h-100">
             <h2 class="h5 fw-bold mb-3" style="color: #082f5c;">
                 <i class="fas fa-info-circle text-primary me-2"></i> Informasi Event
             </h2>
 
             <?php if (! empty($event['summary'])): ?>
-                <div class="lead fs-6 text-muted mb-4 border-start border-3 border-primary ps-3">
+                <div class="lead fs-6 text-muted mb-3 border-start border-3 border-primary ps-3">
                     <?= nl2br(esc($event['summary'])) ?>
                 </div>
             <?php endif; ?>
 
             <?php if (! empty($event['description'])): ?>
-                <div class="event-description text-secondary mb-4">
+                <div class="event-description text-secondary mb-3">
                     <?= nl2br(esc($event['description'])) ?>
                 </div>
             <?php else: ?>
-                <p class="text-muted mb-4">Deskripsi rinci mengenai rundown dan materi akan diperbarui oleh panitia penyelenggara.</p>
+                <p class="text-muted small mb-3">Deskripsi rinci mengenai rundown dan materi akan diperbarui oleh panitia penyelenggara.</p>
             <?php endif; ?>
 
-            <div class="p-3 rounded-4 bg-light">
-                <h3 class="h6 fw-bold mb-2" style="color: #082f5c;">Penyelenggara & Narasumber</h3>
+            <div class="p-3 rounded-3 bg-light">
+                <h3 class="h6 fw-bold mb-1" style="color: #082f5c;">Penyelenggara & Narasumber</h3>
                 <p class="text-muted small mb-0">
                     <i class="fas fa-building me-1 text-primary"></i>
                     <?= esc($event['creator_name'] ?? 'Biro Pengadaan Barang dan Jasa Provinsi Lampung') ?>
@@ -450,15 +450,15 @@ if ($hasAttended) {
 
     <!-- Right: Akses Sesi / Meeting & Sertifikat -->
     <div class="col-lg-4">
-        <div class="d-flex flex-column gap-4 h-100">
+        <div class="d-flex flex-column gap-3 h-100">
             <!-- Akses Ruang Pertemuan -->
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                <h2 class="h6 fw-bold mb-3" style="color: #082f5c;">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <h2 class="h6 fw-bold mb-2" style="color: #082f5c;">
                     <i class="fas fa-video text-info me-2"></i> Akses Sesi Kegiatan
                 </h2>
 
                 <?php if (! empty($event['meeting_url'])): ?>
-                    <p class="text-muted small mb-3">Tautan ruang sesi daring (Zoom / Google Meet) untuk peserta terdaftar:</p>
+                    <p class="text-muted small mb-2">Tautan ruang sesi daring (Zoom / Google Meet) untuk peserta terdaftar:</p>
                     <a href="<?= esc($event['meeting_url']) ?>" target="_blank" class="btn btn-success w-100 rounded-3 py-2 fw-semibold">
                         <i class="fas fa-external-link-alt me-1"></i> Buka Ruang Sesi Daring
                     </a>
@@ -475,7 +475,7 @@ if ($hasAttended) {
             </div>
 
             <!-- SECTION: SERTIFIKAT EVENT -->
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white flex-grow-1 d-flex flex-column justify-content-between">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white flex-grow-1 d-flex flex-column justify-content-between">
                 <div>
                     <h2 class="h6 fw-bold mb-3" style="color: #082f5c;">
                         <i class="fas fa-award text-warning me-2"></i> Sertifikat Event

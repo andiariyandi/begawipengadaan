@@ -7,7 +7,7 @@
         <span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span>
     </a>
 
-    <h4 class="mb-8 fw-bold text-dark"><?= esc($pageTitle ?? 'Atur Ulang Kata Sandi') ?></h4>
+    <h4 class="mb-8 fw-bold text-primary-light"><?= esc($pageTitle ?? 'Atur Ulang Kata Sandi') ?></h4>
     <p class="mb-0 text-secondary-light text-sm"><?= esc($pageDescription ?? 'Buat kata sandi baru yang kuat untuk menjaga keamanan akun Anda.') ?></p>
 </div>
 
@@ -50,7 +50,7 @@
                     class="form-control h-56-px bg-neutral-50 radius-12 ps-48 pe-48"
                     id="reset-password"
                     name="password"
-                    placeholder="Minimal 12 karakter aman"
+                    placeholder="Minimal 12 karakter"
                     autocomplete="new-password"
                     required>
             </div>

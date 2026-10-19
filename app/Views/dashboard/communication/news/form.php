@@ -55,7 +55,7 @@
 $isEdit = ($formMode ?? 'create') === 'edit';
 $item   = $item ?? [];
 $cats   = $newsCategories ?? $categories ?? [];
-$coverUrl = ! empty($item['cover_path']) ? base_url('file/' . (int) $item['cover_file_id']) : null;
+$coverUrl = ! empty($item['cover_file_id']) ? site_url('file/' . (int) $item['cover_file_id']) : (! empty($item['cover_path']) ? (str_starts_with($item['cover_path'], 'http') ? $item['cover_path'] : base_url($item['cover_path'])) : null);
 ?>
 
 <div class="news-form-container">
@@ -282,29 +282,48 @@ $coverUrl = ! empty($item['cover_path']) ? base_url('file/' . (int) $item['cover
                     </div>
 
                     <!-- Featured Headline (Maks 5 Slot) -->
-                    <div class="mb-16 p-14 rounded-10 border" style="background: #fffbeb; border-color: #fde68a !important;">
+                    <!-- Berita Utama Switch -->
+                    <div class="mb-16 p-16 radius-8 border border-neutral-200 bg-neutral-50">
                         <div class="d-flex align-items-center justify-content-between mb-8">
-                            <label class="form-check-label fw-bold text-neutral-900 text-sm mb-0 cursor-pointer d-flex align-items-center gap-2" for="featuredSwitch">
-                                <span class="w-28-px h-28-px rounded-circle d-flex align-items-center justify-content-center" style="background: #fef3c7; color: #b45309;">
-                                    <iconify-icon icon="solar:star-bold" class="text-base"></iconify-icon>
-                                </span>
-                                Jadikan Berita Utama
+                            <label class="form-check-label fw-semibold text-primary-light text-sm mb-0 cursor-pointer d-flex align-items-center gap-2" for="featuredSwitch">
+                                <iconify-icon icon="solar:star-bold" class="text-warning-main"></iconify-icon>
+                                <span>Jadikan Berita Utama</span>
                             </label>
-                            <div class="form-check form-switch m-0">
-                                <input class="form-check-input" type="checkbox" name="is_featured" value="1" id="featuredSwitch" <?= ! empty($item['is_featured']) ? 'checked' : '' ?> style="cursor: pointer; width: 2.25rem; height: 1.2rem;">
+                            <div class="form-switch switch-warning d-inline-flex">
+                                <input class="form-check-input cursor-pointer" type="checkbox" name="is_featured" value="1" id="featuredSwitch" <?= ! empty($item['is_featured']) ? 'checked' : '' ?>>
                             </div>
                         </div>
-                        <div class="d-flex align-items-center justify-content-between pt-8 border-top text-2xs" style="border-color: #fde68a !important;">
-                            <span class="badge fw-bold px-8 py-3" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">
-                                <iconify-icon icon="solar:slider-vertical-bold" class="me-1"></iconify-icon> Slot Berita Utama (Maks. 5)
+                        <div class="d-flex align-items-center justify-content-between pt-8 border-top border-neutral-200 text-xs mb-8">
+                            <span class="badge bg-warning-100 text-warning-main radius-4 px-8 py-4">
+                                <iconify-icon icon="solar:slider-vertical-bold" class="me-1"></iconify-icon> Slot Berita Utama
                             </span>
-                            <span class="fw-bold" style="color: #92400e;">
+                            <span class="fw-semibold text-primary-light">
                                 <?= (int) ($headlineCount ?? 0) ?>/5 Terpakai
                             </span>
                         </div>
-                        <small class="text-xs d-block mt-8 leading-snug" style="color: #78350f;">
-                            Berita utama akan tampil pada slider hero teratas di portal publik (hingga 5 warta pilihan) untuk meningkatkan visibilitas warta prioritas.
-                        </small>
+                        <p class="text-secondary-light text-xs mb-0">
+                            Berita utama akan tampil pada slider hero teratas di portal publik untuk meningkatkan visibilitas warta prioritas.
+                        </p>
+                    </div>
+
+                    <!-- Carousel Slider Switch -->
+                    <div class="mb-16 p-16 radius-8 border border-neutral-200 bg-neutral-50">
+                        <div class="d-flex align-items-center justify-content-between mb-8">
+                            <label class="form-check-label fw-semibold text-primary-light text-sm mb-0 cursor-pointer d-flex align-items-center gap-2" for="carouselSwitch">
+                                <iconify-icon icon="solar:slider-vertical-bold" class="text-primary-600"></iconify-icon>
+                                <span>Tampilkan di Hero Slider</span>
+                            </label>
+                            <div class="form-switch switch-primary d-inline-flex">
+                                <input class="form-check-input cursor-pointer" type="checkbox" name="carousel_enabled" value="1" id="carouselSwitch" <?= ! empty($item['carousel_enabled']) ? 'checked' : '' ?>>
+                            </div>
+                        </div>
+                        <p class="text-secondary-light text-xs mb-8">
+                            Aktifkan untuk memprioritaskan warta ini masuk dalam slider sorotan headline di landing page berita.
+                        </p>
+                        <div class="pt-8 border-top border-neutral-200">
+                            <label class="form-label text-xs fw-semibold text-primary-light mb-1" for="carousel_order">Urutan Slide (Order):</label>
+                            <input type="number" min="1" max="99" id="carousel_order" name="carousel_order" class="form-control form-control-sm radius-8" value="<?= esc($item['carousel_order'] ?? '') ?>" placeholder="Urutan (cth: 1, 2, 3...)">
+                        </div>
                     </div>
 
                     <div class="mb-16">

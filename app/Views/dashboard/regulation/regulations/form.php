@@ -319,20 +319,35 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
                         </select>
                     </div>
 
-                    <div class="p-16 radius-12 border bg-neutral-50 mb-0">
+                    <div class="p-16 radius-12 border bg-neutral-50 mb-16">
                         <div class="form-check form-switch mb-0">
                             <input class="form-check-input" type="checkbox" name="is_featured" value="1" id="is_featured" <?= ! empty($regulation['is_featured']) ? 'checked' : '' ?>>
-                            <label class="form-check-label fw-bold text-sm text-dark cursor-pointer ms-2" for="is_featured">
+                            <label class="form-check-label fw-bold text-sm text-primary-light cursor-pointer ms-2" for="is_featured">
                                 Regulasi Unggulan / Sorotan Utama
                             </label>
-                            <span class="text-xs text-secondary-light mt-1 d-block">Dokumen sorotan akan tampil di highlight beranda dan carousel terdepan.</span>
+                            <span class="text-xs text-secondary-light mt-1 d-block">Dokumen sorotan akan tampil di highlight beranda dan daftar unggulan.</span>
+                        </div>
+                    </div>
+
+                    <div class="p-16 radius-12 border bg-neutral-50 mb-16">
+                        <div class="form-check form-switch mb-12">
+                            <input class="form-check-input" type="checkbox" name="carousel_enabled" value="1" id="carousel_enabled" <?= ! empty($regulation['carousel_enabled']) ? 'checked' : '' ?>>
+                            <label class="form-check-label fw-bold text-sm text-primary-light cursor-pointer ms-2" for="carousel_enabled">
+                                Tampilkan di Slider Sorotan (Hero Carousel)
+                            </label>
+                            <span class="text-xs text-secondary-light mt-1 d-block">Regulasi akan diprioritaskan tampil pada slider hero di landing page <code>/regulasi</code>.</span>
+                        </div>
+                        <div>
+                            <label class="form-label fw-semibold text-primary-light text-xs mb-4" for="carousel_order">Urutan Prioritas Slider (Opsional)</label>
+                            <input type="number" min="1" max="99" class="form-control form-control-sm radius-8" name="carousel_order" id="carousel_order" value="<?= esc(old('carousel_order', $regulation['carousel_order'] ?? '')) ?>" placeholder="Contoh: 1, 2, 3...">
+                            <span class="text-2xs text-secondary-light mt-1 d-block">Urutan terkecil akan tampil paling awal dalam rotasi slider.</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Tombol Aksi Simpan & Batal -->
-            <div class="card border-0 radius-16 shadow-sm bg-white p-20">
+            <div class="card border-0 radius-16 shadow-sm bg-base p-20">
                 <div class="d-flex flex-column gap-2">
                     <button type="submit" class="btn btn-primary-600 radius-8 px-20 py-12 fw-semibold d-flex align-items-center justify-content-center gap-2">
                         <iconify-icon icon="solar:disk-bold" class="text-lg"></iconify-icon>

@@ -53,15 +53,22 @@ $optionsByQuestion = $optionsByQuestion ?? [];
             <?= csrf_field() ?>
             <input type="hidden" name="_action" value="update_meta">
             <div class="row g-3">
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-5">
                     <label class="form-label fw-semibold text-navy small mb-1">Judul Ujian <span class="text-danger">*</span></label>
                     <input type="text" name="title" class="form-control rounded-3 py-2" value="<?= esc($quiz['title']) ?>" required>
                 </div>
-                <div class="col-6 col-md-3">
-                    <label class="form-label fw-semibold text-navy small mb-1">Batas Percobaan (Attempt Limit)</label>
+                <div class="col-6 col-md-2">
+                    <label class="form-label fw-semibold text-navy small mb-1">Durasi (Menit)</label>
+                    <div class="input-group">
+                        <input type="number" name="duration_minutes" min="0" value="<?= esc($quiz['duration_minutes'] ?? '') ?>" class="form-control rounded-start-3 py-2" placeholder="0">
+                        <span class="input-group-text bg-light text-muted small">Mnt</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label fw-semibold text-navy small mb-1">Attempt Limit</label>
                     <input type="number" name="attempt_limit" min="1" value="<?= (int) ($quiz['attempt_limit'] ?? 1) ?>" class="form-control rounded-3 py-2">
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-12 col-md-3">
                     <label class="form-label fw-semibold text-navy small mb-1">Status Publikasi</label>
                     <select name="status" class="form-select rounded-3 py-2">
                         <option value="published" <?= (($quiz['status'] ?? 'draft') === 'published') ? 'selected' : '' ?>>Published (Aktif)</option>

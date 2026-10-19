@@ -7,7 +7,7 @@
         <span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span>
     </a>
 
-    <h4 class="mb-8 fw-bold text-dark"><?= esc($pageTitle ?? 'Masuk ke Akun Anda') ?></h4>
+    <h4 class="mb-8 fw-bold text-primary-light"><?= esc($pageTitle ?? 'Masuk ke Akun Anda') ?></h4>
     <p class="mb-0 text-secondary-light text-sm"><?= esc($pageDescription ?? 'Silakan masukkan email dan kata sandi Anda untuk mengakses dashboard.') ?></p>
 </div>
 
@@ -58,7 +58,7 @@
                 id="login-email"
                 name="email"
                 value="<?= esc(old('email')) ?>"
-                placeholder="nama@instansi.go.id"
+                placeholder="nama@email.com"
                 autocomplete="email"
                 required>
         </div>

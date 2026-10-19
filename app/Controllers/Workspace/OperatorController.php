@@ -623,7 +623,7 @@ class OperatorController extends BaseController
         $participants = $this->db->table('event_registrations er')
             ->select('er.id, er.registered_at, er.status, u.name AS user_name, u.email AS user_email, a.status AS attendance_status')
             ->join('users u', 'u.id = er.user_id')
-            ->leftJoin('attendances a', 'a.event_registration_id = er.id')
+            ->join('attendances a', 'a.event_registration_id = er.id', 'left')
             ->where('er.event_id', $eid)
             ->orderBy('er.registered_at', 'DESC')
             ->get()->getResultArray();

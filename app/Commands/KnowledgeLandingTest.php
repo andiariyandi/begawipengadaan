@@ -52,6 +52,9 @@ class KnowledgeLandingTest extends BaseCommand
             'Media & Video'         => 'Media &amp; Video Pembelajaran',
             'FAQ Accordion Preview' => 'Pertanyaan Sering Muncul (FAQ)',
             'Pillars of Integrity'  => 'Membangun Budaya Pengadaan Berintegritas &amp; Akuntabel',
+            'Carousel Indicators'   => 'carousel-indicators evt-headline__indicators',
+            'Carousel Slide-To'     => 'data-bs-slide-to="0"',
+            'Indicators Sync Script'=> 'syncIndicatorDots',
         ];
 
         foreach ($guestChecks as $label => $needle) {
@@ -164,6 +167,16 @@ class KnowledgeLandingTest extends BaseCommand
             $passed++;
         } else {
             CLI::write('  [FAIL] Gallery Catalog: Render failure', 'red');
+            $failed++;
+        }
+
+        // Multimedia catalog (Integrated Unified Page)
+        $htmlMultimedia = $controller->multimedia();
+        if (str_contains($htmlMultimedia, 'Multimedia PBJ') && str_contains($htmlMultimedia, 'Feed Instagram')) {
+            CLI::write('  [OK] Multimedia Catalog: Unified page rendered with Instagram slider & filters', 'green');
+            $passed++;
+        } else {
+            CLI::write('  [FAIL] Multimedia Catalog: Render failure', 'red');
             $failed++;
         }
 

@@ -100,6 +100,7 @@ class ArticleController extends BaseKnowledgeController
         $fileId = $this->uploadFileAsset($file, 'article_cover', 'public');
         if ($fileId !== null) {
             $payload['cover_file_id'] = $fileId;
+            $payload['cover_url'] = site_url('file/' . $fileId);
         }
         $model->insert($payload);
         $articleId = (int) $model->getInsertID();
@@ -190,6 +191,7 @@ class ArticleController extends BaseKnowledgeController
         $fileId = $this->uploadFileAsset($file, 'article_cover', 'public');
         if ($fileId !== null) {
             $payload['cover_file_id'] = $fileId;
+            $payload['cover_url'] = site_url('file/' . $fileId);
         }
         $model->update((int) $id, $payload);
         $this->syncRelations($model, (int) $id);

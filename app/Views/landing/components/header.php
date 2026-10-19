@@ -10,14 +10,19 @@ $isPrefixActive = static function (string $prefix) use ($currentPath): bool {
 $isLoggedIn = session()->get('isLoggedIn') === true;
 $roles = (array) session()->get('roles');
 $userName = trim((string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna'));
-$workspaceHome = route_to('workspace.home');
+$workspaceHome = match (true) {
+    in_array('super_admin', $roles, true) || in_array('admin', $roles, true) => route_to('workspace.admin.home'),
+    in_array('trainer', $roles, true)                                        => route_to('workspace.trainer.home'),
+    in_array('operator', $roles, true)                                       => route_to('workspace.operator.home'),
+    default                                                                  => route_to('workspace.home'),
+};
 $roleLabel = match (true) {
     in_array('super_admin', $roles, true) => 'Super Admin',
-    in_array('admin', $roles, true) => 'Admin',
-    in_array('operator', $roles, true) => 'Operator',
-    in_array('evaluator', $roles, true) => 'Evaluator',
-    in_array('trainer', $roles, true) => 'Pengajar',
-    default => 'Peserta',
+    in_array('admin', $roles, true)       => 'Admin',
+    in_array('operator', $roles, true)    => 'Operator',
+    in_array('evaluator', $roles, true)   => 'Evaluator',
+    in_array('trainer', $roles, true)     => 'Pengajar',
+    default                               => 'Peserta',
 };
 $accountInitial = strtoupper(substr($userName, 0, 1));
 $hasDashboardAccess = (bool) session()->get('dashboard_access')
@@ -25,207 +30,7 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
     || in_array('super_admin', $roles, true);
 $isHomeView = !empty($isHome);
 ?>
-<header class="main-header <?= $isHomeView ? 'main-header--home' : '' ?>" style="<?= $isHomeView ? 'position: relative !important; top: auto !important; left: auto !important; right: auto !important; width: 100% !important; margin: 0 !important; z-index: 999 !important; background: #052244 !important;' : '' ?>">
-    <style>
-        .main-header--home,
-        .landing-home .main-header {
-            position: relative !important;
-            top: auto !important;
-            left: auto !important;
-            right: auto !important;
-            width: 100% !important;
-            margin: 0 !important;
-            z-index: 999 !important;
-            background: linear-gradient(180deg, rgba(5, 34, 68, 1) 0%, rgba(8, 47, 92, 1) 100%) !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
-        }
-
-        .main-menu__user {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .main-menu__user-trigger {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border-radius: 999px;
-            background: rgba(8, 47, 92, .08);
-            color: #082f5c;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 1;
-            transition: background-color .15s ease;
-            white-space: nowrap;
-        }
-
-        .main-menu__user-trigger:hover,
-        .main-menu__user:hover .main-menu__user-trigger,
-        .main-menu__user.is-open .main-menu__user-trigger {
-            background: rgba(8, 47, 92, .16);
-            color: #082f5c;
-        }
-
-        .main-menu__user-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #ff6b35;
-            color: #fff;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            line-height: 1;
-        }
-
-        .main-menu__user-name {
-            max-width: 130px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            display: inline-block;
-        }
-
-        .main-menu__user-trigger .icon-down-arrow {
-            font-size: 11px;
-            opacity: .7;
-        }
-
-        .main-menu__user-menu {
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            min-width: 240px;
-            margin: 0;
-            padding: 6px;
-            list-style: none;
-            background: #ffffff;
-            border: 1px solid #e6ebf2;
-            border-radius: 12px;
-            box-shadow: 0 14px 40px rgba(8, 47, 92, .12);
-            visibility: hidden;
-            opacity: 0;
-            transform: translateY(-4px);
-            transition: opacity .15s ease, transform .15s ease, visibility 0s linear .15s;
-            z-index: 1000;
-        }
-
-        .main-menu__user:hover .main-menu__user-menu,
-        .main-menu__user.is-open .main-menu__user-menu {
-            visibility: visible;
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity .15s ease, transform .15s ease, visibility 0s;
-        }
-
-        .main-menu__user-menu>li {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .main-menu__user-menu a,
-        .main-menu__user-menu button {
-            display: block;
-            width: 100%;
-            text-align: left;
-            background: transparent;
-            border: 0;
-            padding: 9px 14px;
-            font-size: 14px;
-            color: #42526b;
-            text-decoration: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        .main-menu__user-menu a:hover,
-        .main-menu__user-menu button:hover {
-            background: #eef6ff;
-            color: #082f5c;
-        }
-
-        .main-menu__user-meta {
-            padding: 12px 14px 10px;
-            border-bottom: 1px solid #edf0f5;
-            margin: 0 0 6px;
-            list-style: none;
-        }
-
-        .main-menu__user-meta strong {
-            display: block;
-            color: #082f5c;
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .main-menu__user-meta small {
-            display: block;
-            color: #8390a3;
-            font-size: 12px;
-            margin-top: 2px;
-        }
-
-        .main-menu__user-divider {
-            height: 1px;
-            background: #edf0f5;
-            margin: 6px 8px;
-            list-style: none;
-        }
-
-        .main-menu__user-menu form {
-            margin: 0;
-            padding: 0;
-        }
-
-        @media (max-width: 991px) {
-            .main-menu__user-name {
-                display: none;
-            }
-
-            .main-menu__user-trigger {
-                padding: 4px;
-            }
-
-            .main-menu__user-menu {
-                right: 0;
-            }
-        }
-    </style>
-    <div class="main-menu__top">
-        <div class="container">
-            <div class="main-menu__top-inner">
-                <ul class="list-unstyled main-menu__contact-list">
-                    <li>
-                        <div class="icon"><i class="icon-email"></i></div>
-                        <div class="text">
-                            <p><a href="mailto:biropbj@lampungprov.go.id">biropbj@lampungprov.go.id</a></p>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="icon"><i class="icon-contact"></i></div>
-                        <div class="text">
-                            <p><a href="tel:+62721123456">+62 851-1777-9783</a></p>
-                        </div>
-                    </li>
-                </ul>
-                <ul class="list-unstyled main-menu__contact-list main-menu__location">
-                    <li>
-                        <div class="icon"><i class="icon-location"></i></div>
-                        <div class="text">
-                            <p>Biro PBJ Setda Provinsi Lampung</p>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
+<header class="main-header">
 
     <nav class="main-menu">
         <div class="main-menu__wrapper">
@@ -233,39 +38,15 @@ $isHomeView = !empty($isHome);
                 <div class="main-menu__wrapper-inner">
                     <div class="main-menu__left">
                         <div class="main-menu__logo">
+                            <?php
+                            $customLogo = setting('organization.logo_url');
+                            $logoLightSrc = ! empty($customLogo) ? (str_starts_with($customLogo, 'http') ? $customLogo : base_url($customLogo)) : base_url('assets/main/images/resources/logo-1.png');
+                            $logoDarkSrc = ! empty($customLogo) ? (str_starts_with($customLogo, 'http') ? $customLogo : base_url($customLogo)) : base_url('assets/main/images/resources/logo-4.png');
+                            ?>
                             <a href="<?= site_url('/') ?>" aria-label="Beranda BegawiPengadaan">
-                                <img src="<?= base_url('assets/main/images/resources/logo-1.png') ?>" alt="BegawiPengadaan">
+                                <img src="<?= esc($logoLightSrc) ?>" alt="BegawiPengadaan" class="main-header__logo-light">
+                                <img src="<?= esc($logoDarkSrc) ?>" alt="BegawiPengadaan" class="main-header__logo-dark">
                             </a>
-                        </div>
-
-                        <div class="main-menu__category-box">
-                            <div class="main-menu__category-btn">
-                                <i class="fas fa-th"></i>
-                                <p>Eksplorasi</p>
-                                <span class="icon-down-arrow"></span>
-                            </div>
-                            <ul class="list-unstyled main-menu__category-sub-menu">
-                                <?php foreach (
-                                    [
-                                        ['icon' => 'categoyr-two-icon-1.png', 'title' => 'Arena<br>Belajar', 'subtitle' => 'Program dan kelas', 'url' => 'arena-belajar'],
-                                        ['icon' => 'categoyr-two-icon-2.png', 'title' => 'Bunga<br>Rampai', 'subtitle' => 'Artikel dan referensi', 'url' => 'bunga-rampai'],
-                                        ['icon' => 'categoyr-two-icon-3.png', 'title' => 'Regulasi<br>PBJ', 'subtitle' => 'Dokumen dan aturan', 'url' => 'regulasi'],
-                                        ['icon' => 'categoyr-two-icon-4.png', 'title' => 'Event dan<br>Agenda', 'subtitle' => 'Kegiatan mendatang', 'url' => 'event'],
-                                        ['icon' => 'categoyr-two-icon-5.png', 'title' => 'Statistik<br>Publik', 'subtitle' => 'Data dan capaian', 'url' => 'statistik'],
-                                        ['icon' => 'categoyr-two-icon-6.png', 'title' => 'Verifikasi<br>Sertifikat', 'subtitle' => 'Cek keabsahan', 'url' => 'verifikasi-sertifikat'],
-                                    ] as $item
-                                ): ?>
-                                    <li>
-                                        <a href="<?= site_url($item['url']) ?>">
-                                            <div class="main-menu__category-icon"><img src="<?= base_url('assets/main/images/icon/' . $item['icon']) ?>" alt=""></div>
-                                            <div class="main-menu__category-content">
-                                                <h5><?= $item['title'] ?></h5>
-                                                <p><?= esc($item['subtitle']) ?></p>
-                                            </div>
-                                        </a>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
                         </div>
                     </div>
 
@@ -283,15 +64,8 @@ $isHomeView = !empty($isHome);
                                     <li><a href="<?= site_url('tentang#maklumat') ?>">Maklumat Pelayanan UKPBJ</a></li>
                                 </ul>
                             </li>
-                            <li class="dropdown <?= $isPrefixActive('arena-belajar') ? 'current' : '' ?>">
+                            <li class=" <?= $isPrefixActive('arena-belajar') ? 'current' : '' ?>">
                                 <a href="<?= site_url('arena-belajar') ?>">Arena Belajar</a>
-                                <ul class="shadow-box">
-                                    <li><a href="<?= site_url('arena-belajar') ?>">Eksplorasi Pembelajaran</a></li>
-                                    <li><a href="<?= site_url('arena-belajar/program') ?>">Program Pembelajaran</a></li>
-                                    <li><a href="<?= site_url('arena-belajar/course') ?>">Course PBJ</a></li>
-                                    <li><a href="<?= site_url('arena-belajar/kelas') ?>">Kelas &amp; Batch</a></li>
-                                    <li><a href="<?= site_url('arena-belajar/pengajar') ?>">Instruktur &amp; Pengajar</a></li>
-                                </ul>
                             </li>
                             <li class="dropdown <?= $isPrefixActive('bunga-rampai') ? 'current' : '' ?>">
                                 <a href="<?= site_url('bunga-rampai') ?>">Bunga Rampai</a>
@@ -301,9 +75,7 @@ $isHomeView = !empty($isHome);
                                     <li><a href="<?= site_url('bunga-rampai/faq') ?>">Tanya Jawab (FAQ)</a></li>
                                     <li><a href="<?= site_url('bunga-rampai/studi-kasus') ?>">Studi Kasus Lapangan</a></li>
                                     <li><a href="<?= site_url('bunga-rampai/template-dokumen') ?>">Template Dokumen Kerja</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/media') ?>">Media &amp; Infografis</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/video') ?>">Video Edukasi PBJ</a></li>
-                                    <li><a href="<?= site_url('bunga-rampai/galeri') ?>">Galeri Kegiatan</a></li>
+                                    <li><a href="<?= site_url('bunga-rampai/multimedia') ?>">Multimedia PBJ</a></li>
                                 </ul>
                             </li>
                             <li class="dropdown <?= $isPrefixActive('regulasi') ? 'current' : '' ?>">
@@ -317,17 +89,8 @@ $isHomeView = !empty($isHome);
                                     <li><a href="<?= site_url('regulasi?category=surat-edaran') ?>">Surat Edaran (SE) PBJ</a></li>
                                 </ul>
                             </li>
-                            <li class="dropdown <?= $isPrefixActive('berita') ? 'current' : '' ?>">
+                            <li class="<?= $isPrefixActive('berita') ? 'current' : '' ?>">
                                 <a href="<?= site_url('berita') ?>">Berita</a>
-                                <ul class="shadow-box">
-                                    <li><a href="<?= site_url('berita') ?>">Semua Berita PBJ</a></li>
-                                    <li><a href="<?= site_url('berita/kategori/kebijakan-regulasi') ?>">Kebijakan &amp; Regulasi</a></li>
-                                    <li><a href="<?= site_url('berita/kategori/tata-kelola-integritas') ?>">Tata Kelola &amp; Integritas</a></li>
-                                    <li><a href="<?= site_url('berita/kategori/e-katalog-digital') ?>">E-Katalog &amp; Digital</a></li>
-                                    <li><a href="<?= site_url('berita/kategori/bimtek-pelatihan') ?>">Bimtek &amp; Sertifikasi</a></li>
-                                    <li><a href="<?= site_url('berita/kategori/capaian-prestasi') ?>">Capaian &amp; Prestasi UKPBJ</a></li>
-                                    <li><a href="<?= site_url('berita/kategori/pengumuman-resmi') ?>">Pengumuman Resmi</a></li>
-                                </ul>
                             </li>
                             <li class="dropdown <?= $isPrefixActive('event') ? 'current' : '' ?>">
                                 <a href="<?= site_url('event') ?>">Event &amp; Agenda</a>
@@ -341,10 +104,11 @@ $isHomeView = !empty($isHome);
                                     <li><a href="<?= site_url('event/kalender') ?>">Kalender Kegiatan PBJ</a></li>
                                 </ul>
                             </li>
-                            <li class="dropdown <?= $isPrefixActive('statistik') || $isPrefixActive('verifikasi-sertifikat') || $isActive('kontak') ? 'current' : '' ?>">
+                            <li class="dropdown <?= $isPrefixActive('statistik') || $isPrefixActive('verifikasi-sertifikat') || $isActive('kontak') || $isPrefixActive('survei-kepuasan/hasil') ? 'current' : '' ?>">
                                 <a href="#">Lainnya</a>
                                 <ul class="shadow-box">
                                     <li><a href="<?= site_url('statistik') ?>">Statistik Publik PBJ</a></li>
+                                    <li><a href="<?= site_url('statistik/survei-kepuasan') ?>"><i class="fas fa-chart-pie text-primary me-2"></i>Hasil Survei Kepuasan Publik (IKM)</a></li>
                                     <li><a href="<?= site_url('verifikasi-sertifikat') ?>">Verifikasi Sertifikat Digital</a></li>
                                     <li><a href="<?= site_url('kontak') ?>">Hubungi Kami &amp; Helpdesk LPSE</a></li>
                                 </ul>
@@ -353,8 +117,11 @@ $isHomeView = !empty($isHome);
                     </div>
 
                     <div class="main-menu__right">
-                        <div class="main-menu__search-cart-box">
-                            <div class="main-menu__search-box"><a href="#" class="main-menu__search searcher-toggler-box icon-search" aria-label="Cari"></a></div>
+                        <div class="main-menu__survey-box">
+                            <button type="button" class="main-menu__survey-btn" data-bs-toggle="modal" data-bs-target="#modalSurveyKepuasan" aria-label="Isi Survei Kepuasan Layanan Pengguna">
+                                <i class="fas fa-star text-warning"></i>
+                                <span>Survei Kepuasan</span>
+                            </button>
                         </div>
                         <?php if (! $isLoggedIn): ?>
                             <div class="main-menu__btn-boxes">
@@ -374,17 +141,22 @@ $isHomeView = !empty($isHome);
                                         <small><?= esc($roleLabel) ?></small>
                                     </li>
                                     <li role="none"><a role="menuitem" href="<?= esc($workspaceHome) ?>">Dashboard Workspace</a></li>
+                                    <li role="none"><a role="menuitem" href="<?= route_to('workspace.participant.classes') ?>">Kelas Saya</a></li>
                                     <li role="none"><a role="menuitem" href="<?= route_to('workspace.bookmarks.index') ?>">Bookmark</a></li>
                                     <li role="none"><a role="menuitem" href="<?= route_to('workspace.notifications') ?>">Notifikasi</a></li>
-                                    <li role="none"><a role="menuitem" href="<?= route_to('profile.index') ?>">Profil Saya</a></li>
+                                    <li role="none"><a role="menuitem" href="<?= route_to('workspace.profile.index') ?>">Profil Saya</a></li>
                                     <?php if ($hasDashboardAccess): ?>
                                         <li role="none"><a role="menuitem" href="<?= route_to('dashboard.home') ?>">Dashboard Administrasi</a></li>
                                     <?php endif; ?>
                                     <li class="main-menu__user-divider" aria-hidden="true"></li>
                                     <li role="none">
                                         <form action="<?= route_to('dashboard.auth.logout') ?>" method="post">
-                                            <?= csrf_field() ?>
-                                            <button type="submit" role="menuitem">Keluar</button>
+                                            <?php if (! is_cli()): ?>
+                                                <?= csrf_field() ?>
+                                            <?php else: ?>
+                                                <input type="hidden" name="csrf_test_name" value="cli-test-token">
+                                            <?php endif; ?>
+                                            <button type="submit" role="menuitem" class="main-menu__user-logout-btn"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Keluar</button>
                                         </form>
                                     </li>
                                 </ul>

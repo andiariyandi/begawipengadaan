@@ -42,7 +42,27 @@ $isSuperAdmin = $auth->isSuperAdmin();
 
             <li class="sidebar-menu-group-title">MANAJEMEN PLATFORM</li>
 
+            <li class="dropdown <?= $openClass('landing') ?>">
+                <a href="javascript:void(0)">
+                    <iconify-icon icon="solar:monitor-smartphone-outline" class="menu-icon"></iconify-icon>
+                    <span>Kelola Landing Page</span>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li><a class="<?= $activeClass('landing', 'spotlight-center') ?>" href="<?= site_url('dashboard/landing/sorotan-carousel') ?>"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> <span class="fw-bold">Pusat Carousel &amp; Sorotan</span></a></li>
+                    <li><a class="<?= $activeClass('landing', 'slider') ?>" href="<?= site_url('dashboard/landing/slider') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Slider &amp; Hero Beranda</a></li>
+                    <li><a class="<?= $activeClass('landing', 'pengumuman') ?>" href="<?= site_url('dashboard/landing/pengumuman') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Popup Pengumuman</a></li>
+                    <li><a class="<?= $activeClass('landing', 'profil-lembaga') ?>" href="<?= site_url('dashboard/landing/profil-lembaga') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Profil &amp; Nilai PATIK</a></li>
+                    <li><a class="<?= $activeClass('landing', 'pilar-hierarki') ?>" href="<?= site_url('dashboard/landing/pilar-hierarki') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pilar &amp; Hierarki Hukum</a></li>
+                    <li><a class="<?= $activeClass('landing', 'portal-eksternal') ?>" href="<?= site_url('dashboard/landing/portal-eksternal') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Portal Eksternal</a></li>
+                    <li><a class="<?= $activeClass('landing', 'testimoni') ?>" href="<?= site_url('dashboard/landing/testimoni') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Testimoni Pengguna</a></li>
+                    <li><a class="<?= $activeClass('landing', 'tim') ?>" href="<?= site_url('dashboard/landing/tim') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Tim Inovator</a></li>
+                    <li><a class="<?= $activeClass('landing', 'banner-halaman') ?>" href="<?= site_url('dashboard/landing/banner-halaman') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Banner Halaman Publik</a></li>
+                    <li><a class="<?= $activeClass('landing', 'kategori-layanan') ?>" href="<?= site_url('dashboard/landing/kategori-layanan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Kategori Layanan</a></li>
+                </ul>
+            </li>
+
             <li class="dropdown <?= $openClass('access') ?>">
+
                 <a href="javascript:void(0)">
                     <iconify-icon icon="solar:users-group-rounded-outline" class="menu-icon"></iconify-icon>
                     <span>Manajemen Akses</span>
@@ -130,6 +150,9 @@ $isSuperAdmin = $auth->isSuperAdmin();
                     <li><a class="<?= $activeClass('communication', 'event-registrations') ?>" href="<?= site_url('dashboard/komunikasi/registrasi-event') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Registrasi Event</a></li>
                     <li><a class="<?= $activeClass('communication', 'attendance') ?>" href="<?= site_url('dashboard/komunikasi/kehadiran') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Kehadiran</a></li>
                     <li><a class="<?= $activeClass('communication', 'waitlist-cancellations') ?>" href="<?= site_url('dashboard/komunikasi/waitlist-pembatalan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Waitlist dan Pembatalan</a></li>
+                    <li><a class="<?= $activeClass('communication', 'inbox') ?>" href="<?= site_url('dashboard/komunikasi/pesan-masuk') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pesan Masuk (Inbox)</a></li>
+                    <li><a class="<?= $activeClass('communication', 'helpdesk') ?>" href="<?= site_url('dashboard/komunikasi/whatsapp-widget') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Widget WhatsApp</a></li>
+                    <li><a class="<?= $activeClass('communication', 'newsletter') ?>" href="<?= site_url('dashboard/komunikasi/newsletter') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pelanggan Newsletter</a></li>
                 </ul>
             </li>
 
@@ -181,6 +204,13 @@ $isSuperAdmin = $auth->isSuperAdmin();
                     <li><a class="<?= $activeClass('reports', 'users') ?>" href="<?= site_url('dashboard/laporan/pengguna') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Laporan Pengguna</a></li>
                     <li><a class="<?= $activeClass('reports', 'export-history') ?>" href="<?= site_url('dashboard/laporan/riwayat-export') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Riwayat Export</a></li>
                 </ul>
+            </li>
+
+            <li class="<?= $activeClass('survey', 'index') ?>">
+                <a href="<?= site_url('dashboard/survei-kepuasan') ?>">
+                    <iconify-icon icon="solar:like-outline" class="menu-icon"></iconify-icon>
+                    <span>Survei Kepuasan (IKM)</span>
+                </a>
             </li>
 
             <li class="sidebar-menu-group-title">SISTEM</li>

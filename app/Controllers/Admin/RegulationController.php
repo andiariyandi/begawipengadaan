@@ -160,6 +160,8 @@ class RegulationController extends BaseController
                 'legal_status'        => $post['legal_status'] ?? 'active',
                 'visibility'          => $post['visibility'] ?? 'internal',
                 'is_featured'         => isset($post['is_featured']) && $post['is_featured'] ? 1 : 0,
+                'carousel_enabled'    => isset($post['carousel_enabled']) && $post['carousel_enabled'] ? 1 : 0,
+                'carousel_order'      => ! empty($post['carousel_order']) ? (int) $post['carousel_order'] : null,
                 'cover_file_id'       => $coverFileId,
             ], (int) session()->get('user_id'));
         } catch (\Throwable $e) {
@@ -299,6 +301,8 @@ class RegulationController extends BaseController
             'legal_status'        => $post['legal_status'] ?? 'active',
             'visibility'          => $post['visibility'] ?? 'internal',
             'is_featured'         => isset($post['is_featured']) && $post['is_featured'] ? 1 : 0,
+            'carousel_enabled'    => isset($post['carousel_enabled']) && $post['carousel_enabled'] ? 1 : 0,
+            'carousel_order'      => ! empty($post['carousel_order']) ? (int) $post['carousel_order'] : null,
         ];
 
         // Handle cover image

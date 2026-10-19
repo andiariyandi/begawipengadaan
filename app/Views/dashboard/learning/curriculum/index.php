@@ -949,11 +949,15 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                         <textarea id="quiz_instructions" name="instructions" class="form-control radius-8" rows="3" placeholder="Petunjuk pengerjaan bagi peserta..."></textarea>
                     </div>
                     <div class="row gy-16 mb-16">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-sm mb-6" for="quiz_attempts">Batas Attempt (Percobaan)</label>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-sm mb-6" for="quiz_duration">Durasi Timer (Menit)</label>
+                            <input id="quiz_duration" type="number" min="0" name="duration_minutes" class="form-control radius-8" placeholder="0 = Bebas">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-sm mb-6" for="quiz_attempts">Attempt Limit</label>
                             <input id="quiz_attempts" type="number" min="1" max="10" name="attempt_limit" class="form-control radius-8" value="1">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold text-sm mb-6" for="quiz_status">Status</label>
                             <select id="quiz_status" name="status" class="form-select radius-8">
                                 <option value="published">Published (Aktif)</option>
@@ -1140,6 +1144,7 @@ function openCreateQuizModal(type, title) {
     document.getElementById('quiz_form_module_id').value = '';
     document.getElementById('quiz_title').value = title;
     document.getElementById('quiz_instructions').value = '';
+    document.getElementById('quiz_duration').value = '';
     document.getElementById('quiz_attempts').value = '1';
     document.getElementById('quiz_status').value = 'published';
     document.getElementById('quiz_req').checked = true;
@@ -1155,6 +1160,7 @@ function openCreateModuleQuizModal(moduleId, defaultTitle) {
     document.getElementById('quiz_form_module_id').value = moduleId;
     document.getElementById('quiz_title').value = defaultTitle;
     document.getElementById('quiz_instructions').value = 'Jawab seluruh pertanyaan pilihan ganda untuk menguji pemahaman materi pada modul ini.';
+    document.getElementById('quiz_duration').value = '';
     document.getElementById('quiz_attempts').value = '3';
     document.getElementById('quiz_status').value = 'published';
     document.getElementById('quiz_req').checked = true;
@@ -1170,6 +1176,7 @@ function openEditQuizModal(quiz) {
     document.getElementById('quiz_form_module_id').value = '';
     document.getElementById('quiz_title').value = quiz.title || '';
     document.getElementById('quiz_instructions').value = quiz.instructions || '';
+    document.getElementById('quiz_duration').value = quiz.duration_minutes || '';
     document.getElementById('quiz_attempts').value = quiz.attempt_limit || '1';
     document.getElementById('quiz_status').value = quiz.status || 'published';
     document.getElementById('quiz_req').checked = (quiz.is_required == 1);

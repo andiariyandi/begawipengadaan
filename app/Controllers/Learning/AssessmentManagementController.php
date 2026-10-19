@@ -240,6 +240,8 @@ class AssessmentManagementController extends BaseController
         $title        = trim((string) $this->request->getPost('title'));
         $type         = (string) ($this->request->getPost('type') ?: 'lesson_quiz');
         $instructions = trim((string) $this->request->getPost('instructions'));
+        $durationPost = $this->request->getPost('duration_minutes');
+        $durationMinutes = ($durationPost !== null && $durationPost !== '') ? max(0, (int) $durationPost) : null;
         $attemptLimit = max(1, (int) ($this->request->getPost('attempt_limit') ?: 1));
         $isRequired   = $this->request->getPost('is_required') ? 1 : 0;
         $status       = (string) ($this->request->getPost('status') ?: 'published');
@@ -257,16 +259,17 @@ class AssessmentManagementController extends BaseController
         $db  = db_connect();
 
         $db->table('quizzes')->insert([
-            'class_id'      => $classId,
-            'lesson_id'     => null,
-            'type'          => $type,
-            'title'         => $title,
-            'instructions'  => $instructions ?: null,
-            'attempt_limit' => $attemptLimit,
-            'is_required'   => $isRequired,
-            'status'        => $status,
-            'created_at'    => $now,
-            'updated_at'    => $now,
+            'class_id'         => $classId,
+            'lesson_id'        => null,
+            'type'             => $type,
+            'title'            => $title,
+            'instructions'     => $instructions ?: null,
+            'duration_minutes' => $durationMinutes,
+            'attempt_limit'    => $attemptLimit,
+            'is_required'      => $isRequired,
+            'status'           => $status,
+            'created_at'       => $now,
+            'updated_at'       => $now,
         ]);
 
         // Sync with pre_tests table if pre_test
@@ -306,6 +309,8 @@ class AssessmentManagementController extends BaseController
 
         $title        = trim((string) $this->request->getPost('title'));
         $instructions = trim((string) $this->request->getPost('instructions'));
+        $durationPost = $this->request->getPost('duration_minutes');
+        $durationMinutes = ($durationPost !== null && $durationPost !== '') ? max(0, (int) $durationPost) : null;
         $attemptLimit = max(1, (int) ($this->request->getPost('attempt_limit') ?: $quiz['attempt_limit']));
         $isRequired   = $this->request->getPost('is_required') ? 1 : 0;
         $status       = (string) ($this->request->getPost('status') ?: $quiz['status']);
@@ -317,13 +322,14 @@ class AssessmentManagementController extends BaseController
 
         $now = date('Y-m-d H:i:s');
         $db->table('quizzes')->where('id', (int) $id)->update([
-            'title'         => $title,
-            'type'          => $type,
-            'instructions'  => $instructions ?: null,
-            'attempt_limit' => $attemptLimit,
-            'is_required'   => $isRequired,
-            'status'        => $status,
-            'updated_at'    => $now,
+            'title'            => $title,
+            'type'             => $type,
+            'instructions'     => $instructions ?: null,
+            'duration_minutes' => $durationMinutes,
+            'attempt_limit'    => $attemptLimit,
+            'is_required'      => $isRequired,
+            'status'           => $status,
+            'updated_at'       => $now,
         ]);
 
         if ($type === 'pre_test' || $quiz['type'] === 'pre_test') {

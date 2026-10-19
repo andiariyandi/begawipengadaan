@@ -26,6 +26,8 @@ class ProgramModel extends Model
         'status',
         'visibility',
         'featured',
+        'carousel_enabled',
+        'carousel_order',
         'cover_file_id',
         'cover_url',
         'created_by',

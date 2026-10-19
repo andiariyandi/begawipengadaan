@@ -165,23 +165,107 @@ class EventPublicController extends BaseController
                 'certificate_enabled'  => (int) ($row['certificate_enabled'] ?? 0),
                 'registration_open_at' => $row['registration_open_at'],
                 'registration_close_at' => $row['registration_close_at'],
-                'cover_url'            => ! empty($row['cover_path']) ? base_url($row['cover_path']) : null,
+                'cover_url'            => ! empty($row['cover_file_id']) ? site_url('file/' . (int) $row['cover_file_id']) : (! empty($row['cover_path']) ? (str_starts_with($row['cover_path'], 'http') ? $row['cover_path'] : base_url($row['cover_path'])) : null),
             ];
         }, $rawItems);
 
-        // Spotlight Event (Closest upcoming open event on page 1 without search)
-        $spotlightEvent = null;
-        if ($currentPage === 1 && empty($keyword) && empty($type) && empty($mode) && ! empty($items)) {
-            // Find first upcoming open event
-            foreach ($items as $idx => $it) {
-                if (! $it['is_past'] && in_array($it['status'], ['open_registration', 'coming_soon', 'published'])) {
-                    $spotlightEvent = $it;
-                    // Remove spotlight from list so it doesn't duplicate
-                    array_splice($items, $idx, 1);
-                    break;
-                }
-            }
+        // Featured Slider Events (respect spotlight_mode & spotlight_limit settings)
+        $sliderEvents = [];
+        $spotlightMode  = (string) (setting('event.spotlight_mode') ?? 'all');
+        $spotlightLimit = (int) (setting('event.spotlight_limit') ?? 5);
+        if ($spotlightLimit < 3) {
+            $spotlightLimit = 3;
+        } elseif ($spotlightLimit > 15) {
+            $spotlightLimit = 15;
         }
+
+        if ($currentPage === 1 && empty($keyword) && empty($type) && empty($mode)) {
+            $sliderBuilder = $this->db->table('events e')
+                ->select('e.*, COALESCE(u.name, u.username, "Biro PBJ Setda Lampung") AS creator_name, fa.path AS cover_path')
+                ->join('users u', 'u.id = e.created_by', 'left')
+                ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
+                ->where('e.deleted_at', null)
+                ->where('e.visibility', 'public');
+
+            if ($spotlightMode === 'featured') {
+                $sliderBuilder->where('e.is_featured', 1);
+            } elseif ($spotlightMode === 'upcoming') {
+                $sliderBuilder->where('e.end_at >=', $now);
+            } elseif ($spotlightMode !== 'all' && ! empty($spotlightMode)) {
+                $sliderBuilder->where('e.type', $spotlightMode);
+            }
+
+            $sliderRaw = $sliderBuilder
+                ->orderBy('e.carousel_enabled', 'DESC')
+                ->orderBy('CASE WHEN e.carousel_order IS NULL THEN 9999 ELSE e.carousel_order END', 'ASC', false)
+                ->orderBy('e.is_featured', 'DESC')
+                ->orderBy('CASE WHEN e.status = "open_registration" THEN 0 WHEN e.status = "coming_soon" THEN 1 ELSE 2 END', 'ASC', false)
+                ->orderBy('e.start_at', 'ASC')
+                ->limit($spotlightLimit)
+                ->get()->getResultArray();
+
+            // If no events match specific spotlight filter, fallback to general upcoming / open events
+            if (empty($sliderRaw) && ! empty($rawItems)) {
+                $sliderRaw = array_slice($rawItems, 0, min($spotlightLimit, count($rawItems)));
+            }
+
+            $sliderEvents = array_map(function ($row) use ($now) {
+                $start = ! empty($row['start_at']) ? strtotime($row['start_at']) : time();
+                $end   = ! empty($row['end_at']) ? strtotime($row['end_at']) : $start;
+
+                $regCount = $this->db->table('event_registrations')
+                    ->where('event_id', $row['id'])
+                    ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
+                    ->countAllResults();
+
+                $capacity    = (int) ($row['capacity'] ?? 0);
+                $isUnlimited = ($capacity <= 0);
+                $remaining   = $isUnlimited ? null : max(0, $capacity - $regCount);
+                $isPast      = strtotime($row['end_at']) < strtotime($now);
+
+                $coverUrl = null;
+                if (! empty($row['cover_file_id'])) {
+                    $coverUrl = site_url('file/' . (int) $row['cover_file_id']);
+                } elseif (! empty($row['cover_path'])) {
+                    $coverUrl = str_starts_with($row['cover_path'], 'http') ? $row['cover_path'] : base_url($row['cover_path']);
+                }
+
+                return [
+                    'id'                   => (int) $row['id'],
+                    'title'                => $row['title'],
+                    'slug'                 => $row['slug'],
+                    'type'                 => $row['type'],
+                    'type_label'           => $this->formatTypeLabel($row['type']),
+                    'mode'                 => $row['mode'],
+                    'mode_label'           => $this->formatModeLabel($row['mode']),
+                    'status'               => $row['status'],
+                    'status_label'         => $this->formatStatusLabel($row['status'], $isPast),
+                    'summary'              => $row['summary'] ?: mb_strimwidth(strip_tags((string) $row['description']), 0, 150, '...'),
+                    'description'          => $row['description'],
+                    'start_at'             => $row['start_at'],
+                    'end_at'               => $row['end_at'],
+                    'start_date'           => date('d M Y', $start),
+                    'start_day'            => date('d', $start),
+                    'start_month'          => date('M', $start),
+                    'start_year'           => date('Y', $start),
+                    'time_range'           => date('H:i', $start) . ' - ' . date('H:i', $end) . ' WIB',
+                    'location'             => $row['location'] ?: ($row['mode'] === 'online' ? 'Daring via Zoom / Platform Online' : 'Bandar Lampung'),
+                    'meeting_url'          => $row['meeting_url'] ?? '',
+                    'capacity'             => $capacity,
+                    'is_unlimited'         => $isUnlimited,
+                    'registered'           => $regCount,
+                    'remaining'            => $remaining,
+                    'is_past'              => $isPast,
+                    'waitlist_enabled'     => (int) ($row['waitlist_enabled'] ?? 0),
+                    'certificate_enabled'  => (int) ($row['certificate_enabled'] ?? 0),
+                    'registration_open_at' => $row['registration_open_at'],
+                    'registration_close_at' => $row['registration_close_at'],
+                    'cover_url'            => $coverUrl,
+                ];
+            }, $sliderRaw);
+        }
+
+        $spotlightEvent = ! empty($sliderEvents) ? $sliderEvents[0] : null;
 
         // Live KPI Metrics (strictly authentic database counts, zero dummy data)
         $stats = [
@@ -241,6 +325,7 @@ class EventPublicController extends BaseController
             'viewMode'         => $viewMode,
             'items'            => $items,
             'spotlightEvent'   => $spotlightEvent,
+            'sliderEvents'     => $sliderEvents,
             'totalItems'       => $totalItems,
             'currentPage'      => $currentPage,
             'totalPages'       => $totalPages,

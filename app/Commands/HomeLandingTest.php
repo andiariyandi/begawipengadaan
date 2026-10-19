@@ -151,6 +151,142 @@ class HomeLandingTest extends BaseCommand
             $this->assert(str_contains($html, 'Event &amp; Agenda'), "Event feature metric present");
         });
 
+        // Test 14: Interactive Testimonies Spotlight Slider Section
+        $this->testModule("Interactive Testimonies Spotlight Slider Section", function () use ($html) {
+            $this->assert(str_contains($html, 'section-testimonies'), "Testimonies section container present");
+            $this->assert(str_contains($html, 'Testimoni &amp; Pengalaman Nyata Pengguna BegawiPengadaan'), "Testimonies heading present");
+            $this->assert(str_contains($html, 'testimony-card'), "Testimony cards present");
+            $this->assert(str_contains($html, 'spotlight-photo-frame'), "Prominent spotlight photo frame present");
+            $this->assert(str_contains($html, 'Ahmad Zulkarnaen, S.T., M.T.'), "PPK testimony author present");
+            $this->assert(str_contains($html, 'Rina Widyastuti, S.E., M.Si.'), "Pokja testimony author present");
+            $this->assert(str_contains($html, 'testimonyDetailModal'), "Interactive testimony detail modal present");
+        });
+
+        // Test 15: Team Inovator & Pengembang Spotlight Slider Section
+        $this->testModule("Team Inovator & Pengembang Spotlight Slider Section", function () use ($html) {
+            $this->assert(str_contains($html, 'section-team'), "Team section container present");
+            $this->assert(str_contains($html, 'Tim Inovator di Balik Ekosistem BegawiPengadaan'), "Team heading present");
+            $this->assert(str_contains($html, 'team-card'), "Team cards present");
+            $this->assert(str_contains($html, 'spotlight-photo-frame'), "Prominent spotlight photo frame present");
+            $this->assert(str_contains($html, 'Dr. Ir. Fahrizal Darminto, M.A.'), "Sekretaris Daerah team member present");
+            $this->assert(str_contains($html, 'Slamet Riadi, S.Sos., M.M.'), "Kepala Biro PBJ team member present");
+            $this->assert(str_contains($html, 'Software Engineering &amp; UI/UX Crew'), "Software engineering team present");
+            $this->assert(str_contains($html, 'team-values-banner'), "Team values banner present");
+        });
+
+        // Test 16: WhatsApp Floating Chat Widget (Bottom-Left)
+        $this->testModule("WhatsApp Helpdesk Floating Chat Widget", function () use ($html) {
+            $this->assert(str_contains($html, 'bp-wa-widget'), "WhatsApp widget container present");
+            $this->assert(str_contains($html, 'bpWaTriggerBtn'), "WhatsApp trigger button present");
+            $this->assert(str_contains($html, 'bpWaBox'), "WhatsApp popup box window present");
+            $this->assert(str_contains($html, 'Helpdesk BegawiPengadaan'), "Helpdesk title present in chat header");
+            $this->assert(str_contains($html, 'wa.me/6285117779783'), "Official WhatsApp destination URL present");
+            $this->assert(str_contains($html, 'bp-wa-chip'), "Quick topic chips present in chat body");
+        });
+
+        // Test 17: Home Landing Page Exclusive Popup & Responsive Slider
+        $this->testModule("Home Exclusive Popup Announcement & Responsive Slider", function () use ($html) {
+            $this->assert(str_contains($html, 'home-promo-overlay'), "Home exclusive popup overlay present");
+            $this->assert(str_contains($html, 'home-promo-carousel'), "Popup responsive slider carousel present");
+            $this->assert(str_contains($html, 'homePromoCloseBtn'), "Close button present in popup");
+            $this->assert(str_contains($html, 'home-promo-img'), "Slider images present in popup");
+            $this->assert(str_contains($html, 'home-promo-indicators'), "Carousel indicators present in popup");
+            $this->assert(str_contains($html, 'home-promo-reopen-btn'), "Reopen trigger button present");
+        });
+
+        // ==========================================
+        // 18. TEST NAVBAR SIMPLIFICATION & SURVEI KEPUASAN PENGGUNA (BEFORE & AFTER SUBMIT)
+        // ==========================================
+        $this->testModule("Navbar Simplification & Survei Kepuasan (Single Button & Hasil Publik)", function () use ($html) {
+            $headerContent = file_get_contents(APPPATH . 'Views/landing/components/header.php');
+
+            // 1. Eksplorasi and Search removed from header
+            $this->assert(! str_contains($headerContent, 'main-menu__category-box'), "Eksplorasi category box removed from header");
+            $this->assert(! str_contains($headerContent, 'main-menu__search-cart-box'), "Search cart box removed from header");
+
+            // 2. No redundant menu list link, exactly single button trigger in right header
+            $this->assert(! str_contains($headerContent, 'main-menu__survey-nav-item'), "Redundant survey nav-item removed from list");
+            $this->assert(str_contains($headerContent, 'main-menu__survey-btn'), "Single Survei Kepuasan button trigger present in header");
+            $this->assert(str_contains($headerContent, 'site_url(\'statistik/survei-kepuasan\')'), "Public survey results link present in Lainnya dropdown");
+
+            // 3. Survey Modal Present on Landing Page
+            $this->assert(str_contains($html, 'id="modalSurveyKepuasan"'), "Survey modal container present on landing page");
+
+            // 4. Form State (Before Submit)
+            $this->assert(str_contains($html, 'id="surveyFormBeforeSubmit"'), "Survey Form state before submit present");
+            $this->assert(str_contains($html, 'survey-emoji-card'), "Interactive rating emojis present");
+            $this->assert(str_contains($html, 'survey-aspect-item'), "4 Service aspects ratings present");
+            $this->assert(str_contains($html, 'surveyIsAnonymous'), "Anonymous toggle switch present");
+            $this->assert(str_contains($html, 'btn-quick-tag'), "Quick suggestion tags present");
+            $this->assert(str_contains($html, 'survey-btn-submit'), "Survey submit button present");
+
+            // 5. Success State (After Submit)
+            $this->assert(str_contains($html, 'id="surveySuccessAfterSubmit"'), "Survey Success state after submit present");
+            $this->assert(str_contains($html, 'survey-receipt-card'), "Survey receipt summary card present");
+            $this->assert(str_contains($html, 'receiptTicketNumber'), "Ticket number receipt field present");
+            $this->assert(str_contains($html, 'surveyBtnFillAgain'), "Fill again / reset action button present");
+
+            // 6. Test Model & Database persistence
+            $model = new \App\Models\SatisfactionSurveyModel();
+            $ticket = $model->generateTicketNumber();
+            $this->assert(str_starts_with($ticket, 'IKM-'), "Ticket number correctly formatted with IKM prefix");
+
+            $inserted = $model->insert([
+                'ticket_number'              => $ticket,
+                'rating_overall'             => 5,
+                'service_access_rating'      => 5,
+                'service_regulation_rating'  => 5,
+                'service_learning_rating'    => 5,
+                'service_helpdesk_rating'    => 5,
+                'respondent_role'            => 'Penyedia Barang / Jasa (Vendor / Rekanan / UMKM)',
+                'is_anonymous'               => 1,
+                'feedback'                   => 'Layanan BegawiPengadaan sangat informatif dan mempermudah akses PBJ Provinsi Lampung.',
+                'recommendation'             => 'Pasti Merekomendasikan',
+            ]);
+            $this->assert($inserted !== false, "Satisfaction survey record persisted to database");
+
+            // Cleanup test record
+            $model->where('ticket_number', $ticket)->delete();
+
+            // 7. Verify Public Survey Results UI (/statistik/survei-kepuasan)
+            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'statistik/survei-kepuasan');
+            $request = new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent());
+            \Config\Services::injectMock('request', $request);
+
+            $statController = new \App\Controllers\Landing\StatisticPublicController();
+            $statController->initController($request, service('response'), service('logger'));
+            $surveyResultsHtml = $statController->satisfactionSurvey();
+
+            $this->assert(str_contains($surveyResultsHtml, 'Hasil Survei Kepuasan Publik (IKM)'), "Survey results title present");
+            $this->assert(str_contains($surveyResultsHtml, 'Capaian Indeks IKM'), "Capaian Indeks IKM card present");
+            $this->assert(str_contains($surveyResultsHtml, 'Penilaian 4 Dimensi Aspek Mutu Layanan'), "4 Dimensions present");
+            $this->assert(str_contains($surveyResultsHtml, 'Distribusi Kategori Responden'), "Respondent distribution present");
+            $this->assert(str_contains($surveyResultsHtml, 'Aspirasi &amp; Ulasan Publik Terverifikasi') || str_contains($surveyResultsHtml, 'Aspirasi & Ulasan'), "Public feedback section present");
+        });
+
+        // 19. Public Statistics Portal (/statistik and sub-routes)
+        $this->testModule("Public Statistics Portal (/statistik & Klaster Tabs)", function () {
+            $statController = new \App\Controllers\Landing\StatisticPublicController();
+            $statController->initController(service('request'), service('response'), service('logger'));
+
+            // Test /statistik (all)
+            $indexHtml = $statController->index();
+            $this->assert(str_contains($indexHtml, 'Pusat Statistik'), "Portal title present");
+            $this->assert(str_contains($indexHtml, 'Regulasi PBJ'), "Regulasi KPI card present");
+            $this->assert(str_contains($indexHtml, 'Sertifikat Digital'), "Sertifikat KPI card present");
+            $this->assert(str_contains($indexHtml, 'Agenda Pembinaan'), "Agenda Pembinaan KPI card present");
+
+            // Test sub-tabs (/statistik/pembelajaran, /event, /kompetensi)
+            $learningHtml = $statController->learning();
+            $this->assert(str_contains($learningHtml, 'Klaster Pembelajaran'), "Learning cluster tab renders OK");
+
+            $eventsHtml = $statController->events();
+            $this->assert(str_contains($eventsHtml, 'Event &amp; Agenda') || str_contains($eventsHtml, 'Event & Agenda'), "Events tab renders OK");
+
+            $compHtml = $statController->competency();
+            $this->assert(str_contains($compHtml, 'Sertifikasi PBJ'), "Competency tab renders OK");
+        });
+
         // Summary
         CLI::newLine();
         CLI::write("==================================================================", "cyan");

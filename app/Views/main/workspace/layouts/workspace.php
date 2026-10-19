@@ -25,12 +25,16 @@
     <link rel="stylesheet" href="<?= base_url('assets/main/css/custom-animate.css') ?>" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/swiper.min.css') ?>" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/font-awesome-all.css') ?>" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/module-css/footer.css') ?>" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/module-css/page-header.css') ?>" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/module-css/courses.css') ?>" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/module-css/event.css') ?>" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/style.css') ?>" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/responsive.css') ?>" />
+
+    <!-- BegawiPengadaan Landing Design System & Core Styles -->
+    <link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-core.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-core.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-core.css') : '2.0' ?>" />
 
     <!-- Dedicated Workspace Customization Stylesheet -->
     <link rel="stylesheet" href="<?= base_url('assets/main/css/workspace.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/workspace.css') ? filemtime(FCPATH . 'assets/main/css/workspace.css') : '1.0' ?>" />
@@ -43,50 +47,59 @@
     <div class="custom-cursor__cursor-two"></div>
 
     <div class="page-wrapper">
-        <!-- Dedicated FiStudy Workspace Header -->
-        <?= $this->include('main/workspace/components/header') ?>
+        <!-- Unified BegawiPengadaan Navbar (Identical to Landing) -->
+        <?= $this->include('landing/components/header') ?>
 
-        <!-- FiStudy Sticky Header Anchor Container -->
-        <div class="stricky-header stricked-menu main-menu">
-            <div class="sticky-header__content"></div>
-        </div>
-
-        <!-- Breadcrumb Section -->
+        <!-- Breadcrumb Section (FiStudy / Berita & Event Design System) -->
         <section class="workspace-breadcrumb">
             <div class="container">
-                <h2><?= esc($breadcrumbTitle ?? $pageTitle ?? 'Workspace') ?></h2>
-                <ul class="thm-breadcrumb">
-                    <li><a href="<?= route_to('public.home') ?>">Beranda</a></li>
-                    <li><span>//</span></li>
-                    <li><a href="<?= route_to('workspace.home') ?>">Workspace</a></li>
-                    <?php if (! empty($breadcrumbTail) && is_array($breadcrumbTail)): ?>
-                        <?php foreach ($breadcrumbTail as $tail): ?>
-                            <li><span>//</span></li>
-                            <li class="<?= empty($tail['url']) ? 'current' : '' ?>">
-                                <?php if (! empty($tail['url'])): ?>
-                                    <a href="<?= esc($tail['url']) ?>"><?= esc($tail['label']) ?></a>
-                                <?php else: ?>
-                                    <?= esc($tail['label']) ?>
-                                <?php endif; ?>
-                            </li>
-                        <?php endforeach; ?>
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div>
+                        <h2><?= esc($breadcrumbTitle ?? $pageTitle ?? 'Workspace') ?></h2>
+                        <ul class="thm-breadcrumb">
+                            <li><a href="<?= route_to('public.home') ?>"><i class="fas fa-home me-1"></i> Beranda</a></li>
+                            <li><span class="sep">/</span></li>
+                            <li><a href="<?= route_to('workspace.home') ?>">Workspace</a></li>
+                            <?php if (! empty($breadcrumbTail) && is_array($breadcrumbTail)): ?>
+                                <?php foreach ($breadcrumbTail as $tail): ?>
+                                    <li><span class="sep">/</span></li>
+                                    <li class="<?= empty($tail['url']) ? 'current' : '' ?>">
+                                        <?php if (! empty($tail['url'])): ?>
+                                            <a href="<?= esc($tail['url']) ?>"><?= esc($tail['label']) ?></a>
+                                        <?php else: ?>
+                                            <?= esc($tail['label']) ?>
+                                        <?php endif; ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
+                    <?php if (! empty($userName)): ?>
+                        <div class="d-none d-md-flex align-items-center gap-2">
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-20 px-3 py-2 rounded-pill small">
+                                <i class="fas fa-user-circle me-1 text-warning"></i> <?= esc($userName) ?> &middot; <span class="text-white-50"><?= esc($roleLabel ?? 'Pengguna') ?></span>
+                            </span>
+                        </div>
                     <?php endif; ?>
-                </ul>
+                </div>
             </div>
         </section>
 
         <!-- Main Workspace Shell: Left Sidebar + Content Area -->
-        <section class="workspace-shell">
+        <?php $hideSidebar = ! empty($hideSidebar); ?>
+        <section class="workspace-shell<?= $hideSidebar ? ' workspace-shell--learning-room' : '' ?>">
             <div class="container">
                 <div class="row g-4">
-                    <!-- Workspace Left Sidebar -->
-                    <?= $this->include('main/workspace/components/sidebar', [
-                        'userName'  => $userName ?? 'Pengguna',
-                        'roleLabel' => $roleLabel ?? 'Pengguna',
-                    ]) ?>
+                    <?php if (! $hideSidebar): ?>
+                        <!-- Workspace Left Sidebar -->
+                        <?= $this->include('main/workspace/components/sidebar', [
+                            'userName'  => $userName ?? 'Pengguna',
+                            'roleLabel' => $roleLabel ?? 'Pengguna',
+                        ]) ?>
+                    <?php endif; ?>
 
                     <!-- Workspace Main Content -->
-                    <main class="col-lg-9 col-xl-9 workspace-content">
+                    <main class="<?= $hideSidebar ? 'col-12' : 'col-lg-9 col-xl-9' ?> workspace-content">
                         <?php if (session()->getFlashdata('message') || session()->getFlashdata('success')): ?>
                             <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4 shadow-sm" role="alert">
                                 <i class="fas fa-check-circle me-2"></i>
@@ -114,6 +127,7 @@
     <!-- FiStudy Mobile Navigation & Search Popup Modals -->
     <?= $this->include('landing/components/mobile_menu') ?>
     <?= $this->include('landing/components/search_popup') ?>
+    <?= $this->include('landing/components/satisfaction_survey_modal') ?>
 
     <!-- Scroll to Top -->
     <a href="#" data-target="html" class="scroll-to-target scroll-to-top">
@@ -124,7 +138,14 @@
     <!-- FiStudy Runtime Core Scripts -->
     <script src="<?= base_url('assets/main/js/jquery-3.6.0.min.js') ?>"></script>
     <script src="<?= base_url('assets/main/js/bootstrap.bundle.min.js') ?>"></script>
+    <script src="<?= base_url('assets/main/js/jquery.appear.min.js') ?>"></script>
     <script src="<?= base_url('assets/main/js/swiper.min.js') ?>"></script>
+    <script src="<?= base_url('assets/main/js/jquery.magnific-popup.min.js') ?>"></script>
+    <script src="<?= base_url('assets/main/js/wow.js') ?>"></script>
+    <script src="<?= base_url('assets/main/js/jquery.nice-select.min.js') ?>"></script>
+    <script src="<?= base_url('assets/main/js/gsap/gsap.js') ?>"></script>
+    <script src="<?= base_url('assets/main/js/gsap/ScrollTrigger.js') ?>"></script>
+    <script src="<?= base_url('assets/main/js/gsap/SplitText.js') ?>"></script>
     <script src="<?= base_url('assets/main/js/script.js') ?>"></script>
     <script src="<?= base_url('assets/main/js/workspace-pagination.js') ?>"></script>
 

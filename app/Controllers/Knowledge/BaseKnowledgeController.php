@@ -88,4 +88,32 @@ abstract class BaseKnowledgeController extends BaseController
         $this->db->table('file_assets')->insert($data);
         return (int) $this->db->insertID();
     }
+
+    /**
+     * Upload multiple files into file_assets for carousel / slide media.
+     *
+     * @param array<\CodeIgniter\HTTP\Files\UploadedFile> $files
+     * @return array<int, array{file_id: int, url: string, title: string}>
+     */
+    protected function uploadMultipleFileAssets(
+        array $files,
+        string $resourceType,
+        string $visibility = 'public'
+    ): array {
+        $uploaded = [];
+        foreach ($files as $file) {
+            if ($file instanceof \CodeIgniter\HTTP\Files\UploadedFile && $file->isValid() && ! $file->hasMoved()) {
+                $fileId = $this->uploadFileAsset($file, $resourceType, $visibility);
+                if ($fileId !== null) {
+                    $uploaded[] = [
+                        'file_id'  => $fileId,
+                        'url'      => site_url('file/' . $fileId),
+                        'title'    => $file->getClientName() ?: 'Slide ' . (count($uploaded) + 1),
+                        'is_video' => false,
+                    ];
+                }
+            }
+        }
+        return $uploaded;
+    }
 }

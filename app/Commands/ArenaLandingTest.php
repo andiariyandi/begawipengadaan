@@ -50,6 +50,9 @@ class ArenaLandingTest extends BaseCommand
             'Popular Courses'       => 'Course PBJ Terpopuler &amp; Pilihan',
             'Active Classes'        => 'Kelas &amp; Batch Siap Daftar',
             'Pillars of Excellence' => 'Dari Regulasi Menuju Praktik Nyata Pengadaan',
+            'Carousel Indicators'   => 'carousel-indicators evt-headline__indicators',
+            'Carousel Slide-To'     => 'data-bs-slide-to="0"',
+            'Indicators Sync Script'=> 'syncIndicatorDots',
         ];
 
         foreach ($guestChecks as $label => $needle) {

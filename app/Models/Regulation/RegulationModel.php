@@ -16,7 +16,7 @@ class RegulationModel extends Model
         'category_id', 'title', 'slug', 'document_number', 'document_year',
         'issuer_name', 'official_date', 'effective_date', 'summary', 'keywords',
         'official_source_url', 'workflow_status', 'legal_status', 'visibility',
-        'is_featured', 'current_version_id', 'cover_file_id', 'cover_image_path',
+        'is_featured', 'carousel_enabled', 'carousel_order', 'current_version_id', 'cover_file_id', 'cover_image_path',
         'created_by', 'reviewed_by', 'reviewed_at',
         'published_by', 'published_at', 'archived_at',
     ];

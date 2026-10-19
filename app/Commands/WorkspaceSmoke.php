@@ -45,13 +45,13 @@ class WorkspaceSmoke extends BaseCommand
                 // 1. Render Workspace Header
                 $html = view('main/workspace/components/header');
 
-                // FiStudy Foundation checks
+                // Canonical Landing Header Structure checks
                 $hasLandingStructure = str_contains($html, 'main-header')
-                    && str_contains($html, 'main-menu__category-box')
-                    && str_contains($html, 'Eksplorasi')
                     && str_contains($html, 'Arena Belajar')
                     && str_contains($html, 'Bunga Rampai')
-                    && str_contains($html, 'main-menu__search-box');
+                    && str_contains($html, 'Regulasi')
+                    && str_contains($html, 'Berita')
+                    && str_contains($html, 'Event');
 
                 // Authenticated user: NO Login/Register buttons
                 $hasNoGuestButtons = ! str_contains($html, 'main-menu__btn-boxes');
@@ -185,17 +185,17 @@ class WorkspaceSmoke extends BaseCommand
                 'recentActivities' => [],
             ]);
 
+            $hasLandingCss = str_contains($layoutHtml, 'landing-core.css');
             $hasCssLink = str_contains($layoutHtml, 'assets/main/css/workspace.css');
             $hasHeader = str_contains($layoutHtml, 'main-header') && str_contains($layoutHtml, 'main-menu__user');
-            $hasSticky = str_contains($layoutHtml, 'stricky-header');
             $hasSidebar = str_contains($layoutHtml, 'workspace-sidebar');
             $hasContent = str_contains($layoutHtml, 'workspace-content');
 
-            if ($hasCssLink && $hasHeader && $hasSticky && $hasSidebar && $hasContent) {
-                CLI::write(" [PASS] Layout workspace.php: workspace.css linked, Header included, Sticky header anchor ready, Sidebar & Content intact!", 'green');
+            if ($hasLandingCss && $hasCssLink && $hasHeader && $hasSidebar && $hasContent) {
+                CLI::write(" [PASS] Layout workspace.php: landing-core.css & workspace.css linked, Header unified, Sidebar & Content intact!", 'green');
                 $passed++;
             } else {
-                CLI::error(" [FAIL] Layout verification mismatch (css: {$hasCssLink}, header: {$hasHeader}, sticky: {$hasSticky}, sidebar: {$hasSidebar})");
+                CLI::error(" [FAIL] Layout verification mismatch (landingCss: {$hasLandingCss}, wsCss: {$hasCssLink}, header: {$hasHeader}, sidebar: {$hasSidebar})");
                 $failed++;
             }
         } catch (\Throwable $e) {
@@ -249,6 +249,17 @@ class WorkspaceSmoke extends BaseCommand
                 $failed++;
             }
 
+            // Test study() dispatch when pre-test is required (should return RedirectResponse without TypeError)
+            $session->set(['isLoggedIn' => true, 'user_id' => 36, 'roles' => ['participant']]);
+            $studyResult = $controller->study('4');
+            if ($studyResult instanceof \CodeIgniter\HTTP\RedirectResponse) {
+                CLI::write(" [PASS] Controller study(): Gracefully returns RedirectResponse when navigating to pre-test gate", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Controller study(): Expected RedirectResponse, got " . (is_object($studyResult) ? get_class($studyResult) : gettype($studyResult)));
+                $failed++;
+            }
+
             // Check trainers retrieval
             $hasTrainers = ! empty($activeState['trainers']);
             if ($hasTrainers) {
@@ -295,12 +306,14 @@ class WorkspaceSmoke extends BaseCommand
             $hasLearningHeader = str_contains($learningHtml, 'learning-header');
             $hasLearningSidebar = str_contains($learningHtml, 'learning-sidebar') && str_contains($learningHtml, 'Kurikulum Kelas');
             $hasActionBtn = str_contains($learningHtml, 'Tandai Selesai & Lanjut') || str_contains($learningHtml, 'Materi Ini Telah Selesai');
+            $hasHiddenSidebar = str_contains($learningHtml, 'col-12 workspace-content') && ! str_contains($learningHtml, 'workspace-sidebar-wrap');
+            $hasStageNavigation = str_contains($learningHtml, 'learning-nav-btn') && str_contains($learningHtml, 'Kembali ke Kelas');
 
-            if ($hasLearningHeader && $hasLearningSidebar && $hasActionBtn) {
-                CLI::write(" [PASS] View belajar.php: Structured Learning Room Header, Left Modular Tree Sidebar, and Content Viewer OK", 'green');
+            if ($hasLearningHeader && $hasLearningSidebar && $hasActionBtn && $hasHiddenSidebar && $hasStageNavigation) {
+                CLI::write(" [PASS] View belajar.php: Full Learning Layout (Sidebar Hidden), Modular Tree, and Step-by-Step Navigation OK", 'green');
                 $passed++;
             } else {
-                CLI::error(" [FAIL] View belajar.php rendering verification mismatch");
+                CLI::error(" [FAIL] View belajar.php rendering verification mismatch: header=" . ($hasLearningHeader ? 'Y' : 'N') . " sidebar=" . ($hasLearningSidebar ? 'Y' : 'N') . " action=" . ($hasActionBtn ? 'Y' : 'N') . " hiddenSidebar=" . ($hasHiddenSidebar ? 'Y' : 'N') . " stageNav=" . ($hasStageNavigation ? 'Y' : 'N'));
                 $failed++;
             }
 
@@ -1031,6 +1044,198 @@ class WorkspaceSmoke extends BaseCommand
                 $passed++;
             } else {
                 CLI::error(" [FAIL] Canonical Role Dispatcher redirection failed");
+                $failed++;
+            }
+
+            CLI::newLine();
+            CLI::write("Testing Quiz / Exam Timer Engine & Reload Resilience...", "yellow");
+
+            // Find or setup a published quiz
+            $testQuiz = $db->table('quizzes')->where('status', 'published')->orderBy('id', 'ASC')->limit(1)->get()->getRowArray();
+            if ($testQuiz) {
+                $qClassId = (int) $testQuiz['class_id'];
+                // Set duration_minutes to 45 and generous attempt limit
+                $db->table('quizzes')->where('id', $testQuiz['id'])->update([
+                    'duration_minutes' => 45,
+                    'attempt_limit'    => 999,
+                ]);
+
+                // Ensure testUser has active enrollment in this class
+                $testEnrollment = $db->table('enrollments')->where(['class_id' => $qClassId, 'user_id' => $testUser['id']])->get()->getRowArray();
+                if (! $testEnrollment) {
+                    $db->table('enrollments')->insert([
+                        'class_id'      => $qClassId,
+                        'user_id'       => $testUser['id'],
+                        'status'        => 'active',
+                        'enrolled_at'   => date('Y-m-d H:i:s'),
+                        'created_at'    => date('Y-m-d H:i:s'),
+                        'updated_at'    => date('Y-m-d H:i:s'),
+                    ]);
+                    $testEnrollment = $db->table('enrollments')->where(['class_id' => $qClassId, 'user_id' => $testUser['id']])->get()->getRowArray();
+                }
+
+                $session->set([
+                    'isLoggedIn' => true,
+                    'user_id'    => (int) $testUser['id'],
+                    'name'       => $testUser['name'],
+                    'roles'      => ['participant'],
+                ]);
+
+                // Clean existing attempts for idempotency
+                $oldAttemptRows = $db->table('quiz_attempts')
+                    ->select('id')
+                    ->where(['quiz_id' => $testQuiz['id'], 'enrollment_id' => $testEnrollment['id']])
+                    ->get()->getResultArray();
+                if (! empty($oldAttemptRows)) {
+                    $oldIds = array_column($oldAttemptRows, 'id');
+                    $db->table('quiz_answers')->whereIn('attempt_id', $oldIds)->delete();
+                    $db->table('quiz_attempts')->whereIn('id', $oldIds)->delete();
+                }
+
+                // 1. Start a new attempt
+                $learningService = new \App\Services\LearningService();
+                $newAttemptId = $learningService->startQuiz((int) $testUser['id'], (int) $testQuiz['id']);
+
+                // 2. Test reload resilience: call takeQuiz without ?attempt= query param
+                $_GET = []; // simulate clean reload URL
+                $takeQuizHtml = (string) $controller->takeQuiz((string) $testQuiz['id']);
+
+                $hasTimerBanner = str_contains($takeQuizHtml, 'id="quizStickyTimerBanner"')
+                    && str_contains($takeQuizHtml, 'id="bannerTimerDisplay"')
+                    && str_contains($takeQuizHtml, 'id="paletteTimerDisplay"')
+                    && str_contains($takeQuizHtml, '45 Menit');
+                $hasActiveAttempt = str_contains($takeQuizHtml, "Lembar Pengerjaan Soal");
+                $hasPersistence = str_contains($takeQuizHtml, 'bp_quiz_answers_')
+                    && str_contains($takeQuizHtml, 'localStorage');
+
+                if ($hasTimerBanner && $hasActiveAttempt && $hasPersistence) {
+                    CLI::write(" [PASS] Quiz Timer Engine & Reload Resilience: Active attempt auto-resumed on reload, timer banner & localStorage active", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] Quiz Timer Engine: Missing banner, active attempt, or persistence scripts");
+                    $failed++;
+                }
+
+                // 3. Test duplicate start prevention (calling startQuiz while an attempt is already running)
+                $resumedAttemptId = $learningService->startQuiz((int) $testUser['id'], (int) $testQuiz['id']);
+                if ($resumedAttemptId === $newAttemptId) {
+                    CLI::write(" [PASS] Attempt Idempotency: startQuiz safely returns existing in-progress attempt instead of duplicating", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] Attempt Idempotency failed: expected {$newAttemptId}, got {$resumedAttemptId}");
+                    $failed++;
+                }
+
+                // 4. Test expired timer auto-submit on reload/access
+                // Backdate started_at to 60 minutes ago (past 45-minute limit)
+                $pastTime = date('Y-m-d H:i:s', time() - 3600);
+                $db->table('quiz_attempts')->where('id', $newAttemptId)->update(['started_at' => $pastTime]);
+
+                $expiredResult = $controller->takeQuiz((string) $testQuiz['id']);
+                $isRedirect = ($expiredResult instanceof \CodeIgniter\HTTP\RedirectResponse);
+                $updatedAttempt = $db->table('quiz_attempts')->where('id', $newAttemptId)->get()->getRowArray();
+                $isNowGraded = ($updatedAttempt['status'] ?? '') === 'graded';
+
+                if ($isRedirect && $isNowGraded) {
+                    CLI::write(" [PASS] Expired Timer Auto-Submit: Expired attempt automatically closed and graded upon detection", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] Expired Timer Auto-Submit failed: isRedirect=" . ($isRedirect ? '1' : '0') . ", status=" . ($updatedAttempt['status'] ?? ''));
+                    $failed++;
+                }
+            }
+
+            // =========================================================================
+            // 11. Test Consistent Sidebar Access & Progress Locks for Assignments & Assessments
+            // =========================================================================
+            CLI::newLine();
+            CLI::write("Testing Sidebar Access & Progress-Locked Assignments & Assessments...", "yellow");
+
+            // Test Participant allAssignments view rendering
+            $asgHtml = (string) $controller->allAssignments();
+            $hasAsgHeader = str_contains($asgHtml, 'Tugas Saya');
+            $hasAsgCards = str_contains($asgHtml, 'Tugas Terbuka') || str_contains($asgHtml, 'Belum Ada Tugas Pembelajaran');
+            if ($hasAsgHeader && $hasAsgCards) {
+                CLI::write(" [PASS] View tugas.php: All Assignments with progress-lock status and KPI stats OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] View tugas.php rendering mismatch");
+                $failed++;
+            }
+
+            // Test Participant allAssessments view rendering
+            $assessHtml = (string) $controller->allAssessments();
+            $hasAssessHeader = str_contains($assessHtml, 'Assessment Saya');
+            $hasAssessCards = str_contains($assessHtml, 'Siap Dikerjakan') || str_contains($assessHtml, 'Belum Ada Assessment');
+            if ($hasAssessHeader && $hasAssessCards) {
+                CLI::write(" [PASS] View assessment.php: All Assessments with progressive unlock status and KPI stats OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] View assessment.php rendering mismatch");
+                $failed++;
+            }
+
+            // Test Sidebar mobile collapsible markup
+            $sidebarHtml = view('main/workspace/components/sidebar');
+            $hasMobileToggle = str_contains($sidebarHtml, 'wsSidebarMenuCollapse') && str_contains($sidebarHtml, 'd-lg-none');
+            if ($hasMobileToggle) {
+                CLI::write(" [PASS] Sidebar Mobile Collapsible UX: Toggle button & collapse wrapper present", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Sidebar Mobile Collapsible UX missing");
+                $failed++;
+            }
+
+            // Test CSS Text Bleed & Overflow Protection Rules
+            $cssContent = file_get_contents(FCPATH . 'assets/main/css/workspace.css');
+            $hasUniversalBleedProtection = str_contains($cssContent, 'white-space: nowrap !important')
+                && str_contains($cssContent, 'overflow-wrap: anywhere !important')
+                && str_contains($cssContent, 'min-width: 580px')
+                && str_contains($cssContent, '@media (max-width: 767.98px)');
+            if ($hasUniversalBleedProtection) {
+                CLI::write(" [PASS] CSS Bleed & Mobile Protection: Universal wrap, badge protection, responsive tables & breakpoints verified", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] CSS Bleed & Mobile Protection rules missing from workspace.css");
+                $failed++;
+            }
+
+            // =========================================================================
+            // Profile Page & Active Navigation Verification
+            // =========================================================================
+            CLI::newLine();
+            CLI::write("Testing Workspace Profile View & Controller...", "yellow");
+
+            $session->set([
+                'isLoggedIn' => true,
+                'user_id'    => 31,
+                'name'       => 'Participant Schema V4',
+                'username'   => 'participant_v4',
+                'email'      => 'participant.v4@example.com',
+                'roles'      => ['participant'],
+            ]);
+
+            $profileController = new \App\Controllers\Workspace\ProfileController();
+            $profileController->initController(
+                service('request'),
+                service('response'),
+                service('logger')
+            );
+
+            $profileView = $profileController->index();
+            $profileHtml = is_string($profileView) ? $profileView : (string) ($profileView->getBody() ?? '');
+
+            $hasProfileHeader   = str_contains($profileHtml, 'Manajemen Profil');
+            $hasAccountSection  = str_contains($profileHtml, 'Data Identitas Akun');
+            $hasPasswordSection = str_contains($profileHtml, 'Ubah Kata Sandi');
+            $hasAddressSection  = str_contains($profileHtml, 'Alamat & Wilayah');
+            $hasStatusSection   = str_contains($profileHtml, 'Status Akun');
+
+            if ($hasProfileHeader && $hasAccountSection && $hasPasswordSection && $hasAddressSection && $hasStatusSection) {
+                CLI::write(" [PASS] ProfileController index(): Profile page rendered with identity, address, and password forms", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] ProfileController index() rendered output missing critical profile sections");
                 $failed++;
             }
 

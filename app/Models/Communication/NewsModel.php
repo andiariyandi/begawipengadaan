@@ -14,7 +14,7 @@ class NewsModel extends Model
 
     protected $allowedFields = [
         'category_id', 'title', 'slug', 'summary', 'content',
-        'cover_file_id', 'cover_caption', 'is_featured',
+        'cover_file_id', 'cover_caption', 'is_featured', 'carousel_enabled', 'carousel_order',
         'reading_time', 'tags', 'source_name', 'source_url',
         'workflow_status', 'visibility',
         'published_at', 'scheduled_at', 'view_count',

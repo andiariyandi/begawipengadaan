@@ -2,12 +2,12 @@
 
 <?= $this->section('content') ?>
 <!-- Header -->
-<div class="bg-white border rounded-4 p-4 p-lg-5 mb-4 shadow-sm">
+<div class="ws-page-header">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <p class="text-uppercase text-muted small fw-semibold mb-2"><?= esc($sectionContent['eyebrow'] ?? 'Catatan Kehadiran') ?></p>
-            <h1 class="h3 fw-bold mb-2" style="color: #082f5c;"><?= esc($pageTitle ?? 'Presensi Saya') ?></h1>
-            <p class="text-muted mb-0"><?= esc($sectionContent['description'] ?? 'Rekap log presensi dan kehadiran Anda pada event serta sesi pembelajaran.') ?></p>
+            <span class="ws-eyebrow"><i class="fas fa-user-check"></i> <?= esc($sectionContent['eyebrow'] ?? 'Catatan Kehadiran') ?></span>
+            <h1><?= esc($pageTitle ?? 'Presensi Saya') ?></h1>
+            <p><?= esc($sectionContent['description'] ?? 'Rekap log presensi dan kehadiran Anda pada event serta sesi pembelajaran.') ?></p>
         </div>
         <div class="d-flex flex-wrap gap-2">
             <a href="<?= route_to('workspace.participant.events') ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
@@ -22,12 +22,12 @@
 
 <!-- Stat Cards -->
 <?php if (!empty($sectionContent['cards'])): ?>
-    <div class="row g-4 mb-4">
+    <div class="row g-2 g-md-3 mb-3">
         <?php foreach ($sectionContent['cards'] as $card): ?>
             <div class="col-sm-6 col-lg-6">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
                     <span class="text-muted small fw-semibold text-uppercase"><?= esc($card['title']) ?></span>
-                    <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= esc($card['value']) ?></div>
+                    <div class="display-6 fw-bold my-1" style="color: #082f5c;"><?= esc($card['value']) ?></div>
                     <small class="text-muted"><?= esc($card['meta'] ?? '') ?></small>
                 </div>
             </div>
@@ -36,15 +36,15 @@
 <?php endif; ?>
 
 <!-- Form Presensi Event -->
-<div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-white">
-    <div class="row align-items-center g-4">
+<div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-3 bg-white">
+    <div class="row align-items-center g-3">
         <div class="col-lg-6">
             <div class="d-flex align-items-center gap-3 mb-2">
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(8,47,92,0.08); color: #082f5c;">
-                    <i class="fas fa-qrcode fs-4"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: rgba(8,47,92,0.08); color: #082f5c;">
+                    <i class="fas fa-qrcode fs-5"></i>
                 </div>
                 <div>
-                    <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">Form Presensi Event</h2>
+                    <h2 class="h6 fw-bold mb-0" style="color: #082f5c;">Form Presensi Event</h2>
                     <small class="text-muted">Masukkan kode kehadiran yang dibagikan oleh panitia/penyelenggara</small>
                 </div>
             </div>
@@ -57,7 +57,7 @@
                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-key"></i></span>
                     <input type="text" name="attendance_code" class="form-control text-uppercase font-monospace border-start-0" placeholder="Kode Kehadiran (Contoh: BGW-EVT-82K91)" required autocomplete="off" style="letter-spacing: 1px;">
                 </div>
-                <button type="submit" class="btn btn-primary px-4 rounded-3 text-nowrap fw-semibold">
+                <button type="submit" class="btn btn-primary px-3 rounded-3 text-nowrap fw-semibold">
                     <i class="fas fa-check-circle me-1"></i> Konfirmasi Kehadiran
                 </button>
             </form>
@@ -66,7 +66,7 @@
 </div>
 
 <!-- Attendance Table -->
-<div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+<div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
     <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
         <div>
             <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">Riwayat Presensi Saya</h2>

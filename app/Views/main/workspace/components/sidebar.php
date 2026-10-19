@@ -31,6 +31,9 @@ $isCurrent = static function (?string $url) use ($currentPath): bool {
         return false;
     }
     $path = trim(parse_url($url, PHP_URL_PATH) ?? '', '/');
+    if ($path === '' || $path === 'workspace') {
+        return $currentPath === $path;
+    }
     return $currentPath === $path || str_starts_with($currentPath, $path . '/');
 };
 
@@ -86,8 +89,6 @@ $menuItems = match ($primaryRole) {
         ['Assessment', route_to('workspace.trainer.all-quizzes'), 'fas fa-clipboard-check'],
         ['Peserta', route_to('workspace.trainer.all-participants'), 'fas fa-users'],
         ['Progress Peserta', route_to('workspace.trainer.all-progress'), 'fas fa-chart-line'],
-        ['Aktivitas', route_to('workspace.activity'), 'fas fa-history'],
-        ['Profil', route_to('workspace.profile.index'), 'fas fa-user-circle'],
     ],
     'operator' => [
         ['Beranda', route_to('workspace.operator.home'), 'fas fa-home'],
@@ -99,8 +100,7 @@ $menuItems = match ($primaryRole) {
         ['Monitoring Pembelajaran', route_to('workspace.operator.learning-monitoring'), 'fas fa-chart-line'],
         ['Verifikasi Sertifikat', route_to('workspace.operator.certificates'), 'fas fa-award'],
         ['Evaluasi & Override', route_to('workspace.operator.evaluations'), 'fas fa-clipboard-check'],
-        ['Aktivitas', route_to('workspace.operator.activity-monitoring'), 'fas fa-history'],
-        ['Profil', route_to('workspace.profile.index'), 'fas fa-user-circle'],
+        ['Aktivitas Sistem', route_to('workspace.operator.activity-monitoring'), 'fas fa-history'],
     ],
     default => [ // participant
         ['Beranda', route_to('workspace.home'), 'fas fa-home'],
@@ -124,31 +124,45 @@ $globalItems = [
     ['Aktivitas Saya', route_to('workspace.activity'), 'fas fa-history'],
 ];
 ?>
-<aside class="workspace-sidebar-wrap">
+<aside class="col-lg-3 col-xl-3 workspace-sidebar-wrap">
     <div class="workspace-sidebar">
-        <div class="workspace-sidebar__identity">
+        <a href="<?= esc(route_to('workspace.profile.index')) ?>" class="workspace-sidebar__identity text-decoration-none" title="Lihat dan kelola profil">
             <span class="avatar"><?= esc($initials ?: 'U') ?></span>
             <div>
                 <strong><?= esc($displayName) ?></strong>
                 <span><?= esc($roleLabel) ?></span>
             </div>
-        </div>
-        <nav aria-label="Menu Workspace">
-            <section class="workspace-sidebar__group">
-                <h2>Menu Utama (<?= esc($roleLabel) ?>)</h2>
-                <?php foreach ($menuItems as [$label, $url, $icon]): ?>
-                    <?= $renderLink($label, $url, $icon, $isCurrent($url)) ?>
-                <?php endforeach; ?>
-            </section>
+        </a>
 
-            <?php if ($primaryRole !== 'participant'): ?>
+        <!-- Mobile Toggle Button (Visible only on screens < lg) -->
+        <button class="btn btn-outline-primary btn-sm w-100 d-lg-none mt-3 mb-2 rounded-pill d-flex align-items-center justify-content-between px-3" 
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#wsSidebarMenuCollapse" 
+                aria-expanded="false" 
+                aria-controls="wsSidebarMenuCollapse">
+            <span class="fw-semibold"><i class="fas fa-bars me-2"></i> Menu Navigasi Workspace</span>
+            <i class="fas fa-chevron-down small"></i>
+        </button>
+
+        <div class="collapse d-lg-block" id="wsSidebarMenuCollapse">
+            <nav aria-label="Menu Workspace">
                 <section class="workspace-sidebar__group">
-                    <h2>Fitur Personal</h2>
-                    <?php foreach ($globalItems as [$label, $url, $icon]): ?>
+                    <h2>Menu Utama (<?= esc($roleLabel) ?>)</h2>
+                    <?php foreach ($menuItems as [$label, $url, $icon]): ?>
                         <?= $renderLink($label, $url, $icon, $isCurrent($url)) ?>
                     <?php endforeach; ?>
                 </section>
-            <?php endif; ?>
-        </nav>
+
+                <?php if ($primaryRole !== 'participant'): ?>
+                    <section class="workspace-sidebar__group">
+                        <h2>Fitur Personal</h2>
+                        <?php foreach ($globalItems as [$label, $url, $icon]): ?>
+                            <?= $renderLink($label, $url, $icon, $isCurrent($url)) ?>
+                        <?php endforeach; ?>
+                    </section>
+                <?php endif; ?>
+            </nav>
+        </div>
     </div>
 </aside>

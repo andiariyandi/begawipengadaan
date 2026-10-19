@@ -1,22 +1,24 @@
 <?= $this->extend('main/workspace/layouts/workspace') ?>
 <?= $this->section('content') ?>
 
-<div class="bg-white border rounded p-4 p-lg-5 mb-4">
-    <p class="text-uppercase text-muted small mb-2"><?= esc($sectionContent['eyebrow'] ?? 'Operator Workspace') ?></p>
-    <h1 class="h3 mb-2"><?= esc($sectionContent['title'] ?? 'Operasional') ?></h1>
-    <p class="text-muted mb-0"><?= esc($sectionContent['description'] ?? 'Pantau verifikasi operasional, enrollment, kelas, approval, dan laporan.') ?></p>
+<div class="ws-page-header">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <span class="ws-eyebrow"><i class="fas fa-cogs"></i> <?= esc($sectionContent['eyebrow'] ?? 'Operator Workspace') ?></span>
+            <h1><?= esc($sectionContent['title'] ?? 'Operasional') ?></h1>
+            <p><?= esc($sectionContent['description'] ?? 'Pantau verifikasi operasional, enrollment, kelas, approval, dan laporan.') ?></p>
+        </div>
+    </div>
 </div>
 
 <?php if (! empty($sectionContent['cards'])): ?>
     <div class="row g-3 mb-4">
         <?php foreach ($sectionContent['cards'] as $card): ?>
             <div class="col-sm-6 col-lg-3">
-                <div class="card h-100 border rounded shadow-sm">
-                    <div class="card-body">
-                        <span class="text-muted small text-uppercase fw-semibold"><?= esc($card['title']) ?></span>
-                        <div class="display-6 fw-bold my-2 text-primary"><?= esc($card['value']) ?></div>
-                        <span class="text-secondary small"><?= esc($card['meta'] ?? '') ?></span>
-                    </div>
+                <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                    <span class="text-muted small text-uppercase fw-semibold"><?= esc($card['title']) ?></span>
+                    <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= esc($card['value']) ?></div>
+                    <span class="text-secondary small"><?= esc($card['meta'] ?? '') ?></span>
                 </div>
             </div>
         <?php endforeach; ?>

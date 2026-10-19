@@ -1,5 +1,11 @@
 <?= $this->extend('landing/layouts/public') ?>
 
+<?= $this->section('pageStyles') ?>
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-news.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-news.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-news.css') : '1.0' ?>" />
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-events.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-events.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-events.css') : '1.0' ?>" />
+<link rel="stylesheet" href="<?= base_url('assets/main/css/landing/landing-learning.css') ?>?v=<?= file_exists(FCPATH . 'assets/main/css/landing/landing-learning.css') ? filemtime(FCPATH . 'assets/main/css/landing/landing-learning.css') : '1.0' ?>" />
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 
 <?php
@@ -48,65 +54,57 @@ $err          = session()->getFlashdata('error');
     ?>
 
     <!-- =========================================================================
-     COURSE DETAIL HERO (DARK NAVY CONTRAST BANNER)
+     COURSE DETAIL — Clean Magazine Benchmark
      ========================================================================= -->
-    <section class="arena-hero position-relative">
-        <div class="arena-hero__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/page-header-bg.jpg') ?>);"></div>
-        <div class="arena-hero__overlay"></div>
+    <section class="berita-main-section evt-main-section pt-2 pt-md-3 pt-lg-4 pb-5" style="background: #fafbfc; min-height: 75vh;">
         <div class="container">
-            <div class="arena-hero__inner pt-2 pt-md-4">
-                <!-- Integrated Modern Breadcrumb inside Hero -->
-                <?php if ($breadcrumb !== []): ?>
-                    <nav aria-label="breadcrumb" class="mb-3">
-                        <ol class="breadcrumb mb-0 py-1" style="background: transparent;">
-                            <?php foreach ($breadcrumb as $i => $crumb): ?>
-                                <?php if ($i > 0): ?><li class="breadcrumb-separator mx-2 text-white-50">/</li><?php endif; ?>
-                                <li class="breadcrumb-item <?= empty($crumb['url']) ? 'active text-white fw-bold' : '' ?>">
-                                    <?php if (! empty($crumb['url'])): ?>
-                                        <a href="<?= esc($crumb['url']) ?>" class="text-white text-decoration-none opacity-75 hover-opacity-100"><?= esc($crumb['label']) ?></a>
-                                    <?php else: ?>
-                                        <span class="text-white fw-semibold"><?= esc($crumb['label']) ?></span>
-                                    <?php endif; ?>
-                                </li>
-                            <?php endforeach; ?>
-                        </ol>
-                    </nav>
-                <?php endif; ?>
+            <!-- Compact Breadcrumb Navigation -->
+            <div class="arena-breadcrumb evt-breadcrumb mb-3">
+                <a href="<?= site_url('/') ?>"><iconify-icon icon="solar:home-2-bold" class="align-middle"></iconify-icon> Beranda</a>
+                <span class="sep">/</span>
+                <a href="<?= site_url('arena-belajar') ?>">Arena Belajar</a>
+                <span class="sep">/</span>
+                <a href="<?= site_url('arena-belajar/course') ?>">Course PBJ</a>
+                <span class="sep">/</span>
+                <span class="current text-truncate"><?= esc($item['title'] ?? $itemTitle) ?></span>
+            </div>
 
-                <div class="row align-items-center g-4">
+            <!-- Compact Course Detail Hero Banner (arena-hero class preserved for test) -->
+            <div class="arena-hero evt-detail-hero radius-16 p-3 p-md-4 mb-4 text-white position-relative" style="background: linear-gradient(135deg, #052244 0%, #0a3d74 100%); overflow: hidden;">
+                <div class="row align-items-center g-3">
                     <div class="col-lg-8">
-                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                            <span class="badge bg-primary text-white px-3 py-1 radius-20 text-uppercase" style="letter-spacing: 0.5px; font-size: 11px;">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            <span class="badge bg-primary text-white px-2 py-1 radius-8 small text-uppercase" style="letter-spacing: 0.5px; font-size: 11.5px;">
                                 <i class="fas fa-book-open me-1"></i> Course PBJ
                             </span>
-                            <span class="badge <?= $levelConfig['badge'] ?> px-3 py-1 radius-20" style="font-size: 11px;">
+                            <span class="badge <?= $levelConfig['badge'] ?> px-2 py-1 radius-8 small" style="font-size: 11.5px;">
                                 <i class="fas <?= $levelConfig['icon'] ?> me-1"></i> <?= esc($levelConfig['label']) ?>
                             </span>
                             <?php if (! empty($item['program_slug'])): ?>
-                                <a href="<?= route_to('public.learning.program.detail', $item['program_slug']) ?>" class="badge bg-white text-primary fw-bold px-3 py-1 radius-20 shadow-sm text-decoration-none" style="font-size: 11px;">
+                                <a href="<?= route_to('public.learning.program.detail', $item['program_slug']) ?>" class="badge bg-white text-primary fw-bold px-2 py-1 radius-8 shadow-sm text-decoration-none" style="font-size: 11.5px;">
                                     <i class="fas fa-layer-group me-1"></i> Program: <?= esc($item['program_title'] ?? 'Kurikulum Terpadu') ?>
                                 </a>
                             <?php endif; ?>
-                            <span class="badge px-3 py-1 radius-20 text-white" style="font-size: 11px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.32);">
+                            <span class="badge px-2 py-1 radius-8 text-white" style="font-size: 11.5px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.32);">
                                 <i class="far fa-clock me-1"></i> <?= $durationFormatted ?>
                             </span>
                         </div>
 
-                        <h1 class="text-white mb-3" style="font-size: 34px; font-weight: 800; line-height: 1.25; text-shadow: 0 2px 10px rgba(0,0,0,0.4);">
+                        <h1 class="text-white mb-2" style="font-size: clamp(20px, 2.5vw, 28px); font-weight: 800; line-height: 1.3;">
                             <?= esc($item['title'] ?? $itemTitle) ?>
                         </h1>
 
-                        <p class="mb-4 text-white-90" style="font-size: 16px; line-height: 1.6; max-width: 720px; color: rgba(255,255,255,0.92); text-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+                        <p class="mb-3 text-white-90" style="font-size: 14px; line-height: 1.55; max-width: 720px; color: rgba(255,255,255,0.9);">
                             <?= esc($item['summary'] ?? 'Pelajari modul terstruktur pengadaan barang dan jasa pemerintah Provinsi Lampung.') ?>
                         </p>
 
                         <!-- Hero Quick Action Buttons -->
-                        <div class="d-flex flex-wrap align-items-center gap-3">
-                            <a href="#daftar-kelas" class="btn btn-warning text-dark fw-bold px-4 py-2 radius-8 shadow-sm d-inline-flex align-items-center gap-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <a href="#daftar-kelas" class="btn btn-warning text-dark fw-bold btn-sm px-3 py-1 radius-8 shadow-sm d-inline-flex align-items-center gap-1" style="font-size: 12.5px;">
                                 <i class="fas fa-calendar-alt"></i>
                                 <span>Jadwal &amp; Batch Kelas (<?= (int) ($totalClasses ?? count($classes)) ?>)</span>
                             </a>
-                            <a href="#silabus-course" class="btn btn-outline-light fw-semibold px-4 py-2 radius-8 d-inline-flex align-items-center gap-2">
+                            <a href="#silabus-course" class="btn btn-outline-light btn-sm fw-semibold px-3 py-1 radius-8 d-inline-flex align-items-center gap-1" style="font-size: 12.5px;">
                                 <i class="fas fa-list-ul"></i>
                                 <span>Silabus Materi</span>
                             </a>
@@ -114,47 +112,36 @@ $err          = session()->getFlashdata('error');
                                 'type'  => 'course',
                                 'id'    => (int) ($item['id'] ?? 0),
                                 'title' => $item['title'] ?? $itemTitle,
-                                'size'  => 'md',
+                                'size'  => 'sm',
                             ]) ?>
                         </div>
                     </div>
 
                     <div class="col-lg-4 d-none d-lg-block text-end">
                         <!-- Glass Quick Stat Card in Hero -->
-                        <div class="p-4 radius-16 text-start" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 12px 30px rgba(0,0,0,0.2);">
-                            <span class="text-white-50 small fw-bold text-uppercase d-block mb-3" style="letter-spacing: 0.5px;">Ringkasan Informasi:</span>
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="fas fa-signal me-2 text-warning"></i> Level Kesulitan</span>
+                        <div class="p-3 radius-12 text-start" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2);">
+                            <span class="text-white-50 small fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 11px;">Ringkasan Informasi:</span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="fas fa-signal me-1 text-warning"></i> Level Kesulitan</span>
                                 <span class="fw-bold"><?= esc($levelConfig['label']) ?></span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="far fa-clock me-2 text-info"></i> Durasi Belajar</span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="far fa-clock me-1 text-info"></i> Durasi Belajar</span>
                                 <span class="fw-bold"><?= $durationFormatted ?></span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="fas fa-chalkboard-teacher me-2 text-success"></i> Batch Kelas</span>
-                                <span class="fw-bold fs-5"><?= (int) ($totalClasses ?? count($classes)) ?></span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="fas fa-chalkboard-teacher me-1 text-success"></i> Batch Kelas</span>
+                                <span class="fw-bold fs-6"><?= (int) ($totalClasses ?? count($classes)) ?></span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="fas fa-users me-2 text-info"></i> Peserta Belajar</span>
-                                <span class="fw-bold fs-5"><?= (int) ($enrolled_count ?? 0) ?></span>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between text-white">
-                                <span><i class="fas fa-certificate me-2 text-warning"></i> Sertifikat</span>
-                                <span class="badge bg-success text-white">Resmi LKPP</span>
+                            <div class="d-flex align-items-center justify-content-between text-white small">
+                                <span><i class="fas fa-certificate me-1 text-warning"></i> Sertifikat</span>
+                                <span class="badge bg-success text-white" style="font-size: 10px;">Resmi LKPP</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- =========================================================================
-     COURSE DETAIL CONTENT SECTION
-     ========================================================================= -->
-    <section class="py-5 position-relative" style="background: #f8fafc; min-height: 60vh;">
-        <div class="container">
             <div class="row g-4">
                 <!-- Left Main Column (8 cols) -->
                 <div class="col-xl-8 col-lg-7">
@@ -228,7 +215,7 @@ $err          = session()->getFlashdata('error');
                                                 <i class="fas fa-check-circle text-success mt-1"></i>
                                                 <div>
                                                     <strong class="d-block text-dark small">Regulasi &amp; Etika PBJ</strong>
-                                                    <span class="text-muted small" style="font-size: 12px;">Memahami prinsip pengadaan, etika, dan mitigasi benturan kepentingan sesuai Perpres.</span>
+                                                    <span class="text-muted small" style="font-size: 13.5px; line-height: 1.5;">Memahami prinsip pengadaan, etika, dan mitigasi benturan kepentingan sesuai Perpres.</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -239,7 +226,7 @@ $err          = session()->getFlashdata('error');
                                                 <i class="fas fa-check-circle text-success mt-1"></i>
                                                 <div>
                                                     <strong class="d-block text-dark small">Perencanaan &amp; HPS</strong>
-                                                    <span class="text-muted small" style="font-size: 12px;">Penyusunan spesifikasi teknis, KAK, serta perhitungan harga perkiraan sendiri akuntabel.</span>
+                                                    <span class="text-muted small" style="font-size: 13.5px; line-height: 1.5;">Penyusunan spesifikasi teknis, KAK, serta perhitungan harga perkiraan sendiri akuntabel.</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -250,7 +237,7 @@ $err          = session()->getFlashdata('error');
                                                 <i class="fas fa-check-circle text-success mt-1"></i>
                                                 <div>
                                                     <strong class="d-block text-dark small">Pemilihan &amp; E-Katalog</strong>
-                                                    <span class="text-muted small" style="font-size: 12px;">Penguasaan alur tender/seleksi, negosiasi teknis, dan transaksi belanja katalog elektronik.</span>
+                                                    <span class="text-muted small" style="font-size: 13.5px; line-height: 1.5;">Penguasaan alur tender/seleksi, negosiasi teknis, dan transaksi belanja katalog elektronik.</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -261,7 +248,7 @@ $err          = session()->getFlashdata('error');
                                                 <i class="fas fa-check-circle text-success mt-1"></i>
                                                 <div>
                                                     <strong class="d-block text-dark small">Manajemen Kontrak &amp; BAST</strong>
-                                                    <span class="text-muted small" style="font-size: 12px;">Pengendalian mutu pekerjaan, mitigasi risiko sengketa, dan serah terima hasil pekerjaan.</span>
+                                                    <span class="text-muted small" style="font-size: 13.5px; line-height: 1.5;">Pengendalian mutu pekerjaan, mitigasi risiko sengketa, dan serah terima hasil pekerjaan.</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -577,19 +564,19 @@ $err          = session()->getFlashdata('error');
                                                 <img src="<?= esc($rcImg) ?>" alt="<?= esc($rc['title']) ?>" class="w-100 h-100" style="object-fit: cover;">
                                             </div>
                                             <div class="p-3 d-flex flex-column flex-grow-1">
-                                                <span class="badge bg-light text-muted border radius-20 small align-self-start mb-1" style="font-size: 10px;">
+                                                <span class="badge bg-light text-muted border radius-20 small align-self-start mb-1" style="font-size: 12px;">
                                                     <?= esc(ucfirst($rc['level'] ?? 'Dasar')) ?>
                                                 </span>
-                                                <h6 class="fw-bold mb-2" style="font-size: 13.5px; line-height: 1.35;">
+                                                <h6 class="fw-bold mb-2" style="font-size: 15px; line-height: 1.4;">
                                                     <a href="<?= route_to('public.learning.course.detail', $rc['slug']) ?>" class="text-dark text-decoration-none hover-primary">
                                                         <?= esc($rc['title']) ?>
                                                     </a>
                                                 </h6>
                                                 <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                                                    <span class="text-muted" style="font-size: 11px;">
+                                                    <span class="text-muted" style="font-size: 12.5px;">
                                                         <i class="far fa-clock me-1"></i> <?= ($rc['duration_minutes'] ?? null) ? esc((string) $rc['duration_minutes']) . ' mnt' : 'Mandiri' ?>
                                                     </span>
-                                                    <a href="<?= route_to('public.learning.course.detail', $rc['slug']) ?>" class="text-primary small fw-semibold text-decoration-none">
+                                                    <a href="<?= route_to('public.learning.course.detail', $rc['slug']) ?>" class="text-primary fw-semibold text-decoration-none" style="font-size: 13px;">
                                                         Buka <i class="fas fa-arrow-right ms-1"></i>
                                                     </a>
                                                 </div>
@@ -673,12 +660,12 @@ $err          = session()->getFlashdata('error');
                                             <img src="<?= base_url('assets/main/images/resources/course-list-client-img-1.jpg') ?>" alt="<?= esc($trn['name'] ?? '') ?>" class="w-100 h-100" style="object-fit: cover;">
                                         </div>
                                         <div class="flex-grow-1">
-                                            <h6 class="fw-bold text-dark mb-0" style="font-size: 14px;">
+                                            <h6 class="fw-bold text-dark mb-0" style="font-size: 15px;">
                                                 <a href="<?= route_to('public.learning.trainer.detail', $trn['username']) ?>" class="text-dark text-decoration-none hover-primary">
                                                     <?= esc($trn['name'] ?? $trn['username']) ?>
                                                 </a>
                                             </h6>
-                                            <span class="text-muted small" style="font-size: 12px;"><?= esc($trn['profile_type'] ?? 'Pengajar PBJ') ?></span>
+                                            <span class="text-muted small" style="font-size: 13.5px;"><?= esc($trn['profile_type'] ?? 'Pengajar PBJ') ?></span>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -690,8 +677,8 @@ $err          = session()->getFlashdata('error');
                                         <img src="<?= base_url('assets/main/images/resources/course-list-client-img-1.jpg') ?>" alt="Tim Fasilitator" class="w-100 h-100" style="object-fit: cover;">
                                     </div>
                                     <div>
-                                        <h6 class="fw-bold text-dark mb-0" style="font-size: 14px;">Tim Fasilitator PBJ Lampung</h6>
-                                        <span class="text-muted small" style="font-size: 12px;">Widyaiswara &amp; Pejabat Fungsional PBJ</span>
+                                        <h6 class="fw-bold text-dark mb-0" style="font-size: 15px;">Tim Fasilitator PBJ Lampung</h6>
+                                        <span class="text-muted small" style="font-size: 13.5px;">Widyaiswara &amp; Pejabat Fungsional PBJ</span>
                                     </div>
                                 </div>
                             </div>
@@ -700,10 +687,10 @@ $err          = session()->getFlashdata('error');
 
                     <!-- 3. Bantuan & FAQ Singkat -->
                     <div class="card border-0 shadow-sm radius-16 p-4 bg-white">
-                        <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom" style="font-size: 16px;">
+                        <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom" style="font-size: 17.5px;">
                             <i class="fas fa-question-circle text-info me-2"></i> Bantuan &amp; Panduan
                         </h5>
-                        <div class="d-flex flex-column gap-3" style="font-size: 13px;">
+                        <div class="d-flex flex-column gap-3" style="font-size: 14px;">
                             <div>
                                 <strong class="d-block text-dark mb-1">Bagaimana alur pendaftaran?</strong>
                                 <p class="text-muted mb-0">Buat akun di BegawiPengadaan, lengkapi profil, lalu pilih batch kelas yang sedang dibuka untuk diajukan enrollment.</p>
@@ -726,66 +713,58 @@ $err          = session()->getFlashdata('error');
 
 <?php elseif ($catalogType === 'programs'): ?>
     <!-- =========================================================================
-     PROGRAM DETAIL HERO (DARK NAVY CONTRAST BANNER)
+     PROGRAM DETAIL — Clean Magazine Benchmark
      ========================================================================= -->
-    <section class="arena-hero position-relative">
-        <div class="arena-hero__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/page-header-bg.jpg') ?>);"></div>
-        <div class="arena-hero__overlay"></div>
+    <section class="berita-main-section evt-main-section pt-2 pt-md-3 pt-lg-4 pb-5" style="background: #fafbfc; min-height: 75vh;">
         <div class="container">
-            <div class="arena-hero__inner pt-2 pt-md-4">
-                <!-- Integrated Modern Breadcrumb inside Hero -->
-                <?php if ($breadcrumb !== []): ?>
-                    <nav aria-label="breadcrumb" class="mb-3">
-                        <ol class="breadcrumb mb-0 py-1" style="background: transparent;">
-                            <?php foreach ($breadcrumb as $i => $crumb): ?>
-                                <?php if ($i > 0): ?><li class="breadcrumb-separator mx-2 text-white-50">/</li><?php endif; ?>
-                                <li class="breadcrumb-item <?= empty($crumb['url']) ? 'active text-white fw-bold' : '' ?>">
-                                    <?php if (! empty($crumb['url'])): ?>
-                                        <a href="<?= esc($crumb['url']) ?>" class="text-white text-decoration-none opacity-75 hover-opacity-100"><?= esc($crumb['label']) ?></a>
-                                    <?php else: ?>
-                                        <span class="text-white fw-semibold"><?= esc($crumb['label']) ?></span>
-                                    <?php endif; ?>
-                                </li>
-                            <?php endforeach; ?>
-                        </ol>
-                    </nav>
-                <?php endif; ?>
+            <!-- Compact Breadcrumb Navigation -->
+            <div class="arena-breadcrumb evt-breadcrumb mb-3">
+                <a href="<?= site_url('/') ?>"><iconify-icon icon="solar:home-2-bold" class="align-middle"></iconify-icon> Beranda</a>
+                <span class="sep">/</span>
+                <a href="<?= site_url('arena-belajar') ?>">Arena Belajar</a>
+                <span class="sep">/</span>
+                <a href="<?= site_url('arena-belajar/program') ?>">Program Pembelajaran</a>
+                <span class="sep">/</span>
+                <span class="current text-truncate"><?= esc($item['title'] ?? $itemTitle) ?></span>
+            </div>
 
-                <div class="row align-items-center g-4">
+            <!-- Compact Program Detail Hero Banner (arena-hero class preserved for test) -->
+            <div class="arena-hero evt-detail-hero radius-16 p-3 p-md-4 mb-4 text-white position-relative" style="background: linear-gradient(135deg, #052244 0%, #0a3d74 100%); overflow: hidden;">
+                <div class="row align-items-center g-3">
                     <div class="col-lg-8">
-                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                            <span class="badge bg-primary text-white px-3 py-1 radius-20 text-uppercase" style="letter-spacing: 0.5px; font-size: 11px;">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            <span class="badge bg-primary text-white px-2 py-1 radius-8 small text-uppercase" style="letter-spacing: 0.5px; font-size: 11.5px;">
                                 <i class="fas fa-graduation-cap me-1"></i> Program Terstruktur PBJ
                             </span>
                             <?php if (! empty($item['featured'])): ?>
-                                <span class="badge bg-warning text-dark fw-bold px-3 py-1 radius-20 shadow-sm" style="font-size: 11px;">
+                                <span class="badge bg-warning text-dark fw-bold px-2 py-1 radius-8 shadow-sm" style="font-size: 11.5px;">
                                     <i class="fas fa-star me-1 text-dark"></i> Kurikulum Unggulan
                                 </span>
                             <?php endif; ?>
-                            <span class="badge bg-white text-primary fw-bold px-3 py-1 radius-20 shadow-sm" style="font-size: 11px;">
+                            <span class="badge bg-white text-primary fw-bold px-2 py-1 radius-8 shadow-sm" style="font-size: 11.5px;">
                                 <i class="fas fa-shield-alt me-1"></i> Standar LKPP
                             </span>
-                            <span class="badge bg-success text-white px-3 py-1 radius-20" style="font-size: 11px;">
+                            <span class="badge bg-success text-white px-2 py-1 radius-8" style="font-size: 11.5px;">
                                 <i class="fas fa-check-circle me-1"></i> Terbuka untuk Publik &amp; ASN
                             </span>
                         </div>
 
-                        <h1 class="text-white mb-3" style="font-size: 34px; font-weight: 800; line-height: 1.25; text-shadow: 0 2px 10px rgba(0,0,0,0.4);">
+                        <h1 class="text-white mb-2" style="font-size: clamp(20px, 2.5vw, 28px); font-weight: 800; line-height: 1.3;">
                             <?= esc($item['title'] ?? $itemTitle) ?>
                         </h1>
 
-                        <p class="mb-4 text-white-90" style="font-size: 16px; line-height: 1.6; max-width: 720px; color: rgba(255,255,255,0.92); text-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+                        <p class="mb-3 text-white-90" style="font-size: 14px; line-height: 1.55; max-width: 720px; color: rgba(255,255,255,0.9);">
                             <?= esc($item['summary'] ?? 'Jalur kurikulum terpadu pengadaan barang dan jasa pemerintah Provinsi Lampung.') ?>
                         </p>
 
                         <!-- Hero Quick Action Buttons -->
-                        <div class="d-flex flex-wrap align-items-center gap-3">
-                            <a href="#daftar-course" class="btn btn-warning text-dark fw-bold px-4 py-2 radius-8 shadow-sm d-inline-flex align-items-center gap-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <a href="#daftar-course" class="btn btn-warning text-dark fw-bold btn-sm px-3 py-1 radius-8 shadow-sm d-inline-flex align-items-center gap-1" style="font-size: 12.5px;">
                                 <i class="fas fa-book-open"></i>
                                 <span>Silabus &amp; Course PBJ (<?= (int) ($totalCourses ?? count($courses)) ?>)</span>
                             </a>
                             <?php if (! empty($classes)): ?>
-                                <a href="#jadwal-kelas" class="btn btn-outline-light fw-semibold px-4 py-2 radius-8 d-inline-flex align-items-center gap-2">
+                                <a href="#jadwal-kelas" class="btn btn-outline-light btn-sm fw-semibold px-3 py-1 radius-8 d-inline-flex align-items-center gap-1" style="font-size: 12.5px;">
                                     <i class="fas fa-calendar-alt"></i>
                                     <span>Batch Kelas Terbuka (<?= count($classes) ?>)</span>
                                 </a>
@@ -794,43 +773,36 @@ $err          = session()->getFlashdata('error');
                                 'type'  => 'program',
                                 'id'    => (int) ($item['id'] ?? 0),
                                 'title' => $item['title'] ?? $itemTitle,
-                                'size'  => 'md',
+                                'size'  => 'sm',
                             ]) ?>
                         </div>
                     </div>
 
                     <div class="col-lg-4 d-none d-lg-block text-end">
                         <!-- Glass Quick Stat Card in Hero -->
-                        <div class="p-4 radius-16 text-start" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 12px 30px rgba(0,0,0,0.2);">
-                            <span class="text-white-50 small fw-bold text-uppercase d-block mb-3" style="letter-spacing: 0.5px;">Ringkasan Kurikulum:</span>
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="fas fa-book-open me-2 text-warning"></i> Total Course</span>
-                                <span class="fw-bold fs-5"><?= (int) ($totalCourses ?? count($courses)) ?></span>
+                        <div class="p-3 radius-12 text-start" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2);">
+                            <span class="text-white-50 small fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 11px;">Ringkasan Kurikulum:</span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="fas fa-book-open me-1 text-warning"></i> Total Course</span>
+                                <span class="fw-bold fs-6"><?= (int) ($totalCourses ?? count($courses)) ?></span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="fas fa-chalkboard-teacher me-2 text-info"></i> Batch Kelas</span>
-                                <span class="fw-bold fs-5"><?= count($classes) ?></span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="fas fa-chalkboard-teacher me-1 text-info"></i> Batch Kelas</span>
+                                <span class="fw-bold fs-6"><?= count($classes) ?></span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="fas fa-user-graduate me-2 text-success"></i> Peserta Aktif</span>
-                                <span class="fw-bold fs-5"><?= (int) ($enrolled_count ?? 0) ?></span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="fas fa-user-graduate me-1 text-success"></i> Peserta Aktif</span>
+                                <span class="fw-bold fs-6"><?= (int) ($enrolled_count ?? 0) ?></span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between text-white">
-                                <span><i class="fas fa-certificate me-2 text-warning"></i> Sertifikat</span>
-                                <span class="badge bg-success text-white">Tersedia Resmi</span>
+                            <div class="d-flex align-items-center justify-content-between text-white small">
+                                <span><i class="fas fa-certificate me-1 text-warning"></i> Sertifikat</span>
+                                <span class="badge bg-success text-white" style="font-size: 10px;">Tersedia Resmi</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- =========================================================================
-     PROGRAM DETAIL CONTENT SECTION
-     ========================================================================= -->
-    <section class="py-5 learning-detail" style="background: #f8fafc; min-height: 60vh;">
-        <div class="container">
             <div class="row g-4">
                 <!-- Left Main Column (8 cols) -->
                 <div class="col-xl-8 col-lg-8">
@@ -1018,14 +990,14 @@ $err          = session()->getFlashdata('error');
                                         <article class="p-3 radius-14 border bg-white shadow-2xs hover-border-primary transition-all d-flex flex-column flex-md-row gap-3 align-items-md-center">
                                             <div class="radius-10 overflow-hidden flex-shrink-0 position-relative" style="width: 100%; max-width: 160px; height: 110px;">
                                                 <img src="<?= esc($coverCourse) ?>" alt="<?= esc($course['title']) ?>" class="w-100 h-100" style="object-fit: cover;" loading="lazy">
-                                                <span class="badge bg-primary text-white position-absolute top-0 start-0 m-2" style="font-size: 10px;">
+                                                <span class="badge bg-primary text-white position-absolute top-0 start-0 m-2" style="font-size: 12px;">
                                                     <?= esc(ucfirst($course['level'] ?? 'PBJ')) ?>
                                                 </span>
                                             </div>
 
                                             <div class="flex-grow-1">
                                                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
-                                                    <span class="badge bg-light text-primary border" style="font-size: 11px;">
+                                                    <span class="badge bg-light text-primary border" style="font-size: 12.5px;">
                                                         <i class="far fa-clock me-1"></i>
                                                         <?= ($course['duration_minutes'] ?? null) !== null ? esc((string) $course['duration_minutes']) . ' Menit' : 'Mandiri' ?>
                                                     </span>
@@ -1098,8 +1070,8 @@ $err          = session()->getFlashdata('error');
                                     <div class="p-3 p-md-4 radius-14 border bg-light d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                                         <div>
                                             <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                                                <span class="badge bg-primary text-white radius-6" style="font-size: 11px;"><?= esc($cl['code']) ?></span>
-                                                <span class="badge bg-success text-white radius-6" style="font-size: 11px;"><?= esc(ucfirst($cl['status'])) ?></span>
+                                                <span class="badge bg-primary text-white radius-6" style="font-size: 12px;"><?= esc($cl['code']) ?></span>
+                                                <span class="badge bg-success text-white radius-6" style="font-size: 12px;"><?= esc(ucfirst($cl['status'])) ?></span>
                                                 <?php if (! empty($cl['learning_method'])): ?>
                                                     <?php
                                                     $clMethod = match ($cl['learning_method']) {
@@ -1110,7 +1082,7 @@ $err          = session()->getFlashdata('error');
                                                     };
                                                     ?>
                                                     <?php if ($clMethod): ?>
-                                                        <span class="badge radius-6 small <?= $clMethod['class'] ?>" style="font-size: 11px; <?= $clMethod['style'] ?? '' ?>">
+                                                        <span class="badge radius-6 small <?= $clMethod['class'] ?>" style="font-size: 12px; <?= $clMethod['style'] ?? '' ?>">
                                                             <i class="fas fa-chalkboard me-1"></i><?= $clMethod['label'] ?>
                                                         </span>
                                                     <?php endif; ?>
@@ -1259,7 +1231,7 @@ $err          = session()->getFlashdata('error');
                                             </div>
                                             <div class="flex-grow-1 overflow-hidden">
                                                 <div class="fw-bold text-dark text-truncate small"><?= esc($tr['name']) ?></div>
-                                                <div class="text-muted" style="font-size: 11px;"><?= esc($tr['profile_type'] ?? 'Pengajar PBJ') ?></div>
+                                                <div class="text-muted" style="font-size: 12.5px;"><?= esc($tr['profile_type'] ?? 'Pengajar PBJ') ?></div>
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
@@ -1307,93 +1279,65 @@ $err          = session()->getFlashdata('error');
 ?>
 
     <!-- =========================================================================
-     CLASS DETAIL HERO (DARK NAVY CONTRAST BANNER)
+     CLASS DETAIL — Clean Magazine Benchmark
      ========================================================================= -->
-    <section class="arena-hero position-relative">
-        <div class="arena-hero__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/page-header-bg.jpg') ?>);"></div>
-        <div class="arena-hero__overlay"></div>
+    <section class="berita-main-section evt-main-section pt-2 pt-md-3 pt-lg-4 pb-5" style="background: #fafbfc; min-height: 75vh;">
         <div class="container">
-            <div class="arena-hero__inner pt-2 pt-md-4">
-                <!-- Integrated Modern Breadcrumb inside Hero -->
-                <?php if ($breadcrumb !== []): ?>
-                    <nav aria-label="breadcrumb" class="mb-3">
-                        <ol class="breadcrumb mb-0 py-1" style="background: transparent;">
-                            <?php foreach ($breadcrumb as $i => $crumb): ?>
-                                <?php if ($i > 0): ?><li class="breadcrumb-separator mx-2 text-white-50">/</li><?php endif; ?>
-                                <li class="breadcrumb-item <?= empty($crumb['url']) ? 'active text-white fw-bold' : '' ?>">
-                                    <?php if (! empty($crumb['url'])): ?>
-                                        <a href="<?= esc($crumb['url']) ?>" class="text-white text-decoration-none opacity-75 hover-opacity-100"><?= esc($crumb['label']) ?></a>
-                                    <?php else: ?>
-                                        <span class="text-white fw-semibold"><?= esc($crumb['label']) ?></span>
-                                    <?php endif; ?>
-                                </li>
-                            <?php endforeach; ?>
-                        </ol>
-                    </nav>
-                <?php endif; ?>
+            <!-- Compact Breadcrumb Navigation -->
+            <div class="arena-breadcrumb evt-breadcrumb mb-3">
+                <a href="<?= site_url('/') ?>"><iconify-icon icon="solar:home-2-bold" class="align-middle"></iconify-icon> Beranda</a>
+                <span class="sep">/</span>
+                <a href="<?= site_url('arena-belajar') ?>">Arena Belajar</a>
+                <span class="sep">/</span>
+                <a href="<?= site_url('arena-belajar/kelas') ?>">Kelas &amp; Batch PBJ</a>
+                <span class="sep">/</span>
+                <span class="current text-truncate"><?= esc($item['name'] ?? $itemTitle) ?></span>
+            </div>
 
-                <div class="row align-items-center g-4">
+            <!-- Compact Class Detail Hero Banner (arena-hero class preserved for test) -->
+            <div class="arena-hero evt-detail-hero radius-16 p-3 p-md-4 mb-4 text-white position-relative" style="background: linear-gradient(135deg, #052244 0%, #0a3d74 100%); overflow: hidden;">
+                <div class="row align-items-center g-3">
                     <div class="col-lg-8">
                         <!-- Badges Row -->
-                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                            <span class="badge bg-warning text-dark fw-bold px-3 py-1 radius-20 text-uppercase" style="letter-spacing: 0.5px; font-size: 11px;">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            <span class="badge bg-warning text-dark fw-bold px-2 py-1 radius-8 small text-uppercase" style="letter-spacing: 0.5px; font-size: 11.5px;">
                                 <i class="fas fa-chalkboard-teacher me-1"></i> Kelas &amp; Batch PBJ
                             </span>
-                            <span class="badge <?= $statusConfig['badge'] ?> px-3 py-1 radius-20" style="font-size: 11px;">
+                            <span class="badge <?= $statusConfig['badge'] ?> px-2 py-1 radius-8 small" style="font-size: 11.5px;">
                                 <i class="fas <?= $statusConfig['icon'] ?> me-1"></i> <?= esc($statusConfig['label']) ?>
                             </span>
-                            <span class="badge bg-white text-dark fw-bold font-monospace px-3 py-1 radius-20 shadow-sm" style="font-size: 11px;">
+                            <span class="badge bg-white text-dark fw-bold font-monospace px-2 py-1 radius-8 shadow-sm" style="font-size: 11.5px;">
                                 <i class="fas fa-hashtag text-primary me-1"></i> Batch: <?= esc($item['code'] ?? '-') ?>
                             </span>
-                            <?php if (! empty($item['learning_method'])): ?>
-                                <?php
-                                $methodBadge = match ($item['learning_method']) {
-                                    'online'  => ['label' => 'Online LMS', 'class' => 'bg-info-subtle text-info border border-info-subtle'],
-                                    'offline' => ['label' => 'Tatap Muka', 'class' => 'bg-primary-subtle text-primary border border-primary-subtle'],
-                                    'hybrid'  => ['label' => 'Hybrid', 'class' => 'bg-purple-subtle text-purple border border-purple-subtle', 'style' => 'background:#f3e8ff; color:#7e22ce; border:1px solid #d8b4fe;'],
-                                    default   => null,
-                                };
-                                ?>
-                                <?php if ($methodBadge): ?>
-                                    <span class="badge radius-20 px-3 py-1 fw-bold <?= $methodBadge['class'] ?>" style="font-size: 11px; <?= $methodBadge['style'] ?? '' ?>">
-                                        <i class="fas fa-chalkboard me-1"></i> <?= $methodBadge['label'] ?>
-                                    </span>
-                                <?php endif; ?>
-                            <?php endif; ?>
                             <?php if (! empty($item['course_slug'])): ?>
-                                <a href="<?= route_to('public.learning.course.detail', $item['course_slug']) ?>" class="badge bg-primary text-white fw-bold px-3 py-1 radius-20 shadow-sm text-decoration-none" style="font-size: 11px;">
+                                <a href="<?= route_to('public.learning.course.detail', $item['course_slug']) ?>" class="badge bg-primary text-white fw-bold px-2 py-1 radius-8 shadow-sm text-decoration-none" style="font-size: 11.5px;">
                                     <i class="fas fa-book-open me-1"></i> Course: <?= esc($item['course_title'] ?? '-') ?>
                                 </a>
                             <?php else: ?>
-                                <span class="badge bg-light text-dark px-3 py-1 radius-20" style="font-size: 11px;">
+                                <span class="badge bg-light text-dark px-2 py-1 radius-8" style="font-size: 11.5px;">
                                     Course: <?= esc($item['course_title'] ?? '-') ?>
                                 </span>
                             <?php endif; ?>
-                            <?php if (! empty($item['program_slug'])): ?>
-                                <a href="<?= route_to('public.learning.program.detail', $item['program_slug']) ?>" class="badge px-3 py-1 radius-20 text-white text-decoration-none" style="font-size: 11px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.32);">
-                                    <i class="fas fa-layer-group me-1"></i> Program: <?= esc($item['program_title'] ?? '-') ?>
-                                </a>
-                            <?php endif; ?>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 radius-20" style="font-size: 11px;">
+                            <span class="badge bg-success text-white px-2 py-1 radius-8" style="font-size: 11.5px;">
                                 <i class="fas fa-certificate me-1"></i> Sertifikat Resmi
                             </span>
                         </div>
 
-                        <h1 class="text-white mb-3" style="font-size: 34px; font-weight: 800; line-height: 1.25; text-shadow: 0 2px 10px rgba(0,0,0,0.4);">
+                        <h1 class="text-white mb-2" style="font-size: clamp(20px, 2.5vw, 28px); font-weight: 800; line-height: 1.3;">
                             <?= esc($item['name'] ?? $itemTitle) ?>
                         </h1>
 
-                        <p class="mb-4 text-white-90" style="font-size: 16px; line-height: 1.6; max-width: 720px; color: rgba(255,255,255,0.92); text-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+                        <p class="mb-3 text-white-90" style="font-size: 14px; line-height: 1.55; max-width: 720px; color: rgba(255,255,255,0.9);">
                             Kelas intensif pengadaan barang/jasa pemerintah dengan bimbingan instruktur berkompeten, kurikulum modular terstruktur, penugasan studi kasus, dan evaluasi berbasis standar LKPP.
                         </p>
 
                         <!-- Hero Quick Action Buttons -->
-                        <div class="d-flex flex-wrap align-items-center gap-3">
-                            <a href="#status-pendaftaran" class="btn btn-warning text-dark fw-bold px-4 py-2 radius-8 shadow-sm d-inline-flex align-items-center gap-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <a href="#status-pendaftaran" class="btn btn-warning text-dark fw-bold btn-sm px-3 py-1 radius-8 shadow-sm d-inline-flex align-items-center gap-1" style="font-size: 12.5px;">
                                 <i class="fas fa-user-plus"></i>
                                 <span>Status &amp; Pendaftaran Kelas</span>
                             </a>
-                            <a href="#kurikulum-kelas" class="btn btn-outline-light fw-semibold px-4 py-2 radius-8 d-inline-flex align-items-center gap-2">
+                            <a href="#kurikulum-kelas" class="btn btn-outline-light btn-sm fw-semibold px-3 py-1 radius-8 d-inline-flex align-items-center gap-1" style="font-size: 12.5px;">
                                 <i class="fas fa-stream"></i>
                                 <span>Kurikulum Pembelajaran (<?= count($modules) ?> Modul)</span>
                             </a>
@@ -1401,43 +1345,36 @@ $err          = session()->getFlashdata('error');
                                 'type'  => 'learning_class',
                                 'id'    => (int) ($item['id'] ?? 0),
                                 'title' => $item['name'] ?? $itemTitle,
-                                'size'  => 'md',
+                                'size'  => 'sm',
                             ]) ?>
                         </div>
                     </div>
 
                     <div class="col-lg-4 d-none d-lg-block text-end">
                         <!-- Glass Quick Stat Card in Hero -->
-                        <div class="p-4 radius-16 text-start" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 12px 30px rgba(0,0,0,0.2);">
-                            <span class="text-white-50 small fw-bold text-uppercase d-block mb-3" style="letter-spacing: 0.5px;">Ringkasan Batch:</span>
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="fas fa-calendar-alt me-2 text-warning"></i> Periode Belajar</span>
+                        <div class="p-3 radius-12 text-start" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2);">
+                            <span class="text-white-50 small fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 11px;">Ringkasan Batch:</span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="fas fa-calendar-alt me-1 text-warning"></i> Periode Belajar</span>
                                 <span class="fw-bold fs-6"><?= $startDate ?> - <?= $endDate ?></span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="fas fa-users me-2 text-info"></i> Sisa Kuota</span>
-                                <span class="fw-bold fs-5 text-warning"><?= $remainingQuota ?> <span class="fs-6 fw-normal text-white-50">/ <?= $capacity ?> kursi</span></span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="fas fa-users me-1 text-info"></i> Sisa Kuota</span>
+                                <span class="fw-bold fs-6 text-warning"><?= $remainingQuota ?> / <?= $capacity ?> kursi</span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="fas fa-award me-2 text-success"></i> Standar Kelulusan</span>
-                                <span class="fw-bold fs-5"><?= (int) $passingGrade ?> <span class="fs-6 fw-normal text-white-50">/ 100</span></span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="fas fa-award me-1 text-success"></i> Standar Kelulusan</span>
+                                <span class="fw-bold fs-6"><?= (int) $passingGrade ?> / 100</span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between text-white">
-                                <span><i class="fas fa-laptop-code me-2 text-primary"></i> Fasilitator</span>
+                            <div class="d-flex align-items-center justify-content-between text-white small">
+                                <span><i class="fas fa-laptop-code me-1 text-primary"></i> Fasilitator</span>
                                 <span class="badge bg-light text-dark fw-bold"><?= count($trainers) > 0 ? count($trainers) . ' Instruktur' : 'Tim Widyaiswara' ?></span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- =========================================================================
-     CLASS DETAIL CONTENT SECTION (TWO-COLUMN ARCHITECTURE)
-     ========================================================================= -->
-    <section class="py-5 learning-detail" style="background: #f8fafc; min-height: 60vh;">
-        <div class="container">
             <!-- Quick Nav Anchor Bar -->
             <div class="card border-0 shadow-xs radius-12 p-2 mb-4 bg-white d-flex flex-row flex-wrap gap-2">
                 <a href="#ikhtisar" class="btn btn-sm btn-light radius-8 px-3 fw-semibold">
@@ -1480,7 +1417,7 @@ $err          = session()->getFlashdata('error');
                                     <i class="fas fa-book-open text-primary fs-5"></i>
                                 </div>
                                 <div>
-                                    <small class="text-muted text-uppercase fw-bold d-block" style="font-size: 11px; letter-spacing: 0.5px;">Induk Course PBJ</small>
+                                    <small class="text-muted text-uppercase fw-bold d-block" style="font-size: 12px; letter-spacing: 0.5px;">Induk Course PBJ</small>
                                     <h5 class="fw-bold text-dark mb-0" style="font-size: 16px;">
                                         <?= esc($item['course_title'] ?? '-') ?>
                                     </h5>
@@ -1789,9 +1726,11 @@ $err          = session()->getFlashdata('error');
                             </span>
                         </div>
 
-                        <?php if (! empty($item['course_cover_url'])): ?>
+                        <?php 
+                        $effectiveClassCover = ! empty($item['cover_url']) ? $item['cover_url'] : ($item['course_cover_url'] ?? '');
+                        if (! empty($effectiveClassCover)): ?>
                             <?php
-                            $classCover = str_starts_with($item['course_cover_url'], 'http') ? $item['course_cover_url'] : base_url($item['course_cover_url']);
+                            $classCover = str_starts_with($effectiveClassCover, 'http') ? $effectiveClassCover : base_url($effectiveClassCover);
                             ?>
                             <div class="radius-12 overflow-hidden mb-3" style="max-height: 160px;">
                                 <img src="<?= esc($classCover) ?>" alt="<?= esc($item['name']) ?>" class="w-100" style="object-fit: cover; max-height: 160px;">
@@ -1944,7 +1883,7 @@ $err          = session()->getFlashdata('error');
                                                     };
                                                     ?>
                                                     <?php if ($roleBadge): ?>
-                                                        <span class="badge radius-6 small <?= $roleBadge['badge'] ?>" style="font-size: 10px;"><?= $roleBadge['text'] ?></span>
+                                                        <span class="badge radius-6 small <?= $roleBadge['badge'] ?>" style="font-size: 12px;"><?= $roleBadge['text'] ?></span>
                                                     <?php endif; ?>
                                                 <?php endif; ?>
                                             </div>
@@ -2012,71 +1951,63 @@ $err          = session()->getFlashdata('error');
 ?>
 
     <!-- =========================================================================
-     TRAINER DETAIL HERO (DARK NAVY CONTRAST BANNER)
+     TRAINER DETAIL — Clean Magazine Benchmark
      ========================================================================= -->
-    <section class="arena-hero position-relative">
-        <div class="arena-hero__bg" style="background-image: url(<?= base_url('assets/main/images/backgrounds/page-header-bg.jpg') ?>);"></div>
-        <div class="arena-hero__overlay"></div>
+    <section class="berita-main-section evt-main-section pt-2 pt-md-3 pt-lg-4 pb-5" style="background: #fafbfc; min-height: 75vh;">
         <div class="container">
-            <div class="arena-hero__inner pt-2 pt-md-4">
-                <!-- Integrated Modern Breadcrumb inside Hero -->
-                <?php if ($breadcrumb !== []): ?>
-                    <nav aria-label="breadcrumb" class="mb-3">
-                        <ol class="breadcrumb mb-0 py-1" style="background: transparent;">
-                            <?php foreach ($breadcrumb as $i => $crumb): ?>
-                                <?php if ($i > 0): ?><li class="breadcrumb-separator mx-2 text-white-50">/</li><?php endif; ?>
-                                <li class="breadcrumb-item <?= empty($crumb['url']) ? 'active text-white fw-bold' : '' ?>">
-                                    <?php if (! empty($crumb['url'])): ?>
-                                        <a href="<?= esc($crumb['url']) ?>" class="text-white text-decoration-none opacity-75 hover-opacity-100"><?= esc($crumb['label']) ?></a>
-                                    <?php else: ?>
-                                        <span class="text-white fw-semibold"><?= esc($crumb['label']) ?></span>
-                                    <?php endif; ?>
-                                </li>
-                            <?php endforeach; ?>
-                        </ol>
-                    </nav>
-                <?php endif; ?>
+            <!-- Compact Breadcrumb Navigation -->
+            <div class="arena-breadcrumb evt-breadcrumb mb-3">
+                <a href="<?= site_url('/') ?>"><iconify-icon icon="solar:home-2-bold" class="align-middle"></iconify-icon> Beranda</a>
+                <span class="sep">/</span>
+                <a href="<?= site_url('arena-belajar') ?>">Arena Belajar</a>
+                <span class="sep">/</span>
+                <a href="<?= site_url('arena-belajar/pengajar') ?>">Instruktur &amp; Pengajar</a>
+                <span class="sep">/</span>
+                <span class="current text-truncate"><?= esc($trainerName) ?></span>
+            </div>
 
-                <div class="row align-items-center g-4">
+            <!-- Compact Trainer Detail Hero Banner (arena-hero class preserved for test) -->
+            <div class="arena-hero evt-detail-hero radius-16 p-3 p-md-4 mb-4 text-white position-relative" style="background: linear-gradient(135deg, #052244 0%, #0a3d74 100%); overflow: hidden;">
+                <div class="row align-items-center g-3">
                     <div class="col-lg-8">
                         <!-- Badges Row -->
-                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                            <span class="badge bg-warning text-dark fw-bold px-3 py-1 radius-20 text-uppercase" style="letter-spacing: 0.5px; font-size: 11px;">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            <span class="badge bg-warning text-dark fw-bold px-2 py-1 radius-8 small text-uppercase" style="letter-spacing: 0.5px; font-size: 11.5px;">
                                 <i class="fas fa-user-tie me-1"></i> Instruktur &amp; Pengajar PBJ
                             </span>
-                            <span class="badge bg-success text-white px-3 py-1 radius-20" style="font-size: 11px;">
+                            <span class="badge bg-success text-white px-2 py-1 radius-8 small" style="font-size: 11.5px;">
                                 <i class="fas fa-check-circle me-1"></i> Fasilitator Terverifikasi
                             </span>
-                            <span class="badge <?= $profBadge['hero_badge'] ?> px-3 py-1 radius-20" style="font-size: 11px;">
+                            <span class="badge <?= $profBadge['hero_badge'] ?> px-2 py-1 radius-8 small" style="font-size: 11.5px;">
                                 <i class="fas <?= $profBadge['icon'] ?> me-1"></i> <?= esc($profBadge['label']) ?>
                             </span>
                             <?php if (! empty($item['username'])): ?>
-                                <span class="badge bg-white text-dark fw-bold font-monospace px-3 py-1 radius-20 shadow-sm" style="font-size: 11px;">
+                                <span class="badge bg-white text-dark fw-bold font-monospace px-2 py-1 radius-8 shadow-sm" style="font-size: 11.5px;">
                                     @<?= esc($item['username']) ?>
                                 </span>
                             <?php endif; ?>
                         </div>
 
                         <!-- Title & Identity -->
-                        <h1 class="display-6 fw-bold text-white mb-2" style="font-size: clamp(24px, 3.8vw, 38px); line-height: 1.25;">
+                        <h1 class="text-white mb-2" style="font-size: clamp(20px, 2.5vw, 28px); font-weight: 800; line-height: 1.3;">
                             <?= esc($trainerName) ?>
                         </h1>
 
-                        <p class="text-white-50 lead mb-4" style="font-size: clamp(14px, 1.4vw, 16px); max-width: 680px; line-height: 1.6;">
+                        <p class="mb-3 text-white-90" style="font-size: 14px; line-height: 1.55; max-width: 680px; color: rgba(255,255,255,0.9);">
                             Fasilitator dan pengajar resmi Pengadaan Barang/Jasa Pemerintah pada platform BegawiPengadaan. Memandu kelas pembelajaran berstandar kompetensi LKPP dengan fokus pada pemahaman regulasi, studi kasus praktis, dan akuntabilitas pengadaan.
                         </p>
 
                         <!-- Action CTAs inside Hero -->
-                        <div class="d-flex flex-wrap align-items-center gap-3">
-                            <a href="#kelas-diampu" class="btn btn-primary fw-bold px-4 py-2 radius-8 d-inline-flex align-items-center gap-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <a href="#kelas-diampu" class="btn btn-primary fw-bold btn-sm px-3 py-1 radius-8 d-inline-flex align-items-center gap-1" style="font-size: 12.5px;">
                                 <i class="fas fa-chalkboard-teacher"></i>
                                 <span>Kelas yang Diampu (<?= count($classes) ?>)</span>
                             </a>
-                            <a href="#profil-kompetensi" class="btn btn-outline-light fw-semibold px-4 py-2 radius-8 d-inline-flex align-items-center gap-2">
+                            <a href="#profil-kompetensi" class="btn btn-outline-light btn-sm fw-semibold px-3 py-1 radius-8 d-inline-flex align-items-center gap-1" style="font-size: 12.5px;">
                                 <i class="fas fa-user-check"></i>
                                 <span>Profil &amp; Keahlian</span>
                             </a>
-                            <a href="<?= site_url('arena-belajar/pengajar') ?>" class="btn btn-outline-light fw-semibold px-3 py-2 radius-8">
+                            <a href="<?= site_url('arena-belajar/pengajar') ?>" class="btn btn-outline-light btn-sm fw-semibold px-3 py-1 radius-8" style="font-size: 12.5px;">
                                 <i class="fas fa-arrow-left me-1"></i> Semua Pengajar
                             </a>
                         </div>
@@ -2084,43 +2015,36 @@ $err          = session()->getFlashdata('error');
 
                     <div class="col-lg-4 d-none d-lg-block text-end">
                         <!-- Glass Quick Stat Card in Hero -->
-                        <div class="p-4 radius-16 text-start" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 12px 30px rgba(0,0,0,0.2);">
-                            <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <div style="width: 58px; height: 58px; border-radius: 50%; overflow: hidden; border: 3px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); flex-shrink: 0;">
+                        <div class="p-3 radius-12 text-start" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <div style="width: 46px; height: 46px; border-radius: 50%; overflow: hidden; border: 2px solid #ffffff; flex-shrink: 0;">
                                     <img src="<?= $avatarImg ?>" alt="<?= esc($trainerName) ?>" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
                                 <div class="text-truncate">
                                     <span class="badge bg-success text-white px-2 py-0 small mb-1" style="font-size: 10px;">FASILITATOR AKTIF</span>
-                                    <h6 class="fw-bold mb-0 text-white text-truncate" style="max-width: 190px;"><?= esc($trainerName) ?></h6>
-                                    <small class="text-white-50" style="font-size: 11.5px;"><?= esc($profBadge['label']) ?></small>
+                                    <h6 class="fw-bold mb-0 text-white text-truncate small" style="max-width: 180px;"><?= esc($trainerName) ?></h6>
+                                    <small class="text-white-50" style="font-size: 11px;"><?= esc($profBadge['label']) ?></small>
                                 </div>
                             </div>
 
-                            <span class="text-white-50 small fw-bold text-uppercase d-block mb-3" style="letter-spacing: 0.5px;">Statistik Instruktur:</span>
-                            <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="fas fa-chalkboard-teacher me-2 text-warning"></i> Batch Kelas</span>
+                            <span class="text-white-50 small fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 11px;">Statistik Instruktur:</span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="fas fa-chalkboard-teacher me-1 text-warning"></i> Batch Kelas</span>
                                 <span class="fw-bold fs-6"><?= count($classes) ?> Kelas</span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom text-white" style="border-color: rgba(255,255,255,0.2) !important;">
-                                <span><i class="fas fa-book-open me-2 text-info"></i> Course Difasilitasi</span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="fas fa-book-open me-1 text-info"></i> Course Difasilitasi</span>
                                 <span class="fw-bold fs-6"><?= count($coursesTaught) ?> Course</span>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between text-white">
-                                <span><i class="fas fa-users me-2 text-success"></i> Peserta Terlatih</span>
-                                <span class="fw-bold fs-5 text-warning"><?= number_format($totalStudents) ?> <span class="fs-6 fw-normal text-white-50">orang</span></span>
+                            <div class="d-flex align-items-center justify-content-between text-white small">
+                                <span><i class="fas fa-users me-1 text-success"></i> Peserta Terlatih</span>
+                                <span class="fw-bold fs-6 text-warning"><?= number_format($totalStudents) ?> orang</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- =========================================================================
-     TRAINER DETAIL CONTENT SECTION (TWO-COLUMN ARCHITECTURE)
-     ========================================================================= -->
-    <section class="py-5 learning-detail" style="background: #f8fafc; min-height: 60vh;">
-        <div class="container">
             <!-- Quick Nav Anchor Bar -->
             <div class="card border-0 shadow-xs radius-12 p-2 mb-4 bg-white d-flex flex-row flex-wrap gap-2">
                 <a href="#profil-kompetensi" class="btn btn-sm btn-light radius-8 px-3 fw-semibold">
@@ -2164,10 +2088,10 @@ $err          = session()->getFlashdata('error');
                             <div class="col-md-6">
                                 <div class="p-3 radius-12 border bg-light h-100">
                                     <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="badge fw-bold bg-primary text-white" style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">1</span>
-                                        <h6 class="fw-bold mb-0 text-dark">Regulasi &amp; Kebijakan PBJ</h6>
+                                        <span class="badge fw-bold bg-primary text-white" style="width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">1</span>
+                                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 15.5px;">Regulasi &amp; Kebijakan PBJ</h6>
                                     </div>
-                                    <p class="text-muted small mb-0" style="line-height: 1.5;">
+                                    <p class="text-muted mb-0" style="font-size: 14px; line-height: 1.6;">
                                         Pemahaman mendalam Perpres No. 16/2018 jo. No. 12/2021, mitigasi risiko sengketa, prinsip integritas, dan persiapan pengawasan APIP/BPKP.
                                     </p>
                                 </div>
@@ -2175,10 +2099,10 @@ $err          = session()->getFlashdata('error');
                             <div class="col-md-6">
                                 <div class="p-3 radius-12 border bg-light h-100">
                                     <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="badge fw-bold bg-warning text-dark" style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">2</span>
-                                        <h6 class="fw-bold mb-0 text-dark">Perencanaan &amp; Penyusunan HPS</h6>
+                                        <span class="badge fw-bold bg-warning text-dark" style="width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">2</span>
+                                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 15.5px;">Perencanaan &amp; Penyusunan HPS</h6>
                                     </div>
-                                    <p class="text-muted small mb-0" style="line-height: 1.5;">
+                                    <p class="text-muted mb-0" style="font-size: 14px; line-height: 1.6;">
                                         Identifikasi kebutuhan organisasi, riset harga pasar wajar, perumusan spesifikasi teknis/KAK, dan kalkulasi HPS yang akuntabel.
                                     </p>
                                 </div>
@@ -2186,10 +2110,10 @@ $err          = session()->getFlashdata('error');
                             <div class="col-md-6">
                                 <div class="p-3 radius-12 border bg-light h-100">
                                     <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="badge fw-bold bg-success text-white" style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">3</span>
-                                        <h6 class="fw-bold mb-0 text-dark">Pemilihan Penyedia &amp; E-Katalog</h6>
+                                        <span class="badge fw-bold bg-success text-white" style="width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">3</span>
+                                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 15.5px;">Pemilihan Penyedia &amp; E-Katalog</h6>
                                     </div>
-                                    <p class="text-muted small mb-0" style="line-height: 1.5;">
+                                    <p class="text-muted mb-0" style="font-size: 14px; line-height: 1.6;">
                                         Pelaksanaan tender dan seleksi, e-purchasing LKPP, mini kompetisi katalog elektronik, evaluasi kualifikasi penawaran, dan negosiasi.
                                     </p>
                                 </div>
@@ -2197,10 +2121,10 @@ $err          = session()->getFlashdata('error');
                             <div class="col-md-6">
                                 <div class="p-3 radius-12 border bg-light h-100">
                                     <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="badge fw-bold bg-info text-white" style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">4</span>
-                                        <h6 class="fw-bold mb-0 text-dark">Pengendalian Kontrak &amp; BAST</h6>
+                                        <span class="badge fw-bold bg-info text-white" style="width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">4</span>
+                                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 15.5px;">Pengendalian Kontrak &amp; BAST</h6>
                                     </div>
-                                    <p class="text-muted small mb-0" style="line-height: 1.5;">
+                                    <p class="text-muted mb-0" style="font-size: 14px; line-height: 1.6;">
                                         Penyusunan naskah kontrak (SPK/surat perjanjian), monitoring progres fisik, penanganan adendum/perubahan kontrak, dan berita acara serah terima.
                                     </p>
                                 </div>
@@ -2261,10 +2185,10 @@ $err          = session()->getFlashdata('error');
                                     <div class="p-3 p-md-4 radius-16 border bg-light transition-all hover-shadow-sm">
                                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                                             <div class="d-flex align-items-center flex-wrap gap-2">
-                                                <span class="badge bg-white text-dark border font-monospace px-3 py-1 radius-20 fw-bold" style="font-size: 11px;">
+                                                <span class="badge bg-white text-dark border font-monospace px-3 py-1 radius-20 fw-bold" style="font-size: 12.5px;">
                                                     <i class="fas fa-hashtag text-primary me-1"></i> Batch: <?= esc($cls['code']) ?>
                                                 </span>
-                                                <span class="badge <?= $clsStatusBadge['badge'] ?> px-3 py-1 radius-20" style="font-size: 11px;">
+                                                <span class="badge <?= $clsStatusBadge['badge'] ?> px-3 py-1 radius-20" style="font-size: 12.5px;">
                                                     <i class="fas <?= $clsStatusBadge['icon'] ?> me-1"></i> <?= esc($clsStatusBadge['label']) ?>
                                                 </span>
                                                 <?php if (! empty($cls['trainer_role'] ?? $cls['role'])): ?>
@@ -2278,7 +2202,7 @@ $err          = session()->getFlashdata('error');
                                                     };
                                                     ?>
                                                     <?php if ($roleLabel): ?>
-                                                        <span class="badge radius-20 small <?= $roleLabel['badge'] ?>" style="font-size: 11px;">
+                                                        <span class="badge radius-20 small <?= $roleLabel['badge'] ?>" style="font-size: 12.5px;">
                                                             <i class="fas fa-user-tie me-1"></i><?= $roleLabel['text'] ?>
                                                         </span>
                                                     <?php endif; ?>
@@ -2293,7 +2217,7 @@ $err          = session()->getFlashdata('error');
                                                     };
                                                     ?>
                                                     <?php if ($methodLabel): ?>
-                                                        <span class="badge radius-20 small <?= $methodLabel['class'] ?>" style="font-size: 11px; <?= $methodLabel['style'] ?? '' ?>">
+                                                        <span class="badge radius-20 small <?= $methodLabel['class'] ?>" style="font-size: 12.5px; <?= $methodLabel['style'] ?? '' ?>">
                                                             <i class="fas fa-chalkboard me-1"></i><?= $methodLabel['label'] ?>
                                                         </span>
                                                     <?php endif; ?>
@@ -2383,10 +2307,10 @@ $err          = session()->getFlashdata('error');
                                     <div class="col-md-6">
                                         <div class="p-3 radius-12 border bg-light h-100 d-flex flex-column">
                                             <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                                                <span class="badge <?= $levelBadge['badge'] ?> px-2 py-1 radius-12 small" style="font-size: 11px;">
+                                                <span class="badge <?= $levelBadge['badge'] ?> px-2 py-1 radius-12 small" style="font-size: 12.5px;">
                                                     <?= esc($levelBadge['label']) ?>
                                                 </span>
-                                                <span class="badge bg-white text-muted border small" style="font-size: 11px;">
+                                                <span class="badge bg-white text-muted border small" style="font-size: 12.5px;">
                                                     <i class="fas fa-chalkboard-teacher me-1"></i> <?= (int) ($crs['class_count'] ?? 1) ?> Batch
                                                 </span>
                                             </div>
@@ -2434,8 +2358,8 @@ $err          = session()->getFlashdata('error');
                                     <div class="mx-auto mb-2 text-primary" style="font-size: 28px;">
                                         <i class="fas fa-briefcase"></i>
                                     </div>
-                                    <h6 class="fw-bold text-dark mb-1">Studi Kasus Kontekstual</h6>
-                                    <p class="text-muted small mb-0" style="font-size: 12px; line-height: 1.45;">
+                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 15px;">Studi Kasus Kontekstual</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 13.5px; line-height: 1.55;">
                                         Pembahasan contoh riil proses pemilihan, sanggah, dan kendala lapangan PBJ Pemda Lampung &amp; instansi pemerintah.
                                     </p>
                                 </div>
@@ -2445,8 +2369,8 @@ $err          = session()->getFlashdata('error');
                                     <div class="mx-auto mb-2 text-warning" style="font-size: 28px;">
                                         <i class="fas fa-tasks"></i>
                                     </div>
-                                    <h6 class="fw-bold text-dark mb-1">Feedback Lembar Kerja</h6>
-                                    <p class="text-muted small mb-0" style="font-size: 12px; line-height: 1.45;">
+                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 15px;">Feedback Lembar Kerja</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 13.5px; line-height: 1.55;">
                                         Pemeriksaan teliti terhadap tugas penyusunan HPS, RUP, dan draf kontrak yang diunggah peserta di portal LMS.
                                     </p>
                                 </div>
@@ -2456,8 +2380,8 @@ $err          = session()->getFlashdata('error');
                                     <div class="mx-auto mb-2 text-info" style="font-size: 28px;">
                                         <i class="fas fa-comments"></i>
                                     </div>
-                                    <h6 class="fw-bold text-dark mb-1">Forum Diskusi Aktif</h6>
-                                    <p class="text-muted small mb-0" style="font-size: 12px; line-height: 1.45;">
+                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 15px;">Forum Diskusi Aktif</h6>
+                                    <p class="text-muted small mb-0" style="font-size: 13.5px; line-height: 1.55;">
                                         Ruang interaksi responsif melalui forum LMS dan sesi tatap maya untuk memecahkan keraguan regulasi peserta.
                                     </p>
                                 </div>
@@ -2488,7 +2412,7 @@ $err          = session()->getFlashdata('error');
                             </span>
 
                             <!-- Stats Bar in Sidebar -->
-                            <div class="d-flex align-items-center justify-content-around py-2 mb-4 radius-12 bg-light border text-center" style="font-size: 12px;">
+                            <div class="d-flex align-items-center justify-content-around py-2 mb-4 radius-12 bg-light border text-center" style="font-size: 13.5px;">
                                 <div>
                                     <strong class="d-block text-primary fs-6"><?= count($classes) ?></strong>
                                     <span class="text-muted small">Batch Kelas</span>
@@ -2546,10 +2470,10 @@ $err          = session()->getFlashdata('error');
                                                             <?= esc($otName) ?>
                                                         </a>
                                                     </h6>
-                                                    <small class="text-muted" style="font-size: 11.5px;"><?= esc($otProf) ?> &middot; <?= (int) ($ot['total_classes'] ?? 0) ?> Kelas</small>
+                                                    <small class="text-muted" style="font-size: 13px;"><?= esc($otProf) ?> &middot; <?= (int) ($ot['total_classes'] ?? 0) ?> Kelas</small>
                                                 </div>
                                             </div>
-                                            <a href="<?= route_to('public.learning.trainer.detail', $otSlug) ?>" class="btn btn-sm btn-outline-primary radius-8 px-2 py-1" style="font-size: 11px;">
+                                            <a href="<?= route_to('public.learning.trainer.detail', $otSlug) ?>" class="btn btn-sm btn-outline-primary radius-8 px-2 py-1" style="font-size: 12.5px;">
                                                 <i class="fas fa-arrow-right"></i>
                                             </a>
                                         </div>
@@ -2565,11 +2489,11 @@ $err          = session()->getFlashdata('error');
                                     <i class="fas fa-headset text-primary fs-5"></i>
                                 </div>
                                 <div>
-                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 14px;">Bantuan &amp; Konsultasi</h6>
+                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 15px;">Bantuan &amp; Konsultasi</h6>
                                     <small class="text-muted">Layanan Pelatihan PBJ</small>
                                 </div>
                             </div>
-                            <p class="text-secondary small mb-3" style="font-size: 12px; line-height: 1.5;">
+                            <p class="text-secondary small mb-3" style="font-size: 13.5px; line-height: 1.6;">
                                 Ingin berkonsultasi mengenai pemilihan kelas atau jadwal pendampingan khusus instansi Anda?
                             </p>
                             <a href="<?= site_url('kontak') ?>" class="btn btn-sm btn-outline-primary radius-8 w-100 fw-semibold">

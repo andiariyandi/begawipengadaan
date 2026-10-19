@@ -1,5 +1,7 @@
 <?= $this->extend('dashboard/auth/layouts/auth') ?>
 
+<?= $this->section('containerClass') ?>max-w-634-px<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <div class="mb-32">
     <a href="<?= site_url('/') ?>" class="mb-24 d-inline-block text-decoration-none">
@@ -7,13 +9,13 @@
         <span class="auth-brand-subtext">Pemerintah Provinsi Lampung</span>
     </a>
 
-    <h4 class="mb-8 fw-bold text-dark"><?= esc($pageTitle ?? 'Tinjau Data Pendaftaran') ?></h4>
+    <h4 class="mb-8 fw-bold text-primary-light"><?= esc($pageTitle ?? 'Tinjau Data Pendaftaran') ?></h4>
     <p class="mb-0 text-secondary-light text-sm"><?= esc($pageDescription ?? 'Langkah 4 dari 4 — Pastikan seluruh data pendaftaran akun Anda sudah benar dan sesuai.') ?></p>
 </div>
 
 <?= view('dashboard/auth/components/register_steps', [
     'currentStep' => $currentStep ?? 4,
-    'currentKey'  => $currentKey ?? 'tinjau',
+    'currentKey'  => 'tinjau',
 ]) ?>
 
 <?php
@@ -64,7 +66,7 @@ $profileSegment = $profileSegment ?? match($registrationData['profile_type'] ?? 
     <div class="d-flex justify-content-between align-items-center gap-12 mb-12">
         <div class="d-flex align-items-center gap-2">
             <iconify-icon icon="solar:user-bold" class="text-primary-600 text-lg"></iconify-icon>
-            <h6 class="mb-0 text-sm fw-bold">1. Akun Dasar</h6>
+            <h6 class="mb-0 text-sm fw-bold text-primary-light">1. Akun Dasar</h6>
         </div>
         <a href="<?= site_url('dashboard/daftar') ?>" class="text-primary-600 text-xs fw-semibold d-inline-flex align-items-center gap-1">
             <iconify-icon icon="solar:pen-linear"></iconify-icon>
@@ -74,23 +76,23 @@ $profileSegment = $profileSegment ?? match($registrationData['profile_type'] ?? 
     <div class="d-flex flex-column gap-8 text-sm">
         <div class="d-flex justify-content-between gap-12">
             <span class="text-secondary-light">Nama Lengkap:</span>
-            <strong class="text-dark"><?= esc($registrationData['full_name'] ?? '-') ?></strong>
+            <strong class="text-primary-light"><?= esc($registrationData['full_name'] ?? '-') ?></strong>
         </div>
         <div class="d-flex justify-content-between gap-12">
             <span class="text-secondary-light">Username:</span>
-            <strong class="text-dark"><?= esc($registrationData['username'] ?? '-') ?></strong>
+            <strong class="text-primary-light"><?= esc($registrationData['username'] ?? '-') ?></strong>
         </div>
         <div class="d-flex justify-content-between gap-12">
             <span class="text-secondary-light">Email:</span>
-            <strong class="text-dark"><?= esc($registrationData['email'] ?? '-') ?></strong>
+            <strong class="text-primary-light"><?= esc($registrationData['email'] ?? '-') ?></strong>
         </div>
         <div class="d-flex justify-content-between gap-12">
             <span class="text-secondary-light">Telepon:</span>
-            <strong class="text-dark"><?= esc($registrationData['phone'] ?? '-') ?></strong>
+            <strong class="text-primary-light"><?= esc($registrationData['phone'] ?? '-') ?></strong>
         </div>
         <div class="d-flex justify-content-between gap-12">
             <span class="text-secondary-light">Tipe Profil:</span>
-            <span class="badge bg-primary-50 text-primary-600 border border-primary-100 text-xs px-2 py-1 radius-4">
+            <span class="badge bg-primary-50 text-primary-600 border border-primary-100 text-xs px-8 py-2 radius-4">
                 <?= esc($profileLabels[$registrationData['profile_type'] ?? ''] ?? strtoupper((string) ($registrationData['profile_type'] ?? '-'))) ?>
             </span>
         </div>
@@ -102,7 +104,7 @@ $profileSegment = $profileSegment ?? match($registrationData['profile_type'] ?? 
     <div class="d-flex justify-content-between align-items-center gap-12 mb-12">
         <div class="d-flex align-items-center gap-2">
             <iconify-icon icon="solar:map-point-bold" class="text-primary-600 text-lg"></iconify-icon>
-            <h6 class="mb-0 text-sm fw-bold">2. Wilayah Domisili</h6>
+            <h6 class="mb-0 text-sm fw-bold text-primary-light">2. Wilayah Domisili</h6>
         </div>
         <a href="<?= site_url('dashboard/daftar/wilayah') ?>" class="text-primary-600 text-xs fw-semibold d-inline-flex align-items-center gap-1">
             <iconify-icon icon="solar:pen-linear"></iconify-icon>
@@ -112,19 +114,19 @@ $profileSegment = $profileSegment ?? match($registrationData['profile_type'] ?? 
     <div class="d-flex flex-column gap-8 text-sm">
         <div class="d-flex justify-content-between gap-12">
             <span class="text-secondary-light">Provinsi:</span>
-            <strong class="text-dark"><?= esc($registrationAddress['province'] ?? '-') ?></strong>
+            <strong class="text-primary-light"><?= esc($registrationAddress['province'] ?? '-') ?></strong>
         </div>
         <div class="d-flex justify-content-between gap-12">
             <span class="text-secondary-light">Kabupaten/Kota:</span>
-            <strong class="text-dark"><?= esc($registrationAddress['regency'] ?? '-') ?></strong>
+            <strong class="text-primary-light"><?= esc($registrationAddress['regency'] ?? '-') ?></strong>
         </div>
         <div class="d-flex justify-content-between gap-12">
             <span class="text-secondary-light">Kecamatan:</span>
-            <strong class="text-dark"><?= esc($registrationAddress['district'] ?? '-') ?></strong>
+            <strong class="text-primary-light"><?= esc($registrationAddress['district'] ?? '-') ?></strong>
         </div>
         <div class="d-flex justify-content-between gap-12">
             <span class="text-secondary-light">Alamat Ringkas:</span>
-            <strong class="text-dark text-end"><?= esc($registrationAddress['address'] ?? '-') ?></strong>
+            <strong class="text-primary-light text-end"><?= esc($registrationAddress['address'] ?? '-') ?></strong>
         </div>
     </div>
 </div>
@@ -134,7 +136,7 @@ $profileSegment = $profileSegment ?? match($registrationData['profile_type'] ?? 
     <div class="d-flex justify-content-between align-items-center gap-12 mb-12">
         <div class="d-flex align-items-center gap-2">
             <iconify-icon icon="solar:document-text-bold" class="text-primary-600 text-lg"></iconify-icon>
-            <h6 class="mb-0 text-sm fw-bold">3. Detail Profil Spesifik</h6>
+            <h6 class="mb-0 text-sm fw-bold text-primary-light">3. Detail Profil Spesifik</h6>
         </div>
         <a href="<?= site_url('dashboard/daftar/profil/' . $profileSegment) ?>" class="text-primary-600 text-xs fw-semibold d-inline-flex align-items-center gap-1">
             <iconify-icon icon="solar:pen-linear"></iconify-icon>
@@ -144,38 +146,38 @@ $profileSegment = $profileSegment ?? match($registrationData['profile_type'] ?? 
     <div class="d-flex flex-column gap-8 text-sm">
         <div class="d-flex justify-content-between gap-12">
             <span class="text-secondary-light">Kategori:</span>
-            <strong class="text-dark"><?= esc($registrationProfile['label'] ?? '-') ?></strong>
+            <strong class="text-primary-light"><?= esc($registrationProfile['label'] ?? '-') ?></strong>
         </div>
         <?php $pFields = $registrationProfile['fields'] ?? []; ?>
         <?php if (($registrationProfile['profile_type'] ?? '') === 'asn'): ?>
             <div class="d-flex justify-content-between gap-12">
                 <span class="text-secondary-light">Asal Instansi:</span>
-                <strong class="text-dark text-end">
+                <strong class="text-primary-light text-end">
                     <?= esc($pFields['asn_origin'] === 'pemprov_lampung' ? 'Pemerintah Provinsi Lampung' : ucwords(str_replace('_', ' ', (string) ($pFields['asn_origin'] ?? '-')))) ?>
                 </strong>
             </div>
             <?php if (! empty($pFields['nip_nippk'])): ?>
                 <div class="d-flex justify-content-between gap-12">
                     <span class="text-secondary-light">NIP / NIPPK:</span>
-                    <strong class="text-dark text-end"><?= esc($pFields['nip_nippk']) ?></strong>
+                    <strong class="text-primary-light text-end"><?= esc($pFields['nip_nippk']) ?></strong>
                 </div>
             <?php endif; ?>
             <div class="d-flex justify-content-between gap-12">
                 <span class="text-secondary-light">Status Kepegawaian:</span>
-                <strong class="text-dark text-end"><?= esc(strtoupper((string) ($pFields['employment_status'] ?? '-'))) ?></strong>
+                <strong class="text-primary-light text-end"><?= esc(strtoupper((string) ($pFields['employment_status'] ?? '-'))) ?></strong>
             </div>
             <div class="d-flex justify-content-between gap-12">
                 <span class="text-secondary-light">OPD / Unit Kerja:</span>
-                <strong class="text-dark text-end"><?= esc($pFields['opd_name'] ?? $pFields['external_unit_name'] ?? $pFields['institution_name'] ?? '-') ?></strong>
+                <strong class="text-primary-light text-end"><?= esc($pFields['opd_name'] ?? $pFields['external_unit_name'] ?? $pFields['institution_name'] ?? '-') ?></strong>
             </div>
             <div class="d-flex justify-content-between gap-12">
                 <span class="text-secondary-light">Jabatan Utama:</span>
-                <strong class="text-dark text-end"><?= esc($pFields['position'] ?? '-') ?></strong>
+                <strong class="text-primary-light text-end"><?= esc($pFields['position'] ?? '-') ?></strong>
             </div>
             <?php if (! empty($pFields['official_email'])): ?>
                 <div class="d-flex justify-content-between gap-12">
                     <span class="text-secondary-light">Email Kedinasan:</span>
-                    <strong class="text-dark text-end"><?= esc($pFields['official_email']) ?></strong>
+                    <strong class="text-primary-light text-end"><?= esc($pFields['official_email']) ?></strong>
                 </div>
             <?php endif; ?>
             <?php if (! empty($pFields['procurement_role_names'])): ?>
@@ -197,11 +199,22 @@ $profileSegment = $profileSegment ?? match($registrationData['profile_type'] ?? 
             <?php endif; ?>
         <?php else: ?>
             <?php if (! empty($pFields)): ?>
-                <?php foreach (array_slice($pFields, 0, 5) as $fKey => $fVal): ?>
-                    <?php if (is_array($fVal)) continue; ?>
+                <?php foreach ($pFields as $fKey => $fVal): ?>
+                    <?php
+                    if (is_array($fVal) || empty($fVal)) continue;
+                    $displayVal = (string) $fVal;
+                    if (str_starts_with($displayVal, '[') && str_ends_with($displayVal, ']')) {
+                        $arr = json_decode($displayVal, true);
+                        if (is_array($arr)) {
+                            $displayVal = implode(', ', array_map(static fn($v) => ucwords(str_replace('_', ' ', (string) $v)), $arr));
+                        }
+                    } else {
+                        $displayVal = ucwords(str_replace('_', ' ', $displayVal));
+                    }
+                    ?>
                     <div class="d-flex justify-content-between gap-12">
                         <span class="text-secondary-light"><?= esc(ucwords(str_replace('_', ' ', (string) $fKey))) ?>:</span>
-                        <strong class="text-dark text-end"><?= esc((string) $fVal) ?></strong>
+                        <strong class="text-primary-light text-end"><?= esc($displayVal) ?></strong>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -226,12 +239,12 @@ $profileSegment = $profileSegment ?? match($registrationData['profile_type'] ?? 
         </label>
     </div>
 
-    <!-- Authentic Security Verification Card (replaces dummy placeholder) -->
+    <!-- Security Verification Card -->
     <div class="border border-success-200 bg-success-50 radius-12 p-16 mb-24 text-center">
         <div class="d-inline-flex align-items-center justify-content-center w-40-px h-40-px bg-success-100 text-success-main rounded-circle mb-8">
             <iconify-icon icon="solar:shield-check-bold" class="text-2xl"></iconify-icon>
         </div>
-        <p class="fw-semibold text-sm mb-2 text-dark">Verifikasi Keamanan Terjamin</p>
+        <p class="fw-semibold text-sm mb-2 text-primary-light">Verifikasi Keamanan Terjamin</p>
         <p class="text-secondary-light text-xs mb-0">
             Pendaftaran akun BegawiPengadaan dilindungi proteksi sesi terenkripsi dan pencatatan audit log integritas.
         </p>
