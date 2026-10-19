@@ -32,10 +32,10 @@
 <?php endif; ?>
 
 <!-- Profile Body -->
-<div class="row g-4">
+<div class="row g-3 g-md-4">
     <!-- Left Column: Data Diri Form -->
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mb-3">
             <h2 class="h5 fw-bold mb-4 pb-2 border-bottom" style="color: #082f5c;">
                 <i class="fas fa-user-edit text-primary me-2"></i> Data Identitas Akun
             </h2>
@@ -97,8 +97,8 @@
     <!-- Right Column: Keamanan & Role Pengadaan -->
     <div class="col-lg-4">
         <!-- Keamanan Password -->
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-            <h2 class="h5 fw-bold mb-3 pb-2 border-bottom" style="color: #082f5c;">
+        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mb-3">
+            <h2 class="h6 fw-bold mb-3 pb-2 border-bottom" style="color: #082f5c;">
                 <i class="fas fa-key text-warning me-2"></i> Ubah Kata Sandi
             </h2>
             <form action="<?= route_to('workspace.profile.password.update') ?>" method="post">
@@ -122,8 +122,8 @@
         </div>
 
         <!-- Info Ringkas Akun -->
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-            <h2 class="h5 fw-bold mb-3 pb-2 border-bottom" style="color: #082f5c;">
+        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+            <h2 class="h6 fw-bold mb-3 pb-2 border-bottom" style="color: #082f5c;">
                 <i class="fas fa-shield-alt text-success me-2"></i> Status Akun
             </h2>
             <div class="list-group list-group-flush small">

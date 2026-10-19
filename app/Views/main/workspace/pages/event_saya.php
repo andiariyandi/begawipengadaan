@@ -20,12 +20,12 @@
 
 <!-- Stat KPI Cards -->
 <?php if (!empty($sectionContent['cards'])): ?>
-    <div class="row g-4 mb-4">
+    <div class="row g-2 g-md-3 mb-3">
         <?php foreach ($sectionContent['cards'] as $card): ?>
             <div class="col-sm-6 col-lg-3">
-                <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
                     <span class="text-muted small fw-semibold text-uppercase"><?= esc($card['title']) ?></span>
-                    <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= esc($card['value']) ?></div>
+                    <div class="display-6 fw-bold my-1" style="color: #082f5c;"><?= esc($card['value']) ?></div>
                     <small class="text-muted"><?= esc($card['meta'] ?? '') ?></small>
                 </div>
             </div>
@@ -34,15 +34,15 @@
 <?php endif; ?>
 
 <!-- FORM PRESENSI CEPAT (TETAP DI WORKSPACE) -->
-<div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-white">
-    <div class="row align-items-center g-4">
+<div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-3 bg-white">
+    <div class="row align-items-center g-3">
         <div class="col-lg-6">
             <div class="d-flex align-items-center gap-3 mb-2">
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(8,47,92,0.08); color: #082f5c;">
-                    <i class="fas fa-qrcode fs-4"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: rgba(8,47,92,0.08); color: #082f5c;">
+                    <i class="fas fa-qrcode fs-5"></i>
                 </div>
                 <div>
-                    <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">Presensi Kehadiran</h2>
+                    <h2 class="h6 fw-bold mb-0" style="color: #082f5c;">Presensi Kehadiran</h2>
                     <small class="text-muted">Masukkan kode kehadiran yang dibagikan oleh panitia/penyelenggara</small>
                 </div>
             </div>
@@ -55,7 +55,7 @@
                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-key"></i></span>
                     <input type="text" name="attendance_code" class="form-control text-uppercase font-monospace border-start-0" placeholder="Kode Presensi (Contoh: BGW-EVT-82K91)" required autocomplete="off" style="letter-spacing: 1px;">
                 </div>
-                <button type="submit" class="btn btn-primary px-4 rounded-3 text-nowrap fw-semibold">
+                <button type="submit" class="btn btn-primary px-3 rounded-3 text-nowrap fw-semibold">
                     <i class="fas fa-check-circle me-1"></i> Konfirmasi Kehadiran
                 </button>
             </form>
@@ -64,25 +64,25 @@
 </div>
 
 <!-- NAVIGASI 4 FUNGSI UTAMA EVENT SAYA -->
-<div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+<div class="card border-0 shadow-sm rounded-4 p-2 p-md-3 mb-3 bg-white">
     <ul class="nav nav-pills gap-2 flex-wrap" id="eventTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active rounded-pill px-4 py-2 small fw-semibold" id="tab-aktif-btn" data-bs-toggle="pill" data-bs-target="#tab-aktif" type="button" role="tab" aria-controls="tab-aktif" aria-selected="true">
+            <button class="nav-link active rounded-pill px-3 py-1-5 small fw-semibold" id="tab-aktif-btn" data-bs-toggle="pill" data-bs-target="#tab-aktif" type="button" role="tab" aria-controls="tab-aktif" aria-selected="true">
                 <i class="fas fa-calendar-check me-1"></i> 1. Event Aktif Saya (<?= count($activeEvents ?? []) ?>)
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link rounded-pill px-4 py-2 small fw-semibold" id="tab-riwayat-btn" data-bs-toggle="pill" data-bs-target="#tab-riwayat" type="button" role="tab" aria-controls="tab-riwayat" aria-selected="false">
+            <button class="nav-link rounded-pill px-3 py-1-5 small fw-semibold" id="tab-riwayat-btn" data-bs-toggle="pill" data-bs-target="#tab-riwayat" type="button" role="tab" aria-controls="tab-riwayat" aria-selected="false">
                 <i class="fas fa-history me-1"></i> 2. Riwayat Event (<?= count($historyEvents ?? []) ?>)
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link rounded-pill px-4 py-2 small fw-semibold" id="tab-presensi-btn" data-bs-toggle="pill" data-bs-target="#tab-presensi" type="button" role="tab" aria-controls="tab-presensi" aria-selected="false">
+            <button class="nav-link rounded-pill px-3 py-1-5 small fw-semibold" id="tab-presensi-btn" data-bs-toggle="pill" data-bs-target="#tab-presensi" type="button" role="tab" aria-controls="tab-presensi" aria-selected="false">
                 <i class="fas fa-user-check me-1"></i> 3. Presensi Saya (<?= count($attendanceEvents ?? []) ?>)
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link rounded-pill px-4 py-2 small fw-semibold" id="tab-sertifikat-btn" data-bs-toggle="pill" data-bs-target="#tab-sertifikat" type="button" role="tab" aria-controls="tab-sertifikat" aria-selected="false">
+            <button class="nav-link rounded-pill px-3 py-1-5 small fw-semibold" id="tab-sertifikat-btn" data-bs-toggle="pill" data-bs-target="#tab-sertifikat" type="button" role="tab" aria-controls="tab-sertifikat" aria-selected="false">
                 <i class="fas fa-award me-1"></i> 4. Sertifikat Event (<?= count($certificateEvents ?? []) ?>)
             </button>
         </li>
@@ -94,10 +94,10 @@
     <!-- TAB 1: EVENT AKTIF SAYA -->
     <div class="tab-pane fade show active" id="tab-aktif" role="tabpanel" aria-labelledby="tab-aktif-btn">
         <?php if (empty($activeEvents)): ?>
-            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
-                <i class="fas fa-calendar-check fs-1 text-muted opacity-50 mb-3"></i>
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white text-center">
+                <i class="fas fa-calendar-check fs-2 text-muted opacity-50 mb-2"></i>
                 <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Tidak Ada Event Aktif</h2>
-                <p class="text-muted mb-3">Anda tidak memiliki event yang sedang berjalan atau akan datang saat ini.</p>
+                <p class="text-muted small mb-3">Anda tidak memiliki event yang sedang berjalan atau akan datang saat ini.</p>
                 <div>
                     <a href="<?= site_url('event') ?>" class="btn btn-primary rounded-pill px-4">
                         <i class="fas fa-search me-1"></i> Jelajahi &amp; Daftar Event Baru
@@ -105,7 +105,7 @@
                 </div>
             </div>
         <?php else: ?>
-            <div class="row g-4">
+            <div class="row g-2 g-md-3">
                 <?php foreach ($activeEvents as $ev): ?>
                     <?= view('main/workspace/pages/partials/event_card', ['ev' => $ev]) ?>
                 <?php endforeach; ?>
@@ -116,13 +116,13 @@
     <!-- TAB 2: RIWAYAT EVENT -->
     <div class="tab-pane fade" id="tab-riwayat" role="tabpanel" aria-labelledby="tab-riwayat-btn">
         <?php if (empty($historyEvents)): ?>
-            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
-                <i class="fas fa-history fs-1 text-muted opacity-50 mb-3"></i>
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white text-center">
+                <i class="fas fa-history fs-2 text-muted opacity-50 mb-2"></i>
                 <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Riwayat Event</h2>
-                <p class="text-muted mb-0">Event yang telah selesai atau telah Anda hadiri akan tersimpan di sini sebagai arsip.</p>
+                <p class="text-muted small mb-0">Event yang telah selesai atau telah Anda hadiri akan tersimpan di sini sebagai arsip.</p>
             </div>
         <?php else: ?>
-            <div class="row g-4">
+            <div class="row g-2 g-md-3">
                 <?php foreach ($historyEvents as $ev): ?>
                     <?= view('main/workspace/pages/partials/event_card', ['ev' => $ev]) ?>
                 <?php endforeach; ?>
@@ -132,7 +132,7 @@
 
     <!-- TAB 3: PRESENSI SAYA -->
     <div class="tab-pane fade" id="tab-presensi" role="tabpanel" aria-labelledby="tab-presensi-btn">
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                 <div>
                     <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">Daftar Kehadiran Event</h2>
@@ -145,8 +145,8 @@
 
             <?php if (empty($attendanceEvents)): ?>
                 <div class="text-center py-5 text-muted">
-                    <i class="fas fa-user-check fs-1 text-muted opacity-50 mb-3"></i>
-                    <p class="mb-0">Belum ada catatan presensi event yang tercatat untuk akun Anda.</p>
+                    <i class="fas fa-user-check fs-2 text-muted opacity-50 mb-2"></i>
+                    <p class="mb-0 small">Belum ada catatan presensi event yang tercatat untuk akun Anda.</p>
                 </div>
             <?php else: ?>
                 <div class="table-responsive">
@@ -196,7 +196,7 @@
 
     <!-- TAB 4: SERTIFIKAT EVENT -->
     <div class="tab-pane fade" id="tab-sertifikat" role="tabpanel" aria-labelledby="tab-sertifikat-btn">
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                 <div>
                     <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">Sertifikat Kegiatan Terbit</h2>
@@ -209,15 +209,15 @@
 
             <?php if (empty($certificateEvents)): ?>
                 <div class="text-center py-5 text-muted">
-                    <i class="fas fa-award fs-1 text-muted opacity-50 mb-3"></i>
-                    <p class="mb-1">Belum ada sertifikat event yang diterbitkan.</p>
-                    <small>Pastikan Anda telah mengisi presensi pada kegiatan yang menyediakan sertifikat.</small>
+                    <i class="fas fa-award fs-2 text-muted opacity-50 mb-2"></i>
+                    <p class="mb-1 small">Belum ada sertifikat event yang diterbitkan.</p>
+                    <small class="text-muted">Pastikan Anda telah mengisi presensi pada kegiatan yang menyediakan sertifikat.</small>
                 </div>
             <?php else: ?>
-                <div class="row g-4">
+                <div class="row g-2 g-md-3">
                     <?php foreach ($certificateEvents as $cev): ?>
                         <div class="col-md-6">
-                            <div class="p-4 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+                            <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
                                 <div>
                                     <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 small fw-semibold mb-2">
                                         <i class="fas fa-award me-1"></i> Sertifikat Resmi

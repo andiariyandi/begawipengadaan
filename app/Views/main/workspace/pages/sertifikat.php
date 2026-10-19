@@ -19,10 +19,10 @@
 
 <!-- Certificate List -->
 <?php if (empty($certificates)): ?>
-    <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
-        <i class="fas fa-award fs-1 text-muted opacity-50 mb-3"></i>
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white text-center">
+        <i class="fas fa-award fs-2 text-muted opacity-50 mb-2"></i>
         <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Sertifikat Terbit</h2>
-        <p class="text-muted mb-3">Selesaikan seluruh materi pembelajaran, kuis, dan tugas kelas untuk memenuhi syarat penerbitan sertifikat.</p>
+        <p class="text-muted small mb-3">Selesaikan seluruh materi pembelajaran, kuis, dan tugas kelas untuk memenuhi syarat penerbitan sertifikat.</p>
         <div>
             <a href="<?= route_to('workspace.participant.classes') ?>" class="btn btn-primary rounded-pill px-4">
                 Lihat Pembelajaran Saya
@@ -30,10 +30,10 @@
         </div>
     </div>
 <?php else: ?>
-    <div class="row g-4">
+    <div class="row g-3 g-md-4">
         <?php foreach ($certificates as $cert): ?>
             <div class="col-md-6">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white d-flex flex-column justify-content-between position-relative overflow-hidden">
+                <div class="card ws-cert-card border-0 shadow-sm rounded-4 p-3 p-md-4 h-100 bg-white d-flex flex-column justify-content-between position-relative overflow-hidden">
                     <div>
                         <!-- Header Badge -->
                         <div class="d-flex justify-content-between align-items-center mb-3">

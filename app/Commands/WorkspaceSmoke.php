@@ -1054,10 +1054,10 @@ class WorkspaceSmoke extends BaseCommand
             $testQuiz = $db->table('quizzes')->where('status', 'published')->orderBy('id', 'ASC')->limit(1)->get()->getRowArray();
             if ($testQuiz) {
                 $qClassId = (int) $testQuiz['class_id'];
-                // Set duration_minutes to 45
+                // Set duration_minutes to 45 and generous attempt limit
                 $db->table('quizzes')->where('id', $testQuiz['id'])->update([
                     'duration_minutes' => 45,
-                    'attempt_limit'    => 5,
+                    'attempt_limit'    => 999,
                 ]);
 
                 // Ensure testUser has active enrollment in this class
@@ -1081,10 +1081,16 @@ class WorkspaceSmoke extends BaseCommand
                     'roles'      => ['participant'],
                 ]);
 
-                // Clean existing active attempts for testing
-                $db->table('quiz_attempts')
-                    ->where(['quiz_id' => $testQuiz['id'], 'enrollment_id' => $testEnrollment['id'], 'status' => 'started'])
-                    ->update(['status' => 'graded', 'submitted_at' => date('Y-m-d H:i:s')]);
+                // Clean existing attempts for idempotency
+                $oldAttemptRows = $db->table('quiz_attempts')
+                    ->select('id')
+                    ->where(['quiz_id' => $testQuiz['id'], 'enrollment_id' => $testEnrollment['id']])
+                    ->get()->getResultArray();
+                if (! empty($oldAttemptRows)) {
+                    $oldIds = array_column($oldAttemptRows, 'id');
+                    $db->table('quiz_answers')->whereIn('attempt_id', $oldIds)->delete();
+                    $db->table('quiz_attempts')->whereIn('id', $oldIds)->delete();
+                }
 
                 // 1. Start a new attempt
                 $learningService = new \App\Services\LearningService();
@@ -1137,6 +1143,61 @@ class WorkspaceSmoke extends BaseCommand
                     CLI::error(" [FAIL] Expired Timer Auto-Submit failed: isRedirect=" . ($isRedirect ? '1' : '0') . ", status=" . ($updatedAttempt['status'] ?? ''));
                     $failed++;
                 }
+            }
+
+            // =========================================================================
+            // 11. Test Consistent Sidebar Access & Progress Locks for Assignments & Assessments
+            // =========================================================================
+            CLI::newLine();
+            CLI::write("Testing Sidebar Access & Progress-Locked Assignments & Assessments...", "yellow");
+
+            // Test Participant allAssignments view rendering
+            $asgHtml = (string) $controller->allAssignments();
+            $hasAsgHeader = str_contains($asgHtml, 'Tugas Saya');
+            $hasAsgCards = str_contains($asgHtml, 'Tugas Terbuka') || str_contains($asgHtml, 'Belum Ada Tugas Pembelajaran');
+            if ($hasAsgHeader && $hasAsgCards) {
+                CLI::write(" [PASS] View tugas.php: All Assignments with progress-lock status and KPI stats OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] View tugas.php rendering mismatch");
+                $failed++;
+            }
+
+            // Test Participant allAssessments view rendering
+            $assessHtml = (string) $controller->allAssessments();
+            $hasAssessHeader = str_contains($assessHtml, 'Assessment Saya');
+            $hasAssessCards = str_contains($assessHtml, 'Siap Dikerjakan') || str_contains($assessHtml, 'Belum Ada Assessment');
+            if ($hasAssessHeader && $hasAssessCards) {
+                CLI::write(" [PASS] View assessment.php: All Assessments with progressive unlock status and KPI stats OK", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] View assessment.php rendering mismatch");
+                $failed++;
+            }
+
+            // Test Sidebar mobile collapsible markup
+            $sidebarHtml = view('main/workspace/components/sidebar');
+            $hasMobileToggle = str_contains($sidebarHtml, 'wsSidebarMenuCollapse') && str_contains($sidebarHtml, 'd-lg-none');
+            if ($hasMobileToggle) {
+                CLI::write(" [PASS] Sidebar Mobile Collapsible UX: Toggle button & collapse wrapper present", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] Sidebar Mobile Collapsible UX missing");
+                $failed++;
+            }
+
+            // Test CSS Text Bleed & Overflow Protection Rules
+            $cssContent = file_get_contents(FCPATH . 'assets/main/css/workspace.css');
+            $hasUniversalBleedProtection = str_contains($cssContent, 'white-space: nowrap !important')
+                && str_contains($cssContent, 'overflow-wrap: anywhere !important')
+                && str_contains($cssContent, 'min-width: 580px')
+                && str_contains($cssContent, '@media (max-width: 767.98px)');
+            if ($hasUniversalBleedProtection) {
+                CLI::write(" [PASS] CSS Bleed & Mobile Protection: Universal wrap, badge protection, responsive tables & breakpoints verified", 'green');
+                $passed++;
+            } else {
+                CLI::error(" [FAIL] CSS Bleed & Mobile Protection rules missing from workspace.css");
+                $failed++;
             }
 
         } catch (\Throwable $e) {

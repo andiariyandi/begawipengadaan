@@ -6,18 +6,36 @@
  */
 
 :root {
+    --ws-navy-900: #052244;
+    --ws-navy-700: #082f5c;
     --ws-navy: #082f5c;
     --ws-navy-dark: #052244;
+    --ws-blue-600: #0c5aa6;
+    --ws-blue-500: #0284c7;
+    --ws-cyan-400: #38bdf8;
+    --ws-gold-600: #d97706;
+    --ws-gold-500: #f59e0b;
+    --ws-gold-400: #fbbf24;
+    --ws-emerald: #10b981;
+    --ws-slate-900: #0f172a;
+    --ws-slate-800: #1e293b;
+    --ws-slate-700: #334155;
+    --ws-slate-600: #475569;
+    --ws-slate-500: #64748b;
+    --ws-slate-400: #94a3b8;
+    --ws-slate-200: #e2e8f0;
+    --ws-slate-100: #f1f5f9;
+    --ws-slate-50: #f8fafc;
     --ws-orange: #ff6b35;
     --ws-orange-hover: #e85a26;
-    --ws-accent: #f3a20b;
-    --ws-text: #42526b;
-    --ws-text-muted: #8390a3;
-    --ws-bg: #f5f7fb;
+    --ws-accent: #f59e0b;
+    --ws-text: #334155;
+    --ws-text-muted: #64748b;
+    --ws-bg: #f8fafc;
     --ws-card-bg: #ffffff;
-    --ws-border: #e6ebf2;
-    --ws-border-light: #f0f3f8;
-    --ws-accent-light: #fff5f0;
+    --ws-border: #e2e8f0;
+    --ws-border-light: #f1f5f9;
+    --ws-accent-light: #fffbeb;
 }
 
 /* ==========================================================================
@@ -48,60 +66,80 @@
 }
 
 /* ==========================================================================
-   3. WORKSPACE BREADCRUMB (INTEGRATED BEGAWI DESIGN SYSTEM)
+   3. WORKSPACE BREADCRUMB (INTEGRATED BEGAWI NEWS & EVENT DESIGN SYSTEM)
    ========================================================================== */
 .workspace-breadcrumb {
     position: relative !important;
     display: block !important;
     width: 100% !important;
-    background: linear-gradient(135deg, #052244 0%, #093766 50%, #0c5aa6 100%) !important;
-    padding: 28px 0 !important;
+    background:
+        radial-gradient(1200px 600px at 80% -20%, rgba(56, 189, 248, 0.16) 0%, transparent 60%),
+        radial-gradient(900px 500px at 10% 110%, rgba(245, 158, 11, 0.15) 0%, transparent 65%),
+        linear-gradient(135deg, #052244 0%, #082f5c 55%, #0c5aa6 100%) !important;
+    padding: 12px 0 !important;
     color: #ffffff !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 4px 16px rgba(5, 34, 68, 0.12) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 20px rgba(5, 34, 68, 0.12) !important;
     clear: both !important;
     z-index: 10 !important;
+    overflow: hidden !important;
+}
+
+.workspace-breadcrumb::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 90%);
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 90%);
+    pointer-events: none;
 }
 
 .workspace-breadcrumb h2 {
     color: #ffffff !important;
-    font-size: 1.55rem !important;
+    font-size: 1.15rem !important;
     font-weight: 700 !important;
     margin: 0 !important;
-    line-height: 1.3 !important;
+    line-height: 1.25 !important;
     font-family: var(--fistudy-font, "Outfit", sans-serif) !important;
     letter-spacing: -0.015em !important;
 }
 
 .workspace-breadcrumb .thm-breadcrumb {
-    margin: 8px 0 0 !important;
+    margin: 3px 0 0 !important;
     padding: 0 !important;
     list-style: none !important;
     display: flex !important;
-    gap: 8px !important;
-    font-size: 13px !important;
+    gap: 6px !important;
+    font-size: 11.5px !important;
     flex-wrap: wrap !important;
     align-items: center !important;
 }
 
 .workspace-breadcrumb .thm-breadcrumb a {
-    color: rgba(255, 255, 255, 0.78) !important;
+    color: rgba(255, 255, 255, 0.82) !important;
     text-decoration: none !important;
     transition: color .2s ease !important;
     font-weight: 500 !important;
+    display: inline-flex !important;
+    align-items: center !important;
 }
 
 .workspace-breadcrumb .thm-breadcrumb a:hover {
     color: #ffffff !important;
+    text-decoration: underline !important;
 }
 
+.workspace-breadcrumb .thm-breadcrumb li span.sep,
 .workspace-breadcrumb .thm-breadcrumb li span {
     color: rgba(255, 255, 255, 0.35) !important;
+    font-weight: 400 !important;
 }
 
 .workspace-breadcrumb .thm-breadcrumb li.current {
-    color: var(--ws-accent, #f3a20b) !important;
-    font-weight: 600 !important;
+    color: #fbbf24 !important;
+    font-weight: 700 !important;
 }
 
 /* ==========================================================================
@@ -111,11 +149,13 @@
     position: relative !important;
     display: block !important;
     width: 100% !important;
+    max-width: 100% !important;
     background-color: #f8fafc !important;
-    padding: 36px 0 72px !important;
-    min-height: 520px !important;
+    padding: 14px 0 28px !important;
+    min-height: auto !important;
     clear: both !important;
     z-index: auto !important;
+    overflow-x: hidden !important;
 }
 
 .workspace-shell > .container > .row {
@@ -153,58 +193,80 @@
 /* ==========================================================================
    UNIFIED PAGE HEADER COMPONENT (FOR ALL WORKSPACE SUBPAGES)
    ========================================================================== */
+/* ==========================================================================
+   CARDS & CONTAINERS (FISTUDY / BERITA & EVENT HARMONIZATION)
+   ========================================================================== */
+.card,
+.ws-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 4px 20px rgba(8, 47, 92, 0.05) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+}
+
+.card:hover,
+.ws-card:hover {
+    border-color: #cbd5e1 !important;
+}
+
+/* ==========================================================================
+   UNIFIED PAGE HEADER COMPONENT (FOR ALL WORKSPACE SUBPAGES)
+   ========================================================================== */
 .ws-page-header {
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    border-radius: 16px !important;
-    padding: 24px 28px !important;
-    margin-bottom: 24px !important;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
+    border-radius: 12px !important;
+    padding: 14px 18px !important;
+    margin-bottom: 12px !important;
+    box-shadow: 0 4px 20px rgba(8, 47, 92, 0.04) !important;
     transition: all 0.2s ease !important;
 }
 
 .ws-page-header .ws-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
+    gap: 5px;
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     color: #0c5aa6;
     background: #eff6ff;
-    border: 1px solid #dbeafe;
-    padding: 4px 12px;
-    border-radius: 999px;
-    margin-bottom: 10px;
+    border: 1px solid #bfdbfe;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    margin-bottom: 6px;
 }
 
 .ws-page-header h1 {
     color: #082f5c !important;
-    font-size: 1.5rem !important;
+    font-size: 1.2rem !important;
     font-weight: 700 !important;
-    line-height: 1.3 !important;
-    margin-bottom: 6px !important;
+    line-height: 1.25 !important;
+    margin-bottom: 4px !important;
     font-family: var(--fistudy-font, "Outfit", sans-serif) !important;
-    letter-spacing: -0.01em !important;
+    letter-spacing: -0.015em !important;
 }
 
 .ws-page-header p {
     color: #64748b !important;
-    font-size: 0.9rem !important;
-    line-height: 1.5 !important;
+    font-size: 0.82rem !important;
+    line-height: 1.4 !important;
     margin-bottom: 0 !important;
 }
 
-.card .display-6 {
-    font-size: 1.85rem !important;
+.card .display-6,
+.ws-stat-card .display-6 {
+    font-size: 1.35rem !important;
     font-weight: 700 !important;
     color: #082f5c !important;
     font-family: var(--fistudy-font, "Outfit", sans-serif) !important;
     line-height: 1.15 !important;
-    margin: 6px 0 !important;
+}    margin: 6px 0 !important;
 }
 
+/* High-contrast subtle badge pills (Exact match to landing-news.css & landing-events.css) */
 .badge.bg-primary-subtle {
     background-color: #eff6ff !important;
     color: #0c5aa6 !important;
@@ -225,22 +287,40 @@
     color: #b91c1c !important;
     border: 1px solid #fecaca !important;
 }
+.badge.bg-info-subtle {
+    background-color: #f0f9ff !important;
+    color: #0284c7 !important;
+    border: 1px solid #bae6fd !important;
+}
 .badge.bg-secondary-subtle {
     background-color: #f8fafc !important;
     color: #475569 !important;
     border: 1px solid #e2e8f0 !important;
 }
+.badge.bg-purple-subtle {
+    background-color: #faf5ff !important;
+    color: #7e22ce !important;
+    border: 1px solid #e9d5ff !important;
+}
 
 /* ==========================================================================
-   WORKSPACE UI COMPONENTS: NAV-PILLS, BUTTONS, TABLES, FORMS
+   WORKSPACE UI COMPONENTS: NAV-PILLS, FILTER BARS, BUTTONS, TABLES, FORMS
    ========================================================================== */
+.ws-filter-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 10px 16px;
+    box-shadow: 0 2px 10px rgba(8, 47, 92, 0.03);
+}
+
 .nav-pills .nav-link {
     background: #f8fafc;
     color: #475569;
     border: 1px solid #e2e8f0;
-    border-radius: 999px !important;
+    border-radius: 9999px !important;
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
     padding: 8px 18px !important;
     transition: all 0.18s ease;
 }
@@ -250,11 +330,11 @@
     border-color: #bfdbfe;
 }
 .nav-pills .nav-link.active {
-    background: #0c5aa6 !important;
+    background: #082f5c !important;
     color: #ffffff !important;
-    border-color: #0c5aa6 !important;
-    font-weight: 600;
-    box-shadow: 0 4px 14px rgba(12, 90, 166, 0.22);
+    border-color: #082f5c !important;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(8, 47, 92, 0.22);
 }
 
 .table thead th {
@@ -263,7 +343,7 @@
     font-size: 0.78rem !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.04em !important;
+    letter-spacing: 0.05em !important;
     border-bottom: 1px solid #e2e8f0 !important;
     padding: 12px 16px !important;
 }
@@ -318,9 +398,9 @@
     position: relative !important;
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    border-radius: 16px !important;
-    padding: 22px 18px !important;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
+    border-radius: 12px !important;
+    padding: 14px 12px !important;
+    box-shadow: 0 4px 20px rgba(8, 47, 92, 0.05) !important;
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
@@ -330,30 +410,31 @@
 .workspace-sidebar__identity {
     display: flex !important;
     align-items: center !important;
-    gap: 12px !important;
-    padding-bottom: 16px !important;
-    margin-bottom: 16px !important;
+    gap: 10px !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 10px !important;
     border-bottom: 1px solid #f1f5f9 !important;
 }
 
 .workspace-sidebar__identity .avatar {
-    flex: 0 0 46px !important;
-    width: 46px !important;
-    height: 46px !important;
+    flex: 0 0 36px !important;
+    width: 36px !important;
+    height: 36px !important;
     border-radius: 50% !important;
     background: linear-gradient(135deg, #0c5aa6 0%, #082f5c 100%) !important;
     color: #ffffff !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-weight: 700 !important;
-    font-size: 17px !important;
-    box-shadow: 0 4px 12px rgba(12, 90, 166, 0.22) !important;
+    font-weight: 800 !important;
+    font-size: 14px !important;
+    box-shadow: 0 4px 12px rgba(12, 90, 166, 0.25) !important;
+    border: 2px solid #ffffff !important;
 }
 
 .workspace-sidebar__identity strong {
     color: #082f5c !important;
-    font-size: 14.5px !important;
+    font-size: 13px !important;
     font-weight: 700 !important;
     line-height: 1.3 !important;
     display: block !important;
@@ -366,20 +447,20 @@
     display: inline-block !important;
     color: #0c5aa6 !important;
     background: #eff6ff !important;
-    border: 1px solid #dbeafe !important;
-    font-size: 11px !important;
-    font-weight: 600 !important;
+    border: 1px solid #bfdbfe !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
     padding: 2px 8px !important;
-    border-radius: 999px !important;
-    margin-top: 3px !important;
+    border-radius: 9999px !important;
+    margin-top: 2px !important;
     line-height: 1.3 !important;
     text-transform: uppercase !important;
-    letter-spacing: .03em !important;
+    letter-spacing: .04em !important;
 }
 
 .workspace-sidebar__group {
-    margin: 0 0 16px !important;
-    padding: 0 0 14px !important;
+    margin: 0 0 10px !important;
+    padding: 0 0 8px !important;
     border-bottom: 1px solid #f1f5f9 !important;
 }
 
@@ -391,11 +472,11 @@
 
 .workspace-sidebar__group > h2 {
     color: #64748b !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: 700 !important;
-    letter-spacing: .08em !important;
+    letter-spacing: .06em !important;
     text-transform: uppercase !important;
-    margin: 0 0 10px !important;
+    margin: 0 0 6px !important;
     line-height: 1.4 !important;
 }
 
@@ -403,14 +484,14 @@
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 10px !important;
+    gap: 8px !important;
     width: 100% !important;
-    padding: 9px 12px !important;
-    margin: 0 0 3px !important;
+    padding: 7px 10px !important;
+    margin: 0 0 2px !important;
     border-radius: 10px !important;
     border-left: 3px solid transparent !important;
     color: #334155 !important;
-    font-size: 13.5px !important;
+    font-size: 12.5px !important;
     line-height: 1.3 !important;
     text-decoration: none !important;
     background: transparent !important;
@@ -427,13 +508,13 @@
     background: #eff6ff !important;
     color: #0c5aa6 !important;
     border-left-color: #0c5aa6 !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
 }
 
 .workspace-sidebar__link i {
-    width: 16px !important;
+    width: 18px !important;
     text-align: center !important;
-    font-size: 13px !important;
+    font-size: 13.5px !important;
     color: #64748b !important;
     transition: color .15s !important;
 }
@@ -476,61 +557,16 @@
 }
 
 @media (max-width: 991.98px) {
-    .workspace-breadcrumb {
-        padding: 22px 0 !important;
-    }
-    .workspace-breadcrumb h2 {
-        font-size: 1.3rem !important;
-    }
-    .workspace-shell {
-        padding: 24px 0 48px !important;
-    }
     aside.workspace-sidebar-wrap {
         flex: 0 0 100% !important;
         max-width: 100% !important;
         width: 100% !important;
-        margin-bottom: 24px !important;
+        margin-bottom: 12px !important;
     }
     main.workspace-content {
         flex: 0 0 100% !important;
         max-width: 100% !important;
         width: 100% !important;
-    }
-}
-
-@media (max-width: 767.98px) {
-    .workspace-breadcrumb {
-        padding: 16px 0 !important;
-    }
-    .workspace-breadcrumb h2 {
-        font-size: 1.15rem !important;
-    }
-    .workspace-breadcrumb .thm-breadcrumb {
-        font-size: 12px !important;
-        gap: 6px !important;
-    }
-    .workspace-shell {
-        padding: 16px 0 36px !important;
-    }
-    .ws-page-header {
-        padding: 18px 20px !important;
-        border-radius: 14px !important;
-        margin-bottom: 18px !important;
-    }
-    .ws-page-header h1 {
-        font-size: 1.25rem !important;
-    }
-    .ws-hero-card {
-        padding: 22px 20px !important;
-        border-radius: 16px !important;
-    }
-    .ws-stat-card,
-    .ws-class-card,
-    .ws-feed-card {
-        border-radius: 14px !important;
-    }
-    .card .display-6 {
-        font-size: 1.5rem !important;
     }
 }
 
@@ -978,6 +1014,531 @@
 .modal.show .modal-dialog {
     transform: none;
 }
+
+/* ==========================================================================
+   14. COMPREHENSIVE TEXT OVERFLOW, BLEED PREVENTION & COMPACT 1-SCREEN VIEW
+   ========================================================================== */
+.workspace-shell,
+.workspace-shell * {
+    box-sizing: border-box;
+}
+
+.workspace-shell {
+    font-size: 0.85rem !important;
+    line-height: 1.45 !important;
+}
+
+.workspace-shell .card,
+.workspace-shell .ws-card,
+.workspace-shell .ws-class-card,
+.workspace-shell .ws-stat-card,
+.workspace-shell .ws-page-header,
+.workspace-shell [class*="col-"],
+.workspace-shell .min-w-0 {
+    min-width: 0;
+}
+
+.min-w-0 {
+    min-width: 0 !important;
+}
+
+/* Ensure flex-grow-1 takes available space and maintains normal content width */
+.workspace-shell .flex-grow-1 {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Global compact typography scale across all workspace modes */
+.workspace-shell h1 {
+    font-size: 1.22rem !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.015em !important;
+    margin-bottom: 4px !important;
+}
+
+.workspace-shell h2 {
+    font-size: 1.08rem !important;
+    font-weight: 700 !important;
+    line-height: 1.28 !important;
+    margin-bottom: 4px !important;
+}
+
+.workspace-shell h3 {
+    font-size: 0.98rem !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    margin-bottom: 4px !important;
+}
+
+.workspace-shell h4 {
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+    margin-bottom: 3px !important;
+}
+
+.workspace-shell h5 {
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+}
+
+.workspace-shell h6 {
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+}
+
+.workspace-shell p {
+    font-size: 0.83rem !important;
+    line-height: 1.45 !important;
+    margin-bottom: 6px !important;
+}
+
+.workspace-shell .lead {
+    font-size: 0.9rem !important;
+}
+
+.workspace-shell .fs-6 {
+    font-size: 0.83rem !important;
+}
+
+.workspace-shell .fs-5 {
+    font-size: 0.95rem !important;
+}
+
+.workspace-shell .fs-4 {
+    font-size: 1.08rem !important;
+}
+
+.workspace-shell small,
+.workspace-shell .small {
+    font-size: 0.74rem !important;
+}
+
+.workspace-shell .text-xs {
+    font-size: 0.68rem !important;
+}
+
+.workspace-shell code,
+.workspace-shell .font-monospace {
+    font-size: 0.78rem !important;
+}
+
+/* Ensure text wrapping handles spaces naturally without breaking words into single letters */
+.workspace-shell h1,
+.workspace-shell h2,
+.workspace-shell h3,
+.workspace-shell h4,
+.workspace-shell h5,
+.workspace-shell h6,
+.workspace-shell p,
+.workspace-shell span,
+.workspace-shell strong,
+.workspace-shell b,
+.workspace-shell a,
+.workspace-shell .ws-eyebrow,
+.workspace-shell .card-title,
+.workspace-shell .alert {
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+/* Compact padding normalization across workspace cards (anti over-padding) */
+.workspace-shell .card,
+.workspace-shell .ws-card,
+.workspace-shell .ws-class-card,
+.workspace-shell .ws-hero-card {
+    border-radius: 12px !important;
+}
+
+.workspace-shell .p-4 {
+    padding: 1rem !important;
+}
+
+.workspace-shell .p-5,
+.workspace-shell .p-lg-5 {
+    padding: 1.15rem !important;
+}
+
+.workspace-shell .px-4,
+.workspace-shell .px-lg-5 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+.workspace-shell .px-5 {
+    padding-left: 1.15rem !important;
+    padding-right: 1.15rem !important;
+}
+
+.workspace-shell .py-4,
+.workspace-shell .py-lg-5 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+
+.workspace-shell .card-body {
+    padding: 1rem !important;
+}
+
+/* Prevent double padding when card already has padding utility */
+.workspace-shell .card.p-4 > .card-body,
+.workspace-shell .card.p-lg-5 > .card-body,
+.workspace-shell .card[class*="p-"] > .card-body {
+    padding: 0 !important;
+}
+
+.workspace-shell .mb-4 {
+    margin-bottom: 12px !important;
+}
+
+.workspace-shell .mb-3 {
+    margin-bottom: 8px !important;
+}
+
+/* Compact buttons across workspace */
+.workspace-shell .btn {
+    font-size: 0.82rem !important;
+    padding: 6px 14px !important;
+    font-weight: 600 !important;
+}
+
+.workspace-shell .btn-sm {
+    font-size: 0.74rem !important;
+    padding: 4px 10px !important;
+}
+
+.workspace-shell .btn-lg {
+    font-size: 0.88rem !important;
+    padding: 8px 18px !important;
+}
+
+/* Badge styling: Badges must stay on one single horizontal line and never break into vertical words */
+.workspace-shell .badge,
+.badge {
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.25 !important;
+    max-width: 100%;
+    vertical-align: middle;
+    font-size: 0.72rem !important;
+    padding: 3px 8px !important;
+    font-weight: 600 !important;
+}
+
+.badge.rounded-pill {
+    text-align: center;
+}
+
+/* Badge contrast, visibility & readability guarantees */
+.badge.bg-light,
+.badge.text-muted,
+.badge.text-secondary,
+.badge.bg-light.text-muted,
+.badge.bg-light.text-secondary,
+.badge.bg-secondary-subtle,
+.badge.bg-secondary-subtle.text-secondary,
+.badge.bg-secondary-subtle.text-secondary-emphasis {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 600 !important;
+}
+
+.badge.text-primary,
+.badge.bg-primary-subtle,
+.badge.bg-primary-subtle.text-primary,
+.badge.bg-primary-subtle.text-primary-emphasis {
+    background-color: #eff6ff !important;
+    color: #082f5c !important;
+    border: 1px solid #bfdbfe !important;
+    font-weight: 700 !important;
+}
+
+.badge.text-success,
+.badge.bg-success-subtle,
+.badge.bg-success-subtle.text-success,
+.badge.bg-success-subtle.text-success-emphasis {
+    background-color: #ecfdf5 !important;
+    color: #065f46 !important;
+    border: 1px solid #a7f3d0 !important;
+    font-weight: 700 !important;
+}
+
+.badge.text-warning,
+.badge.bg-warning-subtle,
+.badge.bg-warning-subtle.text-warning,
+.badge.bg-warning-subtle.text-warning-emphasis,
+.badge.bg-warning-subtle.text-dark {
+    background-color: #fffbeb !important;
+    color: #92400e !important;
+    border: 1px solid #fde68a !important;
+    font-weight: 700 !important;
+}
+
+.badge.text-danger,
+.badge.bg-danger-subtle,
+.badge.bg-danger-subtle.text-danger,
+.badge.bg-danger-subtle.text-danger-emphasis {
+    background-color: #fef2f2 !important;
+    color: #991b1b !important;
+    border: 1px solid #fecaca !important;
+    font-weight: 700 !important;
+}
+
+.badge.text-info,
+.badge.bg-info-subtle,
+.badge.bg-info-subtle.text-info,
+.badge.bg-info-subtle.text-info-emphasis,
+.badge.bg-info-subtle.text-dark {
+    background-color: #f0f9ff !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+    font-weight: 700 !important;
+}
+
+.badge.text-purple,
+.badge.bg-purple-subtle,
+.badge.bg-purple-subtle.text-purple {
+    background-color: #faf5ff !important;
+    color: #6b21a8 !important;
+    border: 1px solid #e9d5ff !important;
+    font-weight: 700 !important;
+}
+
+.text-purple {
+    color: #6b21a8 !important;
+}
+
+.border-purple-subtle {
+    border-color: #e9d5ff !important;
+}
+
+/* Ensure solid badges are bold with 100% white text */
+.badge.bg-primary {
+    background-color: #082f5c !important;
+    color: #ffffff !important;
+}
+.badge.bg-success {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+}
+.badge.bg-danger {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+}
+.badge.bg-secondary {
+    background-color: #475569 !important;
+    color: #ffffff !important;
+}
+.badge.bg-warning {
+    background-color: #f59e0b !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+.badge.bg-dark {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+}
+
+/* Monospace, code, token, certificate number safety */
+code,
+.font-monospace,
+.text-monospace {
+    overflow-wrap: anywhere !important;
+    word-break: break-all !important;
+}
+
+/* Responsive tables protection */
+.table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
+.table-responsive table {
+    min-width: 580px;
+}
+
+/* 5-Stage Roadmap Strip responsive layout */
+.ws-roadmap-strip {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+/* Mobile optimizations (< 768px): Compact 1-Screen View, Zero Overpadding */
+@media (max-width: 767.98px) {
+    .workspace-breadcrumb {
+        padding: 8px 0 !important;
+    }
+
+    .workspace-breadcrumb h2 {
+        font-size: 1.0rem !important;
+    }
+
+    .workspace-breadcrumb .thm-breadcrumb {
+        font-size: 11px !important;
+        gap: 4px !important;
+    }
+
+    .workspace-shell {
+        padding: 8px 0 20px !important;
+        overflow-x: hidden !important;
+    }
+
+    .ws-page-header {
+        padding: 10px 12px !important;
+        border-radius: 10px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .ws-page-header h1 {
+        font-size: 1.05rem !important;
+    }
+
+    .ws-hero-card {
+        padding: 12px 14px !important;
+        border-radius: 10px !important;
+    }
+
+    .ws-hero-card h1 {
+        font-size: 1.1rem !important;
+    }
+
+    .workspace-shell .card,
+    .workspace-shell .ws-card,
+    .workspace-shell .ws-class-card,
+    .workspace-shell .ws-stat-card {
+        border-radius: 10px !important;
+        padding: 10px 12px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .workspace-shell .p-4,
+    .workspace-shell .p-5,
+    .workspace-shell .p-lg-5,
+    .workspace-shell .card-body {
+        padding: 8px 10px !important;
+    }
+
+    .workspace-shell .g-4 {
+        --bs-gutter-y: 0.5rem !important;
+        --bs-gutter-x: 0.5rem !important;
+    }
+
+    .workspace-shell .g-3 {
+        --bs-gutter-y: 0.4rem !important;
+        --bs-gutter-x: 0.4rem !important;
+    }
+
+    .workspace-shell .mb-4 {
+        margin-bottom: 8px !important;
+    }
+
+    .workspace-shell .mb-3 {
+        margin-bottom: 6px !important;
+    }
+
+    .workspace-shell h1 {
+        font-size: 1.08rem !important;
+    }
+
+    .workspace-shell h2 {
+        font-size: 0.98rem !important;
+    }
+
+    .workspace-shell h3 {
+        font-size: 0.90rem !important;
+    }
+
+    .workspace-shell h4 {
+        font-size: 0.84rem !important;
+    }
+
+    .workspace-shell p {
+        font-size: 0.78rem !important;
+        line-height: 1.38 !important;
+        margin-bottom: 4px !important;
+    }
+
+    .workspace-shell .display-6,
+    .ws-stat-card .display-6 {
+        font-size: 1.15rem !important;
+    }
+
+    /* Stat card icon and numbers on mobile */
+    .ws-stat-card {
+        padding: 8px 10px !important;
+    }
+
+    .ws-stat-card .fs-4,
+    .ws-stat-card .rounded-3.p-3 {
+        width: 32px !important;
+        height: 32px !important;
+        padding: 4px !important;
+        font-size: 0.85rem !important;
+        border-radius: 8px !important;
+    }
+
+    .workspace-sidebar {
+        padding: 10px 12px !important;
+        margin-bottom: 8px !important;
+        border-radius: 10px !important;
+    }
+
+    aside.workspace-sidebar-wrap {
+        margin-bottom: 8px !important;
+    }
+
+    .workspace-shell .btn {
+        font-size: 0.76rem !important;
+        padding: 5px 12px !important;
+    }
+
+    .workspace-shell .btn-lg {
+        font-size: 0.82rem !important;
+        padding: 6px 14px !important;
+    }
+
+    /* Learning room sticky headers */
+    .ws-learning-header-card {
+        padding: 12px 14px !important;
+        border-radius: 10px !important;
+    }
+
+    .ws-quiz-palette-card {
+        position: static !important;
+        margin-bottom: 12px !important;
+    }
+}
+
+/* Extra small devices (< 576px): Tight, Pocket-Friendly Dashboard View */
+@media (max-width: 575.98px) {
+    .ws-stat-card {
+        padding: 8px 8px !important;
+    }
+
+    .ws-stat-card .d-flex {
+        gap: 6px !important;
+    }
+
+    .ws-page-header .d-flex.justify-content-between {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 6px !important;
+    }
+
+    .workspace-sidebar__identity {
+        padding: 8px 10px !important;
+    }
+}
+
 
 
 

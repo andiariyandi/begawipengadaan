@@ -31,15 +31,15 @@ foreach ($grouped as $g) { $totalBookmarks += count($g['items'] ?? []); }
 <?php endif; ?>
 
 <?php if ($totalBookmarks === 0): ?>
-    <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
-        <i class="fas fa-bookmark fs-1 text-muted opacity-50 mb-3"></i>
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white text-center">
+        <i class="fas fa-bookmark fs-2 text-muted opacity-50 mb-2"></i>
         <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Bookmark</h2>
-        <p class="text-muted mb-0">Buka halaman publik mana pun dan klik tombol <strong>Simpan</strong> untuk menambahkannya.</p>
+        <p class="text-muted small mb-0">Buka halaman publik mana pun dan klik tombol <strong>Simpan</strong> untuk menambahkannya.</p>
     </div>
 <?php else: ?>
     <?php foreach ($grouped as $type => $group): ?>
         <?php if (empty($group['items'])) { continue; } ?>
-        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-3 bg-white">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <h2 class="h5 mb-0"><?= esc($group['label']) ?></h2>
                 <span class="badge bg-primary-subtle text-primary-emphasis"><?= count($group['items']) ?></span>

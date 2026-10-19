@@ -166,30 +166,30 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
 ?>
 
 <!-- 1. LEARNING ROOM HERO HEADER (FISTUDY DNA) -->
-<div class="learning-header ws-learning-header-card mb-4 shadow-sm">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 position-relative" style="z-index: 2;">
+<div class="learning-header ws-learning-header-card mb-3 shadow-sm p-3 p-md-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 position-relative" style="z-index: 2;">
         <div>
             <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                <a href="<?= route_to('workspace.participant.class.detail', (string) ($ctx['id'] ?? 0)) ?>" class="btn btn-outline-light btn-sm rounded-pill px-3 opacity-90">
+                <a href="<?= route_to('workspace.participant.class.detail', (string) ($ctx['id'] ?? 0)) ?>" class="btn btn-outline-light btn-sm rounded-pill px-3 py-1 opacity-90">
                     <i class="bi bi-arrow-left me-1"></i> Kembali ke Kelas
                 </a>
-                <a href="<?= route_to('workspace.participant.classes') ?>" class="btn btn-outline-light btn-sm rounded-pill px-3 opacity-90">
+                <a href="<?= route_to('workspace.participant.classes') ?>" class="btn btn-outline-light btn-sm rounded-pill px-3 py-1 opacity-90">
                     <i class="bi bi-grid me-1"></i> Kelas Saya
                 </a>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                <span class="badge bg-white text-dark rounded-pill px-3 py-1 fw-bold">
+                <span class="badge bg-white text-dark rounded-pill px-2 py-0.5 fw-bold">
                     <i class="bi bi-mortarboard-fill text-primary me-1"></i> Ruang Belajar Interaktif
                 </span>
                 <?php $mBadge = $methodBadge($ctx['learning_method'] ?? 'online'); ?>
-                <span class="badge <?= $mBadge['class'] ?> rounded-pill px-3 py-1 fw-semibold">
+                <span class="badge <?= $mBadge['class'] ?> rounded-pill px-2 py-0.5 fw-semibold">
                     <i class="<?= $mBadge['icon'] ?> me-1"></i> <?= esc($mBadge['label']) ?>
                 </span>
-                <span class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-1 font-monospace">
+                <span class="badge bg-white bg-opacity-25 text-white rounded-pill px-2 py-0.5 font-monospace">
                     <?= esc($ctx['code'] ?? '-') ?>
                 </span>
             </div>
-            <h1 class="h3 fw-bold text-white mb-1"><?= esc($ctx['name'] ?? 'Learning Room') ?></h1>
+            <h1 class="h4 fw-bold text-white mb-1"><?= esc($ctx['name'] ?? 'Learning Room') ?></h1>
             <p class="text-white text-opacity-75 small mb-0">
                 Course: <strong class="text-white"><?= esc($ctx['course_title'] ?? '-') ?></strong>
                 <?php if (! empty($ctx['location_or_link'])): ?>
@@ -201,12 +201,12 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
         <!-- Trainer Info Pill -->
         <?php if (! empty($trainers)): ?>
             <?php $trainer = $trainers[0]; ?>
-            <div class="d-flex align-items-center gap-3 p-2 px-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-25 shadow-xs">
-                <div class="avatar-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 42px; height: 42px; font-size: 15px;">
+            <div class="d-flex align-items-center gap-2 p-1 px-3 rounded-3 bg-white bg-opacity-10 border border-white border-opacity-25 shadow-xs">
+                <div class="avatar-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 36px; height: 36px; font-size: 14px;">
                     <?= strtoupper(substr($trainer['name'] ?? 'T', 0, 2)) ?>
                 </div>
                 <div>
-                    <span class="d-block text-white text-opacity-75" style="font-size: 11px;">Instruktur Pengajar</span>
+                    <span class="d-block text-white text-opacity-75" style="font-size: 10px;">Instruktur Pengajar</span>
                     <strong class="text-white small"><?= esc($trainer['name'] ?? 'Trainer') ?></strong>
                 </div>
             </div>
@@ -214,19 +214,19 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
     </div>
 
     <!-- Progress Bar -->
-    <div class="pt-3 border-top border-white border-opacity-20 position-relative" style="z-index: 2;">
-        <div class="d-flex align-items-center justify-content-between small text-white text-opacity-90 mb-2">
-            <span>Capaian Pembelajaran: <strong class="text-warning fw-bold fs-6"><?= $pct ?>%</strong></span>
-            <span><strong><?= (int) ($state['completed_lessons_count'] ?? 0) ?></strong> dari <?= (int) ($state['all_lessons_count'] ?? 0) ?> materi selesai</span>
+    <div class="pt-2 border-top border-white border-opacity-20 position-relative" style="z-index: 2;">
+        <div class="d-flex align-items-center justify-content-between small text-white text-opacity-90 mb-1">
+            <span>Capaian: <strong class="text-warning fw-bold"><?= $pct ?>%</strong></span>
+            <span><strong><?= (int) ($state['completed_lessons_count'] ?? 0) ?></strong> dari <?= (int) ($state['all_lessons_count'] ?? 0) ?> selesai</span>
         </div>
-        <div class="progress rounded-pill bg-white bg-opacity-20" style="height: 10px;">
+        <div class="progress rounded-pill bg-white bg-opacity-20" style="height: 8px;">
             <div class="progress-bar rounded-pill bg-warning" role="progressbar" style="width: <?= $pct ?>%" aria-valuenow="<?= $pct ?>" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
     </div>
 </div>
 
 <!-- 2. MAIN LEARNING ROOM LAYOUT: SIDEBAR + CONTENT -->
-<div class="row g-4">
+<div class="row g-3">
     <!-- LEFT SIDEBAR: POHON ALUR MODUL & KURIKULUM -->
     <div class="col-lg-4 col-xl-4">
         <div class="learning-sidebar ws-learning-sidebar p-3 sticky-top" style="top: 90px; max-height: calc(100vh - 110px); overflow-y: auto;">
@@ -418,26 +418,26 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
 
     <!-- RIGHT MAIN CONTENT: MATERI AKTIF / VIEWER -->
     <div class="col-lg-8 col-xl-8">
-        <div class="card border-0 rounded-4 shadow-sm p-4 p-lg-5 bg-white">
+        <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 bg-white">
             <?php if ($activeType === 'lesson' && ! empty($activeItem)): ?>
                 <!-- HEADER MATERI -->
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4 pb-3 border-bottom">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
                     <div>
                         <span class="text-uppercase text-muted small fw-bold">
                             <i class="bi bi-folder2 text-primary me-1"></i> <?= esc($activeItem['module_title'] ?? 'Modul Pembelajaran') ?>
                         </span>
-                        <h2 class="h3 fw-bold mb-1" style="color: #082f5c;"><?= esc($activeItem['title'] ?? 'Materi') ?></h2>
+                        <h2 class="h4 fw-bold mb-1" style="color: #082f5c;"><?= esc($activeItem['title'] ?? 'Materi') ?></h2>
                     </div>
                     <div>
                         <?php
                         $progStatus = (string) ($activeItem['progress']['status'] ?? ($activeItem['status'] ?? 'in_progress'));
                         ?>
                         <?php if ($progStatus === 'completed'): ?>
-                            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-2 rounded-pill fs-6 fw-bold">
+                            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-1 rounded-pill fw-bold">
                                 <i class="bi bi-check-circle-fill me-1"></i> Selesai Dipelajari
                             </span>
                         <?php else: ?>
-                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2 rounded-pill fs-6 fw-bold">
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1 rounded-pill fw-bold">
                                 <i class="bi bi-play-circle me-1"></i> Sedang Dipelajari
                             </span>
                         <?php endif; ?>
@@ -445,17 +445,17 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                 </div>
 
                 <!-- CONTENT VIEWER BERDASARKAN TIPE MATERI -->
-                <div class="learning-content-viewer mb-4">
+                <div class="learning-content-viewer mb-3">
                     <?php if (($activeItem['content_type'] ?? '') === 'video'): ?>
                         <!-- Video Player (In-App YouTube / Vimeo Embed) -->
                         <?php if ($embedUrl !== null): ?>
-                            <div class="ratio ratio-16x9 rounded-4 overflow-hidden shadow mb-4 border">
+                            <div class="ratio ratio-16x9 rounded-4 overflow-hidden shadow mb-3 border">
                                 <iframe src="<?= esc($embedUrl) ?>" title="<?= esc($activeItem['title']) ?>" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                             </div>
                         <?php elseif (! empty($activeItem['external_url'])): ?>
-                            <div class="p-4 p-lg-5 border rounded-4 bg-light mb-4 text-center">
-                                <i class="bi bi-play-circle-fill text-primary" style="font-size: 54px;"></i>
-                                <h3 class="h5 mt-2 mb-1" style="color: #082f5c;"><?= esc($activeItem['title']) ?></h3>
+                            <div class="p-3 p-md-4 border rounded-3 rounded-md-4 bg-light mb-3 text-center">
+                                <i class="bi bi-play-circle-fill text-primary" style="font-size: 44px;"></i>
+                                <h3 class="h6 mt-2 mb-1" style="color: #082f5c;"><?= esc($activeItem['title']) ?></h3>
                                 <p class="text-muted small mt-2 mb-3">Materi video interaktif tersedia melalui platform media pembelajaran.</p>
                                 <a href="<?= esc($activeItem['external_url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary rounded-pill px-4 shadow-sm">
                                     <i class="bi bi-box-arrow-up-right me-1"></i> Buka Video Pembelajaran
@@ -511,9 +511,9 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                                 </div>
                             </div>
                         <?php else: ?>
-                            <div class="p-4 p-lg-5 border rounded-4 bg-light mb-4 text-center">
-                                <i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size: 54px;"></i>
-                                <h3 class="h5 mt-2 mb-1" style="color: #082f5c;"><?= esc($activeItem['title']) ?></h3>
+                            <div class="p-3 p-md-4 border rounded-3 rounded-md-4 bg-light mb-3 text-center">
+                                <i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size: 44px;"></i>
+                                <h3 class="h6 mt-2 mb-1" style="color: #082f5c;"><?= esc($activeItem['title']) ?></h3>
                                 <p class="text-muted small mb-3">Dokumen pembelajaran terintegrasi.</p>
                                 <?php if (! empty($activeItem['external_url'])): ?>
                                     <a href="<?= esc($activeItem['external_url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary rounded-pill px-4 shadow-sm">
@@ -532,9 +532,9 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
 
                     <?php elseif (($activeItem['content_type'] ?? '') === 'link'): ?>
                         <!-- External Resource Link -->
-                        <div class="p-4 p-lg-5 border rounded-4 bg-light mb-4 text-center">
-                            <i class="bi bi-link-45deg text-primary" style="font-size: 54px;"></i>
-                            <h3 class="h5 mt-2 mb-1" style="color: #082f5c;"><?= esc($activeItem['title']) ?></h3>
+                        <div class="p-3 p-md-4 border rounded-3 rounded-md-4 bg-light mb-3 text-center">
+                            <i class="bi bi-link-45deg text-primary" style="font-size: 44px;"></i>
+                            <h3 class="h6 mt-2 mb-1" style="color: #082f5c;"><?= esc($activeItem['title']) ?></h3>
                             <p class="text-muted small mb-3">Tautan referensi dan modul pembelajaran eksternal.</p>
                             <?php if (! empty($activeItem['external_url'])): ?>
                                 <a href="<?= esc($activeItem['external_url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary rounded-pill px-4 shadow-sm">

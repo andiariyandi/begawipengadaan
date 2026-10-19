@@ -3,46 +3,26 @@
 <?= $this->section('pageStyles') ?>
 <style>
     .ws-hero-card {
-        background: linear-gradient(135deg, #082f5c 0%, #052244 100%);
+        background:
+            radial-gradient(1200px 600px at 80% -20%, rgba(56, 189, 248, 0.18) 0%, transparent 60%),
+            radial-gradient(900px 500px at 10% 110%, rgba(217, 119, 6, 0.22) 0%, transparent 65%),
+            linear-gradient(135deg, var(--ws-navy-900, #052244) 0%, var(--ws-navy-700, #082f5c) 55%, var(--ws-blue-600, #0c5aa6) 100%) !important;
         border-radius: 20px;
         position: relative;
         overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 10px 30px rgba(5, 34, 68, 0.18);
     }
 
-    .ws-hero-card::after {
+    .ws-hero-card::before {
         content: '';
         position: absolute;
-        top: -40px;
-        right: -40px;
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(255, 107, 53, 0.18) 0%, rgba(255, 107, 53, 0) 70%);
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+        background-size: 20px 20px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 90%);
+        -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 90%);
         pointer-events: none;
-    }
-
-    .ws-stat-card {
-        border-radius: 16px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        border: 1px solid #eef2f7;
-    }
-
-    .ws-stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 25px rgba(8, 47, 92, 0.08) !important;
-    }
-
-    .ws-class-card {
-        border-radius: 16px;
-        border: 1px solid #eef2f7;
-        background: #ffffff;
-        transition: all 0.2s ease;
-    }
-
-    .ws-class-card:hover {
-        border-color: #cbd5e1;
-        box-shadow: 0 8px 24px rgba(8, 47, 92, 0.08);
-        transform: translateY(-2px);
     }
 
     .ws-event-date-box {
@@ -50,12 +30,13 @@
         height: 52px;
         border-radius: 12px;
         background: #eff6ff;
-        color: #1d4ed8;
+        color: #0c5aa6;
+        border: 1px solid #bfdbfe;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
+        font-weight: 800;
         line-height: 1.1;
         flex-shrink: 0;
     }
@@ -63,12 +44,13 @@
     .ws-event-date-box small {
         font-size: 10px;
         text-transform: uppercase;
-        font-weight: 600;
+        font-weight: 700;
+        letter-spacing: 0.04em;
         opacity: 0.85;
     }
 
     .ws-cert-card {
-        border-radius: 16px;
+        border-radius: 18px;
         border: 1px solid #e2e8f0;
         background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
         transition: all 0.2s ease;
@@ -102,17 +84,17 @@ $methodBadge = static function (?string $method): array {
     return match (strtolower((string) $method)) {
         'offline', 'tatap_muka' => [
             'label' => 'Tatap Muka',
-            'class' => 'bg-success text-white',
+            'class' => 'bg-success-subtle text-success border border-success-subtle',
             'icon'  => 'fas fa-chalkboard-teacher',
         ],
         'hybrid' => [
             'label' => 'Hybrid',
-            'class' => 'bg-info text-dark',
+            'class' => 'bg-purple-subtle text-purple border border-purple-subtle',
             'icon'  => 'fas fa-shuffle',
         ],
         default => [
             'label' => 'Online LMS',
-            'class' => 'bg-primary text-white',
+            'class' => 'bg-primary-subtle text-primary border border-primary-subtle',
             'icon'  => 'fas fa-laptop',
         ],
     };
@@ -120,22 +102,22 @@ $methodBadge = static function (?string $method): array {
 ?>
 <div class="participant-workspace-home">
 
-    <!-- 1. HERO WELCOME & RESUME LEARNING BANNER -->
-    <div class="ws-hero-card shadow-sm p-4 p-lg-5 mb-4 text-white">
-        <div class="row align-items-center g-4">
+    <!-- 1. HERO WELCOME & RESUME LEARNING BANNER (BERITA & EVENT BENCHMARK) -->
+    <div class="ws-hero-card p-3 p-md-4 mb-3 text-white position-relative">
+        <div class="row align-items-center g-3 g-md-4 position-relative" style="z-index: 2;">
             <div class="col-lg-7">
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                    <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold" style="font-size: 11px; letter-spacing: 0.3px;">
                         <i class="fas fa-graduation-cap me-1"></i> Ruang Kerja Peserta
                     </span>
-                    <span class="badge bg-white-50 text-white px-3 py-2 rounded-pill small">
+                    <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 px-2 py-1 rounded-pill small fw-semibold">
                         <i class="fas fa-check-circle text-success me-1"></i> Terverifikasi BegawiPengadaan
                     </span>
                 </div>
-                <h1 class="h2 text-white fw-bold mb-2">
+                <h1 class="h4 text-white fw-bold mb-1" style="font-family: var(--fistudy-font, 'Outfit', sans-serif); letter-spacing: -0.02em;">
                     Halo, <?= esc($userName) ?>! 👋
                 </h1>
-                <p class="text-white-50 mb-0 fs-6" style="max-width: 620px;">
+                <p class="text-white-50 mb-0 lh-base" style="max-width: 620px; font-size: 0.82rem;">
                     Pusat aktivitas pembelajaran komprehensif Anda. Pantau kemajuan modul, kerjakan tugas & ujian kompetensi, hadiri agenda workshop, dan raih sertifikat resmi PBJ Pemerintah Provinsi Lampung.
                 </p>
             </div>
@@ -143,46 +125,46 @@ $methodBadge = static function (?string $method): array {
             <!-- Quick Resume Learning Box -->
             <div class="col-lg-5">
                 <?php if (!empty($resumeClass)): ?>
-                    <div class="p-3 p-md-4 rounded-4" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.18);">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-warning small fw-bold text-uppercase">
+                    <div class="p-2 p-md-3 rounded-3" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.18);">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-warning small fw-bold text-uppercase" style="font-size: 0.72rem;">
                                 <i class="fas fa-play-circle me-1"></i> Lanjutkan Belajar
                             </span>
-                            <span class="badge bg-success text-white small px-2 py-1 rounded-pill">
+                            <span class="badge bg-success text-white small px-2 py-0.5 rounded-pill">
                                 <?= (int) ($resumeClass['progress_percent'] ?? 0) ?>% Tuntas
                             </span>
                         </div>
-                        <h3 class="h6 text-white fw-bold text-truncate mb-1">
+                        <h3 class="h6 text-white fw-bold text-truncate mb-1" style="font-size: 0.88rem;">
                             <?= esc($resumeClass['course_title'] ?? $resumeClass['class_name'] ?? 'Kelas Pembelajaran') ?>
                         </h3>
                         <p class="small text-white-50 text-truncate mb-2"><?= esc($resumeClass['class_name'] ?? '') ?></p>
 
-                        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-                            <?php $mBadge = $methodBadge($resumeClass['learning_method'] ?? 'online'); ?>
-                            <span class="badge bg-white-50 text-white small px-2 py-1 rounded-pill">
-                                <i class="<?= $mBadge['icon'] ?> me-1"></i> <?= $mBadge['label'] ?>
+                        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                            <?php $mInfo = $methodBadge($resumeClass['learning_method'] ?? 'online'); ?>
+                            <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 small px-2 py-0.5 rounded-pill">
+                                <i class="<?= $mInfo['icon'] ?> me-1"></i> <?= $mInfo['label'] ?>
                             </span>
                             <?php if (! empty($resumeClass['location_or_link'])): ?>
-                                <span class="badge bg-white-50 text-white small px-2 py-1 rounded-pill text-truncate" style="max-width: 200px;">
+                                <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 small px-2 py-0.5 rounded-pill text-truncate" style="max-width: 200px;">
                                     <i class="fas fa-map-marker-alt me-1"></i> <?= esc($resumeClass['location_or_link']) ?>
                                 </span>
                             <?php endif; ?>
                         </div>
 
-                        <div class="progress rounded-pill mb-3" style="height: 6px; background: rgba(255, 255, 255, 0.2);">
+                        <div class="progress rounded-pill mb-2" style="height: 6px; background: rgba(255, 255, 255, 0.2);">
                             <div class="progress-bar bg-warning rounded-pill" role="progressbar" style="width: <?= (int) ($resumeClass['progress_percent'] ?? 0) ?>%"></div>
                         </div>
 
-                        <a href="<?= route_to('workspace.participant.study', $resumeClass['class_id']) ?>" class="btn btn-warning text-dark fw-bold btn-sm w-100 rounded-pill py-2 shadow-sm">
+                        <a href="<?= route_to('workspace.participant.study', $resumeClass['class_id']) ?>" class="btn btn-warning text-dark fw-bold btn-sm w-100 rounded-pill py-1.5 shadow-sm">
                             <i class="fas fa-arrow-right me-1"></i> Buka Ruang Belajar Kelas
                         </a>
                     </div>
                 <?php else: ?>
-                    <div class="p-4 rounded-4 text-center" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15);">
+                    <div class="p-3 rounded-3 text-center" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15);">
                         <i class="fas fa-compass fa-2x text-warning mb-2"></i>
                         <h3 class="h6 text-white fw-bold mb-1">Mulai Perjalanan Belajar Anda</h3>
-                        <p class="small text-white-50 mb-3">Pilih kelas dan kembangkan kompetensi pengadaan barang dan jasa sekarang.</p>
-                        <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill px-4 py-2">
+                        <p class="small text-white-50 mb-2">Pilih kelas dan kembangkan kompetensi pengadaan barang dan jasa sekarang.</p>
+                        <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill px-3 py-1.5">
                             <i class="fas fa-search me-1"></i> Jelajahi Kelas Pembelajaran
                         </a>
                     </div>
@@ -193,18 +175,18 @@ $methodBadge = static function (?string $method): array {
 
     <!-- 2. 4 SUMMARY KPI STAT CARDS -->
     <?php if (!empty($kpiCards)): ?>
-        <div class="row g-3 mb-4">
+        <div class="row g-2 g-md-3 mb-3">
             <?php foreach ($kpiCards as $stat): ?>
                 <div class="col-6 col-lg-3">
-                    <div class="card ws-stat-card border-0 shadow-sm p-3 h-100 bg-white">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-3 p-3 fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: #eff6ff; color: #082f5c;">
+                    <div class="card ws-stat-card border-0 shadow-sm p-2 p-md-3 h-100 bg-white">
+                        <div class="d-flex align-items-center gap-2 gap-md-3">
+                            <div class="rounded-3 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; background: #eff6ff; color: #082f5c; font-size: 1.1rem;">
                                 <i class="<?= esc($stat['icon'] ?? 'fas fa-chart-bar') ?>"></i>
                             </div>
-                            <div>
-                                <span class="text-muted small fw-medium d-block" style="font-size: 0.78rem;"><?= esc($stat['title']) ?></span>
-                                <div class="h4 fw-bold text-navy mb-0"><?= esc($stat['value']) ?></div>
-                                <small class="text-muted d-block" style="font-size: 0.72rem;"><?= esc($stat['meta']) ?></small>
+                            <div class="min-w-0">
+                                <span class="text-muted small fw-medium d-block text-truncate" style="font-size: 0.72rem;"><?= esc($stat['title']) ?></span>
+                                <div class="h5 fw-bold text-navy mb-0" style="font-size: 1.1rem;"><?= esc($stat['value']) ?></div>
+                                <small class="text-muted d-block text-truncate" style="font-size: 0.68rem;"><?= esc($stat['meta']) ?></small>
                             </div>
                         </div>
                     </div>
@@ -214,8 +196,8 @@ $methodBadge = static function (?string $method): array {
     <?php endif; ?>
 
     <!-- 3. PEMBELAJARAN SEDANG BERJALAN -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom flex-wrap gap-2">
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
             <div>
                 <h2 class="h5 fw-bold text-navy mb-0">
                     <i class="fas fa-book-reader text-primary me-2"></i>Pembelajaran Sedang Berjalan

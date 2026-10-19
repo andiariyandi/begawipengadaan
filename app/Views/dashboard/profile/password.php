@@ -101,16 +101,16 @@
                                 Kata Sandi Saat Ini <span class="text-danger">*</span>
                             </label>
                             <div class="position-relative">
-                                <input type="password" 
-                                       id="current_password" 
-                                       name="current_password" 
-                                       class="form-control radius-8 pe-48 <?= session('errors.current_password') ? 'is-invalid' : '' ?>" 
-                                       placeholder="Masukkan kata sandi saat ini" 
-                                       required>
-                                <button type="button" 
-                                        class="btn position-absolute top-50 end-0 translate-middle-y me-12 text-secondary-light p-0 border-0 bg-transparent btn-toggle-pwd" 
-                                        data-target="current_password" 
-                                        aria-label="Tampilkan kata sandi">
+                                <input type="password"
+                                    id="current_password"
+                                    name="current_password"
+                                    class="form-control radius-8 pe-48 <?= session('errors.current_password') ? 'is-invalid' : '' ?>"
+                                    placeholder="Masukkan kata sandi saat ini"
+                                    required>
+                                <button type="button"
+                                    class="btn position-absolute top-50 end-0 translate-middle-y me-12 text-secondary-light p-0 border-0 bg-transparent btn-toggle-pwd"
+                                    data-target="current_password"
+                                    aria-label="Tampilkan kata sandi">
                                     <iconify-icon icon="solar:eye-linear" class="text-lg"></iconify-icon>
                                 </button>
                             </div>
@@ -125,16 +125,16 @@
                                 Kata Sandi Baru <span class="text-danger">*</span>
                             </label>
                             <div class="position-relative">
-                                <input type="password" 
-                                       id="password" 
-                                       name="password" 
-                                       class="form-control radius-8 pe-48 <?= session('errors.password') ? 'is-invalid' : '' ?>" 
-                                       placeholder="Minimal 8 karakter" 
-                                       required>
-                                <button type="button" 
-                                        class="btn position-absolute top-50 end-0 translate-middle-y me-12 text-secondary-light p-0 border-0 bg-transparent btn-toggle-pwd" 
-                                        data-target="password" 
-                                        aria-label="Tampilkan kata sandi">
+                                <input type="password"
+                                    id="password"
+                                    name="password"
+                                    class="form-control radius-8 pe-48 <?= session('errors.password') ? 'is-invalid' : '' ?>"
+                                    placeholder="Minimal 8 karakter"
+                                    required>
+                                <button type="button"
+                                    class="btn position-absolute top-50 end-0 translate-middle-y me-12 text-secondary-light p-0 border-0 bg-transparent btn-toggle-pwd"
+                                    data-target="password"
+                                    aria-label="Tampilkan kata sandi">
                                     <iconify-icon icon="solar:eye-linear" class="text-lg"></iconify-icon>
                                 </button>
                             </div>
@@ -149,16 +149,16 @@
                                 Konfirmasi Kata Sandi Baru <span class="text-danger">*</span>
                             </label>
                             <div class="position-relative">
-                                <input type="password" 
-                                       id="password_confirmation" 
-                                       name="password_confirmation" 
-                                       class="form-control radius-8 pe-48 <?= session('errors.password_confirmation') ? 'is-invalid' : '' ?>" 
-                                       placeholder="Ketik ulang kata sandi baru" 
-                                       required>
-                                <button type="button" 
-                                        class="btn position-absolute top-50 end-0 translate-middle-y me-12 text-secondary-light p-0 border-0 bg-transparent btn-toggle-pwd" 
-                                        data-target="password_confirmation" 
-                                        aria-label="Tampilkan kata sandi">
+                                <input type="password"
+                                    id="password_confirmation"
+                                    name="password_confirmation"
+                                    class="form-control radius-8 pe-48 <?= session('errors.password_confirmation') ? 'is-invalid' : '' ?>"
+                                    placeholder="Ketik ulang kata sandi baru"
+                                    required>
+                                <button type="button"
+                                    class="btn position-absolute top-50 end-0 translate-middle-y me-12 text-secondary-light p-0 border-0 bg-transparent btn-toggle-pwd"
+                                    data-target="password_confirmation"
+                                    aria-label="Tampilkan kata sandi">
                                     <iconify-icon icon="solar:eye-linear" class="text-lg"></iconify-icon>
                                 </button>
                             </div>
@@ -171,7 +171,7 @@
                         <div class="border border-neutral-200 bg-neutral-50 radius-8 p-16">
                             <h6 class="text-sm fw-bold mb-8 d-flex align-items-center gap-2">
                                 <iconify-icon icon="solar:shield-check-bold" class="text-primary"></iconify-icon>
-                                <span>Ketentuan Kata Sandi Aman:</span>
+                                <span>Ketentuan Kata Sandi:</span>
                             </h6>
                             <ul class="mb-0 ps-20 text-secondary-light text-xs d-flex flex-column gap-1">
                                 <li>Panjang minimal <strong>8 karakter</strong>.</li>
@@ -199,22 +199,22 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.btn-toggle-pwd').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var targetId = this.getAttribute('data-target');
-            var input = document.getElementById(targetId);
-            if (!input) return;
-            var icon = this.querySelector('iconify-icon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                if (icon) icon.setAttribute('icon', 'solar:eye-closed-linear');
-            } else {
-                input.type = 'password';
-                if (icon) icon.setAttribute('icon', 'solar:eye-linear');
-            }
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-toggle-pwd').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var targetId = this.getAttribute('data-target');
+                var input = document.getElementById(targetId);
+                if (!input) return;
+                var icon = this.querySelector('iconify-icon');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    if (icon) icon.setAttribute('icon', 'solar:eye-closed-linear');
+                } else {
+                    input.type = 'password';
+                    if (icon) icon.setAttribute('icon', 'solar:eye-linear');
+                }
+            });
         });
     });
-});
 </script>
 <?= $this->endSection() ?>

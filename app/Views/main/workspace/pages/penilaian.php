@@ -103,7 +103,7 @@
                     <?php if (is_array($item) && !empty($item['url'])): ?>
                         <a href="<?= esc($item['url']) ?>" class="btn btn-outline-primary btn-sm">Buka</a>
                     <?php else: ?>
-                        <span class="badge bg-light text-success">Aktif</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">Aktif</span>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>

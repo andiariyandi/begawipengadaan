@@ -36,7 +36,7 @@ $sectionContent   = $sectionContent ?? [];
     <div class="row g-3 mb-4">
         <?php foreach ($sectionContent['cards'] as $card): ?>
             <div class="col-sm-6 col-lg-4">
-                <div class="card border-0 rounded-4 shadow-sm p-4 h-100 bg-white">
+                <div class="card ws-stat-card border-0 rounded-4 shadow-sm p-4 h-100 bg-white">
                     <span class="text-muted small fw-semibold text-uppercase"><?= esc($card['title']) ?></span>
                     <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= esc($card['value']) ?></div>
                     <small class="text-muted"><?= esc($card['meta'] ?? '') ?></small>
@@ -48,17 +48,17 @@ $sectionContent   = $sectionContent ?? [];
 
 <?php if (! empty($activeAssignment)): ?>
     <!-- 3. ASSIGNMENT DETAIL & SUBMISSION FORM -->
-    <div class="card border-0 rounded-4 shadow-sm p-4 p-lg-5 mb-4 bg-white">
+    <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 mb-3 bg-white">
         <!-- Assignment Info Header -->
-        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 pb-3 mb-4 border-bottom">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 pb-2 mb-3 border-bottom">
             <div>
-                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 mb-2 fw-semibold">
+                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 mb-1 fw-semibold">
                     <i class="bi bi-file-earmark-text me-1"></i> Lembar Penugasan
                 </span>
-                <h2 class="h4 fw-bold mb-1" style="color: #082f5c;"><?= esc($activeAssignment['title'] ?? 'Pengumpulan Tugas') ?></h2>
-                <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-2">
-                    <span><i class="bi bi-calendar-event me-1 text-primary"></i> Batas Waktu: <strong class="text-dark"><?= esc($activeAssignment['due_at'] ? date('d M Y, H:i', strtotime($activeAssignment['due_at'])) : 'Fleksibel') ?></strong></span>
-                    <span><i class="bi bi-arrow-repeat me-1 text-primary"></i> Maksimal Percobaan: <strong class="text-dark"><?= esc($activeAssignment['max_attempts'] ?? 1) ?> kali</strong></span>
+                <h2 class="h5 fw-bold mb-1" style="color: #082f5c;"><?= esc($activeAssignment['title'] ?? 'Pengumpulan Tugas') ?></h2>
+                <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-1">
+                    <span><i class="bi bi-calendar-event me-1 text-primary"></i> Batas: <strong class="text-dark"><?= esc($activeAssignment['due_at'] ? date('d M Y, H:i', strtotime($activeAssignment['due_at'])) : 'Fleksibel') ?></strong></span>
+                    <span><i class="bi bi-arrow-repeat me-1 text-primary"></i> Maksimal: <strong class="text-dark"><?= esc($activeAssignment['max_attempts'] ?? 1) ?>x</strong></span>
                 </div>
             </div>
             <div>
@@ -69,11 +69,11 @@ $sectionContent   = $sectionContent ?? [];
         </div>
 
         <!-- Instructions Box -->
-        <div class="p-3 px-4 rounded-4 bg-light border mb-4">
-            <h6 class="text-muted small text-uppercase fw-bold mb-2" style="letter-spacing: 0.5px;">
+        <div class="p-2 p-md-3 rounded-3 bg-light border mb-3">
+            <h6 class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px; font-size: 0.72rem;">
                 <i class="bi bi-info-circle-fill text-primary me-1"></i> Instruksi & Panduan Pengerjaan:
             </h6>
-            <div class="text-dark lh-base fs-6"><?= nl2br(esc($activeAssignment['instructions'] ?? 'Tidak ada instruksi khusus.')) ?></div>
+            <div class="text-dark lh-base small"><?= nl2br(esc($activeAssignment['instructions'] ?? 'Tidak ada instruksi khusus.')) ?></div>
         </div>
 
         <!-- Latest Submission Status Alert (Jika Sudah Pernah Submit) -->
@@ -93,7 +93,7 @@ $sectionContent   = $sectionContent ?? [];
                 default             => 'Telah Dikumpulkan (Menunggu Penilaian)',
             };
             ?>
-            <div class="alert <?= $statusAlertClass ?> rounded-4 p-4 mb-4 border">
+            <div class="alert <?= $statusAlertClass ?> rounded-4 p-3 mb-3 border">
                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
                     <div>
                         <span class="badge bg-dark rounded-pill px-3 py-1 mb-2 fw-semibold">Percobaan #<?= (int) ($latestSubmission['attempt_number'] ?? 1) ?></span>
@@ -225,9 +225,16 @@ $sectionContent   = $sectionContent ?? [];
                     <div>
                         <!-- Header Card: Status & Score -->
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="badge <?= $statusBadgeClass ?> px-3 py-2 rounded-pill small fw-semibold">
-                                <?= esc($asg['submission_status_label'] ?? 'Belum Dikumpulkan') ?>
-                            </span>
+                            <div class="d-flex flex-wrap gap-1 align-items-center">
+                                <span class="badge <?= $statusBadgeClass ?> px-3 py-2 rounded-pill small fw-semibold">
+                                    <?= esc($asg['submission_status_label'] ?? 'Belum Dikumpulkan') ?>
+                                </span>
+                                <?php if (isset($asg['is_unlocked']) && ! $asg['is_unlocked']): ?>
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle px-2 py-1 rounded-pill small fw-semibold">
+                                        <i class="fas fa-lock me-1"></i> Terkunci
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                             <?php if ($asg['score'] !== null): ?>
                                 <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold">
                                     <i class="bi bi-star-fill me-1"></i> <?= (float) $asg['score'] ?>
@@ -241,6 +248,14 @@ $sectionContent   = $sectionContent ?? [];
                         <?php endif; ?>
                         <h2 class="h5 fw-bold mb-2" style="color: #082f5c;"><?= esc($asg['title'] ?? 'Tugas') ?></h2>
                         <p class="text-muted small mb-3 lh-base"><?= esc(mb_strimwidth($asg['instructions'] ?? '', 0, 130, '...')) ?></p>
+
+                        <!-- Lock Reason Notice (if locked) -->
+                        <?php if (isset($asg['is_unlocked']) && ! $asg['is_unlocked']): ?>
+                            <div class="alert alert-secondary py-2 px-3 small rounded-3 mb-3 d-flex align-items-center gap-2">
+                                <i class="fas fa-lock text-muted flex-shrink-0"></i>
+                                <span class="text-secondary"><?= esc($asg['lock_reason'] ?: 'Selesaikan materi pembelajaran modul terlebih dahulu.') ?></span>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <div class="pt-3 border-top mt-3">
@@ -248,17 +263,23 @@ $sectionContent   = $sectionContent ?? [];
                             <span><i class="bi bi-calendar-event me-1"></i> Batas Waktu:</span>
                             <strong class="text-dark"><?= esc($asg['due_at'] ? date('d M Y', strtotime($asg['due_at'])) : 'Fleksibel') ?></strong>
                         </div>
-                        <a href="<?= site_url('workspace/peserta/kelas/' . esc($asg['class_id']) . '/tugas/kirim?assignment_id=' . esc($asg['id'])) ?>" class="btn btn-outline-primary rounded-pill btn-sm w-100 fw-semibold">
-                            <?php if ($subStatus === 'submitted'): ?>
-                                <i class="bi bi-eye me-1"></i> Lihat Pengumpulan
-                            <?php elseif ($subStatus === 'revision_required'): ?>
-                                <i class="bi bi-arrow-repeat me-1"></i> Kirim Revisi
-                            <?php elseif ($subStatus === 'graded'): ?>
-                                <i class="bi bi-check2-circle me-1"></i> Lihat Nilai & Hasil
-                            <?php else: ?>
-                                <i class="bi bi-pencil me-1"></i> Kerjakan Tugas
-                            <?php endif; ?>
-                        </a>
+                        <?php if (isset($asg['is_unlocked']) && ! $asg['is_unlocked']): ?>
+                            <a href="<?= esc($asg['study_url'] ?? route_to('workspace.participant.study', (string) $asg['class_id'])) ?>" class="btn btn-outline-secondary rounded-pill btn-sm w-100 fw-semibold">
+                                <i class="fas fa-arrow-right me-1"></i> Buka Materi Modul
+                            </a>
+                        <?php else: ?>
+                            <a href="<?= esc($asg['submit_url'] ?? site_url('workspace/peserta/kelas/' . esc($asg['class_id']) . '/tugas/kirim?assignment_id=' . esc($asg['id']))) ?>" class="btn btn-outline-primary rounded-pill btn-sm w-100 fw-semibold">
+                                <?php if ($subStatus === 'submitted'): ?>
+                                    <i class="bi bi-eye me-1"></i> Lihat Pengumpulan
+                                <?php elseif ($subStatus === 'revision_required'): ?>
+                                    <i class="bi bi-arrow-repeat me-1"></i> Kirim Revisi
+                                <?php elseif ($subStatus === 'graded'): ?>
+                                    <i class="bi bi-check2-circle me-1"></i> Lihat Nilai & Hasil
+                                <?php else: ?>
+                                    <i class="bi bi-pencil me-1"></i> Kerjakan Tugas
+                                <?php endif; ?>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -267,13 +288,13 @@ $sectionContent   = $sectionContent ?? [];
 
 <?php else: ?>
     <!-- 5. EMPTY STATE -->
-    <div class="card border-0 rounded-4 shadow-sm p-5 bg-white text-center">
-        <div class="py-4">
-            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px; background: rgba(8,47,92,0.06); color: #082f5c;">
-                <i class="bi bi-file-earmark-check fs-1 opacity-75"></i>
+    <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 bg-white text-center">
+        <div class="py-3">
+            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; background: rgba(8,47,92,0.06); color: #082f5c;">
+                <i class="bi bi-file-earmark-check fs-3 opacity-75"></i>
             </div>
             <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Tugas Pembelajaran</h2>
-            <p class="text-muted mb-4 mx-auto" style="max-width: 480px;">
+            <p class="text-muted small mb-3 mx-auto" style="max-width: 480px;">
                 Saat ini belum ada tugas mandiri atau tugas akhir yang perlu Anda kumpulkan untuk kelas ini. Silakan lanjutkan modul pembelajaran Anda.
             </p>
             <a href="<?= route_to('workspace.participant.classes') ?>" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">

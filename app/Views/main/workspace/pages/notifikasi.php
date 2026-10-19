@@ -20,12 +20,12 @@
 </div>
 
 <?php if (! empty($sectionContent['cards'])): ?>
-    <div class="row g-3 mb-4">
+    <div class="row g-2 g-md-3 mb-3">
         <?php foreach ($sectionContent['cards'] as $card): ?>
             <div class="col-sm-6 col-lg-3">
-                <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
                     <span class="text-muted small text-uppercase fw-semibold"><?= esc($card['title']) ?></span>
-                    <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= esc($card['value']) ?></div>
+                    <div class="display-6 fw-bold my-1" style="color: #082f5c;"><?= esc($card['value']) ?></div>
                     <span class="text-secondary small"><?= esc($card['meta'] ?? '') ?></span>
                 </div>
             </div>
@@ -34,7 +34,7 @@
 <?php endif; ?>
 
 <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden">
-    <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white border-bottom p-3 px-md-4 d-flex justify-content-between align-items-center">
         <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">Daftar Notifikasi</h2>
         <?php if (! empty($sectionContent['unread'])): ?>
             <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1">

@@ -96,7 +96,7 @@ $trainerRoleLabel = static function (?string $role): string {
     <?php if (! empty($sectionContent['cards'])): ?>
         <?php foreach ($sectionContent['cards'] as $card): ?>
             <div class="col-sm-6 col-lg-3">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-muted small fw-semibold text-uppercase"><?= esc($card['title']) ?></span>
                         <?php if (! empty($card['icon'])): ?>
@@ -112,28 +112,28 @@ $trainerRoleLabel = static function (?string $role): string {
         <?php endforeach; ?>
     <?php else: ?>
         <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+            <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                 <span class="text-muted small fw-semibold text-uppercase">Kelas Aktif</span>
                 <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= $fmt((int) ($summary['active'] ?? 0)) ?></div>
                 <small class="text-muted">sedang dipelajari</small>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+            <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                 <span class="text-muted small fw-semibold text-uppercase">Kelas Selesai</span>
                 <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= $fmt((int) ($summary['completed'] ?? 0)) ?></div>
                 <small class="text-muted">tuntas & lulus</small>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+            <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                 <span class="text-muted small fw-semibold text-uppercase">Sertifikat Terbit</span>
                 <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= $fmt((int) ($summary['issued_certificates'] ?? 0)) ?></div>
                 <small class="text-muted">resmi terverifikasi</small>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+            <div class="card ws-stat-card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                 <span class="text-muted small fw-semibold text-uppercase">Menunggu Approval</span>
                 <div class="display-6 fw-bold my-2" style="color: #082f5c;"><?= $fmt((int) ($summary['pending'] ?? 0)) ?></div>
                 <small class="text-muted">antrean verifikasi</small>
@@ -174,13 +174,13 @@ $trainerRoleLabel = static function (?string $role): string {
     <!-- TAB 1: KELAS AKTIF & BERJALAN -->
     <div class="tab-pane fade show active" id="tab-aktif" role="tabpanel" aria-labelledby="tab-aktif-btn">
         <?php if ($activeClasses === []): ?>
-            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
-                <div class="py-4">
-                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px; background: rgba(8,47,92,0.06); color: #082f5c;">
-                        <i class="fas fa-book-reader fs-1 opacity-75"></i>
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white text-center">
+                <div class="py-3">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; background: rgba(8,47,92,0.06); color: #082f5c;">
+                        <i class="fas fa-book-reader fs-3 opacity-75"></i>
                     </div>
                     <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Kelas yang Sedang Berjalan</h2>
-                    <p class="text-muted mb-4 mx-auto" style="max-width: 540px;">
+                    <p class="text-muted small mb-3 mx-auto" style="max-width: 540px;">
                         Anda belum memiliki kelas aktif saat ini. Jelajahi katalog Arena Belajar untuk mendaftarkan diri pada program kompetensi pengadaan barang dan jasa.
                     </p>
                     <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
@@ -189,7 +189,7 @@ $trainerRoleLabel = static function (?string $role): string {
                 </div>
             </div>
         <?php else: ?>
-            <div class="row g-4 ws-paginated-container" data-page-size="4">
+            <div class="row g-3 ws-paginated-container" data-page-size="4">
                 <?php foreach ($activeClasses as $item): ?>
                     <?php
                     $classId     = (int) ($item['class_id'] ?? 0);
@@ -203,7 +203,7 @@ $trainerRoleLabel = static function (?string $role): string {
                     $trainers    = $item['trainers'] ?? [];
                     ?>
                     <div class="col-12 ws-paginated-item">
-                        <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white">
+                        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
                             <!-- Card Header: Badges & Class Code -->
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                                 <div class="d-flex flex-wrap align-items-center gap-2">
@@ -298,70 +298,72 @@ $trainerRoleLabel = static function (?string $role): string {
                             </div>
 
                             <!-- 5-Stage Roadmap Strip -->
-                            <div class="p-3 p-md-4 rounded-4 bg-light mb-4 border">
-                                <span class="d-block text-muted small fw-bold text-uppercase mb-3">
+                            <div class="p-2 p-md-3 rounded-3 bg-light mb-3 border">
+                                <span class="d-block text-muted small fw-bold text-uppercase mb-2" style="font-size: 0.72rem;">
                                     <i class="fas fa-route text-primary me-1"></i> Alur Tahapan Pembelajaran
                                 </span>
-                                <div class="row g-2 text-center">
-                                    <!-- Step 1: Pre-Test -->
-                                    <div class="col-6 col-md">
-                                        <div class="p-2 rounded-3 bg-white border h-100">
-                                            <small class="d-block text-muted text-truncate">1. Pre-Test</small>
-                                            <?php if (! empty($preTest['exists'])): ?>
-                                                <?php if (! empty($preTest['completed'])): ?>
-                                                    <span class="badge bg-success-subtle text-success mt-1"><i class="fas fa-check me-1"></i>Selesai (<?= (float) ($preTest['attempt']['score'] ?? 0) ?>)</span>
+                                <div class="ws-roadmap-strip">
+                                    <div class="row g-1 g-md-2 text-center flex-nowrap flex-xl-wrap pb-1" style="min-width: 460px;">
+                                        <!-- Step 1: Pre-Test -->
+                                        <div class="col-auto col-md" style="min-width: 88px;">
+                                            <div class="p-1 p-md-2 rounded-3 bg-white border h-100">
+                                                <small class="d-block text-muted text-truncate" style="font-size: 0.7rem;">1. Pre-Test</small>
+                                                <?php if (! empty($preTest['exists'])): ?>
+                                                    <?php if (! empty($preTest['completed'])): ?>
+                                                        <span class="badge bg-success-subtle text-success mt-1"><i class="fas fa-check me-1"></i>Selesai (<?= (float) ($preTest['attempt']['score'] ?? 0) ?>)</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-warning-subtle text-warning-emphasis mt-1"><i class="fas fa-exclamation-triangle me-1"></i>Wajib</span>
+                                                    <?php endif; ?>
                                                 <?php else: ?>
-                                                    <span class="badge bg-warning-subtle text-warning-emphasis mt-1"><i class="fas fa-exclamation-triangle me-1"></i>Wajib</span>
+                                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle mt-1">Opsional</span>
                                                 <?php endif; ?>
-                                            <?php else: ?>
-                                                <span class="badge bg-light text-muted mt-1">Opsional</span>
-                                            <?php endif; ?>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <!-- Step 2: Modul & Lessons -->
-                                    <div class="col-6 col-md">
-                                        <div class="p-2 rounded-3 bg-white border h-100">
-                                            <small class="d-block text-muted text-truncate">2. Materi Modul</small>
-                                            <span class="badge bg-primary-subtle text-primary mt-1"><?= $doneLessons ?>/<?= $totalLessons ?> Materi</span>
+                                        <!-- Step 2: Modul & Lessons -->
+                                        <div class="col-auto col-md" style="min-width: 88px;">
+                                            <div class="p-1 p-md-2 rounded-3 bg-white border h-100">
+                                                <small class="d-block text-muted text-truncate" style="font-size: 0.7rem;">2. Materi</small>
+                                                <span class="badge bg-primary-subtle text-primary mt-1"><?= $doneLessons ?>/<?= $totalLessons ?> Selesai</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <!-- Step 3: Quiz Modul -->
-                                    <div class="col-6 col-md">
-                                        <div class="p-2 rounded-3 bg-white border h-100">
-                                            <small class="d-block text-muted text-truncate">3. Kuis Modul</small>
-                                            <span class="badge bg-info-subtle text-info-emphasis mt-1"><i class="fas fa-question-circle me-1"></i>Tersedia</span>
+                                        <!-- Step 3: Quiz Modul -->
+                                        <div class="col-auto col-md" style="min-width: 88px;">
+                                            <div class="p-1 p-md-2 rounded-3 bg-white border h-100">
+                                                <small class="d-block text-muted text-truncate" style="font-size: 0.7rem;">3. Kuis</small>
+                                                <span class="badge bg-info-subtle text-info-emphasis mt-1"><i class="fas fa-question-circle me-1"></i>Tersedia</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <!-- Step 4: Tugas Mandiri -->
-                                    <div class="col-6 col-md">
-                                        <div class="p-2 rounded-3 bg-white border h-100">
-                                            <small class="d-block text-muted text-truncate">4. Tugas Praktik</small>
-                                            <span class="badge bg-secondary-subtle text-secondary mt-1"><i class="fas fa-tasks me-1"></i>Evaluasi</span>
+                                        <!-- Step 4: Tugas Mandiri -->
+                                        <div class="col-auto col-md" style="min-width: 88px;">
+                                            <div class="p-1 p-md-2 rounded-3 bg-white border h-100">
+                                                <small class="d-block text-muted text-truncate" style="font-size: 0.7rem;">4. Tugas</small>
+                                                <span class="badge bg-secondary-subtle text-secondary mt-1"><i class="fas fa-tasks me-1"></i>Praktik</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <!-- Step 5: Post-Test -->
-                                    <div class="col-6 col-md">
-                                        <div class="p-2 rounded-3 bg-white border h-100">
-                                            <small class="d-block text-muted text-truncate">5. Post-Test</small>
-                                            <?php if (! empty($postTest['exists'])): ?>
-                                                <?php if (! empty($postTest['completed'])): ?>
-                                                    <span class="badge bg-success-subtle text-success mt-1"><i class="fas fa-check me-1"></i>Selesai</span>
-                                                <?php elseif (! empty($postTest['is_unlocked'])): ?>
-                                                    <span class="badge bg-primary-subtle text-primary mt-1"><i class="fas fa-trophy me-1"></i>Siap</span>
+                                        <!-- Step 5: Post-Test -->
+                                        <div class="col-auto col-md" style="min-width: 88px;">
+                                            <div class="p-1 p-md-2 rounded-3 bg-white border h-100">
+                                                <small class="d-block text-muted text-truncate" style="font-size: 0.7rem;">5. Post-Test</small>
+                                                <?php if (! empty($postTest['exists'])): ?>
+                                                    <?php if (! empty($postTest['completed'])): ?>
+                                                        <span class="badge bg-success-subtle text-success mt-1"><i class="fas fa-check me-1"></i>Lulus</span>
+                                                    <?php elseif (! empty($postTest['is_unlocked'])): ?>
+                                                        <span class="badge bg-primary-subtle text-primary mt-1"><i class="fas fa-trophy me-1"></i>Siap</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle mt-1"><i class="fas fa-lock me-1"></i>Terkunci</span>
+                                                    <?php endif; ?>
                                                 <?php else: ?>
-                                                    <span class="badge bg-light text-muted mt-1"><i class="fas fa-lock me-1"></i>Terkunci</span>
+                                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle mt-1">Opsional</span>
                                                 <?php endif; ?>
-                                            <?php else: ?>
-                                                <span class="badge bg-light text-muted mt-1">Opsional</span>
-                                            <?php endif; ?>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Next Action Indicator & CTA Actions -->
-                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pt-3 border-top">
-                                <div>
+                            <div class="row align-items-center g-3 pt-3 border-top">
+                                <div class="col-12 col-md-7 col-lg-8">
                                     <?php if ($stateCode === 'pre_test_required'): ?>
                                         <span class="text-warning-emphasis small fw-bold d-block"><i class="fas fa-exclamation-triangle me-1"></i> Langkah Wajib Pertama:</span>
                                         <span class="text-muted small">Kerjakan Pre-Test terlebih dahulu sebelum materi pembelajaran dibuka.</span>
@@ -383,22 +385,24 @@ $trainerRoleLabel = static function (?string $role): string {
                                     <?php endif; ?>
                                 </div>
 
-                                <div class="d-flex flex-wrap gap-2">
-                                    <!-- Dynamic Primary Action -->
-                                    <?php if (! empty($cta['url']) && empty($cta['disabled'])): ?>
-                                        <a href="<?= esc($cta['url']) ?>" class="<?= esc($cta['class'] ?? 'btn btn-primary') ?> px-4 fw-semibold rounded-3 shadow-sm">
-                                            <i class="fas fa-arrow-right me-1"></i> <?= esc($cta['label'] ?? 'Lanjutkan') ?>
-                                        </a>
-                                    <?php else: ?>
-                                        <a href="<?= route_to('workspace.participant.study', $classId) ?>" class="btn btn-primary px-4 fw-semibold rounded-3 shadow-sm">
-                                            <i class="fas fa-chalkboard me-1"></i> Ruang Belajar
-                                        </a>
-                                    <?php endif; ?>
+                                <div class="col-12 col-md-5 col-lg-4 text-md-end">
+                                    <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                                        <!-- Dynamic Primary Action -->
+                                        <?php if (! empty($cta['url']) && empty($cta['disabled'])): ?>
+                                            <a href="<?= esc($cta['url']) ?>" class="<?= esc($cta['class'] ?? 'btn btn-primary') ?> px-4 fw-semibold rounded-3 shadow-sm text-nowrap w-100 w-sm-auto">
+                                                <i class="fas fa-arrow-right me-1"></i> <?= esc($cta['label'] ?? 'Lanjutkan') ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <a href="<?= route_to('workspace.participant.study', $classId) ?>" class="btn btn-primary px-4 fw-semibold rounded-3 shadow-sm text-nowrap w-100 w-sm-auto">
+                                                <i class="fas fa-chalkboard me-1"></i> Ruang Belajar
+                                            </a>
+                                        <?php endif; ?>
 
-                                    <!-- Secondary Actions -->
-                                    <a href="<?= route_to('workspace.participant.class.detail', $classId) ?>" class="btn btn-outline-secondary px-3 rounded-3">
-                                        <i class="fas fa-info-circle me-1"></i> Detail Kelas
-                                    </a>
+                                        <!-- Secondary Actions -->
+                                        <a href="<?= route_to('workspace.participant.class.detail', $classId) ?>" class="btn btn-outline-secondary px-3 rounded-3 text-nowrap w-100 w-sm-auto">
+                                            <i class="fas fa-info-circle me-1"></i> Detail Kelas
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -411,13 +415,13 @@ $trainerRoleLabel = static function (?string $role): string {
     <!-- TAB 2: KELAS SELESAI & SERTIFIKAT -->
     <div class="tab-pane fade" id="tab-selesai" role="tabpanel" aria-labelledby="tab-selesai-btn">
         <?php if ($completedClasses === []): ?>
-            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
-                <div class="py-4">
-                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px; background: rgba(8,47,92,0.06); color: #082f5c;">
-                        <i class="fas fa-graduation-cap fs-1 opacity-75"></i>
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white text-center">
+                <div class="py-3">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; background: rgba(8,47,92,0.06); color: #082f5c;">
+                        <i class="fas fa-graduation-cap fs-3 opacity-75"></i>
                     </div>
                     <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Kelas yang Selesai</h2>
-                    <p class="text-muted mb-4 mx-auto" style="max-width: 540px;">
+                    <p class="text-muted small mb-3 mx-auto" style="max-width: 540px;">
                         Tuntaskan seluruh rangkaian materi, evaluasi kuis, tugas mandiri, dan ujian akhir pada kelas aktif Anda untuk memperoleh kelulusan dan sertifikat resmi.
                     </p>
                     <button class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold" onclick="document.getElementById('tab-aktif-btn').click()">
@@ -426,7 +430,7 @@ $trainerRoleLabel = static function (?string $role): string {
                 </div>
             </div>
         <?php else: ?>
-            <div class="row g-4 ws-paginated-container" data-page-size="4">
+            <div class="row g-3 ws-paginated-container" data-page-size="4">
                 <?php foreach ($completedClasses as $item): ?>
                     <?php
                     $classId     = (int) ($item['class_id'] ?? 0);
@@ -438,7 +442,7 @@ $trainerRoleLabel = static function (?string $role): string {
                     $certEnabled = (int) ($item['certificate_enabled'] ?? 0) === 1;
                     ?>
                     <div class="col-12 ws-paginated-item">
-                        <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white border-start border-success border-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white border-start border-success border-4">
                             <!-- Card Header -->
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                                 <div class="d-flex flex-wrap align-items-center gap-2">
@@ -578,23 +582,23 @@ $trainerRoleLabel = static function (?string $role): string {
     <!-- TAB 3: MENUNGGU PERSETUJUAN -->
     <div class="tab-pane fade" id="tab-pending" role="tabpanel" aria-labelledby="tab-pending-btn">
         <?php if ($pendingClasses === []): ?>
-            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
-                <div class="py-4">
-                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px; background: rgba(8,47,92,0.06); color: #082f5c;">
-                        <i class="fas fa-check-circle fs-1 opacity-75"></i>
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white text-center">
+                <div class="py-3">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; background: rgba(8,47,92,0.06); color: #082f5c;">
+                        <i class="fas fa-check-circle fs-3 opacity-75"></i>
                     </div>
                     <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Tidak Ada Pendaftaran Menunggu Persetujuan</h2>
-                    <p class="text-muted mb-0 mx-auto" style="max-width: 540px;">
+                    <p class="text-muted small mb-0 mx-auto" style="max-width: 540px;">
                         Seluruh pendaftaran kelas Anda telah diproses oleh Operator. Anda dapat memeriksa kelas pada tab Kelas Aktif atau Riwayat Semua Kelas.
                     </p>
                 </div>
             </div>
         <?php else: ?>
-            <div class="row g-4 ws-paginated-container" data-page-size="4">
+            <div class="row g-3 ws-paginated-container" data-page-size="4">
                 <?php foreach ($pendingClasses as $item): ?>
                     <?php $classId = (int) ($item['class_id'] ?? 0); ?>
                     <div class="col-12 ws-paginated-item">
-                        <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white border-start border-warning border-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white border-start border-warning border-4">
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                                 <div class="d-flex flex-wrap align-items-center gap-2">
                                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2 rounded-pill fw-bold">
@@ -670,18 +674,18 @@ $trainerRoleLabel = static function (?string $role): string {
     <!-- TAB 4: RIWAYAT SEMUA KELAS -->
     <div class="tab-pane fade" id="tab-riwayat" role="tabpanel" aria-labelledby="tab-riwayat-btn">
         <?php if ($enrollments === []): ?>
-            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
-                <div class="py-4">
-                    <i class="fas fa-history fs-1 text-muted opacity-50 mb-3"></i>
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white text-center">
+                <div class="py-3">
+                    <i class="fas fa-history fs-2 text-muted opacity-50 mb-2"></i>
                     <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Riwayat Kelas</h2>
-                    <p class="text-muted mb-4">Anda belum pernah mendaftar pada kelas manapun di sistem BegawiPengadaan.</p>
+                    <p class="text-muted small mb-3">Anda belum pernah mendaftar pada kelas manapun di sistem BegawiPengadaan.</p>
                     <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
                         <i class="fas fa-search me-1"></i> Buka Arena Belajar
                     </a>
                 </div>
             </div>
         <?php else: ?>
-            <div class="row g-4 ws-paginated-container" data-page-size="6">
+            <div class="row g-3 ws-paginated-container" data-page-size="6">
                 <?php foreach ($enrollments as $item): ?>
                     <?php
                     $status   = (string) ($item['enrollment_status'] ?? 'pending');

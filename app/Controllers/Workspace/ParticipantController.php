@@ -487,15 +487,21 @@ class ParticipantController extends BaseController
         $classIdInt = (int) $classId;
         $db = db_connect();
 
-        $enrollment = $db->table('enrollments')->where(['class_id' => $classIdInt, 'user_id' => $userId])->get()->getRowArray();
-        $assignments = $db->table('assignments')->where('class_id', $classIdInt)->orderBy('due_at', 'ASC')->get()->getResultArray();
+        $state = $this->resolveClassLearningState($classIdInt, $userId);
+        $enrollment = $state['enrollment'] ?? $db->table('enrollments')->where(['class_id' => $classIdInt, 'user_id' => $userId])->get()->getRowArray();
+        $assignments = $db->table('assignments')->where('class_id', $classIdInt)->where('status', 'published')->orderBy('due_at', 'ASC')->get()->getResultArray();
 
         $assignmentsList = [];
+        $activeCount = 0;
+        $gradedCount = 0;
+        $lockedCount = 0;
+
         foreach ($assignments as $asg) {
+            $aid = (int) $asg['id'];
             $sub = null;
             if ($enrollment) {
                 $sub = $db->table('assignment_submissions')
-                    ->where(['assignment_id' => $asg['id'], 'enrollment_id' => $enrollment['id']])
+                    ->where(['assignment_id' => $aid, 'enrollment_id' => $enrollment['id']])
                     ->orderBy('attempt_number', 'DESC')
                     ->get()->getRowArray();
             }
@@ -509,9 +515,54 @@ class ParticipantController extends BaseController
                 default             => 'Belum Mengumpulkan',
             };
 
+            // Check lock status based on learning progress
+            $isUnlocked = true;
+            $lockReason = '';
+
+            if ($state) {
+                if ($state['enrollmentStatus'] !== 'active' && $state['enrollmentStatus'] !== 'completed') {
+                    $isUnlocked = false;
+                    $lockReason = 'Pendaftaran kelas belum aktif.';
+                } elseif ($state['stateCode'] === 'pre_test_required') {
+                    $isUnlocked = false;
+                    $lockReason = 'Wajib menyelesaikan Pre-Test kelas terlebih dahulu.';
+                } else {
+                    $foundMod = null;
+                    foreach ($state['modules'] as $mod) {
+                        if (! empty($mod['assignment']) && (int) $mod['assignment']['id'] === $aid) {
+                            $foundMod = $mod;
+                            break;
+                        }
+                    }
+                    if ($foundMod !== null) {
+                        $isUnlocked = (bool) $foundMod['assignment']['is_unlocked'];
+                        if (! $isUnlocked) {
+                            if (! $foundMod['is_unlocked']) {
+                                $lockReason = 'Selesaikan modul sebelumnya terlebih dahulu.';
+                            } else {
+                                $lockReason = 'Selesaikan materi pada modul ini terlebih dahulu.';
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ($status === 'graded') {
+                $gradedCount++;
+            } elseif (! $isUnlocked) {
+                $lockedCount++;
+            } else {
+                $activeCount++;
+            }
+
+            $asg['class_name'] = $state['class']['name'] ?? '';
             $asg['submission_status'] = $status;
             $asg['submission_status_label'] = $label;
             $asg['score'] = $sub['score'] ?? null;
+            $asg['is_unlocked'] = $isUnlocked;
+            $asg['lock_reason'] = $lockReason;
+            $asg['study_url'] = route_to('workspace.participant.study', (string) $classIdInt);
+            $asg['submit_url'] = site_url('workspace/peserta/kelas/' . $classIdInt . '/tugas/kirim?assignment_id=' . $aid);
             $assignmentsList[] = $asg;
         }
 
@@ -520,7 +571,13 @@ class ParticipantController extends BaseController
             'assignmentsList' => $assignmentsList,
             'sectionContent'  => [
                 'eyebrow'     => 'Aktivitas Belajar',
-                'description' => 'Daftar penugasan dan status pengumpulan untuk kelas ini.',
+                'title'       => 'Tugas Kelas',
+                'description' => 'Daftar penugasan dan status pengumpulan untuk kelas ini mengikuti alur kurikulum.',
+                'cards'       => [
+                    ['title' => 'Tugas Terbuka', 'value' => sprintf('%02d', $activeCount), 'meta' => 'siap dikerjakan/direvisi'],
+                    ['title' => 'Terkunci', 'value' => sprintf('%02d', $lockedCount), 'meta' => 'mengikuti progress modul'],
+                    ['title' => 'Telah Dinilai', 'value' => sprintf('%02d', $gradedCount), 'meta' => 'tugas selesai dinilai'],
+                ],
                 'items'       => [],
             ],
         ]);
@@ -539,12 +596,25 @@ class ParticipantController extends BaseController
             ->orderBy('a.due_at', 'ASC')
             ->get()->getResultArray();
 
+        $classStates = [];
+        foreach ($assignments as $asg) {
+            $cid = (int) $asg['class_id'];
+            if (! isset($classStates[$cid])) {
+                $classStates[$cid] = $this->resolveClassLearningState($cid, $userId);
+            }
+        }
+
         $assignmentsList = [];
         $activeCount = 0;
         $gradedCount = 0;
+        $lockedCount = 0;
         foreach ($assignments as $asg) {
+            $cid = (int) $asg['class_id'];
+            $aid = (int) $asg['id'];
+            $state = $classStates[$cid] ?? null;
+
             $sub = $db->table('assignment_submissions')
-                ->where(['assignment_id' => $asg['id'], 'enrollment_id' => $asg['enrollment_id']])
+                ->where(['assignment_id' => $aid, 'enrollment_id' => $asg['enrollment_id']])
                 ->orderBy('attempt_number', 'DESC')
                 ->get()->getRowArray();
 
@@ -557,8 +627,42 @@ class ParticipantController extends BaseController
                 default             => 'Belum Mengumpulkan',
             };
 
+            // Check lock status based on learning progress
+            $isUnlocked = true;
+            $lockReason = '';
+
+            if ($state) {
+                if ($state['enrollmentStatus'] !== 'active' && $state['enrollmentStatus'] !== 'completed') {
+                    $isUnlocked = false;
+                    $lockReason = 'Pendaftaran kelas belum aktif.';
+                } elseif ($state['stateCode'] === 'pre_test_required') {
+                    $isUnlocked = false;
+                    $lockReason = 'Wajib menyelesaikan Pre-Test kelas terlebih dahulu.';
+                } else {
+                    $foundMod = null;
+                    foreach ($state['modules'] as $mod) {
+                        if (! empty($mod['assignment']) && (int) $mod['assignment']['id'] === $aid) {
+                            $foundMod = $mod;
+                            break;
+                        }
+                    }
+                    if ($foundMod !== null) {
+                        $isUnlocked = (bool) $foundMod['assignment']['is_unlocked'];
+                        if (! $isUnlocked) {
+                            if (! $foundMod['is_unlocked']) {
+                                $lockReason = 'Selesaikan modul sebelumnya terlebih dahulu.';
+                            } else {
+                                $lockReason = 'Selesaikan materi pada modul ini terlebih dahulu.';
+                            }
+                        }
+                    }
+                }
+            }
+
             if ($status === 'graded') {
                 $gradedCount++;
+            } elseif (! $isUnlocked) {
+                $lockedCount++;
             } else {
                 $activeCount++;
             }
@@ -566,6 +670,10 @@ class ParticipantController extends BaseController
             $asg['submission_status'] = $status;
             $asg['submission_status_label'] = $label;
             $asg['score'] = $sub['score'] ?? null;
+            $asg['is_unlocked'] = $isUnlocked;
+            $asg['lock_reason'] = $lockReason;
+            $asg['study_url'] = route_to('workspace.participant.study', (string) $cid);
+            $asg['submit_url'] = site_url('workspace/peserta/kelas/' . $cid . '/tugas/kirim?assignment_id=' . $aid);
             $assignmentsList[] = $asg;
         }
 
@@ -575,11 +683,11 @@ class ParticipantController extends BaseController
             'sectionContent'  => [
                 'eyebrow'     => 'Aktivitas Belajar',
                 'title'       => 'Tugas Saya',
-                'description' => 'Daftar seluruh tugas dari kelas pembelajaran yang Anda ikuti.',
+                'description' => 'Daftar seluruh tugas dari kelas pembelajaran Anda yang terbuka mengikuti alur kurikulum.',
                 'cards'       => [
-                    ['title' => 'Tugas Aktif', 'value' => sprintf('%02d', $activeCount), 'meta' => 'perlu dikerjakan/direvisi'],
-                    ['title' => 'Telah Dinilai', 'value' => sprintf('%02d', $gradedCount), 'meta' => 'tugas selesai'],
-                    ['title' => 'Total Tugas', 'value' => sprintf('%02d', count($assignmentsList)), 'meta' => 'dari semua kelas aktif'],
+                    ['title' => 'Tugas Terbuka', 'value' => sprintf('%02d', $activeCount), 'meta' => 'siap dikerjakan/direvisi'],
+                    ['title' => 'Terkunci', 'value' => sprintf('%02d', $lockedCount), 'meta' => 'mengikuti progress modul'],
+                    ['title' => 'Telah Dinilai', 'value' => sprintf('%02d', $gradedCount), 'meta' => 'tugas selesai dinilai'],
                 ],
                 'items'       => [],
             ],
@@ -600,18 +708,82 @@ class ParticipantController extends BaseController
             ->orderBy('q.id', 'ASC')
             ->get()->getResultArray();
 
+        $classStates = [];
+        foreach ($quizzes as $quiz) {
+            $cid = (int) $quiz['class_id'];
+            if (! isset($classStates[$cid])) {
+                $classStates[$cid] = $this->resolveClassLearningState($cid, $userId);
+            }
+        }
+
         $assessmentsList = [];
         $completedCount = 0;
         $pendingCount = 0;
+        $lockedCount = 0;
         foreach ($quizzes as $quiz) {
+            $cid = (int) $quiz['class_id'];
+            $qid = (int) $quiz['id'];
+            $qType = (string) $quiz['type'];
+            $state = $classStates[$cid] ?? null;
+
             $attempt = $db->table('quiz_attempts')
-                ->where(['quiz_id' => $quiz['id'], 'enrollment_id' => $quiz['enrollment_id']])
+                ->where(['quiz_id' => $qid, 'enrollment_id' => $quiz['enrollment_id']])
                 ->orderBy('attempt_number', 'DESC')
                 ->get()->getRowArray();
 
             $status = $attempt['status'] ?? 'not_started';
-            if (in_array($status, ['submitted', 'graded', 'passed', 'completed'], true)) {
+            $isCompleted = in_array($status, ['submitted', 'graded', 'passed', 'completed'], true);
+
+            // Compute lock status based on learning progress
+            $isUnlocked = true;
+            $lockReason = '';
+
+            if ($state) {
+                if ($state['enrollmentStatus'] !== 'active' && $state['enrollmentStatus'] !== 'completed') {
+                    $isUnlocked = false;
+                    $lockReason = 'Pendaftaran kelas belum aktif.';
+                } elseif ($qType === 'pre_test') {
+                    $isUnlocked = true;
+                } elseif ($state['stateCode'] === 'pre_test_required') {
+                    $isUnlocked = false;
+                    $lockReason = 'Wajib menyelesaikan Pre-Test kelas terlebih dahulu.';
+                } elseif ($qType === 'post_test') {
+                    $allModulesDone = true;
+                    foreach ($state['modules'] as $mod) {
+                        if (! $mod['is_completed']) {
+                            $allModulesDone = false;
+                            break;
+                        }
+                    }
+                    $isUnlocked = $allModulesDone || $state['enrollmentStatus'] === 'completed';
+                    if (! $isUnlocked) {
+                        $lockReason = 'Selesaikan seluruh modul pembelajaran untuk membuka Post-Test.';
+                    }
+                } else { // lesson_quiz
+                    $foundMod = null;
+                    foreach ($state['modules'] as $mod) {
+                        if (! empty($mod['quiz']) && (int) $mod['quiz']['id'] === $qid) {
+                            $foundMod = $mod;
+                            break;
+                        }
+                    }
+                    if ($foundMod !== null) {
+                        $isUnlocked = (bool) $foundMod['quiz']['is_unlocked'];
+                        if (! $isUnlocked) {
+                            if (! $foundMod['is_unlocked']) {
+                                $lockReason = 'Selesaikan modul sebelumnya terlebih dahulu.';
+                            } else {
+                                $lockReason = 'Selesaikan seluruh materi pada modul ini untuk membuka kuis.';
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ($isCompleted) {
                 $completedCount++;
+            } elseif (! $isUnlocked) {
+                $lockedCount++;
             } else {
                 $pendingCount++;
             }
@@ -619,6 +791,11 @@ class ParticipantController extends BaseController
             $quiz['attempt_status'] = $status;
             $quiz['score'] = $attempt['score'] ?? null;
             $quiz['attempt_id'] = $attempt['id'] ?? null;
+            $quiz['is_unlocked'] = $isUnlocked;
+            $quiz['is_completed'] = $isCompleted;
+            $quiz['lock_reason'] = $lockReason;
+            $quiz['study_url'] = route_to('workspace.participant.study', (string) $cid);
+            $quiz['take_url'] = route_to('workspace.participant.quiz.take', (string) $qid);
             $assessmentsList[] = $quiz;
         }
 
@@ -629,15 +806,16 @@ class ParticipantController extends BaseController
                 'total'     => count($assessmentsList),
                 'completed' => $completedCount,
                 'pending'   => $pendingCount,
+                'locked'    => $lockedCount,
             ],
             'sectionContent'   => [
                 'eyebrow'     => 'Evaluasi Pembelajaran',
                 'title'       => 'Assessment Saya',
-                'description' => 'Pre-test, Quiz berkala, dan Post-test untuk mengukur pemahaman materi.',
+                'description' => 'Pre-test, Quiz modul, dan Post-test yang terbuka secara bertahap mengikuti kemajuan belajar Anda.',
                 'cards'       => [
-                    ['title' => 'Total Assessment', 'value' => sprintf('%02d', count($assessmentsList)), 'meta' => 'ujian & kuis aktif'],
+                    ['title' => 'Siap Dikerjakan', 'value' => sprintf('%02d', $pendingCount), 'meta' => 'terbuka & aktif'],
+                    ['title' => 'Terkunci', 'value' => sprintf('%02d', $lockedCount), 'meta' => 'mengikuti alur modul'],
                     ['title' => 'Selesai Dikerjakan', 'value' => sprintf('%02d', $completedCount), 'meta' => 'telah diselesaikan'],
-                    ['title' => 'Belum Dikerjakan', 'value' => sprintf('%02d', $pendingCount), 'meta' => 'menunggu dikerjakan'],
                 ],
             ],
         ]);
@@ -928,6 +1106,31 @@ class ParticipantController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Tugas tidak ditemukan.');
         }
 
+        // Lock check via learning progress state
+        $state = $this->resolveClassLearningState($classIdInt, $userId);
+        if ($state['enrollmentStatus'] !== 'active' && $state['enrollmentStatus'] !== 'completed') {
+            return redirect()->to(route_to('workspace.participant.class.detail', (string) $classIdInt))
+                ->with('error', 'Pendaftaran kelas belum aktif.');
+        }
+        if ($state['stateCode'] === 'pre_test_required') {
+            return redirect()->to(route_to('workspace.participant.study', (string) $classIdInt))
+                ->with('error', 'Pre-Test wajib dikerjakan terlebih dahulu sebelum mengakses pengumpulan tugas.');
+        }
+        $foundMod = null;
+        foreach ($state['modules'] as $mod) {
+            if (! empty($mod['assignment']) && (int) $mod['assignment']['id'] === (int) $assignment['id']) {
+                $foundMod = $mod;
+                break;
+            }
+        }
+        if ($foundMod !== null && empty($foundMod['assignment']['is_unlocked'])) {
+            $lockMsg = ! $foundMod['is_unlocked']
+                ? 'Tugas ini masih terkunci. Selesaikan modul sebelumnya terlebih dahulu.'
+                : 'Tugas ini masih terkunci. Selesaikan materi pembelajaran pada modul ini terlebih dahulu.';
+            return redirect()->to(route_to('workspace.participant.study', (string) $classIdInt))
+                ->with('error', $lockMsg);
+        }
+
         $latestSubmission = null;
         $submittedFile = null;
         if ($enrollment) {
@@ -971,6 +1174,31 @@ class ParticipantController extends BaseController
         $content = (string) $this->request->getPost('content');
         if (trim($content) === '') {
             return redirect()->back()->withInput()->with('error', 'Konten jawaban tugas tidak boleh kosong.');
+        }
+
+        // Lock check via learning progress state
+        $state = $this->resolveClassLearningState($classIdInt, $userId);
+        if ($state['enrollmentStatus'] !== 'active' && $state['enrollmentStatus'] !== 'completed') {
+            return redirect()->to(route_to('workspace.participant.class.detail', (string) $classIdInt))
+                ->with('error', 'Pendaftaran kelas belum aktif.');
+        }
+        if ($state['stateCode'] === 'pre_test_required') {
+            return redirect()->to(route_to('workspace.participant.study', (string) $classIdInt))
+                ->with('error', 'Pre-Test wajib dikerjakan terlebih dahulu sebelum mengakses pengumpulan tugas.');
+        }
+        $foundMod = null;
+        foreach ($state['modules'] as $mod) {
+            if (! empty($mod['assignment']) && (int) $mod['assignment']['id'] === $assignmentId) {
+                $foundMod = $mod;
+                break;
+            }
+        }
+        if ($foundMod !== null && empty($foundMod['assignment']['is_unlocked'])) {
+            $lockMsg = ! $foundMod['is_unlocked']
+                ? 'Tugas ini masih terkunci. Selesaikan modul sebelumnya terlebih dahulu.'
+                : 'Tugas ini masih terkunci. Selesaikan materi pembelajaran pada modul ini terlebih dahulu.';
+            return redirect()->to(route_to('workspace.participant.study', (string) $classIdInt))
+                ->with('error', $lockMsg);
         }
 
         $fileData = null;
@@ -1107,6 +1335,11 @@ class ParticipantController extends BaseController
         if ($state['enrollmentStatus'] !== 'active' && $state['enrollmentStatus'] !== 'completed') {
             return redirect()->to(route_to('workspace.participant.class.detail', (string) $classId))
                 ->with('error', 'Pendaftaran kelas belum aktif.');
+        }
+
+        if ($state['stateCode'] === 'pre_test_required' && $quiz['type'] !== 'pre_test') {
+            return redirect()->to(route_to('workspace.participant.study', (string) $classId))
+                ->with('error', 'Pre-Test wajib dikerjakan terlebih dahulu sebelum mengakses kuis ini.');
         }
 
         // Gate checks based on quiz type

@@ -58,7 +58,7 @@
                 id="login-email"
                 name="email"
                 value="<?= esc(old('email')) ?>"
-                placeholder="nama@instansi.go.id"
+                placeholder="nama@email.com"
                 autocomplete="email"
                 required>
         </div>

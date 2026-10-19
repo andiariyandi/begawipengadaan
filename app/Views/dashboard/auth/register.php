@@ -93,7 +93,7 @@
                 id="email"
                 name="email"
                 value="<?= esc(old('email', $registrationData['email'] ?? '')) ?>"
-                placeholder="nama@instansi.go.id"
+                placeholder="nama@email.com"
                 autocomplete="email"
                 required>
         </div>
@@ -129,7 +129,7 @@
                     class="form-control h-56-px bg-neutral-50 radius-12 ps-48 pe-48"
                     id="register-password"
                     name="password"
-                    placeholder="Minimal 12 karakter aman"
+                    placeholder="Minimal 12 karakter"
                     autocomplete="new-password"
                     required>
             </div>

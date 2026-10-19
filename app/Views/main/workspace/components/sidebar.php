@@ -133,22 +133,36 @@ $globalItems = [
                 <span><?= esc($roleLabel) ?></span>
             </div>
         </div>
-        <nav aria-label="Menu Workspace">
-            <section class="workspace-sidebar__group">
-                <h2>Menu Utama (<?= esc($roleLabel) ?>)</h2>
-                <?php foreach ($menuItems as [$label, $url, $icon]): ?>
-                    <?= $renderLink($label, $url, $icon, $isCurrent($url)) ?>
-                <?php endforeach; ?>
-            </section>
 
-            <?php if ($primaryRole !== 'participant'): ?>
+        <!-- Mobile Toggle Button (Visible only on screens < lg) -->
+        <button class="btn btn-outline-primary btn-sm w-100 d-lg-none mt-3 mb-2 rounded-pill d-flex align-items-center justify-content-between px-3" 
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#wsSidebarMenuCollapse" 
+                aria-expanded="false" 
+                aria-controls="wsSidebarMenuCollapse">
+            <span class="fw-semibold"><i class="fas fa-bars me-2"></i> Menu Navigasi Workspace</span>
+            <i class="fas fa-chevron-down small"></i>
+        </button>
+
+        <div class="collapse d-lg-block" id="wsSidebarMenuCollapse">
+            <nav aria-label="Menu Workspace">
                 <section class="workspace-sidebar__group">
-                    <h2>Fitur Personal</h2>
-                    <?php foreach ($globalItems as [$label, $url, $icon]): ?>
+                    <h2>Menu Utama (<?= esc($roleLabel) ?>)</h2>
+                    <?php foreach ($menuItems as [$label, $url, $icon]): ?>
                         <?= $renderLink($label, $url, $icon, $isCurrent($url)) ?>
                     <?php endforeach; ?>
                 </section>
-            <?php endif; ?>
-        </nav>
+
+                <?php if ($primaryRole !== 'participant'): ?>
+                    <section class="workspace-sidebar__group">
+                        <h2>Fitur Personal</h2>
+                        <?php foreach ($globalItems as [$label, $url, $icon]): ?>
+                            <?= $renderLink($label, $url, $icon, $isCurrent($url)) ?>
+                        <?php endforeach; ?>
+                    </section>
+                <?php endif; ?>
+            </nav>
+        </div>
     </div>
 </aside>

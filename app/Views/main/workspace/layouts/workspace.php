@@ -50,27 +50,38 @@
         <!-- Unified BegawiPengadaan Navbar (Identical to Landing) -->
         <?= $this->include('landing/components/header') ?>
 
-        <!-- Breadcrumb Section -->
+        <!-- Breadcrumb Section (FiStudy / Berita & Event Design System) -->
         <section class="workspace-breadcrumb">
             <div class="container">
-                <h2><?= esc($breadcrumbTitle ?? $pageTitle ?? 'Workspace') ?></h2>
-                <ul class="thm-breadcrumb">
-                    <li><a href="<?= route_to('public.home') ?>">Beranda</a></li>
-                    <li><span>//</span></li>
-                    <li><a href="<?= route_to('workspace.home') ?>">Workspace</a></li>
-                    <?php if (! empty($breadcrumbTail) && is_array($breadcrumbTail)): ?>
-                        <?php foreach ($breadcrumbTail as $tail): ?>
-                            <li><span>//</span></li>
-                            <li class="<?= empty($tail['url']) ? 'current' : '' ?>">
-                                <?php if (! empty($tail['url'])): ?>
-                                    <a href="<?= esc($tail['url']) ?>"><?= esc($tail['label']) ?></a>
-                                <?php else: ?>
-                                    <?= esc($tail['label']) ?>
-                                <?php endif; ?>
-                            </li>
-                        <?php endforeach; ?>
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div>
+                        <h2><?= esc($breadcrumbTitle ?? $pageTitle ?? 'Workspace') ?></h2>
+                        <ul class="thm-breadcrumb">
+                            <li><a href="<?= route_to('public.home') ?>"><i class="fas fa-home me-1"></i> Beranda</a></li>
+                            <li><span class="sep">/</span></li>
+                            <li><a href="<?= route_to('workspace.home') ?>">Workspace</a></li>
+                            <?php if (! empty($breadcrumbTail) && is_array($breadcrumbTail)): ?>
+                                <?php foreach ($breadcrumbTail as $tail): ?>
+                                    <li><span class="sep">/</span></li>
+                                    <li class="<?= empty($tail['url']) ? 'current' : '' ?>">
+                                        <?php if (! empty($tail['url'])): ?>
+                                            <a href="<?= esc($tail['url']) ?>"><?= esc($tail['label']) ?></a>
+                                        <?php else: ?>
+                                            <?= esc($tail['label']) ?>
+                                        <?php endif; ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
+                    <?php if (! empty($userName)): ?>
+                        <div class="d-none d-md-flex align-items-center gap-2">
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-20 px-3 py-2 rounded-pill small">
+                                <i class="fas fa-user-circle me-1 text-warning"></i> <?= esc($userName) ?> &middot; <span class="text-white-50"><?= esc($roleLabel ?? 'Pengguna') ?></span>
+                            </span>
+                        </div>
                     <?php endif; ?>
-                </ul>
+                </div>
             </div>
         </section>
 
