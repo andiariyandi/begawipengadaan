@@ -49,12 +49,23 @@ class ProcurementRoleService
 
     public function listAssignments(array $filters = []): array
     {
+        $supportsUnit = $this->hasColumn('user_procurement_roles', 'organization_unit_id');
+
         $builder = db_connect()->table('user_procurement_roles upr')
-            ->select('upr.*, u.name AS user_name, u.email, pr.key AS role_key, pr.name AS role_name, ou.name AS unit_name')
             ->join('users u', 'u.id = upr.user_id', 'left')
-            ->join('procurement_roles pr', 'pr.id = upr.procurement_role_id', 'left')
-            ->join('organization_units ou', 'ou.id = upr.organization_unit_id', 'left')
-            ->orderBy('upr.created_at', 'DESC');
+            ->join('procurement_roles pr', 'pr.id = upr.procurement_role_id', 'left');
+
+        if ($supportsUnit) {
+            $builder->select('upr.*, u.name AS user_name, u.email, pr.key AS role_key, pr.name AS role_name, ou.name AS unit_name')
+                ->join('organization_units ou', 'ou.id = upr.organization_unit_id', 'left');
+        } else {
+            // Skema standar live: OPD pengguna diambil dari asn_profiles tanpa kolom upr.organization_unit_id
+            $builder->select("upr.*, u.name AS user_name, u.email, pr.key AS role_key, pr.name AS role_name, COALESCE(ou.name, ap.unit_name, '-') AS unit_name")
+                ->join('asn_profiles ap', 'ap.user_id = upr.user_id', 'left')
+                ->join('organization_units ou', 'ou.id = ap.organization_unit_id', 'left');
+        }
+
+        $builder->orderBy('upr.created_at', 'DESC');
 
         if (! empty($filters['verification_status'])) {
             $builder->where('upr.verification_status', $filters['verification_status']);
@@ -107,6 +118,16 @@ class ProcurementRoleService
                 $insert['organization_unit_id'] = $organizationUnitId;
             }
             $id = (int) $db->table('user_procurement_roles')->insert($insert, true);
+        }
+
+        if (! $supportsUnit && $organizationUnitId) {
+            $asnProfile = $db->table('asn_profiles')->where('user_id', $userId)->get()->getRowArray();
+            if ($asnProfile && empty($asnProfile['organization_unit_id'])) {
+                $db->table('asn_profiles')->where('user_id', $userId)->update([
+                    'organization_unit_id' => $organizationUnitId,
+                    'updated_at'           => $now,
+                ]);
+            }
         }
 
         $this->audit->log($actorId, 'procurement_role.assign', 'user_procurement_roles', 'user_procurement_role', $id);

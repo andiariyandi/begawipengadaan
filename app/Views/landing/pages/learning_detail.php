@@ -1273,9 +1273,9 @@ $err          = session()->getFlashdata('error');
     $quotaPct       = $capacity > 0 ? min(100, round(($enrolledCount / $capacity) * 100)) : 0;
 
     $passingGrade     = (float) ($item['passing_grade'] ?? 70);
-    $quizWeight       = (float) ($item['quiz_weight'] ?? 30);
-    $assignmentWeight = (float) ($item['assignment_weight'] ?? 30);
-    $postTestWeight   = (float) ($item['post_test_weight'] ?? 40);
+    $quizWeight       = (float) ($item['quiz_weight'] ?? 40);
+    $assignmentWeight = (float) ($item['assignment_weight'] ?? 0);
+    $postTestWeight   = (float) ($item['post_test_weight'] ?? 60);
 ?>
 
     <!-- =========================================================================

@@ -120,9 +120,13 @@ class LearningClassController extends BaseController
             $data['created_by'] = (int) $userId;
         }
 
-        $this->classModel->insert($data);
-
-        return redirect()->to(route_to('dashboard.learning.classes'))->with('success', 'Kelas berhasil disimpan.');
+        try {
+            $this->classModel->insert($data);
+            return redirect()->to(route_to('dashboard.learning.classes'))->with('success', 'Kelas berhasil disimpan.');
+        } catch (\Throwable $e) {
+            log_message('error', '[LearningClassController] insert failed: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan kelas: ' . $e->getMessage());
+        }
     }
 
     public function detail(string $id): string
@@ -317,9 +321,13 @@ class LearningClassController extends BaseController
             $data['updated_by'] = (int) $userId;
         }
 
-        $this->classModel->update($id, $data);
-
-        return redirect()->to(route_to('dashboard.learning.classes'))->with('success', 'Kelas berhasil diperbarui.');
+        try {
+            $this->classModel->update($id, $data);
+            return redirect()->to(route_to('dashboard.learning.classes'))->with('success', 'Kelas berhasil diperbarui.');
+        } catch (\Throwable $e) {
+            log_message('error', '[LearningClassController] update failed: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Gagal memperbarui kelas: ' . $e->getMessage());
+        }
     }
 
     public function delete(string $id)
@@ -378,40 +386,48 @@ class LearningClassController extends BaseController
                 return null;
             }
 
-            $targetDir = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'learning' . DIRECTORY_SEPARATOR . 'classes';
+            $targetDir = rtrim(FCPATH, '/\\') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'learning' . DIRECTORY_SEPARATOR . 'classes';
             if (! is_dir($targetDir)) {
-                @mkdir($targetDir, 0755, true);
+                @mkdir($targetDir, 0775, true);
+                @chmod($targetDir, 0775);
             }
 
             $storedName = $file->getRandomName();
-            if ($file->move($targetDir, $storedName)) {
-                $uploadedUrl = 'uploads/learning/classes/' . $storedName;
+            try {
+                if ($file->move($targetDir, $storedName)) {
+                    $uploadedUrl = 'uploads/learning/classes/' . $storedName;
+                    @chmod($targetDir . DIRECTORY_SEPARATOR . $storedName, 0664);
 
-                try {
-                    $now = date('Y-m-d H:i:s');
-                    $db = db_connect();
-                    $db->table('file_assets')->insert([
-                        'disk'             => 'local',
-                        'path'             => $uploadedUrl,
-                        'original_name'    => $file->getClientName() ?: $storedName,
-                        'stored_name'      => $storedName,
-                        'extension'        => $file->getClientExtension() ?: 'jpg',
-                        'mime_type'        => $mime,
-                        'size_bytes'       => (int) ($file->getSize() ?: 0),
-                        'visibility'       => 'public',
-                        'lifecycle_status' => 'available',
-                        'resource_type'    => 'class_cover',
-                        'resource_id'      => null,
-                        'uploaded_by'      => (int) session()->get('user_id'),
-                        'available_at'     => $now,
-                        'created_at'       => $now,
-                        'updated_at'       => $now,
-                        'deleted_at'       => null,
-                    ]);
-                    $uploadedFileId = (int) $db->insertID();
-                } catch (\Throwable $e) {
-                    log_message('error', 'Class cover asset registration failed: ' . $e->getMessage());
+                    try {
+                        $now = date('Y-m-d H:i:s');
+                        $db = db_connect();
+                        $db->table('file_assets')->insert([
+                            'disk'             => 'local',
+                            'path'             => $uploadedUrl,
+                            'original_name'    => $file->getClientName() ?: $storedName,
+                            'stored_name'      => $storedName,
+                            'extension'        => $file->getClientExtension() ?: 'jpg',
+                            'mime_type'        => $mime,
+                            'size_bytes'       => (int) ($file->getSize() ?: 0),
+                            'visibility'       => 'public',
+                            'lifecycle_status' => 'available',
+                            'resource_type'    => 'class_cover',
+                            'resource_id'      => null,
+                            'uploaded_by'      => (int) session()->get('user_id'),
+                            'available_at'     => $now,
+                            'created_at'       => $now,
+                            'updated_at'       => $now,
+                            'deleted_at'       => null,
+                        ]);
+                        $uploadedFileId = (int) $db->insertID();
+                    } catch (\Throwable $e) {
+                        log_message('error', 'Class cover asset registration failed: ' . $e->getMessage());
+                    }
                 }
+            } catch (\Throwable $e) {
+                log_message('error', '[LearningClassController] Cover move exception: ' . $e->getMessage());
+                session()->setFlashdata('error', 'Gagal memindahkan file cover kelas: ' . $e->getMessage());
+                return null;
             }
         }
 
@@ -426,6 +442,33 @@ class LearningClassController extends BaseController
             'completed', 'closed' => 'completed',
             default               => $rawStatus ?: 'draft',
         };
+
+        $rawQuiz = $this->request->getPost('quiz_weight');
+        $quizWeight = ($rawQuiz !== null && $rawQuiz !== '') ? (float) $rawQuiz : 40.0;
+
+        $rawAssignment = $this->request->getPost('assignment_weight');
+        $assignmentWeight = ($rawAssignment !== null && $rawAssignment !== '') ? (float) $rawAssignment : 0.0;
+
+        $rawPostTest = $this->request->getPost('post_test_weight');
+        $postTestWeight = ($rawPostTest !== null && $rawPostTest !== '') ? (float) $rawPostTest : 60.0;
+
+        // Validasi aturan kurikulum PBJ: Bobot Post-Test tepat 60% dan total bobot tepat 100%
+        if (abs($postTestWeight - 60.00) > 0.01) {
+            session()->setFlashdata('error', 'Sesuai regulasi standar kurikulum PBJ, Bobot Post-Test harus bernilai tepat 60%.');
+            return null;
+        }
+
+        $totalWeight = round($quizWeight + $assignmentWeight + $postTestWeight, 2);
+        if (abs($totalWeight - 100.00) > 0.01) {
+            session()->setFlashdata('error', "Total akumulasi bobot penilaian (Kuis + Tugas + Post-Test) harus berjumlah tepat 100%. Total saat ini: {$totalWeight}%. (Kuis + Tugas harus berjumlah 40%)");
+            return null;
+        }
+
+        $rawGrade = $this->request->getPost('passing_grade');
+        $passingGrade = ($rawGrade !== null && $rawGrade !== '') ? (float) $rawGrade : 70.0;
+
+        $rawCap = $this->request->getPost('capacity');
+        $capacity = ($rawCap !== null && $rawCap !== '') ? (int) $rawCap : null;
 
         return [
             'course_id'             => (int) $this->request->getPost('course_id'),
@@ -443,12 +486,12 @@ class LearningClassController extends BaseController
             'registration_close_at' => $this->request->getPost('registration_close_at') ?: null,
             'start_at'              => $this->request->getPost('start_at') ?: null,
             'end_at'                => $this->request->getPost('end_at') ?: null,
-            'capacity'              => $this->request->getPost('capacity') ?: null,
+            'capacity'              => $capacity,
             'certificate_enabled'   => $this->request->getPost('certificate_enabled') ? 1 : 0,
-            'passing_grade'         => $this->request->getPost('passing_grade') ?: 70,
-            'quiz_weight'           => $this->request->getPost('quiz_weight') ?: 40,
-            'assignment_weight'     => $this->request->getPost('assignment_weight') ?: 0,
-            'post_test_weight'      => $this->request->getPost('post_test_weight') ?: 60,
+            'passing_grade'         => $passingGrade,
+            'quiz_weight'           => $quizWeight,
+            'assignment_weight'     => $assignmentWeight,
+            'post_test_weight'      => $postTestWeight,
         ];
     }
 }

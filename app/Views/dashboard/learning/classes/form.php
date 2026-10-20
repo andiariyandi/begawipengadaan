@@ -226,17 +226,26 @@ $formAction = $isEdit ? route_to('dashboard.learning.classes.update', $class['id
 
                     <div class="col-md-3">
                         <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="quiz_weight">Bobot Kuis (%)</label>
-                        <input id="quiz_weight" type="number" step="0.01" min="0" max="100" name="quiz_weight" class="form-control radius-8" value="<?= esc(old('quiz_weight', $class['quiz_weight'] ?? 30)) ?>">
+                        <input id="quiz_weight" type="number" step="0.01" min="0" max="40" name="quiz_weight" class="form-control radius-8" value="<?= esc(old('quiz_weight', $class['quiz_weight'] ?? 40)) ?>" oninput="calculateClassWeights()">
+                        <small class="text-secondary-light text-xs">Default: 40% (Kuis + Tugas = 40%)</small>
                     </div>
 
                     <div class="col-md-3">
                         <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="assignment_weight">Bobot Tugas Praktik (%)</label>
-                        <input id="assignment_weight" type="number" step="0.01" min="0" max="100" name="assignment_weight" class="form-control radius-8" value="<?= esc(old('assignment_weight', $class['assignment_weight'] ?? 30)) ?>">
+                        <input id="assignment_weight" type="number" step="0.01" min="0" max="40" name="assignment_weight" class="form-control radius-8" value="<?= esc(old('assignment_weight', $class['assignment_weight'] ?? 0)) ?>" oninput="calculateClassWeights()">
+                        <small class="text-secondary-light text-xs">Default: 0%</small>
                     </div>
 
                     <div class="col-md-3">
                         <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="post_test_weight">Bobot Post-Test (%)</label>
-                        <input id="post_test_weight" type="number" step="0.01" min="0" max="100" name="post_test_weight" class="form-control radius-8" value="<?= esc(old('post_test_weight', $class['post_test_weight'] ?? 40)) ?>">
+                        <input id="post_test_weight" type="number" step="0.01" min="60" max="60" name="post_test_weight" class="form-control radius-8 bg-neutral-100" value="<?= esc(old('post_test_weight', $class['post_test_weight'] ?? 60)) ?>" readonly>
+                        <small class="text-primary-600 text-xs fw-semibold">Tetap 60% (Standar Kurikulum PBJ)</small>
+                    </div>
+
+                    <div class="col-12 mt-1">
+                        <div id="weights_total_info" class="text-xs text-success fw-semibold">
+                            Total Bobot: 100% (Kuis 40% + Tugas 0% + Post-Test 60%) — Sesuai Standar Kurikulum
+                        </div>
                     </div>
 
                     <div class="col-12">
@@ -285,5 +294,22 @@ function previewClassUrl(url) {
         if (badge) badge.textContent = 'URL Terpasang';
     }
 }
+function calculateClassWeights() {
+    const quiz = parseFloat(document.getElementById('quiz_weight').value) || 0;
+    const task = parseFloat(document.getElementById('assignment_weight').value) || 0;
+    const post = 60;
+    const total = Math.round((quiz + task + post) * 100) / 100;
+    const info = document.getElementById('weights_total_info');
+    if (info) {
+        if (Math.abs(total - 100) > 0.01) {
+            info.className = 'text-xs text-danger fw-semibold';
+            info.innerHTML = '<iconify-icon icon="solar:danger-triangle-bold" class="align-middle me-1"></iconify-icon> Total Bobot: ' + total + '% (Kuis ' + quiz + '% + Tugas ' + task + '% + Post-Test 60%) — Total bobot harus tepat 100%! (Kuis + Tugas harus berjumlah 40%)';
+        } else {
+            info.className = 'text-xs text-success fw-semibold';
+            info.innerHTML = '<iconify-icon icon="solar:check-circle-bold" class="align-middle me-1"></iconify-icon> Total Bobot: ' + total + '% (Kuis ' + quiz + '% + Tugas ' + task + '% + Post-Test 60%) — Sesuai Standar Kurikulum';
+        }
+    }
+}
+document.addEventListener('DOMContentLoaded', calculateClassWeights);
 </script>
 <?= $this->endSection() ?>
