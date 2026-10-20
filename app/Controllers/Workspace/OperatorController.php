@@ -1069,7 +1069,11 @@ class OperatorController extends BaseController
                 'updated_at' => $now,
             ]);
         } else {
-            $certNumber = 'CERT-PBJ-' . date('Ymd') . '-' . sprintf('%04d', $eid);
+            $seq = (new \App\Models\Certificate\CertificateSequenceModel())->nextForYear((int) date('Y'));
+            $certNumber = \App\Services\CertificateGenerator::formatCertificateNumber($seq, 'learning_enrollment', [
+                'class_id'  => (int) ($enrollment['class_id'] ?? 1),
+                'source_id' => $eid,
+            ]);
             $this->db->table('certificates')->insert([
                 'source_type'             => 'learning_enrollment',
                 'source_id'               => $eid,
