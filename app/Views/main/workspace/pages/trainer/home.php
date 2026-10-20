@@ -13,13 +13,22 @@ $firstClass         = !empty($classes) ? $classes[0] : null;
 $firstPending       = !empty($pendingSubmissions) ? $pendingSubmissions[0] : null;
 
 $fmtCover = static function ($row): string {
-    if (! empty($row['course_cover_url'])) {
-        return esc($row['course_cover_url']);
+    $candidates = [
+        $row['class_cover_url'] ?? null,
+        $row['cover_url'] ?? null,
+        $row['course_cover_url'] ?? null,
+        $row['cover_path'] ?? null,
+    ];
+    foreach ($candidates as $cand) {
+        if (! empty($cand) && is_string($cand)) {
+            $cand = trim($cand);
+            if (str_starts_with($cand, 'http://') || str_starts_with($cand, 'https://')) {
+                return $cand;
+            }
+            return base_url($cand);
+        }
     }
-    if (! empty($row['cover_path'])) {
-        return base_url(esc($row['cover_path']));
-    }
-    return base_url('assets/fistudy/images/resources/course-1-1.png');
+    return base_url('assets/main/images/resources/course-details-img-1.jpg');
 };
 
 $methodBadge = static function (?string $method): array {
@@ -360,7 +369,7 @@ $trainerRoleLabel = static function (?string $role): string {
                                 <div class="row g-3 align-items-center">
                                     <div class="col-12 col-sm-4 col-md-3">
                                         <div class="rounded-3 overflow-hidden border bg-light position-relative" style="aspect-ratio: 16/10;">
-                                            <img src="<?= $fmtCover($c) ?>" alt="<?= esc($c['name'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                                            <img src="<?= $fmtCover($c) ?>" alt="<?= esc($c['name'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/resources/course-details-img-1.jpg') ?>';">
                                             <?php $mb = $methodBadge($c['learning_method'] ?? null); ?>
                                             <span class="badge position-absolute top-0 start-0 m-1 rounded-pill small px-2 py-0 <?= $mb['class'] ?>" style="font-size: 0.65rem;">
                                                 <i class="<?= $mb['icon'] ?> me-1"></i><?= $mb['label'] ?>

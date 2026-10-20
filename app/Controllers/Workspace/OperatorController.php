@@ -253,6 +253,7 @@ class OperatorController extends BaseController
             ],
             'items'       => [
                 ['label' => 'Buka Verifikasi Sertifikat Pembelajaran', 'url' => route_to('workspace.operator.certificates'), 'btn' => 'Buka Sertifikat'],
+                ['label' => 'Buka Permohonan Perubahan Profil Pengguna', 'url' => route_to('workspace.operator.profile-change-requests'), 'btn' => 'Buka Perubahan Profil'],
             ],
         ];
 
@@ -413,6 +414,184 @@ class OperatorController extends BaseController
             return redirect()->back()->with('error', $e->getMessage());
         }
         return redirect()->back()->with('error', 'Verifikasi profil tidak ditemukan.');
+    }
+
+    /**
+     * PERMOHONAN PERUBAHAN PROFIL
+     * Verifikasi perubahan data profil mandiri pengguna melalui workspace/dashboard.
+     */
+    public function profileChangeRequests()
+    {
+        $this->assertOperatorAccess();
+
+        $pending  = $this->db->table('profile_change_requests')->whereIn('status', ['submitted', 'in_review'])->countAllResults();
+        $approved = $this->db->table('profile_change_requests')->where('status', 'approved')->countAllResults();
+        $rejected = $this->db->table('profile_change_requests')->whereIn('status', ['rejected', 'revision_required'])->countAllResults();
+
+        $list = $this->db->table('profile_change_requests pcr')
+            ->select('pcr.*, u.name AS user_name, u.email, u.profile_type')
+            ->join('users u', 'u.id = pcr.user_id', 'left')
+            ->orderBy('pcr.created_at', 'DESC')
+            ->limit(35)
+            ->get()->getResultArray();
+
+        $rows = [];
+        foreach ($list as $item) {
+            $badge = match ($item['status']) {
+                'approved'          => '<span class="badge bg-success-subtle text-success">Disetujui</span>',
+                'rejected'          => '<span class="badge bg-danger-subtle text-danger">Ditolak</span>',
+                'revision_required' => '<span class="badge bg-warning text-dark">Perlu Revisi</span>',
+                default             => '<span class="badge bg-warning-subtle text-warning">Menunggu</span>',
+            };
+
+            $detailUrl  = route_to('workspace.operator.profile-change-requests.detail', $item['id']);
+            $approveUrl = route_to('workspace.operator.profile-change-requests.approve', $item['id']);
+            $rejectUrl  = route_to('workspace.operator.profile-change-requests.reject', $item['id']);
+            $csrf       = csrf_field();
+
+            $actionBtn = '<div class="d-flex align-items-center gap-1">' .
+                '<a href="' . $detailUrl . '" class="btn btn-sm btn-outline-primary py-0 px-2" title="Tinjau Detail"><i class="fas fa-eye me-1"></i>Review</a>';
+
+            if (in_array($item['status'], ['submitted', 'in_review'], true)) {
+                $actionBtn .= '<form action="' . $approveUrl . '" method="post" class="d-inline">' . $csrf . '<button type="submit" class="btn btn-sm btn-success py-0 px-2" onclick="return confirm(\'Setujui dan terapkan perubahan profil ini?\')">Setujui</button></form>' .
+                    '<form action="' . $rejectUrl . '" method="post" class="d-inline">' . $csrf . '<input type="hidden" name="reason" value="Perubahan profil tidak memenuhi ketentuan."><button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm(\'Tolak permohonan ini?\')">Tolak</button></form>';
+            }
+
+            $actionBtn .= '</div>';
+
+            $rows[] = [
+                '#' . $item['id'],
+                '<strong>' . esc($item['user_name'] ?? '-') . '</strong><br><small class="text-muted">' . esc($item['email'] ?? '') . '</small>',
+                '<span class="badge bg-light text-dark">' . esc(strtoupper($item['profile_type'] ?? 'UMUM')) . '</span>',
+                esc(mb_strimwidth($item['reason'] ?: 'Pengajuan mandiri', 0, 40, '...')),
+                $badge,
+                esc(date('d/m/Y H:i', strtotime($item['created_at']))),
+                $actionBtn,
+            ];
+        }
+
+        $sectionContent = [
+            'eyebrow'     => 'Operasional Akses',
+            'title'       => 'Permohonan Perubahan Profil',
+            'description' => 'Verifikasi dan persetujuan perubahan data profil pengguna sistem sebelum diterapkan.',
+            'cards'       => [
+                ['title' => 'Menunggu Persetujuan', 'value' => sprintf('%02d', $pending), 'meta' => 'perlu ditelaah'],
+                ['title' => 'Telah Disetujui', 'value' => sprintf('%02d', $approved), 'meta' => 'diterapkan resmi'],
+                ['title' => 'Ditolak / Revisi', 'value' => sprintf('%02d', $rejected), 'meta' => 'ditolak atau revisi'],
+            ],
+            'tableTitle'  => 'Daftar Pengajuan Perubahan Data Profil Pengguna',
+            'table'       => [
+                'headers' => ['ID', 'Nama / Email', 'Tipe Profil', 'Alasan Pengajuan', 'Status', 'Tanggal Pengajuan', 'Aksi'],
+                'rows'    => $rows,
+            ],
+            'items'       => [
+                ['label' => 'Buka Modul Perubahan Profil di Dashboard WowDash Admin', 'url' => site_url('dashboard/akses/permohonan-perubahan-profil'), 'btn' => 'Buka Admin'],
+            ],
+        ];
+
+        return $this->renderOperasional('Permohonan Perubahan Profil', $sectionContent);
+    }
+
+    public function profileChangeRequestDetail(string $id)
+    {
+        $actorId   = $this->assertOperatorAccess();
+        $requestId = ctype_digit($id) ? (int) $id : 0;
+
+        $request = $this->db->table('profile_change_requests pcr')
+            ->select('pcr.*, u.name AS user_name, u.email, u.username, u.profile_type')
+            ->join('users u', 'u.id = pcr.user_id', 'left')
+            ->where('pcr.id', $requestId)
+            ->get()->getRowArray();
+
+        if (! $request) {
+            return redirect()->to(route_to('workspace.operator.profile-change-requests'))
+                ->with('error', 'Permohonan perubahan tidak ditemukan.');
+        }
+
+        $payload = json_decode((string) ($request['requested_payload'] ?? '{}'), true) ?: [];
+        $typeTable = match ($request['profile_type'] ?? '') {
+            'asn'      => 'asn_profiles',
+            'provider' => 'provider_profiles',
+            'academic' => 'academic_profiles',
+            'public'   => 'public_profiles',
+            default    => null,
+        };
+
+        $userRow = $this->db->table('users')->where('id', $request['user_id'])->get()->getRowArray() ?: [];
+        $profileRow = $this->db->table('user_profiles')->where('user_id', $request['user_id'])->get()->getRowArray() ?: [];
+        $specificRow = $typeTable ? ($this->db->table($typeTable)->where('user_id', $request['user_id'])->get()->getRowArray() ?: []) : [];
+
+        $current = array_merge($userRow, $profileRow, $specificRow);
+        $current['full_name'] = $userRow['name'] ?? '';
+
+        $history = $this->db->table('workflow_transitions')
+            ->where('resource_type', 'profile_change_request')
+            ->where('resource_id', $requestId)
+            ->orderBy('created_at', 'DESC')
+            ->get()->getResultArray();
+
+        return view('main/workspace/pages/operator/profile_change_request_detail', [
+            'title'          => 'Detail Perubahan Profil #' . $requestId . ' | Operator BegawiPengadaan',
+            'pageTitle'      => 'Detail Permohonan Perubahan Profil #' . $requestId,
+            'breadcrumbTail' => [
+                ['label' => 'Perubahan Profil', 'url' => route_to('workspace.operator.profile-change-requests')],
+                ['label' => '#' . $requestId],
+            ],
+            'request'        => $request,
+            'payload'        => $payload,
+            'current'        => $current,
+            'history'        => $history,
+        ]);
+    }
+
+    public function approveProfileChangeRequest(string $id)
+    {
+        $actorId   = $this->assertOperatorAccess();
+        $requestId = ctype_digit($id) ? (int) $id : 0;
+        $notes     = (string) $this->request->getPost('notes');
+
+        try {
+            (new \App\Services\Admin\ProfileChangeRequestService())->approve($requestId, $actorId, $notes);
+            return redirect()->to(route_to('workspace.operator.profile-change-requests'))
+                ->with('message', 'Permohonan perubahan profil #' . $requestId . ' berhasil disetujui dan diterapkan.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function rejectProfileChangeRequest(string $id)
+    {
+        $actorId   = $this->assertOperatorAccess();
+        $requestId = ctype_digit($id) ? (int) $id : 0;
+        $reason    = trim((string) $this->request->getPost('reason')) ?: 'Permohonan perubahan profil ditolak oleh Operator.';
+        $notes     = (string) $this->request->getPost('notes');
+
+        try {
+            (new \App\Services\Admin\ProfileChangeRequestService())->reject($requestId, $reason, $actorId, $notes);
+            return redirect()->to(route_to('workspace.operator.profile-change-requests'))
+                ->with('message', 'Permohonan perubahan profil #' . $requestId . ' ditolak.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function revisionProfileChangeRequest(string $id)
+    {
+        $actorId   = $this->assertOperatorAccess();
+        $requestId = ctype_digit($id) ? (int) $id : 0;
+        $note      = trim((string) $this->request->getPost('revision_note'));
+
+        if ($note === '') {
+            return redirect()->back()->with('error', 'Catatan revisi wajib diisi.');
+        }
+
+        try {
+            (new \App\Services\Admin\ProfileChangeRequestService())->requestRevision($requestId, $note, $actorId);
+            return redirect()->to(route_to('workspace.operator.profile-change-requests'))
+                ->with('message', 'Permintaan revisi perubahan profil #' . $requestId . ' berhasil dikirim ke pengguna.');
+        } catch (\Throwable) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     /**

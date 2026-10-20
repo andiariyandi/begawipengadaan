@@ -326,6 +326,12 @@ $filters        = $filters ?? [];
                                                 </a>
                                             <?php endif; ?>
 
+                                            <!-- Impor Soal Quiz Modal Trigger -->
+                                            <button type="button" class="btn btn-sm btn-outline-success radius-4 px-8 py-4 text-success-main"
+                                                    onclick="openDashQuizImportModal(<?= $q['id'] ?>, '<?= esc(addslashes($q['title'])) ?>')" title="Impor Butir Soal (Excel / CSV)">
+                                                <iconify-icon icon="solar:file-download-outline"></iconify-icon>
+                                            </button>
+
                                             <!-- Ubah Kuis Modal Trigger -->
                                             <button type="button" class="btn btn-sm btn-outline-warning-main radius-4 px-8 py-4"
                                                     onclick="populateEditQuiz(<?= htmlspecialchars(json_encode($q), ENT_QUOTES, 'UTF-8') ?>)" title="Ubah Pengaturan Kuis">
@@ -379,9 +385,16 @@ $filters        = $filters ?? [];
                             <?php foreach ($assignments as $a): ?>
                                 <tr>
                                     <td>
+                                        <?php $asgnGuide = parse_assignment_guide($a['instructions'] ?? ''); ?>
                                         <h6 class="text-sm fw-semibold mb-0 text-neutral-900"><?= esc($a['title']) ?></h6>
-                                        <?php if (! empty($a['instructions'])): ?>
-                                            <span class="text-xs text-secondary-light line-clamp-1"><?= esc($a['instructions']) ?></span>
+                                        <?php if (! empty($asgnGuide['instructions'])): ?>
+                                            <span class="text-xs text-secondary-light line-clamp-1"><?= esc($asgnGuide['instructions']) ?></span>
+                                        <?php endif; ?>
+                                        <?php if ($asgnGuide['has_guide']): ?>
+                                            <a href="<?= base_url($asgnGuide['guide_url']) ?>" target="_blank" class="badge bg-danger-50 text-danger-600 border border-danger-200 radius-4 text-xxs mt-1 d-inline-flex align-items-center gap-1" title="Lihat Petunjuk PDF">
+                                                <iconify-icon icon="solar:file-text-bold"></iconify-icon>
+                                                <span>Petunjuk PDF: <?= esc($asgnGuide['guide_filename'] ?? 'PDF') ?></span>
+                                            </a>
                                         <?php endif; ?>
                                     </td>
                                     <td>
@@ -766,7 +779,7 @@ $filters        = $filters ?? [];
                 <h6 class="modal-title fw-semibold text-lg" id="assignmentModalTitle">Tambah Penugasan / Studi Kasus</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="assignmentForm" action="<?= route_to('dashboard.learning.assessments.assignment.store') ?>" method="post">
+            <form id="assignmentForm" action="<?= route_to('dashboard.learning.assessments.assignment.store') ?>" method="post" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <div class="modal-body p-24">
                     <div class="row gy-16 mb-16">
@@ -823,6 +836,36 @@ $filters        = $filters ?? [];
                     <div class="mb-16">
                         <label class="form-label fw-semibold text-sm mb-6" for="asg_instructions">Instruksi & Panduan Pengerjaan</label>
                         <textarea id="asg_instructions" name="instructions" class="form-control radius-8" rows="4" placeholder="Jelaskan kriteria tugas, format berkas yang harus diunggah, dan indikator penilaian..."></textarea>
+                    </div>
+
+                    <!-- Upload File Petunjuk PDF -->
+                    <div class="mb-16 p-16 radius-8 bg-neutral-50 border">
+                        <label class="form-label fw-semibold text-sm mb-4 d-flex align-items-center gap-2" for="asg_guide_file">
+                            <iconify-icon icon="solar:document-bold" class="text-danger-main text-lg"></iconify-icon>
+                            <span>Upload Berkas Petunjuk Tugas (PDF)</span>
+                        </label>
+                        <input id="asg_guide_file" type="file" name="guide_file" accept=".pdf,application/pdf" class="form-control radius-8 bg-white">
+                        <small class="text-secondary-light text-xxs d-block mt-4">
+                            Format PDF (.pdf) maks. 10MB. File petunjuk studi kasus ini dapat diunduh dan dilihat langsung (View PDF) oleh peserta di LMS.
+                        </small>
+                        <div id="asg_existing_guide_wrapper" class="d-none mt-12 p-12 radius-8 bg-white border d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <iconify-icon icon="solar:file-check-bold" class="text-success-main text-xl"></iconify-icon>
+                                <div>
+                                    <span class="text-xs fw-semibold text-neutral-900 d-block" id="asg_existing_guide_name">petunjuk.pdf</span>
+                                    <span class="text-xxs text-secondary-light" id="asg_existing_guide_size"></span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="#" target="_blank" id="asg_existing_guide_link" class="btn btn-xs btn-outline-primary radius-4 px-8 py-3">
+                                    <iconify-icon icon="solar:eye-outline"></iconify-icon> Lihat File
+                                </a>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" name="remove_guide_file" value="1" id="asg_remove_guide">
+                                    <label class="form-check-label text-danger-main text-xs" for="asg_remove_guide">Hapus file</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-check">
@@ -905,6 +948,58 @@ $filters        = $filters ?? [];
     </div>
 </div>
 
+<!-- 4. Modal Impor Soal Quiz Dashboard (WowDash UI) -->
+<div class="modal fade" id="dashboardImportQuestionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content radius-16">
+            <div class="modal-header border-bottom py-16 px-24">
+                <div>
+                    <h6 class="modal-title fw-semibold text-lg mb-1" id="dashImportTitle">Impor Soal Ujian (Excel / CSV)</h6>
+                    <small class="text-secondary-light" id="dashImportSubtitle">Kuis Pembelajaran</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="dashImportForm" action="" method="post" enctype="multipart/form-data">
+                <?= csrf_field() ?>
+                <div class="modal-body p-24">
+                    <div class="alert alert-warning border border-warning-200 radius-8 p-12 mb-16 text-xs text-warning-800 d-flex gap-2">
+                        <iconify-icon icon="solar:danger-triangle-bold" class="text-xl flex-shrink-0 text-warning-main"></iconify-icon>
+                        <div>
+                            <strong>PENTING:</strong> Mengimpor berkas butir soal akan <u>menimpa ulang</u> seluruh soal yang sudah ada pada kuis ini (hapus lalu ganti baru dengan data pada file).
+                        </div>
+                    </div>
+
+                    <div class="mb-16 p-12 radius-8 bg-neutral-50 border d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-xs fw-semibold text-neutral-900 d-block">Format Berkas Impor:</span>
+                            <span class="text-xxs text-secondary-light">Gunakan template resmi Begawi LMS (.csv / .xlsx)</span>
+                        </div>
+                        <a href="#" id="dashDownloadTemplateBtn" class="btn btn-sm btn-outline-primary radius-6 px-12 py-6 text-xs d-inline-flex align-items-center gap-1">
+                            <iconify-icon icon="solar:download-square-outline"></iconify-icon>
+                            <span>Unduh Template</span>
+                        </a>
+                    </div>
+
+                    <div class="mb-12">
+                        <label class="form-label fw-semibold text-sm mb-6" for="dash_question_file">Pilih Berkas Soal <span class="text-danger-main">*</span></label>
+                        <input type="file" id="dash_question_file" name="question_file" accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" class="form-control radius-8" required>
+                        <small class="text-secondary-light text-xxs d-block mt-4">
+                            Mendukung file Excel (.xlsx) atau CSV (pemisah koma / titik koma) dengan kolom: <em>question, option_a, option_b, option_c, option_d, option_e, correct_answer, points, explanation</em>.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer border-top py-16 px-24">
+                    <button type="button" class="btn btn-outline-neutral-300 radius-8 px-20 py-11" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary-600 radius-8 px-20 py-11 d-inline-flex align-items-center gap-2">
+                        <iconify-icon icon="solar:upload-track-2-outline"></iconify-icon>
+                        <span>Mulai Impor & Timpa Soal</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 const modulesByClass = <?= json_encode($modulesByClass) ?>;
 
@@ -974,6 +1069,9 @@ function openCreateAssignmentModal() {
     document.getElementById('asg_status').value = 'published';
     document.getElementById('asg_instructions').value = '';
     document.getElementById('asg_req').checked = true;
+    document.getElementById('asg_guide_file').value = '';
+    document.getElementById('asg_existing_guide_wrapper').classList.add('d-none');
+    if (document.getElementById('asg_remove_guide')) document.getElementById('asg_remove_guide').checked = false;
     document.getElementById('assignmentSubmitBtn').innerText = 'Simpan Tugas';
 
     const currentClassId = document.getElementById('asg_class_id').value;
@@ -1001,11 +1099,41 @@ function populateEditAssignment(asgn) {
 
     document.getElementById('asg_max_attempts').value = asgn.max_attempts || '1';
     document.getElementById('asg_status').value = asgn.status || 'published';
-    document.getElementById('asg_instructions').value = asgn.instructions || '';
     document.getElementById('asg_req').checked = (asgn.is_required == 1);
+    document.getElementById('asg_guide_file').value = '';
+    if (document.getElementById('asg_remove_guide')) document.getElementById('asg_remove_guide').checked = false;
+
+    const rawInstr = asgn.instructions || '';
+    const guideMatch = rawInstr.match(/<!--ASSIGNMENT_GUIDE:(.*?):ASSIGNMENT_GUIDE-->/s);
+    if (guideMatch) {
+        try {
+            const meta = JSON.parse(guideMatch[1]);
+            document.getElementById('asg_existing_guide_name').innerText = meta.filename || 'petunjuk.pdf';
+            const sizeKb = meta.size ? Math.round(meta.size / 1024) + ' KB' : '';
+            document.getElementById('asg_existing_guide_size').innerText = sizeKb;
+            document.getElementById('asg_existing_guide_link').href = '<?= base_url() ?>/' + (meta.url || '');
+            document.getElementById('asg_existing_guide_wrapper').classList.remove('d-none');
+        } catch (e) {
+            document.getElementById('asg_existing_guide_wrapper').classList.add('d-none');
+        }
+        document.getElementById('asg_instructions').value = rawInstr.replace(/<!--ASSIGNMENT_GUIDE:.*?:ASSIGNMENT_GUIDE-->/s, '').trim();
+    } else {
+        document.getElementById('asg_existing_guide_wrapper').classList.add('d-none');
+        document.getElementById('asg_instructions').value = rawInstr;
+    }
+
     document.getElementById('assignmentSubmitBtn').innerText = 'Perbarui Tugas';
 
     new bootstrap.Modal(document.getElementById('assignmentModal')).show();
+}
+
+function openDashQuizImportModal(quizId, quizTitle) {
+    const form = document.getElementById('dashImportForm');
+    form.action = '<?= site_url('dashboard/pembelajaran/assessment/quiz/') ?>' + quizId + '/soal/impor';
+    document.getElementById('dashDownloadTemplateBtn').href = '<?= site_url('dashboard/pembelajaran/assessment/quiz/') ?>' + quizId + '/soal/template';
+    document.getElementById('dashImportSubtitle').innerText = quizTitle || 'Ujian';
+    document.getElementById('dash_question_file').value = '';
+    new bootstrap.Modal(document.getElementById('dashboardImportQuestionsModal')).show();
 }
 
 function openGradeModal(sub) {

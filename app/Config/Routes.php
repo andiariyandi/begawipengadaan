@@ -181,7 +181,13 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('peserta', 'TrainerController::allParticipants', ['as' => 'workspace.trainer.all-participants']);
         $routes->get('progres', 'TrainerController::allProgress', ['as' => 'workspace.trainer.all-progress']);
         $routes->get('kelas/(:segment)', 'TrainerController::classDetail/$1', ['as' => 'workspace.trainer.class.detail']);
+        $routes->get('kelas/(:segment)/edit', 'TrainerController::editClass/$1', ['as' => 'workspace.trainer.class.edit']);
+        $routes->post('kelas/(:segment)/edit', 'TrainerController::updateClass/$1', ['as' => 'workspace.trainer.class.update']);
         $routes->get('kelas/(:segment)/peserta', 'TrainerController::participants/$1', ['as' => 'workspace.trainer.participants']);
+        $routes->post('kelas/(:segment)/peserta/(:segment)/approve', 'TrainerController::approveParticipant/$1/$2', ['as' => 'workspace.trainer.participant.approve']);
+        $routes->post('kelas/(:segment)/peserta/(:segment)/reject', 'TrainerController::rejectParticipant/$1/$2', ['as' => 'workspace.trainer.participant.reject']);
+        $routes->post('kelas/(:segment)/peserta/(:segment)/kick', 'TrainerController::kickParticipant/$1/$2', ['as' => 'workspace.trainer.participant.kick']);
+        $routes->post('kelas/(:segment)/peserta/(:segment)/reactivate', 'TrainerController::reactivateParticipant/$1/$2', ['as' => 'workspace.trainer.participant.reactivate']);
         $routes->get('kelas/(:segment)/peserta/(:segment)', 'TrainerController::participantDetail/$1/$2', ['as' => 'workspace.trainer.participant.detail']);
         $routes->post('kelas/(:segment)/peserta/(:segment)/feedback', 'TrainerController::submitParticipantFeedback/$1/$2', ['as' => 'workspace.trainer.participant.feedback']);
         $routes->get('kelas/(:segment)/materi', 'TrainerController::materials/$1', ['as' => 'workspace.trainer.materials']);
@@ -205,6 +211,8 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->post('kelas/(:segment)/quiz/(:segment)/soal', 'TrainerController::editQuiz/$1/$2');
         $routes->get('kelas/(:segment)/quiz/(:segment)/soal/tambah', 'TrainerController::addQuestion/$1/$2', ['as' => 'workspace.trainer.question.create']);
         $routes->post('kelas/(:segment)/quiz/(:segment)/soal/tambah', 'TrainerController::addQuestion/$1/$2');
+        $routes->get('kelas/(:segment)/quiz/(:segment)/soal/template', 'TrainerController::downloadQuestionTemplate/$1/$2', ['as' => 'workspace.trainer.quiz.question.template']);
+        $routes->post('kelas/(:segment)/quiz/(:segment)/soal/import', 'TrainerController::importQuestions/$1/$2', ['as' => 'workspace.trainer.quiz.question.import']);
         $routes->post('kelas/(:segment)/quiz/(:segment)/soal/(:segment)/hapus', 'TrainerController::deleteQuestion/$1/$2/$3', ['as' => 'workspace.trainer.question.delete']);
         $routes->get('kelas/(:segment)/quiz/(:segment)/hasil', 'TrainerController::quizAttempts/$1/$2', ['as' => 'workspace.trainer.quiz.attempts']);
         $routes->get('kelas/(:segment)/tugas', 'TrainerController::assignments/$1', ['as' => 'workspace.trainer.assignments']);
@@ -228,6 +236,11 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('verifikasi-profil', 'OperatorController::profileVerifications', ['as' => 'workspace.operator.profile-verifications']);
         $routes->post('verifikasi-profil/(:segment)/setujui', 'OperatorController::approveVerification/$1', ['as' => 'workspace.operator.profile-verifications.approve']);
         $routes->post('verifikasi-profil/(:segment)/tolak', 'OperatorController::rejectVerification/$1', ['as' => 'workspace.operator.profile-verifications.reject']);
+        $routes->get('perubahan-profil', 'OperatorController::profileChangeRequests', ['as' => 'workspace.operator.profile-change-requests']);
+        $routes->get('perubahan-profil/(:segment)', 'OperatorController::profileChangeRequestDetail/$1', ['as' => 'workspace.operator.profile-change-requests.detail']);
+        $routes->post('perubahan-profil/(:segment)/setujui', 'OperatorController::approveProfileChangeRequest/$1', ['as' => 'workspace.operator.profile-change-requests.approve']);
+        $routes->post('perubahan-profil/(:segment)/tolak', 'OperatorController::rejectProfileChangeRequest/$1', ['as' => 'workspace.operator.profile-change-requests.reject']);
+        $routes->post('perubahan-profil/(:segment)/revisi', 'OperatorController::revisionProfileChangeRequest/$1', ['as' => 'workspace.operator.profile-change-requests.revision']);
         $routes->get('penugasan-trainer', 'OperatorController::classTrainers', ['as' => 'workspace.operator.class-trainers']);
         $routes->post('penugasan-trainer/assign', 'OperatorController::assignTrainer', ['as' => 'workspace.operator.class-trainers.assign']);
         $routes->post('penugasan-trainer/revoke', 'OperatorController::revokeTrainer', ['as' => 'workspace.operator.class-trainers.revoke']);
@@ -453,6 +466,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('kurikulum/quiz/(:segment)/hapus', 'CurriculumController::deleteQuiz/$1', ['as' => 'dashboard.learning.curriculum.quiz.delete']);
 
         // Soal & Pilihan (Question & Options)
+        $routes->get('kurikulum/quiz/(:segment)/soal/template', 'CurriculumController::downloadQuestionTemplate/$1', ['as' => 'dashboard.learning.curriculum.question.template']);
+        $routes->post('kurikulum/quiz/(:segment)/soal/import', 'CurriculumController::importQuestions/$1', ['as' => 'dashboard.learning.curriculum.question.import']);
         $routes->post('kurikulum/soal', 'CurriculumController::storeQuestion', ['as' => 'dashboard.learning.curriculum.question.store']);
         $routes->post('kurikulum/soal/(:segment)/ubah', 'CurriculumController::updateQuestion/$1', ['as' => 'dashboard.learning.curriculum.question.update']);
         $routes->post('kurikulum/soal/(:segment)/hapus', 'CurriculumController::deleteQuestion/$1', ['as' => 'dashboard.learning.curriculum.question.delete']);
@@ -478,6 +493,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
 
         // 8. Assessment
         $routes->get('assessment', 'AssessmentManagementController::index', ['as' => 'dashboard.learning.assessments']);
+        $routes->get('assessment/quiz/(:segment)/soal/template', 'AssessmentManagementController::downloadQuestionTemplate/$1', ['as' => 'dashboard.learning.assessments.quiz.question.template']);
+        $routes->post('assessment/quiz/(:segment)/soal/import', 'AssessmentManagementController::importQuestions/$1', ['as' => 'dashboard.learning.assessments.quiz.question.import']);
         $routes->post('assessment/quiz', 'AssessmentManagementController::storeQuiz', ['as' => 'dashboard.learning.assessments.quiz.store']);
         $routes->post('assessment/quiz/(:segment)/ubah', 'AssessmentManagementController::updateQuiz/$1', ['as' => 'dashboard.learning.assessments.quiz.update']);
         $routes->post('assessment/quiz/(:segment)/toggle', 'AssessmentManagementController::toggleQuizStatus/$1', ['as' => 'dashboard.learning.assessments.quiz.toggle']);

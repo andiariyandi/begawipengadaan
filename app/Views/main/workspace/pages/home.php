@@ -71,13 +71,22 @@
 <?= $this->section('content') ?>
 <?php
 $fmtCover = static function ($row): string {
-    if (! empty($row['course_cover_url'])) {
-        return esc($row['course_cover_url']);
+    $candidates = [
+        $row['class_cover_url'] ?? null,
+        $row['cover_url'] ?? null,
+        $row['course_cover_url'] ?? null,
+        $row['cover_path'] ?? null,
+    ];
+    foreach ($candidates as $cand) {
+        if (! empty($cand) && is_string($cand)) {
+            $cand = trim($cand);
+            if (str_starts_with($cand, 'http://') || str_starts_with($cand, 'https://')) {
+                return $cand;
+            }
+            return base_url($cand);
+        }
     }
-    if (! empty($row['cover_path'])) {
-        return base_url(esc($row['cover_path']));
-    }
-    return base_url('assets/fistudy/images/resources/course-1-1.png');
+    return base_url('assets/main/images/resources/course-details-img-1.jpg');
 };
 
 $methodBadge = static function (?string $method): array {
@@ -216,7 +225,7 @@ $methodBadge = static function (?string $method): array {
                         <div class="ws-class-card h-100 d-flex flex-column justify-content-between overflow-hidden">
                             <div>
                                 <div class="position-relative" style="height: 125px; overflow: hidden; background: #082f5c;">
-                                    <img src="<?= $fmtCover($cl) ?>" alt="<?= esc($cl['course_title'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover opacity-90" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                                    <img src="<?= $fmtCover($cl) ?>" alt="<?= esc($cl['course_title'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover opacity-90" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/resources/course-details-img-1.jpg') ?>';">
                                     <div class="position-absolute top-0 start-0 m-2">
                                         <span class="badge bg-dark bg-opacity-75 text-white fw-bold small rounded-pill px-2 py-1">
                                             <?= esc($cl['class_code'] ?? 'PBJ') ?>

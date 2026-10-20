@@ -44,19 +44,46 @@ class ProfileChangeRequestService
 
     public function submit(int $userId, array $payload, ?string $reason = null): int
     {
-        return (int) $this->requests->insert([
+        $now = date('Y-m-d H:i:s');
+        $id = (int) $this->requests->insert([
             'user_id'           => $userId,
             'status'            => 'submitted',
             'requested_payload' => json_encode($payload, JSON_THROW_ON_ERROR),
             'reason'            => $reason,
-            'created_at'        => date('Y-m-d H:i:s'),
-            'updated_at'        => date('Y-m-d H:i:s'),
+            'created_at'        => $now,
+            'updated_at'        => $now,
         ], true);
+
+        try {
+            $this->userService->recordTransition(
+                'profile_change_request',
+                $id,
+                'draft',
+                'submitted',
+                'profile_change.submit',
+                $userId,
+                $reason,
+                null,
+                ['payload_keys' => array_keys($payload)]
+            );
+        } catch (\Throwable) {
+        }
+
+        try {
+            $this->audit->log($userId, 'profile_change.submit', 'profile_change_requests', 'profile_change_request', $id, [
+                'user_id' => $userId,
+                'keys'    => array_keys($payload),
+            ]);
+        } catch (\Throwable) {
+        }
+
+        return $id;
     }
 
     /**
      * Approve the change request: apply the JSON payload atomically to the
-     * appropriate profile-type table, then mark request approved.
+     * appropriate tables (users, user_profiles, and profile-type specific table),
+     * then mark request approved.
      */
     public function approve(int $requestId, ?int $actorId = null, ?string $notes = null): bool
     {
@@ -74,23 +101,87 @@ class ProfileChangeRequestService
         $db = db_connect();
         $db->transStart();
 
-        $table = $this->resolveTableForPayload($payload);
-
         try {
-            $existing = $db->table($table)->where('user_id', $userId)->get()->getRowArray();
             $now = date('Y-m-d H:i:s');
+            $userRow = $db->table('users')->where('id', $userId)->get()->getRowArray();
+            $profileType = $userRow['profile_type'] ?? 'public';
 
-            if ($existing) {
-                // Merge with existing row, then add timestamp.
-                $merged = array_merge($existing, $payload);
-                $merged['updated_at'] = $now;
-                unset($merged['id'], $merged['created_at']);
-                $db->table($table)->where('user_id', $userId)->update($merged);
-            } else {
-                $payload['user_id'] = $userId;
-                $payload['created_at'] = $now;
-                $payload['updated_at'] = $now;
-                $db->table($table)->insert($payload);
+            // 1. Update users table if relevant fields present
+            $userUpdate = [];
+            if (! empty($payload['name'])) {
+                $userUpdate['name'] = trim((string) $payload['name']);
+            } elseif (! empty($payload['full_name'])) {
+                $userUpdate['name'] = trim((string) $payload['full_name']);
+            }
+            if (! empty($payload['email'])) {
+                $userUpdate['email'] = trim((string) $payload['email']);
+            }
+            if (isset($payload['phone'])) {
+                $userUpdate['phone'] = trim((string) $payload['phone']);
+            }
+            if (! empty($payload['username'])) {
+                $userUpdate['username'] = trim((string) $payload['username']);
+            }
+            if (! empty($userUpdate)) {
+                $userUpdate['updated_at'] = $now;
+                $db->table('users')->where('id', $userId)->update($userUpdate);
+            }
+
+            // 2. Update user_profiles table if relevant fields present
+            $profileUpdate = [];
+            $userProfileKeys = ['address_line', 'province_code', 'regency_code', 'district_code', 'village_code'];
+            foreach ($userProfileKeys as $k) {
+                if (array_key_exists($k, $payload)) {
+                    $profileUpdate[$k] = $payload[$k];
+                }
+            }
+            if (! empty($profileUpdate)) {
+                $profileUpdate['updated_at'] = $now;
+                $existingUp = $db->table('user_profiles')->where('user_id', $userId)->get()->getRowArray();
+                if ($existingUp) {
+                    $db->table('user_profiles')->where('user_id', $userId)->update($profileUpdate);
+                } else {
+                    $profileUpdate['user_id']    = $userId;
+                    $profileUpdate['created_at'] = $now;
+                    $db->table('user_profiles')->insert($profileUpdate);
+                }
+            }
+
+            // 3. Update specific profile table based on profile_type
+            $typeTable = match ($profileType) {
+                'asn'      => 'asn_profiles',
+                'provider' => 'provider_profiles',
+                'academic' => 'academic_profiles',
+                'public'   => 'public_profiles',
+                default    => null,
+            };
+
+            if ($typeTable) {
+                $specificKeys = [
+                    'asn_profiles'      => ['employee_identifier', 'origin_type', 'unit_name', 'position_name', 'rank_grade', 'official_email', 'employment_status', 'institution_name'],
+                    'provider_profiles' => ['business_name', 'business_form', 'business_field', 'business_identifier', 'registrant_position', 'responsible_person', 'business_email', 'business_address'],
+                    'academic_profiles' => ['institution_name', 'institution_type', 'role_name', 'expertise', 'institution_email', 'professional_identifier', 'portfolio_url'],
+                    'public_profiles'   => ['national_identifier', 'occupation_status', 'organization_name', 'interest_areas', 'usage_purpose'],
+                ][$typeTable] ?? [];
+
+                $specificUpdate = [];
+                foreach ($specificKeys as $sk) {
+                    if (array_key_exists($sk, $payload)) {
+                        $specificUpdate[$sk] = $payload[$sk];
+                    }
+                }
+
+                if (! empty($specificUpdate)) {
+                    $specificUpdate['updated_at'] = $now;
+                    $existingSpec = $db->table($typeTable)->where('user_id', $userId)->get()->getRowArray();
+                    if ($existingSpec) {
+                        $db->table($typeTable)->where('user_id', $userId)->update($specificUpdate);
+                    } else {
+                        $specificUpdate['user_id']    = $userId;
+                        $specificUpdate['created_at'] = $now;
+                        $db->table($typeTable)->insert($specificUpdate);
+                    }
+                }
             }
 
             $this->requests->update($requestId, [
@@ -111,19 +202,31 @@ class ProfileChangeRequestService
                 $actorId,
                 null,
                 $notes,
-                ['applied_table' => $table],
+                ['applied_tables' => array_filter(['users' => !empty($userUpdate), 'user_profiles' => !empty($profileUpdate), 'specific' => $typeTable])],
             );
 
             $db->transComplete();
         } catch (\Throwable $e) {
             $db->transRollback();
-            throw new \RuntimeException('Gagal apply perubahan: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('Gagal menerapkan perubahan profil: ' . $e->getMessage(), 0, $e);
         }
 
         $this->audit->log($actorId, 'profile_change.approve', 'profile_change_requests', 'profile_change_request', $requestId, [
             'user_id' => $userId,
-            'table'   => $table,
+            'applied' => array_keys($payload),
         ]);
+
+        // Send notification to user
+        try {
+            (new \App\Services\NotificationService())->send(
+                $userId,
+                'profile_change_approved',
+                'Permohonan Perubahan Profil Disetujui',
+                'Permohonan perubahan data profil Anda telah disetujui dan diterapkan secara resmi ke akun Anda.' . ($notes ? " Catatan verifikator: {$notes}" : ''),
+                ['request_id' => $requestId, 'url' => route_to('workspace.profile.index')]
+            );
+        } catch (\Throwable) {
+        }
 
         return true;
     }
@@ -161,6 +264,19 @@ class ProfileChangeRequestService
         );
 
         $this->audit->log($actorId, 'profile_change.reject', 'profile_change_requests', 'profile_change_request', $requestId);
+
+        // Send notification to user
+        try {
+            (new \App\Services\NotificationService())->send(
+                (int) $row['user_id'],
+                'profile_change_rejected',
+                'Permohonan Perubahan Profil Ditolak',
+                'Permohonan perubahan data profil Anda ditolak. Alasan: ' . $reason . ($notes ? " (Catatan: {$notes})" : ''),
+                ['request_id' => $requestId, 'url' => route_to('workspace.profile.index')]
+            );
+        } catch (\Throwable) {
+        }
+
         return true;
     }
 
@@ -195,6 +311,19 @@ class ProfileChangeRequestService
         );
 
         $this->audit->log($actorId, 'profile_change.revision', 'profile_change_requests', 'profile_change_request', $requestId);
+
+        // Send notification to user
+        try {
+            (new \App\Services\NotificationService())->send(
+                (int) $row['user_id'],
+                'profile_change_revision',
+                'Permintaan Revisi Perubahan Profil',
+                'Permohonan perubahan data profil Anda memerlukan perbaikan. Catatan revisi: ' . $note,
+                ['request_id' => $requestId, 'url' => route_to('workspace.profile.index')]
+            );
+        } catch (\Throwable) {
+        }
+
         return true;
     }
 

@@ -21,7 +21,13 @@ $className = $className ?? 'Kelas';
                     Ujian: <strong><?= esc($quiz['title'] ?? '-') ?></strong> &middot; Kelas: <strong><?= esc($className) ?></strong>
                 </p>
             </div>
-            <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button type="button" class="btn btn-outline-success rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#importQuestionModal">
+                    <i class="fas fa-file-excel me-1"></i> Impor Soal (Excel/CSV)
+                </button>
+                <a href="<?= route_to('workspace.trainer.quiz.question.template', (string) $classId, (string) $quiz['id']) ?>" class="btn btn-outline-primary rounded-pill px-3">
+                    <i class="fas fa-download me-1"></i> Unduh Template
+                </a>
                 <a href="<?= route_to('workspace.trainer.quiz.edit', (string) $classId, (string) $quiz['id']) ?>" class="btn btn-outline-secondary rounded-pill px-3">
                     <i class="fas fa-arrow-left me-1"></i> Kembali ke Daftar Soal
                 </a>
@@ -115,5 +121,60 @@ $className = $className ?? 'Kelas';
                 </div>
             </div>
         </form>
+    </div>
+
+    <!-- Modal Impor Soal Excel/CSV -->
+    <div class="modal fade" id="importQuestionModal" tabindex="-1" aria-labelledby="importQuestionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom py-3">
+                    <h5 class="modal-title fw-bold text-navy" id="importQuestionModalLabel">
+                        <i class="fas fa-file-excel text-success me-2"></i>Impor Soal Pilihan Ganda
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="<?= route_to('workspace.trainer.quiz.question.import', (string) $classId, (string) $quiz['id']) ?>" method="POST" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
+                    <div class="modal-body p-4">
+                        <!-- Aturan Menimpa Ulang -->
+                        <div class="alert alert-warning border-warning-subtle bg-warning-subtle d-flex align-items-start gap-2 p-3 rounded-3 mb-3">
+                            <i class="fas fa-exclamation-triangle text-warning fs-5 mt-1 flex-shrink-0"></i>
+                            <div class="small">
+                                <strong class="text-dark d-block mb-1">Perhatian (Logika Impor):</strong>
+                                Mengunggah berkas soal akan <strong>MENIMPA ULANG (hapus ganti baru)</strong> seluruh butir soal yang ada saat ini pada ujian ini. Jika Anda ingin menambah soal meneruskan nomor selanjutnya, silakan gunakan form input manual di halaman ini.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-navy small mb-1">Unduh Berkas Template</label>
+                            <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-file-csv fa-2x text-primary"></i>
+                                    <div>
+                                        <strong class="d-block text-navy small">Template Format Soal</strong>
+                                        <small class="text-muted">Format standar CSV/Excel dengan kolom Pertanyaan, Pilihan A-E, dan Kunci</small>
+                                    </div>
+                                </div>
+                                <a href="<?= route_to('workspace.trainer.quiz.question.template', (string) $classId, (string) $quiz['id']) ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="fas fa-download me-1"></i> Unduh
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold text-navy small mb-1">Pilih Berkas Soal (.csv atau .xlsx) <span class="text-danger">*</span></label>
+                            <input type="file" name="question_file" accept=".csv,.xlsx,.txt" class="form-control rounded-3 py-2" required>
+                            <small class="text-muted d-block mt-1" style="font-size: 0.74rem;">Mendukung berkas Microsoft Excel (.xlsx) dan CSV dengan pemisah koma atau titik koma (;).</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top py-2 d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 fw-semibold" onclick="return confirm('Apakah Anda yakin ingin mengimpor dan MENIMPA seluruh butir soal lama pada ujian ini?');">
+                            <i class="fas fa-upload me-1"></i> Unggah & Timpa Soal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>

@@ -214,7 +214,7 @@ class EnrollmentController extends BaseController
             return redirect()->back()->with('error', $e->getMessage());
         }
 
-        return redirect()->to(route_to('dashboard.learning.enrollments.detail', $id))
+        return redirect()->back()
             ->with('success', 'Enrollment berhasil diaktifkan.');
     }
 
@@ -245,7 +245,7 @@ class EnrollmentController extends BaseController
             'cancelled_at' => date('Y-m-d H:i:s'),
         ]);
 
-        return redirect()->to(site_url('dashboard/pembelajaran/enrollment'))
+        return redirect()->back()
             ->with('success', 'Pendaftaran peserta berhasil dibatalkan / dihapus.');
     }
 
@@ -267,7 +267,7 @@ class EnrollmentController extends BaseController
 
         $this->enrollmentModel->update($id, $data);
 
-        return redirect()->to(route_to('dashboard.learning.enrollments.detail', $id))
+        return redirect()->back()
             ->with('success', 'Status enrollment berhasil diperbarui.');
     }
 

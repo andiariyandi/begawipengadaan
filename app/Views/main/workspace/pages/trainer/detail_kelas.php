@@ -14,13 +14,22 @@ $assignments = $assignments ?? [];
 $stats       = $stats ?? [];
 
 $fmtCover = static function ($row): string {
-    if (! empty($row['course_cover_url'])) {
-        return esc($row['course_cover_url']);
+    $candidates = [
+        $row['class_cover_url'] ?? null,
+        $row['cover_url'] ?? null,
+        $row['course_cover_url'] ?? null,
+        $row['cover_path'] ?? null,
+    ];
+    foreach ($candidates as $cand) {
+        if (! empty($cand) && is_string($cand)) {
+            $cand = trim($cand);
+            if (str_starts_with($cand, 'http://') || str_starts_with($cand, 'https://')) {
+                return $cand;
+            }
+            return base_url($cand);
+        }
     }
-    if (! empty($row['cover_path'])) {
-        return base_url(esc($row['cover_path']));
-    }
-    return base_url('assets/fistudy/images/resources/course-1-1.png');
+    return base_url('assets/main/images/resources/course-details-img-1.jpg');
 };
 
 $methodBadge = static function (?string $method): array {
@@ -128,6 +137,9 @@ $levelLabel = static function (?string $lvl): string {
 
                 <!-- Action Button -->
                 <div class="d-flex flex-row flex-lg-column gap-2 text-nowrap">
+                    <a href="<?= route_to('workspace.trainer.class.edit', (string) $classId) ?>" class="btn btn-warning rounded-pill px-3 fw-semibold text-dark">
+                        <i class="fas fa-edit me-1"></i> Ubah Detail Kelas
+                    </a>
                     <a href="<?= route_to('workspace.trainer.classes') ?>" class="btn btn-outline-secondary rounded-pill px-3">
                         <i class="fas fa-arrow-left me-1"></i> Semua Kelas
                     </a>
@@ -184,7 +196,7 @@ $levelLabel = static function (?string $lvl): string {
                 <!-- Cover Banner & Informasi Kelas -->
                 <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
                     <div class="position-relative" style="height: 200px;">
-                        <img src="<?= $fmtCover($c) ?>" alt="<?= esc($c['name'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                        <img src="<?= $fmtCover($c) ?>" alt="<?= esc($c['name'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/resources/course-details-img-1.jpg') ?>';">
                         <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(180deg, rgba(8, 47, 92, 0.3) 0%, rgba(8, 47, 92, 0.85) 100%);"></div>
                         <div class="position-absolute bottom-0 start-0 p-4 text-white">
                             <span class="badge bg-warning text-dark rounded-pill px-3 py-1 small fw-bold mb-2">
@@ -561,18 +573,41 @@ $levelLabel = static function (?string $lvl): string {
 
     <!-- TAB 3: PESERTA -->
     <?php elseif ($activeTab === 'peserta'): ?>
+        <?php
+        $pendingCount   = count(array_filter($participants, static fn ($p): bool => ($p['enrollment_status'] ?? '') === 'pending'));
+        $activeCount    = count(array_filter($participants, static fn ($p): bool => ($p['enrollment_status'] ?? '') === 'active'));
+        $completedCount = count(array_filter($participants, static fn ($p): bool => ($p['enrollment_status'] ?? '') === 'completed'));
+        $otherCount     = count(array_filter($participants, static fn ($p): bool => in_array(($p['enrollment_status'] ?? ''), ['withdrawn', 'cancelled'], true)));
+        ?>
         <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div>
-                    <h2 class="h4 fw-bold text-navy mb-1">Daftar Peserta Kelas</h2>
-                    <p class="text-muted small mb-0">Pantau kehadiran, progres materi, dan evaluasi hasil belajar peserta.</p>
+                    <h2 class="h4 fw-bold text-navy mb-1">Daftar Peserta & Manajemen Akses Kelas</h2>
+                    <p class="text-muted small mb-0">Kelola persetujuan pendaftar, pantau progres belajar, serta status kelulusan peserta.</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-light text-navy border px-3 py-2 rounded-pill fw-semibold">
                         Total: <?= count($participants) ?> Peserta
                     </span>
+                    <?php if ($pendingCount > 0): ?>
+                        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-semibold animate__animated animate__pulse animate__infinite">
+                            <?= $pendingCount ?> Menunggu Persetujuan
+                        </span>
+                    <?php endif; ?>
                 </div>
             </div>
+
+            <?php if ($pendingCount > 0): ?>
+                <div class="alert alert-warning border-warning-subtle bg-warning-subtle d-flex align-items-center justify-content-between p-3 rounded-3 mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-user-clock text-warning fs-4"></i>
+                        <div>
+                            <strong class="text-dark d-block">Terdapat <?= $pendingCount ?> Pendaftaran Peserta Menunggu Persetujuan</strong>
+                            <span class="text-muted small">Klik tombol <strong>Setujui</strong> pada kolom aksi untuk mengaktifkan akses peserta ke materi kelas, atau <strong>Tolak</strong> bila tidak memenuhi persyaratan.</span>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <?php if (empty($participants)): ?>
                 <div class="text-center py-5 border rounded-4 bg-light">
@@ -588,9 +623,9 @@ $levelLabel = static function (?string $lvl): string {
                                 <th>Peserta</th>
                                 <th>Status Pendaftaran</th>
                                 <th>Tanggal Bergabung</th>
-                                <th style="width: 220px;">Progres Belajar</th>
+                                <th style="width: 200px;">Progres Belajar</th>
                                 <th>Nilai Akhir</th>
-                                <th class="text-end">Aksi</th>
+                                <th class="text-end" style="min-width: 220px;">Aksi Manajemen</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -608,9 +643,31 @@ $levelLabel = static function (?string $lvl): string {
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge <?= $p['enrollment_status'] === 'active' ? 'bg-success-subtle text-success' : ($p['enrollment_status'] === 'completed' ? 'bg-primary-subtle text-primary' : 'bg-secondary-subtle text-secondary') ?> rounded-pill px-3 py-1 small">
-                                            <?= esc(ucfirst($p['enrollment_status'])) ?>
-                                        </span>
+                                        <?php if ($p['enrollment_status'] === 'pending'): ?>
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-1 small fw-semibold">
+                                                <i class="fas fa-clock me-1"></i> Menunggu Persetujuan
+                                            </span>
+                                        <?php elseif ($p['enrollment_status'] === 'active'): ?>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 small fw-semibold">
+                                                <i class="fas fa-check-circle me-1"></i> Aktif Belajar
+                                            </span>
+                                        <?php elseif ($p['enrollment_status'] === 'completed'): ?>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 small fw-semibold">
+                                                <i class="fas fa-graduation-cap me-1"></i> Selesai
+                                            </span>
+                                        <?php elseif ($p['enrollment_status'] === 'withdrawn'): ?>
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 small fw-semibold">
+                                                <i class="fas fa-user-slash me-1"></i> Dikeluarkan
+                                            </span>
+                                        <?php elseif ($p['enrollment_status'] === 'cancelled'): ?>
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-1 small fw-semibold">
+                                                <i class="fas fa-times-circle me-1"></i> Ditolak
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 small">
+                                                <?= esc(ucfirst($p['enrollment_status'])) ?>
+                                            </span>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="small text-muted">
                                         <?= esc(! empty($p['enrolled_at']) ? date('d M Y', strtotime($p['enrolled_at'])) : '-') ?>
@@ -632,9 +689,40 @@ $levelLabel = static function (?string $lvl): string {
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-end">
-                                        <a href="<?= route_to('workspace.trainer.participant.detail', (string) $classId, (string) $p['enrollment_id']) ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                            <i class="fas fa-eye me-1"></i> Rincian & Catatan
-                                        </a>
+                                        <div class="d-inline-flex align-items-center justify-content-end gap-1 flex-wrap">
+                                            <?php if ($p['enrollment_status'] === 'pending'): ?>
+                                                <form action="<?= route_to('workspace.trainer.participant.approve', (string) $classId, (string) $p['enrollment_id']) ?>" method="POST" class="d-inline" onsubmit="return confirm('Setujui pendaftaran peserta <?= esc($p['name']) ?> ke dalam kelas?');">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-2 py-1" style="font-size: 0.78rem;" title="Setujui & Aktifkan Pendaftaran">
+                                                        <i class="fas fa-check me-1"></i> Setujui
+                                                    </button>
+                                                </form>
+                                                <form action="<?= route_to('workspace.trainer.participant.reject', (string) $classId, (string) $p['enrollment_id']) ?>" method="POST" class="d-inline" onsubmit="return confirm('Tolak pendaftaran peserta <?= esc($p['name']) ?>?');">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" style="font-size: 0.78rem;" title="Tolak Pendaftaran">
+                                                        <i class="fas fa-times me-1"></i> Tolak
+                                                    </button>
+                                                </form>
+                                            <?php elseif ($p['enrollment_status'] === 'active'): ?>
+                                                <form action="<?= route_to('workspace.trainer.participant.kick', (string) $classId, (string) $p['enrollment_id']) ?>" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin mengeluarkan peserta <?= esc($p['name']) ?> dari kelas ini?');">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" style="font-size: 0.78rem;" title="Keluarkan Peserta dari Kelas">
+                                                        <i class="fas fa-user-slash me-1"></i> Keluarkan
+                                                    </button>
+                                                </form>
+                                            <?php elseif (in_array($p['enrollment_status'], ['withdrawn', 'cancelled'], true)): ?>
+                                                <form action="<?= route_to('workspace.trainer.participant.reactivate', (string) $classId, (string) $p['enrollment_id']) ?>" method="POST" class="d-inline" onsubmit="return confirm('Aktifkan kembali peserta <?= esc($p['name']) ?> ke dalam kelas?');">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1" style="font-size: 0.78rem;" title="Aktifkan Kembali Peserta">
+                                                        <i class="fas fa-user-check me-1"></i> Aktifkan
+                                                    </button>
+                                                </form>
+                                            <?php endif; ?>
+
+                                            <a href="<?= route_to('workspace.trainer.participant.detail', (string) $classId, (string) $p['enrollment_id']) ?>" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" style="font-size: 0.78rem;" title="Rincian & Catatan Evaluasi">
+                                                <i class="fas fa-eye me-1"></i> Rincian
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -774,6 +862,11 @@ $levelLabel = static function (?string $lvl): string {
                                 <tr>
                                     <td>
                                         <strong class="text-navy small d-block"><?= esc($asg['title']) ?></strong>
+                                        <?php if (! empty($asg['guide']['guide_url'])): ?>
+                                            <a href="<?= base_url($asg['guide']['guide_url']) ?>" target="_blank" class="badge bg-danger-subtle text-danger border border-danger-subtle text-decoration-none mt-1 d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="Buka File Petunjuk PDF">
+                                                <i class="fas fa-file-pdf"></i> Petunjuk: <?= esc($asg['guide']['guide_filename'] ?? 'PDF') ?> (Lihat)
+                                            </a>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="small text-muted">
                                         <?= esc($asg['lesson_title'] ?? 'Semua Modul') ?>
