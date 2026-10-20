@@ -3,14 +3,17 @@
  * Trainer - Form Tugas / Assignment
  * FiStudy UI DNA
  */
-$mode       = $mode ?? 'create';
-$classId    = $classId ?? 0;
-$assignment = $assignment ?? null;
-$lessons    = $lessons ?? [];
-$className  = $className ?? 'Kelas';
-$targetUrl  = ($mode === 'edit')
+$mode          = $mode ?? 'create';
+$classId       = $classId ?? 0;
+$assignment    = $assignment ?? null;
+$lessons       = $lessons ?? [];
+$className     = $className ?? 'Kelas';
+$targetUrl     = ($mode === 'edit')
     ? route_to('workspace.trainer.assignment.edit', (string) $classId, (string) ($assignment['id'] ?? 0))
     : route_to('workspace.trainer.assignment.create', (string) $classId);
+
+$existingGuide = $existingGuide ?? parse_assignment_guide($assignment['instructions'] ?? '');
+$cleanInstructions = $existingGuide['clean_instructions'] ?? ($assignment['instructions'] ?? old('instructions') ?? '');
 ?>
 
 <div class="trainer-assignment-form-wrapper">
@@ -41,7 +44,7 @@ $targetUrl  = ($mode === 'edit')
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="<?= $targetUrl ?>">
+        <form method="POST" action="<?= $targetUrl ?>" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <div class="row g-4">
                 <div class="col-12 col-md-8">
@@ -92,9 +95,44 @@ $targetUrl  = ($mode === 'edit')
                     </div>
                 </div>
 
+                <!-- Upload File Petunjuk Tugas (PDF) -->
+                <div class="col-12">
+                    <div class="p-3 rounded-3 border bg-light">
+                        <label class="form-label fw-semibold text-navy small mb-1 d-flex align-items-center gap-2">
+                            <i class="fas fa-file-pdf text-danger fs-5"></i>
+                            <span>File Petunjuk / Panduan Tugas (PDF)</span>
+                        </label>
+                        <input type="file" name="guide_file" accept=".pdf,application/pdf" class="form-control bg-white rounded-3 py-2">
+                        <small class="text-muted d-block mt-1" style="font-size: 0.74rem;">
+                            Format PDF (.pdf) maksimal 10MB. File petunjuk teknis/studi kasus ini dapat diunduh dan dilihat langsung (View PDF) oleh peserta di ruang belajar.
+                        </small>
+
+                        <?php if (! empty($existingGuide['guide_url'])): ?>
+                            <div class="mt-3 p-3 rounded-3 bg-white border d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                                    <div>
+                                        <strong class="d-block small text-navy"><?= esc($existingGuide['guide_filename'] ?? 'Petunjuk_Tugas.pdf') ?></strong>
+                                        <span class="text-muted" style="font-size: 0.72rem;">File petunjuk aktif saat ini</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <a href="<?= base_url($existingGuide['guide_url']) ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="fas fa-eye me-1"></i> Lihat PDF
+                                    </a>
+                                    <div class="form-check form-check-inline mb-0">
+                                        <input class="form-check-input" type="checkbox" name="remove_guide_file" value="1" id="remove_guide_file">
+                                        <label class="form-check-label text-danger small" for="remove_guide_file">Hapus file saat ini</label>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
                 <div class="col-12">
                     <label class="form-label fw-semibold text-navy small mb-1">Instruksi & Lembar Kerja Tugas</label>
-                    <textarea name="instructions" class="form-control rounded-3" rows="6" placeholder="Jelaskan skenario kasus, petunjuk analisis, format pengerjaan, dan rubrik penilaian tugas..."><?= esc($assignment['instructions'] ?? old('instructions')) ?></textarea>
+                    <textarea name="instructions" class="form-control rounded-3" rows="6" placeholder="Jelaskan skenario kasus, petunjuk analisis, format pengerjaan, dan rubrik penilaian tugas..."><?= esc($cleanInstructions) ?></textarea>
                 </div>
 
                 <div class="col-12 d-flex justify-content-end gap-2 pt-3 border-top">

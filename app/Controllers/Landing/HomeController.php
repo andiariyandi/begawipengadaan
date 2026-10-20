@@ -450,24 +450,8 @@ class HomeController extends BaseController
             'maps_dir_link'  => setting('organization.maps_dir_link', 'https://maps.google.com/?q=Kantor+Gubernur+Lampung'),
         ];
 
-        $categoriesFromDb = [];
-        try {
-            $categoriesFromDb = $db->table('service_categories')
-                ->where('is_active', 1)
-                ->orderBy('sort_order', 'ASC')
-                ->get()->getResultArray();
-        } catch (\Throwable) {
-        }
-
-        $serviceCategories = !empty($categoriesFromDb) ? array_column($categoriesFromDb, 'name') : [
-            'Konsultasi Perencanaan & Pemilihan PBJ',
-            'Helpdesk LPSE & Sistem SPSE Lampung',
-            'Pelatihan Kompetensi (Arena Belajar)',
-            'Verifikasi & Validasi Sertifikat Digital',
-            'Katalog Elektronik Lokal & E-Purchasing',
-            'Advokasi & Bantuan Hukum PBJ',
-            'Pengaduan & Informasi Publik Lainnya',
-        ];
+        // Align service categories with Workspace Helpdesk categories
+        $serviceCategories = \App\Controllers\Workspace\ConsultationController::getCategories();
 
         $pageBanner = null;
         try {

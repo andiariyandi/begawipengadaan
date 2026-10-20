@@ -229,7 +229,38 @@ $stats = $stats ?? [
                                                         <?= csrf_field() ?>
                                                         <button type="submit" class="dropdown-item px-12 py-8 radius-4 text-success-main bg-hover-success-50 d-flex align-items-center gap-2 text-sm w-100 border-0 bg-transparent">
                                                             <iconify-icon icon="solar:check-circle-outline" class="text-lg text-success-main"></iconify-icon>
-                                                            <span>Approve / Aktifkan</span>
+                                                            <span>Setujui (Approve)</span>
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="<?= route_to('dashboard.learning.enrollments.reject', $enrollment['id']) ?>" method="post" onsubmit="return confirm('Tolak pendaftaran peserta ini?');">
+                                                        <?= csrf_field() ?>
+                                                        <button type="submit" class="dropdown-item px-12 py-8 radius-4 text-danger-main bg-hover-danger-50 d-flex align-items-center gap-2 text-sm w-100 border-0 bg-transparent">
+                                                            <iconify-icon icon="solar:close-circle-outline" class="text-lg text-danger-main"></iconify-icon>
+                                                            <span>Tolak Pendaftaran</span>
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            <?php elseif ($enrollment['status'] === 'active'): ?>
+                                                <li>
+                                                    <form action="<?= route_to('dashboard.learning.enrollments.status', $enrollment['id']) ?>" method="post" onsubmit="return confirm('Keluarkan peserta ini dari kelas (status withdrawn)?');">
+                                                        <?= csrf_field() ?>
+                                                        <input type="hidden" name="status" value="withdrawn">
+                                                        <button type="submit" class="dropdown-item px-12 py-8 radius-4 text-warning-main bg-hover-warning-50 d-flex align-items-center gap-2 text-sm w-100 border-0 bg-transparent">
+                                                            <iconify-icon icon="solar:user-block-outline" class="text-lg text-warning-main"></iconify-icon>
+                                                            <span>Keluarkan dari Kelas</span>
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            <?php elseif (in_array($enrollment['status'], ['withdrawn', 'cancelled'], true)): ?>
+                                                <li>
+                                                    <form action="<?= route_to('dashboard.learning.enrollments.status', $enrollment['id']) ?>" method="post" onsubmit="return confirm('Aktifkan kembali peserta ini ke dalam kelas?');">
+                                                        <?= csrf_field() ?>
+                                                        <input type="hidden" name="status" value="active">
+                                                        <button type="submit" class="dropdown-item px-12 py-8 radius-4 text-success-main bg-hover-success-50 d-flex align-items-center gap-2 text-sm w-100 border-0 bg-transparent">
+                                                            <iconify-icon icon="solar:user-check-rounded-outline" class="text-lg text-success-main"></iconify-icon>
+                                                            <span>Aktifkan Kembali</span>
                                                         </button>
                                                     </form>
                                                 </li>

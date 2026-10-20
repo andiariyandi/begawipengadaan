@@ -32,16 +32,22 @@ class ProfileController extends BaseController
         $detailTables = $this->detailTables();
         $profileType = $user['profile_type'] ?? 'public';
 
+        $latestRequest = $db->table('profile_change_requests')
+            ->where('user_id', $user['id'])
+            ->orderBy('created_at', 'DESC')
+            ->get()->getRowArray();
+
         return view('main/workspace/pages/profil', [
-            'title'       => 'Profil Saya',
-            'subTitle'    => 'Profil Saya',
-            'user'        => $user,
-            'profile'     => $db->table('user_profiles')->where('user_id', $user['id'])->get()->getRowArray() ?: [],
-            'detail'      => isset($detailTables[$profileType])
+            'title'         => 'Profil Saya',
+            'subTitle'      => 'Profil Saya',
+            'user'          => $user,
+            'profile'       => $db->table('user_profiles')->where('user_id', $user['id'])->get()->getRowArray() ?: [],
+            'detail'        => isset($detailTables[$profileType])
                 ? ($db->table($detailTables[$profileType])->where('user_id', $user['id'])->get()->getRowArray() ?: [])
                 : [],
-            'profileType' => $profileType,
-            'provinces'   => (new WilayahModel())->provinces(),
+            'profileType'   => $profileType,
+            'provinces'     => (new WilayahModel())->provinces(),
+            'latestRequest' => $latestRequest,
         ]);
     }
 
@@ -88,118 +94,116 @@ class ProfileController extends BaseController
 
         $db = db_connect();
         $profileType = $user['profile_type'] ?? 'public';
-        $detailTables = $this->detailTables();
 
         $rules = [
             'username'      => 'required|min_length[3]|max_length[100]|is_unique[users.username,id,' . $userId . ']',
             'email'         => 'required|valid_email|is_unique[users.email,id,' . $userId . ']',
             'full_name'     => 'required|max_length[150]',
             'phone'         => 'permit_empty|max_length[25]',
-            'province_code' => 'permit_empty|regex_match[/^\d{2}$/]|is_not_unique[wilayah.kode]',
-            'regency_code'  => 'permit_empty|regex_match[/^\d{2}\.\d{2}$/]|is_not_unique[wilayah.kode]',
-            'district_code' => 'permit_empty|regex_match[/^\d{2}\.\d{2}\.\d{2}$/]|is_not_unique[wilayah.kode]',
-            'village_code'  => 'permit_empty|regex_match[/^\d{2}\.\d{2}\.\d{2}\.\d{4}$/]|is_not_unique[wilayah.kode]',
+            'province_code' => 'permit_empty',
+            'address_line'  => 'permit_empty|max_length[500]',
+            'reason'        => 'permit_empty|max_length[500]',
         ];
-
-        if ($profileType === 'asn') {
-            $rules['identity_number'] = 'permit_empty|max_length[25]|is_unique[asn_profiles.identity_number,user_id,' . $userId . ']';
-        } elseif ($profileType === 'provider') {
-            $rules['nib'] = 'permit_empty|max_length[30]|is_unique[provider_profiles.nib,user_id,' . $userId . ']';
-        } elseif ($profileType === 'public') {
-            $rules['nik'] = 'permit_empty|max_length[32]|is_unique[public_profiles.nik,user_id,' . $userId . ']';
-        }
 
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()
-                ->with('error', 'Data profil tidak valid atau sudah digunakan pengguna lain.');
-        }
-
-        $provinceCode = trim((string) $this->request->getPost('province_code'));
-        $regencyCode  = trim((string) $this->request->getPost('regency_code'));
-        $districtCode = trim((string) $this->request->getPost('district_code'));
-        $villageCode  = trim((string) $this->request->getPost('village_code')) ?: null;
-
-        if ($provinceCode !== '' && $regencyCode !== '' && $districtCode !== '') {
-            if (! (new WilayahModel())->isValidHierarchy(
-                $provinceCode,
-                $regencyCode,
-                $districtCode,
-                $villageCode
-            )) {
-                return redirect()->back()->withInput()
-                    ->with('error', 'Kombinasi wilayah domisili tidak valid.');
-            }
+                ->with('error', 'Data yang Anda masukkan tidak valid: ' . implode(' ', $this->validator->getErrors()));
         }
 
         $now = date('Y-m-d H:i:s');
-        $userData = [
-            'username'   => trim((string) $this->request->getPost('username')),
-            'email'      => trim((string) $this->request->getPost('email')),
-            'name'       => trim((string) $this->request->getPost('full_name')),
-            'phone'      => trim((string) $this->request->getPost('phone')),
-            'updated_at' => $now,
+        $newValues = [
+            'username'      => trim((string) $this->request->getPost('username')),
+            'email'         => trim((string) $this->request->getPost('email')),
+            'name'          => trim((string) $this->request->getPost('full_name')),
+            'phone'         => trim((string) $this->request->getPost('phone')),
+            'province_code' => trim((string) $this->request->getPost('province_code')),
+            'address_line'  => trim((string) ($this->request->getPost('address_line') ?? $this->request->getPost('address') ?? '')),
         ];
 
-        if (! $model->update($userId, $userData)) {
-            return redirect()->back()->withInput()
-                ->with('error', 'Profil gagal diperbarui.');
-        }
-
-        $addressVal = trim((string) ($this->request->getPost('address_line') ?? $this->request->getPost('address') ?? ''));
-
-        $profileData = [
-            'updated_at'   => $now,
-            'address_line' => $addressVal,
-        ];
-        if ($provinceCode !== '') {
-            $profileData['province_code'] = $provinceCode;
-        }
-        if ($regencyCode !== '') {
-            $profileData['regency_code'] = $regencyCode;
-        }
-        if ($districtCode !== '') {
-            $profileData['district_code'] = $districtCode;
-        }
-        if ($villageCode !== null) {
-            $profileData['village_code'] = $villageCode;
-        }
-
-        $existingProfile = $db->table('user_profiles')->where('user_id', $userId)->get()->getRowArray();
-        if ($existingProfile) {
-            $db->table('user_profiles')->where('user_id', $userId)->update($profileData);
-        } else {
-            $profileData['user_id']    = $userId;
-            $profileData['created_at'] = $now;
-            $db->table('user_profiles')->insert($profileData);
-        }
-
-        if (isset($detailTables[$profileType])) {
-            $table = $detailTables[$profileType];
-            $detail = $db->table($table)->where('user_id', $userId)->get()->getRowArray();
-            if ($detail) {
-                $detailData = ['updated_at' => $now];
-                foreach (array_keys($detail) as $field) {
-                    if (in_array($field, ['id', 'user_id', 'created_at', 'updated_at'], true)) {
-                        continue;
-                    }
-                    if ($this->request->getPost($field) !== null) {
-                        $detailData[$field] = trim((string) $this->request->getPost($field));
-                    }
+        // Specific fields per profile type
+        if ($profileType === 'asn') {
+            foreach (['employee_identifier', 'unit_name', 'position_name', 'institution_name', 'rank_grade'] as $f) {
+                if ($this->request->getPost($f) !== null) {
+                    $newValues[$f] = trim((string) $this->request->getPost($f));
                 }
-                $db->table($table)->where('user_id', $userId)->update($detailData);
+            }
+        } elseif ($profileType === 'provider') {
+            foreach (['business_name', 'business_identifier', 'registrant_position'] as $f) {
+                if ($this->request->getPost($f) !== null) {
+                    $newValues[$f] = trim((string) $this->request->getPost($f));
+                }
+            }
+        } elseif ($profileType === 'academic') {
+            foreach (['institution_name', 'role_name', 'expertise'] as $f) {
+                if ($this->request->getPost($f) !== null) {
+                    $newValues[$f] = trim((string) $this->request->getPost($f));
+                }
+            }
+        } elseif ($profileType === 'public') {
+            foreach (['national_identifier', 'organization_name'] as $f) {
+                if ($this->request->getPost($f) !== null) {
+                    $newValues[$f] = trim((string) $this->request->getPost($f));
+                }
             }
         }
 
-        session()->set([
-            'username' => $userData['username'],
-            'email'    => $userData['email'],
-            'name'     => $userData['name'],
-        ]);
+        // Compare against current state
+        $currProfile = $db->table('user_profiles')->where('user_id', $userId)->get()->getRowArray() ?: [];
+        $detailTables = $this->detailTables();
+        $typeTable = $detailTables[$profileType] ?? null;
+        $currSpec = $typeTable ? ($db->table($typeTable)->where('user_id', $userId)->get()->getRowArray() ?: []) : [];
 
-        (new AuditService())->log($userId, 'update_profile', 'auth', 'users', $userId);
+        $currentMerged = array_merge($user, $currProfile, $currSpec);
+        $currentMerged['full_name'] = $user['name'] ?? '';
+
+        $changedPayload = [];
+        foreach ($newValues as $k => $val) {
+            $oldVal = trim((string) ($currentMerged[$k] ?? ''));
+            if ($val !== $oldVal) {
+                $changedPayload[$k] = $val;
+            }
+        }
+
+        if (empty($changedPayload)) {
+            return redirect()->to(route_to('workspace.profile.index'))
+                ->with('info', 'Tidak ada perubahan data yang diajukan. Data profil Anda saat ini masih sama.');
+        }
+
+        $reason = trim((string) $this->request->getPost('reason')) ?: 'Pengajuan pembaruan data identitas profil melalui workspace.';
+
+        // Check if there is already an active pending request
+        $existingPending = $db->table('profile_change_requests')
+            ->where('user_id', $userId)
+            ->whereIn('status', ['submitted', 'in_review'])
+            ->get()->getRowArray();
+
+        $service = new \App\Services\Admin\ProfileChangeRequestService();
+
+        if ($existingPending) {
+            $db->table('profile_change_requests')->where('id', $existingPending['id'])->update([
+                'requested_payload' => json_encode($changedPayload, JSON_THROW_ON_ERROR),
+                'reason'            => $reason,
+                'status'            => 'submitted',
+                'updated_at'        => $now,
+            ]);
+            $requestId = (int) $existingPending['id'];
+        } else {
+            $requestId = $service->submit($userId, $changedPayload, $reason);
+        }
+
+        // Send notification to Admins and Operators
+        try {
+            (new \App\Services\NotificationService())->notifyAdmins(
+                'profile_change_request',
+                'Permohonan Perubahan Profil Baru',
+                "Pengguna {$user['name']} telah mengajukan permohonan perubahan profil.",
+                ['request_id' => $requestId, 'url' => site_url('dashboard/akses/permohonan-perubahan-profil/' . $requestId)]
+            );
+        } catch (\Throwable) {
+        }
 
         return redirect()->to(route_to('workspace.profile.index'))
-            ->with('message', 'Profil berhasil diperbarui.');
+            ->with('success', 'Permohonan perubahan profil Anda berhasil diajukan dan sedang menunggu verifikasi serta persetujuan oleh Administrator atau Operator.');
     }
 
     public function updatePassword()

@@ -136,7 +136,7 @@ class UserProfileVerificationController extends BaseController
     public function changeRequests()
     {
         $items = db_connect()->table('profile_change_requests pcr')
-            ->select('pcr.*, u.name AS user_name, u.email, u.username')
+            ->select('pcr.*, u.name AS user_name, u.email, u.username, u.profile_type')
             ->join('users u', 'u.id = pcr.user_id', 'left')
             ->orderBy('pcr.created_at', 'DESC')
             ->get()->getResultArray();
@@ -175,12 +175,12 @@ class UserProfileVerificationController extends BaseController
             default    => null,
         };
 
-        $current = [];
-        if ($typeTable) {
-            $current = $db->table($typeTable)->where('user_id', $request['user_id'])->get()->getRowArray() ?: [];
-        } else {
-            $current = $db->table('user_profiles')->where('user_id', $request['user_id'])->get()->getRowArray() ?: [];
-        }
+        $userRow = $db->table('users')->where('id', $request['user_id'])->get()->getRowArray() ?: [];
+        $profileRow = $db->table('user_profiles')->where('user_id', $request['user_id'])->get()->getRowArray() ?: [];
+        $specificRow = $typeTable ? ($db->table($typeTable)->where('user_id', $request['user_id'])->get()->getRowArray() ?: []) : [];
+
+        $current = array_merge($userRow, $profileRow, $specificRow);
+        $current['full_name'] = $userRow['name'] ?? '';
 
         $history = $db->table('workflow_transitions')
             ->where('resource_type', 'profile_change_request')

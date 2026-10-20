@@ -10,6 +10,8 @@ use App\Models\Learning\LessonModel;
 use App\Models\Learning\QuestionModel;
 use App\Models\Learning\QuestionOptionModel;
 use App\Models\Learning\QuizModel;
+use App\Services\Learning\QuizQuestionImportService;
+use Throwable;
 
 class CurriculumController extends BaseController
 {
@@ -753,11 +755,51 @@ class CurriculumController extends BaseController
 
         $userId = session()->get('user_id');
         $now    = date('Y-m-d H:i:s');
+
+        $guideUrl = null;
+        $guideFilename = null;
+        $guideSize = null;
+
+        $guideFile = $this->request->getFile('guide_file');
+        if ($guideFile && $guideFile->isValid() && ! $guideFile->hasMoved()) {
+            $ext = strtolower($guideFile->getClientExtension());
+            $mime = $guideFile->getClientMimeType();
+            if ($ext !== 'pdf' && ! str_contains($mime, 'pdf')) {
+                return redirect()->back()->withInput()->with('error', 'File petunjuk tugas wajib berformat PDF (.pdf).');
+            }
+
+            $targetDir = FCPATH . 'uploads/learning/assignments/';
+            if (! is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+            $newFilename = 'guide_' . time() . '_' . bin2hex(random_bytes(4)) . '.pdf';
+            $guideFile->move($targetDir, $newFilename);
+            $guideUrl = 'uploads/learning/assignments/' . $newFilename;
+            $guideFilename = $guideFile->getClientName();
+            $guideSize = $guideFile->getSize();
+
+            $db->table('file_assets')->insert([
+                'user_id'        => $userId ? (int) $userId : null,
+                'collection'     => 'assignment_guides',
+                'filename'       => $newFilename,
+                'original_name'  => $guideFilename,
+                'mime_type'      => 'application/pdf',
+                'size_bytes'     => $guideSize,
+                'path'           => $guideUrl,
+                'visibility'     => 'public',
+                'storage_driver' => 'local',
+                'created_at'     => $now,
+                'updated_at'     => $now,
+            ]);
+        }
+
+        $finalInstructions = build_assignment_instructions($instructions, $guideUrl, $guideFilename, $guideSize);
+
         $db->table('assignments')->insert([
             'class_id'     => $classId,
             'lesson_id'    => $lessonId,
             'title'        => $title,
-            'instructions' => $instructions ?: null,
+            'instructions' => $finalInstructions ?: null,
             'due_at'       => $dueAt,
             'is_required'  => $isRequired,
             'max_attempts' => $maxAttempts,
@@ -802,11 +844,59 @@ class CurriculumController extends BaseController
             }
         }
 
+        $existingGuide = parse_assignment_guide($assignment['instructions'] ?? '');
+        $guideUrl      = $existingGuide['guide_url'];
+        $guideFilename = $existingGuide['guide_filename'];
+        $guideSize     = $existingGuide['guide_size'];
+
+        if ($this->request->getPost('remove_guide_file')) {
+            $guideUrl = null;
+            $guideFilename = null;
+            $guideSize = null;
+        }
+
         $now = date('Y-m-d H:i:s');
+        $userId = session()->get('user_id');
+
+        $guideFile = $this->request->getFile('guide_file');
+        if ($guideFile && $guideFile->isValid() && ! $guideFile->hasMoved()) {
+            $ext = strtolower($guideFile->getClientExtension());
+            $mime = $guideFile->getClientMimeType();
+            if ($ext !== 'pdf' && ! str_contains($mime, 'pdf')) {
+                return redirect()->back()->withInput()->with('error', 'File petunjuk tugas wajib berformat PDF (.pdf).');
+            }
+
+            $targetDir = FCPATH . 'uploads/learning/assignments/';
+            if (! is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+            $newFilename = 'guide_' . time() . '_' . bin2hex(random_bytes(4)) . '.pdf';
+            $guideFile->move($targetDir, $newFilename);
+            $guideUrl = 'uploads/learning/assignments/' . $newFilename;
+            $guideFilename = $guideFile->getClientName();
+            $guideSize = $guideFile->getSize();
+
+            $db->table('file_assets')->insert([
+                'user_id'        => $userId ? (int) $userId : null,
+                'collection'     => 'assignment_guides',
+                'filename'       => $newFilename,
+                'original_name'  => $guideFilename,
+                'mime_type'      => 'application/pdf',
+                'size_bytes'     => $guideSize,
+                'path'           => $guideUrl,
+                'visibility'     => 'public',
+                'storage_driver' => 'local',
+                'created_at'     => $now,
+                'updated_at'     => $now,
+            ]);
+        }
+
+        $finalInstructions = build_assignment_instructions($instructions, $guideUrl, $guideFilename, $guideSize);
+
         $db->table('assignments')->where('id', (int) $id)->update([
             'lesson_id'    => $lessonId,
             'title'        => $title,
-            'instructions' => $instructions ?: null,
+            'instructions' => $finalInstructions ?: null,
             'due_at'       => $dueAt,
             'is_required'  => $isRequired,
             'max_attempts' => $maxAttempts,
@@ -817,6 +907,48 @@ class CurriculumController extends BaseController
 
         return redirect()->to(site_url('dashboard/pembelajaran/kurikulum/kelas/' . $assignment['class_id']))
             ->with('success', 'Tugas berhasil diperbarui.');
+    }
+
+    public function downloadQuestionTemplate(string $quizId)
+    {
+        $service = new QuizQuestionImportService();
+        $csvContent = $service->generateTemplateCsv();
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="template_soal_pilihan_ganda.csv"')
+            ->setBody($csvContent);
+    }
+
+    public function importQuestions(string $quizId)
+    {
+        $db = db_connect();
+        $quiz = $db->table('quizzes')->where('id', (int) $quizId)->get()->getRowArray();
+        if (! $quiz) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Ujian tidak ditemukan.');
+        }
+
+        $file = $this->request->getFile('question_file');
+        if (! $file || ! $file->isValid()) {
+            return redirect()->back()->with('error', 'Harap pilih berkas soal (.csv atau .xlsx) untuk diimpor.');
+        }
+
+        $ext = strtolower($file->getClientExtension());
+        if (! in_array($ext, ['csv', 'xlsx', 'txt'], true)) {
+            return redirect()->back()->with('error', 'Format berkas tidak valid. Harap gunakan berkas CSV (.csv) atau Excel (.xlsx).');
+        }
+
+        $service = new QuizQuestionImportService();
+        try {
+            $tempPath = $file->getTempName();
+            $questions = $service->parseFile($tempPath, $ext);
+            $count = $service->importQuestionsToQuiz((int) $quizId, $questions);
+        } catch (Throwable $e) {
+            return redirect()->back()->with('error', 'Gagal memproses berkas impor: ' . $e->getMessage());
+        }
+
+        return redirect()->to(site_url('dashboard/pembelajaran/kurikulum/kelas/' . ($quiz['class_id'] ?? '')))
+            ->with('success', "Berhasil mengimpor {$count} butir soal pilihan ganda. Seluruh soal lama telah ditimpa sesuai berkas impor.");
     }
 
     public function deleteAssignment(string $id)

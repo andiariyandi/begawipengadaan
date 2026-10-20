@@ -68,12 +68,61 @@ $sectionContent   = $sectionContent ?? [];
             </div>
         </div>
 
+        <?php $parsedGuide = parse_assignment_guide($activeAssignment['instructions'] ?? ''); ?>
         <!-- Instructions Box -->
-        <div class="p-2 p-md-3 rounded-3 bg-light border mb-3">
-            <h6 class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px; font-size: 0.72rem;">
+        <div class="p-3 rounded-4 bg-light border mb-3">
+            <h6 class="text-muted small text-uppercase fw-bold mb-2" style="letter-spacing: 0.5px; font-size: 0.72rem;">
                 <i class="bi bi-info-circle-fill text-primary me-1"></i> Instruksi & Panduan Pengerjaan:
             </h6>
-            <div class="text-dark lh-base small"><?= nl2br(esc($activeAssignment['instructions'] ?? 'Tidak ada instruksi khusus.')) ?></div>
+            <div class="text-dark lh-base small mb-0"><?= nl2br(esc(! empty($parsedGuide['clean_instructions']) ? $parsedGuide['clean_instructions'] : 'Ikuti seluruh petunjuk teknis yang tertera pada berkas tugas.')) ?></div>
+
+            <?php if (! empty($parsedGuide['guide_url'])): ?>
+                <div class="mt-3 p-3 rounded-3 bg-white border border-danger-subtle d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-xs">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-3 p-2 bg-danger-subtle text-danger fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-navy small"><?= esc($parsedGuide['guide_filename'] ?? 'File_Petunjuk_Tugas.pdf') ?></strong>
+                            <small class="text-muted">Dokumen acuan teknis dan lembar kerja studi kasus yang dapat dipelajari.</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#pdfViewerModal">
+                            <i class="fas fa-eye me-1"></i> Lihat PDF (View PDF)
+                        </button>
+                        <a href="<?= base_url($parsedGuide['guide_url']) ?>" target="_blank" download class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                            <i class="fas fa-download me-1"></i> Unduh
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Modal View PDF Interaktif -->
+                <div class="modal fade" id="pdfViewerModal" tabindex="-1" aria-labelledby="pdfViewerModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                        <div class="modal-content rounded-4 border-0 shadow">
+                            <div class="modal-header border-bottom py-3">
+                                <h5 class="modal-title fw-bold text-navy" id="pdfViewerModalLabel">
+                                    <i class="fas fa-file-pdf text-danger me-2"></i><?= esc($parsedGuide['guide_filename'] ?? 'Petunjuk Pengerjaan Tugas') ?>
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-0" style="height: 75vh;">
+                                <iframe src="<?= base_url($parsedGuide['guide_url']) ?>" style="width: 100%; height: 100%;" frameborder="0"></iframe>
+                            </div>
+                            <div class="modal-footer border-top py-2 d-flex justify-content-between">
+                                <small class="text-muted">Gunakan kontrol di dalam dokumen untuk zoom, cetak, atau menyalin teks.</small>
+                                <div class="d-flex gap-2">
+                                    <a href="<?= base_url($parsedGuide['guide_url']) ?>" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                        <i class="fas fa-external-link-alt me-1"></i> Buka di Tab Baru
+                                    </a>
+                                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
 
         <!-- Latest Submission Status Alert (Jika Sudah Pernah Submit) -->
@@ -246,8 +295,14 @@ $sectionContent   = $sectionContent ?? [];
                         <?php if (! empty($asg['class_name'])): ?>
                             <span class="badge bg-light text-muted border small rounded-pill mb-2"><?= esc($asg['class_name']) ?></span>
                         <?php endif; ?>
+                        <?php $asgGuide = parse_assignment_guide($asg['instructions'] ?? ''); ?>
                         <h2 class="h5 fw-bold mb-2" style="color: #082f5c;"><?= esc($asg['title'] ?? 'Tugas') ?></h2>
-                        <p class="text-muted small mb-3 lh-base"><?= esc(mb_strimwidth($asg['instructions'] ?? '', 0, 130, '...')) ?></p>
+                        <p class="text-muted small mb-2 lh-base"><?= esc(mb_strimwidth($asgGuide['clean_instructions'] ?? '', 0, 130, '...')) ?></p>
+                        <?php if (! empty($asgGuide['guide_url'])): ?>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill mb-3 small d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                                <i class="fas fa-file-pdf"></i> Petunjuk PDF Tersedia
+                            </span>
+                        <?php endif; ?>
 
                         <!-- Lock Reason Notice (if locked) -->
                         <?php if (isset($asg['is_unlocked']) && ! $asg['is_unlocked']): ?>

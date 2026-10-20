@@ -180,6 +180,12 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                             <span>Pengaturan</span>
                         </button>
 
+                        <button type="button" class="btn btn-sm btn-outline-success radius-6 px-12 py-6 d-inline-flex align-items-center gap-1"
+                                onclick="openImportQuestionModal(<?= (int) $preTest['id'] ?>, 'Pre-Test: <?= esc(addslashes($preTest['title'])) ?>')">
+                            <iconify-icon icon="solar:file-spreadsheet-outline"></iconify-icon>
+                            <span>Impor Soal</span>
+                        </button>
+
                         <button type="button" class="btn btn-sm btn-primary-600 radius-6 px-12 py-6 d-inline-flex align-items-center gap-1"
                                 onclick="openAddQuestionModal(<?= (int) $preTest['id'] ?>, 'Pre-Test: <?= esc(addslashes($preTest['title'])) ?>')">
                             <iconify-icon icon="solar:add-circle-outline"></iconify-icon>
@@ -439,6 +445,11 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                                                         <iconify-icon icon="solar:settings-outline"></iconify-icon>
                                                         <span>Ubah</span>
                                                     </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-success radius-6 px-10 py-5 text-xs d-inline-flex align-items-center gap-1"
+                                                            onclick="openImportQuestionModal(<?= (int) $modQuiz['id'] ?>, 'Kuis: <?= esc(addslashes($modQuiz['title'])) ?>')">
+                                                        <iconify-icon icon="solar:file-spreadsheet-outline"></iconify-icon>
+                                                        <span>Impor</span>
+                                                    </button>
                                                     <button type="button" class="btn btn-sm btn-primary-600 radius-6 px-12 py-5 text-xs d-inline-flex align-items-center gap-1"
                                                             onclick="openAddQuestionModal(<?= (int) $modQuiz['id'] ?>, 'Kuis: <?= esc(addslashes($modQuiz['title'])) ?>')">
                                                         <iconify-icon icon="solar:add-circle-outline"></iconify-icon>
@@ -529,9 +540,16 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                                 <?php foreach ($assignments as $asgn): ?>
                                     <tr>
                                         <td>
+                                            <?php $asgnGuide = parse_assignment_guide($asgn['instructions'] ?? ''); ?>
                                             <h6 class="text-sm fw-semibold mb-0 text-neutral-900"><?= esc($asgn['title']) ?></h6>
-                                            <?php if (! empty($asgn['instructions'])): ?>
-                                                <span class="text-xs text-secondary-light line-clamp-1"><?= esc($asgn['instructions']) ?></span>
+                                            <?php if (! empty($asgnGuide['clean_instructions'])): ?>
+                                                <span class="text-xs text-secondary-light line-clamp-1"><?= esc($asgnGuide['clean_instructions']) ?></span>
+                                            <?php endif; ?>
+                                            <?php if (! empty($asgnGuide['guide_url'])): ?>
+                                                <a href="<?= base_url($asgnGuide['guide_url']) ?>" target="_blank" class="badge bg-danger-50 text-danger-600 border border-danger-200 radius-4 text-xxs mt-1 d-inline-flex align-items-center gap-1" title="Lihat Petunjuk PDF">
+                                                    <iconify-icon icon="solar:file-text-bold"></iconify-icon>
+                                                    <span>Petunjuk PDF: <?= esc($asgnGuide['guide_filename'] ?? 'PDF') ?></span>
+                                                </a>
                                             <?php endif; ?>
                                         </td>
                                         <td>
@@ -634,6 +652,12 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                                 onclick="openEditQuizModal(<?= htmlspecialchars(json_encode($postTest), ENT_QUOTES, 'UTF-8') ?>)">
                             <iconify-icon icon="solar:settings-outline"></iconify-icon>
                             <span>Pengaturan</span>
+                        </button>
+
+                        <button type="button" class="btn btn-sm btn-outline-success radius-6 px-12 py-6 d-inline-flex align-items-center gap-1"
+                                onclick="openImportQuestionModal(<?= (int) $postTest['id'] ?>, 'Post-Test: <?= esc(addslashes($postTest['title'])) ?>')">
+                            <iconify-icon icon="solar:file-spreadsheet-outline"></iconify-icon>
+                            <span>Impor Soal</span>
                         </button>
 
                         <button type="button" class="btn btn-sm btn-success radius-6 px-12 py-6 d-inline-flex align-items-center gap-1 text-white"
@@ -1048,7 +1072,7 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                 <h6 class="modal-title fw-semibold text-lg" id="assignmentModalTitle">Tambah Penugasan / Tugas</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="assignmentForm" action="<?= route_to('dashboard.learning.curriculum.assignment.store') ?>" method="post">
+            <form id="assignmentForm" action="<?= route_to('dashboard.learning.curriculum.assignment.store') ?>" method="post" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <input type="hidden" name="class_id" value="<?= $selectedClassId ?>">
                 <div class="modal-body p-24">
@@ -1081,6 +1105,36 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                         <textarea id="asgn_instructions" name="instructions" class="form-control radius-8" rows="4" placeholder="Jelaskan instruksi pengerjaan, format berkas yang harus diunggah, dan kriteria penilaian..."></textarea>
                     </div>
 
+                    <!-- Upload File Petunjuk PDF -->
+                    <div class="mb-16 p-16 radius-8 bg-neutral-50 border">
+                        <label class="form-label fw-semibold text-sm mb-4 d-flex align-items-center gap-2" for="asgn_guide_file">
+                            <iconify-icon icon="solar:document-bold" class="text-danger-main text-lg"></iconify-icon>
+                            <span>Upload Berkas Petunjuk Tugas (PDF)</span>
+                        </label>
+                        <input id="asgn_guide_file" type="file" name="guide_file" accept=".pdf,application/pdf" class="form-control radius-8 bg-white">
+                        <small class="text-secondary-light text-xxs d-block mt-4">
+                            Format PDF (.pdf) maks. 10MB. File petunjuk studi kasus ini dapat diunduh dan dilihat langsung (View PDF) oleh peserta di LMS.
+                        </small>
+                        <div id="asgn_existing_guide_wrapper" class="d-none mt-12 p-12 radius-8 bg-white border d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <iconify-icon icon="solar:file-text-bold" class="text-danger-main text-2xl"></iconify-icon>
+                                <div>
+                                    <strong id="asgn_existing_filename" class="text-xs d-block text-neutral-800">Petunjuk_Tugas.pdf</strong>
+                                    <span class="text-secondary-light text-xxs">Berkas aktif saat ini</span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <a id="asgn_existing_link" href="#" target="_blank" class="btn btn-xs btn-outline-primary radius-6 px-10 py-4">
+                                    <iconify-icon icon="solar:eye-outline"></iconify-icon> Lihat PDF
+                                </a>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" name="remove_guide_file" value="1" id="asgn_remove_guide">
+                                    <label class="form-check-label text-danger-main text-xs" for="asgn_remove_guide">Hapus file</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row gy-16 mb-16">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold text-sm mb-6" for="asgn_due">Batas Waktu (Deadline)</label>
@@ -1107,6 +1161,66 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                 <div class="modal-footer border-top py-16 px-24">
                     <button type="button" class="btn btn-outline-neutral-300 radius-8 px-20 py-11" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-warning radius-8 px-20 py-11 text-dark fw-semibold" id="assignmentSubmitBtn">Simpan Tugas</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 8. Modal Impor Soal Quiz Dashboard (WowDash UI) -->
+<div class="modal fade" id="dashboardImportQuestionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content radius-16">
+            <div class="modal-header border-bottom py-16 px-24">
+                <div>
+                    <h6 class="modal-title fw-semibold text-lg mb-1" id="dashImportTitle">Impor Soal Ujian (Excel / CSV)</h6>
+                    <small class="text-secondary-light" id="dashImportSubtitle">Ujian</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="dashImportForm" action="" method="post" enctype="multipart/form-data">
+                <?= csrf_field() ?>
+                <div class="modal-body p-24">
+                    <!-- Alert Peringatan Overwrite -->
+                    <div class="alert alert-warning border border-warning-200 bg-warning-50 radius-8 p-16 mb-16 d-flex align-items-start gap-2">
+                        <iconify-icon icon="solar:danger-triangle-bold" class="text-warning-600 text-xl flex-shrink-0 mt-1"></iconify-icon>
+                        <div class="text-xs text-neutral-800">
+                            <strong class="d-block mb-1 text-warning-main fw-bold">Perhatian (Logika Impor):</strong>
+                            Mengimpor berkas soal akan <strong>MENIMPA ULANG (hapus ganti baru)</strong> seluruh butir soal lama pada ujian ini. Jika ingin menambahkan soal meneruskan nomor selanjutnya, silakan gunakan tombol <strong>+ Tambah Soal</strong> manual.
+                        </div>
+                    </div>
+
+                    <div class="mb-16">
+                        <label class="form-label fw-semibold text-sm mb-6">Unduh Template Soal</label>
+                        <div class="p-16 radius-8 bg-neutral-50 border d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <iconify-icon icon="solar:file-spreadsheet-outline" class="text-success-main text-2xl"></iconify-icon>
+                                <div>
+                                    <strong class="text-xs d-block text-neutral-800">Template Format Soal Pilihan Ganda</strong>
+                                    <span class="text-secondary-light text-xxs">CSV / Excel (Pertanyaan, Pilihan A-E, Kunci, Poin, Pembahasan)</span>
+                                </div>
+                            </div>
+                            <a id="dashTemplateDownloadLink" href="#" class="btn btn-sm btn-outline-primary radius-6 px-12 py-6 text-xs d-inline-flex align-items-center gap-1">
+                                <iconify-icon icon="solar:download-linear"></iconify-icon>
+                                <span>Unduh</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <label class="form-label fw-semibold text-sm mb-6" for="dash_question_file">Pilih Berkas Soal (.xlsx atau .csv) <span class="text-danger-main">*</span></label>
+                        <input id="dash_question_file" type="file" name="question_file" accept=".xlsx,.csv,.txt" class="form-control radius-8" required>
+                        <small class="text-secondary-light text-xxs d-block mt-4">
+                            Mendukung file Microsoft Excel (.xlsx) dan CSV dengan pemisah koma atau titik koma (;).
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer border-top py-16 px-24 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-neutral-300 radius-8 px-20 py-11" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success-600 radius-8 px-20 py-11 fw-semibold d-inline-flex align-items-center gap-2" onclick="return confirm('Apakah Anda yakin ingin mengimpor dan MENIMPA seluruh soal lama pada ujian ini?');">
+                        <iconify-icon icon="solar:upload-outline"></iconify-icon>
+                        <span>Unggah & Timpa Soal</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -1240,6 +1354,9 @@ function openCreateAssignmentModal() {
     document.getElementById('asgn_max_attempts').value = '1';
     document.getElementById('asgn_status').value = 'published';
     document.getElementById('asgn_req').checked = true;
+    document.getElementById('asgn_guide_file').value = '';
+    document.getElementById('asgn_existing_guide_wrapper').classList.add('d-none');
+    if (document.getElementById('asgn_remove_guide')) document.getElementById('asgn_remove_guide').checked = false;
     document.getElementById('assignmentSubmitBtn').innerText = 'Simpan Tugas';
 
     new bootstrap.Modal(document.getElementById('assignmentModal')).show();
@@ -1258,7 +1375,27 @@ function populateEditAssignment(asgn) {
         document.getElementById('asgn_module_id').value = asgn.module_id;
     }
 
-    document.getElementById('asgn_instructions').value = asgn.instructions || '';
+    document.getElementById('asgn_guide_file').value = '';
+    if (document.getElementById('asgn_remove_guide')) document.getElementById('asgn_remove_guide').checked = false;
+
+    const rawInstr = asgn.instructions || '';
+    const guideMatch = rawInstr.match(/<!--ASSIGNMENT_GUIDE:(.*?):ASSIGNMENT_GUIDE-->/s);
+    if (guideMatch) {
+        try {
+            const guideData = JSON.parse(guideMatch[1]);
+            document.getElementById('asgn_existing_filename').innerText = guideData.filename || 'Petunjuk_Tugas.pdf';
+            document.getElementById('asgn_existing_link').href = '<?= base_url() ?>/' + guideData.url;
+            document.getElementById('asgn_existing_guide_wrapper').classList.remove('d-none');
+            document.getElementById('asgn_instructions').value = rawInstr.replace(/<!--ASSIGNMENT_GUIDE:(.*?):ASSIGNMENT_GUIDE-->/s, '').trim();
+        } catch (e) {
+            document.getElementById('asgn_existing_guide_wrapper').classList.add('d-none');
+            document.getElementById('asgn_instructions').value = rawInstr;
+        }
+    } else {
+        document.getElementById('asgn_existing_guide_wrapper').classList.add('d-none');
+        document.getElementById('asgn_instructions').value = rawInstr;
+    }
+
     if (asgn.due_at) {
         document.getElementById('asgn_due').value = asgn.due_at.substring(0, 16);
     } else {
@@ -1270,6 +1407,14 @@ function populateEditAssignment(asgn) {
     document.getElementById('assignmentSubmitBtn').innerText = 'Perbarui Tugas';
 
     new bootstrap.Modal(document.getElementById('assignmentModal')).show();
+}
+
+function openImportQuestionModal(quizId, quizTitle) {
+    document.getElementById('dashImportForm').action = '<?= site_url('dashboard/pembelajaran/kurikulum/quiz/') ?>' + quizId + '/soal/import';
+    document.getElementById('dashTemplateDownloadLink').href = '<?= site_url('dashboard/pembelajaran/kurikulum/quiz/') ?>' + quizId + '/soal/template';
+    document.getElementById('dashImportSubtitle').innerText = quizTitle || 'Ujian';
+    document.getElementById('dash_question_file').value = '';
+    new bootstrap.Modal(document.getElementById('dashboardImportQuestionsModal')).show();
 }
 
 function toggleAssignmentModuleSelect(level) {

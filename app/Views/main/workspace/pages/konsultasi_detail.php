@@ -130,9 +130,9 @@ $statusLabel = match ($ticket['status']) {
                 <div class="d-flex flex-column gap-3 mb-4">
                     <?php foreach ($threads as $th): ?>
                         <?php
-                        $isAdmin = ($th['sender_type'] ?? '') === 'admin';
+                        $isThAdmin = ($th['sender_type'] ?? '') === 'admin';
                         ?>
-                        <?php if ($isAdmin): ?>
+                        <?php if ($isThAdmin): ?>
                             <!-- Tanggapan Helpdesk (Admin) -->
                             <div class="p-3 rounded-4 border bg-primary-subtle border-primary-subtle ms-3 shadow-xs">
                                 <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom flex-wrap gap-2">
@@ -182,33 +182,55 @@ $statusLabel = match ($ticket['status']) {
                 </div>
             <?php endif; ?>
 
-            <!-- 3. Form Kirim Tanggapan Dua Arah -->
-            <div class="p-3 rounded-4 border bg-light">
-                <h6 class="fw-bold text-dark small mb-2">
-                    <i class="fas fa-reply text-primary me-1"></i>Kirim Balasan / Pertanyaan Tambahan
-                </h6>
-                <p class="text-muted text-xs mb-3">
-                    Gunakan kolom di bawah ini untuk saling membalas pesan, memberikan klarifikasi, atau menanyakan hal terkait lainnya langsung ke tim Helpdesk.
-                </p>
-
-                <form action="<?= route_to('workspace.consultation.reply', $ticket['ticket_number']) ?>" method="post">
-                    <?= csrf_field() ?>
-                    <div class="mb-3">
-                        <textarea name="reply_message" class="form-control rounded-3 text-sm" rows="4" placeholder="Tuliskan balasan, klarifikasi, atau tanggapan Anda di sini..." required></textarea>
-                        <small class="text-muted text-2xs">Minimal 3 karakter.</small>
+            <?php if ($ticket['status'] === 'closed' && ! $isAdmin): ?>
+                <!-- Notifikasi Tiket Selesai / Ditutup (View-Only untuk Pengirim) -->
+                <div class="p-4 rounded-4 border bg-white shadow-xs text-center">
+                    <div class="w-48-px h-48-px rounded-circle bg-secondary-subtle text-secondary mx-auto d-flex align-items-center justify-content-center mb-3">
+                        <i class="fas fa-lock fa-lg"></i>
                     </div>
+                    <h6 class="fw-bold text-dark mb-1">Tiket Telah Selesai & Ditutup</h6>
+                    <p class="text-muted text-xs mb-3" style="max-width: 520px; margin-inline: auto;">
+                        Tiket konsultasi ini telah ditutup oleh Administrator. Seluruh riwayat percakapan di atas bersifat <strong>hanya lihat (view only)</strong>. Apabila Anda memiliki pertanyaan atau kendala baru, silakan ajukan tiket konsultasi baru.
+                    </p>
+                    <a href="<?= route_to('workspace.consultation.index') ?>" class="btn btn-outline-primary radius-8 px-3 py-1-5 text-xs fw-semibold">
+                        <i class="fas fa-plus me-1"></i> Ajukan Tiket Baru
+                    </a>
+                </div>
+            <?php else: ?>
+                <!-- 3. Form Kirim Tanggapan Dua Arah -->
+                <div class="p-3 rounded-4 border bg-light">
+                    <?php if ($ticket['status'] === 'closed' && $isAdmin): ?>
+                        <div class="alert alert-warning py-2 px-3 rounded-3 small mb-3">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Mode Administrator:</strong> Tiket ini berstatus <em>closed</em>. Sebagai pengelola/admin, Anda tetap dapat mengirimkan balasan tambahan ke pemohon.
+                        </div>
+                    <?php endif; ?>
+                    <h6 class="fw-bold text-dark small mb-2">
+                        <i class="fas fa-reply text-primary me-1"></i>Kirim Balasan / Pertanyaan Tambahan
+                    </h6>
+                    <p class="text-muted text-xs mb-3">
+                        Gunakan kolom di bawah ini untuk saling membalas pesan, memberikan klarifikasi, atau menanyakan hal terkait lainnya langsung ke tim Helpdesk.
+                    </p>
 
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <small class="text-muted text-2xs">
-                            <i class="fas fa-shield-alt text-primary me-1"></i>Percakapan tercatat secara resmi pada log tiket PBJ Lampung.
-                        </small>
-                        <button type="submit" class="btn btn-primary radius-8 px-4 py-2 fw-bold d-inline-flex align-items-center gap-1">
-                            <i class="fas fa-paper-plane me-1"></i>
-                            <span>Kirim Tanggapan</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
+                    <form action="<?= route_to('workspace.consultation.reply', $ticket['ticket_number']) ?>" method="post">
+                        <?= csrf_field() ?>
+                        <div class="mb-3">
+                            <textarea name="reply_message" class="form-control rounded-3 text-sm" rows="4" placeholder="Tuliskan balasan, klarifikasi, atau tanggapan Anda di sini..." required></textarea>
+                            <small class="text-muted text-2xs">Minimal 3 karakter.</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <small class="text-muted text-2xs">
+                                <i class="fas fa-shield-alt text-primary me-1"></i>Percakapan tercatat secara resmi pada log tiket PBJ Lampung.
+                            </small>
+                            <button type="submit" class="btn btn-primary radius-8 px-4 py-2 fw-bold d-inline-flex align-items-center gap-1">
+                                <i class="fas fa-paper-plane me-1"></i>
+                                <span>Kirim Tanggapan</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 

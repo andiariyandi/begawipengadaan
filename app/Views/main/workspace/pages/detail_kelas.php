@@ -15,13 +15,22 @@ $pct         = (float) ($state['overall_percent'] ?? 0);
 $finalScore  = $enrollment['final_score'] ?? null;
 
 $fmtCover = static function ($row): string {
-    if (! empty($row['course_cover_url'])) {
-        return esc($row['course_cover_url']);
+    $candidates = [
+        $row['class_cover_url'] ?? null,
+        $row['cover_url'] ?? null,
+        $row['course_cover_url'] ?? null,
+        $row['cover_path'] ?? null,
+    ];
+    foreach ($candidates as $cand) {
+        if (! empty($cand) && is_string($cand)) {
+            $cand = trim($cand);
+            if (str_starts_with($cand, 'http://') || str_starts_with($cand, 'https://')) {
+                return $cand;
+            }
+            return base_url($cand);
+        }
     }
-    if (! empty($row['cover_path'])) {
-        return base_url(esc($row['cover_path']));
-    }
-    return base_url('assets/fistudy/images/resources/course-1-1.png');
+    return base_url('assets/main/images/resources/course-details-img-1.jpg');
 };
 
 $methodBadge = static function (?string $method): array {
@@ -81,7 +90,7 @@ $trainerRoleLabel = static function (?string $role): string {
     <div class="row g-4 align-items-center mb-3">
         <div class="col-md-3 col-xl-2">
             <div class="rounded-4 overflow-hidden shadow-xs border bg-light" style="aspect-ratio: 16/10;">
-                <img src="<?= $fmtCover($ctx) ?>" alt="<?= esc($ctx['course_title'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                <img src="<?= $fmtCover($ctx) ?>" alt="<?= esc($ctx['course_title'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/resources/course-details-img-1.jpg') ?>';">
             </div>
         </div>
         <div class="col-md-9 col-xl-10">

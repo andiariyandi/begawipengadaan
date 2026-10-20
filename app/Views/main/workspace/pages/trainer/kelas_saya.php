@@ -6,13 +6,22 @@
 $classes = $classes ?? [];
 
 $fmtCover = static function ($row): string {
-    if (! empty($row['course_cover_url'])) {
-        return esc($row['course_cover_url']);
+    $candidates = [
+        $row['class_cover_url'] ?? null,
+        $row['cover_url'] ?? null,
+        $row['course_cover_url'] ?? null,
+        $row['cover_path'] ?? null,
+    ];
+    foreach ($candidates as $cand) {
+        if (! empty($cand) && is_string($cand)) {
+            $cand = trim($cand);
+            if (str_starts_with($cand, 'http://') || str_starts_with($cand, 'https://')) {
+                return $cand;
+            }
+            return base_url($cand);
+        }
     }
-    if (! empty($row['cover_path'])) {
-        return base_url(esc($row['cover_path']));
-    }
-    return base_url('assets/fistudy/images/resources/course-1-1.png');
+    return base_url('assets/main/images/resources/course-details-img-1.jpg');
 };
 
 $methodBadge = static function (?string $method): array {
@@ -99,7 +108,7 @@ $levelLabel = static function (?string $lvl): string {
                     <article class="card border-0 shadow-sm rounded-4 h-100 bg-white overflow-hidden transition-all bg-light-hover d-flex flex-column">
                         <!-- Top Cover Banner -->
                         <div class="position-relative overflow-hidden bg-light" style="height: 180px;">
-                            <img src="<?= $fmtCover($c) ?>" alt="<?= esc($c['name'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/fistudy/images/resources/course-1-1.png') ?>';">
+                            <img src="<?= $fmtCover($c) ?>" alt="<?= esc($c['name'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/resources/course-details-img-1.jpg') ?>';">
                             <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(180deg, rgba(8, 47, 92, 0.4) 0%, rgba(8, 47, 92, 0.8) 100%);"></div>
                             
                             <!-- Badges Overlay -->

@@ -208,6 +208,16 @@ if (! function_exists('parse_class_batch_data')) {
     }
 }
 
+if (! function_exists('parse_class_batch_description')) {
+    /**
+     * Alias for parse_class_batch_data.
+     */
+    function parse_class_batch_description(?string $rawDescription): array
+    {
+        return parse_class_batch_data($rawDescription);
+    }
+}
+
 if (! function_exists('build_class_batch_description')) {
     /**
      * Mengemas deskripsi teks dan metadata tahapan batch ke dalam satu string tersimpan
@@ -247,3 +257,58 @@ if (! function_exists('build_class_batch_description')) {
         return $cleanDescription . $marker;
     }
 }
+
+if (! function_exists('parse_assignment_guide')) {
+    /**
+     * Mengekstrak metadata file petunjuk tugas PDF dari kolom instructions tanpa migrasi tabel.
+     *
+     * @return array{clean_instructions: string, guide_url: ?string, guide_filename: ?string, guide_size: ?int}
+     */
+    function parse_assignment_guide(?string $rawInstructions): array
+    {
+        $rawInstructions = (string) $rawInstructions;
+        $pattern = '/<!--ASSIGNMENT_GUIDE:(.*?):ASSIGNMENT_GUIDE-->/s';
+        if (preg_match($pattern, $rawInstructions, $matches)) {
+            $cleanInstructions = trim(preg_replace($pattern, '', $rawInstructions));
+            $payload = json_decode(trim($matches[1]), true);
+            if (is_array($payload)) {
+                return [
+                    'clean_instructions' => $cleanInstructions,
+                    'guide_url'          => ! empty($payload['url']) ? (string) $payload['url'] : null,
+                    'guide_filename'     => ! empty($payload['filename']) ? (string) $payload['filename'] : null,
+                    'guide_size'         => isset($payload['size']) ? (int) $payload['size'] : null,
+                ];
+            }
+        }
+
+        return [
+            'clean_instructions' => $rawInstructions,
+            'guide_url'          => null,
+            'guide_filename'     => null,
+            'guide_size'         => null,
+        ];
+    }
+}
+
+if (! function_exists('build_assignment_instructions')) {
+    /**
+     * Membungkus teks instruksi tugas dan metadata file petunjuk PDF ke dalam string instructions.
+     */
+    function build_assignment_instructions(string $cleanInstructions, ?string $guideUrl = null, ?string $guideFilename = null, ?int $guideSize = null): string
+    {
+        $cleanInstructions = trim($cleanInstructions);
+        if (empty($guideUrl)) {
+            return $cleanInstructions;
+        }
+
+        $payload = [
+            'url'      => $guideUrl,
+            'filename' => $guideFilename ?: basename($guideUrl),
+            'size'     => $guideSize,
+        ];
+
+        $marker = "\n\n<!--ASSIGNMENT_GUIDE:" . json_encode($payload, JSON_UNESCAPED_UNICODE) . ":ASSIGNMENT_GUIDE-->";
+        return $cleanInstructions . $marker;
+    }
+}
+

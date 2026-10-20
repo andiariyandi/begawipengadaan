@@ -14,6 +14,7 @@ use App\Models\Learning\LessonModel;
 use App\Models\Learning\QuestionModel;
 use App\Models\Learning\QuestionOptionModel;
 use App\Models\Learning\QuizModel;
+use App\Services\Learning\QuizQuestionImportService;
 use App\Services\LearningService;
 use Throwable;
 
@@ -212,7 +213,7 @@ class TrainerController extends BaseController
         $db     = db_connect();
 
         $items = $db->table('class_trainers ct')
-            ->select('ct.class_id, ct.assigned_at, ct.status AS ct_status, ct.role AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, lc.learning_method, lc.location_or_link, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.summary AS course_summary, courses.level AS course_level, courses.cover_url AS course_cover_url, fa.path AS cover_path, programs.title AS program_title')
+            ->select('ct.class_id, ct.assigned_at, ct.status AS ct_status, ct.role AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, lc.learning_method, lc.location_or_link, lc.cover_url AS class_cover_url, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.summary AS course_summary, courses.level AS course_level, courses.cover_url AS course_cover_url, fa.path AS cover_path, programs.title AS program_title')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->join('courses', 'courses.id = lc.course_id')
             ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
@@ -224,7 +225,7 @@ class TrainerController extends BaseController
 
         if ($items === [] && $this->isPrivilegedOperator()) {
             $items = $db->table('learning_classes lc')
-                ->select('lc.id AS class_id, lc.created_at AS assigned_at, lc.status AS ct_status, "primary" AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, lc.learning_method, lc.location_or_link, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.summary AS course_summary, courses.level AS course_level, courses.cover_url AS course_cover_url, fa.path AS cover_path, programs.title AS program_title')
+                ->select('lc.id AS class_id, lc.created_at AS assigned_at, lc.status AS ct_status, "primary" AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, lc.learning_method, lc.location_or_link, lc.cover_url AS class_cover_url, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.summary AS course_summary, courses.level AS course_level, courses.cover_url AS course_cover_url, fa.path AS cover_path, programs.title AS program_title')
                 ->join('courses', 'courses.id = lc.course_id')
                 ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
                 ->join('programs', 'programs.id = courses.program_id', 'left')
@@ -364,6 +365,7 @@ class TrainerController extends BaseController
             $aid = (int) $asg['id'];
             $asg['total_submissions'] = (int) $db->table('assignment_submissions')->where('assignment_id', $aid)->countAllResults();
             $asg['pending_reviews']   = (int) $db->table('assignment_submissions')->where('assignment_id', $aid)->whereIn('status', ['submitted', 'in_review'])->countAllResults();
+            $asg['guide']             = parse_assignment_guide($asg['instructions'] ?? '');
         }
         unset($asg);
 
@@ -1055,6 +1057,55 @@ class TrainerController extends BaseController
         ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Tambah Soal'));
     }
 
+    public function downloadQuestionTemplate(string $classId, string $quizId)
+    {
+        $userId = $this->userId();
+        $this->assertTrainerOf($userId, (int) $classId);
+
+        $service = new QuizQuestionImportService();
+        $csvContent = $service->generateTemplateCsv();
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="template_soal_pilihan_ganda_ujian.csv"')
+            ->setBody($csvContent);
+    }
+
+    public function importQuestions(string $classId, string $quizId)
+    {
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        $quizIdInt = (int) $quizId;
+        $this->assertTrainerOf($userId, $classIdInt);
+
+        $quiz = (new QuizModel())->where('id', $quizIdInt)->where('class_id', $classIdInt)->first();
+        if (! $quiz) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Ujian tidak ditemukan.');
+        }
+
+        $file = $this->request->getFile('question_file');
+        if (! $file || ! $file->isValid()) {
+            return redirect()->back()->with('error', 'Harap pilih berkas soal (.csv atau .xlsx) untuk diimpor.');
+        }
+
+        $ext = strtolower($file->getClientExtension());
+        if (! in_array($ext, ['csv', 'xlsx', 'txt'], true)) {
+            return redirect()->back()->with('error', 'Format berkas tidak valid. Harap gunakan berkas CSV (.csv) atau Excel (.xlsx).');
+        }
+
+        $service = new QuizQuestionImportService();
+        try {
+            $tempPath = $file->getTempName();
+            $questions = $service->parseFile($tempPath, $ext);
+            $count = $service->importQuestionsToQuiz($quizIdInt, $questions);
+        } catch (Throwable $e) {
+            return redirect()->back()->with('error', 'Gagal memproses berkas impor: ' . $e->getMessage());
+        }
+
+        return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, $quizId))
+            ->with('success', "Berhasil mengimpor {$count} butir soal pilihan ganda. Seluruh soal lama telah ditimpa sesuai berkas impor.");
+    }
+
     public function deleteQuestion(string $classId, string $quizId, string $questionId)
     {
         $userId = $this->userId();
@@ -1172,12 +1223,52 @@ class TrainerController extends BaseController
             $dueAt    = $this->request->getPost('due_at') ? date('Y-m-d H:i:s', strtotime((string) $this->request->getPost('due_at'))) : null;
             $status   = (string) ($this->request->getPost('status') ?: 'published');
 
+            $guideUrl = null;
+            $guideFilename = null;
+            $guideSize = null;
+
+            $guideFile = $this->request->getFile('guide_file');
+            if ($guideFile && $guideFile->isValid() && ! $guideFile->hasMoved()) {
+                $ext = strtolower($guideFile->getClientExtension());
+                $mime = $guideFile->getClientMimeType();
+                if ($ext !== 'pdf' && ! str_contains($mime, 'pdf')) {
+                    return redirect()->back()->withInput()->with('error', 'File petunjuk tugas wajib berformat PDF (.pdf).');
+                }
+
+                $targetDir = FCPATH . 'uploads/learning/assignments/';
+                if (! is_dir($targetDir)) {
+                    mkdir($targetDir, 0755, true);
+                }
+                $newFilename = 'guide_' . time() . '_' . bin2hex(random_bytes(4)) . '.pdf';
+                $guideFile->move($targetDir, $newFilename);
+                $guideUrl = 'uploads/learning/assignments/' . $newFilename;
+                $guideFilename = $guideFile->getClientName();
+                $guideSize = $guideFile->getSize();
+
+                db_connect()->table('file_assets')->insert([
+                    'user_id'        => $userId,
+                    'collection'     => 'assignment_guides',
+                    'filename'       => $newFilename,
+                    'original_name'  => $guideFilename,
+                    'mime_type'      => 'application/pdf',
+                    'size_bytes'     => $guideSize,
+                    'path'           => $guideUrl,
+                    'visibility'     => 'public',
+                    'storage_driver' => 'local',
+                    'created_at'     => date('Y-m-d H:i:s'),
+                    'updated_at'     => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            $cleanInstructions = (string) $this->request->getPost('instructions');
+            $finalInstructions = build_assignment_instructions($cleanInstructions, $guideUrl, $guideFilename, $guideSize);
+
             try {
                 (new AssignmentModel())->insert([
                     'class_id'     => (int) $classId,
                     'lesson_id'    => $lessonId,
                     'title'        => $title,
-                    'instructions' => (string) $this->request->getPost('instructions'),
+                    'instructions' => $finalInstructions,
                     'due_at'       => $dueAt,
                     'is_required'  => $this->request->getPost('is_required') ? 1 : 0,
                     'max_attempts' => max(1, (int) ($this->request->getPost('max_attempts') ?: 1)),
@@ -1193,11 +1284,12 @@ class TrainerController extends BaseController
         }
 
         return $this->render('Buat Tugas Baru', 'trainer/assignment_form', [
-            'classId'    => (int) $classId,
-            'mode'       => 'create',
-            'assignment' => null,
-            'lessons'    => $lessons,
-            'className'  => $this->className((int) $classId),
+            'classId'       => (int) $classId,
+            'mode'          => 'create',
+            'assignment'    => null,
+            'existingGuide' => null,
+            'lessons'       => $lessons,
+            'className'     => $this->className((int) $classId),
         ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Buat Tugas'));
     }
 
@@ -1210,6 +1302,7 @@ class TrainerController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Tugas tidak ditemukan.');
         }
         $lessons = $this->loadLessonsForClass((int) $classId);
+        $existingGuide = parse_assignment_guide($assignment['instructions'] ?? '');
 
         if ($this->request->getMethod() === 'POST') {
             $title = trim((string) $this->request->getPost('title'));
@@ -1221,10 +1314,56 @@ class TrainerController extends BaseController
             $dueAt    = $this->request->getPost('due_at') ? date('Y-m-d H:i:s', strtotime((string) $this->request->getPost('due_at'))) : null;
             $status   = (string) ($this->request->getPost('status') ?: $assignment['status']);
 
+            $guideUrl = $existingGuide['guide_url'];
+            $guideFilename = $existingGuide['guide_filename'];
+            $guideSize = $existingGuide['guide_size'];
+
+            if ($this->request->getPost('remove_guide_file')) {
+                $guideUrl = null;
+                $guideFilename = null;
+                $guideSize = null;
+            }
+
+            $guideFile = $this->request->getFile('guide_file');
+            if ($guideFile && $guideFile->isValid() && ! $guideFile->hasMoved()) {
+                $ext = strtolower($guideFile->getClientExtension());
+                $mime = $guideFile->getClientMimeType();
+                if ($ext !== 'pdf' && ! str_contains($mime, 'pdf')) {
+                    return redirect()->back()->withInput()->with('error', 'File petunjuk tugas wajib berformat PDF (.pdf).');
+                }
+
+                $targetDir = FCPATH . 'uploads/learning/assignments/';
+                if (! is_dir($targetDir)) {
+                    mkdir($targetDir, 0755, true);
+                }
+                $newFilename = 'guide_' . time() . '_' . bin2hex(random_bytes(4)) . '.pdf';
+                $guideFile->move($targetDir, $newFilename);
+                $guideUrl = 'uploads/learning/assignments/' . $newFilename;
+                $guideFilename = $guideFile->getClientName();
+                $guideSize = $guideFile->getSize();
+
+                db_connect()->table('file_assets')->insert([
+                    'user_id'        => $userId,
+                    'collection'     => 'assignment_guides',
+                    'filename'       => $newFilename,
+                    'original_name'  => $guideFilename,
+                    'mime_type'      => 'application/pdf',
+                    'size_bytes'     => $guideSize,
+                    'path'           => $guideUrl,
+                    'visibility'     => 'public',
+                    'storage_driver' => 'local',
+                    'created_at'     => date('Y-m-d H:i:s'),
+                    'updated_at'     => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            $cleanInstructions = (string) $this->request->getPost('instructions');
+            $finalInstructions = build_assignment_instructions($cleanInstructions, $guideUrl, $guideFilename, $guideSize);
+
             (new AssignmentModel())->update((int) $assignmentId, [
                 'lesson_id'    => $lessonId,
                 'title'        => $title,
-                'instructions' => (string) $this->request->getPost('instructions'),
+                'instructions' => $finalInstructions,
                 'due_at'       => $dueAt,
                 'is_required'  => $this->request->getPost('is_required') ? 1 : 0,
                 'max_attempts' => max(1, (int) ($this->request->getPost('max_attempts') ?: 1)),
@@ -1236,11 +1375,12 @@ class TrainerController extends BaseController
         }
 
         return $this->render('Ubah Tugas', 'trainer/assignment_form', [
-            'classId'    => (int) $classId,
-            'mode'       => 'edit',
-            'assignment' => $assignment,
-            'lessons'    => $lessons,
-            'className'  => $this->className((int) $classId),
+            'classId'       => (int) $classId,
+            'mode'          => 'edit',
+            'assignment'    => $assignment,
+            'existingGuide' => $existingGuide,
+            'lessons'       => $lessons,
+            'className'     => $this->className((int) $classId),
         ], 'trainer', $this->trainerBreadcrumb((int) $classId, 'Ubah Tugas'));
     }
 
@@ -1413,6 +1553,257 @@ class TrainerController extends BaseController
     public function participants(string $classId)
     {
         return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=peserta');
+    }
+
+    public function approveParticipant(string $classId, string $enrollmentId)
+    {
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        $this->assertTrainerOf($userId, $classIdInt);
+
+        $db = db_connect();
+        $enrollment = $db->table('enrollments e')
+            ->select('e.*, u.name AS user_name')
+            ->join('users u', 'u.id = e.user_id')
+            ->where(['e.id' => (int) $enrollmentId, 'e.class_id' => $classIdInt])
+            ->get()->getRowArray();
+
+        if (! $enrollment) {
+            return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=peserta')
+                ->with('error', 'Peserta tidak ditemukan pada kelas ini.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $db->table('enrollments')->where('id', (int) $enrollmentId)->update([
+            'status'       => 'active',
+            'activated_at' => $now,
+            'cancelled_at' => null,
+            'withdrawn_at' => null,
+            'updated_at'   => $now,
+        ]);
+
+        $name = $enrollment['user_name'] ?? 'Peserta';
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=peserta')
+            ->with('success', "Pendaftaran {$name} berhasil disetujui dan statusnya diaktifkan.");
+    }
+
+    public function rejectParticipant(string $classId, string $enrollmentId)
+    {
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        $this->assertTrainerOf($userId, $classIdInt);
+
+        $db = db_connect();
+        $enrollment = $db->table('enrollments e')
+            ->select('e.*, u.name AS user_name')
+            ->join('users u', 'u.id = e.user_id')
+            ->where(['e.id' => (int) $enrollmentId, 'e.class_id' => $classIdInt])
+            ->get()->getRowArray();
+
+        if (! $enrollment) {
+            return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=peserta')
+                ->with('error', 'Peserta tidak ditemukan pada kelas ini.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $db->table('enrollments')->where('id', (int) $enrollmentId)->update([
+            'status'       => 'cancelled',
+            'cancelled_at' => $now,
+            'activated_at' => null,
+            'updated_at'   => $now,
+        ]);
+
+        $name = $enrollment['user_name'] ?? 'Peserta';
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=peserta')
+            ->with('success', "Pendaftaran {$name} telah ditolak.");
+    }
+
+    public function kickParticipant(string $classId, string $enrollmentId)
+    {
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        $this->assertTrainerOf($userId, $classIdInt);
+
+        $db = db_connect();
+        $enrollment = $db->table('enrollments e')
+            ->select('e.*, u.name AS user_name')
+            ->join('users u', 'u.id = e.user_id')
+            ->where(['e.id' => (int) $enrollmentId, 'e.class_id' => $classIdInt])
+            ->get()->getRowArray();
+
+        if (! $enrollment) {
+            return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=peserta')
+                ->with('error', 'Peserta tidak ditemukan pada kelas ini.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $db->table('enrollments')->where('id', (int) $enrollmentId)->update([
+            'status'       => 'withdrawn',
+            'withdrawn_at' => $now,
+            'updated_at'   => $now,
+        ]);
+
+        $name = $enrollment['user_name'] ?? 'Peserta';
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=peserta')
+            ->with('success', "Peserta {$name} berhasil dikeluarkan dari kelas.");
+    }
+
+    public function reactivateParticipant(string $classId, string $enrollmentId)
+    {
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        $this->assertTrainerOf($userId, $classIdInt);
+
+        $db = db_connect();
+        $enrollment = $db->table('enrollments e')
+            ->select('e.*, u.name AS user_name')
+            ->join('users u', 'u.id = e.user_id')
+            ->where(['e.id' => (int) $enrollmentId, 'e.class_id' => $classIdInt])
+            ->get()->getRowArray();
+
+        if (! $enrollment) {
+            return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=peserta')
+                ->with('error', 'Peserta tidak ditemukan pada kelas ini.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $db->table('enrollments')->where('id', (int) $enrollmentId)->update([
+            'status'       => 'active',
+            'activated_at' => $now,
+            'withdrawn_at' => null,
+            'cancelled_at' => null,
+            'updated_at'   => $now,
+        ]);
+
+        $name = $enrollment['user_name'] ?? 'Peserta';
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=peserta')
+            ->with('success', "Peserta {$name} berhasil diaktifkan kembali ke dalam kelas.");
+    }
+
+    public function editClass(string $classId)
+    {
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        $this->assertTrainerOf($userId, $classIdInt);
+
+        $db = db_connect();
+        $class = $db->table('learning_classes lc')
+            ->select('lc.*, courses.title AS course_title, courses.slug AS course_slug, courses.level AS course_level, courses.duration_minutes, programs.title AS program_title, fa.path AS cover_path')
+            ->join('courses', 'courses.id = lc.course_id')
+            ->join('file_assets fa', 'fa.id = lc.cover_file_id', 'left')
+            ->join('programs', 'programs.id = courses.program_id', 'left')
+            ->where('lc.id', $classIdInt)->get()->getRowArray();
+
+        if (! $class) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas tidak ditemukan.');
+        }
+
+        $parsedDesc = parse_class_batch_data($class['description'] ?? '');
+
+        return $this->render('Ubah Detail Kelas', 'trainer/class_edit', [
+            'class'      => $class,
+            'parsedDesc' => $parsedDesc,
+            'className'  => $class['name'] ?? ('Kelas #' . $classIdInt),
+        ], 'trainer', $this->trainerBreadcrumb($classIdInt, 'Ubah Detail Kelas'));
+    }
+
+    public function updateClass(string $classId)
+    {
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        $this->assertTrainerOf($userId, $classIdInt);
+
+        $db = db_connect();
+        $class = $db->table('learning_classes')->where('id', $classIdInt)->get()->getRowArray();
+        if (! $class) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas tidak ditemukan.');
+        }
+
+        $name = trim((string) $this->request->getPost('name'));
+        if ($name === '') {
+            return redirect()->back()->withInput()->with('error', 'Nama kelas wajib diisi.');
+        }
+
+        $code = trim((string) ($this->request->getPost('code') ?: $class['code']));
+        $learningMethod = (string) ($this->request->getPost('learning_method') ?: 'online');
+        $locationOrLink = trim((string) $this->request->getPost('location_or_link'));
+        $targetAudience = trim((string) $this->request->getPost('target_audience'));
+        $status = (string) ($this->request->getPost('status') ?: $class['status']);
+
+        $startAt = $this->request->getPost('start_at') ? date('Y-m-d H:i:s', strtotime((string) $this->request->getPost('start_at'))) : null;
+        $endAt = $this->request->getPost('end_at') ? date('Y-m-d H:i:s', strtotime((string) $this->request->getPost('end_at'))) : null;
+        $regOpenAt = $this->request->getPost('registration_open_at') ? date('Y-m-d H:i:s', strtotime((string) $this->request->getPost('registration_open_at'))) : null;
+        $regCloseAt = $this->request->getPost('registration_close_at') ? date('Y-m-d H:i:s', strtotime((string) $this->request->getPost('registration_close_at'))) : null;
+
+        $capacity = max(0, (int) $this->request->getPost('capacity'));
+        $passingGrade = max(0.0, min(100.0, (float) ($this->request->getPost('passing_grade') ?: 70.0)));
+        $certificateEnabled = $this->request->getPost('certificate_enabled') ? 1 : 0;
+        $quizWeight = (float) ($this->request->getPost('quiz_weight') ?? 20.0);
+        $assignmentWeight = (float) ($this->request->getPost('assignment_weight') ?? 40.0);
+        $postTestWeight = (float) ($this->request->getPost('post_test_weight') ?? 40.0);
+
+        // Dynamic Batch Stages
+        $rawStages = (array) $this->request->getPost('stages');
+        $stagesSubtitle = (string) $this->request->getPost('stages_subtitle');
+        $customDurationMinutes = $this->request->getPost('custom_duration_minutes') ? (int) $this->request->getPost('custom_duration_minutes') : null;
+        $cleanDesc = (string) $this->request->getPost('description');
+        $finalDescription = build_class_batch_description($cleanDesc, $rawStages, $stagesSubtitle, $customDurationMinutes);
+
+        $updateData = [
+            'name'                  => $name,
+            'code'                  => $code,
+            'learning_method'       => $learningMethod,
+            'location_or_link'      => $locationOrLink,
+            'target_audience'       => $targetAudience,
+            'description'           => $finalDescription,
+            'status'                => $status,
+            'start_at'              => $startAt,
+            'end_at'                => $endAt,
+            'registration_open_at'  => $regOpenAt,
+            'registration_close_at' => $regCloseAt,
+            'capacity'              => $capacity,
+            'passing_grade'         => $passingGrade,
+            'certificate_enabled'   => $certificateEnabled,
+            'quiz_weight'           => $quizWeight,
+            'assignment_weight'     => $assignmentWeight,
+            'post_test_weight'      => $postTestWeight,
+            'updated_by'            => $userId,
+            'updated_at'            => date('Y-m-d H:i:s'),
+        ];
+
+        // Cover image upload
+        $coverFile = $this->request->getFile('cover_image');
+        if ($coverFile && $coverFile->isValid() && ! $coverFile->hasMoved()) {
+            $targetDir = FCPATH . 'uploads/learning/covers/';
+            if (! is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+            $newFilename = 'class_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $coverFile->getClientExtension();
+            $coverFile->move($targetDir, $newFilename);
+            $coverUrl = 'uploads/learning/covers/' . $newFilename;
+
+            $db->table('file_assets')->insert([
+                'user_id'         => $userId,
+                'collection'      => 'class_covers',
+                'filename'        => $newFilename,
+                'original_name'   => $coverFile->getClientName(),
+                'mime_type'       => $coverFile->getClientMimeType(),
+                'size_bytes'      => $coverFile->getSize(),
+                'path'            => $coverUrl,
+                'visibility'      => 'public',
+                'storage_driver'  => 'local',
+                'created_at'      => date('Y-m-d H:i:s'),
+                'updated_at'      => date('Y-m-d H:i:s'),
+            ]);
+            $assetId = (int) $db->insertID();
+            $updateData['cover_file_id'] = $assetId > 0 ? $assetId : null;
+            $updateData['cover_url'] = $coverUrl;
+        }
+
+        $db->table('learning_classes')->where('id', $classIdInt)->update($updateData);
+
+        return redirect()->to(route_to('workspace.trainer.class.detail', $classId))
+            ->with('success', 'Informasi detail kelas berhasil diperbarui.');
     }
 
     public function progress(string $classId)

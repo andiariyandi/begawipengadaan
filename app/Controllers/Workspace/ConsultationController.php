@@ -29,6 +29,22 @@ class ConsultationController extends BaseController
         return null;
     }
 
+    /**
+     * Service categories shared between Workspace Helpdesk and Landing Page Contact form.
+     */
+    public static function getCategories(): array
+    {
+        return [
+            'Konsultasi Perencanaan Pengadaan',
+            'Konsultasi E-Katalog & Toko Daring',
+            'Konsultasi Pemilihan Penyedia / Tender',
+            'Konsultasi Kontrak & SPMK',
+            'Bimbingan Teknis & Pelatihan PBJ',
+            'Aspirasi, Saran & Pengaduan Layanan',
+            'Lainnya / Umum',
+        ];
+    }
+
     public function index()
     {
         if ($redirect = $this->checkAuth()) {
@@ -59,15 +75,7 @@ class ConsultationController extends BaseController
         unset($t);
 
         // Service categories for new ticket form modal
-        $categories = [
-            'Konsultasi Perencanaan Pengadaan',
-            'Konsultasi E-Katalog & Toko Daring',
-            'Konsultasi Pemilihan Penyedia / Tender',
-            'Konsultasi Kontrak & SPMK',
-            'Bimbingan Teknis & Pelatihan PBJ',
-            'Aspirasi, Saran & Pengaduan Layanan',
-            'Lainnya / Umum',
-        ];
+        $categories = self::getCategories();
 
         return view('main/workspace/pages/konsultasi_index', [
             'title'          => 'Konsultasi & Tiket Saya | Workspace BegawiPengadaan',
@@ -169,6 +177,12 @@ class ConsultationController extends BaseController
 
         if (! $isOwner && ! $isAdmin) {
             return redirect()->to(route_to('workspace.consultation.index'))->with('error', 'Akses ditolak.');
+        }
+
+        // Closed ticket response restriction - view only for workspace sender/non-admin
+        if (! $isAdmin && in_array($ticket['status'], ['closed', ContactMessageModel::STATUS_CLOSED], true)) {
+            return redirect()->to(route_to('workspace.consultation.detail', $ticket['ticket_number']))
+                ->with('error', 'Tiket konsultasi ini telah ditutup oleh Administrator. Anda hanya dapat melihat riwayat percakapan.');
         }
 
         $message = trim((string) $this->request->getPost('reply_message'));
