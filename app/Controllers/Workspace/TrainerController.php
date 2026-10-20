@@ -1529,7 +1529,9 @@ class TrainerController extends BaseController
                     'created_at'       => $now,
                     'updated_at'       => $now,
                 ];
-                $fileId = (int) db_connect()->table('file_assets')->insert($fileRow, true);
+                $db = db_connect();
+                $db->table('file_assets')->insert($fileRow);
+                $fileId = (int) $db->insertID();
             } elseif ($fileId === null && $this->request->getPost('document_label')) {
                 // Fallback register placeholder jika nama dokumen diisi manual
                 $fileId = $this->registerFileAsset((string) $this->request->getPost('document_label'), 'document');
@@ -1546,6 +1548,16 @@ class TrainerController extends BaseController
             $externalUrl = trim((string) $this->request->getPost('external_url'));
             if ($externalUrl === '') {
                 return ['error' => 'URL wajib diisi untuk tipe video atau link.'];
+            }
+        }
+
+        if ($contentType !== 'document') {
+            $fileId = null;
+        } elseif ($fileId !== null) {
+            // Verifikasi integritas FK: pastikan fileId benar-benar ada di tabel file_assets
+            $exists = db_connect()->table('file_assets')->where('id', $fileId)->countAllResults() > 0;
+            if (! $exists) {
+                $fileId = null;
             }
         }
 
@@ -1597,7 +1609,10 @@ class TrainerController extends BaseController
             'created_at'      => $now,
             'updated_at'      => $now,
         ];
-        return (int) db_connect()->table('file_assets')->insert($row, true);
+        $db = db_connect();
+        $db->table('file_assets')->insert($row);
+        $id = (int) $db->insertID();
+        return $id > 0 ? $id : null;
     }
 
     private function isPrivilegedOperator(): bool
