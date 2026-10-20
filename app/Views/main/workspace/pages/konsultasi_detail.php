@@ -56,19 +56,6 @@ $statusLabel = match ($ticket['status']) {
     </div>
 </div>
 
-<?php if ($msg = session()->getFlashdata('success')): ?>
-    <div class="alert alert-success rounded-4 mb-4 d-flex align-items-center gap-2">
-        <i class="fas fa-check-circle fs-5"></i>
-        <div><?= esc($msg) ?></div>
-    </div>
-<?php endif; ?>
-<?php if ($msg = session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger rounded-4 mb-4 d-flex align-items-center gap-2">
-        <i class="fas fa-exclamation-triangle fs-5"></i>
-        <div><?= esc($msg) ?></div>
-    </div>
-<?php endif; ?>
-
 <!-- Tracking Progress Steps Bar -->
 <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mb-4">
     <div class="row text-center g-2 position-relative">

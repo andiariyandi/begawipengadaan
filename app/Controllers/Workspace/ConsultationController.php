@@ -194,6 +194,19 @@ class ConsultationController extends BaseController
             return redirect()->back()->with('error', 'Gagal mengirimkan balasan pesan.');
         }
 
+        // Notifikasi ke admin bila balasan dari pemohon
+        if (! $isAdmin) {
+            try {
+                (new \App\Services\NotificationService())->notifyAdmins(
+                    'ticket_reply',
+                    "Tanggapan Baru untuk Tiket #{$ticket['ticket_number']}",
+                    "{$senderName} telah membalas tiket konsultasi: \"" . mb_strimwidth($message, 0, 100, '...') . "\"",
+                    ['ticket_number' => $ticket['ticket_number'], 'url' => site_url('dashboard/komunikasi/pesan-masuk/detail/' . $ticket['id'])]
+                );
+            } catch (\Throwable) {
+            }
+        }
+
         return redirect()->to(route_to('workspace.consultation.detail', $ticket['ticket_number']))
             ->with('success', 'Balasan pesan Anda berhasil terkirim ke Helpdesk PBJ Lampung.');
     }
@@ -270,6 +283,17 @@ class ConsultationController extends BaseController
                 $insertId,
                 ['ticket_number' => $ticketNumber, 'subject' => (string) $this->request->getPost('subject')]
             );
+
+            // Notifikasi ke admin helpdesk bahwa tiket baru telah dibuat
+            try {
+                (new \App\Services\NotificationService())->notifyAdmins(
+                    'ticket_created',
+                    "Tiket Konsultasi Baru #{$ticketNumber}",
+                    "Permohonan baru dari {$userName}: \"" . (string) $this->request->getPost('subject') . "\"",
+                    ['ticket_number' => $ticketNumber, 'url' => site_url('dashboard/komunikasi/pesan-masuk/detail/' . $insertId)]
+                );
+            } catch (\Throwable) {
+            }
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', 'Gagal membuat tiket konsultasi: ' . $e->getMessage());
         }

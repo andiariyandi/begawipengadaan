@@ -175,6 +175,49 @@ class AdminNotificationTest extends BaseCommand
             $this->assert(str_contains($html, 'sender_name'), "sender_name input present");
         });
 
+        // TEST 8: Workspace - GET /workspace/notifikasi with Filters
+        $this->testModule("Workspace NotificationController::index() & Category Filtering", function () use ($service, $adminId) {
+            // Seed a consultation ticket notification and a learning notification
+            $notifId1 = $service->send($adminId, 'ticket_reply', 'Balasan Tiket PBJ', 'Pesan balasan helpdesk.', ['url' => '/workspace/konsultasi']);
+            $notifId2 = $service->send($adminId, 'class_enrolled', 'Kelas Baru', 'Anda terdaftar kelas.', ['url' => '/workspace/peserta/kelas-saya']);
+
+            $siteUri = new SiteURI(config('App'), 'workspace/notifikasi');
+            $request = new IncomingRequest(config('App'), $siteUri, null, new UserAgent());
+            \Config\Services::injectMock('request', $request);
+
+            $wsController = new \App\Controllers\Workspace\NotificationController();
+            $wsController->initController($request, service('response'), service('logger'));
+
+            $html = $wsController->index();
+            $this->assert(is_string($html) && strlen($html) > 500, "Workspace Notifikasi HTML rendered");
+            $this->assert(str_contains($html, 'Riwayat Pemberitahuan'), "Contains Riwayat Pemberitahuan section");
+            $this->assert(str_contains($html, 'Konsultasi'), "Contains Konsultasi filter tab");
+            $this->assert(str_contains($html, 'Pembelajaran'), "Contains Pembelajaran filter tab");
+            $this->assert(str_contains($html, 'Belum Dibaca'), "Contains Belum Dibaca filter tab");
+
+            // Clean up
+            $service->delete($notifId1);
+            $service->delete($notifId2);
+        });
+
+        // TEST 9: Notification Icons & Format Category Verification
+        $this->testModule("NotificationService::formatCategory() & UI Helpers", function () {
+            $catTicket = NotificationService::formatCategory('ticket_reply');
+            $this->assert($catTicket['label'] === 'Konsultasi & Tiket', "Ticket reply label matches");
+            $this->assert(str_contains($catTicket['fa'], 'fa-comments'), "Ticket reply uses comments icon");
+
+            $catClass = NotificationService::formatCategory('class_enrolled');
+            $this->assert($catClass['label'] === 'Pembelajaran', "Class enrolled label matches");
+            $this->assert(str_contains($catClass['fa'], 'fa-graduation-cap'), "Class enrolled uses cap icon");
+
+            $catCert = NotificationService::formatCategory('certificate_issued');
+            $this->assert($catCert['label'] === 'Penerbitan Sertifikat', "Certificate label matches");
+            $this->assert(str_contains($catCert['fa'], 'fa-award'), "Certificate uses award icon");
+
+            $timeAgo = NotificationService::timeAgo(date('Y-m-d H:i:s'));
+            $this->assert($timeAgo === 'Baru saja', "timeAgo calculates 'Baru saja' for current time");
+        });
+
         // Summary
         CLI::newLine();
         CLI::write("==================================================================", "cyan");

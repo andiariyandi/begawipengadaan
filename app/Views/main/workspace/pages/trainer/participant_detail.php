@@ -37,14 +37,6 @@ $className             = $className ?? 'Kelas';
         </div>
     </div>
 
-    <!-- Alert Notifications -->
-    <?php if (session()->getFlashdata('success')): ?>
-        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
-            <i class="fas fa-check-circle me-2"></i> <?= esc(session()->getFlashdata('success')) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
     <div class="row g-4">
         <!-- Kolom Kiri: Checklist Lesson & Hasil Kuis -->
         <div class="col-12 col-lg-8">

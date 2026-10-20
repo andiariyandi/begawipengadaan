@@ -29,6 +29,14 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
     || in_array('admin', $roles, true)
     || in_array('super_admin', $roles, true);
 $isHomeView = !empty($isHome);
+$headerUserId = (int) (session()->get('user_id') ?: 0);
+$userUnreadNotifCount = 0;
+$latestNotifs = [];
+if ($isLoggedIn && $headerUserId > 0) {
+    $headerNotifService = new \App\Services\NotificationService();
+    $userUnreadNotifCount = $headerNotifService->unreadCount($headerUserId);
+    $latestNotifs = $headerNotifService->getUserNotifications($headerUserId, 5);
+}
 ?>
 <header class="main-header">
 
@@ -129,6 +137,70 @@ $isHomeView = !empty($isHome);
                                 <div class="main-menu__btn-box-2"><a href="<?= route_to('dashboard.auth.register') ?>" class="thm-btn">Daftar</a></div>
                             </div>
                         <?php else: ?>
+                            <div class="main-menu__notif-box dropdown me-2">
+                                <button type="button" class="main-menu__notif-btn" id="headerNotifDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Pemberitahuan Sistem">
+                                    <i class="fas fa-bell" aria-hidden="true"></i>
+                                    <?php if ($userUnreadNotifCount > 0): ?>
+                                        <span class="main-menu__notif-badge"><?= $userUnreadNotifCount > 99 ? '99+' : $userUnreadNotifCount ?></span>
+                                    <?php endif; ?>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end main-menu__notif-dropdown p-0 shadow-lg border-0" aria-labelledby="headerNotifDropdown">
+                                    <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <strong class="text-dark fs-6 mb-0">Notifikasi</strong>
+                                            <?php if ($userUnreadNotifCount > 0): ?>
+                                                <span class="badge bg-danger rounded-pill px-2 py-1" style="font-size: 11px;"><?= $userUnreadNotifCount ?> baru</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php if ($userUnreadNotifCount > 0): ?>
+                                            <form action="<?= route_to('workspace.notifications.read-all') ?>" method="post" class="m-0">
+                                                <?php if (! is_cli()): ?>
+                                                    <?= csrf_field() ?>
+                                                <?php else: ?>
+                                                    <input type="hidden" name="csrf_test_name" value="cli-test-token">
+                                                <?php endif; ?>
+                                                <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none text-primary" style="font-size: 11.5px;">Tandai semua dibaca</button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="notif-dropdown-body" style="max-height: 320px; overflow-y: auto;">
+                                        <?php if (empty($latestNotifs)): ?>
+                                            <div class="text-center py-4 px-3 text-muted">
+                                                <i class="fas fa-bell-slash text-secondary opacity-50 fs-3 mb-2 d-block"></i>
+                                                <p class="small mb-0">Belum ada notifikasi baru.</p>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="list-group list-group-flush">
+                                                <?php foreach ($latestNotifs as $n):
+                                                    $isNUnread = empty($n['read_at']);
+                                                    $nMeta = \App\Services\NotificationService::formatCategory($n['type'] ?? 'system');
+                                                    $nTime = \App\Services\NotificationService::timeAgo($n['created_at'] ?? null);
+                                                    $nData = !empty($n['data']) ? json_decode($n['data'], true) : [];
+                                                    $targetUrl = !empty($nData['url']) ? $nData['url'] : route_to('workspace.notifications');
+                                                ?>
+                                                    <a href="<?= esc($targetUrl) ?>" class="list-group-item list-group-item-action notif-item p-2 px-3 border-bottom <?= $isNUnread ? 'is-unread' : '' ?> d-flex gap-2 align-items-start">
+                                                        <span class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-1" style="width: 28px; height: 28px; background: rgba(12, 90, 166, 0.1);">
+                                                            <i class="<?= esc($nMeta['fa']) ?>" style="font-size: 12px;"></i>
+                                                        </span>
+                                                        <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
+                                                            <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                                                                <strong class="text-truncate text-dark small" style="font-size: 12px;"><?= esc($n['title']) ?></strong>
+                                                                <span class="text-muted text-nowrap" style="font-size: 10px;"><?= esc($nTime) ?></span>
+                                                            </div>
+                                                            <p class="text-muted small mb-0 text-truncate" style="font-size: 11px;"><?= esc($n['body'] ?? '') ?></p>
+                                                        </div>
+                                                    </a>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="p-2 text-center bg-light border-top">
+                                        <a href="<?= route_to('workspace.notifications') ?>" class="text-primary fw-semibold small text-decoration-none">
+                                            Lihat Semua Notifikasi <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="main-menu__user">
                                 <a href="<?= esc($workspaceHome) ?>" class="main-menu__user-trigger" aria-haspopup="true" aria-expanded="false">
                                     <span class="main-menu__user-avatar" aria-hidden="true"><?= esc($accountInitial ?: 'U') ?></span>
@@ -143,7 +215,14 @@ $isHomeView = !empty($isHome);
                                     <li role="none"><a role="menuitem" href="<?= esc($workspaceHome) ?>">Dashboard Workspace</a></li>
                                     <li role="none"><a role="menuitem" href="<?= route_to('workspace.participant.classes') ?>">Kelas Saya</a></li>
                                     <li role="none"><a role="menuitem" href="<?= route_to('workspace.bookmarks.index') ?>">Bookmark</a></li>
-                                    <li role="none"><a role="menuitem" href="<?= route_to('workspace.notifications') ?>">Notifikasi</a></li>
+                                    <li role="none">
+                                        <a role="menuitem" href="<?= route_to('workspace.notifications') ?>" class="d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-bell me-2"></i>Notifikasi</span>
+                                            <?php if ($userUnreadNotifCount > 0): ?>
+                                                <span class="badge bg-danger rounded-pill px-2 py-0.5" style="font-size: 10.5px;"><?= $userUnreadNotifCount > 99 ? '99+' : $userUnreadNotifCount ?></span>
+                                            <?php endif; ?>
+                                        </a>
+                                    </li>
                                     <li role="none"><a role="menuitem" href="<?= route_to('workspace.profile.index') ?>">Profil Saya</a></li>
                                     <li role="none"><a role="menuitem" href="<?= route_to('workspace.consultation.index') ?>"><i class="fas fa-comments me-2"></i>Konsultasi &amp; Tiket</a></li>
                                     <?php if ($hasDashboardAccess): ?>

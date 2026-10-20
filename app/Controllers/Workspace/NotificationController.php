@@ -16,7 +16,7 @@ class NotificationController extends BaseController
 
     public function index()
     {
-        return $this->render('Notifikasi', 'Pusat pembaruan pembelajaran, tugas, penilaian, dan sistem.');
+        return $this->render('Notifikasi', 'Pusat pembaruan pembelajaran, tugas, konsultasi, penilaian, dan sistem.');
     }
 
     public function detail(string $id)
@@ -58,11 +58,54 @@ class NotificationController extends BaseController
         $primaryRole = in_array('operator', $roles, true) ? 'operator'
             : (in_array('trainer', $roles, true) ? 'trainer' : 'participant');
 
+        $category = trim((string) $this->request->getGet('category'));
+        $status   = trim((string) $this->request->getGet('status'));
+
         $notifications = [];
         $unread = 0;
+        $totalUserNotifs = 0;
+
         if ($userId > 0) {
-            $notifications = $this->service->getUserNotifications($userId, 30);
-            $unread        = $this->service->unreadCount($userId);
+            $filters = [];
+            if ($category !== '') {
+                $filters['category'] = $category;
+            }
+            if ($status !== '') {
+                $filters['status'] = $status;
+            }
+
+            $notifications   = $this->service->getUserNotificationsFiltered($userId, $filters, 50);
+            $unread          = $this->service->unreadCount($userId);
+            $totalUserNotifs = (int) db_connect()->table('notifications')->where('user_id', $userId)->countAllResults();
+        }
+
+        $categoryCounts = [
+            'all'          => $totalUserNotifs,
+            'unread'       => $unread,
+            'learning'     => 0,
+            'consultation' => 0,
+            'certificate'  => 0,
+            'system'       => 0,
+        ];
+
+        if ($userId > 0) {
+            $db = db_connect();
+            $categoryCounts['learning'] = (int) $db->table('notifications')
+                ->where('user_id', $userId)
+                ->whereIn('type', ['class_enrolled', 'class_reminder', 'lesson_completed', 'assignment_graded', 'quiz_graded'])
+                ->countAllResults();
+            $categoryCounts['consultation'] = (int) $db->table('notifications')
+                ->where('user_id', $userId)
+                ->whereIn('type', ['ticket_reply', 'ticket_created', 'ticket_closed'])
+                ->countAllResults();
+            $categoryCounts['certificate'] = (int) $db->table('notifications')
+                ->where('user_id', $userId)
+                ->whereIn('type', ['certificate_issued', 'certificate_eligible'])
+                ->countAllResults();
+            $categoryCounts['system'] = (int) $db->table('notifications')
+                ->where('user_id', $userId)
+                ->whereIn('type', ['broadcast', 'system', 'system_announcement', 'account_approved', 'account_rejected'])
+                ->countAllResults();
         }
 
         $sectionContent = [
@@ -71,21 +114,24 @@ class NotificationController extends BaseController
             'description' => $description,
             'cards'       => [
                 ['title' => 'Belum Dibaca', 'value' => sprintf('%02d', $unread), 'meta' => 'notifikasi baru'],
-                ['title' => 'Total Notifikasi', 'value' => sprintf('%02d', count($notifications)), 'meta' => 'riwayat sistem'],
+                ['title' => 'Total Notifikasi', 'value' => sprintf('%02d', $totalUserNotifs), 'meta' => 'riwayat sistem'],
             ],
             'unread'        => $unread,
             'notifications' => $notifications,
         ];
 
         return view('main/workspace/pages/notifikasi', [
-            'title'          => $title . ' | Workspace BegawiPengadaan',
-            'pageTitle'      => $title,
-            'userName'       => $userName,
-            'roles'          => [$primaryRole],
-            'primaryRole'    => $primaryRole,
-            'roleLabel'      => ucfirst($primaryRole),
-            'menuItems'      => $this->menuItems($primaryRole),
-            'sectionContent' => $sectionContent,
+            'title'           => $title . ' | Workspace BegawiPengadaan',
+            'pageTitle'       => $title,
+            'userName'        => $userName,
+            'roles'           => [$primaryRole],
+            'primaryRole'     => $primaryRole,
+            'roleLabel'       => ucfirst($primaryRole),
+            'menuItems'       => $this->menuItems($primaryRole),
+            'sectionContent'  => $sectionContent,
+            'currentCategory' => $category,
+            'currentStatus'   => $status,
+            'categoryCounts'  => $categoryCounts,
         ]);
     }
 
@@ -99,16 +145,36 @@ class NotificationController extends BaseController
         $workspace = route_to('workspace.home');
         $section = static fn(string $name): string => route_to('workspace.section', $name);
 
-        return [
-            ['label' => 'Dashboard', 'items' => [
-                ['label' => 'Ringkasan', 'url' => $workspace],
-                ['label' => 'Aktivitas Terakhir', 'url' => $section('aktivitas')],
-            ]],
-            ['label' => 'Personal', 'items' => [
-                ['label' => 'Notifikasi', 'url' => route_to('workspace.notifications')],
-                ['label' => 'Bookmark', 'url' => route_to('workspace.bookmarks.index')],
-                ['label' => 'Profil', 'url' => route_to('workspace.profile.index')],
-            ]],
-        ];
+        return match ($role) {
+            'trainer' => [
+                ['Kelas Saya', route_to('workspace.trainer.classes'), 'fas fa-graduation-cap'],
+                ['Materi Pembelajaran', route_to('workspace.trainer.all-materials'), 'fas fa-book'],
+                ['Assessment', route_to('workspace.trainer.all-quizzes'), 'fas fa-clipboard-check'],
+                ['Peserta', route_to('workspace.trainer.all-participants'), 'fas fa-users'],
+                ['Progress Peserta', route_to('workspace.trainer.all-progress'), 'fas fa-chart-line'],
+            ],
+            'operator' => [
+                ['Approval', route_to('workspace.operator.approvals'), 'fas fa-stamp'],
+                ['Verifikasi User', route_to('workspace.operator.profile-verifications'), 'fas fa-id-card'],
+                ['Kelas & Trainer', route_to('workspace.operator.class-trainers'), 'fas fa-chalkboard-teacher'],
+                ['Operasional Event', route_to('workspace.operator.events'), 'fas fa-calendar-alt'],
+                ['Presensi', route_to('workspace.operator.attendance'), 'fas fa-user-check'],
+                ['Monitoring', route_to('workspace.operator.learning-monitoring'), 'fas fa-chart-line'],
+                ['Sertifikat', route_to('workspace.operator.certificates'), 'fas fa-award'],
+                ['Evaluasi', route_to('workspace.operator.evaluations'), 'fas fa-clipboard-check'],
+            ],
+            default => [
+                ['Pembelajaran Saya', route_to('workspace.participant.classes'), 'fas fa-graduation-cap'],
+                ['Tugas', route_to('workspace.participant.all-assignments'), 'fas fa-tasks'],
+                ['Assessment', route_to('workspace.participant.all-assessments'), 'fas fa-clipboard-check'],
+                ['Event Saya', route_to('workspace.participant.events'), 'fas fa-calendar-alt'],
+                ['Presensi Saya', route_to('workspace.participant.attendance'), 'fas fa-user-check'],
+                ['Sertifikat Saya', route_to('workspace.participant.certificates'), 'fas fa-award'],
+                ['Konsultasi & Tiket', route_to('workspace.consultation.index'), 'fas fa-comments'],
+                ['Bookmark', route_to('workspace.bookmarks.index'), 'fas fa-bookmark'],
+                ['Notifikasi', route_to('workspace.notifications'), 'fas fa-bell'],
+                ['Profil', route_to('workspace.profile.index'), 'fas fa-user-circle'],
+            ],
+        };
     }
 }

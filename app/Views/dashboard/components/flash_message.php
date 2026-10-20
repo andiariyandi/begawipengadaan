@@ -1,4 +1,10 @@
 <?php
+// Prevent duplicate flash message rendering within the same HTTP request lifecycle
+if (isset($GLOBALS['__begawi_dashboard_flash_rendered'])) {
+    return;
+}
+$GLOBALS['__begawi_dashboard_flash_rendered'] = true;
+
 $sess = null;
 if (session_status() === PHP_SESSION_ACTIVE) {
     $sess = session();

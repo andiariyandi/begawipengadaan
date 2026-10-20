@@ -19,19 +19,6 @@
     </div>
 </div>
 
-<?php if ($msg = session()->getFlashdata('success')): ?>
-    <div class="alert alert-success rounded-4 mb-4 d-flex align-items-center gap-2">
-        <i class="fas fa-check-circle fs-5"></i>
-        <div><?= esc($msg) ?></div>
-    </div>
-<?php endif; ?>
-<?php if ($msg = session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger rounded-4 mb-4 d-flex align-items-center gap-2">
-        <i class="fas fa-exclamation-triangle fs-5"></i>
-        <div><?= esc($msg) ?></div>
-    </div>
-<?php endif; ?>
-
 <!-- Summary Cards -->
 <div class="row g-3 mb-4">
     <div class="col-sm-4">

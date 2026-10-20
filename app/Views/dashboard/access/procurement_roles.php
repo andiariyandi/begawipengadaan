@@ -12,22 +12,6 @@
     </a>
 </div>
 
-<?php if ($message = session()->getFlashdata('success')): ?>
-    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-20 radius-8 py-12 px-16" role="alert">
-        <iconify-icon icon="solar:check-circle-bold" class="text-xl text-success-main flex-shrink-0"></iconify-icon>
-        <div class="flex-grow-1 text-sm"><?= esc($message) ?></div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-<?php endif; ?>
-
-<?php if ($error = session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-20 radius-8 py-12 px-16" role="alert">
-        <iconify-icon icon="solar:danger-triangle-bold" class="text-xl text-danger-main flex-shrink-0"></iconify-icon>
-        <div class="flex-grow-1 text-sm"><?= esc($error) ?></div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-<?php endif; ?>
-
 <div class="card">
     <div class="card-body p-24">
         <div class="table-responsive scroll-sm">

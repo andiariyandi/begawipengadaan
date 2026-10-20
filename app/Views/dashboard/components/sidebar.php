@@ -7,6 +7,12 @@ $openClass = static fn(string $menu): string => $currentMenu === $menu ? 'open' 
 
 $auth = new \App\Services\Identity\AuthorizationService();
 $isSuperAdmin = $auth->isSuperAdmin();
+
+$sbUserId = (int) (session()->get('user_id') ?: 0);
+$sbNotifService = new \App\Services\NotificationService();
+$adminUnreadNotifCount = $sbUserId > 0
+    ? $sbNotifService->unreadCount($sbUserId)
+    : $sbNotifService->unreadCountAll();
 ?>
 
 <aside class="sidebar">
@@ -217,15 +223,29 @@ $isSuperAdmin = $auth->isSuperAdmin();
             <li class="sidebar-menu-group-title">SISTEM</li>
 
             <li class="dropdown <?= $openClass('system') ?>">
-                <a href="javascript:void(0)">
-                    <iconify-icon icon="solar:settings-outline" class="menu-icon"></iconify-icon>
-                    <span>Sistem</span>
+                <a href="javascript:void(0)" class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <iconify-icon icon="solar:settings-outline" class="menu-icon"></iconify-icon>
+                        <span>Sistem</span>
+                    </div>
+                    <?php if ($adminUnreadNotifCount > 0): ?>
+                        <span class="w-8-px h-8-px bg-danger-600 rounded-circle me-1" title="<?= $adminUnreadNotifCount ?> notifikasi baru"></span>
+                    <?php endif; ?>
                 </a>
                 <ul class="sidebar-submenu">
                     <li><a class="<?= $activeClass('system', 'approvals') ?>" href="<?= site_url('dashboard/sistem/approval') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Approval</a></li>
                     <li><a class="<?= $activeClass('system', 'audit-trail') ?>" href="<?= site_url('dashboard/sistem/audit-trail') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Audit Trail</a></li>
 
-                    <li><a class="<?= $activeClass('system', 'notifications') ?>" href="<?= site_url('dashboard/sistem/notifikasi') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Notifikasi</a></li>
+                    <li>
+                        <a class="<?= $activeClass('system', 'notifications') ?> d-flex align-items-center justify-content-between" href="<?= site_url('dashboard/sistem/notifikasi') ?>">
+                            <span><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Notifikasi</span>
+                            <?php if ($adminUnreadNotifCount > 0): ?>
+                                <span class="badge rounded-pill bg-danger text-white px-8 py-2 text-xs">
+                                    <?= $adminUnreadNotifCount > 99 ? '99+' : $adminUnreadNotifCount ?>
+                                </span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
                     <?php if ($isSuperAdmin): ?>
                         <li><a class="<?= $activeClass('system', 'settings') ?>" href="<?= site_url('dashboard/sistem/pengaturan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pusat Pengaturan</a></li>
                         <li><a class="<?= $activeClass('system', 'general-settings') ?: $activeClass('system', 'general') ?>" href="<?= site_url('dashboard/sistem/pengaturan-umum') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Umum</a></li>

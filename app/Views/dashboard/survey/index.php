@@ -1,7 +1,6 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
-<?= view('dashboard/components/flash_message') ?>
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>

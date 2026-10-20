@@ -20,16 +20,6 @@ foreach ($grouped as $g) { $totalBookmarks += count($g['items'] ?? []); }
     </div>
 </div>
 
-<?php if ($msg = session()->getFlashdata('success')): ?>
-    <div class="alert alert-success rounded-4 mb-3"><?= esc($msg) ?></div>
-<?php endif; ?>
-<?php if ($msg = session()->getFlashdata('info')): ?>
-    <div class="alert alert-info rounded-4 mb-3"><?= esc($msg) ?></div>
-<?php endif; ?>
-<?php if ($msg = session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger rounded-4 mb-3"><?= esc($msg) ?></div>
-<?php endif; ?>
-
 <?php if ($totalBookmarks === 0): ?>
     <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white text-center">
         <i class="fas fa-bookmark fs-2 text-muted opacity-50 mb-2"></i>

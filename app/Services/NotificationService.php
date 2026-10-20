@@ -314,21 +314,153 @@ class NotificationService
     }
 
     /**
-     * Format badge kategori notifikasi.
+     * Kirim notifikasi balasan tiket konsultasi kepada pengguna terdaftar.
+     */
+    public function notifyTicketReply(int $userId, string $ticketNumber, string $senderName, string $messageSnippet): int
+    {
+        return $this->send(
+            $userId,
+            'ticket_reply',
+            "Tanggapan Baru untuk Tiket #{$ticketNumber}",
+            "{$senderName} telah membalas: \"" . mb_strimwidth($messageSnippet, 0, 110, '...') . "\"",
+            [
+                'ticket_number' => $ticketNumber,
+                'sender_name'   => $senderName,
+                'url'           => route_to('workspace.consultation.detail', $ticketNumber),
+            ]
+        );
+    }
+
+    /**
+     * Kirim notifikasi penting kepada seluruh Administrator / Super Administrator.
+     */
+    public function notifyAdmins(string $type, string $title, ?string $body = null, ?array $data = null): int
+    {
+        $adminUsers = $this->db->table('user_roles ur')
+            ->join('roles r', 'r.id = ur.role_id')
+            ->whereIn('r.key', ['super_admin', 'admin', 'administrator', 'super_administrator'])
+            ->select('DISTINCT(ur.user_id) AS uid', false)
+            ->get()->getResultArray();
+
+        $count = 0;
+        foreach ($adminUsers as $adm) {
+            $this->send((int) $adm['uid'], $type, $title, $body, $data);
+            $count++;
+        }
+
+        // Fallback jika belum ada relasi user_roles
+        if ($count === 0) {
+            $admins = $this->db->table('users')
+                ->select('id')
+                ->where('account_status', 'active')
+                ->where('deleted_at IS NULL')
+                ->limit(5)
+                ->get()->getResultArray();
+
+            foreach ($admins as $adm) {
+                $this->send((int) $adm['id'], $type, $title, $body, $data);
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Ambil notifikasi pengguna dengan filter kategori / status.
+     */
+    public function getUserNotificationsFiltered(int $userId, array $filters = [], int $limit = 30): array
+    {
+        $builder = $this->db->table('notifications')
+            ->where('user_id', $userId);
+
+        if (! empty($filters['status'])) {
+            if ($filters['status'] === 'unread') {
+                $builder->where('read_at IS NULL', null, false);
+            } elseif ($filters['status'] === 'read') {
+                $builder->where('read_at IS NOT NULL', null, false);
+            }
+        }
+
+        if (! empty($filters['category'])) {
+            match ($filters['category']) {
+                'learning'     => $builder->whereIn('type', ['class_enrolled', 'class_reminder', 'lesson_completed', 'assignment_graded', 'quiz_graded']),
+                'consultation' => $builder->whereIn('type', ['ticket_reply', 'ticket_created', 'ticket_closed']),
+                'certificate'  => $builder->whereIn('type', ['certificate_issued', 'certificate_eligible']),
+                'system'       => $builder->whereIn('type', ['broadcast', 'system', 'system_announcement', 'account_approved', 'account_rejected']),
+                default        => null,
+            };
+        }
+
+        return $builder->orderBy('created_at', 'DESC')->limit($limit)->get()->getResultArray();
+    }
+
+    /**
+     * Format badge kategori notifikasi beserta ikon pendukung.
      */
     public static function formatCategory(string $type): array
     {
         return match ($type) {
-            'broadcast'                               => ['label' => 'Siaran Pengumuman', 'badge' => 'bg-primary-50 text-primary-600 border border-primary-200'],
-            'system', 'system_announcement'           => ['label' => 'Sistem', 'badge' => 'bg-neutral-100 text-neutral-700 border border-neutral-300'],
-            'account_approved'                        => ['label' => 'Akun Disetujui', 'badge' => 'bg-success-50 text-success-600 border border-success-200'],
-            'account_rejected'                        => ['label' => 'Akun Ditolak', 'badge' => 'bg-danger-50 text-danger-600 border border-danger-200'],
-            'assignment_graded'                       => ['label' => 'Penilaian Tugas', 'badge' => 'bg-info-50 text-info-600 border border-info-200'],
-            'certificate_issued'                      => ['label' => 'Penerbitan Sertifikat', 'badge' => 'bg-success-50 text-success-700 border border-success-300'],
-            'class_enrolled', 'class_reminder'        => ['label' => 'Pembelajaran', 'badge' => 'bg-lilac-50 text-lilac-600 border border-lilac-200'],
-            'event_info', 'event_reminder'            => ['label' => 'Event & Agenda', 'badge' => 'bg-warning-50 text-warning-700 border border-warning-200'],
-            'regulation_info'                         => ['label' => 'Regulasi & Kebijakan', 'badge' => 'bg-indigo-50 text-indigo-700 border border-indigo-200'],
-            default                                   => ['label' => ucfirst(str_replace('_', ' ', $type)), 'badge' => 'bg-neutral-100 text-neutral-800 border border-neutral-200'],
+            'ticket_reply', 'ticket_created', 'ticket_closed' => [
+                'label' => 'Konsultasi & Tiket',
+                'badge' => 'bg-info-subtle text-info border border-info-subtle',
+                'icon'  => 'solar:chat-round-line-bold',
+                'fa'    => 'fas fa-comments text-info',
+            ],
+            'class_enrolled', 'class_reminder', 'lesson_completed' => [
+                'label' => 'Pembelajaran',
+                'badge' => 'bg-primary-subtle text-primary border border-primary-subtle',
+                'icon'  => 'solar:book-bookmark-bold',
+                'fa'    => 'fas fa-graduation-cap text-primary',
+            ],
+            'assignment_graded', 'assignment_submitted', 'quiz_graded' => [
+                'label' => 'Tugas & Penilaian',
+                'badge' => 'bg-warning-subtle text-warning-main border border-warning-subtle',
+                'icon'  => 'solar:diploma-bold',
+                'fa'    => 'fas fa-tasks text-warning',
+            ],
+            'certificate_issued', 'certificate_eligible' => [
+                'label' => 'Penerbitan Sertifikat',
+                'badge' => 'bg-success-subtle text-success border border-success-subtle',
+                'icon'  => 'solar:verified-check-bold',
+                'fa'    => 'fas fa-award text-success',
+            ],
+            'account_approved', 'profile_verified', 'role_request_approved' => [
+                'label' => 'Akun Disetujui',
+                'badge' => 'bg-success-subtle text-success border border-success-subtle',
+                'icon'  => 'solar:user-check-bold',
+                'fa'    => 'fas fa-user-check text-success',
+            ],
+            'account_rejected', 'role_request_rejected' => [
+                'label' => 'Akun / Role Ditolak',
+                'badge' => 'bg-danger-subtle text-danger-main border border-danger-subtle',
+                'icon'  => 'solar:user-cross-bold',
+                'fa'    => 'fas fa-user-times text-danger',
+            ],
+            'event_info', 'event_reminder', 'event_registered' => [
+                'label' => 'Event & Agenda',
+                'badge' => 'bg-warning-subtle text-warning-main border border-warning-subtle',
+                'icon'  => 'solar:calendar-bold',
+                'fa'    => 'fas fa-calendar-alt text-warning',
+            ],
+            'broadcast' => [
+                'label' => 'Siaran Pengumuman',
+                'badge' => 'bg-primary-subtle text-primary border border-primary-subtle',
+                'icon'  => 'solar:megaphone-bold',
+                'fa'    => 'fas fa-bullhorn text-primary',
+            ],
+            'system', 'system_announcement' => [
+                'label' => 'Sistem',
+                'badge' => 'bg-neutral-200 text-neutral-800 border border-neutral-300',
+                'icon'  => 'solar:bell-bing-bold',
+                'fa'    => 'fas fa-bell text-secondary',
+            ],
+            default => [
+                'label' => ucfirst(str_replace('_', ' ', $type)),
+                'badge' => 'bg-neutral-100 text-neutral-800 border border-neutral-200',
+                'icon'  => 'solar:bell-linear',
+                'fa'    => 'fas fa-bell text-primary',
+            ],
         };
     }
 }

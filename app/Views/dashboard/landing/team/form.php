@@ -1,7 +1,6 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
-<?= view('dashboard/components/flash_message') ?>
 
 <?php
 $isEdit = ! empty($member);
