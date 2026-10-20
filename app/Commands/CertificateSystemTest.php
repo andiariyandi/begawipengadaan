@@ -102,10 +102,10 @@ class CertificateSystemTest extends BaseCommand
             // Generate Learning Certificate
             $res = $generator->generateDirect('learning_enrollment', $enrollmentId, $adminId);
 
-            // Assert number format BGW-LRN-YYYY-NNNNNN
-            $expectedPattern = '/^BGW-LRN-' . $year . '-\d{6}$/';
+            // Assert number format SERT-{number}/AB-{class_id}/05/{YEAR}
+            $expectedPattern = '/^SERT-\d{5}\/AB-' . $classId . '\/05\/' . $year . '$/';
             if (! preg_match($expectedPattern, $res['certificate_number'])) {
-                throw new \Exception("Nomor sertifikat tidak sesuai pola 'BGW-LRN-YYYY-NNNNNN': " . $res['certificate_number']);
+                throw new \Exception("Nomor sertifikat tidak sesuai pola 'SERT-{num}/AB-{$classId}/05/{$year}': " . $res['certificate_number']);
             }
 
             // Assert DB row
@@ -176,10 +176,10 @@ class CertificateSystemTest extends BaseCommand
             // Generate for Present Participant
             $resEvt = $generator->generateDirect('event_registration', $regId1, $adminId);
 
-            // Assert number format BGW-EVT-YYYY-NNNNNN
-            $expectedEvtPattern = '/^BGW-EVT-' . $year . '-\d{6}$/';
+            // Assert number format SERT-{number}/{tipe}-{event_id}/05/{YEAR}
+            $expectedEvtPattern = '/^SERT-\d{5}\/(EV|WB|BT|WS|SO|SM|PL|RK|KL)-' . $eventId . '\/05\/' . $year . '$/';
             if (! preg_match($expectedEvtPattern, $resEvt['certificate_number'])) {
-                throw new \Exception("Nomor sertifikat event tidak sesuai pola 'BGW-EVT-YYYY-NNNNNN': " . $resEvt['certificate_number']);
+                throw new \Exception("Nomor sertifikat event tidak sesuai pola 'SERT-{num}/{tipe}-{$eventId}/05/{$year}': " . $resEvt['certificate_number']);
             }
 
             CLI::write("  [PASS] Event Certificate diterbitkan: '{$resEvt['certificate_number']}' (ID #{$resEvt['certificate_id']})", "green");
