@@ -1204,12 +1204,19 @@ class ParticipantController extends BaseController
         $fileData = null;
         $file = $this->request->getFile('submission_file');
         if ($file && $file->isValid() && ! $file->hasMoved()) {
-            $uploadDir = WRITEPATH . 'uploads/assignments';
+            $uploadDir = WRITEPATH . 'uploads/assignments/';
             if (! is_dir($uploadDir)) {
-                @mkdir($uploadDir, 0755, true);
+                @mkdir($uploadDir, 0775, true);
+                @chmod($uploadDir, 0775);
             }
             $newName = $file->getRandomName();
-            $file->move($uploadDir, $newName);
+            try {
+                $file->move($uploadDir, $newName);
+                @chmod($uploadDir . $newName, 0664);
+            } catch (\Throwable $e) {
+                log_message('error', '[ParticipantController] Assignment move failed: ' . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', 'Gagal memindahkan berkas tugas: ' . $e->getMessage());
+            }
             $fileData = [
                 'path'          => 'uploads/assignments/' . $newName,
                 'original_name' => $file->getClientName(),
