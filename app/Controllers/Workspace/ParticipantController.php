@@ -1639,7 +1639,9 @@ class ParticipantController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Certificate tidak ditemukan.');
         }
 
-        return view('main/participant/certificates', [
+        return view('main/workspace/pages/sertifikat', [
+            'pageTitle'      => 'Detail Sertifikat',
+            'breadcrumbTail' => [['label' => 'Sertifikat Saya', 'url' => route_to('workspace.participant.certificates')], ['label' => 'Detail']],
             'title' => 'Detail Sertifikat | Workspace BegawiPengadaan',
             'certificates' => [$certificate],
         ]);

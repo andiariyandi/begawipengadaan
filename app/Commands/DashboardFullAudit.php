@@ -51,7 +51,7 @@ class DashboardFullAudit extends BaseCommand
         $routes = Services::routes();
 
         foreach ($sidebarUrls as $url) {
-            $path = trim($url, '/');
+            $path = trim((string) parse_url($url, PHP_URL_PATH), '/');
             // Resolve HTTP route using IncomingRequest
             $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), $path);
             $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('GET');

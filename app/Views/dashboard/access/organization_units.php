@@ -56,7 +56,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <strong class="text-dark d-block"><?= esc($unit['name']) ?></strong>
+                                    <strong class="text-primary-light d-block"><?= esc($unit['name']) ?></strong>
                                 </td>
                                 <td>
                                     <span class="text-secondary-light"><?= esc($unit['type']) ?></span>

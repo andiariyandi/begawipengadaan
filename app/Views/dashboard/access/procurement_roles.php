@@ -55,7 +55,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <strong class="text-dark d-block"><?= esc($role['name']) ?></strong>
+                                    <strong class="text-primary-light d-block"><?= esc($role['name']) ?></strong>
                                 </td>
                                 <td>
                                     <small class="text-secondary-light"><?= esc(mb_strimwidth((string) ($role['description'] ?? '-'), 0, 80, '...')) ?></small>

@@ -34,15 +34,15 @@
             </div>
             <div class="col-md-6">
                 <p class="text-secondary-light mb-4 text-sm">Tipe Unit</p>
-                <h6 class="mb-0 text-dark"><?= esc($unit['type'] ?? '-') ?></h6>
+                <h6 class="mb-0 text-primary-light"><?= esc($unit['type'] ?? '-') ?></h6>
             </div>
             <div class="col-md-6">
                 <p class="text-secondary-light mb-4 text-sm">Nama Unit Organisasi / OPD</p>
-                <h5 class="mb-0 text-dark"><?= esc($unit['name'] ?? '-') ?></h5>
+                <h5 class="mb-0 text-primary-light"><?= esc($unit['name'] ?? '-') ?></h5>
             </div>
             <div class="col-md-6">
                 <p class="text-secondary-light mb-4 text-sm">Unit Induk</p>
-                <h6 class="mb-0 text-dark"><?= esc($parent['name'] ?? '— (Tingkat Utama)') ?></h6>
+                <h6 class="mb-0 text-primary-light"><?= esc($parent['name'] ?? '— (Tingkat Utama)') ?></h6>
             </div>
             <div class="col-md-6">
                 <p class="text-secondary-light mb-4 text-sm">Status Keaktifan</p>
@@ -69,12 +69,12 @@
             </div>
             <div class="col-md-6">
                 <p class="text-secondary-light mb-4 text-sm">Urutan (Sort Order)</p>
-                <h6 class="mb-0 text-dark"><?= esc($unit['sort_order'] ?? '0') ?></h6>
+                <h6 class="mb-0 text-primary-light"><?= esc($unit['sort_order'] ?? '0') ?></h6>
             </div>
             <?php if (!empty($unit['address'])): ?>
                 <div class="col-12">
                     <p class="text-secondary-light mb-4 text-sm">Alamat Kantor / Lokasi</p>
-                    <p class="mb-0 text-dark"><?= nl2br(esc($unit['address'])) ?></p>
+                    <p class="mb-0 text-primary-light"><?= nl2br(esc($unit['address'])) ?></p>
                 </div>
             <?php endif; ?>
         </div>

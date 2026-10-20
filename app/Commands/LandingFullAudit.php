@@ -14,7 +14,7 @@ class LandingFullAudit extends BaseCommand
     protected $description = 'Performs a comprehensive automated audit of the entire landing page: routes, navigation menus, view rendering, CMS bindings, and data consistency.';
 
     private array $results = [
-        'routes'         => ['total' => 0, 'passed' => 0, 'failed' => 0, 'details' => []],
+        'routes'         => ['total' => 0, 'passed' => 0, 'failed' => 0, 'skipped' => 0, 'details' => []],
         'navigation'     => ['header' => [], 'mobile' => [], 'footer' => [], 'dead_links' => [], 'mismatches' => []],
         'cms'            => ['tables' => [], 'spotlight' => []],
         'legacy_views'   => [],
@@ -113,22 +113,22 @@ class LandingFullAudit extends BaseCommand
         CLI::write("--- [2] AUDITING PUBLIC ROUTES & VIEW EXECUTION ---", 'yellow');
 
         // Sample real data slugs from database
-        $sampleProgram = $db->table('programs')->select('slug')->where('status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? 'pbj-dasar';
-        $sampleCourse  = $db->table('courses')->select('slug')->where('status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? 'pengantar-pbj';
-        $sampleClass   = $db->table('learning_classes')->select('code')->where('deleted_at IS NULL')->get()->getRowArray()['code'] ?? 'KLS-001';
+        $sampleProgram = $db->table('programs')->select('slug')->where('status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? null;
+        $sampleCourse  = $db->table('courses')->select('slug')->where('status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? null;
+        $sampleClass   = $db->table('learning_classes')->select('code')->where('deleted_at IS NULL')->get()->getRowArray()['code'] ?? null;
         $sampleTrainer = $db->table('class_trainers ct')->join('users u', 'u.id = ct.user_id')->select('u.username')->get()->getRowArray()['username'] ?? 'admin';
         
-        $sampleArticle  = $db->table('knowledge_articles')->select('slug')->where('type', 'article')->where('workflow_status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? 'artikel-1';
-        $sampleCase     = $db->table('knowledge_articles')->select('slug')->where('type', 'case_study')->where('workflow_status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? 'kasus-1';
-        $sampleTemplate = $db->table('knowledge_articles')->select('slug')->where('type', 'template')->where('workflow_status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? 'template-1';
+        $sampleArticle  = $db->table('knowledge_articles')->select('slug')->where('type', 'article')->where('workflow_status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? null;
+        $sampleCase     = $db->table('knowledge_articles')->select('slug')->where('type', 'case_study')->where('workflow_status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? null;
+        $sampleTemplate = $db->table('knowledge_articles')->select('slug')->where('type', 'template')->where('workflow_status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? null;
         
-        $sampleReg      = $db->table('regulations')->select('slug')->where('workflow_status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? 'perpres-16-2018';
+        $sampleReg      = $db->table('regulations')->select('slug')->where('workflow_status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? null;
         $sampleRegCat   = $db->table('regulation_categories')->select('slug')->where('is_active', 1)->get()->getRowArray()['slug'] ?? 'peraturan-presiden';
         
-        $sampleNews     = $db->table('news')->select('slug')->where('workflow_status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? 'berita-1';
+        $sampleNews     = $db->table('news')->select('slug')->where('workflow_status', 'published')->where('visibility', 'public')->where('deleted_at IS NULL')->get()->getRowArray()['slug'] ?? null;
         $sampleNewsCat  = $db->table('news_categories')->select('slug')->get()->getRowArray()['slug'] ?? 'pengumuman';
 
-        $sampleEvent    = $db->table('events')->select('slug')->where('deleted_at IS NULL')->where('visibility', 'public')->get()->getRowArray()['slug'] ?? 'qa-audit-event-20261005-221831';
+        $sampleEvent    = $db->table('events')->select('slug')->where('deleted_at IS NULL')->where('visibility', 'public')->get()->getRowArray()['slug'] ?? null;
 
         // Target routes list
         $routesToTest = [
@@ -196,6 +196,11 @@ class LandingFullAudit extends BaseCommand
         $this->results['routes']['total'] = count($routesToTest);
 
         foreach ($routesToTest as $item) {
+            if (in_array(null, $item['params'], true)) {
+                $this->results['routes']['skipped']++;
+                CLI::write(sprintf("  [SKIP] %-35s %-32s (Tabel data kosong pada rilis v.1)", $item['label'], $item['url']), 'yellow');
+                continue;
+            }
             $t0 = microtime(true);
             $mem0 = memory_get_usage();
 
@@ -403,10 +408,14 @@ class LandingFullAudit extends BaseCommand
     {
         CLI::newLine();
         CLI::write("==================================================================", 'cyan');
-        CLI::write(sprintf("   LANDING AUDIT COMPLETE: %d/%d ROUTES PASSED (100%%), %d FAILED", 
+        $tested = $this->results['routes']['passed'] + $this->results['routes']['failed'];
+        $pct = $tested > 0 ? round(($this->results['routes']['passed'] / $tested) * 100) : 100;
+        CLI::write(sprintf("   LANDING AUDIT COMPLETE: %d/%d TESTED ROUTES PASSED (%d%%), %d FAILED, %d SKIPPED (CLEAN DB)", 
             $this->results['routes']['passed'], 
-            $this->results['routes']['total'], 
-            $this->results['routes']['failed']
+            $tested, 
+            $pct, 
+            $this->results['routes']['failed'], 
+            $this->results['routes']['skipped']
         ), $this->results['routes']['failed'] === 0 ? 'green' : 'red');
         CLI::write("==================================================================", 'cyan');
         CLI::newLine();

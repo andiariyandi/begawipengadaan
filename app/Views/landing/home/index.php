@@ -66,7 +66,18 @@ $bulanIndo = [
                 ?>
                 <div class="item">
                     <div class="main-slider__image-block">
-                        <img src="<?= esc($img) ?>" alt="<?= esc(strip_tags($headingText)) ?>" class="main-slider__hero-img" width="1920" height="500" />
+                        <?php
+                        $webpImg = preg_replace('/\.(png|jpg|jpeg)$/i', '.webp', $img);
+                        $hasWebp = !empty($webpImg) && $webpImg !== $img;
+                        ?>
+                        <?php if ($hasWebp): ?>
+                            <picture>
+                                <source srcset="<?= esc($webpImg) ?>" type="image/webp">
+                                <img src="<?= esc($img) ?>" alt="<?= esc(strip_tags($headingText)) ?>" class="main-slider__hero-img" width="1920" height="500" />
+                            </picture>
+                        <?php else: ?>
+                            <img src="<?= esc($img) ?>" alt="<?= esc(strip_tags($headingText)) ?>" class="main-slider__hero-img" width="1920" height="500" />
+                        <?php endif; ?>
                     </div>
                     <div class="main-slider__caption-block">
                         <div class="container">
@@ -109,7 +120,10 @@ $bulanIndo = [
             <!-- Slide 1: Transformasi & Ekosistem PBJ Lampung -->
             <div class="item">
                 <div class="main-slider__image-block">
-                    <img src="<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>" alt="BegawiPengadaan Lampung - Transformasi Digital Pengadaan" class="main-slider__hero-img" width="1920" height="500" />
+                    <picture>
+                        <source srcset="<?= base_url('assets/main/images/backgrounds/slider-1-1.webp') ?>" type="image/webp">
+                        <img src="<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>" alt="BegawiPengadaan Lampung - Transformasi Digital Pengadaan" class="main-slider__hero-img" width="1920" height="500" />
+                    </picture>
                 </div>
                 <div class="main-slider__caption-block">
                     <div class="container">
@@ -142,7 +156,10 @@ $bulanIndo = [
             <!-- Slide 2: Arena Belajar PBJ -->
             <div class="item">
                 <div class="main-slider__image-block">
-                    <img src="<?= base_url('assets/main/images/backgrounds/slider-1-2.png') ?>" alt="BegawiPengadaan Lampung - Arena Belajar" class="main-slider__hero-img" width="1920" height="500" />
+                    <picture>
+                        <source srcset="<?= base_url('assets/main/images/backgrounds/slider-1-2.webp') ?>" type="image/webp">
+                        <img src="<?= base_url('assets/main/images/backgrounds/slider-1-2.png') ?>" alt="BegawiPengadaan Lampung - Arena Belajar" class="main-slider__hero-img" width="1920" height="500" />
+                    </picture>
                 </div>
                 <div class="main-slider__caption-block">
                     <div class="container">
@@ -175,7 +192,10 @@ $bulanIndo = [
             <!-- Slide 3: Bunga Rampai & Regulasi -->
             <div class="item">
                 <div class="main-slider__image-block">
-                    <img src="<?= base_url('assets/main/images/backgrounds/slider-1-3.png') ?>" alt="BegawiPengadaan Lampung - Bunga Rampai &amp; Regulasi" class="main-slider__hero-img" width="1920" height="500" />
+                    <picture>
+                        <source srcset="<?= base_url('assets/main/images/backgrounds/slider-1-3.webp') ?>" type="image/webp">
+                        <img src="<?= base_url('assets/main/images/backgrounds/slider-1-3.png') ?>" alt="BegawiPengadaan Lampung - Bunga Rampai &amp; Regulasi" class="main-slider__hero-img" width="1920" height="500" />
+                    </picture>
                 </div>
                 <div class="main-slider__caption-block">
                     <div class="container">
