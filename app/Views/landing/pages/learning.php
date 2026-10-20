@@ -80,7 +80,7 @@ if (! empty($featuredCourses)) {
             'status_tag'  => '<iconify-icon icon="solar:book-bookmark-bold" class="align-middle"></iconify-icon> ' . ($isFeat ? 'Course Pilihan' : 'Course Mandiri'),
             'type_label'  => 'Course PBJ',
             'badge_extra' => ucfirst($fCourse['level'] ?? 'Dasar') . ' Level',
-            'meta_1'      => '<iconify-icon icon="solar:clock-circle-bold" class="text-warning align-middle"></iconify-icon> ' . (! empty($fCourse['duration_minutes']) ? (int) $fCourse['duration_minutes'] . ' Menit' : 'Belajar Mandiri'),
+            'meta_1'      => '<iconify-icon icon="solar:clock-circle-bold" class="text-warning align-middle"></iconify-icon> ' . format_learning_jp($fCourse['duration_minutes'] ?? null),
             'meta_2'      => '<iconify-icon icon="solar:folder-with-files-bold" class="text-info align-middle"></iconify-icon> ' . esc($fCourse['program_title'] ?? 'Kurikulum PBJ'),
             'meta_3'      => '<iconify-icon icon="solar:laptop-minimalistic-bold" class="text-success align-middle"></iconify-icon> Pembelajaran Digital LMS',
             'action_text' => 'Pelajari Course Ini',
@@ -547,7 +547,7 @@ if ($spotlightMode === 'program') {
                                             <div class="arena-card__meta">
                                                 <span>
                                                     <i class="far fa-clock text-warning"></i>
-                                                    <?= ($course['duration_minutes'] ?? null) !== null ? esc((string) $course['duration_minutes']) . ' menit' : 'Mandiri' ?>
+                                                    <?= format_learning_jp($course['duration_minutes'] ?? null) ?>
                                                 </span>
                                                 <span>
                                                     <i class="fas fa-signal text-info"></i> <?= esc($levelBadge['label']) ?>
@@ -768,7 +768,7 @@ if ($spotlightMode === 'program') {
                                     <div class="berita-trend__meta">
                                         <span class="badge bg-light text-dark border" style="font-size: 10.5px;"><?= ucfirst((string) ($crsItem['level'] ?? 'Dasar')) ?></span>
                                         <span>&middot;</span>
-                                        <span><i class="far fa-clock me-1"></i> <?= (int) ($crsItem['duration_minutes'] ?? 60) ?> Menit</span>
+                                        <span><i class="far fa-clock me-1"></i> <?= format_learning_jp($crsItem['duration_minutes'] ?? 60) ?></span>
                                     </div>
                                 </div>
                             </div>

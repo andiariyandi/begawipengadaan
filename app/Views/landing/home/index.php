@@ -423,7 +423,7 @@ $bulanIndo = [
                     };
                     $durationJp = 4;
                     if (! empty($c['duration_minutes'])) {
-                        $durationJp = max(1, round((int) $c['duration_minutes'] / 45));
+                        $durationJp = max(1, learning_jp_count((int) $c['duration_minutes']));
                     } elseif (! empty($c['duration_hours'])) {
                         $durationJp = (int) $c['duration_hours'];
                     }

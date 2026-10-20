@@ -95,13 +95,16 @@ class LearningClassController extends BaseController
     public function create(): string
     {
         return view('dashboard/learning/classes/form', [
-            'title' => 'Tambah Kelas | Dashboard BegawiPengadaan',
-            'pageTitle' => 'Tambah Kelas',
-            'formMode' => 'create',
-            'class' => null,
-            'courses' => $this->courseModel->orderBy('title', 'ASC')->findAll(),
-            'activeMenu' => 'learning',
-            'activeSubmenu' => 'classes',
+            'title'               => 'Tambah Kelas | Dashboard BegawiPengadaan',
+            'pageTitle'           => 'Tambah Kelas',
+            'formMode'            => 'create',
+            'class'               => null,
+            'courses'             => $this->courseModel->orderBy('title', 'ASC')->findAll(),
+            'batchStages'         => default_batch_stages(),
+            'batchStagesSubtitle' => 'Alur pengerjaan yang harus dilalui oleh peserta selama periode kelas berlangsung:',
+            'customDuration'      => null,
+            'activeMenu'          => 'learning',
+            'activeSubmenu'       => 'classes',
         ]);
     }
 
@@ -146,11 +149,19 @@ class LearningClassController extends BaseController
         $enrollmentsCount = (int) $db->table('enrollments')->where('class_id', $id)->countAllResults();
         $modulesCount = (int) $db->table('learning_modules')->where('class_id', $id)->countAllResults();
 
+        $parsed = parse_class_batch_data($class['description'] ?? '');
+        $class['description']             = $parsed['description'];
+        $class['batch_stages']            = $parsed['stages'];
+        $class['batch_stages_subtitle']   = $parsed['stages_subtitle'];
+        $class['custom_duration_minutes'] = $parsed['custom_duration_minutes'];
+
         return view('dashboard/learning/classes/detail', [
             'title'             => 'Detail Kelas | Dashboard BegawiPengadaan',
             'pageTitle'         => 'Detail Kelas',
             'classId'           => $id,
             'class'             => $class,
+            'batchStages'       => $parsed['stages'],
+            'batchStagesSubtitle' => $parsed['stages_subtitle'],
             'trainers'          => $trainers,
             'trainerCandidates' => $trainerCandidates,
             'enrollmentsCount'  => $enrollmentsCount,
@@ -289,15 +300,24 @@ class LearningClassController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas tidak ditemukan.');
         }
 
+        $parsed = parse_class_batch_data($class['description'] ?? '');
+        $class['description']             = $parsed['description'];
+        $class['batch_stages']            = $parsed['stages'];
+        $class['batch_stages_subtitle']   = $parsed['stages_subtitle'];
+        $class['custom_duration_minutes'] = $parsed['custom_duration_minutes'];
+
         return view('dashboard/learning/classes/form', [
-            'title' => 'Ubah Kelas | Dashboard BegawiPengadaan',
-            'pageTitle' => 'Ubah Kelas',
-            'formMode' => 'edit',
-            'classId' => $id,
-            'class' => $class,
-            'courses' => $this->courseModel->orderBy('title', 'ASC')->findAll(),
-            'activeMenu' => 'learning',
-            'activeSubmenu' => 'classes',
+            'title'               => 'Ubah Kelas | Dashboard BegawiPengadaan',
+            'pageTitle'           => 'Ubah Kelas',
+            'formMode'            => 'edit',
+            'classId'             => $id,
+            'class'               => $class,
+            'courses'             => $this->courseModel->orderBy('title', 'ASC')->findAll(),
+            'batchStages'         => $parsed['stages'],
+            'batchStagesSubtitle' => $parsed['stages_subtitle'],
+            'customDuration'      => $parsed['custom_duration_minutes'],
+            'activeMenu'          => 'learning',
+            'activeSubmenu'       => 'classes',
         ]);
     }
 
@@ -470,11 +490,34 @@ class LearningClassController extends BaseController
         $rawCap = $this->request->getPost('capacity');
         $capacity = ($rawCap !== null && $rawCap !== '') ? (int) $rawCap : null;
 
+        $rawDesc        = trim((string) $this->request->getPost('description'));
+        $stagesSubtitle = trim((string) $this->request->getPost('batch_stages_subtitle'));
+        $rawStages      = (array) ($this->request->getPost('batch_stages') ?: []);
+        $customDuration = $this->request->getPost('custom_duration_minutes') ? (int) $this->request->getPost('custom_duration_minutes') : null;
+
+        $cleanedStages = [];
+        foreach ($rawStages as $stg) {
+            if (! is_array($stg)) {
+                continue;
+            }
+            $t = trim((string) ($stg['title'] ?? ''));
+            $d = trim((string) ($stg['description'] ?? ''));
+            if ($t !== '' || $d !== '') {
+                $cleanedStages[] = [
+                    'number'      => count($cleanedStages) + 1,
+                    'title'       => $t,
+                    'description' => $d,
+                ];
+            }
+        }
+
+        $packedDescription = build_class_batch_description($rawDesc, $cleanedStages, $stagesSubtitle, $customDuration);
+
         return [
             'course_id'             => (int) $this->request->getPost('course_id'),
             'code'                  => trim((string) $this->request->getPost('code')),
             'name'                  => trim((string) $this->request->getPost('name')),
-            'description'           => $this->request->getPost('description'),
+            'description'           => $packedDescription,
             'status'                => $status,
             'featured'              => $this->request->getPost('featured') ? 1 : 0,
             'cover_file_id'         => $coverFileId,

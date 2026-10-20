@@ -49,9 +49,8 @@ $err          = session()->getFlashdata('error');
         'advanced' => ['label' => 'Tingkat Lanjutan', 'badge' => 'bg-danger text-white', 'icon' => 'fa-award'],
     ][$levelVal] ?? ['label' => ucfirst($levelVal), 'badge' => 'bg-primary text-white', 'icon' => 'fa-book'];
 
-    $durationFormatted = ($item['duration_minutes'] ?? null) !== null
-        ? esc((string) $item['duration_minutes']) . ' Menit'
-        : 'Mandiri / Fleksibel';
+    $durationFormatted = format_learning_jp($item['duration_minutes'] ?? null);
+    $jpCount           = learning_jp_count($item['duration_minutes'] ?? null);
     ?>
 
     <!-- =========================================================================
@@ -86,7 +85,7 @@ $err          = session()->getFlashdata('error');
                                     <i class="fas fa-layer-group me-1"></i> Program: <?= esc($item['program_title'] ?? 'Kurikulum Terpadu') ?>
                                 </a>
                             <?php endif; ?>
-                            <span class="badge px-2 py-1 radius-8 text-white" style="font-size: 11.5px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.32);">
+                            <span class="badge px-2 py-1 radius-8 text-white" style="font-size: 11.5px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.32);" title="1 JP = 60 menit pembelajaran">
                                 <i class="far fa-clock me-1"></i> <?= $durationFormatted ?>
                             </span>
                         </div>
@@ -618,7 +617,10 @@ $err          = session()->getFlashdata('error');
                             </li>
                             <li class="d-flex align-items-center justify-content-between pb-2 border-bottom">
                                 <span class="text-muted"><i class="far fa-clock text-info me-2"></i> Durasi Belajar</span>
-                                <span class="fw-semibold"><?= $durationFormatted ?></span>
+                                <span class="fw-semibold text-end">
+                                    <?= $durationFormatted ?>
+                                    <small class="text-muted d-block" style="font-size: 10.5px;">(1 JP = 60 menit pembelajaran)</small>
+                                </span>
                             </li>
                             <li class="d-flex align-items-center justify-content-between pb-2 border-bottom">
                                 <span class="text-muted"><i class="fas fa-laptop text-success me-2"></i> Metode Belajar</span>
@@ -1000,7 +1002,7 @@ $err          = session()->getFlashdata('error');
                                                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
                                                     <span class="badge bg-light text-primary border" style="font-size: 12.5px;">
                                                         <i class="far fa-clock me-1"></i>
-                                                        <?= ($course['duration_minutes'] ?? null) !== null ? esc((string) $course['duration_minutes']) . ' Menit' : 'Mandiri' ?>
+                                                        <?= format_learning_jp($course['duration_minutes'] ?? null) ?>
                                                     </span>
                                                     <?= view('landing/components/bookmark_button', [
                                                         'type'  => 'course',
@@ -1322,6 +1324,9 @@ $err          = session()->getFlashdata('error');
                             <span class="badge bg-success text-white px-2 py-1 radius-8" style="font-size: 11.5px;">
                                 <i class="fas fa-certificate me-1"></i> Sertifikat Resmi
                             </span>
+                            <span class="badge px-2 py-1 radius-8 text-white" style="font-size: 11.5px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.32);" title="1 JP = 60 menit pembelajaran">
+                                <i class="far fa-clock me-1"></i> <?= format_learning_jp($item['duration_minutes'] ?? 180) ?>
+                            </span>
                         </div>
 
                         <h1 class="text-white mb-2" style="font-size: clamp(20px, 2.5vw, 28px); font-weight: 800; line-height: 1.3;">
@@ -1358,6 +1363,10 @@ $err          = session()->getFlashdata('error');
                             <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
                                 <span><i class="fas fa-calendar-alt me-1 text-warning"></i> Periode Belajar</span>
                                 <span class="fw-bold fs-6"><?= $startDate ?> - <?= $endDate ?></span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
+                                <span><i class="far fa-clock me-1 text-info"></i> Durasi Belajar</span>
+                                <span class="fw-bold fs-6"><?= format_learning_jp($item['duration_minutes'] ?? 180) ?></span>
                             </div>
                             <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom text-white small" style="border-color: rgba(255,255,255,0.15) !important;">
                                 <span><i class="fas fa-users me-1 text-info"></i> Sisa Kuota</span>
@@ -1452,8 +1461,8 @@ $err          = session()->getFlashdata('error');
                         <?php endif; ?>
 
                         <!-- Key Metrics Grid -->
-                        <div class="row g-3">
-                            <div class="col-sm-6 col-md-3">
+                        <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-5">
+                            <div class="col">
                                 <div class="p-3 radius-12 bg-light border text-center h-100">
                                     <i class="far fa-calendar-check text-primary fs-4 mb-2"></i>
                                     <span class="d-block text-muted small">Periode Kelas</span>
@@ -1461,7 +1470,15 @@ $err          = session()->getFlashdata('error');
                                     <small class="text-muted">s/d <?= $endDate ?></small>
                                 </div>
                             </div>
-                            <div class="col-sm-6 col-md-3">
+                            <div class="col">
+                                <div class="p-3 radius-12 bg-light border text-center h-100">
+                                    <i class="far fa-clock text-info fs-4 mb-2"></i>
+                                    <span class="d-block text-muted small">Durasi Belajar</span>
+                                    <strong class="text-dark fs-6 d-block"><?= format_learning_jp($item['duration_minutes'] ?? 180) ?></strong>
+                                    <small class="text-muted fw-semibold" style="font-size: 11px;">1 JP = 60 Menit</small>
+                                </div>
+                            </div>
+                            <div class="col">
                                 <div class="p-3 radius-12 bg-light border text-center h-100">
                                     <i class="fas fa-users text-info fs-4 mb-2"></i>
                                     <span class="d-block text-muted small">Kapasitas Kelas</span>
@@ -1469,7 +1486,7 @@ $err          = session()->getFlashdata('error');
                                     <small class="text-success fw-semibold">Sisa <?= $remainingQuota ?> Kursi</small>
                                 </div>
                             </div>
-                            <div class="col-sm-6 col-md-3">
+                            <div class="col">
                                 <div class="p-3 radius-12 bg-light border text-center h-100">
                                     <i class="fas fa-laptop text-success fs-4 mb-2"></i>
                                     <span class="d-block text-muted small">Metode Belajar</span>
@@ -1482,7 +1499,7 @@ $err          = session()->getFlashdata('error');
                                     <small class="text-muted"><?= ! empty($item['location_or_link']) ? esc(character_limiter($item['location_or_link'], 20)) : 'Asynchronous &amp; Sesi' ?></small>
                                 </div>
                             </div>
-                            <div class="col-sm-6 col-md-3">
+                            <div class="col">
                                 <div class="p-3 radius-12 bg-light border text-center h-100">
                                     <i class="fas fa-award text-warning fs-4 mb-2"></i>
                                     <span class="d-block text-muted small">Passing Grade</span>
@@ -1499,54 +1516,36 @@ $err          = session()->getFlashdata('error');
                             <i class="fas fa-route text-info me-2"></i> Tahapan Pembelajaran Batch
                         </h4>
                         <p class="text-muted small mb-4">
-                            Alur pengerjaan yang harus dilalui oleh peserta selama periode kelas berlangsung:
+                            <?= esc($batchStagesSubtitle ?? ($item['batch_stages_subtitle'] ?? 'Alur pengerjaan yang harus dilalui oleh peserta selama periode kelas berlangsung:')) ?>
                         </p>
 
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="p-3 radius-12 border bg-light h-100">
-                                    <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="badge fw-bold bg-primary text-white" style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">1</span>
-                                        <h6 class="fw-bold mb-0 text-dark">Orientasi &amp; Pre-Test</h6>
+                            <?php
+                            $renderStages = ! empty($batchStages) ? $batchStages : (! empty($item['batch_stages']) ? $item['batch_stages'] : default_batch_stages());
+                            $stageColors = [
+                                'bg-primary text-white',
+                                'bg-info text-white',
+                                'bg-warning text-dark',
+                                'bg-success text-white',
+                                'bg-secondary text-white',
+                                'bg-dark text-white',
+                            ];
+                            foreach ($renderStages as $stgIdx => $stg):
+                                $stgNum = $stg['number'] ?? ($stgIdx + 1);
+                                $colorClass = $stageColors[$stgIdx % count($stageColors)];
+                            ?>
+                                <div class="col-md-6">
+                                    <div class="p-3 radius-12 border bg-light h-100">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="badge fw-bold <?= $colorClass ?>" style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;"><?= $stgNum ?></span>
+                                            <h6 class="fw-bold mb-0 text-dark"><?= esc($stg['title'] ?? '') ?></h6>
+                                        </div>
+                                        <p class="text-secondary small mb-0" style="line-height: 1.5;">
+                                            <?= nl2br(esc($stg['description'] ?? '')) ?>
+                                        </p>
                                     </div>
-                                    <p class="text-secondary small mb-0" style="line-height: 1.5;">
-                                        Pengenalan silabus dan asesmen diagnostik awal guna memetakan pemahaman dasar peserta sebelum memasuki modul materi.
-                                    </p>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="p-3 radius-12 border bg-light h-100">
-                                    <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="badge fw-bold bg-info text-white" style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">2</span>
-                                        <h6 class="fw-bold mb-0 text-dark">Modul Pembelajaran &amp; Kuis</h6>
-                                    </div>
-                                    <p class="text-secondary small mb-0" style="line-height: 1.5;">
-                                        Mempelajari materi regulasi, studi kasus LKPP, video tutorial, serta menyelesaikan kuis formatif pada setiap modul.
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="p-3 radius-12 border bg-light h-100">
-                                    <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="badge fw-bold bg-warning text-dark" style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">3</span>
-                                        <h6 class="fw-bold mb-0 text-dark">Tugas Praktik &amp; Evaluasi</h6>
-                                    </div>
-                                    <p class="text-secondary small mb-0" style="line-height: 1.5;">
-                                        Menyusun dokumen praktikum (RUP, HPS, spesifikasi teknis, atau draft kontrak) yang dievaluasi langsung oleh instruktur fasilitator.
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="p-3 radius-12 border bg-light h-100">
-                                    <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="badge fw-bold bg-success text-white" style="width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">4</span>
-                                        <h6 class="fw-bold mb-0 text-dark">Post-Test &amp; Penerbitan Sertifikat</h6>
-                                    </div>
-                                    <p class="text-secondary small mb-0" style="line-height: 1.5;">
-                                        Ujian komprehensif penentu kelulusan. Peserta yang melampaui passing grade berhak mengunduh sertifikat resmi ber-QR Code verifikasi.
-                                    </p>
-                                </div>
-                            </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
 
@@ -1763,6 +1762,13 @@ $err          = session()->getFlashdata('error');
                             <li class="d-flex justify-content-between pb-2 border-bottom">
                                 <span class="text-muted"><i class="far fa-calendar-alt text-primary me-2"></i> Periode Kelas</span>
                                 <span class="fw-semibold text-end"><?= $startDate ?> - <?= $endDate ?></span>
+                            </li>
+                            <li class="d-flex justify-content-between pb-2 border-bottom">
+                                <span class="text-muted"><i class="far fa-clock text-info me-2"></i> Durasi Belajar</span>
+                                <span class="fw-semibold text-end">
+                                    <?= format_learning_jp($item['duration_minutes'] ?? 180) ?>
+                                    <small class="text-muted d-block" style="font-size: 10.5px;">(1 JP = 60 menit pembelajaran)</small>
+                                </span>
                             </li>
                             <?php if ($regOpen || $regClose): ?>
                                 <li class="d-flex justify-content-between pb-2 border-bottom">
@@ -2330,7 +2336,7 @@ $err          = session()->getFlashdata('error');
 
                                             <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
                                                 <small class="text-muted">
-                                                    <i class="far fa-clock me-1"></i> <?= (int) ($crs['duration'] ?? 120) ?> Menit
+                                                    <i class="far fa-clock me-1"></i> <?= format_learning_jp($crs['duration'] ?? 120) ?>
                                                 </small>
                                                 <a href="<?= route_to('public.learning.course.detail', $crs['slug']) ?>" class="btn btn-sm btn-outline-primary radius-8 px-2 py-1 fw-bold" style="font-size: 12px;">
                                                     <span>Buka Course</span>

@@ -111,7 +111,7 @@ $levelLabel = static function (?string $lvl): string {
                         <?php if (! empty($c['duration_minutes'])): ?>
                             <span>
                                 <i class="far fa-clock text-primary me-1"></i>
-                                Estimasi: <?= (int) $c['duration_minutes'] ?> Menit
+                                Estimasi: <?= format_learning_jp($c['duration_minutes']) ?>
                             </span>
                         <?php endif; ?>
                         <span>
@@ -194,11 +194,14 @@ $levelLabel = static function (?string $lvl): string {
                             <p class="small text-white-50 mb-0"><?= esc($c['course_title'] ?? '-') ?></p>
                         </div>
                     </div>
-                    <?php if (! empty($c['description'])): ?>
+                    <?php
+                    $parsedTrainerClassDesc = parse_class_batch_data($c['description'] ?? '');
+                    if (! empty($parsedTrainerClassDesc['description'])):
+                    ?>
                         <div class="p-4 border-bottom bg-light-subtle">
                             <h3 class="h6 fw-bold text-navy mb-2"><i class="fas fa-info-circle text-primary me-2"></i>Deskripsi Kelas</h3>
                             <div class="text-muted small lh-lg">
-                                <?= nl2br(esc($c['description'])) ?>
+                                <?= nl2br(esc($parsedTrainerClassDesc['description'])) ?>
                             </div>
                         </div>
                     <?php endif; ?>

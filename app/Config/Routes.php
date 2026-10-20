@@ -376,6 +376,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('peran-pengadaan/(:segment)/ubah', 'ProcurementRoleController::update/$1', ['as' => 'dashboard.access.procurement-roles.update']);
         $routes->post('peran-pengadaan/(:segment)/nonaktifkan', 'ProcurementRoleController::deactivate/$1', ['as' => 'dashboard.access.procurement-roles.deactivate']);
         $routes->post('peran-pengadaan/(:segment)/aktifkan', 'ProcurementRoleController::activate/$1', ['as' => 'dashboard.access.procurement-roles.activate']);
+        $routes->post('peran-pengadaan/(:segment)/hapus', 'ProcurementRoleController::delete/$1', ['as' => 'dashboard.access.procurement-roles.delete']);
         $routes->get('penugasan-pengadaan', 'ProcurementRoleController::assignments', ['as' => 'dashboard.access.procurement-assignments']);
         $routes->post('penugasan-pengadaan', 'ProcurementRoleController::storeAssignment', ['as' => 'dashboard.access.procurement-assignments.store']);
         $routes->post('penugasan-pengadaan/(:segment)/verifikasi', 'ProcurementRoleController::verifyAssignment/$1', ['as' => 'dashboard.access.procurement-assignments.verify']);

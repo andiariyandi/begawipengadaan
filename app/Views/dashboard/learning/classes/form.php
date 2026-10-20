@@ -84,6 +84,19 @@ $formAction = $isEdit ? route_to('dashboard.learning.classes.update', $class['id
                         </select>
                     </div>
 
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="custom_duration_minutes">
+                            Durasi Belajar Khusus Batch (Menit)
+                            <span class="badge bg-primary-100 text-primary-600 text-xs px-2 py-0.5 radius-4 ms-1" id="batch_jp_badge">
+                                <?= format_learning_jp(old('custom_duration_minutes', $customDuration ?? null)) ?>
+                            </span>
+                        </label>
+                        <input id="custom_duration_minutes" type="number" min="0" step="5" name="custom_duration_minutes" class="form-control radius-8" value="<?= esc(old('custom_duration_minutes', $customDuration ?? '')) ?>" placeholder="Kosongkan untuk mewarisi Course induk" oninput="updateBatchJpBadge(this.value)">
+                        <small class="text-secondary-light text-xs mt-1 d-block">
+                            <iconify-icon icon="solar:info-circle-linear" class="align-middle"></iconify-icon> Standar PBJ: <strong>1 JP = 60 menit pembelajaran</strong>.
+                        </small>
+                    </div>
+
                     <div class="col-md-12">
                         <div class="form-check form-switch mt-2">
                             <input class="form-check-input" type="checkbox" role="switch" id="featured" name="featured" value="1" <?= old('featured', $class['featured'] ?? 0) ? 'checked' : '' ?>>
@@ -165,11 +178,11 @@ $formAction = $isEdit ? route_to('dashboard.learning.classes.update', $class['id
                 </div>
             </div>
 
-            <!-- 2. DESKRIPSI & PERSYARATAN BATCH -->
+            <!-- 3. DESKRIPSI & PERSYARATAN BATCH -->
             <div class="mb-24">
                 <h6 class="text-md fw-semibold text-primary-600 border-bottom pb-8 mb-16 d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:document-text-outline" class="text-lg"></iconify-icon>
-                    <span>2. Deskripsi Batch & Sasaran Khusus</span>
+                    <span>3. Deskripsi Batch & Sasaran Khusus</span>
                 </h6>
                 <div class="row gy-20">
                     <div class="col-md-6">
@@ -183,11 +196,80 @@ $formAction = $isEdit ? route_to('dashboard.learning.classes.update', $class['id
                 </div>
             </div>
 
-            <!-- 3. PERIODE PENDAFTARAN & JADWAL KELAS -->
+            <!-- 4. TAHAPAN PEMBELAJARAN BATCH (ROADMAP ALUR BELAJAR) -->
+            <div class="mb-24">
+                <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-8 mb-16 gap-2">
+                    <div>
+                        <h6 class="text-md fw-semibold text-primary-600 mb-0 d-flex align-items-center gap-2">
+                            <iconify-icon icon="solar:route-outline" class="text-lg"></iconify-icon>
+                            <span>4. Tahapan Pembelajaran Batch (Alur Belajar Peserta)</span>
+                        </h6>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-neutral-400 radius-8 text-xs px-12 py-6 d-inline-flex align-items-center gap-1" onclick="resetToDefaultBatchStages()">
+                            <iconify-icon icon="solar:restart-bold" class="text-sm"></iconify-icon>
+                            <span>Reset Template Standar PBJ (4 Tahap)</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary-600 radius-8 text-xs px-12 py-6 d-inline-flex align-items-center gap-1" onclick="addBatchStageRow()">
+                            <iconify-icon icon="solar:add-circle-bold" class="text-sm"></iconify-icon>
+                            <span>+ Tambah Tahapan</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-neutral-50 border border-neutral-200 text-secondary-light radius-8 p-12 mb-16 text-xs d-flex align-items-start gap-2">
+                    <iconify-icon icon="solar:info-circle-bold" class="text-base text-primary-600 flex-shrink-0 mt-1"></iconify-icon>
+                    <div>
+                        Tahapan ini ditampilkan pada halaman <code>/arena-belajar/kelas/{code}</code> sebagai alur pengerjaan kelas yang harus dilalui oleh peserta selama periode kelas berlangsung. Anda dapat menyesuaikan alur tahapan atau menggunakan 4 tahapan standar kurikulum PBJ.
+                    </div>
+                </div>
+
+                <div class="mb-16">
+                    <label class="form-label fw-semibold text-primary-light text-sm mb-4" for="batch_stages_subtitle">Teks Pengantar / Subtitle Alur</label>
+                    <input id="batch_stages_subtitle" type="text" name="batch_stages_subtitle" class="form-control radius-8 text-sm" value="<?= esc(old('batch_stages_subtitle', $batchStagesSubtitle ?? 'Alur pengerjaan yang harus dilalui oleh peserta selama periode kelas berlangsung:')) ?>" placeholder="Alur pengerjaan yang harus dilalui oleh peserta selama periode kelas berlangsung:">
+                </div>
+
+                <div id="batch_stages_container" class="d-flex flex-column gap-12">
+                    <?php
+                    $stagesToRender = old('batch_stages', $batchStages ?? default_batch_stages());
+                    if (empty($stagesToRender)) {
+                        $stagesToRender = default_batch_stages();
+                    }
+                    foreach ($stagesToRender as $idx => $stg):
+                        $stgNum = $idx + 1;
+                        $titleVal = is_array($stg) ? ($stg['title'] ?? '') : '';
+                        $descVal  = is_array($stg) ? ($stg['description'] ?? '') : '';
+                    ?>
+                        <div class="stage-row card border radius-8 p-16 bg-neutral-50" data-stage-index="<?= $idx ?>">
+                            <div class="d-flex align-items-center justify-content-between mb-12">
+                                <span class="badge bg-primary-600 text-white fw-bold px-10 py-4 radius-6 text-xs stage-number-badge">
+                                    Tahap <?= $stgNum ?>
+                                </span>
+                                <button type="button" class="btn btn-sm btn-outline-danger radius-6 py-2 px-8 text-xs btn-remove-stage" onclick="removeBatchStageRow(this)" title="Hapus Tahapan Ini">
+                                    <iconify-icon icon="solar:trash-bin-trash-bold" class="text-sm align-middle"></iconify-icon>
+                                    <span class="ms-1">Hapus</span>
+                                </button>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-5">
+                                    <label class="form-label fw-semibold text-primary-light text-xs mb-4">Judul Tahapan <span class="text-danger-main">*</span></label>
+                                    <input type="text" name="batch_stages[<?= $idx ?>][title]" class="form-control radius-8 text-sm stage-title-input" value="<?= esc($titleVal) ?>" required placeholder="Contoh: Orientasi & Pre-Test">
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label fw-semibold text-primary-light text-xs mb-4">Deskripsi / Penjelasan Tahapan <span class="text-danger-main">*</span></label>
+                                    <textarea name="batch_stages[<?= $idx ?>][description]" rows="2" class="form-control radius-8 text-sm stage-desc-input" required placeholder="Jelaskan aktivitas atau asesmen yang dilakukan peserta pada tahapan ini..."><?= esc($descVal) ?></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <!-- 5. PERIODE PENDAFTARAN & JADWAL KELAS -->
             <div class="mb-24">
                 <h6 class="text-md fw-semibold text-primary-600 border-bottom pb-8 mb-16 d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:calendar-date-outline" class="text-lg"></iconify-icon>
-                    <span>3. Periode Pendaftaran & Jadwal Pelaksanaan</span>
+                    <span>5. Periode Pendaftaran & Jadwal Pelaksanaan</span>
                 </h6>
                 <div class="row gy-20">
                     <div class="col-md-6">
@@ -212,11 +294,11 @@ $formAction = $isEdit ? route_to('dashboard.learning.classes.update', $class['id
                 </div>
             </div>
 
-            <!-- 4. STANDAR KELULUSAN & BOBOT PENILAIAN -->
+            <!-- 6. STANDAR KELULUSAN & BOBOT PENILAIAN -->
             <div class="mb-24">
                 <h6 class="text-md fw-semibold text-primary-600 border-bottom pb-8 mb-16 d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:diploma-outline" class="text-lg"></iconify-icon>
-                    <span>4. Standar Kelulusan & Bobot Komponen Penilaian</span>
+                    <span>6. Standar Kelulusan & Bobot Komponen Penilaian</span>
                 </h6>
                 <div class="row gy-20">
                     <div class="col-md-3">
@@ -310,6 +392,135 @@ function calculateClassWeights() {
         }
     }
 }
-document.addEventListener('DOMContentLoaded', calculateClassWeights);
+
+function updateBatchJpBadge(minutes) {
+    const badge = document.getElementById('batch_jp_badge');
+    if (!badge) return;
+    const min = parseFloat(minutes) || 0;
+    if (min <= 0) {
+        badge.textContent = 'Mewarisi Course';
+        badge.className = 'badge bg-neutral-200 text-secondary-light text-xs px-2 py-0.5 radius-4 ms-1';
+        return;
+    }
+    const jp = (min % 60 === 0) ? (min / 60) : (Math.round((min / 60) * 10) / 10);
+    badge.textContent = jp + ' JP (' + min + ' Menit)';
+    badge.className = 'badge bg-primary-100 text-primary-600 text-xs px-2 py-0.5 radius-4 ms-1';
+}
+
+const DEFAULT_STAGES = [
+    {
+        title: 'Orientasi & Pre-Test',
+        description: 'Pengenalan silabus dan asesmen diagnostik awal guna memetakan pemahaman dasar peserta sebelum memasuki modul materi.'
+    },
+    {
+        title: 'Modul Pembelajaran & Kuis',
+        description: 'Mempelajari materi regulasi, studi kasus LKPP, video tutorial, serta menyelesaikan kuis formatif pada setiap modul.'
+    },
+    {
+        title: 'Tugas Praktik & Evaluasi',
+        description: 'Menyusun dokumen praktikum (RUP, HPS, spesifikasi teknis, atau draft kontrak) yang dievaluasi langsung oleh instruktur fasilitator.'
+    },
+    {
+        title: 'Post-Test & Penerbitan Sertifikat',
+        description: 'Ujian komprehensif penentu kelulusan. Peserta yang melampaui passing grade berhak mengunduh sertifikat resmi ber-QR Code verifikasi.'
+    }
+];
+
+function reindexBatchStages() {
+    const container = document.getElementById('batch_stages_container');
+    if (!container) return;
+    const rows = container.querySelectorAll('.stage-row');
+    rows.forEach((row, idx) => {
+        row.dataset.stageIndex = idx;
+        const badge = row.querySelector('.stage-number-badge');
+        if (badge) badge.textContent = 'Tahap ' + (idx + 1);
+        const titleInput = row.querySelector('.stage-title-input');
+        if (titleInput) titleInput.name = 'batch_stages[' + idx + '][title]';
+        const descInput = row.querySelector('.stage-desc-input');
+        if (descInput) descInput.name = 'batch_stages[' + idx + '][description]';
+        const removeBtn = row.querySelector('.btn-remove-stage');
+        if (removeBtn) {
+            removeBtn.style.display = rows.length > 1 ? 'inline-flex' : 'none';
+        }
+    });
+}
+
+function addBatchStageRow(title = '', desc = '') {
+    const container = document.getElementById('batch_stages_container');
+    if (!container) return;
+    const count = container.querySelectorAll('.stage-row').length;
+    const newIdx = count;
+    const div = document.createElement('div');
+    div.className = 'stage-row card border radius-8 p-16 bg-neutral-50';
+    div.dataset.stageIndex = newIdx;
+    div.innerHTML = `
+        <div class="d-flex align-items-center justify-content-between mb-12">
+            <span class="badge bg-primary-600 text-white fw-bold px-10 py-4 radius-6 text-xs stage-number-badge">
+                Tahap ${newIdx + 1}
+            </span>
+            <button type="button" class="btn btn-sm btn-outline-danger radius-6 py-2 px-8 text-xs btn-remove-stage" onclick="removeBatchStageRow(this)" title="Hapus Tahapan Ini">
+                <iconify-icon icon="solar:trash-bin-trash-bold" class="text-sm align-middle"></iconify-icon>
+                <span class="ms-1">Hapus</span>
+            </button>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-5">
+                <label class="form-label fw-semibold text-primary-light text-xs mb-4">Judul Tahapan <span class="text-danger-main">*</span></label>
+                <input type="text" name="batch_stages[${newIdx}][title]" class="form-control radius-8 text-sm stage-title-input" value="${escapeHtml(title)}" required placeholder="Contoh: Orientasi & Pre-Test">
+            </div>
+            <div class="col-md-7">
+                <label class="form-label fw-semibold text-primary-light text-xs mb-4">Deskripsi / Penjelasan Tahapan <span class="text-danger-main">*</span></label>
+                <textarea name="batch_stages[${newIdx}][description]" rows="2" class="form-control radius-8 text-sm stage-desc-input" required placeholder="Jelaskan aktivitas atau asesmen yang dilakukan peserta pada tahapan ini...">${escapeHtml(desc)}</textarea>
+            </div>
+        </div>
+    `;
+    container.appendChild(div);
+    reindexBatchStages();
+}
+
+function removeBatchStageRow(btn) {
+    const container = document.getElementById('batch_stages_container');
+    if (!container) return;
+    const rows = container.querySelectorAll('.stage-row');
+    if (rows.length <= 1) {
+        alert('Minimal harus terdapat 1 tahapan pembelajaran.');
+        return;
+    }
+    const row = btn.closest('.stage-row');
+    if (row) {
+        row.remove();
+        reindexBatchStages();
+    }
+}
+
+function resetToDefaultBatchStages() {
+    if (!confirm('Apakah Anda yakin ingin mengatur ulang tahapan ke 4 Tahapan Standar Kurikulum PBJ?')) {
+        return;
+    }
+    const container = document.getElementById('batch_stages_container');
+    if (!container) return;
+    container.innerHTML = '';
+    DEFAULT_STAGES.forEach(stg => {
+        addBatchStageRow(stg.title, stg.description);
+    });
+    const subInput = document.getElementById('batch_stages_subtitle');
+    if (subInput) {
+        subInput.value = 'Alur pengerjaan yang harus dilalui oleh peserta selama periode kelas berlangsung:';
+    }
+}
+
+function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return (text || '').replace(/[&<>"']/g, m => map[m]);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    calculateClassWeights();
+    reindexBatchStages();
+    const durInput = document.getElementById('custom_duration_minutes');
+    if (durInput && durInput.value) {
+        updateBatchJpBadge(durInput.value);
+    }
+});
 </script>
 <?= $this->endSection() ?>

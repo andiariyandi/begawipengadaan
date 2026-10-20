@@ -23,7 +23,31 @@ class ProcurementRoleService
 
     public function listRoles(): array
     {
-        return $this->roles->orderBy('name')->findAll();
+        $roles = $this->roles->orderBy('name')->findAll();
+        if (empty($roles)) {
+            return [];
+        }
+
+        $counts = db_connect()->table('user_procurement_roles')
+            ->select('procurement_role_id, COUNT(DISTINCT user_id) as total_users')
+            ->groupBy('procurement_role_id')
+            ->get()->getResultArray();
+
+        $countMap = array_column($counts, 'total_users', 'procurement_role_id');
+
+        foreach ($roles as &$r) {
+            $r['users_count'] = (int) ($countMap[$r['id']] ?? 0);
+        }
+        unset($r);
+
+        return $roles;
+    }
+
+    public function getUserCountForRole(int $roleId): int
+    {
+        return (int) db_connect()->table('user_procurement_roles')
+            ->where('procurement_role_id', $roleId)
+            ->countAllResults();
     }
 
     public function findRole(int $id): ?array
@@ -43,6 +67,19 @@ class ProcurementRoleService
         $ok = (bool) $this->roles->update($id, $this->rolePayload($data, isUpdate: true));
         if ($ok) {
             $this->audit->log($actorId, 'procurement_role.update', 'procurement_roles', 'procurement_role', $id);
+        }
+        return $ok;
+    }
+
+    public function deleteRole(int $id, ?int $actorId = null): bool
+    {
+        $role = $this->findRole($id);
+        $ok = (bool) $this->roles->delete($id);
+        if ($ok) {
+            $this->audit->log($actorId, 'procurement_role.delete', 'procurement_roles', 'procurement_role', $id, [
+                'key'  => $role['key'] ?? null,
+                'name' => $role['name'] ?? null,
+            ]);
         }
         return $ok;
     }

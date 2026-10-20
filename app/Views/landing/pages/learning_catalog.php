@@ -431,7 +431,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                             </p>
 
                                             <div class="d-flex align-items-center justify-content-between pt-2 border-top text-muted small mt-auto" style="font-size: 12px;">
-                                                <span><i class="far fa-clock text-info me-1"></i> <?= ! empty($item['duration_minutes']) ? (int) $item['duration_minutes'] . ' Menit' : 'Mandiri' ?></span>
+                                                <span><i class="far fa-clock text-info me-1"></i> <?= format_learning_jp($item['duration_minutes'] ?? null) ?></span>
                                                 <a href="<?= route_to($detailRoute, $item['slug']) ?>" class="btn btn-sm btn-outline-primary radius-8 px-2 py-1 fw-semibold">
                                                     <span>Detail Course</span> &rarr;
                                                 </a>

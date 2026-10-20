@@ -106,7 +106,7 @@ $trainerRoleLabel = static function (?string $role): string {
                 <?php if (! empty($ctx['duration_minutes'])): ?>
                     <div>
                         <i class="bi bi-clock-history text-primary me-1"></i>
-                        Estimasi: <strong><?= (int) $ctx['duration_minutes'] ?> Menit</strong>
+                        Estimasi: <strong><?= format_learning_jp($ctx['duration_minutes']) ?></strong>
                     </div>
                 <?php endif; ?>
             </div>
@@ -259,10 +259,13 @@ $trainerRoleLabel = static function (?string $role): string {
     <h2 class="h5 mb-3 fw-bold d-flex align-items-center gap-2" style="color: #082f5c;">
         <i class="bi bi-card-text text-primary"></i> Deskripsi Kursus
     </h2>
-    <?php if (! empty($ctx['description'])): ?>
+    <?php
+    $parsedCtxDesc = parse_class_batch_data($ctx['description'] ?? '');
+    if (! empty($parsedCtxDesc['description'])):
+    ?>
         <div class="p-3 bg-light rounded-4 border mb-3">
             <strong class="d-block small text-primary fw-bold text-uppercase mb-1">Tentang Batch Kelas Ini:</strong>
-            <div class="text-dark small lh-base"><?= nl2br(esc($ctx['description'])) ?></div>
+            <div class="text-dark small lh-base"><?= nl2br(esc($parsedCtxDesc['description'])) ?></div>
         </div>
     <?php endif; ?>
 
