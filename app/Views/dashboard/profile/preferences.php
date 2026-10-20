@@ -130,7 +130,7 @@
                 <div class="col-12">
                     <div class="form-switch switch-primary d-flex align-items-center justify-content-between gap-12 p-16 bg-neutral-50 border radius-12">
                         <div>
-                            <label class="form-check-label fw-bold text-dark text-sm mb-1" for="profileEmailNotification">
+                            <label class="form-check-label fw-bold text-primary-light text-sm mb-1" for="profileEmailNotification">
                                 Notifikasi Melalui Email
                             </label>
                             <p class="text-secondary-light text-xs mb-0">
@@ -150,7 +150,7 @@
                 <div class="col-12">
                     <div class="form-switch switch-primary d-flex align-items-center justify-content-between gap-12 p-16 bg-neutral-50 border radius-12">
                         <div>
-                            <label class="form-check-label fw-bold text-dark text-sm mb-1" for="profileInAppNotification">
+                            <label class="form-check-label fw-bold text-primary-light text-sm mb-1" for="profileInAppNotification">
                                 Notifikasi Dalam Aplikasi (In-App)
                             </label>
                             <p class="text-secondary-light text-xs mb-0">
@@ -170,7 +170,7 @@
                 <div class="col-12">
                     <div class="form-switch switch-primary d-flex align-items-center justify-content-between gap-12 p-16 bg-neutral-50 border radius-12">
                         <div>
-                            <label class="form-check-label fw-bold text-dark text-sm mb-1" for="profileReportNotification">
+                            <label class="form-check-label fw-bold text-primary-light text-sm mb-1" for="profileReportNotification">
                                 Ringkasan Laporan Mingguan &amp; Status Operasional
                             </label>
                             <p class="text-secondary-light text-xs mb-0">

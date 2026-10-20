@@ -81,7 +81,7 @@
                     <span class="position-absolute bottom-0 end-0 p-1 bg-success-600 border border-white border-2 rounded-circle" title="Akun Aktif" style="width: 18px; height: 18px;"></span>
                 </div>
                 
-                <h5 class="mt-16 mb-4 fw-bold text-dark"><?= esc($user['name'] ?? 'Administrator') ?></h5>
+                <h5 class="mt-16 mb-4 fw-bold text-primary-light"><?= esc($user['name'] ?? 'Administrator') ?></h5>
                 <p class="text-secondary-light mb-12 text-sm">@<?= esc($user['username'] ?? 'admin') ?></p>
                 
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-16 flex-wrap">
@@ -97,7 +97,7 @@
                 <!-- Roles Pills -->
                 <div class="d-flex flex-wrap justify-content-center gap-1 mb-20">
                     <?php foreach ($roles as $r): ?>
-                        <span class="badge bg-neutral-100 text-dark border text-xs px-2 py-1">
+                        <span class="badge bg-neutral-100 text-primary-light border text-xs px-2 py-1">
                             <iconify-icon icon="solar:shield-check-bold" class="text-primary me-1"></iconify-icon>
                             <?= esc($r['name'] ?? 'Administrator') ?>
                         </span>
@@ -110,28 +110,28 @@
                 <div class="text-start d-flex flex-column gap-16">
                     <div>
                         <p class="text-secondary-light text-xs text-uppercase tracking-wider fw-semibold mb-4">Email Resmi</p>
-                        <h6 class="text-sm fw-semibold mb-0 text-break text-dark d-flex align-items-center gap-2">
+                        <h6 class="text-sm fw-semibold mb-0 text-break text-primary-light d-flex align-items-center gap-2">
                             <iconify-icon icon="solar:letter-bold" class="text-primary"></iconify-icon>
                             <?= esc($user['email'] ?? 'admin@begawipbj.go.id') ?>
                         </h6>
                     </div>
                     <div>
                         <p class="text-secondary-light text-xs text-uppercase tracking-wider fw-semibold mb-4">Nomor Kontak / WhatsApp</p>
-                        <h6 class="text-sm fw-semibold mb-0 text-dark d-flex align-items-center gap-2">
+                        <h6 class="text-sm fw-semibold mb-0 text-primary-light d-flex align-items-center gap-2">
                             <iconify-icon icon="solar:phone-bold" class="text-success"></iconify-icon>
                             <?= esc(! empty($user['phone']) ? $user['phone'] : '+62 851-1777-9783') ?>
                         </h6>
                     </div>
                     <div>
                         <p class="text-secondary-light text-xs text-uppercase tracking-wider fw-semibold mb-4">Bergabung Sejak</p>
-                        <h6 class="text-sm fw-semibold mb-0 text-dark d-flex align-items-center gap-2">
+                        <h6 class="text-sm fw-semibold mb-0 text-primary-light d-flex align-items-center gap-2">
                             <iconify-icon icon="solar:calendar-bold" class="text-warning"></iconify-icon>
                             <?= ! empty($user['created_at']) ? date('d F Y', strtotime($user['created_at'])) : '01 Januari 2026' ?>
                         </h6>
                     </div>
                     <div>
                         <p class="text-secondary-light text-xs text-uppercase tracking-wider fw-semibold mb-4">Sesi Terakhir</p>
-                        <h6 class="text-sm fw-semibold mb-0 text-dark d-flex align-items-center gap-2">
+                        <h6 class="text-sm fw-semibold mb-0 text-primary-light d-flex align-items-center gap-2">
                             <iconify-icon icon="solar:clock-circle-bold" class="text-info"></iconify-icon>
                             <?= ! empty($user['last_login_at']) ? date('d F Y, H:i', strtotime($user['last_login_at'])) . ' WIB' : 'Sesi Aktif' ?>
                         </h6>
@@ -160,33 +160,33 @@
                 <div class="row gy-20">
                     <div class="col-md-6">
                         <p class="text-secondary-light text-xs mb-4">Nama Lengkap</p>
-                        <h6 class="text-sm fw-bold mb-0 text-dark"><?= esc($user['name'] ?? 'Administrator') ?></h6>
+                        <h6 class="text-sm fw-bold mb-0 text-primary-light"><?= esc($user['name'] ?? 'Administrator') ?></h6>
                     </div>
                     <div class="col-md-6">
                         <p class="text-secondary-light text-xs mb-4">Nama Pengguna (Username)</p>
-                        <h6 class="text-sm fw-bold mb-0 text-dark"><?= esc($user['username'] ?? 'admin') ?></h6>
+                        <h6 class="text-sm fw-bold mb-0 text-primary-light"><?= esc($user['username'] ?? 'admin') ?></h6>
                     </div>
                     <div class="col-md-6">
                         <p class="text-secondary-light text-xs mb-4">Unit Kerja / OPD</p>
-                        <h6 class="text-sm fw-bold mb-0 text-dark"><?= esc($unitName ?? 'Biro Pengadaan Barang dan Jasa') ?></h6>
+                        <h6 class="text-sm fw-bold mb-0 text-primary-light"><?= esc($unitName ?? 'Biro Pengadaan Barang dan Jasa') ?></h6>
                     </div>
                     <div class="col-md-6">
                         <p class="text-secondary-light text-xs mb-4">Jabatan Kedinasan</p>
-                        <h6 class="text-sm fw-bold mb-0 text-dark"><?= esc($positionName ?? 'Administrator Platform') ?></h6>
+                        <h6 class="text-sm fw-bold mb-0 text-primary-light"><?= esc($positionName ?? 'Administrator Platform') ?></h6>
                     </div>
                     <div class="col-md-6">
                         <p class="text-secondary-light text-xs mb-4">Peran Akses Utama</p>
-                        <h6 class="text-sm fw-bold mb-0 text-dark">
+                        <h6 class="text-sm fw-bold mb-0 text-primary-light">
                             <?= esc(! empty($roles[0]['name']) ? $roles[0]['name'] : 'Administrator Sistem') ?>
                         </h6>
                     </div>
                     <div class="col-md-6">
                         <p class="text-secondary-light text-xs mb-4">Wilayah Tugas</p>
-                        <h6 class="text-sm fw-bold mb-0 text-dark">Pemerintah Provinsi Lampung</h6>
+                        <h6 class="text-sm fw-bold mb-0 text-primary-light">Pemerintah Provinsi Lampung</h6>
                     </div>
                     <div class="col-12">
                         <p class="text-secondary-light text-xs mb-4">Alamat Kantor / Domisili</p>
-                        <h6 class="text-sm fw-semibold mb-0 text-slate-700">
+                        <h6 class="text-sm fw-semibold mb-0 text-primary-light">
                             <?= esc(! empty($profile['address_line']) ? $profile['address_line'] : 'Kompleks Kantor Gubernur Lampung, Jl. Wolter Monginsidi No. 69, Bandar Lampung') ?>
                         </h6>
                     </div>

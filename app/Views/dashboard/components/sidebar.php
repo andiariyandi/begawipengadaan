@@ -115,7 +115,7 @@ $isSuperAdmin = $auth->isSuperAdmin();
                     <li><a class="<?= $activeClass('knowledge', 'videos') ?>" href="<?= site_url('dashboard/bunga-rampai/video') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Video PBJ</a></li>
                     <li><a class="<?= $activeClass('knowledge', 'gallery') ?>" href="<?= site_url('dashboard/bunga-rampai/galeri') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Galeri Kegiatan</a></li>
                     <li><a class="<?= $activeClass('knowledge', 'media-gallery') ?>" href="<?= site_url('dashboard/bunga-rampai/media-galeri') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Semua Media &amp; Galeri</a></li>
-                    <li><a class="<?= $activeClass('knowledge', 'carousel') ?>" href="<?= site_url('dashboard/bunga-rampai/carousel-konten-unggulan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Carousel &amp; Unggulan</a></li>
+                    <li><a class="<?= $activeClass('knowledge', 'carousel') ?>" href="<?= site_url('dashboard/landing/sorotan-carousel') ?>?tab=knowledge"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Carousel &amp; Unggulan</a></li>
                     <li><a class="<?= $activeClass('knowledge', 'categories') ?>" href="<?= site_url('dashboard/bunga-rampai/kategori') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Kategori</a></li>
                     <li><a class="<?= $activeClass('knowledge', 'tags') ?>" href="<?= site_url('dashboard/bunga-rampai/tag') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Tagar &amp; Topik</a></li>
                     <li><a class="<?= $activeClass('knowledge', 'bookmarks') ?>" href="<?= site_url('dashboard/bunga-rampai/bookmark') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Bookmark Koleksi</a></li>
@@ -165,6 +165,7 @@ $isSuperAdmin = $auth->isSuperAdmin();
                     <li><a class="<?= $activeClass('certificates', 'overview') ?>" href="<?= site_url('dashboard/sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Overview Sertifikat</a></li>
                     <li><a class="<?= $activeClass('certificates', 'learning') ?>" href="<?= site_url('dashboard/sertifikat/learning') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Learning Certificate</a></li>
                     <li><a class="<?= $activeClass('certificates', 'event') ?>" href="<?= site_url('dashboard/sertifikat/event') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Event / Agenda Certificate</a></li>
+                    <li><a class="<?= $activeClass('certificates', 'approvals') ?>" href="<?= site_url('dashboard/sertifikat/approval') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Antrean Persetujuan</a></li>
                     <li><a class="<?= $activeClass('certificates', 'batch') ?>" href="<?= site_url('dashboard/sertifikat/batch') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Batch Generation</a></li>
                     <li><a class="<?= $activeClass('certificates', 'templates') ?>" href="<?= site_url('dashboard/sertifikat/template') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Template Sertifikat</a></li>
                     <li><a class="<?= $activeClass('certificates', 'verification') ?>" href="<?= site_url('dashboard/sertifikat/verifikasi') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Verification</a></li>
@@ -223,14 +224,15 @@ $isSuperAdmin = $auth->isSuperAdmin();
                 <ul class="sidebar-submenu">
                     <li><a class="<?= $activeClass('system', 'approvals') ?>" href="<?= site_url('dashboard/sistem/approval') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Approval</a></li>
                     <li><a class="<?= $activeClass('system', 'audit-trail') ?>" href="<?= site_url('dashboard/sistem/audit-trail') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Audit Trail</a></li>
-                    <li><a class="<?= $activeClass('system', 'files-media') ?>" href="<?= site_url('dashboard/sistem/file-media') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> File dan Media</a></li>
+
                     <li><a class="<?= $activeClass('system', 'notifications') ?>" href="<?= site_url('dashboard/sistem/notifikasi') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Notifikasi</a></li>
                     <?php if ($isSuperAdmin): ?>
-                        <li><a class="<?= $activeClass('system', 'general') ?>" href="<?= site_url('dashboard/sistem/pengaturan-umum') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Umum</a></li>
-                        <li><a class="<?= $activeClass('system', 'security') ?>" href="<?= site_url('dashboard/sistem/pengaturan-keamanan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Keamanan</a></li>
-                        <li><a class="<?= $activeClass('system', 'file-storage') ?>" href="<?= site_url('dashboard/sistem/pengaturan-file-storage') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan File Storage</a></li>
-                        <li><a class="<?= $activeClass('system', 'certificate') ?>" href="<?= site_url('dashboard/sistem/pengaturan-sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Sertifikat</a></li>
-                        <li><a class="<?= $activeClass('system', 'appearance') ?>" href="<?= site_url('dashboard/sistem/pengaturan-tampilan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Tampilan</a></li>
+                        <li><a class="<?= $activeClass('system', 'settings') ?>" href="<?= site_url('dashboard/sistem/pengaturan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pusat Pengaturan</a></li>
+                        <li><a class="<?= $activeClass('system', 'general-settings') ?: $activeClass('system', 'general') ?>" href="<?= site_url('dashboard/sistem/pengaturan-umum') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Umum</a></li>
+                        <li><a class="<?= $activeClass('system', 'security-settings') ?: $activeClass('system', 'security') ?>" href="<?= site_url('dashboard/sistem/pengaturan-keamanan') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Keamanan</a></li>
+
+                        <li><a class="<?= $activeClass('system', 'certificate-settings') ?: $activeClass('system', 'certificate') ?>" href="<?= site_url('dashboard/sistem/pengaturan-sertifikat') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pengaturan Sertifikat</a></li>
+
                         <li><a class="<?= $activeClass('system', 'maintenance') ?>" href="<?= site_url('dashboard/sistem/maintenance') ?>"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Maintenance</a></li>
                     <?php endif; ?>
                 </ul>

@@ -57,11 +57,11 @@
             </div>
             <div class="col-md-12">
                 <p class="text-secondary-light mb-4 text-sm">Nama Peran Pengadaan</p>
-                <h5 class="mb-0 text-dark"><?= esc($role['name'] ?? '-') ?></h5>
+                <h5 class="mb-0 text-primary-light"><?= esc($role['name'] ?? '-') ?></h5>
             </div>
             <div class="col-12">
                 <p class="text-secondary-light mb-4 text-sm">Deskripsi & Tugas Pokok</p>
-                <p class="mb-0 text-dark"><?= nl2br(esc($role['description'] ?? 'Tidak ada deskripsi.')) ?></p>
+                <p class="mb-0 text-primary-light"><?= nl2br(esc($role['description'] ?? 'Tidak ada deskripsi.')) ?></p>
             </div>
         </div>
     </div>
@@ -90,7 +90,7 @@
                                 <td><?= esc($a['email'] ?? '-') ?></td>
                                 <td><?= esc($a['unit_name'] ?? '-') ?></td>
                                 <td class="text-center">
-                                    <span class="badge bg-neutral-100 text-dark border radius-4 px-2 py-1"><?= esc($a['verification_status'] ?? '-') ?></span>
+                                    <span class="badge bg-neutral-100 text-primary-light border radius-4 px-2 py-1"><?= esc($a['verification_status'] ?? '-') ?></span>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

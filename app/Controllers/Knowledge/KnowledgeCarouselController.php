@@ -11,7 +11,12 @@ use App\Models\Knowledge\KnowledgeMediaItemModel;
  */
 class KnowledgeCarouselController extends BaseKnowledgeController
 {
-    public function index(): string
+    public function index()
+    {
+        return redirect()->to(site_url('dashboard/landing/sorotan-carousel?tab=knowledge'));
+    }
+
+    public function legacyIndex(): string
     {
         $articles = (new ArticleModel())
             ->where('carousel_enabled', 1)
