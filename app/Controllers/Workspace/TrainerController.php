@@ -1491,24 +1491,33 @@ class TrainerController extends BaseController
 
                 $uploadDir = WRITEPATH . 'uploads/lessons/';
                 if (! is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
+                    @mkdir($uploadDir, 0775, true);
+                    @chmod($uploadDir, 0775);
                 }
 
                 $storedName = $pdfFile->getRandomName();
-                $pdfFile->move($uploadDir, $storedName);
+                try {
+                    $pdfFile->move($uploadDir, $storedName);
+                    @chmod($uploadDir . $storedName, 0664);
+                } catch (\Throwable $e) {
+                    log_message('error', '[TrainerController] PDF move failed: ' . $e->getMessage());
+                    return ['error' => 'Gagal memindahkan berkas PDF: ' . $e->getMessage()];
+                }
 
                 $now = date('Y-m-d H:i:s');
                 $fileRow = [
                     'disk'             => 'local',
                     'path'             => 'uploads/lessons/' . $storedName,
-                    'original_name'    => $pdfFile->getClientName(),
+                    'original_name'    => $pdfFile->getClientName() ?: $storedName,
                     'stored_name'      => $storedName,
                     'extension'        => 'pdf',
                     'mime_type'        => 'application/pdf',
-                    'size_bytes'       => $pdfFile->getSize(),
+                    'size_bytes'       => (int) ($pdfFile->getSize() ?: 0),
                     'visibility'       => ($visibility === 'preview_only' ? 'restricted' : 'internal'),
-                    'lifecycle_status' => 'ready',
+                    'lifecycle_status' => 'available',
                     'resource_type'    => 'lesson',
+                    'uploaded_by'      => $actorId > 0 ? $actorId : (int) (session()->get('user_id') ?: 1),
+                    'available_at'     => $now,
                     'created_at'       => $now,
                     'updated_at'       => $now,
                 ];
