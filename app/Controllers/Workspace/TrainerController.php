@@ -849,7 +849,11 @@ class TrainerController extends BaseController
             if (($msg = $payload['error'] ?? null) !== null) {
                 return redirect()->back()->withInput()->with('error', $msg);
             }
-            $lessonModel->update((int) $lessonId, $payload['data']);
+            try {
+                $lessonModel->update((int) $lessonId, $payload['data']);
+            } catch (Throwable $e) {
+                return redirect()->back()->withInput()->with('error', 'Lesson gagal diperbarui: ' . $e->getMessage());
+            }
             return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=materi')->with('success', 'Materi diperbarui.');
         }
 
@@ -1469,8 +1473,12 @@ class TrainerController extends BaseController
         $content     = (string) $this->request->getPost('content');
         $externalUrl = null;
         $fileId      = $existingLesson ? ((int) ($existingLesson['file_id'] ?? 0) ?: null) : null;
-        $visibility  = (string) ($this->request->getPost('document_access') ?: ($existingLesson['visibility'] ?? 'internal'));
-        if (! in_array($visibility, ['preview_only', 'internal', 'restricted'], true)) {
+        $rawAccess   = (string) ($this->request->getPost('document_access') ?: ($existingLesson['visibility'] ?? 'internal'));
+        if ($rawAccess === 'preview_only' || $rawAccess === 'restricted') {
+            $visibility = 'restricted';
+        } elseif ($rawAccess === 'public') {
+            $visibility = 'public';
+        } else {
             $visibility = 'internal';
         }
 
@@ -1513,7 +1521,7 @@ class TrainerController extends BaseController
                     'extension'        => 'pdf',
                     'mime_type'        => 'application/pdf',
                     'size_bytes'       => (int) ($pdfFile->getSize() ?: 0),
-                    'visibility'       => ($visibility === 'preview_only' ? 'restricted' : 'internal'),
+                    'visibility'       => $visibility,
                     'lifecycle_status' => 'available',
                     'resource_type'    => 'lesson',
                     'uploaded_by'      => $actorId > 0 ? $actorId : (int) (session()->get('user_id') ?: 1),
@@ -1530,7 +1538,7 @@ class TrainerController extends BaseController
             // Sinkronkan visibilitas aset berkas jika ada fileId
             if ($fileId) {
                 db_connect()->table('file_assets')->where('id', $fileId)->update([
-                    'visibility' => ($visibility === 'preview_only' ? 'restricted' : 'internal'),
+                    'visibility' => $visibility,
                     'updated_at' => date('Y-m-d H:i:s'),
                 ]);
             }
