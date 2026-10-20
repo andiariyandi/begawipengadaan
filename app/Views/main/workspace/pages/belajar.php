@@ -494,7 +494,7 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                                         </a>
 
                                         <!-- Pengaturan Hak Unduh Peserta -->
-                                        <?php if (($activeItem['visibility'] ?? 'internal') !== 'preview_only'): ?>
+                                        <?php if (! in_array($activeItem['visibility'] ?? 'internal', ['restricted', 'preview_only'], true)): ?>
                                             <a href="<?= base_url('file/' . $fileAsset['id']) ?>?download=1" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold">
                                                 <i class="bi bi-download me-1"></i> Unduh PDF
                                             </a>

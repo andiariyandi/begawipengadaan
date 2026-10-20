@@ -150,7 +150,7 @@ $currentAccess = $lesson['visibility'] ?? 'internal';
                             <div class="row g-2">
                                 <div class="col-12 col-md-6">
                                     <div class="form-check p-3 bg-white border rounded-3 h-100">
-                                        <input class="form-check-input ms-0 me-2" type="radio" name="document_access" id="access_preview_only" value="preview_only" <?= $currentAccess === 'preview_only' ? 'checked' : '' ?>>
+                                        <input class="form-check-input ms-0 me-2" type="radio" name="document_access" id="access_preview_only" value="restricted" <?= in_array($currentAccess, ['restricted', 'preview_only'], true) ? 'checked' : '' ?>>
                                         <label class="form-check-label" for="access_preview_only">
                                             <strong class="text-navy small d-block"><i class="fas fa-shield-alt text-warning me-1"></i> Hanya Lihat (Viewer In-App)</strong>
                                             <span class="text-muted" style="font-size: 0.75rem;">Peserta membaca dokumen melalui viewer platform. Tombol unduh tidak ditampilkan.</span>
@@ -159,7 +159,7 @@ $currentAccess = $lesson['visibility'] ?? 'internal';
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <div class="form-check p-3 bg-white border rounded-3 h-100">
-                                        <input class="form-check-input ms-0 me-2" type="radio" name="document_access" id="access_downloadable" value="internal" <?= ($currentAccess !== 'preview_only') ? 'checked' : '' ?>>
+                                        <input class="form-check-input ms-0 me-2" type="radio" name="document_access" id="access_downloadable" value="internal" <?= ! in_array($currentAccess, ['restricted', 'preview_only'], true) ? 'checked' : '' ?>>
                                         <label class="form-check-label" for="access_downloadable">
                                             <strong class="text-navy small d-block"><i class="fas fa-download text-success me-1"></i> Boleh Diunduh (Full Access)</strong>
                                             <span class="text-muted" style="font-size: 0.75rem;">Peserta dapat melihat dokumen dan mengunduh berkas fisik PDF untuk dipelajari offline.</span>
