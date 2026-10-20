@@ -145,6 +145,7 @@ $isHomeView = !empty($isHome);
                                     <li role="none"><a role="menuitem" href="<?= route_to('workspace.bookmarks.index') ?>">Bookmark</a></li>
                                     <li role="none"><a role="menuitem" href="<?= route_to('workspace.notifications') ?>">Notifikasi</a></li>
                                     <li role="none"><a role="menuitem" href="<?= route_to('workspace.profile.index') ?>">Profil Saya</a></li>
+                                    <li role="none"><a role="menuitem" href="<?= route_to('workspace.consultation.index') ?>"><i class="fas fa-comments me-2"></i>Konsultasi &amp; Tiket</a></li>
                                     <?php if ($hasDashboardAccess): ?>
                                         <li role="none"><a role="menuitem" href="<?= route_to('dashboard.home') ?>">Dashboard Administrasi</a></li>
                                     <?php endif; ?>

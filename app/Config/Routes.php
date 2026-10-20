@@ -97,6 +97,15 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
     $routes->get('/', 'WorkspaceHomeController::index', ['as' => 'workspace.home']);
     $routes->get('section/(:segment)', 'WorkspaceHomeController::section/$1', ['as' => 'workspace.section']);
     $routes->get('aktivitas', 'WorkspaceHomeController::activity', ['as' => 'workspace.activity']);
+
+    // Layanan Konsultasi & Ticketing Dua Arah (Helpdesk)
+    $routes->group('konsultasi', static function ($routes) {
+        $routes->get('/', 'ConsultationController::index', ['as' => 'workspace.consultation.index']);
+        $routes->get('buat', 'ConsultationController::create', ['as' => 'workspace.consultation.create']);
+        $routes->post('buat', 'ConsultationController::store', ['as' => 'workspace.consultation.store']);
+        $routes->get('detail/(:segment)', 'ConsultationController::detail/$1', ['as' => 'workspace.consultation.detail']);
+        $routes->post('detail/(:segment)/balas', 'ConsultationController::reply/$1', ['as' => 'workspace.consultation.reply']);
+    });
     $routes->get('notifikasi', 'NotificationController::index', ['as' => 'workspace.notifications']);
     $routes->get('notifikasi/(:segment)', 'NotificationController::detail/$1', ['as' => 'workspace.notifications.detail']);
     $routes->post('notifikasi/(:segment)/baca', 'NotificationController::markAsRead/$1', ['as' => 'workspace.notifications.read']);
@@ -677,6 +686,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         // Pesan Masuk (Inbox)
         $routes->get('pesan-masuk', '\App\Controllers\Admin\Communication\ContactMessageController::index', ['as' => 'dashboard.communication.inbox']);
         $routes->get('pesan-masuk/detail/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::detail/$1', ['as' => 'dashboard.communication.inbox.detail']);
+        $routes->post('pesan-masuk/reply/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::reply/$1', ['as' => 'dashboard.communication.inbox.reply']);
         $routes->post('pesan-masuk/update-status/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::updateStatus/$1', ['as' => 'dashboard.communication.inbox.update-status']);
         $routes->get('pesan-masuk/hapus/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::delete/$1', ['as' => 'dashboard.communication.inbox.delete']);
 

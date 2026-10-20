@@ -9,6 +9,7 @@
 <?= $this->section('content') ?>
 
 <?php
+helper(['text', 'url']);
 $item = $item ?? [];
 $breadcrumb = $breadcrumb ?? [];
 

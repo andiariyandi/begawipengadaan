@@ -9,6 +9,7 @@ use App\Models\Learning\ProgramModel;
 
 class ArenaBelajarController extends BaseController
 {
+    protected $helpers = ['text', 'url', 'form'];
     public function index(): string
     {
         try {

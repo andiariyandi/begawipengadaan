@@ -137,11 +137,11 @@ $activeTab    = $activeTab ?? 'all';
                         <div class="stat-kpi-card__icon" style="background: #e0f2fe; color: #0284c7;">
                             <i class="fas fa-balance-scale"></i>
                         </div>
-                        <div class="stat-kpi-card__num"><?= number_format((int) ($stats['regulations'] ?? 19)) ?></div>
+                        <div class="stat-kpi-card__num"><?= number_format((int) ($stats['regulations'] ?? 0)) ?></div>
                         <div class="stat-kpi-card__label">Regulasi PBJ</div>
                     </div>
                     <div class="small fw-semibold text-success" style="font-size: 11.5px;">
-                        <i class="fas fa-check-circle me-1"></i> <?= (int) ($stats['reg_active'] ?? 15) ?> Aktif Berlaku
+                        <i class="fas fa-check-circle me-1"></i> <?= (int) ($stats['reg_active'] ?? 0) ?> Aktif Berlaku
                     </div>
                 </div>
             </div>
@@ -153,11 +153,11 @@ $activeTab    = $activeTab ?? 'all';
                         <div class="stat-kpi-card__icon" style="background: #ede9fe; color: #7c3aed;">
                             <i class="fas fa-graduation-cap"></i>
                         </div>
-                        <div class="stat-kpi-card__num"><?= number_format((int) ($stats['courses'] ?? 24)) ?></div>
+                        <div class="stat-kpi-card__num"><?= number_format((int) ($stats['courses'] ?? 0)) ?></div>
                         <div class="stat-kpi-card__label">Course Terstruktur</div>
                     </div>
                     <div class="small fw-semibold text-primary" style="font-size: 11.5px;">
-                        <i class="fas fa-route me-1"></i> 4 Jenjang Standar LKPP
+                        <i class="fas fa-route me-1"></i> Modul Terakreditasi
                     </div>
                 </div>
             </div>
@@ -169,7 +169,7 @@ $activeTab    = $activeTab ?? 'all';
                         <div class="stat-kpi-card__icon" style="background: #dcfce7; color: #16a34a;">
                             <i class="fas fa-chalkboard-teacher"></i>
                         </div>
-                        <div class="stat-kpi-card__num"><?= number_format((int) ($stats['classes'] ?? 18)) ?></div>
+                        <div class="stat-kpi-card__num"><?= number_format((int) ($stats['classes'] ?? 0)) ?></div>
                         <div class="stat-kpi-card__label">Kelas &amp; Silabus</div>
                     </div>
                     <div class="small fw-semibold text-success" style="font-size: 11.5px;">
@@ -185,11 +185,11 @@ $activeTab    = $activeTab ?? 'all';
                         <div class="stat-kpi-card__icon" style="background: #fef3c7; color: #d97706;">
                             <i class="far fa-calendar-alt"></i>
                         </div>
-                        <div class="stat-kpi-card__num"><?= number_format((int) ($stats['events'] ?? 14)) ?></div>
+                        <div class="stat-kpi-card__num"><?= number_format((int) ($stats['events'] ?? 0)) ?></div>
                         <div class="stat-kpi-card__label">Agenda Pembinaan</div>
                     </div>
                     <div class="small fw-semibold text-warning" style="font-size: 11.5px;">
-                        <i class="fas fa-laptop me-1"></i> <?= (int) ($stats['event_online'] ?? 8) ?> Webinar Daring
+                        <i class="fas fa-laptop me-1"></i> <?= (int) ($stats['event_online'] ?? 0) ?> Webinar Daring
                     </div>
                 </div>
             </div>
@@ -201,7 +201,7 @@ $activeTab    = $activeTab ?? 'all';
                         <div class="stat-kpi-card__icon" style="background: #fce7f3; color: #db2777;">
                             <i class="fas fa-certificate"></i>
                         </div>
-                        <div class="stat-kpi-card__num"><?= number_format((int) ($stats['certificates'] ?? 1420)) ?></div>
+                        <div class="stat-kpi-card__num"><?= number_format((int) ($stats['certificates'] ?? 0)) ?></div>
                         <div class="stat-kpi-card__label">Sertifikat Digital</div>
                     </div>
                     <div class="small fw-semibold text-purple" style="font-size: 11.5px; color: #9333ea;">
@@ -211,17 +211,21 @@ $activeTab    = $activeTab ?? 'all';
             </div>
 
             <!-- 6. Indeks IKM Publik -->
+            <?php
+            $kpiIkmTotal = (int) ($ikmAnalytics['total_responses'] ?? 0);
+            $kpiIkmAvg   = (float) ($ikmAnalytics['avg_overall'] ?? 0);
+            ?>
             <div class="col-xl-2 col-lg-4 col-md-4 col-6">
                 <div class="stat-kpi-card" style="background: linear-gradient(135deg, #052244 0%, #0a3d74 100%); color: #ffffff; border-color: #0c4a6e;">
                     <div>
                         <div class="stat-kpi-card__icon" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">
                             <i class="fas fa-award"></i>
                         </div>
-                        <div class="stat-kpi-card__num text-white"><?= esc($ikmAnalytics['avg_overall'] ?? '4.86') ?> <span style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7);">/ 5.0</span></div>
+                        <div class="stat-kpi-card__num text-white"><?= $kpiIkmTotal > 0 ? number_format($kpiIkmAvg, 2) : '0.00' ?> <span style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7);">/ 5.0</span></div>
                         <div class="stat-kpi-card__label" style="color: rgba(255,255,255,0.85);">Mutu Pelayanan IKM</div>
                     </div>
                     <div class="badge bg-warning text-dark px-2 py-1 fw-bold text-uppercase radius-8" style="font-size: 11px;">
-                        Kategori A (Sangat Baik)
+                        <?= $kpiIkmTotal > 0 ? esc($ikmAnalytics['predicate']['label'] ?? 'Sangat Baik') : 'Belum Ada Data' ?>
                     </div>
                 </div>
             </div>
@@ -251,21 +255,21 @@ $activeTab    = $activeTab ?? 'all';
                             <div class="col-md-4">
                                 <div class="p-3 radius-12 bg-light border text-center">
                                     <span class="text-muted small fw-semibold">Tingkat Dasar (Basic)</span>
-                                    <h4 class="fw-bold mb-0 text-primary mt-1">10 Course</h4>
+                                    <h4 class="fw-bold mb-0 text-primary mt-1"><?= (int) ($stats['course_basic'] ?? 0) ?> Course</h4>
                                     <small class="text-muted" style="font-size: 11px;">Pengantar &amp; Etika PBJ</small>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="p-3 radius-12 bg-light border text-center">
                                     <span class="text-muted small fw-semibold">Menengah (Intermediate)</span>
-                                    <h4 class="fw-bold mb-0 text-warning mt-1">9 Course</h4>
+                                    <h4 class="fw-bold mb-0 text-warning mt-1"><?= (int) ($stats['course_intermediate'] ?? 0) ?> Course</h4>
                                     <small class="text-muted" style="font-size: 11px;">HPS, KAK &amp; Pemilihan</small>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="p-3 radius-12 bg-light border text-center">
                                     <span class="text-muted small fw-semibold">Lanjutan (Advanced)</span>
-                                    <h4 class="fw-bold mb-0 text-success mt-1">5 Course</h4>
+                                    <h4 class="fw-bold mb-0 text-success mt-1"><?= (int) ($stats['course_advanced'] ?? 0) ?> Course</h4>
                                     <small class="text-muted" style="font-size: 11px;">Kontrak Kritis &amp; Mitigasi</small>
                                 </div>
                             </div>
@@ -282,7 +286,7 @@ $activeTab    = $activeTab ?? 'all';
                                 </div>
                             </div>
                             <span class="badge bg-white text-dark border fs-6 fw-bold px-3 py-2 shadow-2xs">
-                                <?= number_format((int) ($stats['users'] ?? 3240)) ?> Akun
+                                <?= number_format((int) ($stats['users'] ?? 0)) ?> Akun
                             </span>
                         </div>
                     </div>
@@ -308,7 +312,7 @@ $activeTab    = $activeTab ?? 'all';
                                 <div class="p-3 radius-12 border-start border-3 border-success bg-light">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <strong style="color: #0f172a; font-size: 13.5px;">Masih Berlaku</strong>
-                                        <span class="badge bg-success text-white fw-bold"><?= (int) ($stats['reg_active'] ?? 15) ?></span>
+                                        <span class="badge bg-success text-white fw-bold"><?= (int) ($stats['reg_active'] ?? 0) ?></span>
                                     </div>
                                     <small class="text-muted" style="font-size: 12px;">Norma hukum rujukan operasional</small>
                                 </div>
@@ -317,7 +321,7 @@ $activeTab    = $activeTab ?? 'all';
                                 <div class="p-3 radius-12 border-start border-3 border-warning bg-light">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <strong style="color: #0f172a; font-size: 13.5px;">Telah Diubah</strong>
-                                        <span class="badge bg-warning text-dark fw-bold"><?= (int) ($stats['reg_amended'] ?? 3) ?></span>
+                                        <span class="badge bg-warning text-dark fw-bold"><?= (int) ($stats['reg_amended'] ?? 0) ?></span>
                                     </div>
                                     <small class="text-muted" style="font-size: 12px;">Mengalami addendum norma</small>
                                 </div>
@@ -326,7 +330,7 @@ $activeTab    = $activeTab ?? 'all';
                                 <div class="p-3 radius-12 border-start border-3 border-danger bg-light">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <strong style="color: #0f172a; font-size: 13.5px;">Dicabut / Usang</strong>
-                                        <span class="badge bg-danger text-white fw-bold"><?= (int) ($stats['reg_revoked'] ?? 1) ?></span>
+                                        <span class="badge bg-danger text-white fw-bold"><?= (int) ($stats['reg_revoked'] ?? 0) ?></span>
                                     </div>
                                     <small class="text-muted" style="font-size: 12px;">Arsip sejarah perundang-undangan</small>
                                 </div>
@@ -354,21 +358,21 @@ $activeTab    = $activeTab ?? 'all';
                             <div class="col-md-4">
                                 <div class="p-3 radius-12 bg-light border text-center">
                                     <span class="badge bg-success text-white mb-2 radius-20 px-2 py-0.5" style="font-size: 11px;">Daring (Online)</span>
-                                    <h4 class="fw-bold mb-0 text-dark"><?= (int) ($stats['event_online'] ?? 8) ?> Agenda</h4>
+                                    <h4 class="fw-bold mb-0 text-dark"><?= (int) ($stats['event_online'] ?? 0) ?> Agenda</h4>
                                     <small class="text-muted" style="font-size: 11.5px;">Webinar &amp; Sosialisasi Zoom</small>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="p-3 radius-12 bg-light border text-center">
                                     <span class="badge bg-primary text-white mb-2 radius-20 px-2 py-0.5" style="font-size: 11px;">Tatap Muka (Offline)</span>
-                                    <h4 class="fw-bold mb-0 text-dark"><?= (int) ($stats['event_offline'] ?? 4) ?> Agenda</h4>
+                                    <h4 class="fw-bold mb-0 text-dark"><?= (int) ($stats['event_offline'] ?? 0) ?> Agenda</h4>
                                     <small class="text-muted" style="font-size: 11.5px;">Bimtek &amp; Lokakarya Setda</small>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="p-3 radius-12 bg-light border text-center">
                                     <span class="badge bg-warning text-dark mb-2 radius-20 px-2 py-0.5" style="font-size: 11px;">Campuran (Hybrid)</span>
-                                    <h4 class="fw-bold mb-0 text-dark"><?= (int) ($stats['event_hybrid'] ?? 2) ?> Agenda</h4>
+                                    <h4 class="fw-bold mb-0 text-dark"><?= (int) ($stats['event_hybrid'] ?? 0) ?> Agenda</h4>
                                     <small class="text-muted" style="font-size: 11.5px;">Rapat Koordinasi Terpadu</small>
                                 </div>
                             </div>
@@ -391,11 +395,15 @@ $activeTab    = $activeTab ?? 'all';
                     <p class="text-white-80 mb-3" style="font-size: 12.5px; line-height: 1.5; color: rgba(255,255,255,0.85);">
                         Hasil evaluasi objektif mutu pelayanan publik Biro Pengadaan Barang &amp; Jasa Provinsi Lampung.
                     </p>
+                    <?php
+                    $sideIkmTotal = (int) ($ikmAnalytics['total_responses'] ?? 0);
+                    $sideIkmAvg   = (float) ($ikmAnalytics['avg_overall'] ?? 0);
+                    ?>
                     <div class="d-flex align-items-center gap-3 p-3 radius-12 mb-3" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
-                        <div class="display-6 fw-bold text-warning mb-0"><?= esc($ikmAnalytics['avg_overall'] ?? '4.86') ?></div>
+                        <div class="display-6 fw-bold text-warning mb-0"><?= $sideIkmTotal > 0 ? number_format($sideIkmAvg, 2) : '0.00' ?></div>
                         <div>
-                            <div class="text-warning small">★★★★★</div>
-                            <div class="small fw-semibold text-white">Mutu: <?= esc($ikmAnalytics['predicate']['label'] ?? 'Sangat Baik') ?></div>
+                            <div class="text-warning small"><?= $sideIkmTotal > 0 ? str_repeat('★', (int) round($sideIkmAvg)) . str_repeat('☆', 5 - (int) round($sideIkmAvg)) : '☆☆☆☆☆' ?></div>
+                            <div class="small fw-semibold text-white">Mutu: <?= esc($ikmAnalytics['predicate']['label'] ?? 'Belum Ada Penilaian') ?></div>
                         </div>
                     </div>
                     <a href="<?= site_url('statistik/survei-kepuasan') ?>" class="btn btn-warning text-dark fw-bold w-100 radius-8" style="font-size: 12.5px;">

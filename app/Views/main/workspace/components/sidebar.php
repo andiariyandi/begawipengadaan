@@ -110,6 +110,7 @@ $menuItems = match ($primaryRole) {
         ['Event Saya', route_to('workspace.participant.events'), 'fas fa-calendar-alt'],
         ['Presensi Saya', route_to('workspace.participant.attendance'), 'fas fa-user-check'],
         ['Sertifikat Saya', route_to('workspace.participant.certificates'), 'fas fa-award'],
+        ['Konsultasi & Tiket', route_to('workspace.consultation.index'), 'fas fa-comments'],
         ['Bookmark', route_to('workspace.bookmarks.index'), 'fas fa-bookmark'],
         ['Notifikasi', route_to('workspace.notifications'), 'fas fa-bell'],
         ['Profil', route_to('workspace.profile.index'), 'fas fa-user-circle'],
@@ -118,6 +119,7 @@ $menuItems = match ($primaryRole) {
 
 // Global features list
 $globalItems = [
+    ['Konsultasi & Tiket', route_to('workspace.consultation.index'), 'fas fa-comments'],
     ['Bookmark Saya', route_to('workspace.bookmarks.index'), 'fas fa-bookmark'],
     ['Notifikasi', route_to('workspace.notifications'), 'fas fa-bell'],
     ['Profil Saya', route_to('workspace.profile.index'), 'fas fa-user-circle'],

@@ -52,24 +52,29 @@ class StatisticPublicController extends BaseController
 
         $classesTable = $db->tableExists('learning_classes') ? 'learning_classes' : 'classes';
 
-        // Database metrics with safe column-aware fallbacks
-        $totalCourses     = $this->countTable($db, 'courses', [], 24);
-        $totalClasses     = $this->countTable($db, $classesTable, [], 18);
-        $totalRegulations = $this->countTable($db, 'regulations', [], 19);
-        $totalEvents      = $this->countTable($db, 'events', [], 14);
-        $totalCerts       = $this->countTable($db, 'certificates', [], 1420);
-        $totalKnowledge   = $this->countTable($db, 'knowledge_articles', [], 35);
-        $totalUsers       = $this->countTable($db, 'users', [], 3240);
+        // Database metrics with safe column-aware checks (0 fallback for authentic empty states)
+        $totalCourses     = $this->countTable($db, 'courses', ['status' => 'published', 'visibility' => 'public'], 0);
+        $totalClasses     = $this->countTable($db, $classesTable, ['status !=' => 'cancelled'], 0);
+        $totalRegulations = $this->countTable($db, 'regulations', ['workflow_status' => 'published', 'visibility' => 'public'], 0);
+        $totalEvents      = $this->countTable($db, 'events', ['visibility' => 'public'], 0);
+        $totalCerts       = $this->countTable($db, 'certificates', [], 0);
+        $totalKnowledge   = $this->countTable($db, 'knowledge_articles', ['workflow_status' => 'published', 'visibility' => 'public'], 0);
+        $totalUsers       = $this->countTable($db, 'users', ['account_status' => 'active'], 0);
 
         // Regulation legal status counts
-        $regActive  = $this->countTable($db, 'regulations', ['legal_status' => 'active'], 15);
-        $regAmended = $this->countTable($db, 'regulations', ['legal_status' => 'amended'], 3);
-        $regRevoked = $this->countTable($db, 'regulations', ['legal_status' => 'revoked'], 1);
+        $regActive  = $this->countTable($db, 'regulations', ['legal_status' => 'active', 'workflow_status' => 'published', 'visibility' => 'public'], 0);
+        $regAmended = $this->countTable($db, 'regulations', ['legal_status' => 'amended', 'workflow_status' => 'published', 'visibility' => 'public'], 0);
+        $regRevoked = $this->countTable($db, 'regulations', ['legal_status' => 'revoked', 'workflow_status' => 'published', 'visibility' => 'public'], 0);
 
         // Event mode breakdown
-        $eventOnline  = $this->countTable($db, 'events', ['mode' => 'online'], 8);
-        $eventOffline = $this->countTable($db, 'events', ['mode' => 'offline'], 4);
-        $eventHybrid  = $this->countTable($db, 'events', ['mode' => 'hybrid'], 2);
+        $eventOnline  = $this->countTable($db, 'events', ['mode' => 'online', 'visibility' => 'public'], 0);
+        $eventOffline = $this->countTable($db, 'events', ['mode' => 'offline', 'visibility' => 'public'], 0);
+        $eventHybrid  = $this->countTable($db, 'events', ['mode' => 'hybrid', 'visibility' => 'public'], 0);
+
+        // Course difficulty breakdown
+        $courseBasic        = $this->countTable($db, 'courses', ['level' => 'basic', 'status' => 'published', 'visibility' => 'public'], 0);
+        $courseIntermediate = $this->countTable($db, 'courses', ['level' => 'intermediate', 'status' => 'published', 'visibility' => 'public'], 0);
+        $courseAdvanced     = $this->countTable($db, 'courses', ['level' => 'advanced', 'status' => 'published', 'visibility' => 'public'], 0);
 
         // IKM Analytics
         $surveyModel = new SatisfactionSurveyModel();
@@ -81,7 +86,7 @@ class StatisticPublicController extends BaseController
             $visitorService = new VisitorStatisticService();
             $visitorStats = $visitorService->getVisitorStats();
         } catch (\Throwable) {
-            $visitorStats = ['home' => ['total' => 34624], 'features' => []];
+            $visitorStats = ['home' => ['total' => 0], 'features' => []];
         }
 
         return view('landing/pages/statistics', [
@@ -90,19 +95,22 @@ class StatisticPublicController extends BaseController
             'description'     => $description,
             'activeTab'       => $activeTab,
             'stats'           => [
-                'courses'       => $totalCourses,
-                'classes'       => $totalClasses,
-                'regulations'   => $totalRegulations,
-                'reg_active'    => $regActive,
-                'reg_amended'   => $regAmended,
-                'reg_revoked'   => $regRevoked,
-                'events'        => $totalEvents,
-                'event_online'  => $eventOnline,
-                'event_offline' => $eventOffline,
-                'event_hybrid'  => $eventHybrid,
-                'certificates'  => $totalCerts,
-                'knowledge'     => $totalKnowledge,
-                'users'         => $totalUsers,
+                'courses'             => $totalCourses,
+                'course_basic'        => $courseBasic,
+                'course_intermediate' => $courseIntermediate,
+                'course_advanced'     => $courseAdvanced,
+                'classes'             => $totalClasses,
+                'regulations'         => $totalRegulations,
+                'reg_active'          => $regActive,
+                'reg_amended'         => $regAmended,
+                'reg_revoked'         => $regRevoked,
+                'events'              => $totalEvents,
+                'event_online'        => $eventOnline,
+                'event_offline'       => $eventOffline,
+                'event_hybrid'        => $eventHybrid,
+                'certificates'        => $totalCerts,
+                'knowledge'           => $totalKnowledge,
+                'users'               => $totalUsers,
             ],
             'ikmAnalytics'    => $ikmAnalytics,
             'visitorStats'    => $visitorStats,
@@ -122,7 +130,8 @@ class StatisticPublicController extends BaseController
             }
 
             foreach ($where as $field => $val) {
-                if ($db->fieldExists($field, $table)) {
+                $cleanField = trim(str_replace(['!=', '>=', '<=', '>', '<', 'LIKE', 'NOT LIKE'], '', $field));
+                if ($db->fieldExists($cleanField, $table)) {
                     $builder->where($field, $val);
                 }
             }
