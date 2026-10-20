@@ -60,8 +60,16 @@ $formAction = $isEdit ? route_to('dashboard.learning.courses.update', $course['i
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="duration_minutes">Estimasi Durasi Belajar (Menit)</label>
-                        <input id="duration_minutes" type="number" min="0" step="5" name="duration_minutes" class="form-control radius-8" value="<?= esc(old('duration_minutes', $course['duration_minutes'] ?? 120)) ?>" placeholder="Contoh: 120">
+                        <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="duration_minutes">
+                            Estimasi Durasi Belajar (Menit)
+                            <span class="badge bg-primary-100 text-primary-600 text-xs px-2 py-0.5 radius-4 ms-1" id="course_jp_badge">
+                                <?= format_learning_jp(old('duration_minutes', $course['duration_minutes'] ?? 120)) ?>
+                            </span>
+                        </label>
+                        <input id="duration_minutes" type="number" min="0" step="5" name="duration_minutes" class="form-control radius-8" value="<?= esc(old('duration_minutes', $course['duration_minutes'] ?? 120)) ?>" placeholder="Contoh: 120" oninput="updateCourseJpBadge(this.value)">
+                        <small class="text-secondary-light text-xs mt-1 d-block">
+                            <iconify-icon icon="solar:info-circle-linear" class="align-middle"></iconify-icon> Standar PBJ: <strong>1 JP = 60 menit pembelajaran</strong>.
+                        </small>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="status">Status Tayang</label>
@@ -253,6 +261,18 @@ function previewCourseUrl(url) {
         badge.textContent = 'URL Eksternal';
         badge.className = 'badge bg-info-50 text-info-600 text-xs px-8 py-2 radius-4';
     }
+}
+
+function updateCourseJpBadge(minutes) {
+    const badge = document.getElementById('course_jp_badge');
+    if (!badge) return;
+    const min = parseFloat(minutes) || 0;
+    if (min <= 0) {
+        badge.textContent = 'Mandiri / Fleksibel';
+        return;
+    }
+    const jp = (min % 60 === 0) ? (min / 60) : (Math.round((min / 60) * 10) / 10);
+    badge.textContent = jp + ' JP (' + min + ' Menit)';
 }
 </script>
 <?= $this->endSection() ?>

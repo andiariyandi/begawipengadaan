@@ -15,32 +15,7 @@ if (!isset($announcements) || empty($announcements)) {
 }
 
 if (empty($announcements)) {
-    $announcements = [
-        [
-            'title'          => 'Bimbingan Teknis & Uji Sertifikasi PBJ Level-1 Terpadu',
-            'badge_category' => 'AGENDA & BIMTEK 2026',
-            'content'        => 'Pendaftaran gelombang baru program sertifikasi dan pelatihan kompetensi pengadaan barang/jasa bagi aparatur Pemprov Lampung kini dibuka.',
-            'image_url'      => 'assets/main/images/event/event-details-top-img-1.jpg',
-            'action_text'    => 'Lihat Jadwal Agenda',
-            'action_url'     => 'event',
-        ],
-        [
-            'title'          => 'Tingkatkan Keahlian Mandiri Melalui Silabus & Kursus Terakreditasi',
-            'badge_category' => 'ARENA BELAJAR APARATUR',
-            'content'        => 'Akses materi silabus berjenjang, modul manajemen kontrak, latihan soal ujian berkala, dan kurikulum standar LKPP secara gratis.',
-            'image_url'      => 'assets/main/images/resources/course-details-img-1.jpg',
-            'action_text'    => 'Eksplorasi Kursus',
-            'action_url'     => 'arena-belajar',
-        ],
-        [
-            'title'          => 'Repositori Dokumen Kerja KAK, HPS & Kumpulan Regulasi PBJ',
-            'badge_category' => 'REGULASI & BUNGA RAMPAI',
-            'content'        => 'Dapatkan template dokumen pengadaan siap pakai (DOCX/XLSX), telaah silsilah aturan Perpres/PerLKPP, serta infografis panduan mitigasi risiko.',
-            'image_url'      => 'assets/main/images/resources/video-one-img-1.jpg',
-            'action_text'    => 'Unduh Dokumen Kerja',
-            'action_url'     => 'bunga-rampai',
-        ],
-    ];
+    return;
 }
 ?>
 

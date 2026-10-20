@@ -62,20 +62,6 @@
         </div>
     </div>
 
-    <!-- Alert Notifications -->
-    <?php if (session()->getFlashdata('message')): ?>
-        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
-            <i class="fas fa-check-circle me-2"></i> <?= esc(session()->getFlashdata('message')) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-    <?php if (session()->getFlashdata('error')): ?>
-        <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i> <?= esc(session()->getFlashdata('error')) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
     <!-- 2. 7 SUMMARY KPI STAT CARDS (FiStudy DNA) -->
     <div class="row g-3 mb-4">
         <!-- 1. Pending Approval -->

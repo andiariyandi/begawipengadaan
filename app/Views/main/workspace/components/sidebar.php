@@ -26,6 +26,13 @@ $roleLabel = match ($primaryRole) {
 $displayName = (string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna');
 $initials = strtoupper(mb_substr($displayName, 0, 1, 'UTF-8'));
 
+$wsUserId = (int) (session()->get('user_id') ?: 0);
+$wsUnreadCount = 0;
+if ($wsUserId > 0) {
+    $wsNotifService = new \App\Services\NotificationService();
+    $wsUnreadCount = $wsNotifService->unreadCount($wsUserId);
+}
+
 $isCurrent = static function (?string $url) use ($currentPath): bool {
     if (empty($url)) {
         return false;
@@ -37,15 +44,21 @@ $isCurrent = static function (?string $url) use ($currentPath): bool {
     return $currentPath === $path || str_starts_with($currentPath, $path . '/');
 };
 
-$renderLink = static function (string $label, ?string $url, string $icon, bool $active = false): string {
+$renderLink = static function (string $label, ?string $url, string $icon, bool $active = false, ?int $badgeCount = null): string {
     $class = 'workspace-sidebar__link' . ($active ? ' is-active' : '');
+    $badgeHtml = '';
+    if ($badgeCount !== null && $badgeCount > 0) {
+        $badgeText = $badgeCount > 99 ? '99+' : (string) $badgeCount;
+        $badgeHtml = '<span class="badge bg-danger rounded-pill ms-auto px-2 py-0.5" style="font-size: 11px;">' . $badgeText . '</span>';
+    }
     if ($url === null) {
         return '<span class="' . $class . ' is-disabled" aria-disabled="true">'
             . '<span class="d-flex align-items-center gap-2"><i class="' . esc($icon) . ' text-muted"></i> ' . esc($label) . '</span>'
             . '<small>Segera</small></span>';
     }
-    return '<a class="' . $class . '" href="' . esc($url) . '">'
+    return '<a class="' . $class . ' d-flex align-items-center justify-content-between" href="' . esc($url) . '">'
         . '<span class="d-flex align-items-center gap-2"><i class="' . esc($icon) . '"></i> ' . esc($label) . '</span>'
+        . $badgeHtml
         . '</a>';
 };
 
@@ -110,6 +123,7 @@ $menuItems = match ($primaryRole) {
         ['Event Saya', route_to('workspace.participant.events'), 'fas fa-calendar-alt'],
         ['Presensi Saya', route_to('workspace.participant.attendance'), 'fas fa-user-check'],
         ['Sertifikat Saya', route_to('workspace.participant.certificates'), 'fas fa-award'],
+        ['Konsultasi & Tiket', route_to('workspace.consultation.index'), 'fas fa-comments'],
         ['Bookmark', route_to('workspace.bookmarks.index'), 'fas fa-bookmark'],
         ['Notifikasi', route_to('workspace.notifications'), 'fas fa-bell'],
         ['Profil', route_to('workspace.profile.index'), 'fas fa-user-circle'],
@@ -118,6 +132,7 @@ $menuItems = match ($primaryRole) {
 
 // Global features list
 $globalItems = [
+    ['Konsultasi & Tiket', route_to('workspace.consultation.index'), 'fas fa-comments'],
     ['Bookmark Saya', route_to('workspace.bookmarks.index'), 'fas fa-bookmark'],
     ['Notifikasi', route_to('workspace.notifications'), 'fas fa-bell'],
     ['Profil Saya', route_to('workspace.profile.index'), 'fas fa-user-circle'],
@@ -150,7 +165,8 @@ $globalItems = [
                 <section class="workspace-sidebar__group">
                     <h2>Menu Utama (<?= esc($roleLabel) ?>)</h2>
                     <?php foreach ($menuItems as [$label, $url, $icon]): ?>
-                        <?= $renderLink($label, $url, $icon, $isCurrent($url)) ?>
+                        <?php $badgeCount = ($label === 'Notifikasi') ? $wsUnreadCount : null; ?>
+                        <?= $renderLink($label, $url, $icon, $isCurrent($url), $badgeCount) ?>
                     <?php endforeach; ?>
                 </section>
 
@@ -158,7 +174,8 @@ $globalItems = [
                     <section class="workspace-sidebar__group">
                         <h2>Fitur Personal</h2>
                         <?php foreach ($globalItems as [$label, $url, $icon]): ?>
-                            <?= $renderLink($label, $url, $icon, $isCurrent($url)) ?>
+                            <?php $badgeCount = ($label === 'Notifikasi') ? $wsUnreadCount : null; ?>
+                            <?= $renderLink($label, $url, $icon, $isCurrent($url), $badgeCount) ?>
                         <?php endforeach; ?>
                     </section>
                 <?php endif; ?>

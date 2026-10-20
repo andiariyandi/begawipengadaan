@@ -45,9 +45,20 @@
                     <div class="dropdown-menu to-top dropdown-menu-lg p-0">
                         <div class="m-16 py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2">
                             <h6 class="text-lg text-primary-light fw-semibold mb-0">Notifikasi</h6>
-                            <span class="text-primary-600 fw-semibold text-sm px-10 py-4 rounded-pill bg-base d-flex justify-content-center align-items-center">
-                                <?= $headerUnreadCount ?> belum dibaca
-                            </span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-primary-600 fw-semibold text-xs px-8 py-3 rounded-pill bg-base d-flex justify-content-center align-items-center">
+                                    <?= $headerUnreadCount ?> baru
+                                </span>
+                                <?php if ($headerUnreadCount > 0): ?>
+                                    <form action="<?= site_url('dashboard/sistem/notifikasi/baca-semua') ?>" method="post" class="m-0">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary py-2 px-8 text-xs rounded-pill d-inline-flex align-items-center gap-1" title="Tandai semua notifikasi telah dibaca">
+                                            <iconify-icon icon="solar:check-read-outline" class="text-xs"></iconify-icon>
+                                            Baca Semua
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
                         </div>
                         <div class="max-h-400-px overflow-y-auto scroll-sm pe-4">
                             <?php if (empty($headerNotifications)): ?>
@@ -58,19 +69,15 @@
                             <?php else: ?>
                                 <?php foreach ($headerNotifications as $hNotif):
                                     $isUnread = empty($hNotif['read_at']);
-                                    $iconData = match ($hNotif['type'] ?? 'system') {
-                                        'broadcast'          => ['icon' => 'solar:megaphone-outline', 'bg' => 'bg-primary-focus text-primary-600'],
-                                        'certificate_issued' => ['icon' => 'solar:verified-check-outline', 'bg' => 'bg-success-focus text-success-main'],
-                                        'account_approved'   => ['icon' => 'solar:user-check-outline', 'bg' => 'bg-success-focus text-success-main'],
-                                        'account_rejected'   => ['icon' => 'solar:user-cross-outline', 'bg' => 'bg-danger-focus text-danger-main'],
-                                        'assignment_graded'  => ['icon' => 'solar:diploma-outline', 'bg' => 'bg-info-focus text-info-main'],
-                                        default              => ['icon' => 'solar:bell-bing-outline', 'bg' => 'bg-warning-focus text-warning-main'],
-                                    };
+                                    $hCategory = \App\Services\NotificationService::formatCategory($hNotif['type'] ?? 'system');
+                                    $hIcon = $hCategory['icon'] ?? 'solar:bell-bing-outline';
+                                    $hData = !empty($hNotif['data']) ? json_decode($hNotif['data'], true) : [];
+                                    $hTargetUrl = !empty($hData['url']) ? $hData['url'] : site_url('dashboard/sistem/notifikasi');
                                     $timeAgo = \App\Services\NotificationService::timeAgo($hNotif['created_at'] ?? null);
                                 ?>
-                                <a href="<?= site_url('dashboard/sistem/notifikasi') ?>" class="px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between <?= $isUnread ? 'bg-primary-50/40' : 'bg-neutral-50/50' ?> hover-bg-neutral-100 transition-2">
-                                    <span class="w-40-px h-40-px <?= $iconData['bg'] ?> rounded-circle d-flex justify-content-center align-items-center flex-shrink-0">
-                                        <iconify-icon icon="<?= $iconData['icon'] ?>" class="text-xl"></iconify-icon>
+                                <a href="<?= esc($hTargetUrl) ?>" class="px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between <?= $isUnread ? 'bg-primary-50/40' : 'bg-neutral-50/50' ?> hover-bg-neutral-100 transition-2">
+                                    <span class="w-40-px h-40-px bg-primary-focus text-primary-600 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0">
+                                        <iconify-icon icon="<?= esc($hIcon) ?>" class="text-xl"></iconify-icon>
                                     </span>
                                     <span class="flex-grow-1 overflow-hidden">
                                         <span class="d-block text-sm fw-semibold text-primary-light text-truncate mb-2"><?= esc($hNotif['title'] ?? 'Notifikasi') ?></span>

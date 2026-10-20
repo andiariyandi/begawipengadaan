@@ -127,10 +127,113 @@
             <!-- Form Konsultasi & Pengaduan -->
             <div class="col-lg-7" id="form-pesan">
                 <div class="contact-form-box">
-                    <h2 class="contact-form-title">Formulir Layanan &amp; Konsultasi</h2>
-                    <p class="contact-form-subtitle">
-                        Sampaikan pertanyaan, kendala teknis SPSE, permohonan bimtek, atau konsultasi pengadaan barang/jasa melalui formulir di bawah ini.
-                    </p>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                        <div>
+                            <h2 class="contact-form-title mb-1">Formulir Layanan &amp; Konsultasi</h2>
+                            <p class="contact-form-subtitle mb-0">
+                                Sampaikan pertanyaan, kendala teknis SPSE, permohonan bimtek, atau konsultasi pengadaan barang/jasa melalui formulir di bawah ini.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Kotak Pelacakan Tiket (Lacak Status & Jawaban) -->
+                    <div class="p-3 rounded-4 bg-light border mb-4">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                            <strong class="small text-dark"><i class="fas fa-search text-primary me-1"></i> Lacak Status Tiket Konsultasi</strong>
+                            <span class="text-muted text-2xs">Masukkan nomor tiket (contoh: TKT-20261020-XXXXX)</span>
+                        </div>
+                        <form method="get" action="<?= site_url('kontak#lacak-tiket') ?>" id="lacak-tiket" class="row g-2 align-items-center">
+                            <div class="col-sm-9">
+                                <input type="text" name="lacak" class="form-control form-control-sm rounded-3" placeholder="Nomor Tiket: TKT-20261020-..." value="<?= esc($trackCode ?? '') ?>" required>
+                            </div>
+                            <div class="col-sm-3">
+                                <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3 fw-bold">
+                                    <i class="fas fa-search me-1"></i> Cek Status
+                                </button>
+                            </div>
+                        </form>
+
+                        <?php if (! empty($trackCode) && ! empty($trackedTicket)): ?>
+                            <div class="mt-3 p-3 bg-white rounded-3 border">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2 pb-2 border-bottom">
+                                    <div>
+                                        <span class="badge bg-primary-subtle text-primary border font-monospace">#<?= esc($trackedTicket['ticket_number']) ?></span>
+                                        <strong class="text-dark small ms-1"><?= esc($trackedTicket['subject']) ?></strong>
+                                    </div>
+                                    <?php
+                                    $tStatusClass = match ($trackedTicket['status']) {
+                                        'unread'        => 'bg-danger-subtle text-danger border border-danger-subtle',
+                                        'waiting_admin' => 'bg-info-subtle text-info border border-info-subtle',
+                                        'in_progress'   => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
+                                        'waiting_user'  => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
+                                        'read'          => 'bg-light text-secondary border',
+                                        'replied'       => 'bg-success-subtle text-success border border-success-subtle',
+                                        'closed'        => 'bg-secondary-subtle text-secondary border border-secondary-subtle',
+                                        default         => 'bg-light text-dark border',
+                                    };
+                                    $tStatusText = match ($trackedTicket['status']) {
+                                        'unread'        => 'Menunggu Ditelaah',
+                                        'waiting_admin' => 'Tanggapan Masuk',
+                                        'in_progress'   => 'Sedang Ditelaah',
+                                        'waiting_user'  => 'Menunggu Konfirmasi',
+                                        'read'          => 'Sudah Dibaca Petugas',
+                                        'replied'       => 'Sudah Dibalas',
+                                        'closed'        => 'Selesai &amp; Ditutup',
+                                        default         => ucfirst($trackedTicket['status']),
+                                    };
+                                    ?>
+                                    <span class="badge <?= $tStatusClass ?> px-2 py-1 small"><?= $tStatusText ?></span>
+                                </div>
+                                <div class="small text-muted mb-2">
+                                    Diajukan: <strong><?= date('d M Y, H:i', strtotime($trackedTicket['created_at'])) ?> WIB</strong> &middot; Kategori: <strong><?= esc($trackedTicket['service_category'] ?: 'Umum') ?></strong>
+                                </div>
+                                <div class="p-2 bg-light rounded-2 text-dark small mb-3" style="white-space: pre-wrap;"><?= esc($trackedTicket['message']) ?></div>
+
+                                <?php if (! empty($trackedTicket['public_threads'])): ?>
+                                    <h6 class="fw-bold text-dark small mb-2"><i class="fas fa-comments text-success me-1"></i> Jawaban &amp; Percakapan Helpdesk:</h6>
+                                    <div class="d-flex flex-column gap-2 mb-2">
+                                        <?php foreach ($trackedTicket['public_threads'] as $pth): ?>
+                                            <div class="p-2 rounded-2 <?= ($pth['sender_type'] ?? '') === 'admin' ? 'bg-primary-subtle border border-primary-subtle' : 'bg-light border' ?> small">
+                                                <div class="d-flex justify-content-between mb-1 text-2xs text-muted">
+                                                    <strong><?= esc($pth['sender_name'] ?? 'Petugas') ?></strong>
+                                                    <span><?= date('d M Y H:i', strtotime($pth['created_at'])) ?> WIB</span>
+                                                </div>
+                                                <div class="text-dark" style="white-space: pre-wrap;"><?= esc($pth['message']) ?></div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="alert alert-warning py-2 px-3 rounded-2 text-2xs mb-0">
+                                        <i class="fas fa-clock me-1"></i> Belum ada balasan dari petugas. Tiket Anda sedang dalam antrean telaah Helpdesk Biro PBJ.
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php elseif (! empty($trackCode)): ?>
+                            <div class="alert alert-warning py-2 px-3 rounded-3 small mt-3 mb-0">
+                                <i class="fas fa-exclamation-circle me-1"></i> Tiket dengan nomor <strong><?= esc($trackCode) ?></strong> tidak ditemukan. Pastikan nomor tiket yang Anda masukkan sudah sesuai.
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if (session()->get('isLoggedIn') === true): ?>
+                        <div class="alert alert-primary d-flex align-items-center justify-content-between p-3 rounded-3 mb-4">
+                            <div class="small">
+                                <i class="fas fa-user-check text-primary me-1"></i> Anda login sebagai <strong><?= esc(session()->get('name') ?: session()->get('username')) ?></strong>. Seluruh pesan Anda akan tersimpan di <strong>Ruang Kerja (Workspace)</strong> dengan fitur percakapan dua arah saling membalas.
+                            </div>
+                            <a href="<?= route_to('workspace.consultation.index') ?>" class="btn btn-sm btn-primary ms-3 text-nowrap fw-bold">
+                                <i class="fas fa-comments me-1"></i> Buka Tiket Saya
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <div class="p-3 bg-light rounded-3 border mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="small text-muted">
+                                <span class="badge bg-info text-white me-1">Info</span> Formulir terbuka untuk umum. Ingin percakapan langsung dua arah dengan petugas Helpdesk?
+                            </div>
+                            <a href="<?= route_to('dashboard.auth.login') ?>" class="btn btn-sm btn-outline-primary fw-bold text-nowrap">
+                                <i class="fas fa-sign-in-alt me-1"></i> Masuk / Login
+                            </a>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- Flash Messages -->
                     <?php if (session()->getFlashdata('contact_success')): ?>
@@ -159,17 +262,17 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="name" class="contact-label">Nama Lengkap *</label>
-                                <input type="text" id="name" name="name" class="contact-input" placeholder="Contoh: Budi Santoso, S.T." value="<?= old('name') ?>" required>
+                                <input type="text" id="name" name="name" class="contact-input" placeholder="Contoh: Budi Santoso, S.T." value="<?= old('name', session()->get('name') ?: session()->get('username') ?: '') ?>" required>
                             </div>
 
                             <div class="col-md-6">
                                 <label for="email" class="contact-label">Alamat Email *</label>
-                                <input type="email" id="email" name="email" class="contact-input" placeholder="contoh@lampungprov.go.id" value="<?= old('email') ?>" required>
+                                <input type="email" id="email" name="email" class="contact-input" placeholder="contoh@lampungprov.go.id" value="<?= old('email', session()->get('email') ?: '') ?>" required>
                             </div>
 
                             <div class="col-md-6">
                                 <label for="phone" class="contact-label">Nomor WhatsApp / Telepon</label>
-                                <input type="text" id="phone" name="phone" class="contact-input" placeholder="Contoh: 081234567890" value="<?= old('phone') ?>">
+                                <input type="text" id="phone" name="phone" class="contact-input" placeholder="Contoh: 081234567890" value="<?= old('phone', session()->get('phone') ?: '') ?>">
                             </div>
 
                             <div class="col-md-6">

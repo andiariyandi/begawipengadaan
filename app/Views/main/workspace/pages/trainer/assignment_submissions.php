@@ -28,14 +28,6 @@ $className   = $className ?? 'Kelas';
         </div>
     </div>
 
-    <!-- Alert Notifications -->
-    <?php if (session()->getFlashdata('success')): ?>
-        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
-            <i class="fas fa-check-circle me-2"></i> <?= esc(session()->getFlashdata('success')) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
     <!-- Submissions Table Card -->
     <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
         <?php if (empty($submissions)): ?>

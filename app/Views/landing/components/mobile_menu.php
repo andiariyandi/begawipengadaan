@@ -19,6 +19,12 @@ $workspaceHome = match (true) {
 $hasDashboardAccess = (bool) session()->get('dashboard_access')
     || in_array('admin', $roles, true)
     || in_array('super_admin', $roles, true);
+$mobileUserId = (int) (session()->get('user_id') ?: 0);
+$mobileUnreadNotifCount = 0;
+if ($isLoggedIn && $mobileUserId > 0) {
+    $mobileNotifService = new \App\Services\NotificationService();
+    $mobileUnreadNotifCount = $mobileNotifService->unreadCount($mobileUserId);
+}
 ?>
 <div class="mobile-nav__wrapper">
     <div class="mobile-nav__overlay mobile-nav__toggler"></div>
@@ -63,6 +69,14 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                             </a>
                         </div>
                         <div class="col-6">
+                            <a href="<?= route_to('workspace.notifications') ?>" class="btn btn-outline-light btn-sm w-100 py-1.5 rounded-2 d-flex align-items-center justify-content-center gap-1 text-truncate position-relative" style="font-size: 11.5px;">
+                                <i class="fas fa-bell"></i> Notifikasi
+                                <?php if ($mobileUnreadNotifCount > 0): ?>
+                                    <span class="badge bg-danger rounded-pill px-1.5 py-0.5 ms-1" style="font-size: 9px; line-height: 1;"><?= $mobileUnreadNotifCount > 99 ? '99+' : $mobileUnreadNotifCount ?></span>
+                                <?php endif; ?>
+                            </a>
+                        </div>
+                        <div class="col-6">
                             <a href="<?= route_to('workspace.profile.index') ?>" class="btn btn-outline-light btn-sm w-100 py-1.5 rounded-2 d-flex align-items-center justify-content-center gap-1 text-truncate" style="font-size: 11.5px;">
                                 <i class="fas fa-user-circle"></i> Profil
                             </a>
@@ -79,7 +93,7 @@ $hasDashboardAccess = (bool) session()->get('dashboard_access')
                                 </a>
                             </div>
                         <?php endif; ?>
-                        <div class="<?= $hasDashboardAccess ? 'col-12 mt-1' : 'col-6' ?>">
+                        <div class="<?= $hasDashboardAccess ? 'col-6' : 'col-12 mt-1' ?>">
                             <form action="<?= route_to('dashboard.auth.logout') ?>" method="post" class="m-0 p-0">
                                 <?php if (! is_cli()): ?>
                                     <?= csrf_field() ?>

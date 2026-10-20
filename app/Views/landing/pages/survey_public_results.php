@@ -119,20 +119,27 @@
                 </div>
                 <div class="col-lg-4">
                     <!-- Grand IKM Badge Card -->
+                    <?php
+                    $totalResp  = (int) ($analytics['total_responses'] ?? 0);
+                    $avgOverall = (float) ($analytics['avg_overall'] ?? 0);
+                    $scorePct   = (float) ($analytics['score_pct'] ?? 0);
+                    $pred       = $analytics['predicate'] ?? ['grade' => '-', 'label' => 'Belum Ada Penilaian', 'class' => 'secondary'];
+                    $recPct     = (float) ($analytics['recommendation_pct'] ?? 0);
+                    ?>
                     <div class="ikm-grand-badge p-4 text-center text-white shadow">
                         <div class="small text-white-50 text-uppercase fw-bold letter-spacing-1 mb-1">Capaian Indeks IKM</div>
                         <div class="ikm-grand-score display-4 fw-extrabold mb-1">
-                            <?= esc($analytics['avg_overall'] ?? '4.86') ?>
+                            <?= $totalResp > 0 ? number_format($avgOverall, 2) : '0.00' ?>
                             <span class="fs-4 text-white-50 fw-normal">/ 5.00</span>
                         </div>
                         <div class="ikm-grand-stars text-warning fs-5 mb-2">
-                            ★★★★★
+                            <?= $totalResp > 0 ? str_repeat('★', (int) round($avgOverall)) . str_repeat('☆', 5 - (int) round($avgOverall)) : '☆☆☆☆☆' ?>
                         </div>
                         <div class="badge bg-white text-primary px-3 py-2 rounded-pill fw-bold fs-6 shadow-sm mb-3">
-                            Mutu: <?= esc($analytics['predicate']['label'] ?? 'Sangat Baik') ?> (<?= esc($analytics['score_pct'] ?? '97.2') ?>%)
+                            Mutu: <?= esc($pred['label']) ?> (<?= number_format($scorePct, 1) ?>%)
                         </div>
                         <div class="text-white-50 small border-top border-white-10 pt-2">
-                            Berdasarkan <?= number_format((int) ($analytics['total_responses'] ?? 1248), 0, ',', '.') ?> responden terverifikasi
+                            <?= $totalResp > 0 ? 'Berdasarkan ' . number_format($totalResp, 0, ',', '.') . ' responden terverifikasi' : 'Belum ada responden survei masuk' ?>
                         </div>
                     </div>
                 </div>
@@ -148,12 +155,16 @@
                             <i class="fas fa-star-half-alt"></i>
                         </span>
                         <span class="badge bg-success-subtle text-success border border-success-subtle">
-                            Skala 100: <?= esc($analytics['score_pct'] ?? '97.2') ?>%
+                            Skala 100: <?= number_format($scorePct, 1) ?>%
                         </span>
                     </div>
                     <div class="metric-label text-muted small fw-semibold">Nilai Indeks IKM</div>
-                    <div class="metric-val text-dark fw-bold fs-3"><?= esc($analytics['avg_overall'] ?? '4.86') ?> <span class="fs-6 text-muted fw-normal">/ 5.0</span></div>
-                    <small class="text-success"><i class="fas fa-arrow-up me-1"></i>+0.05 dari periode lalu</small>
+                    <div class="metric-val text-dark fw-bold fs-3"><?= number_format($avgOverall, 2) ?> <span class="fs-6 text-muted fw-normal">/ 5.0</span></div>
+                    <?php if ($totalResp > 0): ?>
+                        <small class="text-success"><i class="fas fa-check-circle me-1"></i>Berdasarkan survei riil</small>
+                    <?php else: ?>
+                        <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Belum ada data nilai</small>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -163,11 +174,11 @@
                         <span class="metric-icon-wrap bg-success-subtle text-success">
                             <i class="fas fa-certificate"></i>
                         </span>
-                        <span class="badge bg-success text-white">Predikat Tertinggi</span>
+                        <span class="badge bg-<?= esc($pred['class']) ?> text-white"><?= esc($pred['label']) ?></span>
                     </div>
                     <div class="metric-label text-muted small fw-semibold">Mutu Pelayanan</div>
-                    <div class="metric-val text-dark fw-bold fs-3">Kategori A</div>
-                    <small class="text-muted"><i class="fas fa-check-circle text-success me-1"></i>Sangat Memuaskan</small>
+                    <div class="metric-val text-dark fw-bold fs-3">Kategori <?= esc($pred['grade']) ?></div>
+                    <small class="text-muted"><i class="fas fa-award text-primary me-1"></i><?= esc($pred['label']) ?></small>
                 </div>
             </div>
 
@@ -180,8 +191,12 @@
                         <span class="badge bg-info-subtle text-info border border-info-subtle">Multi-Peran</span>
                     </div>
                     <div class="metric-label text-muted small fw-semibold">Total Responden</div>
-                    <div class="metric-val text-dark fw-bold fs-3"><?= number_format((int) ($analytics['total_responses'] ?? 1248), 0, ',', '.') ?></div>
-                    <small class="text-muted"><i class="fas fa-shield-alt text-primary me-1"></i>Data Tervalidasi Otentik</small>
+                    <div class="metric-val text-dark fw-bold fs-3"><?= number_format($totalResp, 0, ',', '.') ?></div>
+                    <?php if ($totalResp > 0): ?>
+                        <small class="text-muted"><i class="fas fa-shield-alt text-primary me-1"></i>Data Tervalidasi Otentik</small>
+                    <?php else: ?>
+                        <small class="text-muted"><i class="fas fa-clock text-warning me-1"></i>Menunggu Partisipasi</small>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -194,8 +209,12 @@
                         <span class="badge bg-warning-subtle text-warning border border-warning-subtle">NPS Score</span>
                     </div>
                     <div class="metric-label text-muted small fw-semibold">Tingkat Rekomendasi</div>
-                    <div class="metric-val text-dark fw-bold fs-3"><?= esc($analytics['recommendation_pct'] ?? '98.4') ?>%</div>
-                    <small class="text-success"><i class="fas fa-heart text-danger me-1"></i>Merekomendasikan Layanan</small>
+                    <div class="metric-val text-dark fw-bold fs-3"><?= number_format($recPct, 1) ?>%</div>
+                    <?php if ($totalResp > 0): ?>
+                        <small class="text-success"><i class="fas fa-heart text-danger me-1"></i>Merekomendasikan Layanan</small>
+                    <?php else: ?>
+                        <small class="text-muted"><i class="fas fa-minus-circle me-1"></i>Belum ada rekomendasi</small>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -257,19 +276,26 @@
                         <p class="text-muted small mb-0">Komposisi peran pengguna yang berpartisipasi dalam survei.</p>
                     </div>
                     <div class="card-body p-4">
-                        <div class="d-flex flex-column gap-3">
-                            <?php foreach ($analytics['roles'] as $role): ?>
-                                <div>
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span class="fw-semibold text-dark small"><?= esc($role['name']) ?></span>
-                                        <span class="fw-bold small" style="color: <?= esc($role['color']) ?>;"><?= esc($role['pct']) ?>%</span>
+                        <?php if (empty($analytics['roles'])): ?>
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-users-slash fs-2 mb-2 d-block text-secondary"></i>
+                                <span>Belum ada data responden survei terhimpun.</span>
+                            </div>
+                        <?php else: ?>
+                            <div class="d-flex flex-column gap-3">
+                                <?php foreach ($analytics['roles'] as $role): ?>
+                                    <div>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="fw-semibold text-dark small"><?= esc($role['name']) ?></span>
+                                            <span class="fw-bold small" style="color: <?= esc($role['color']) ?>;"><?= esc($role['pct']) ?>%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px; border-radius: 999px;">
+                                            <div class="progress-bar" role="progressbar" style="width: <?= esc($role['pct']) ?>%; background-color: <?= esc($role['color']) ?>;"></div>
+                                        </div>
                                     </div>
-                                    <div class="progress" style="height: 8px; border-radius: 999px;">
-                                        <div class="progress-bar" role="progressbar" style="width: <?= esc($role['pct']) ?>%; background-color: <?= esc($role['color']) ?>;"></div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -325,16 +351,24 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($analytics['quarterly_trends'] as $trend): ?>
+                            <?php if (empty($analytics['quarterly_trends'])): ?>
                                 <tr>
-                                    <td class="ps-4 fw-bold text-dark"><?= esc($trend['period']) ?></td>
-                                    <td class="text-center"><span class="badge bg-light text-dark fs-6 fw-bold border"><?= esc($trend['score']) ?> / 5.0</span></td>
-                                    <td class="text-center fw-semibold text-success"><?= esc($trend['pct']) ?>%</td>
-                                    <td class="text-center"><span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1"><?= esc($trend['status']) ?></span></td>
-                                    <td class="text-center"><?= number_format((int) $trend['responses'], 0, ',', '.') ?> orang</td>
-                                    <td class="text-center pe-4"><i class="fas fa-check-circle text-success me-1"></i>Tervalidasi</td>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        <i class="fas fa-info-circle me-1"></i> Belum ada data tren berkala yang dihimpun.
+                                    </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php else: ?>
+                                <?php foreach ($analytics['quarterly_trends'] as $trend): ?>
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-dark"><?= esc($trend['period']) ?></td>
+                                        <td class="text-center"><span class="badge bg-light text-dark fs-6 fw-bold border"><?= esc($trend['score']) ?> / 5.0</span></td>
+                                        <td class="text-center fw-semibold text-success"><?= esc($trend['pct']) ?>%</td>
+                                        <td class="text-center"><span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1"><?= esc($trend['status']) ?></span></td>
+                                        <td class="text-center"><?= number_format((int) $trend['responses'], 0, ',', '.') ?> orang</td>
+                                        <td class="text-center pe-4"><i class="fas fa-check-circle text-success me-1"></i>Tervalidasi</td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -354,35 +388,50 @@
             </div>
 
             <div class="row g-4">
-                <?php foreach ($analytics['feedbacks'] as $fb): ?>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="public-feedback-card p-4 rounded-4 bg-white border shadow-sm h-100 d-flex flex-direction-column justify-content-between">
-                            <div>
-                                <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <span class="text-warning fs-6">
-                                        <?= str_repeat('★', $fb['rating']) ?><?= str_repeat('☆', 5 - $fb['rating']) ?>
-                                    </span>
-                                    <span class="badge bg-light text-secondary border small font-monospace">
-                                        <?= esc($fb['ticket']) ?>
-                                    </span>
+                <?php if (empty($analytics['feedbacks'])): ?>
+                    <div class="col-12">
+                        <div class="p-5 rounded-4 bg-white border text-center shadow-sm">
+                            <i class="fas fa-comment-dots text-muted mb-3" style="font-size: 40px;"></i>
+                            <h5 class="fw-bold text-dark mb-2">Belum Ada Ulasan Publik</h5>
+                            <p class="text-muted small mx-auto mb-4" style="max-width: 520px; line-height: 1.6;">
+                                Jadilah yang pertama menyampaikan evaluasi, aspirasi, dan masukan konstruktif demi kemajuan mutu pelayanan pengadaan barang dan jasa di Provinsi Lampung.
+                            </p>
+                            <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalSurveyKepuasan">
+                                <i class="fas fa-edit me-1"></i> Tulis Ulasan Sekarang
+                            </button>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($analytics['feedbacks'] as $fb): ?>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="public-feedback-card p-4 rounded-4 bg-white border shadow-sm h-100 d-flex flex-direction-column justify-content-between">
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <span class="text-warning fs-6">
+                                            <?= str_repeat('★', $fb['rating']) ?><?= str_repeat('☆', 5 - $fb['rating']) ?>
+                                        </span>
+                                        <span class="badge bg-light text-secondary border small font-monospace">
+                                            <?= esc($fb['ticket']) ?>
+                                        </span>
+                                    </div>
+                                    <p class="feedback-quote text-dark mb-3" style="font-size: 14px; line-height: 1.6;">
+                                        &ldquo;<?= esc($fb['feedback']) ?>&rdquo;
+                                    </p>
                                 </div>
-                                <p class="feedback-quote text-dark mb-3" style="font-size: 14px; line-height: 1.6;">
-                                    &ldquo;<?= esc($fb['feedback']) ?>&rdquo;
-                                </p>
-                            </div>
-                            <div class="pt-3 border-top mt-auto">
-                                <div class="fw-bold text-dark small"><?= esc($fb['name']) ?></div>
-                                <div class="text-muted" style="font-size: 11.5px;"><?= esc($fb['institution']) ?></div>
-                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 10.5px;">
-                                        <?= esc($fb['role']) ?>
-                                    </span>
-                                    <small class="text-muted" style="font-size: 11px;"><?= esc($fb['date']) ?></small>
+                                <div class="pt-3 border-top mt-auto">
+                                    <div class="fw-bold text-dark small"><?= esc($fb['name']) ?></div>
+                                    <div class="text-muted" style="font-size: 11.5px;"><?= esc($fb['institution']) ?></div>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 10.5px;">
+                                            <?= esc($fb['role']) ?>
+                                        </span>
+                                        <small class="text-muted" style="font-size: 11px;"><?= esc($fb['date']) ?></small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
 

@@ -55,7 +55,8 @@ $bulanIndo = [
         <?php if (!empty($sliders)): ?>
             <?php foreach ($sliders as $s): ?>
                 <?php
-                $img = str_starts_with($s['image_url'] ?? '', 'http') ? $s['image_url'] : base_url($s['image_url'] ?? 'assets/main/images/backgrounds/slider-1-1.png');
+                $rawImg = $s['image_url'] ?? 'assets/main/images/backgrounds/slider-1-1.png';
+                $img = str_starts_with($rawImg, 'http') ? $rawImg : base_url($rawImg);
                 $btnUrl = !empty($s['button_url'] ?? $s['primary_btn_url'] ?? null) ? (str_starts_with($s['button_url'] ?? $s['primary_btn_url'], 'http') ? ($s['button_url'] ?? $s['primary_btn_url']) : site_url($s['button_url'] ?? $s['primary_btn_url'])) : null;
                 $secBtnUrl = !empty($s['secondary_button_url'] ?? $s['secondary_btn_url'] ?? null) ? (str_starts_with($s['secondary_button_url'] ?? $s['secondary_btn_url'], 'http') ? ($s['secondary_button_url'] ?? $s['secondary_btn_url']) : site_url($s['secondary_button_url'] ?? $s['secondary_btn_url'])) : null;
                 $headingText = $s['title'] ?? $s['heading'] ?? 'BegawiPengadaan Lampung';
@@ -63,14 +64,22 @@ $bulanIndo = [
                 $descText = $s['subtitle'] ?? $s['description'] ?? '';
                 $btnText = $s['button_text'] ?? $s['primary_btn_text'] ?? '';
                 $secBtnText = $s['secondary_button_text'] ?? $s['secondary_btn_text'] ?? '';
+
+                // Cek ketersediaan berkas .webp fisik di server sebelum menyertakan tag <source>
+                $hasWebp = false;
+                $webpImg = null;
+                if (! str_starts_with($rawImg, 'http') && preg_match('/\.(png|jpg|jpeg)$/i', $rawImg)) {
+                    $webpRelative = preg_replace('/\.(png|jpg|jpeg)$/i', '.webp', $rawImg);
+                    $fullWebpPath = rtrim(FCPATH, '/\\') . DIRECTORY_SEPARATOR . ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $webpRelative), DIRECTORY_SEPARATOR);
+                    if (is_file($fullWebpPath)) {
+                        $hasWebp = true;
+                        $webpImg = base_url($webpRelative);
+                    }
+                }
                 ?>
                 <div class="item">
                     <div class="main-slider__image-block">
-                        <?php
-                        $webpImg = preg_replace('/\.(png|jpg|jpeg)$/i', '.webp', $img);
-                        $hasWebp = !empty($webpImg) && $webpImg !== $img;
-                        ?>
-                        <?php if ($hasWebp): ?>
+                        <?php if ($hasWebp && $webpImg): ?>
                             <picture>
                                 <source srcset="<?= esc($webpImg) ?>" type="image/webp">
                                 <img src="<?= esc($img) ?>" alt="<?= esc(strip_tags($headingText)) ?>" class="main-slider__hero-img" width="1920" height="500" />
@@ -152,78 +161,6 @@ $bulanIndo = [
                     </div>
                 </div>
             </div>
-
-            <!-- Slide 2: Arena Belajar PBJ -->
-            <div class="item">
-                <div class="main-slider__image-block">
-                    <picture>
-                        <source srcset="<?= base_url('assets/main/images/backgrounds/slider-1-2.webp') ?>" type="image/webp">
-                        <img src="<?= base_url('assets/main/images/backgrounds/slider-1-2.png') ?>" alt="BegawiPengadaan Lampung - Arena Belajar" class="main-slider__hero-img" width="1920" height="500" />
-                    </picture>
-                </div>
-                <div class="main-slider__caption-block">
-                    <div class="container">
-                        <div class="main-slider__caption-inner">
-                            <div class="main-slider__caption-text">
-                                <div class="main-slider__sub-title-box">
-                                    <div class="main-slider__sub-title-shape"></div>
-                                    <h5 class="main-slider__sub-title">Arena Belajar &middot; Sertifikasi Kompetensi PBJ</h5>
-                                </div>
-                                <h2 class="main-slider__title">
-                                    Tingkatkan Keahlian PBJ <span>Bersama Instruktur Ahli LKPP</span>
-                                </h2>
-                                <p class="main-slider__text">
-                                    Modul berjenjang terakreditasi LKPP, pembelajaran terjadwal, dan sertifikat resmi Pemprov Lampung.
-                                </p>
-                            </div>
-                            <div class="main-slider__btn-box">
-                                <a href="<?= site_url('arena-belajar/course') ?>" class="thm-btn">
-                                    <span class="icon-angles-right"></span>Katalog Kursus
-                                </a>
-                                <a href="<?= site_url('arena-belajar/program') ?>" class="thm-btn thm-btn-alt">
-                                    <span class="icon-angles-right"></span>Sertifikasi PBJ
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Slide 3: Bunga Rampai & Regulasi -->
-            <div class="item">
-                <div class="main-slider__image-block">
-                    <picture>
-                        <source srcset="<?= base_url('assets/main/images/backgrounds/slider-1-3.webp') ?>" type="image/webp">
-                        <img src="<?= base_url('assets/main/images/backgrounds/slider-1-3.png') ?>" alt="BegawiPengadaan Lampung - Bunga Rampai &amp; Regulasi" class="main-slider__hero-img" width="1920" height="500" />
-                    </picture>
-                </div>
-                <div class="main-slider__caption-block">
-                    <div class="container">
-                        <div class="main-slider__caption-inner">
-                            <div class="main-slider__caption-text">
-                                <div class="main-slider__sub-title-box">
-                                    <div class="main-slider__sub-title-shape"></div>
-                                    <h5 class="main-slider__sub-title">Bunga Rampai &middot; Dokumen &amp; Praktik Baik</h5>
-                                </div>
-                                <h2 class="main-slider__title">
-                                    Template Dokumen KAK, HPS <span>&amp; Mitigasi Risiko Audit Pengadaan</span>
-                                </h2>
-                                <p class="main-slider__text">
-                                    Unduh format dokumen kerja siap pakai (DOCX/XLSX), telaah sengketa sanggahan, dan alur tata kelola PBJ.
-                                </p>
-                            </div>
-                            <div class="main-slider__btn-box">
-                                <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="thm-btn">
-                                    <span class="icon-angles-right"></span>Template Dokumen
-                                </a>
-                                <a href="<?= site_url('bunga-rampai/studi-kasus') ?>" class="thm-btn thm-btn-alt">
-                                    <span class="icon-angles-right"></span>Studi Kasus
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         <?php endif; ?>
     </div>
 </section>
@@ -273,7 +210,7 @@ $bulanIndo = [
                             <iconify-icon icon="solar:diploma-verified-bold"></iconify-icon>
                         </div>
                         <div class="gateway-kpi-info">
-                            <div class="gateway-kpi-num"><?= number_format($stats['total_regulations'] > 0 ? $stats['total_regulations'] : 24) ?></div>
+                            <div class="gateway-kpi-num"><?= number_format((int) ($stats['total_regulations'] ?? 0)) ?></div>
                             <div class="gateway-kpi-label">Regulasi PBJ Terbit</div>
                         </div>
                     </div>
@@ -284,7 +221,7 @@ $bulanIndo = [
                             <iconify-icon icon="solar:mortarboard-bold"></iconify-icon>
                         </div>
                         <div class="gateway-kpi-info">
-                            <div class="gateway-kpi-num"><?= number_format($stats['total_courses'] > 0 ? $stats['total_courses'] : 18) ?>+</div>
+                            <div class="gateway-kpi-num"><?= number_format((int) ($stats['total_courses'] ?? 0)) ?><?= ((int) ($stats['total_courses'] ?? 0)) > 0 ? '+' : '' ?></div>
                             <div class="gateway-kpi-label">Kursus &amp; Materi Belajar</div>
                         </div>
                     </div>
@@ -295,7 +232,7 @@ $bulanIndo = [
                             <iconify-icon icon="solar:book-bookmark-bold"></iconify-icon>
                         </div>
                         <div class="gateway-kpi-info">
-                            <div class="gateway-kpi-num"><?= number_format($stats['total_knowledge'] > 0 ? $stats['total_knowledge'] : 45) ?>+</div>
+                            <div class="gateway-kpi-num"><?= number_format((int) ($stats['total_knowledge'] ?? 0)) ?><?= ((int) ($stats['total_knowledge'] ?? 0)) > 0 ? '+' : '' ?></div>
                             <div class="gateway-kpi-label">Artikel &amp; Template Dokumen</div>
                         </div>
                     </div>
@@ -306,7 +243,7 @@ $bulanIndo = [
                             <iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon>
                         </div>
                         <div class="gateway-kpi-info">
-                            <div class="gateway-kpi-num"><?= number_format($stats['total_users'] > 0 ? $stats['total_users'] : 150) ?>+</div>
+                            <div class="gateway-kpi-num"><?= number_format((int) ($stats['total_users'] ?? 0)) ?><?= ((int) ($stats['total_users'] ?? 0)) > 0 ? '+' : '' ?></div>
                             <div class="gateway-kpi-label">Aparatur &amp; Peserta Terdaftar</div>
                         </div>
                     </div>
@@ -343,8 +280,8 @@ $bulanIndo = [
                     <h3 class="pillar-title">Arena Belajar</h3>
                     <p class="pillar-desc">Pusat pelatihan mandiri berbasis e-learning, program sertifikasi PBJ, modul berjenjang, dan kelas interaktif bersama instruktur terakreditasi LKPP.</p>
                     <div class="pillar-stat-row">
-                        <span class="pillar-stat-chip"><strong><?= max(18, $stats['total_courses'] ?? 0) ?></strong> Kursus</span>
-                        <span class="pillar-stat-chip"><strong>4</strong> Program</span>
+                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_courses'] ?? 0) ?></strong> Kursus</span>
+                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_programs'] ?? 0) ?></strong> Program</span>
                     </div>
                     <a href="<?= site_url('arena-belajar') ?>" class="pillar-link mt-auto">
                         <span>Eksplorasi Pembelajaran</span>
@@ -365,8 +302,8 @@ $bulanIndo = [
                     <h3 class="pillar-title">Bunga Rampai PBJ</h3>
                     <p class="pillar-desc">Ensiklopedia literasi praktis: artikel wawasan, template dokumen kerja (KAK, HPS, Kontrak), studi kasus penanganan sanggah, dan galeri multimedia.</p>
                     <div class="pillar-stat-row">
-                        <span class="pillar-stat-chip"><strong><?= max(45, $stats['total_knowledge'] ?? 0) ?></strong> Artikel &amp; Template</span>
-                        <span class="pillar-stat-chip"><strong>5</strong> Topik</span>
+                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_knowledge'] ?? 0) ?></strong> Artikel &amp; Template</span>
+                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_knowledge_categories'] ?? 0) ?></strong> Topik</span>
                     </div>
                     <a href="<?= site_url('bunga-rampai') ?>" class="pillar-link mt-auto">
                         <span>Buka Bunga Rampai</span>
@@ -387,8 +324,8 @@ $bulanIndo = [
                     <h3 class="pillar-title">Regulasi &amp; Payung Hukum</h3>
                     <p class="pillar-desc">Koleksi terstruktur peraturan perundang-undangan (Perpres, PerLKPP, Perda Lampung, Surat Edaran), riwayat naskah versi, dan silsilah relasi aturan hukum.</p>
                     <div class="pillar-stat-row">
-                        <span class="pillar-stat-chip"><strong><?= max(24, $stats['total_regulations'] ?? 0) ?></strong> Regulasi</span>
-                        <span class="pillar-stat-chip"><strong>5</strong> Kategori</span>
+                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_regulations'] ?? 0) ?></strong> Regulasi</span>
+                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_regulation_categories'] ?? 0) ?></strong> Kategori</span>
                     </div>
                     <a href="<?= site_url('regulasi') ?>" class="pillar-link mt-auto">
                         <span>Pusat Regulasi PBJ</span>
@@ -409,7 +346,7 @@ $bulanIndo = [
                     <h3 class="pillar-title">Klinik Konsultasi &amp; Tanya Jawab</h3>
                     <p class="pillar-desc">Bimbingan teknis terarah dan tanya jawab spesifik mengenai persoalan regulasi, kendala pemilihan penyedia, penyesuaian harga, serta tata cara mitigasi risiko audit kepengadaan.</p>
                     <div class="pillar-stat-row">
-                        <span class="pillar-stat-chip"><strong><?= max(5, count($faqs)) ?></strong> FAQ Aktif</span>
+                        <span class="pillar-stat-chip"><strong><?= count($faqs) ?></strong> FAQ Aktif</span>
                         <span class="pillar-stat-chip"><strong>24/7</strong> Helpdesk</span>
                     </div>
                     <a href="<?= site_url('bunga-rampai/faq') ?>" class="pillar-link mt-auto">
@@ -466,47 +403,14 @@ $bulanIndo = [
 
         <div class="row g-3 g-md-4">
             <?php if (empty($courses)): ?>
-                <?php
-                $mockCourses = [
-                    ['title' => 'Dasar-Dasar Pengadaan Barang/Jasa Pemerintah (Level-1)', 'level' => 'Pemula', 'hours' => '24 JP', 'program' => 'Sertifikasi PBJ', 'slug' => 'dasar-dasar-pengadaan-level-1'],
-                    ['title' => 'Teknik Penyusunan HPS & Spesifikasi Teknis yang Akuntabel', 'level' => 'Menengah', 'hours' => '16 JP', 'program' => 'Teknis PPK', 'slug' => 'penyusunan-hps-spesifikasi'],
-                    ['title' => 'Tata Kelola Pengadaan Melalui E-Katalog & E-Purchasing V6', 'level' => 'Pemula', 'hours' => '12 JP', 'program' => 'Katalog PBJ', 'slug' => 'tata-kelola-e-katalog'],
-                ];
-                $ci = 0;
-                foreach ($mockCourses as $c): ?>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="course-card-modern">
-                            <div class="course-thumb-wrap">
-                                <img src="<?= base_url('assets/main/images/resources/courses-1-1.jpg') ?>" alt="<?= esc($c['title']) ?>">
-                                <?php if ($ci === 0): ?>
-                                    <span class="course-popular-ribbon"><iconify-icon icon="solar:star-bold"></iconify-icon> Populer</span>
-                                <?php endif; ?>
-                                <span class="course-level-badge"><?= esc($c['level']) ?></span>
-                                <span class="course-duration-badge">
-                                    <iconify-icon icon="solar:clock-circle-linear"></iconify-icon>
-                                    <?= esc($c['hours']) ?>
-                                </span>
-                                <a href="<?= site_url('arena-belajar/course') ?>" class="course-overlay-cta">
-                                    <iconify-icon icon="solar:play-circle-bold"></iconify-icon>
-                                    <span>Lihat Detail</span>
-                                </a>
-                            </div>
-                            <div class="course-body-modern">
-                                <span class="course-program-tag"><?= esc($c['program']) ?></span>
-                                <h3 class="course-title-modern">
-                                    <a href="<?= site_url('arena-belajar/course') ?>"><?= esc($c['title']) ?></a>
-                                </h3>
-                                <p class="course-summary-snippet">Panduan komprehensif bagi PPK dan Pokja dalam menerapkan regulasi terbaru.</p>
-                                <div class="course-meta-row">
-                                    <span class="text-xs text-muted d-flex align-items-center gap-1">
-                                        <iconify-icon icon="solar:users-group-rounded-linear"></iconify-icon> 120+ Peserta
-                                    </span>
-                                    <a href="<?= site_url('arena-belajar/course') ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Pelajari</a>
-                                </div>
-                            </div>
-                        </div>
+                <div class="col-12 text-center py-5">
+                    <div class="p-4 rounded-4 bg-white border d-inline-block text-center shadow-xs" style="max-width: 480px;">
+                        <iconify-icon icon="solar:mortarboard-broken" class="text-secondary-light" style="font-size: 48px;"></iconify-icon>
+                        <h5 class="fw-bold text-dark mt-2 mb-1">Belum Ada Kursus Terbit</h5>
+                        <p class="text-muted small mb-3">Materi pembelajaran dan silabus pelatihan saat ini sedang dipersiapkan oleh instruktur.</p>
+                        <a href="<?= site_url('arena-belajar') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3">Buka Arena Belajar</a>
                     </div>
-                <?php $ci++; endforeach; ?>
+                </div>
             <?php else: ?>
                 <?php $ci = 0; foreach ($courses as $c): ?>
                     <?php
@@ -519,7 +423,7 @@ $bulanIndo = [
                     };
                     $durationJp = 4;
                     if (! empty($c['duration_minutes'])) {
-                        $durationJp = max(1, round((int) $c['duration_minutes'] / 45));
+                        $durationJp = max(1, learning_jp_count((int) $c['duration_minutes']));
                     } elseif (! empty($c['duration_hours'])) {
                         $durationJp = (int) $c['duration_hours'];
                     }
@@ -665,41 +569,14 @@ $bulanIndo = [
 
         <div class="row g-3 g-md-4">
             <?php if (empty($regulations)): ?>
-                <?php
-                $mockRegs = [
-                    ['num' => 'Perpres No. 12 Tahun 2021', 'issuer' => 'Presiden RI', 'title' => 'Perubahan atas Peraturan Presiden Nomor 16 Tahun 2018 tentang Pengadaan Barang/Jasa Pemerintah', 'status' => 'active', 'year' => '2021', 'slug' => 'perpres-12-tahun-2021'],
-                    ['num' => 'Peraturan LKPP No. 12 Tahun 2021', 'issuer' => 'LKPP', 'title' => 'Pedoman Pelaksanaan Pengadaan Barang/Jasa Pemerintah Melalui Penyedia', 'status' => 'active', 'year' => '2021', 'slug' => 'perlkpp-12-tahun-2021'],
-                    ['num' => 'Peraturan Gubernur Lampung No. 34 Tahun 2023', 'issuer' => 'Gubernur Lampung', 'title' => 'Tata Cara Pelaksanaan E-Purchasing dan Pengadaan Langsung di Lingkungan Pemerintah Provinsi Lampung', 'status' => 'active', 'year' => '2023', 'slug' => 'pergub-lampung-34-2023'],
-                ];
-                foreach ($mockRegs as $r): ?>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="reg-card-modern">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <span class="reg-status-badge badge-soft-success active">
-                                    <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Berlaku
-                                </span>
-                                <span class="badge-soft-secondary px-2 py-1 radius-6 text-2xs fw-bold">
-                                    Tahun <?= esc($r['year']) ?>
-                                </span>
-                            </div>
-                            <span class="reg-doc-num"><?= esc($r['num']) ?></span>
-                            <h3 class="reg-title-modern">
-                                <a href="<?= site_url('regulasi') ?>"><?= esc($r['title']) ?></a>
-                            </h3>
-                            <p class="reg-summary-text">Pedoman acuan teknis hukum pengadaan barang/jasa bagi aparatur sipil negara dan pelaku usaha.</p>
-                            <div class="reg-actions-row">
-                                <span class="text-xs text-muted"><?= esc($r['issuer']) ?></span>
-                                <div class="d-flex align-items-center gap-2">
-                                    <a href="<?= site_url('regulasi') ?>" class="btn btn-sm btn-outline-primary px-3 py-1 radius-6">Naskah</a>
-                                    <a href="<?= site_url('regulasi') ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6 d-inline-flex align-items-center gap-1">
-                                        <iconify-icon icon="solar:download-minimalistic-bold"></iconify-icon>
-                                        <span>Unduh</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+                <div class="col-12 text-center py-5">
+                    <div class="p-4 rounded-4 bg-white border d-inline-block text-center shadow-xs" style="max-width: 480px;">
+                        <iconify-icon icon="solar:document-text-broken" class="text-secondary-light" style="font-size: 48px;"></iconify-icon>
+                        <h5 class="fw-bold text-dark mt-2 mb-1">Belum Ada Dokumen Regulasi</h5>
+                        <p class="text-muted small mb-3">Repositori produk hukum dan peraturan PBJ akan segera diperbarui.</p>
+                        <a href="<?= site_url('regulasi') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3">Buka Pusat Regulasi</a>
                     </div>
-                <?php endforeach; ?>
+                </div>
             <?php else: ?>
                 <?php foreach ($regulations as $r): ?>
                     <?php $legalStatus = strtolower((string) ($r['legal_status'] ?? 'active')); ?>
@@ -780,22 +657,22 @@ $bulanIndo = [
             <button class="knowledge-tab-btn active" id="tab-art-btn" data-bs-toggle="pill" data-bs-target="#tab-articles" type="button" role="tab">
                 <iconify-icon icon="solar:document-text-bold"></iconify-icon>
                 <span>Artikel PBJ</span>
-                <span class="tab-counter"><?= max(4, count($articles)) ?></span>
+                <span class="tab-counter"><?= count($articles) ?></span>
             </button>
             <button class="knowledge-tab-btn" id="tab-tpl-btn" data-bs-toggle="pill" data-bs-target="#tab-templates" type="button" role="tab">
                 <iconify-icon icon="solar:file-download-bold"></iconify-icon>
                 <span>Template Dokumen</span>
-                <span class="tab-counter"><?= max(4, count($templates)) ?></span>
+                <span class="tab-counter"><?= count($templates) ?></span>
             </button>
             <button class="knowledge-tab-btn" id="tab-cs-btn" data-bs-toggle="pill" data-bs-target="#tab-cases" type="button" role="tab">
                 <iconify-icon icon="solar:shield-warning-bold"></iconify-icon>
                 <span>Studi Kasus</span>
-                <span class="tab-counter"><?= max(4, count($caseStudies)) ?></span>
+                <span class="tab-counter"><?= count($caseStudies) ?></span>
             </button>
             <button class="knowledge-tab-btn" id="tab-faq-btn" data-bs-toggle="pill" data-bs-target="#tab-faqs" type="button" role="tab">
                 <iconify-icon icon="solar:question-circle-bold"></iconify-icon>
                 <span>Tanya Jawab (FAQ)</span>
-                <span class="tab-counter"><?= max(5, count($faqs)) ?></span>
+                <span class="tab-counter"><?= count($faqs) ?></span>
             </button>
         </div>
 
@@ -847,24 +724,11 @@ $bulanIndo = [
             <div class="tab-pane fade" id="tab-templates" role="tabpanel">
                 <div class="row g-3 g-md-3">
                     <?php if (empty($templates)): ?>
-                        <div class="col-12 col-md-6">
-                            <div class="template-item-card">
-                                <div class="template-file-icon"><iconify-icon icon="solar:document-bold"></iconify-icon></div>
-                                <div class="flex-grow-1">
-                                    <h5 class="text-sm fw-bold mb-1">Format Kerangka Acuan Kerja (KAK) Jasa Konsultansi</h5>
-                                    <span class="text-xs text-muted">Format DOCX &middot; Sesuai PerLKPP 12/2021</span>
-                                </div>
-                                <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="btn btn-sm btn-outline-primary">Unduh</a>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <div class="template-item-card">
-                                <div class="template-file-icon excel"><iconify-icon icon="solar:file-spreadsheet-bold"></iconify-icon></div>
-                                <div class="flex-grow-1">
-                                    <h5 class="text-sm fw-bold mb-1">Kertas Kerja Rincian Perhitungan HPS Pekerjaan Konstruksi</h5>
-                                    <span class="text-xs text-muted">Format XLSX &middot; Dilengkapi formula analisa</span>
-                                </div>
-                                <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="btn btn-sm btn-outline-primary">Unduh</a>
+                        <div class="col-12 text-center py-5">
+                            <div class="p-4 rounded-4 bg-light border d-inline-block text-center shadow-xs" style="max-width: 480px;">
+                                <iconify-icon icon="solar:document-add-broken" class="text-secondary-light" style="font-size: 44px;"></iconify-icon>
+                                <h5 class="fw-bold text-dark mt-2 mb-1">Belum Ada Template Dokumen</h5>
+                                <p class="text-muted small mb-0">Template KAK, HPS, dan format kontrak kerja akan segera diunggah.</p>
                             </div>
                         </div>
                     <?php else: ?>
@@ -906,20 +770,11 @@ $bulanIndo = [
             <div class="tab-pane fade" id="tab-cases" role="tabpanel">
                 <div class="row g-3 g-md-4">
                     <?php if (empty($caseStudies)): ?>
-                        <div class="col-12 col-md-6">
-                            <div class="card p-24 radius-16 border bg-light h-100">
-                                <span class="badge-soft-warning px-2 py-1 text-xs fw-bold mb-2" style="width: fit-content;">Kasus Pemilihan</span>
-                                <h5 class="text-base fw-bold mb-2">Penanganan Sanggahan Terkait Sertifikat Badan Usaha (SBU) yang Habis Masa Berlaku</h5>
-                                <p class="text-sm text-slate-500 mb-3">Analisis yuridis mitigasi risiko pembatalan tender dan panduan pembuktian kualifikasi bagi Pokja.</p>
-                                <a href="<?= site_url('bunga-rampai/studi-kasus') ?>" class="text-primary text-sm fw-bold text-decoration-none">Pelajari Solusi Kasus &rarr;</a>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <div class="card p-24 radius-16 border bg-light h-100">
-                                <span class="badge-soft-info px-2 py-1 text-xs fw-bold mb-2" style="width: fit-content;">Kasus Kontrak</span>
-                                <h5 class="text-base fw-bold mb-2">Pemberian Kesempatan 50 Hari Kalender &amp; Mekanisme Denda Keterlambatan</h5>
-                                <p class="text-sm text-slate-500 mb-3">Penerapan Pasal 56 Perpres 16/2018 jo Perpres 12/2021 pada akhir tahun anggaran tanpa temuan BPK.</p>
-                                <a href="<?= site_url('bunga-rampai/studi-kasus') ?>" class="text-primary text-sm fw-bold text-decoration-none">Pelajari Solusi Kasus &rarr;</a>
+                        <div class="col-12 text-center py-5">
+                            <div class="p-4 rounded-4 bg-light border d-inline-block text-center shadow-xs" style="max-width: 480px;">
+                                <iconify-icon icon="solar:case-round-minimalistic-broken" class="text-secondary-light" style="font-size: 44px;"></iconify-icon>
+                                <h5 class="fw-bold text-dark mt-2 mb-1">Belum Ada Studi Kasus</h5>
+                                <p class="text-muted small mb-0">Pembahasan studi kasus nyata pengadaan akan segera ditambahkan.</p>
                             </div>
                         </div>
                     <?php else: ?>
@@ -952,32 +807,11 @@ $bulanIndo = [
             <div class="tab-pane fade" id="tab-faqs" role="tabpanel">
                 <div class="row g-3">
                     <?php if (empty($faqs)): ?>
-                        <div class="col-12">
-                            <div class="accordion" id="homeFaqAccordion">
-                                <div class="accordion-item radius-12 mb-2 border overflow-hidden">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#hfaq1">
-                                            Kapan Pejabat Pembuat Komitmen (PPK) wajib menyusun Dokumen HPS?
-                                        </button>
-                                    </h2>
-                                    <div id="hfaq1" class="accordion-collapse collapse show" data-bs-parent="#homeFaqAccordion">
-                                        <div class="accordion-body text-slate-600 text-sm">
-                                            HPS disusun paling lama 28 hari kerja sebelum batas akhir pemasukan penawaran untuk pemilihan dengan pascakualifikasi, atau sebelum pemasukan dokumen kualifikasi untuk prakualifikasi. HPS tidak bersifat rahasia, namun rincian HPS bersifat rahasia.
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="accordion-item radius-12 mb-2 border overflow-hidden">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#hfaq2">
-                                            Apakah pelatihan di Arena Belajar BegawiPengadaan mendapatkan sertifikat resmi?
-                                        </button>
-                                    </h2>
-                                    <div id="hfaq2" class="accordion-collapse collapse" data-bs-parent="#homeFaqAccordion">
-                                        <div class="accordion-body text-slate-600 text-sm">
-                                            Ya. Seluruh peserta yang menyelesaikan program pelatihan bersertifikasi dan lulus evaluasi kelulusan akan mendapatkan e-Sertifikat resmi ber-QR Code dari Biro PBJ Setda Provinsi Lampung yang keabsahannya dapat diverifikasi langsung.
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="col-12 text-center py-5">
+                            <div class="p-4 rounded-4 bg-light border d-inline-block text-center shadow-xs" style="max-width: 480px;">
+                                <iconify-icon icon="solar:chat-round-dots-broken" class="text-secondary-light" style="font-size: 44px;"></iconify-icon>
+                                <h5 class="fw-bold text-dark mt-2 mb-1">Belum Ada Tanya Jawab (FAQ)</h5>
+                                <p class="text-muted small mb-0">Daftar pertanyaan umum seputar pengadaan barang dan jasa akan segera dimutakhirkan.</p>
                             </div>
                         </div>
                     <?php else: ?>
@@ -1031,52 +865,12 @@ $bulanIndo = [
 
         <div class="row g-3 g-md-4">
             <?php if (empty($upcomingEvents)): ?>
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="event-card-modern">
-                        <div class="event-date-badge">
-                            <span class="event-date-day">28</span>
-                            <span class="event-date-month">Okt</span>
-                        </div>
-                        <div class="flex-grow-1">
-                            <span class="badge-soft-success px-2 py-0 text-2xs fw-bold mb-2 d-inline-block">Online &middot; Zoom</span>
-                            <h4 class="text-base fw-bold mb-1">
-                                <a href="<?= site_url('event') ?>" class="text-dark text-decoration-none">Webinar Nasional: Optimalisasi E-Katalog V6 bagi Pelaku Usaha Mikro &amp; Kecil</a>
-                            </h4>
-                            <p class="text-xs text-muted mb-3">Sosialisasi teknis pendaftaran etalase dan transaksi e-purchasing Pemprov Lampung.</p>
-                            <a href="<?= site_url('event') ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Daftar Gratis</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="event-card-modern">
-                        <div class="event-date-badge">
-                            <span class="event-date-day">12</span>
-                            <span class="event-date-month">Nov</span>
-                        </div>
-                        <div class="flex-grow-1">
-                            <span class="badge-soft-primary px-2 py-0 text-2xs fw-bold mb-2 d-inline-block">Tatap Muka &middot; Bandar Lampung</span>
-                            <h4 class="text-base fw-bold mb-1">
-                                <a href="<?= site_url('event') ?>" class="text-dark text-decoration-none">Bimbingan Teknis: Penyusunan Dokumen Pemilihan &amp; Mitigasi Risiko Sanggah</a>
-                            </h4>
-                            <p class="text-xs text-muted mb-3">Pelatihan intensif khusus Pokja Pemilihan UKPBJ Kabupaten/Kota se-Lampung.</p>
-                            <a href="<?= site_url('event') ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Daftar Peserta</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="event-card-modern">
-                        <div class="event-date-badge">
-                            <span class="event-date-day">20</span>
-                            <span class="event-date-month">Nov</span>
-                        </div>
-                        <div class="flex-grow-1">
-                            <span class="badge-soft-warning px-2 py-0 text-2xs fw-bold mb-2 d-inline-block">Hybrid &middot; Gedung Pusiban</span>
-                            <h4 class="text-base fw-bold mb-1">
-                                <a href="<?= site_url('event') ?>" class="text-dark text-decoration-none">Sosialisasi Surat Edaran Pencegahan Korupsi &amp; Gratifikasi Pengadaan</a>
-                            </h4>
-                            <p class="text-xs text-muted mb-3">Kolaborasi bersama Inspektorat Daerah Provinsi Lampung dan APIP.</p>
-                            <a href="<?= site_url('event') ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Detail Acara</a>
-                        </div>
+                <div class="col-12 text-center py-5">
+                    <div class="p-4 rounded-4 bg-white border d-inline-block text-center shadow-xs" style="max-width: 480px;">
+                        <iconify-icon icon="solar:calendar-broken" class="text-secondary-light" style="font-size: 48px;"></iconify-icon>
+                        <h5 class="fw-bold text-dark mt-2 mb-1">Belum Ada Agenda Mendatang</h5>
+                        <p class="text-muted small mb-3">Jadwal webinar, bimbingan teknis, dan pelatihan pengadaan akan segera diumumkan.</p>
+                        <a href="<?= site_url('event') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3">Buka Halaman Event</a>
                     </div>
                 </div>
             <?php else: ?>
@@ -1332,6 +1126,7 @@ $bulanIndo = [
 <!-- =========================================================
      10. TESTIMONI PENGGUNA (TESTIMONIAL SPOTLIGHT)
      ========================================================= -->
+<?php if (!empty($testimonials)): ?>
 <section class="testimonial-one section-testimonies" id="section-testimonies">
     <div class="container">
         <!-- Section Title & Single Nav Arrows Header -->
@@ -1361,7 +1156,6 @@ $bulanIndo = [
         <!-- Testimonial Carousel (Bubble Chat Design, Multi-Card, Loop) -->
         <div class="testimonial-one__inner">
             <div class="testimonial-one__carousel owl-theme owl-carousel">
-                <?php if (!empty($testimonials)): ?>
                     <?php foreach ($testimonials as $tIdx => $t): ?>
                         <?php
                         $tId = 't' . ($tIdx + 1);
@@ -1423,61 +1217,16 @@ $bulanIndo = [
                             </div>
                         </div>
                     <?php endforeach; ?>
-                <?php else: ?>
-                    <!-- Slide 1: Ahmad Zulkarnaen, S.T., M.T. -->
-                    <div class="item">
-                        <div class="testimony-chat-card testimony-card spotlight-card" onclick="openTestimonyModal('t1')" role="button" tabindex="0" title="Klik untuk ulasan lengkap">
-                            <div class="testimony-bubble">
-                                <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <div class="testimony-stars d-flex align-items-center gap-1">
-                                        <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                        <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                        <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                        <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                        <iconify-icon icon="solar:star-bold"></iconify-icon>
-                                        <span class="text-xs fw-bold text-dark ms-1">5.0</span>
-                                    </div>
-                                    <div class="testimony-quote-icon">
-                                        <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
-                                    </div>
-                                </div>
-                                <p class="testimony-bubble__text">
-                                    &ldquo;Penyusunan HPS dan spesifikasi teknis untuk paket infrastruktur jalan kini jauh lebih terstandarisasi berkat template dokumen di Bunga Rampai dan sinkronisasi regulasi terpusat. Risiko deviasi hukum saat audit probity berkurang drastis.&rdquo;
-                                </p>
-                                <div class="testimony-bubble__impact mt-auto">
-                                    <iconify-icon icon="solar:graph-up-bold" class="text-success text-xs"></iconify-icon>
-                                    <span>Efisiensi persiapan lelang 55% &amp; probity nihil temuan</span>
-                                </div>
-                                <div class="testimony-bubble__tail"></div>
-                            </div>
-                            <div class="testimony-author-bar d-flex align-items-center gap-3">
-                                <div class="testimony-author__avatar spotlight-photo-frame">
-                                    <img src="<?= base_url('assets/main/images/testimonial/testimonial-1-1.jpg') ?>" alt="Ahmad Zulkarnaen, S.T., M.T." class="testimony-author__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user2.png') ?>'">
-                                </div>
-                                <div class="testimony-author__info">
-                                    <h4 class="testimony-author__name">Ahmad Zulkarnaen, S.T., M.T.</h4>
-                                    <span class="testimony-author__org">PPK Dinas Bina Marga &amp; Bina Konstruksi</span>
-                                    <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
-                                        <span class="badge-soft-primary px-2 py-0-5 radius-999 text-2xs fw-bold">
-                                            <iconify-icon icon="solar:user-bold" class="me-1"></iconify-icon> PPK Pengadaan
-                                        </span>
-                                        <span class="badge-soft-success px-2 py-0-5 radius-999 text-2xs fw-bold d-none d-sm-inline-flex">
-                                            <iconify-icon icon="solar:verified-check-bold" class="me-1"></iconify-icon> Terverifikasi
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <?php endif; ?>
             </div>
         </div>
     </div>
 </section>
+<?php endif; ?>
 
 <!-- =========================================================
      11. TIM INOVATOR & PENGEMBANG (TEAM SPOTLIGHT)
      ========================================================= -->
+<?php if (!empty($teamMembers)): ?>
 <section class="team-one section-team" id="section-team">
     <div class="container">
         <!-- Section Title & Single Nav Arrows Header -->
@@ -1506,7 +1255,6 @@ $bulanIndo = [
         <!-- Team Photo Card Slider Carousel (4-5 Cards Desktop, Loop, Photos with Badges) -->
         <div class="team-one__inner">
             <div class="team-spotlight__carousel owl-theme owl-carousel">
-                <?php if (!empty($teamMembers)): ?>
                     <?php foreach ($teamMembers as $mIdx => $m): ?>
                         <?php
                         $tmId = 'tm' . ($mIdx + 1);
@@ -1540,31 +1288,6 @@ $bulanIndo = [
                             </div>
                         </div>
                     <?php endforeach; ?>
-                <?php else: ?>
-                    <!-- Slide 1: Dr. Ir. Fahrizal Darminto, M.A. -->
-                    <div class="item">
-                        <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('tm1')" role="button" tabindex="0" title="Klik untuk profil lengkap">
-                            <div class="team-photo-card__frame spotlight-photo-frame">
-                                <img src="<?= base_url('assets/main/images/team/team-1-1.jpg') ?>" alt="Dr. Ir. Fahrizal Darminto, M.A." class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user1.png') ?>'">
-                                <div class="team-photo-card__badges">
-                                    <span class="team-photo-card__badge badge-soft-primary">
-                                        <iconify-icon icon="solar:crown-star-bold" class="text-warning"></iconify-icon>
-                                        <span>Pengarah Strategis</span>
-                                    </span>
-                                </div>
-                                <div class="team-photo-card__overlay">
-                                    <div class="team-photo-card__meta">
-                                        <h4 class="team-photo-card__name">Dr. Ir. Fahrizal Darminto, M.A.</h4>
-                                        <span class="team-photo-card__role">Sekretaris Daerah Prov. Lampung</span>
-                                    </div>
-                                    <div class="team-photo-card__action">
-                                        <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <?php endif; ?>
             </div>
         </div>
 
@@ -1608,6 +1331,7 @@ $bulanIndo = [
         </div>
     </div>
 </section>
+<?php endif; ?>
 
 <!-- Modal Detail Testimoni Interaktif -->
 <div class="modal fade" id="testimonyDetailModal" tabindex="-1" aria-labelledby="testimonyModalLabel" aria-hidden="true">
@@ -1905,150 +1629,7 @@ $bulanIndo = [
         }
     }
     ?>
-    const dynamicTestimonyData = <?= json_encode($modalItems, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
-    const defaultTestimonyData = {
-        't1': {
-            name: 'Ahmad Zulkarnaen, S.T., M.T.',
-            org: 'PPK Dinas Bina Marga & Bina Konstruksi Provinsi Lampung',
-            role: 'Pejabat Pembuat Komitmen (PPK)',
-            photo: '<?= base_url('assets/main/images/testimonial/testimonial-1-1.jpg') ?>',
-            avatar: 'AZ',
-            bg: '#0284c7',
-            quote: 'Penyusunan HPS dan spesifikasi teknis untuk paket infrastruktur jalan kini jauh lebih terstandarisasi berkat template dokumen di Bunga Rampai dan sinkronisasi regulasi terpusat. Risiko deviasi hukum saat audit probity berkurang drastis, sehingga eksekusi program fisik berjalan tepat sasaran.',
-            impact: 'Memangkas waktu persiapan lelang hingga 55% & nihil temuan administratif saat audit probity.'
-        },
-        't2': {
-            name: 'Rina Widyastuti, S.E., M.Si.',
-            org: 'Anggota Pokja Pemilihan UKPBJ Setda Provinsi Lampung',
-            role: 'Pokja Pemilihan / UKPBJ',
-            photo: '<?= base_url('assets/main/images/testimonial/testimonial-1-2.jpg') ?>',
-            avatar: 'RW',
-            bg: '#10b981',
-            quote: 'Arena Belajar dan simulasi evaluasi penawaran sangat membantu peningkatan kapasitas anggota Pokja. Ujian sertifikasi dan materi terstruktur meningkatkan kepercayaan diri kami dalam tender bernilai strategis di tingkat provinsi tanpa hambatan sanggahan banding.',
-            impact: 'Evaluasi tender selesai tepat waktu 100% dan bebas sanggahan banding pemohon.'
-        },
-        't3': {
-            name: 'Hendra Kusuma, S.Kom.',
-            org: 'Direktur PT Lampung Cipta Mandiri (Penyedia E-Katalog)',
-            role: 'Mitra Penyedia & UMKM',
-            photo: '<?= base_url('assets/main/images/testimonial/testimonial-2-1.jpg') ?>',
-            avatar: 'HK',
-            bg: '#f59e0b',
-            quote: 'Sebagai pelaku usaha lokal di Lampung, portal BegawiPengadaan membuka transparansi penuh. Kami mudah memahami kriteria kualifikasi, etika penawaran, hingga tata cara etalase produk pada e-katalog lokal Pemprov Lampung secara adil.',
-            impact: 'Produk lokal UMKM terserap optimal dalam belanja APBD Pemprov Lampung.'
-        },
-        't4': {
-            name: 'Drs. Bambang Irawan, Ak., CA.',
-            org: 'Pengendali Teknis Inspektorat Provinsi Lampung',
-            role: 'Pengawas APIP & Auditor',
-            photo: '<?= base_url('assets/main/images/testimonial/testimonial-1-3.jpg') ?>',
-            avatar: 'BI',
-            bg: '#7c3aed',
-            quote: 'BegawiPengadaan memfasilitasi audit kepatuhan secara objektif. Riwayat versi regulasi dan standar dokumen baku memudahkan kami memverifikasi kesesuaian prosedur dari tahap perencanaan sampai serah terima hasil pekerjaan.',
-            impact: 'Penguatan integritas sistem dan pencegahan dini potensi deviasi PBJ.'
-        },
-        't5': {
-            name: 'dr. Nurul Hidayati, M.Kes.',
-            org: 'PPK Pengadaan Alkes RSUD Dr. H. Abdul Moeloek',
-            role: 'PPK Sektor Kesehatan',
-            photo: '<?= base_url('assets/main/images/testimonial/testimonial-2-2.jpg') ?>',
-            avatar: 'NH',
-            bg: '#ef4444',
-            quote: 'Pengadaan obat dan alat medis memerlukan ketepatan waktu serta kepatuhan e-katalog nasional yang sangat ketat. Fitur konsultasi dan referensi regulasi di BegawiPengadaan memastikan ketersediaan logistik rumah sakit selalu terjamin.',
-            impact: 'Ketepatan waktu pasokan medis mencapai 99,2% dengan tata kelola e-katalog akurat.'
-        },
-        't6': {
-            name: 'Surya Darmawan, S.T.',
-            org: 'Tim Teknis Dinas Perumahan & Kawasan Permukiman Lampung',
-            role: 'Tim Teknis & Pengawas',
-            photo: '<?= base_url('assets/main/images/testimonial/testimonial-2-3.jpg') ?>',
-            avatar: 'SD',
-            bg: '#06b6d4',
-            quote: 'Standarisasi berita acara dan format pemeriksaan pekerjaan di Bunga Rampai mempermudah tim teknis melakukan serah terima fisik di lapangan secara presisi dan sesuai kontrak kerja.',
-            impact: '100% berita acara serah terima terdokumentasi rapi dan terverifikasi digital.'
-        },
-        'tm1': {
-            name: 'Dr. Ir. Fahrizal Darminto, M.A.',
-            org: 'Sekretaris Daerah Provinsi Lampung',
-            role: 'Pengarah Strategis PBJ',
-            photo: '<?= base_url('assets/main/images/team/team-1-1.jpg') ?>',
-            avatar: 'FD',
-            bg: '#052244',
-            quote: 'Penguatan tata kelola pengadaan barang dan jasa berbasis digital merupakan komitmen Pemprov Lampung guna memastikan belanja APBD yang transparan, akuntabel, dan berdampak langsung pada kesejahteraan masyarakat.',
-            impact: 'Legitimasi kebijakan makro dan penguatan integritas belanja APBD Provinsi Lampung.'
-        },
-        'tm2': {
-            name: 'Slamet Riadi, S.Sos., M.M.',
-            org: 'Kepala Biro Pengadaan Barang & Jasa Setda Provinsi Lampung',
-            role: 'Inisiator & Pembina Ekosistem',
-            photo: '<?= base_url('assets/main/images/team/team-1-2.jpg') ?>',
-            avatar: 'SR',
-            bg: '#0369a1',
-            quote: 'Menginisiasi arsitektur ekosistem BegawiPengadaan, memimpin transformasi UKPBJ Lampung menuju Level 3 (Proaktif) dan pusat keunggulan PBJ berstandar nasional yang transparan dan adaptif.',
-            impact: 'Akselerasi kelembagaan UKPBJ Lampung meraih akreditasi Level 3 Proaktif LKPP.'
-        },
-        'tm3': {
-            name: 'Software Engineering & UI/UX Crew',
-            org: 'Tim Transformasi Digital BegawiPengadaan',
-            role: 'Software Engineering & UX System',
-            photo: '<?= base_url('assets/main/images/team/team-1-5.jpg') ?>',
-            avatar: 'SE',
-            bg: '#d97706',
-            quote: 'Merancang arsitektur MVC CodeIgniter 4 yang gesit, integrasi database MySQL teroptimasi, tata letak responsif modern WowDash, serta antarmuka interaktif yang mudah diakses oleh seluruh OPD di Lampung.',
-            impact: '100% Full-Stack Responsif, performa tinggi, dan kepatuhan standar keamanan siber SPSE.'
-        },
-        'tm4': {
-            name: 'Tim LPSE & Pengelola SPSE',
-            org: 'Biro Pengadaan Barang & Jasa Setda Provinsi Lampung',
-            role: 'Infrastruktur & Layanan LPSE',
-            photo: '<?= base_url('assets/main/images/team/team-1-4.jpg') ?>',
-            avatar: 'LP',
-            bg: '#0284c7',
-            quote: 'Menjamin ketersediaan server 24/7 dengan standardisasi ISO 27001 dan rekomendasi BSSN, memastikan kelancaran seluruh proses tender elektronik tanpa downtime di seluruh kabupaten/kota se-Lampung.',
-            impact: '99,9% Server Uptime dan perlindungan data transaksi pengadaan terenkripsi.'
-        },
-        'tm5': {
-            name: 'Tim Pembinaan & Advokasi Hukum PBJ',
-            org: 'Biro Pengadaan Barang & Jasa & Biro Hukum Setda Lampung',
-            role: 'Advokasi & Regulasi PBJ',
-            photo: '<?= base_url('assets/main/images/team/team-1-3.jpg') ?>',
-            avatar: 'AH',
-            bg: '#7c3aed',
-            quote: 'Menyusun harmonisasi peraturan gubernur, telaah hukum pengadaan, mitigasi risiko sanggahan tender, serta penerbitan panduan teknis yang selaras dengan Perpres No. 12 Tahun 2021 dan aturan turunan LKPP.',
-            impact: 'Kepastian hukum penuh bagi seluruh Pejabat Pembuat Komitmen dan Pokja Pemilihan.'
-        },
-        'tm6': {
-            name: 'Tim Fasilitator & Master Trainer PBJ',
-            org: 'Instruktur PBJ Terakreditasi LKPP Lampung',
-            role: 'Instruktur & Penjamin Mutu',
-            photo: '<?= base_url('assets/main/images/team/team-1-6.jpg') ?>',
-            avatar: 'TF',
-            bg: '#10b981',
-            quote: 'Menyusun silabus pembelajaran berbasis kompetensi di Arena Belajar, bank soal ujian sertifikasi level-1, simulasi tender interaktif, serta panduan praktis penanganan sanggahan bagi aparatur se-Lampung.',
-            impact: 'Standardisasi kompetensi ASN pengadaan di lingkungan Pemprov Lampung.'
-        },
-        'tm7': {
-            name: 'Tim Pengawas APIP & Audit PBJ',
-            org: 'Inspektorat Provinsi Lampung',
-            role: 'Pengawas Kepatuhan & Integritas',
-            photo: '<?= base_url('assets/main/images/testimonial/testimonial-1-3.jpg') ?>',
-            avatar: 'AP',
-            bg: '#7c3aed',
-            quote: 'Memastikan seluruh tahapan pengadaan barang dan jasa di Provinsi Lampung mematuhi prinsip akuntabilitas, transparansi, serta bebas dari benturan kepentingan dan gratifikasi.',
-            impact: 'Pencegahan dini deviasi hukum dan penguatan integritas belanja daerah.'
-        },
-        'tm8': {
-            name: 'Helpdesk & Layanan Konsultasi LPSE',
-            org: 'Biro Pengadaan Barang & Jasa Setda Lampung',
-            role: 'Pendampingan Pengguna & Helpdesk',
-            photo: '<?= base_url('assets/main/images/testimonial/testimonial-1-2.jpg') ?>',
-            avatar: 'HD',
-            bg: '#0284c7',
-            quote: 'Menyediakan layanan konsultasi teknis SPSE, panduan tata cara sanggah, serta pendampingan langsung bagi Pejabat Pembuat Komitmen dan mitra penyedia UMKM lokal.',
-            impact: '99% tingkat penyelesaian kendala teknis SPSE dalam kurun waktu kurang dari 24 jam.'
-        }
-    };
-    const testimonyData = Object.keys(dynamicTestimonyData).length > 0 ? dynamicTestimonyData : defaultTestimonyData;
+    const testimonyData = <?= json_encode($modalItems, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
 
     function openTestimonyModal(id) {
         const data = testimonyData[id];

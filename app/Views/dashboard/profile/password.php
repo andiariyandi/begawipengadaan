@@ -45,42 +45,6 @@
     </div>
 </div>
 
-<!-- Flash Alerts -->
-<?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-3 mb-24 radius-8" role="alert">
-        <iconify-icon icon="solar:check-circle-bold" class="text-2xl text-success-main flex-shrink-0"></iconify-icon>
-        <div class="flex-grow-1">
-            <strong>Berhasil!</strong> <?= session()->getFlashdata('success') ?>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-<?php endif; ?>
-
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-3 mb-24 radius-8" role="alert">
-        <iconify-icon icon="solar:danger-triangle-bold" class="text-2xl text-danger-main flex-shrink-0"></iconify-icon>
-        <div class="flex-grow-1">
-            <strong>Perhatian:</strong> <?= session()->getFlashdata('error') ?>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-<?php endif; ?>
-
-<?php if (session()->getFlashdata('errors')): ?>
-    <div class="alert alert-danger alert-dismissible fade show mb-24 radius-8" role="alert">
-        <div class="d-flex align-items-center gap-2 mb-2">
-            <iconify-icon icon="solar:danger-circle-bold" class="text-xl text-danger-main"></iconify-icon>
-            <strong>Terdapat kesalahan pada input kata sandi:</strong>
-        </div>
-        <ul class="mb-0 ps-20 text-sm">
-            <?php foreach (session()->getFlashdata('errors') as $fieldErr): ?>
-                <li><?= esc($fieldErr) ?></li>
-            <?php endforeach; ?>
-        </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-<?php endif; ?>
-
 <!-- Form Card -->
 <div class="row justify-content-center">
     <div class="col-xl-8 col-lg-10">

@@ -12,7 +12,7 @@
         <div class="row justify-content-center">
             <div class="col-xl-10">
                 <div class="about-badge-pill">
-                    <i class="fas fa-landmark"></i> <?= esc($pageBanner['badge_label'] ?? 'Biro Pengadaan Barang dan Jasa Setda Provinsi Lampung') ?>
+                    <i class="fas fa-landmark"></i> <?= esc($pageBanner['badge_label'] ?? 'Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung') ?>
                 </div>
                 <h1 class="about-hero__title">
                     <?= !empty($pageBanner['title']) ? $pageBanner['title'] : 'Membangun Ekosistem Pengadaan Digital <span>Berintegritas &amp; Berdampak</span>' ?>

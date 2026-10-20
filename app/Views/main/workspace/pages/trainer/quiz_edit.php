@@ -32,20 +32,6 @@ $optionsByQuestion = $optionsByQuestion ?? [];
         </div>
     </div>
 
-    <!-- Alert Notifications -->
-    <?php if (session()->getFlashdata('success')): ?>
-        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
-            <i class="fas fa-check-circle me-2"></i> <?= esc(session()->getFlashdata('success')) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-    <?php if (session()->getFlashdata('error')): ?>
-        <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i> <?= esc(session()->getFlashdata('error')) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
     <!-- Pengaturan Ujian Card -->
     <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
         <h2 class="h5 fw-bold text-navy mb-3"><i class="fas fa-cog text-primary me-2"></i>Pengaturan Ujian</h2>

@@ -17,7 +17,10 @@ class HomeController extends BaseController
             'total_classes'     => 0,
             'total_knowledge'   => 0,
             'total_downloads'   => 0,
-            'total_users'       => 0,
+            'total_users'                 => 0,
+            'total_programs'              => 0,
+            'total_regulation_categories' => 0,
+            'total_knowledge_categories'  => 0,
         ];
 
         try {
@@ -63,6 +66,28 @@ class HomeController extends BaseController
             $stats['total_users'] = (int) $db->table('users')
                 ->where('deleted_at', null)
                 ->where('account_status', 'active')
+                ->countAllResults();
+        } catch (\Throwable) {
+        }
+
+        try {
+            $stats['total_programs'] = (int) $db->table('programs')
+                ->where('deleted_at', null)
+                ->where('status', 'published')
+                ->countAllResults();
+        } catch (\Throwable) {
+        }
+
+        try {
+            $stats['total_regulation_categories'] = (int) $db->table('regulation_categories')
+                ->where('is_active', 1)
+                ->countAllResults();
+        } catch (\Throwable) {
+        }
+
+        try {
+            $stats['total_knowledge_categories'] = (int) $db->table('knowledge_categories')
+                ->where('is_active', 1)
                 ->countAllResults();
         } catch (\Throwable) {
         }
@@ -453,6 +478,22 @@ class HomeController extends BaseController
         } catch (\Throwable) {
         }
 
+        // Fitur Pelacakan Tiket (Lacak Tiket via No. Tiket)
+        $trackedTicket = null;
+        $trackCode = trim((string) $this->request->getGet('lacak'));
+        if ($trackCode !== '') {
+            try {
+                $ticketRow = $db->table('contact_messages')->where('ticket_number', $trackCode)->get()->getRowArray();
+                if ($ticketRow) {
+                    $notes = \App\Models\Communication\ContactMessageModel::parseAdminNotes($ticketRow['admin_notes'] ?? null);
+                    $ticketRow['public_threads'] = array_values(array_filter($notes['threads'] ?? [], static fn($th) => ($th['channel'] ?? 'portal') !== 'internal'));
+                    $ticketRow['parsed_notes']   = $notes;
+                    $trackedTicket = $ticketRow;
+                }
+            } catch (\Throwable) {
+            }
+        }
+
         return view('landing/pages/contact', [
             'title'             => 'Hubungi Kami & Helpdesk PBJ | Biro Pengadaan Barang dan Jasa Lampung',
             'metaDescription'   => 'Layanan informasi resmi, konsultasi teknis, dan helpdesk LPSE Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung.',
@@ -463,6 +504,8 @@ class HomeController extends BaseController
             'contact'           => $contactInfo,
             'serviceCategories' => $serviceCategories,
             'pageBanner'        => $pageBanner,
+            'trackedTicket'     => $trackedTicket,
+            'trackCode'         => $trackCode,
         ]);
     }
 
@@ -487,16 +530,39 @@ class HomeController extends BaseController
         // Simpan ke database contact_messages
         $db = \Config\Database::connect();
         $ticketNumber = 'TKT-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
+
+        $isLoggedIn = session()->get('isLoggedIn') === true;
+        $userId     = $isLoggedIn ? (int) session()->get('user_id') : null;
+        $senderName = substr((string) $this->request->getPost('name'), 0, 150);
+
+        $initialNotes = [
+            'user_id'       => $userId,
+            'priority'      => 'normal',
+            'assigned_to'   => null,
+            'internal_note' => '',
+            'threads'       => [],
+            'logs'          => [
+                [
+                    'time'       => date('Y-m-d H:i:s'),
+                    'actor'      => $senderName,
+                    'actor_role' => $isLoggedIn ? 'user' : 'guest',
+                    'action'     => 'Tiket Dibuat',
+                    'detail'     => 'Tiket konsultasi diajukan melalui portal publik.' . ($isLoggedIn ? ' (Pengguna Terdaftar)' : ''),
+                ],
+            ],
+        ];
+
         try {
             $db->table('contact_messages')->insert([
                 'ticket_number'    => $ticketNumber,
-                'sender_name'      => substr((string) $this->request->getPost('name'), 0, 150),
+                'sender_name'      => $senderName,
                 'sender_email'     => substr((string) $this->request->getPost('email'), 0, 150),
                 'sender_phone'     => substr((string) $this->request->getPost('phone'), 0, 50),
                 'service_category' => substr((string) $this->request->getPost('service_type'), 0, 100),
                 'subject'          => substr((string) $this->request->getPost('subject'), 0, 255),
                 'message'          => (string) $this->request->getPost('message'),
                 'status'           => 'unread',
+                'admin_notes'      => json_encode($initialNotes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                 'created_at'       => date('Y-m-d H:i:s'),
                 'updated_at'       => date('Y-m-d H:i:s'),
             ]);
@@ -507,7 +573,7 @@ class HomeController extends BaseController
         // Catat log audit
         try {
             $auditService = new \App\Services\AuditService();
-            $auditService->log(null, 'contact.inquiry_submitted', 'contact_messages', $ticketNumber, 0, [
+            $auditService->log($userId, 'contact.inquiry_submitted', 'contact_messages', $ticketNumber, 0, [
                 'name'         => substr((string) $this->request->getPost('name'), 0, 100),
                 'email'        => substr((string) $this->request->getPost('email'), 0, 100),
                 'service_type' => substr((string) $this->request->getPost('service_type'), 0, 100),
@@ -516,8 +582,13 @@ class HomeController extends BaseController
         } catch (\Throwable) {
         }
 
+        if ($isLoggedIn) {
+            $successMsg = 'Terima kasih! Tiket ' . $ticketNumber . ' berhasil dibuat. Karena Anda telah masuk, Anda dapat melihat riwayat dan saling membalas pesan secara langsung melalui Ruang Kerja (Workspace) Anda.';
+            return redirect()->to(site_url('workspace/konsultasi/detail/' . $ticketNumber))->with('success', $successMsg);
+        }
+
         return redirect()->to(site_url('kontak#form-pesan'))
-            ->with('contact_success', 'Terima kasih atas pesan Anda! Tiket ' . $ticketNumber . ' berhasil dibuat dan telah diteruskan ke Helpdesk Biro Pengadaan Barang dan Jasa Provinsi Lampung. Petugas kami akan segera menindaklanjuti.');
+            ->with('contact_success', 'Terima kasih atas pesan Anda! Tiket ' . $ticketNumber . ' berhasil dibuat dan telah diteruskan ke Helpdesk Biro Pengadaan Barang dan Jasa Provinsi Lampung. Anda dapat memantau statusnya di form lacak tiket dengan nomor ' . $ticketNumber . '.');
     }
 
     public function subscribeNewsletter()

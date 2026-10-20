@@ -9,6 +9,7 @@ use App\Models\Learning\ProgramModel;
 
 class ArenaBelajarController extends BaseController
 {
+    protected $helpers = ['text', 'url', 'form'];
     public function index(): string
     {
         try {
@@ -703,6 +704,9 @@ class ArenaBelajarController extends BaseController
             ->limit(3)
             ->findAll();
 
+        $course['jp_formatted'] = format_learning_jp($course['duration_minutes'] ?? null);
+        $course['jp_count']     = learning_jp_count($course['duration_minutes'] ?? null);
+
         $breadcrumb = [
             ['label' => 'Arena Belajar', 'url' => site_url('arena-belajar')],
             ['label' => 'Course PBJ', 'url' => site_url('arena-belajar/course')],
@@ -739,6 +743,15 @@ class ArenaBelajarController extends BaseController
         }
         $item['title'] = $item['name'];
         $item['slug']  = $item['code'];
+
+        $parsedBatch = parse_class_batch_data($item['description'] ?? '');
+        $item['description']             = $parsedBatch['description'];
+        $item['batch_stages']            = $parsedBatch['stages'];
+        $item['batch_stages_subtitle']   = $parsedBatch['stages_subtitle'];
+        $durationMinutes                 = $parsedBatch['custom_duration_minutes'] ?? $item['course_duration'] ?? 180;
+        $item['duration_minutes']        = $durationMinutes;
+        $item['jp_formatted']            = format_learning_jp($durationMinutes);
+        $item['jp_count']                = learning_jp_count($durationMinutes);
 
         $db = \Config\Database::connect();
         $trainers = $db->table('class_trainers ct')
@@ -806,9 +819,11 @@ class ArenaBelajarController extends BaseController
         ];
 
         return $this->detail('Detail Kelas PBJ', $item['name'], 'classes', $item, [
-            'modules'      => $modules,
-            'otherClasses' => $otherClasses,
-            'breadcrumb'   => $breadcrumb,
+            'modules'             => $modules,
+            'otherClasses'        => $otherClasses,
+            'breadcrumb'          => $breadcrumb,
+            'batchStages'         => $parsedBatch['stages'],
+            'batchStagesSubtitle' => $parsedBatch['stages_subtitle'],
         ]);
     }
 

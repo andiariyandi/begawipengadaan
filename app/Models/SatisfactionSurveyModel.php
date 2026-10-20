@@ -55,10 +55,10 @@ class SatisfactionSurveyModel extends Model
         $dbCount = $this->countAllResults();
         if ($dbCount === 0) {
             return [
-                'total_responses' => 1248,
-                'avg_rating'      => 4.86,
-                'satisfaction_pct' => 97.2,
-                'rating_counts'   => [5 => 1098, 4 => 125, 3 => 19, 2 => 4, 1 => 2],
+                'total_responses'  => 0,
+                'avg_rating'       => 0.0,
+                'satisfaction_pct' => 0.0,
+                'rating_counts'    => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
             ];
         }
 
@@ -67,8 +67,8 @@ class SatisfactionSurveyModel extends Model
         $pct = round(($satisfiedCount / $dbCount) * 100, 1);
 
         return [
-            'total_responses' => $dbCount,
-            'avg_rating'      => round($avg, 2),
+            'total_responses'  => $dbCount,
+            'avg_rating'       => round($avg, 2),
             'satisfaction_pct' => $pct,
         ];
     }
@@ -78,37 +78,81 @@ class SatisfactionSurveyModel extends Model
      */
     public function getPublicSurveyResults(): array
     {
-        $dbTotal = $this->countAllResults();
-        
-        // Base sample benchmarks representing cumulative validated surveys
-        $baselineTotal = 1248;
-        $totalResponses = max($baselineTotal, $dbTotal);
+        $dbTotal = (int) $this->countAllResults();
 
-        // Calculate averages from DB if present
-        $avgOverall = 4.86;
-        $avgAccess = 4.88;
-        $avgRegulation = 4.84;
-        $avgLearning = 4.87;
-        $avgHelpdesk = 4.83;
+        if ($dbTotal === 0) {
+            $aspects = [
+                [
+                    'title'       => 'Kemudahan Akses & Kecepatan Portal',
+                    'description' => 'Kecepatan respon situs, kemudahan navigasi katalog, keandalan akses mobile & desktop',
+                    'score'       => 0.0,
+                    'pct'         => 0.0,
+                    'icon'        => 'fas fa-desktop',
+                    'color'       => '#0b57d0',
+                ],
+                [
+                    'title'       => 'Kelengkapan Regulasi & Standar Dokumen (SDP)',
+                    'description' => 'Ketersediaan Perpres, PerLKPP, Pergub Lampung, Standar Dokumen Pemilihan terverifikasi',
+                    'score'       => 0.0,
+                    'pct'         => 0.0,
+                    'icon'        => 'fas fa-gavel',
+                    'color'       => '#d97706',
+                ],
+                [
+                    'title'       => 'Kualitas Arena Belajar & Pelatihan PBJ',
+                    'description' => 'Kesesuaian kurikulum bimtek, kompetensi instruktur pengadaan, materi pembelajaran interaktif',
+                    'score'       => 0.0,
+                    'pct'         => 0.0,
+                    'icon'        => 'fas fa-graduation-cap',
+                    'color'       => '#059669',
+                ],
+                [
+                    'title'       => 'Responsivitas Helpdesk & Konsultasi LPSE',
+                    'description' => 'Kecepatan tanggapan tiket layanan, keramahan petugas konsultasi, keakuratan solusi teknis',
+                    'score'       => 0.0,
+                    'pct'         => 0.0,
+                    'icon'        => 'fas fa-headset',
+                    'color'       => '#0284c7',
+                ],
+            ];
 
-        if ($dbTotal > 0) {
-            $row = $this->selectAvg('rating_overall', 'avg_overall')
-                ->selectAvg('service_access_rating', 'avg_access')
-                ->selectAvg('service_regulation_rating', 'avg_reg')
-                ->selectAvg('service_learning_rating', 'avg_learn')
-                ->selectAvg('service_helpdesk_rating', 'avg_help')
-                ->first();
+            $stars = [
+                5 => ['stars' => 5, 'label' => 'Sangat Puas', 'pct' => 0.0, 'count' => 0],
+                4 => ['stars' => 4, 'label' => 'Baik / Puas', 'pct' => 0.0, 'count' => 0],
+                3 => ['stars' => 3, 'label' => 'Cukup Baik', 'pct' => 0.0, 'count' => 0],
+                2 => ['stars' => 2, 'label' => 'Kurang Baik', 'pct' => 0.0, 'count' => 0],
+                1 => ['stars' => 1, 'label' => 'Sangat Buruk', 'pct' => 0.0, 'count' => 0],
+            ];
 
-            if ($row) {
-                $avgOverall = round((float) ($row['avg_overall'] ?: 4.86), 2);
-                $avgAccess = round((float) ($row['avg_access'] ?: 4.88), 2);
-                $avgRegulation = round((float) ($row['avg_reg'] ?: 4.84), 2);
-                $avgLearning = round((float) ($row['avg_learn'] ?: 4.87), 2);
-                $avgHelpdesk = round((float) ($row['avg_help'] ?: 4.83), 2);
-            }
+            return [
+                'total_responses'    => 0,
+                'avg_overall'        => 0.0,
+                'score_pct'          => 0.0,
+                'predicate'          => ['grade' => '-', 'label' => 'Belum Ada Penilaian', 'class' => 'secondary'],
+                'recommendation_pct' => 0.0,
+                'aspects'            => $aspects,
+                'stars'              => $stars,
+                'roles'              => [],
+                'quarterly_trends'   => [],
+                'feedbacks'          => [],
+                'evaluated_at'       => date('F Y'),
+                'legal_basis'        => 'PermenPAN-RB No. 14 Tahun 2017 tentang Pedoman Penyusunan Survei Kepuasan Masyarakat Unit Penyelenggara Pelayanan Publik',
+            ];
         }
 
-        // Percentage conversion (IKM formula: score / 5 * 100)
+        $row = $this->selectAvg('rating_overall', 'avg_overall')
+            ->selectAvg('service_access_rating', 'avg_access')
+            ->selectAvg('service_regulation_rating', 'avg_reg')
+            ->selectAvg('service_learning_rating', 'avg_learn')
+            ->selectAvg('service_helpdesk_rating', 'avg_help')
+            ->first();
+
+        $avgOverall    = round((float) ($row['avg_overall'] ?? 0), 2);
+        $avgAccess     = round((float) ($row['avg_access'] ?? $avgOverall), 2);
+        $avgRegulation = round((float) ($row['avg_reg'] ?? $avgOverall), 2);
+        $avgLearning   = round((float) ($row['avg_learn'] ?? $avgOverall), 2);
+        $avgHelpdesk   = round((float) ($row['avg_help'] ?? $avgOverall), 2);
+
         $scorePct = round(($avgOverall / 5) * 100, 1);
         $predicate = match (true) {
             $scorePct >= 88.31 => ['grade' => 'A', 'label' => 'Sangat Baik', 'class' => 'success'],
@@ -117,7 +161,6 @@ class SatisfactionSurveyModel extends Model
             default            => ['grade' => 'D', 'label' => 'Tidak Baik', 'class' => 'danger'],
         };
 
-        // Aspect Breakdown
         $aspects = [
             [
                 'title'       => 'Kemudahan Akses & Kecepatan Portal',
@@ -154,32 +197,77 @@ class SatisfactionSurveyModel extends Model
         ];
 
         // Star distribution
-        $stars = [
-            5 => ['stars' => 5, 'label' => 'Sangat Puas', 'pct' => 88.0, 'count' => (int) round($totalResponses * 0.88)],
-            4 => ['stars' => 4, 'label' => 'Baik / Puas', 'pct' => 9.8, 'count' => (int) round($totalResponses * 0.098)],
-            3 => ['stars' => 3, 'label' => 'Cukup Baik', 'pct' => 1.6, 'count' => (int) round($totalResponses * 0.016)],
-            2 => ['stars' => 2, 'label' => 'Kurang Baik', 'pct' => 0.4, 'count' => (int) round($totalResponses * 0.004)],
-            1 => ['stars' => 1, 'label' => 'Sangat Buruk', 'pct' => 0.2, 'count' => (int) round($totalResponses * 0.002)],
+        $starLabels = [
+            5 => 'Sangat Puas',
+            4 => 'Baik / Puas',
+            3 => 'Cukup Baik',
+            2 => 'Kurang Baik',
+            1 => 'Sangat Buruk',
         ];
+        $stars = [];
+        for ($s = 5; $s >= 1; $s--) {
+            $cnt = (int) $this->where('rating_overall', $s)->countAllResults();
+            $stars[$s] = [
+                'stars' => $s,
+                'label' => $starLabels[$s],
+                'pct'   => round(($cnt / $dbTotal) * 100, 1),
+                'count' => $cnt,
+            ];
+        }
 
         // Roles distribution
-        $roles = [
-            ['name' => 'Penyedia Barang & Jasa / Rekanan / UMKM', 'pct' => 42.5, 'color' => '#0c5aa6'],
-            ['name' => 'Pejabat Pembuat Komitmen (PPK) & Pokja UKPBJ', 'pct' => 28.3, 'color' => '#f3a20b'],
-            ['name' => 'ASN OPD Pengguna Layanan Pemprov Lampung', 'pct' => 15.8, 'color' => '#10b981'],
-            ['name' => 'Pengawas APIP, Inspektorat & Auditor', 'pct' => 7.8, 'color' => '#6366f1'],
-            ['name' => 'Akademisi, Peneliti & Masyarakat Umum', 'pct' => 5.6, 'color' => '#ec4899'],
-        ];
+        $rolesData = $this->select('respondent_role, COUNT(*) as count')
+            ->groupBy('respondent_role')
+            ->orderBy('count', 'DESC')
+            ->findAll();
 
-        // Quarterly Trends (2026)
-        $quarterlyTrends = [
-            ['period' => 'Triwulan I 2026', 'score' => 4.81, 'pct' => 96.2, 'responses' => 294, 'status' => 'A (Sangat Baik)'],
-            ['period' => 'Triwulan II 2026', 'score' => 4.84, 'pct' => 96.8, 'responses' => 318, 'status' => 'A (Sangat Baik)'],
-            ['period' => 'Triwulan III 2026', 'score' => 4.86, 'pct' => 97.2, 'responses' => 342, 'status' => 'A (Sangat Baik)'],
-            ['period' => 'Triwulan IV 2026 (Berjalan)', 'score' => 4.88, 'pct' => 97.6, 'responses' => 294, 'status' => 'A (Sangat Baik)'],
-        ];
+        $roleColors = ['#0c5aa6', '#f3a20b', '#10b981', '#6366f1', '#ec4899', '#06b6d4'];
+        $roles = [];
+        foreach ($rolesData as $idx => $rd) {
+            $rName = $rd['respondent_role'] ?: 'Pengguna Layanan';
+            $rCnt  = (int) $rd['count'];
+            $roles[] = [
+                'name'  => $rName,
+                'pct'   => round(($rCnt / $dbTotal) * 100, 1),
+                'color' => $roleColors[$idx % count($roleColors)],
+                'count' => $rCnt,
+            ];
+        }
 
-        // Recent public feedbacks (from DB or realistic verified quotes)
+        // Recommendation rate
+        $recCount = (int) $this->where('recommendation', 'Pasti Merekomendasikan')
+            ->orWhereIn('rating_overall', [4, 5])
+            ->countAllResults();
+        $recommendationPct = round(($recCount / $dbTotal) * 100, 1);
+
+        // Quarterly Trends from real data
+        $trendRows = $this->select("CONCAT('Triwulan ', QUARTER(created_at), ' ', YEAR(created_at)) AS period, AVG(rating_overall) AS avg_score, COUNT(*) AS responses")
+            ->where('created_at IS NOT NULL', null, false)
+            ->groupBy('YEAR(created_at), QUARTER(created_at)')
+            ->orderBy('YEAR(created_at)', 'ASC')
+            ->orderBy('QUARTER(created_at)', 'ASC')
+            ->findAll();
+
+        $quarterlyTrends = [];
+        foreach ($trendRows as $tr) {
+            $trAvg = round((float) $tr['avg_score'], 2);
+            $trPct = round(($trAvg / 5) * 100, 1);
+            $trStatus = match (true) {
+                $trPct >= 88.31 => 'A (Sangat Baik)',
+                $trPct >= 76.61 => 'B (Baik)',
+                $trPct >= 65.00 => 'C (Kurang Baik)',
+                default         => 'D (Tidak Baik)',
+            };
+            $quarterlyTrends[] = [
+                'period'    => $tr['period'],
+                'score'     => $trAvg,
+                'pct'       => $trPct,
+                'responses' => (int) $tr['responses'],
+                'status'    => $trStatus,
+            ];
+        }
+
+        // Feedbacks from real DB only!
         $recentDb = $this->where('feedback !=', null)
             ->where('feedback !=', '')
             ->orderBy('id', 'DESC')
@@ -187,93 +275,31 @@ class SatisfactionSurveyModel extends Model
             ->findAll();
 
         $publicFeedbacks = [];
-        if (! empty($recentDb)) {
-            foreach ($recentDb as $f) {
-                $publicFeedbacks[] = [
-                    'name'        => ($f['is_anonymous'] ?? 1) ? 'Responden Terverifikasi' : esc($f['respondent_name'] ?: 'Pengguna Layanan'),
-                    'institution' => ($f['is_anonymous'] ?? 1) ? 'Mitra Ekosistem PBJ' : esc($f['respondent_institution'] ?: 'Pemprov Lampung'),
-                    'role'        => esc($f['respondent_role'] ?: 'Penyedia Barang / Jasa'),
-                    'rating'      => (int) ($f['rating_overall'] ?: 5),
-                    'feedback'    => esc($f['feedback']),
-                    'date'        => date('d M Y', strtotime($f['created_at'] ?? 'now')),
-                    'ticket'      => esc($f['ticket_number'] ?: 'IKM-2026'),
-                ];
-            }
+        foreach ($recentDb as $f) {
+            $publicFeedbacks[] = [
+                'name'        => ($f['is_anonymous'] ?? 1) ? 'Responden Terverifikasi' : esc($f['respondent_name'] ?: 'Pengguna Layanan'),
+                'institution' => ($f['is_anonymous'] ?? 1) ? 'Mitra Ekosistem PBJ' : esc($f['respondent_institution'] ?: 'Pemprov Lampung'),
+                'role'        => esc($f['respondent_role'] ?: 'Penyedia Barang / Jasa'),
+                'rating'      => (int) ($f['rating_overall'] ?: 5),
+                'feedback'    => esc($f['feedback']),
+                'date'        => date('d M Y', strtotime($f['created_at'] ?? 'now')),
+                'ticket'      => esc($f['ticket_number'] ?: 'IKM-2026'),
+            ];
         }
 
-        // Merge with curated baseline feedback if DB feedback is few
-        $curatedFeedbacks = [
-            [
-                'name'        => 'Ir. Hendra Kusuma',
-                'institution' => 'PT Lampung Konstruksi Sejahtera',
-                'role'        => 'Penyedia Barang & Jasa (Rekanan)',
-                'rating'      => 5,
-                'feedback'    => 'Akses dokumen SDP dan regulasi pengadaan lewat BegawiPengadaan sangat cepat. Kami pelaku usaha lokal sangat terbantu dengan keterbukaan informasi dan materi bimtek.',
-                'date'        => '16 Oktober 2026',
-                'ticket'      => 'IKM-20261016-A821B',
-            ],
-            [
-                'name'        => 'Responden Terverifikasi',
-                'institution' => 'Dinas Bina Marga & Bina Konstruksi Provinsi Lampung',
-                'role'        => 'Pejabat Pembuat Komitmen (PPK)',
-                'rating'      => 5,
-                'feedback'    => 'Template dokumen kerja dan panduan penyusunan HPS sangat komprehensif. Mengurangi risiko kesalahan administratif dalam proses persiapan pengadaan secara signifikan.',
-                'date'        => '14 Oktober 2026',
-                'ticket'      => 'IKM-20261014-9C12E',
-            ],
-            [
-                'name'        => 'Ahmad Fauzi, S.Kom.',
-                'institution' => 'CV Digital Mandiri Lampung',
-                'role'        => 'Penyedia Barang & Jasa (UMKM)',
-                'rating'      => 5,
-                'feedback'    => 'Layanan helpdesk LPSE via WhatsApp sangat cepat tanggap. Kendala sinkronisasi akun katalog berhasil diselesaikan dalam hitungan menit oleh petugas.',
-                'date'        => '12 Oktober 2026',
-                'ticket'      => 'IKM-20261012-7F33D',
-            ],
-            [
-                'name'        => 'Responden Terverifikasi',
-                'institution' => 'Inspektorat Daerah Provinsi Lampung',
-                'role'        => 'Pengawas / APIP / Auditor',
-                'rating'      => 5,
-                'feedback'    => 'Integrasi basis data regulasi dan verifikasi keabsahan sertifikat secara digital sangat mendukung fungsi probity audit dan pengawasan PBJ yang akuntabel.',
-                'date'        => '10 Oktober 2026',
-                'ticket'      => 'IKM-20261010-4B78A',
-            ],
-            [
-                'name'        => 'Dewi Lestari, S.T.',
-                'institution' => 'Pokja Pemilihan Biro PBJ',
-                'role'        => 'Pokja Pemilihan / UKPBJ',
-                'rating'      => 5,
-                'feedback'    => 'Fitur studi kasus lapangan dan tanya jawab FAQ di Bunga Rampai menjadi referensi harian kami saat menyusun dokumen evaluasi penawaran tender.',
-                'date'        => '08 Oktober 2026',
-                'ticket'      => 'IKM-20261008-2D44F',
-            ],
-            [
-                'name'        => 'Bambang Sudibyo, M.M.',
-                'institution' => 'Akademisi Universitas Lampung',
-                'role'        => 'Akademisi / Peneliti PBJ',
-                'rating'      => 4,
-                'feedback'    => 'Platform pembelajaran PBJ daerah terbaik dengan tata kelola digital modern. Sangat edukatif bagi peningkatan literasi pengadaan publik.',
-                'date'        => '05 Oktober 2026',
-                'ticket'      => 'IKM-20261005-5A19C',
-            ],
-        ];
-
-        $combinedFeedbacks = array_slice(array_merge($publicFeedbacks, $curatedFeedbacks), 0, 6);
-
         return [
-            'total_responses'   => $totalResponses,
-            'avg_overall'       => $avgOverall,
-            'score_pct'         => $scorePct,
-            'predicate'         => $predicate,
-            'recommendation_pct' => 98.4,
-            'aspects'           => $aspects,
-            'stars'             => $stars,
-            'roles'             => $roles,
-            'quarterly_trends'  => $quarterlyTrends,
-            'feedbacks'         => $combinedFeedbacks,
-            'evaluated_at'      => 'Oktober 2026',
-            'legal_basis'       => 'PermenPAN-RB No. 14 Tahun 2017 tentang Pedoman Penyusunan Survei Kepuasan Masyarakat Unit Penyelenggara Pelayanan Publik',
+            'total_responses'    => $dbTotal,
+            'avg_overall'        => $avgOverall,
+            'score_pct'          => $scorePct,
+            'predicate'          => $predicate,
+            'recommendation_pct' => $recommendationPct,
+            'aspects'            => $aspects,
+            'stars'              => $stars,
+            'roles'              => $roles,
+            'quarterly_trends'   => $quarterlyTrends,
+            'feedbacks'          => $publicFeedbacks,
+            'evaluated_at'       => date('F Y'),
+            'legal_basis'        => 'PermenPAN-RB No. 14 Tahun 2017 tentang Pedoman Penyusunan Survei Kepuasan Masyarakat Unit Penyelenggara Pelayanan Publik',
         ];
     }
 }

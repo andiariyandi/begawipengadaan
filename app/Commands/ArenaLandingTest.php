@@ -321,7 +321,8 @@ class ArenaLandingTest extends BaseCommand
         CLI::newLine();
         CLI::write('>>> TEST 5: Bookmark Data Layer Toggle Verification', 'cyan');
         $bmModel = new BookmarkModel();
-        $userId  = 31;
+        $userRow = $db->table('users')->select('id')->where('account_status', 'active')->orderBy('id', 'ASC')->get()->getRowArray();
+        $userId  = (int) ($userRow['id'] ?? 1);
 
         if ($sampleCourse) {
             $cId = (int) $sampleCourse['id'];

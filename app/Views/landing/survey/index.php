@@ -38,16 +38,21 @@
                         Partisipasi aktif Anda menjadi tolak ukur evaluasi berkala bagi Biro Pengadaan Barang dan Jasa Pemerintah Provinsi Lampung untuk terus meningkatkan transparansi, kemudahan, dan efektivitas ekosistem PBJ.
                     </p>
                     
+                    <?php
+                    $surveyTotal = (int) ($stats['total_responses'] ?? 0);
+                    $surveyAvg   = (float) ($stats['avg_rating'] ?? 0);
+                    $surveyPct   = (float) ($stats['satisfaction_pct'] ?? 0);
+                    ?>
                     <div class="row g-3 justify-content-center pt-2">
                         <div class="col-sm-4">
                             <div class="p-3 rounded-3 bg-light text-center border">
-                                <div class="fs-4 fw-bold text-primary mb-1"><?= esc($stats['avg_rating'] ?? '4.85') ?> / 5.0</div>
+                                <div class="fs-4 fw-bold text-primary mb-1"><?= $surveyTotal > 0 ? number_format($surveyAvg, 2) : '0.00' ?> / 5.0</div>
                                 <div class="small text-muted">Indeks Kepuasan Rata-rata</div>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="p-3 rounded-3 bg-light text-center border">
-                                <div class="fs-4 fw-bold text-success mb-1"><?= esc($stats['satisfaction_pct'] ?? '97.2') ?>%</div>
+                                <div class="fs-4 fw-bold text-success mb-1"><?= $surveyTotal > 0 ? number_format($surveyPct, 1) : '0' ?>%</div>
                                 <div class="small text-muted">Tingkat Kepuasan Pengguna</div>
                             </div>
                         </div>

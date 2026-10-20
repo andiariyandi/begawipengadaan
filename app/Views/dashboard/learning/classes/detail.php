@@ -114,6 +114,12 @@ $methodBadge = match ($class['learning_method'] ?? 'online') {
                         <h6 class="mb-0 font-monospace"><?= esc($class['code']) ?></h6>
                     </div>
                     <div class="col-md-6">
+                        <p class="text-secondary-light text-sm mb-4">Estimasi Durasi Belajar &amp; JP</p>
+                        <p class="mb-0 text-sm fw-semibold text-primary-600">
+                            <?= format_learning_jp($class['custom_duration_minutes'] ?? null, true) ?>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
                         <p class="text-secondary-light text-sm mb-4">Periode Pendaftaran</p>
                         <p class="mb-0 text-sm fw-semibold">
                             <?= ! empty($class['registration_open_at']) ? date('d M Y H:i', strtotime($class['registration_open_at'])) : '-' ?>
@@ -184,6 +190,45 @@ $methodBadge = match ($class['learning_method'] ?? 'online') {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tahapan Pembelajaran Batch (Alur Belajar Peserta) -->
+        <div class="card mb-24">
+            <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                    <h6 class="text-lg fw-semibold mb-0 d-flex align-items-center gap-2">
+                        <iconify-icon icon="solar:route-bold" class="text-primary-600 text-xl"></iconify-icon>
+                        <span>Tahapan Pembelajaran Batch (<?= count($batchStages ?? []) ?> Tahap)</span>
+                    </h6>
+                    <small class="text-secondary-light"><?= esc($batchStagesSubtitle ?? 'Alur pengerjaan yang harus dilalui oleh peserta selama periode kelas berlangsung:') ?></small>
+                </div>
+                <a href="<?= route_to('dashboard.learning.classes.edit', $classId) ?>" class="btn btn-sm btn-outline-warning-main radius-6 px-12 py-6 text-xs d-inline-flex align-items-center gap-1">
+                    <iconify-icon icon="solar:pen-new-square-outline"></iconify-icon>
+                    <span>Ubah Tahapan</span>
+                </a>
+            </div>
+            <div class="card-body p-24">
+                <div class="row g-3">
+                    <?php
+                    $stagesList = ! empty($batchStages) ? $batchStages : default_batch_stages();
+                    foreach ($stagesList as $idx => $stg):
+                    ?>
+                        <div class="col-md-6">
+                            <div class="p-16 radius-8 border bg-neutral-50 h-100">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-primary-600 text-white fw-bold px-8 py-2 radius-4 text-xs">
+                                        Tahap <?= $stg['number'] ?? ($idx + 1) ?>
+                                    </span>
+                                    <h6 class="fw-bold mb-0 text-primary-light text-sm"><?= esc($stg['title'] ?? '') ?></h6>
+                                </div>
+                                <p class="text-secondary-light text-xs mb-0" style="line-height: 1.5;">
+                                    <?= nl2br(esc($stg['description'] ?? '')) ?>
+                                </p>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>

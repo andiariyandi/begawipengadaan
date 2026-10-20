@@ -16,29 +16,6 @@ $isEdit   = $formMode === 'edit';
     <a href="<?= site_url('dashboard/akses/peran-pengadaan') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
 </div>
 
-<?php if ($error = session()->getFlashdata('error')): ?>
-    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-20 radius-8 py-12 px-16" role="alert">
-        <iconify-icon icon="solar:danger-triangle-bold" class="text-xl text-danger-main flex-shrink-0"></iconify-icon>
-        <div class="flex-grow-1 text-sm"><?= esc($error) ?></div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-<?php endif; ?>
-
-<?php if ($errors = session()->getFlashdata('errors')): ?>
-    <div class="alert alert-danger alert-dismissible fade show mb-20 radius-8 py-12 px-16" role="alert">
-        <div class="d-flex align-items-center gap-2 mb-1">
-            <iconify-icon icon="solar:danger-circle-bold" class="text-xl text-danger-main flex-shrink-0"></iconify-icon>
-            <strong class="text-sm">Terdapat kesalahan validasi:</strong>
-        </div>
-        <ul class="mb-0 ps-20 text-xs">
-            <?php foreach ((array) $errors as $err): ?>
-                <li><?= esc($err) ?></li>
-            <?php endforeach; ?>
-        </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-<?php endif; ?>
-
 <div class="card">
     <div class="card-body p-24">
         <form action="<?= $isEdit ? site_url('dashboard/akses/peran-pengadaan/' . (int) $roleId . '/ubah') : site_url('dashboard/akses/peran-pengadaan/tambah') ?>" method="post">

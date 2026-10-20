@@ -77,6 +77,7 @@ class ProcurementRoleController extends BaseController
             'role'          => $role,
             'assignments'   => array_values(array_filter($assignments, static fn($a) => (int) $a['procurement_role_id'] === $roleId)),
             'procurementRoleId' => $roleId,
+            'usersCount'        => count(array_filter($assignments, static fn($a) => (int) $a['procurement_role_id'] === $roleId)),
         ]);
     }
 
@@ -130,6 +131,38 @@ class ProcurementRoleController extends BaseController
         $actorId = (int) session()->get('user_id') ?: null;
         (new ProcurementRoleService())->updateRole($roleId, ['is_active' => 0], $actorId);
         return redirect()->to('dashboard/akses/peran-pengadaan/' . $roleId)->with('success', 'Peran pengadaan dinonaktifkan.');
+    }
+
+    public function delete(string $id)
+    {
+        $roleId = ctype_digit($id) ? (int) $id : 0;
+        $service = new ProcurementRoleService();
+        $role = $service->findRole($roleId);
+
+        if (! $role) {
+            return redirect()->to('dashboard/akses/peran-pengadaan')->with('error', 'Peran pengadaan tidak ditemukan.');
+        }
+
+        $userCount = $service->getUserCountForRole($roleId);
+
+        if ($userCount > 0) {
+            if (!empty($role['is_active'])) {
+                return redirect()->to('dashboard/akses/peran-pengadaan')->with('warning', 
+                    "Peran '{$role['name']}' tidak dapat dihapus karena sedang digunakan oleh {$userCount} pengguna. Silakan gunakan opsi nonaktifkan peran agar tidak dapat dipilih lagi tanpa merusak riwayat penugasan."
+                );
+            }
+
+            return redirect()->to('dashboard/akses/peran-pengadaan')->with('info', 
+                "Peran '{$role['name']}' memiliki riwayat {$userCount} pengguna dan sudah dalam status nonaktif. Data peran dipertahankan untuk integritas audit."
+            );
+        }
+
+        $actorId = (int) session()->get('user_id') ?: null;
+        $service->deleteRole($roleId, $actorId);
+
+        return redirect()->to('dashboard/akses/peran-pengadaan')->with('success', 
+            "Peran pengadaan '{$role['name']}' berhasil dihapus secara permanen."
+        );
     }
 
     /**
