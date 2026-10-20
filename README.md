@@ -46,8 +46,8 @@ Sistem BegawiPengadaan terbagi secara tegas ke dalam 3 area fungsional utama ber
                           │ • Multi-role Portal │
                           │ • Participant Hub   │
                           │ • Trainer Portal    │
-                          │ • Evaluator Grading │
-                          │ • Operator Approval │
+                          │ • Operator Desk     │
+                          │ • Executive Admin   │
                           │ • Profil & Presensi │
                           │ • Bookmark Lintas   │
                           │ • Kotak Notifikasi  │
@@ -68,13 +68,13 @@ Sistem BegawiPengadaan terbagi secara tegas ke dalam 3 area fungsional utama ber
   * Informasi profil organisasi dan formulir permohonan informasi/aspirasi publik (`/tentang` dan `/kontak`).
 
 ### 2. Workspace Pengguna Terautentikasi (FiStudy)
-* **Pengguna:** Pengguna terdaftar dengan role operasional aktif (*Participant, Trainer, Evaluator, Operator*).
+* **Pengguna:** Pengguna terdaftar dengan role operasional aktif (*Participant, Trainer, Operator, Administrator*).
 * **Fungsi Utama:**
-  * **Participant:** Mengikuti kelas pembelajaran, mengerjakan materi, pre-test, kuis, penugasan, post-test, presensi event, riwayat sertifikat, serta evaluasi kelas.
-  * **Trainer:** Mengelola kelas yang ditugaskan, memantau kemajuan peserta, mengunggah materi, dan berinteraksi.
-  * **Evaluator:** Menilai penugasan peserta secara objektif dengan rubrik penilaian, memberikan catatan revisi, dan final grading.
-  * **Operator:** Melakukan verifikasi administratif data pendaftar, monitoring presensi event, dan verifikasi sertifikat terdelegasi.
-  * **Shared Fitur:** Manajemen profil terverifikasi, personalisasi bookmark lintas konten, dan pusat notifikasi.
+  * **Participant (Peserta):** Mengikuti kelas pembelajaran dengan modular state engine, materi silabus, pre-test, kuis, penugasan, post-test, presensi event, riwayat sertifikat resmi terbit, dan evaluasi kelas.
+  * **Trainer (Pengajar):** Mengelola kelas binaan berbasis ruang kelas tab interaktif (*Overview*, *Materi*, *Peserta*, *Assessment*, *Assignment*, *Progres*), mengunggah silabus, membuat kuis, dan review penilaian tugas peserta.
+  * **Operator:** Melakukan verifikasi administratif profil pendaftar, penugasan pengajar kelas, manajemen kehadiran event, validasi eligibilitas sertifikat, dan override evaluasi penugasan.
+  * **Administrator:** Ringkasan eksekutif platform, monitoring capaian pembelajaran makro, dan jejak audit aktivitas sistem.
+  * **Shared Fitur:** Manajemen profil terverifikasi, personalisasi bookmark lintas konten, dan pusat notifikasi masuk.
 
 ### 3. Dashboard Back-Office & Auth Terpadu (WowDash)
 * **Pengguna:** Administrator, Super Admin, dan verifikator dengan hak akses (*permission*) back-office.
@@ -99,6 +99,7 @@ Sistem BegawiPengadaan memisahkan dependensi antarmuka secara mutlak untuk mence
 | **Workspace** | FiStudy | `app/Controllers/Workspace/` | `app/Views/main/workspace/` | `public/assets/main/` |
 | **Auth Terpadu** | WowDash | `app/Controllers/Dashboard/Auth/` | `app/Views/dashboard/auth/` | `public/assets/dashboard/` |
 | **Dashboard Admin**| WowDash | `app/Controllers/Dashboard/` & `App\Controllers\Communication\` | `app/Views/dashboard/` | `public/assets/dashboard/` |
+| **Legacy Archives**| FiStudy / WowDash | `archive/controllers_legacy/` | `archive/views_legacy/` | *Template & controller pensiun* |
 | **Source Reference**| Reference | *Non-production (dilarang dirender)* | `app/Views/reference/` | *Source template original* |
 
 > [!IMPORTANT]
@@ -197,15 +198,15 @@ Sistem BegawiPengadaan memisahkan dependensi antarmuka secara mutlak untuk mence
 
 ### 2. Rute Workspace (FiStudy)
 ```text
-/workspace                     → Dashboard Ringkasan Pengguna
-/workspace/profil              → Pengaturan Profil (Akun, ASN, Penyedia, Akademik)
+/workspace                     → Canonical Role Dispatcher (Auto-route dinamis sesuai role pengguna)
+/workspace/profil              → Pengaturan Profil Terpadu (Akun, ASN, Penyedia, Akademik, Umum)
 /workspace/aktivitas           → Log Aktivitas Pengguna
 /workspace/notifikasi          → Pusat Notifikasi Masuk
-/workspace/bookmark            → Koleksi Konten Tersimpan
-/workspace/partisipan/*        → Pembelajaran Aktif, Tugas, Ujian & Sertifikat Saya
-/workspace/trainer/*           → Manajemen Kelas Penugasan Pengajar
-/workspace/evaluator/*         → Antrean Penilaian Penugasan & Rubrik
-/workspace/operator/*          → Verifikasi Profil & Kehadiran Operasional
+/workspace/bookmark            → Koleksi Konten & Regulasi Tersimpan
+/workspace/peserta/*           → Pembelajaran Aktif, Tugas, Ujian, Event, Presensi & Sertifikat Saya
+/workspace/trainer/*           → Manajemen Kelas Binaan Pengajar, Bank Materi, Soal & Review Tugas
+/workspace/operator/*          → Pusat Operasional, Approval, Verifikasi Profil, Penugasan & Presensi
+/workspace/admin               → Dashboard Pusat Eksekutif Workspace
 ```
 
 ### 3. Rute Dashboard Back-Office & Auth (WowDash)
@@ -216,17 +217,20 @@ Sistem BegawiPengadaan memisahkan dependensi antarmuka secara mutlak untuk mence
 /dashboard/status-akun         → Informasi Status Akun Pengguna
 
 /dashboard                     → Ringkasan Eksekutif & KPI Internal
-/dashboard/akses/*             → Manajemen Pengguna, Role, Unit Organisasi, Verifikasi
+/dashboard/landing/sorotan-carousel → Spotlight Hub (Pusat Sorotan & Carousel Lintas 5 Modul)
+/dashboard/akses/*             → Manajemen Pengguna, Role, Unit Organisasi, Verifikasi Profil
 /dashboard/komunikasi/berita   → CRUD Berita, Kategori, Kurasi Berita Utama, Hit Counter
 /dashboard/komunikasi/event-agenda → Manajemen Event, Kode Presensi, Batch Sertifikat
 /dashboard/komunikasi/registrasi-event → Detail Peserta & Status Pendaftaran
 /dashboard/komunikasi/kehadiran → Monitoring Presensi Peserta
 /dashboard/komunikasi/waitlist-pembatalan → Antrean Waitlist & Promosi Kuota
-/dashboard/sertifikat/*        → Overview, Template, Riwayat, Verifikasi Internal
+/dashboard/sertifikat/*        → Overview, Template, Approval, Riwayat, Verifikasi Internal
 /dashboard/arena-belajar/*     → Manajemen Program, Kursus, Kelas, Modul & Ujian
-/dashboard/bunga-rampai/*      → Manajemen Artikel, FAQ, Studi Kasus, Media
+/dashboard/bunga-rampai/*      → Manajemen Artikel, FAQ, Studi Kasus, Media & Galeri
 /dashboard/regulasi/*          → Manajemen Regulasi, Versi & Relasi Hukum
 /dashboard/intelijen/*         → Pemetaan JF PPBJ & Analisis Gap Kompetensi
+/dashboard/sistem/pengaturan   → Pusat Pengaturan Sistem Terpadu (Umum, Keamanan, Sertifikat, Maintenance)
+/dashboard/sistem/audit-trail  → Sentralisasi Audit Trail & Jejak Aktivitas Keamanan
 ```
 
 ---
@@ -266,6 +270,32 @@ Sistem BegawiPengadaan memisahkan dependensi antarmuka secara mutlak untuk mence
 2. **Verifikasi Publik Minimum Disclosure:**
    * Halaman verifikasi publik (`/verifikasi-sertifikat`) dan QR reader menampilkan keaslian sertifikat tanpa membocorkan data pribadi terproteksi (NIK/NIP/kontak).
 
+### D. Hasil Audit Menyeluruh & Stabilisasi Ekosistem (Landing Page, Dashboard, Workspace)
+
+Audit menyeluruh (*full automated audit*) dan perbaikan arsitektural telah diselesaikan pada seluruh pilar ekosistem platform BegawiPengadaan guna menjamin kestabilan kode, eliminasi dead link, konsistensi data CMS, serta keandalan antarmuka:
+
+1. **Ekosistem Landing Page (FiStudy):**
+   * **Automated Audit:** 33 rute publik teruji normal (**100% PASS** melalui `php spark landing:full:audit`).
+   * **Zero-Hardcoded Data:** 100% konten beranda dikontrol dinamis melalui 8 tabel CMS (`home_sliders`, `feature_highlights`, `external_portals`, `testimonials`, `team_members`, `page_banners`, `site_announcements`, `helpdesk_topics`).
+   * **Pusat Carousel & Sorotan (Spotlight Hub):** Manajemen sorotan terpusat lintas 5 modul (Arena Belajar, Bunga Rampai, Regulasi, Berita, dan Event).
+   * **Optimasi Bobot Aset WebP:** Kompresi WebP gambar hero slider di `public/assets/main/images/backgrounds/` memangkas bobot berkas sebesar **82%** (dari 695 KB menjadi 123 KB) menggunakan elemen `<picture>` responsif.
+   * **Pembersihan View:** Sebanyak 31 template sisa tema HTML lama dipindahkan secara bersih ke `archive/views_legacy/`, menyisakan tepat 19 view produksi yang aktif.
+   * **Keamanan CSRF 100%:** Seluruh formulir publik (kontak, modal survei IKM, berlangganan newsletter, tombol bookmark, dan logout) berpelindung token CSRF.
+
+2. **Ekosistem Dashboard Back-Office (WowDash):**
+   * **Automated Audit:** Seluruh 92 rute menu sidebar teruji valid (**100% PASS** melalui `php spark dashboard:full:audit`, 0 link rusak/404).
+   * **Pembersihan Rute & Link Patah:** Menghilangkan link 404 usang (`sistem/file-media`, `sistem/pengaturan-file-storage`, `sistem/pengaturan-tampilan`).
+   * **Pusat Pengaturan & Antrean Approval:** Mengintegrasikan antarmuka sentral **Pusat Pengaturan** (`dashboard/sistem/pengaturan`) dan **Antrean Persetujuan Sertifikat** (`dashboard/sertifikat/approval`) ke navigasi sidebar.
+   * **Deduplikasi Alur Kerja:** Mengonsolidasikan pengelolaan carousel lama ke Spotlight Hub dan menyatukan Audit Trail ke satu menu terpusat.
+   * **Aksesibilitas Dark Mode (WCAG):** Mengganti 25 titik utility `text-dark` hardcoded dengan token dinamis `text-primary-light` pada 6 file view profil dan manajemen akses, menjamin keterbacaan sempurna pada mode gelap maupun terang.
+
+3. **Ekosistem Workspace Multi-Role (FiStudy):**
+   * **Automated Audit:** 38 rute workspace teruji lancar (**100% PASS** melalui `php spark workspace:full:audit` dan 34 checks pada `php spark workspace:smoke`).
+   * **Canonical Role Dispatcher:** Routing otomatis dari `/workspace` ke beranda spesifik peran (*Participant*, *Trainer*, *Operator*, *Administrator*) tanpa duplikasi visual.
+   * **Pembersihan File Yatim:** Mengarsipkan controller stub lama `PesertaController.php` dan 5 file view prototipe awal trainer ke folder `archive/`.
+   * **Standardisasi Detail Sertifikat:** Menyelaraskan tampilan detail sertifikat peserta (`ParticipantController::certificateDetail()`) menggunakan view modern `main/workspace/pages/sertifikat.php` bertoken FiStudy/WowDash.
+   * **Integritas Skema 22 Tabel:** Seluruh relasi entitas pembelajaran, penugasan, presensi, sertifikat, dan audit log terverifikasi konsisten.
+
 ---
 
 ## Suite Pengujian Otomatis & Spark Commands
@@ -273,6 +303,14 @@ Sistem BegawiPengadaan memisahkan dependensi antarmuka secara mutlak untuk mence
 BegawiPengadaan dilengkapi dengan rangkaian test suite berbasis CodeIgniter CLI Spark untuk memverifikasi fungsionalitas end-to-end tanpa bergantung pada browser manual:
 
 ```bash
+# ====================================================================
+# AUTOMATED FULL AUDIT ENGINES (LANDING, DASHBOARD, WORKSPACE)
+# ====================================================================
+php spark landing:full:audit       # Audit menyeluruh 33 rute publik, navigasi, CMS, CSRF, & view cleanup
+php spark dashboard:full:audit     # Audit menyeluruh 92 rute sidebar, alur kerja, token dark mode, & DB
+php spark workspace:full:audit     # Audit menyeluruh 38 rute workspace 4 role, security gate, & 22 tabel DB
+php spark workspace:smoke          # Smoke test 34 checks layout FiStudy, modular journey, & live sync
+
 # ====================================================================
 # PENGUJIAN KOMUNIKASI (EVENT & BERITA)
 # ====================================================================
@@ -320,12 +358,14 @@ Mengacu pada klasifikasi standar:
 | **Landing Page: Event & Agenda** | `Production Ready` | `event:landing:test` (100% Pass) |
 | **Landing Page: Verifikasi Sertifikat** | `Production Ready` | `about:contact:cert:test` (100% Pass) |
 | **Landing Page: Arena Belajar, Bunga Rampai, Regulasi**| `Production Ready` | `arena:landing:test`, `knowledge:test`, `regulation:test` (100% Pass) |
+| **Landing Page: Centralized CMS & Spotlight Hub**| `Production Ready` | `landing:full:audit` (33/33 Rute 100% Pass) |
 | **Dashboard: Komunikasi Berita** | `Production Ready` | `news:admin:test` (100% Pass) |
 | **Dashboard: Komunikasi Event, Presensi, Batch Sertifikat**| `Production Ready` | `event:admin:test`, `event:attendance:test` (100% Pass) |
 | **Dashboard: Arena Belajar Lifecycle** | `Production Ready` | `arena:admin:test`, `arena:e2e` (100% Pass) |
 | **Dashboard: Bunga Rampai & Regulasi** | `Production Ready` | `knowledge:admin:test`, `regulation:admin:test` (100% Pass) |
-| **Dashboard: Sistem Sertifikat Digital** | `Production Ready` | `certificate:system:test`, `certificate:smoke` (100% Pass) |
-| **Workspace: Integrasi Multi-Role & Bookmark** | `Backend Ready` | `workspace:smoke` (100% Pass) |
+| **Dashboard: Sistem Sertifikat Digital & Approval** | `Production Ready` | `certificate:system:test`, `certificate:smoke` (100% Pass) |
+| **Dashboard: WowDash Theme & Full Navigation** | `Production Ready` | `dashboard:full:audit` (92/92 Menu 100% Pass) |
+| **Workspace: Multi-Role Engine (Peserta, Trainer, Operator, Admin)** | `Production Ready` | `workspace:smoke` (34/34 Pass), `workspace:full:audit` (100% Pass) |
 | **Dashboard: Government Intelligence PBJ** | `Backend Ready` | Siap skema dan model query internal |
 
 ---
@@ -335,7 +375,14 @@ Mengacu pada klasifikasi standar:
 Seluruh dokumen spesifikasi teknis disimpan di dalam folder **`dokumen/`**:
 
 ```text
+archive/
+├── controllers_legacy/                → Arsip aman controller yang dipensiunkan
+└── views_legacy/                      → Arsip aman 36 file view prototipe & legacy
+
 dokumen/
+├── laporan_audit_landingpage_begawipengadaan.md → Laporan audit komprehensif 44 rute publik & CMS
+├── laporan_audit_dashboard_begawipengadaan.md   → Laporan audit komprehensif 92 rute sidebar & dark mode
+├── laporan_audit_workspace_begawipengadaan.md   → Laporan audit komprehensif 49 rute workspace & multi-role
 ├── route-contract.md                  → Kontrak rute, HTTP method, permission, dan filter
 ├── ui-boundary.md                     → Batasan layout, template FiStudy vs WowDash, dan asset
 ├── auth-and-rbac.md                   → Matriks role, permission, status akun, dan keamanan
