@@ -25,14 +25,14 @@
                 <div class="col-md-6">
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Bobot Quiz Default</label>
                     <div class="input-group">
-                        <input type="number" step="0.1" name="quiz_weight_default" class="form-control radius-8" value="<?= esc($settings['quiz_weight_default'] ?? '30.00') ?>" required>
+                        <input type="number" step="0.1" name="quiz_weight_default" class="form-control radius-8" value="<?= esc($settings['quiz_weight_default'] ?? '40.00') ?>" required>
                         <span class="input-group-text">%</span>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Bobot Post-Test Default</label>
                     <div class="input-group">
-                        <input type="number" step="0.1" name="post_test_weight_default" class="form-control radius-8" value="<?= esc($settings['post_test_weight_default'] ?? '70.00') ?>" required>
+                        <input type="number" step="0.1" name="post_test_weight_default" class="form-control radius-8" value="<?= esc($settings['post_test_weight_default'] ?? '60.00') ?>" required>
                         <span class="input-group-text">%</span>
                     </div>
                 </div>

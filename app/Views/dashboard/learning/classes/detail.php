@@ -168,19 +168,19 @@ $methodBadge = match ($class['learning_method'] ?? 'online') {
                         <div class="col-4">
                             <div class="p-12 radius-8 bg-neutral-50 border">
                                 <small class="text-secondary-light d-block text-xs">Bobot Kuis</small>
-                                <strong class="text-primary-600 fs-6"><?= (float) ($class['quiz_weight'] ?? 30) ?>%</strong>
+                                <strong class="text-primary-600 fs-6"><?= (float) ($class['quiz_weight'] ?? 40) ?>%</strong>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-12 radius-8 bg-neutral-50 border">
                                 <small class="text-secondary-light d-block text-xs">Bobot Tugas</small>
-                                <strong class="text-warning-main fs-6"><?= (float) ($class['assignment_weight'] ?? 30) ?>%</strong>
+                                <strong class="text-warning-main fs-6"><?= (float) ($class['assignment_weight'] ?? 0) ?>%</strong>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-12 radius-8 bg-neutral-50 border">
                                 <small class="text-secondary-light d-block text-xs">Bobot Post-Test</small>
-                                <strong class="text-success-main fs-6"><?= (float) ($class['post_test_weight'] ?? 40) ?>%</strong>
+                                <strong class="text-success-main fs-6"><?= (float) ($class['post_test_weight'] ?? 60) ?>%</strong>
                             </div>
                         </div>
                     </div>
