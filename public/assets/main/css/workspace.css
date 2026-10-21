@@ -1653,6 +1653,223 @@ code,
     }
 }
 
+/* ==========================================================================
+   WORKSPACE ENHANCEMENTS: CALENDAR, FOCUS MODE & SMART FILTER
+   ========================================================================== */
+
+/* 1. Interactive Calendar Widget */
+.ws-calendar-card {
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(8, 47, 92, 0.05);
+    overflow: hidden;
+}
+
+.ws-calendar-nav-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #082f5c;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.ws-calendar-nav-btn:hover {
+    background: #082f5c;
+    color: #ffffff;
+    border-color: #082f5c;
+}
+
+.ws-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.ws-calendar-day-header {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    padding: 8px 0;
+    letter-spacing: 0.5px;
+}
+
+.ws-calendar-cell {
+    min-height: 60px;
+    border: 1px solid #f1f5f9;
+    border-radius: 10px;
+    padding: 6px 8px;
+    cursor: pointer;
+    position: relative;
+    background: #ffffff;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.ws-calendar-cell:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+}
+
+.ws-calendar-cell.is-other-month {
+    background: #fafafa;
+    opacity: 0.4;
+}
+
+.ws-calendar-cell.is-today {
+    border: 1.5px solid #082f5c !important;
+    background: #f0f7ff;
+}
+
+.ws-calendar-cell.is-today .ws-cal-date-num {
+    color: #082f5c;
+    font-weight: 800;
+}
+
+.ws-calendar-cell.is-selected {
+    background: #082f5c !important;
+    border-color: #082f5c !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(8, 47, 92, 0.25);
+}
+
+.ws-calendar-cell.is-selected .ws-cal-date-num {
+    color: #ffffff !important;
+    font-weight: 800;
+}
+
+.ws-cal-date-num {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #334155;
+    line-height: 1;
+}
+
+.ws-cal-dots-wrap {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.ws-cal-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.ws-cal-dot.dot-class { background-color: #2563eb; }
+.ws-cal-dot.dot-task  { background-color: #dc2626; }
+.ws-cal-dot.dot-event { background-color: #16a34a; }
+
+.ws-cal-side-agenda {
+    background: #f8fafc;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 16px;
+    height: 100%;
+}
+
+.ws-cal-agenda-item {
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+}
+.ws-cal-agenda-item:hover {
+    border-color: #082f5c;
+    box-shadow: 0 3px 8px rgba(8, 47, 92, 0.08);
+}
+
+/* 2. Focus / Zen Mode for Learning & Quiz */
+body.ws-focus-mode .workspace-breadcrumb,
+body.ws-focus-mode .main-header,
+body.ws-focus-mode .main-footer,
+body.ws-focus-mode .workspace-sidebar,
+body.ws-focus-mode .scroll-to-top,
+body.ws-focus-mode .landing-internal > .custom-cursor {
+    display: none !important;
+}
+
+body.ws-focus-mode {
+    background-color: #f1f5f9 !important;
+}
+
+body.ws-focus-mode .workspace-content {
+    max-width: 1080px !important;
+    margin: 0 auto !important;
+    padding-top: 15px !important;
+    padding-bottom: 40px !important;
+    width: 100% !important;
+}
+
+body.ws-focus-mode .ws-focus-banner {
+    display: flex !important;
+}
+
+.ws-focus-banner {
+    display: none;
+    position: sticky;
+    top: 12px;
+    z-index: 1050;
+    backdrop-filter: blur(12px);
+    background: rgba(8, 47, 92, 0.95);
+    color: #ffffff;
+    border-radius: 50px;
+    padding: 8px 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    margin-bottom: 20px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* 3. Kelas Saya Smart Filter Bar & Cards */
+.ws-filter-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 12px 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.ws-filter-chip {
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+.ws-filter-chip:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+.ws-filter-chip.active {
+    background: #082f5c;
+    color: #ffffff;
+    border-color: #082f5c;
+}
+
+
 
 
 

@@ -165,6 +165,23 @@ $prevStage = ($currentStageIndex > 0) ? $learningStages[$currentStageIndex - 1] 
 $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) ? $learningStages[$currentStageIndex + 1] : null;
 ?>
 
+<!-- FLOATING STICKY BANNER FOR FOCUS / ZEN MODE -->
+<div class="ws-focus-banner" id="wsFocusFloatingBanner">
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 fw-bold">
+            <i class="fas fa-eye me-1"></i> Mode Fokus Belajar Aktif
+        </span>
+        <span class="small text-white text-truncate fw-medium" style="max-width: 450px;">
+            <?= esc($ctx['name'] ?? 'Ruang Belajar') ?>
+        </span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 fw-bold text-navy" id="btnExitFocusMode">
+            <i class="fas fa-compress me-1"></i> Keluar Mode Fokus (Esc)
+        </button>
+    </div>
+</div>
+
 <!-- 1. LEARNING ROOM HERO HEADER (FISTUDY DNA) -->
 <div class="learning-header ws-learning-header-card mb-3 shadow-sm p-3 p-md-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 position-relative" style="z-index: 2;">
@@ -176,6 +193,9 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                 <a href="<?= route_to('workspace.participant.classes') ?>" class="btn btn-outline-light btn-sm rounded-pill px-3 py-1 opacity-90">
                     <i class="bi bi-grid me-1"></i> Kelas Saya
                 </a>
+                <button type="button" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill px-3 py-1 shadow-sm" id="btnToggleFocusMode">
+                    <i class="fas fa-expand me-1"></i> Mode Fokus
+                </button>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                 <span class="badge bg-white text-dark rounded-pill px-2 py-0.5 fw-bold">
@@ -806,4 +826,52 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btnToggle = document.getElementById('btnToggleFocusMode');
+    const btnExit = document.getElementById('btnExitFocusMode');
+
+    function setFocusMode(enable) {
+        if (enable) {
+            document.body.classList.add('ws-focus-mode');
+            localStorage.setItem('ws_focus_mode', 'true');
+            if (btnToggle) {
+                btnToggle.innerHTML = '<i class="fas fa-compress me-1"></i> Keluar Fokus';
+                btnToggle.classList.replace('btn-warning', 'btn-light');
+            }
+        } else {
+            document.body.classList.remove('ws-focus-mode');
+            localStorage.setItem('ws_focus_mode', 'false');
+            if (btnToggle) {
+                btnToggle.innerHTML = '<i class="fas fa-expand me-1"></i> Mode Fokus';
+                btnToggle.classList.replace('btn-light', 'btn-warning');
+            }
+        }
+    }
+
+    if (localStorage.getItem('ws_focus_mode') === 'true') {
+        setFocusMode(true);
+    }
+
+    if (btnToggle) {
+        btnToggle.addEventListener('click', function () {
+            const isCurrently = document.body.classList.contains('ws-focus-mode');
+            setFocusMode(!isCurrently);
+        });
+    }
+
+    if (btnExit) {
+        btnExit.addEventListener('click', function () {
+            setFocusMode(false);
+        });
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.body.classList.contains('ws-focus-mode')) {
+            setFocusMode(false);
+        }
+    });
+});
+</script>
 <?= $this->endSection() ?>

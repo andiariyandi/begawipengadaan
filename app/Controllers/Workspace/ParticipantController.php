@@ -226,6 +226,193 @@ class ParticipantController extends BaseController
         ]);
     }
 
+    public function transcript(string $classId)
+    {
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        if ($classIdInt <= 0 || ! is_numeric($classId)) {
+            $classRow = db_connect()->table('learning_classes')->select('id')->where('code', $classId)->get()->getRowArray();
+            if ($classRow) {
+                $classIdInt = (int) $classRow['id'];
+            }
+        }
+
+        $state = $this->resolveClassLearningState($classIdInt, $userId);
+        $db = db_connect();
+
+        // Must be at least enrolled (active, completed, passed, etc.)
+        if (empty($state['enrollment']) || in_array($state['enrollmentStatus'], ['not_enrolled', 'pending'], true)) {
+            return redirect()->to(route_to('workspace.participant.class.detail', (string) $classIdInt))
+                ->with('error', 'Transkrip nilai hanya dapat diakses oleh peserta yang terdaftar aktif atau telah menyelesaikan kelas.');
+        }
+
+        // Student Profile Data
+        $student = $db->table('users')
+            ->select('id, name, username, email, phone, profile_type')
+            ->where('id', $userId)
+            ->get()->getRowArray() ?: [];
+
+        $student['instansi'] = '-';
+        $student['nip']      = '-';
+        $student['nik']      = '-';
+
+        if ($db->tableExists('asn_profiles')) {
+            $asn = $db->table('asn_profiles')->where('user_id', $userId)->get()->getRowArray() ?: [];
+            if (! empty($asn['institution_name'])) $student['instansi'] = $asn['institution_name'];
+            if (! empty($asn['nip'])) $student['nip'] = $asn['nip'];
+            if (! empty($asn['nik'])) $student['nik'] = $asn['nik'];
+        }
+        if ($student['instansi'] === '-' && $db->tableExists('public_profiles')) {
+            $pub = $db->table('public_profiles')->where('user_id', $userId)->get()->getRowArray() ?: [];
+            if (! empty($pub['institution_name'])) $student['instansi'] = $pub['institution_name'];
+            if (! empty($pub['nik'])) $student['nik'] = $pub['nik'];
+        }
+        if ($student['instansi'] === '-' && $db->tableExists('user_profiles')) {
+            $uprof = $db->table('user_profiles')->where('user_id', $userId)->get()->getRowArray() ?: [];
+            if (! empty($uprof['organization'])) $student['instansi'] = $uprof['organization'];
+        }
+
+        $enrollment = $state['enrollment'];
+        $class = $state['class'];
+        $modules = $state['modules'];
+        $trainers = $state['trainers'];
+        $preTest = $state['pre_test'];
+        $postTest = $state['post_test'];
+
+        // Compute Detailed Breakdown
+        // 1. Quizzes
+        $quizScores = [];
+        $quizRows = [];
+        foreach ($modules as $mIdx => $mod) {
+            if (! empty($mod['quiz'])) {
+                $q = $mod['quiz'];
+                $highestScore = isset($q['attempt']['score']) ? (float) $q['attempt']['score'] : null;
+                if ($highestScore !== null) {
+                    $quizScores[] = $highestScore;
+                }
+                $quizRows[] = [
+                    'module_title'  => $mod['title'] ?? ('Modul ' . ($mIdx + 1)),
+                    'title'         => $q['title'] ?? ('Kuis Modul ' . ($mIdx + 1)),
+                    'passing_grade' => (float) ($class['passing_grade'] ?? 70),
+                    'attempts'      => (int) ($q['attempts_count'] ?? 0),
+                    'score'         => $highestScore,
+                    'status'        => $highestScore !== null && $highestScore >= ($class['passing_grade'] ?? 70) ? 'Lulus' : ($highestScore !== null ? 'Belum Memenuhi' : 'Belum Dikerjakan'),
+                ];
+            }
+        }
+
+        // 2. Assignments
+        $asgScores = [];
+        $asgRows = [];
+        foreach ($modules as $mIdx => $mod) {
+            if (! empty($mod['assignment'])) {
+                $asg = $mod['assignment'];
+                $asgScore = isset($asg['submission']['score']) ? (float) $asg['submission']['score'] : null;
+                if ($asgScore !== null) {
+                    $asgScores[] = $asgScore;
+                }
+                $asgRows[] = [
+                    'module_title' => $mod['title'] ?? ('Modul ' . ($mIdx + 1)),
+                    'title'        => $asg['title'] ?? ('Tugas Modul ' . ($mIdx + 1)),
+                    'due_at'       => $asg['due_at'] ?? null,
+                    'submitted_at' => $asg['submission']['submitted_at'] ?? null,
+                    'score'        => $asgScore,
+                    'feedback'     => $asg['submission']['feedback'] ?? null,
+                    'status'       => isset($asg['submission']['status']) ? ucfirst($asg['submission']['status']) : 'Belum Dikirim',
+                ];
+            }
+        }
+
+        // Weights
+        $wQuiz = (float) ($class['quiz_weight'] ?? 40.0);
+        $wAsg  = (float) ($class['assignment_weight'] ?? 0.0);
+        $wPost = (float) ($class['post_test_weight'] ?? 60.0);
+
+        // Normalize weights if needed
+        $totalWeight = $wQuiz + $wAsg + $wPost;
+        if ($totalWeight <= 0) {
+            $wQuiz = 40.0;
+            $wPost = 60.0;
+            $wAsg = 0.0;
+            $totalWeight = 100.0;
+        }
+
+        $avgQuiz = ! empty($quizScores) ? (array_sum($quizScores) / count($quizScores)) : 0.0;
+        $avgAsg  = ! empty($asgScores) ? (array_sum($asgScores) / count($asgScores)) : 0.0;
+        $postScore = isset($postTest['attempt']['score']) ? (float) $postTest['attempt']['score'] : 0.0;
+
+        $calcFinalScore = ($avgQuiz * ($wQuiz / $totalWeight)) + ($avgAsg * ($wAsg / $totalWeight)) + ($postScore * ($wPost / $totalWeight));
+        $calcFinalScore = round($calcFinalScore, 2);
+
+        // Canonical final score from database if stored and completed
+        $finalScore = $enrollment['final_score'] !== null ? (float) $enrollment['final_score'] : $calcFinalScore;
+
+        // Predicate
+        $predicate = 'Belum Memenuhi Syarat';
+        $gradeLetter = 'E';
+        $isPassed = false;
+        $passingGrade = (float) ($class['passing_grade'] ?? 70.0);
+
+        if ($finalScore >= 90.0) {
+            $predicate = 'Sangat Memuaskan';
+            $gradeLetter = 'A';
+            $isPassed = true;
+        } elseif ($finalScore >= 80.0) {
+            $predicate = 'Memuaskan (Baik Sekali)';
+            $gradeLetter = 'B';
+            $isPassed = true;
+        } elseif ($finalScore >= $passingGrade) {
+            $predicate = 'Baik / Lulus';
+            $gradeLetter = 'C';
+            $isPassed = true;
+        } elseif ($finalScore >= 55.0) {
+            $predicate = 'Cukup';
+            $gradeLetter = 'D';
+        }
+
+        // Certificate if exists
+        $certificate = null;
+        if (! empty($state['certificate'])) {
+            $certificate = $state['certificate'];
+        } else {
+            $certificate = $db->table('certificates')
+                ->where('source_type', 'learning_enrollment')
+                ->where('source_id', (int) $enrollment['id'])
+                ->where('status', 'issued')
+                ->get()->getRowArray();
+        }
+
+        return view('main/workspace/pages/transkrip_nilai', [
+            'pageTitle'        => 'Transkrip Nilai Akademik | ' . ($class['name'] ?? 'Kelas PBJ'),
+            'hideSidebar'      => false,
+            'breadcrumbTail'   => [
+                ['label' => 'Kelas Saya', 'url' => route_to('workspace.participant.classes')],
+                ['label' => $class['name'] ?? 'Detail Kelas', 'url' => route_to('workspace.participant.class.detail', (string) $classIdInt)],
+                ['label' => 'Transkrip Akademik'],
+            ],
+            'state'            => $state,
+            'student'          => $student,
+            'class'            => $class,
+            'trainers'         => $trainers,
+            'enrollment'       => $enrollment,
+            'preTest'          => $preTest,
+            'postTest'         => $postTest,
+            'quizRows'         => $quizRows,
+            'asgRows'          => $asgRows,
+            'avgQuiz'          => round($avgQuiz, 2),
+            'avgAsg'           => round($avgAsg, 2),
+            'postScore'        => round($postScore, 2),
+            'wQuiz'            => $wQuiz,
+            'wAsg'             => $wAsg,
+            'wPost'            => $wPost,
+            'finalScore'       => $finalScore,
+            'gradeLetter'      => $gradeLetter,
+            'predicate'        => $predicate,
+            'isPassed'         => $isPassed,
+            'certificate'      => $certificate,
+        ]);
+    }
+
     public function study(string $classId)
     {
         $userId = $this->userId();

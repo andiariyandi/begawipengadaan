@@ -111,6 +111,23 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
 }
 </style>
 
+<!-- FLOATING STICKY BANNER FOR ZEN / FOCUS MODE -->
+<div class="ws-focus-banner" id="wsFocusFloatingBannerQuiz">
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 fw-bold">
+            <i class="fas fa-eye me-1"></i> Mode Zen / Ujian Fokus
+        </span>
+        <span class="small text-white text-truncate fw-medium" style="max-width: 450px;">
+            <?= esc($quiz['title'] ?? 'Ujian Komprehensif') ?>
+        </span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 fw-bold text-navy" id="btnExitFocusModeQuiz">
+            <i class="fas fa-compress me-1"></i> Keluar Mode Zen (Esc)
+        </button>
+    </div>
+</div>
+
 <!-- 1. QUIZ HERO & INFO CARD (FISTUDY DNA) -->
 <div class="ws-page-header">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
@@ -118,6 +135,9 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
             <a href="<?= route_to('workspace.participant.class.detail', (string) $classId) ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3 mb-2">
                 <i class="bi bi-arrow-left me-1"></i> Kembali ke Kelas
             </a>
+            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 mb-2 ms-1" id="btnToggleFocusModeQuiz">
+                <i class="fas fa-expand me-1"></i> Mode Zen / Fokus
+            </button>
             <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                 <span class="badge <?= $typeBadge['class'] ?> text-uppercase px-3 py-1 rounded-pill fw-bold">
                     <?= esc($typeBadge['label']) ?>
@@ -1177,5 +1197,53 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
         <?php endif; ?>
     <?php endif; ?>
 <?php endif; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btnToggle = document.getElementById('btnToggleFocusModeQuiz');
+    const btnExit = document.getElementById('btnExitFocusModeQuiz');
+
+    function setFocusMode(enable) {
+        if (enable) {
+            document.body.classList.add('ws-focus-mode');
+            localStorage.setItem('ws_quiz_zen_mode', 'true');
+            if (btnToggle) {
+                btnToggle.innerHTML = '<i class="fas fa-compress me-1"></i> Keluar Zen';
+                btnToggle.classList.replace('btn-outline-primary', 'btn-light');
+            }
+        } else {
+            document.body.classList.remove('ws-focus-mode');
+            localStorage.setItem('ws_quiz_zen_mode', 'false');
+            if (btnToggle) {
+                btnToggle.innerHTML = '<i class="fas fa-expand me-1"></i> Mode Zen / Fokus';
+                btnToggle.classList.replace('btn-light', 'btn-outline-primary');
+            }
+        }
+    }
+
+    if (localStorage.getItem('ws_quiz_zen_mode') === 'true') {
+        setFocusMode(true);
+    }
+
+    if (btnToggle) {
+        btnToggle.addEventListener('click', function () {
+            const isCurrently = document.body.classList.contains('ws-focus-mode');
+            setFocusMode(!isCurrently);
+        });
+    }
+
+    if (btnExit) {
+        btnExit.addEventListener('click', function () {
+            setFocusMode(false);
+        });
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.body.classList.contains('ws-focus-mode')) {
+            setFocusMode(false);
+        }
+    });
+});
+</script>
 
 <?= $this->endSection() ?>

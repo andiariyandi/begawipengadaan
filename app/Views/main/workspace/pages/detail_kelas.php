@@ -79,11 +79,18 @@ $trainerRoleLabel = static function (?string $role): string {
                 </span>
             <?php endif; ?>
         </div>
-        <div class="text-muted small">
-            <i class="bi bi-calendar3 me-1 text-primary"></i>
-            Periode: <strong><?= esc($ctx['start_at'] ? date('d M Y', strtotime($ctx['start_at'])) : 'Fleksibel') ?></strong>
-            &ndash;
-            <strong><?= esc($ctx['end_at'] ? date('d M Y', strtotime($ctx['end_at'])) : 'Selesai') ?></strong>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <div class="text-muted small me-2">
+                <i class="bi bi-calendar3 me-1 text-primary"></i>
+                Periode: <strong><?= esc($ctx['start_at'] ? date('d M Y', strtotime($ctx['start_at'])) : 'Fleksibel') ?></strong>
+                &ndash;
+                <strong><?= esc($ctx['end_at'] ? date('d M Y', strtotime($ctx['end_at'])) : 'Selesai') ?></strong>
+            </div>
+            <?php if (! in_array($stateCode, ['not_enrolled', 'enrollment_pending'], true)): ?>
+                <a href="<?= route_to('workspace.participant.transcript', (string) $ctx['id']) ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-semibold shadow-xs">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Transkrip Nilai
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -226,6 +233,13 @@ $trainerRoleLabel = static function (?string $role): string {
                     <a href="<?= esc($cta['url'] ?? '#') ?>" class="<?= esc($cta['class'] ?? 'btn btn-primary') ?> rounded-pill px-4 py-2 shadow-sm fw-bold w-100 w-md-auto text-nowrap">
                         <?= esc($cta['label'] ?? 'Mulai Belajar') ?> &raquo;
                     </a>
+                <?php endif; ?>
+                <?php if (! in_array($stateCode, ['not_enrolled', 'enrollment_pending'], true)): ?>
+                    <div class="mt-2">
+                        <a href="<?= route_to('workspace.participant.transcript', (string) $ctx['id']) ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1 shadow-xs">
+                            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Rapor &amp; Transkrip Nilai
+                        </a>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
