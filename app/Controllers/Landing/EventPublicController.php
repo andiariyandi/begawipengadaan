@@ -408,6 +408,21 @@ class EventPublicController extends BaseController
             $isRegOpen = false;
         }
 
+        // Assessment & Self-Paced Learning Configuration Check
+        $assessmentSvc = new \App\Services\EventAssessmentService();
+        $assessmentConfig = $assessmentSvc->getAssessmentConfig((int) $event['id']);
+        $selfPaced = $assessmentConfig['self_paced'] ?? [];
+        $isSelfPacedEnabled = ! empty($selfPaced['enabled']);
+
+        // Check if self-paced learning is valid / extended past real schedule
+        $isSelfPacedOpen = false;
+        if ($isSelfPacedEnabled && $isPast) {
+            if (empty($selfPaced['extended_until']) || strtotime($selfPaced['extended_until']) >= $now) {
+                $isSelfPacedOpen = true;
+                $isRegOpen = true; // Open registration for self-paced learner
+            }
+        }
+
         // Attendance / Presensi session active check
         $attOpenAt      = ! empty($event['attendance_open_at']) ? strtotime($event['attendance_open_at']) : null;
         $attCloseAt     = ! empty($event['attendance_close_at']) ? strtotime($event['attendance_close_at']) : null;
@@ -457,6 +472,9 @@ class EventPublicController extends BaseController
             'attCloseAt'      => $attCloseAt,
             'relatedEvents'   => $relatedEvents,
             'shareUrl'        => site_url('event/' . $event['slug']),
+            'isSelfPacedOpen' => $isSelfPacedOpen,
+            'selfPaced'       => $selfPaced,
+            'assessmentConfig'=> $assessmentConfig,
         ]);
     }
 
@@ -476,15 +494,28 @@ class EventPublicController extends BaseController
             throw PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
         }
 
-        // Check if registration window is closed
-        if (! empty($event['registration_close_at']) && strtotime($event['registration_close_at']) < time()) {
-            return redirect()->back()->with('error', 'Pendaftaran event ini sudah ditutup.');
+        // Check if self-paced learning is active for past events
+        $assessmentSvc = new \App\Services\EventAssessmentService();
+        $assessmentConfig = $assessmentSvc->getAssessmentConfig((int) $event['id']);
+        $selfPaced = $assessmentConfig['self_paced'] ?? [];
+        $isSelfPacedActive = false;
+        if (! empty($selfPaced['enabled']) && strtotime($event['end_at']) < time()) {
+            if (empty($selfPaced['extended_until']) || strtotime($selfPaced['extended_until']) >= time()) {
+                $isSelfPacedActive = true;
+            }
         }
-        if (! empty($event['registration_open_at']) && strtotime($event['registration_open_at']) > time()) {
-            return redirect()->back()->with('error', 'Pendaftaran event ini belum dibuka.');
-        }
-        if (strtotime($event['end_at']) < time()) {
-            return redirect()->back()->with('error', 'Kegiatan ini telah selesai diselenggarakan.');
+
+        // Check if registration window is closed (only enforce for standard live events)
+        if (! $isSelfPacedActive) {
+            if (! empty($event['registration_close_at']) && strtotime($event['registration_close_at']) < time()) {
+                return redirect()->back()->with('error', 'Pendaftaran event ini sudah ditutup.');
+            }
+            if (! empty($event['registration_open_at']) && strtotime($event['registration_open_at']) > time()) {
+                return redirect()->back()->with('error', 'Pendaftaran event ini belum dibuka.');
+            }
+            if (strtotime($event['end_at']) < time()) {
+                return redirect()->back()->with('error', 'Kegiatan ini telah selesai diselenggarakan.');
+            }
         }
 
         // Check if already registered
@@ -532,6 +563,11 @@ class EventPublicController extends BaseController
             null,
             ['event_id' => $event['id'], 'event_title' => $event['title'], 'status' => $status]
         );
+
+        if ($isSelfPacedActive && $status === 'registered') {
+            return redirect()->to(site_url('workspace/peserta/event-saya/' . $event['slug']))
+                ->with('success', 'Pendaftaran berhasil! Anda kini terdaftar pada Mode Pembelajaran Mandiri. Simak rekaman sesi dan selesaikan kuis untuk klaim E-Sertifikat resmi.');
+        }
 
         $msg = ($status === 'waitlist')
             ? 'Kuota utama telah terpenuhi. Anda otomatis tercatat dalam antrian tunggu (waitlist) resmi.'

@@ -1003,6 +1003,13 @@ class ParticipantController extends BaseController
             $eventState = 'ongoing'; // Berlangsung
         }
 
+        $assessmentSvc = new \App\Services\EventAssessmentService();
+        $materials = $assessmentSvc->getMaterials($eventId);
+        $assessmentConfig = $assessmentSvc->getAssessmentConfig($eventId);
+        $preTestAttempt = $assessmentSvc->getUserAttempt($eventId, $userId, 'pre_test');
+        $postTestAttempt = $assessmentSvc->getUserAttempt($eventId, $userId, 'post_test');
+        $selfPacedProgress = $assessmentSvc->getSelfPacedProgress($eventId, $userId, (int) $registration['id'], $eventState === 'finished');
+
         return view('main/workspace/pages/detail_event', [
             'pageTitle'            => $event['title'] . ' | Event Saya',
             'breadcrumbTail'       => [
@@ -1018,7 +1025,137 @@ class ParticipantController extends BaseController
             'isPresensiClosed'     => $isPresensiClosed,
             'isPresensiNotOpenYet' => $isPresensiNotOpenYet,
             'eventState'           => $eventState,
+            'materials'            => $materials,
+            'assessmentConfig'     => $assessmentConfig,
+            'preTestAttempt'       => $preTestAttempt,
+            'postTestAttempt'      => $postTestAttempt,
+            'selfPacedProgress'    => $selfPacedProgress,
         ]);
+    }
+
+    public function submitEventQuiz(string $idOrSlug)
+    {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $query = $db->table('events')->where('deleted_at IS NULL');
+        if (is_numeric($idOrSlug)) {
+            $query->where('id', (int) $idOrSlug);
+        } else {
+            $query->where('slug', $idOrSlug);
+        }
+        $event = $query->get()->getRowArray();
+        if (! $event) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Event tidak ditemukan.'])->setStatusCode(404);
+        }
+        $eventId = (int) $event['id'];
+
+        $registration = $db->table('event_registrations')
+            ->where(['event_id' => $eventId, 'user_id' => $userId])
+            ->get()->getRowArray();
+
+        if (! $registration) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Anda belum terdaftar pada event ini.'])->setStatusCode(403);
+        }
+
+        $quizType = (string) $this->request->getPost('quiz_type');
+        $answers = (array) $this->request->getPost('answers');
+
+        $assessmentSvc = new \App\Services\EventAssessmentService();
+        try {
+            $result = $assessmentSvc->submitQuizAttempt($eventId, $userId, (int) $registration['id'], $quizType, $answers);
+
+            if ($this->request->isAJAX() || $this->request->getHeaderLine('accept') === 'application/json') {
+                return $this->response->setJSON(['status' => 'success', 'data' => $result]);
+            }
+
+            $label = $quizType === 'pre_test' ? 'Pre-Test' : 'Post-Test';
+            return redirect()->to(site_url('workspace/peserta/event-saya/' . ($event['slug'] ?: $eventId)))
+                ->with('success', $label . ' berhasil diselesaikan! Skor Anda: ' . $result['score'] . ' / 100.')
+                ->with('quiz_result', $result);
+        } catch (\Throwable $e) {
+            if ($this->request->isAJAX() || $this->request->getHeaderLine('accept') === 'application/json') {
+                return $this->response->setJSON(['status' => 'error', 'message' => $e->getMessage()])->setStatusCode(400);
+            }
+            return redirect()->back()->with('error', 'Gagal memproses kuis: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadEventMaterial(string $idOrSlug, string $fileId)
+    {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $query = $db->table('events')->where('deleted_at IS NULL');
+        if (is_numeric($idOrSlug)) {
+            $query->where('id', (int) $idOrSlug);
+        } else {
+            $query->where('slug', $idOrSlug);
+        }
+        $event = $query->get()->getRowArray();
+        if (! $event) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
+        }
+        $eventId = (int) $event['id'];
+
+        $file = $db->table('file_assets')
+            ->where('id', (int) $fileId)
+            ->where('resource_type', 'event_material')
+            ->where('resource_id', $eventId)
+            ->where('deleted_at IS NULL')
+            ->get()->getRowArray();
+
+        if (! $file) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('File materi tidak ditemukan.');
+        }
+
+        $fullPath = WRITEPATH . ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $file['path']), DIRECTORY_SEPARATOR);
+        if (! is_file($fullPath)) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('File materi tidak ada pada disk server.');
+        }
+
+        $filename = $file['original_name'] ?: 'materi-event.' . ($file['extension'] ?? 'pdf');
+        $mime = $file['mime_type'] ?: 'application/octet-stream';
+
+        return $this->response
+            ->setHeader('Content-Type', $mime)
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->setBody(file_get_contents($fullPath));
+    }
+
+    public function claimSelfPacedCertificate(string $idOrSlug)
+    {
+        $userId = $this->userId();
+        $db = db_connect();
+
+        $query = $db->table('events')->where('deleted_at IS NULL');
+        if (is_numeric($idOrSlug)) {
+            $query->where('id', (int) $idOrSlug);
+        } else {
+            $query->where('slug', $idOrSlug);
+        }
+        $event = $query->get()->getRowArray();
+        if (! $event) {
+            return redirect()->back()->with('error', 'Event tidak ditemukan.');
+        }
+        $eventId = (int) $event['id'];
+
+        $registration = $db->table('event_registrations')
+            ->where(['event_id' => $eventId, 'user_id' => $userId])
+            ->get()->getRowArray();
+
+        if (! $registration) {
+            return redirect()->back()->with('error', 'Anda belum terdaftar pada event ini.');
+        }
+
+        $assessmentSvc = new \App\Services\EventAssessmentService();
+        try {
+            $result = $assessmentSvc->claimSelfPacedCertificate($eventId, $userId, (int) $registration['id'], $userId);
+            return redirect()->to(site_url('workspace/peserta/event-saya/' . ($event['slug'] ?: $eventId)))
+                ->with('success', 'Selamat! ' . $result['message'] . (! empty($result['certificate_number']) ? ' Nomor Sertifikat: ' . $result['certificate_number'] : ''));
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Gagal klaim sertifikat: ' . $e->getMessage());
+        }
     }
 
     public function myAttendance()

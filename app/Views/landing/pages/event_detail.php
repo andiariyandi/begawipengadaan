@@ -404,6 +404,26 @@
                                 <span>Buka Ruang Pertemuan (Zoom)</span>
                             </a>
                         <?php endif; ?>
+                        <a href="<?= site_url('workspace/peserta/event-saya/' . $event['slug']) ?>" class="btn btn-outline-primary w-100 py-2 radius-10 mb-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                            <iconify-icon icon="solar:folder-with-files-bold" class="text-lg"></iconify-icon>
+                            <span>Buka Event di Workspace</span>
+                        </a>
+                    <?php elseif ($isPast && ! empty($isSelfPacedOpen)): ?>
+                        <div class="p-3 bg-primary-subtle border border-primary-subtle radius-10 mb-3 text-start">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-primary text-white text-xs px-2 py-1 radius-4">Mode Pembelajaran Mandiri</span>
+                            </div>
+                            <strong class="text-primary-900 d-block font-semibold mb-1" style="font-size: 13px;">Kegiatan Dibuka untuk Akses Mandiri</strong>
+                            <p class="text-xs text-slate-700 mb-0">Sesi tatap muka telah selesai, namun kegiatan diperpanjang untuk belajar mandiri melalui rekaman video pemateri, materi tayang, serta asesmen untuk memperoleh E-Sertifikat resmi.</p>
+                        </div>
+                        <form action="<?= site_url('event/' . $event['slug'] . '/daftar') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-primary w-100 py-3 radius-10 fw-bold d-flex align-items-center justify-content-center gap-2 mb-2 shadow-sm">
+                                <span>Daftar Pembelajaran Mandiri</span>
+                                <iconify-icon icon="solar:arrow-right-bold"></iconify-icon>
+                            </button>
+                            <small class="text-xs text-center text-slate-500 d-block">Gratis &bull; Akses video rekaman &amp; sertifikat mandiri.</small>
+                        </form>
                     <?php elseif ($isPast): ?>
                         <div class="p-3 bg-secondary-subtle border radius-10 mb-3 text-center">
                             <strong class="text-slate-700 d-block">Kegiatan Telah Selesai</strong>

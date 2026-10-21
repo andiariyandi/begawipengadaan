@@ -450,7 +450,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                     ? (str_starts_with($classCover, 'http') ? $classCover : base_url($classCover))
                                     : base_url($defaultImg);
                                 $status = $item['status'] ?? 'scheduled';
-                                $statusBadge = $status === 'active'
+                                $statusBadge = in_array(strtolower((string) $status), ['active', 'ongoing', 'berlangsung', 'aktif'], true)
                                     ? ['label' => 'Sedang Berjalan (Aktif)', 'class' => 'bg-success text-white']
                                     : ['label' => 'Jadwal Terbuka', 'class' => 'bg-warning text-dark'];
                                 ?>

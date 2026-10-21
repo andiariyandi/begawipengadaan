@@ -86,6 +86,10 @@ body {
 <?= $this->section('content') ?>
 <?php
 $eventId = (int) ($eventId ?? ($item['id'] ?? 0));
+$materials = $materials ?? [];
+$assessmentConfig = $assessmentConfig ?? ['pre_test' => [], 'post_test' => [], 'self_paced' => []];
+$selfPaced = $assessmentConfig['self_paced'] ?? [];
+$assessmentStats = $assessmentStats ?? [];
 $code = (string) ($item['attendance_code'] ?? '');
 $openAt = ! empty($item['attendance_open_at']) ? strtotime($item['attendance_open_at']) : null;
 $closeAt = ! empty($item['attendance_close_at']) ? strtotime($item['attendance_close_at']) : null;
@@ -368,6 +372,235 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
             </div>
         </div>
 
+        <!-- Section: MATERI & BAHAN TAYANGAN PRESENTASI -->
+        <div class="card mb-24 radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
+            <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom">
+                <div class="d-flex align-items-center gap-12">
+                    <div class="w-40-px h-40-px rounded-circle bg-info-50 text-info-600 d-flex justify-content-center align-items-center">
+                        <iconify-icon icon="solar:folder-with-files-bold" class="fs-4"></iconify-icon>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0f172a;">Materi &amp; Bahan Tayangan Presentasi</h6>
+                        <p class="text-xs text-neutral-600 mb-0 font-medium" style="color: #475569;">Bahan paparan narasumber (PDF, PPT, XLS, DOC) yang dapat diakses peserta pada menu /workspace/peserta/event-saya/*.</p>
+                    </div>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-primary-600 radius-8 px-16 py-8 text-xs fw-bold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalUploadMaterial">
+                        <iconify-icon icon="solar:upload-bold" class="text-sm"></iconify-icon>
+                        <span>+ Unggah Materi Baru</span>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-20">
+                <?php if (empty($materials)): ?>
+                    <div class="text-center p-24 bg-light rounded-8 border border-neutral-200">
+                        <iconify-icon icon="solar:document-medicine-linear" class="display-6 text-neutral-400 mb-2"></iconify-icon>
+                        <p class="fw-semibold text-neutral-700 text-sm mb-1">Belum ada file materi yang diunggah.</p>
+                        <p class="text-xs text-neutral-500 mb-3">Klik tombol di atas untuk mengunggah slide paparan (PPT/PPTX, PDF) atau lembar kerja (XLS/DOC).</p>
+                        <button type="button" class="btn btn-outline-primary-600 btn-sm radius-8 px-14 py-7 fw-semibold text-xs" data-bs-toggle="modal" data-bs-target="#modalUploadMaterial">
+                            <iconify-icon icon="solar:upload-bold" class="me-1"></iconify-icon> Unggah File Sekarang
+                        </button>
+                    </div>
+                <?php else: ?>
+                    <div class="table-responsive border rounded-8" style="border-color: #e2e8f0;">
+                        <table class="table table-hover align-middle mb-0 text-sm">
+                            <thead class="bg-neutral-50 text-xs text-neutral-700 border-bottom">
+                                <tr>
+                                    <th class="ps-16 py-12">Format</th>
+                                    <th class="py-12">Judul Materi &amp; Narasumber</th>
+                                    <th class="py-12">Ukuran File</th>
+                                    <th class="py-12">Waktu Unggah</th>
+                                    <th class="pe-16 py-12 text-end">Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($materials as $mat): ?>
+                                    <tr>
+                                        <td class="ps-16">
+                                            <span class="d-inline-flex align-items-center justify-content-center w-36-px h-36-px rounded-8 bg-neutral-100 fs-5">
+                                                <i class="<?= esc($mat['icon'] ?? 'fas fa-file-alt') ?>"></i>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong class="d-block text-neutral-900"><?= esc($mat['title']) ?></strong>
+                                            <div class="text-xs text-neutral-600">
+                                                <?php if (! empty($mat['speaker'])): ?>
+                                                    <span class="text-primary-600 fw-medium"><i class="fas fa-user-tie me-1"></i><?= esc($mat['speaker']) ?></span> &bull;
+                                                <?php endif; ?>
+                                                <span class="font-monospace"><?= esc($mat['original_name']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="text-xs text-neutral-600 font-medium"><?= esc($mat['size_human']) ?></td>
+                                        <td class="text-xs text-neutral-600"><?= esc(date('d M Y, H:i', strtotime($mat['created_at']))) ?></td>
+                                        <td class="pe-16 text-end">
+                                            <div class="d-inline-flex gap-2">
+                                                <a href="<?= esc($mat['download_url']) ?>" class="btn btn-outline-primary-600 btn-sm radius-6 px-10 py-6 text-xs fw-semibold" title="Unduh File">
+                                                    <iconify-icon icon="solar:download-bold" class="me-1"></iconify-icon> Unduh
+                                                </a>
+                                                <form action="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/materi/' . (int) $mat['id'] . '/hapus') ?>" method="post" class="d-inline" onsubmit="return confirm('Hapus file materi ini?')">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm radius-6 px-10 py-6 text-xs fw-semibold" title="Hapus File">
+                                                        <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Section: AKTIVITAS PEMBELAJARAN INTERAKTIF (PRE-TEST & POST-TEST) -->
+        <div class="card mb-24 radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
+            <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom">
+                <div class="d-flex align-items-center gap-12">
+                    <div class="w-40-px h-40-px rounded-circle bg-success-50 text-success-600 d-flex justify-content-center align-items-center">
+                        <iconify-icon icon="solar:clipboard-check-bold" class="fs-4"></iconify-icon>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0f172a;">Aktivitas Interaktif: Pre-Test &amp; Post-Test (Opsional)</h6>
+                        <p class="text-xs text-neutral-600 mb-0 font-medium" style="color: #475569;">Fasilitas kuis asesmen pengayaan ala Arena Belajar. Syarat mutlak sertifikat tetap presensi sah via kode sandi.</p>
+                    </div>
+                </div>
+                <div>
+                    <a href="<?= site_url('dashboard/komunikasi/event-agenda/' . $eventId . '/ubah') ?>" class="btn btn-outline-neutral-300 radius-8 px-14 py-8 text-xs fw-semibold text-neutral-700 bg-white" style="border-color: #cbd5e1;">
+                        <iconify-icon icon="solar:pen-new-square-bold" class="me-1"></iconify-icon> Kelola Soal &amp; Pengaturan
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-24">
+                <div class="row gy-3">
+                    <!-- Pre-Test Card Summary -->
+                    <div class="col-md-6">
+                        <div class="p-16 radius-10 border h-100 bg-light" style="border-color: #e2e8f0;">
+                            <div class="d-flex align-items-center justify-content-between mb-12">
+                                <span class="badge bg-primary-100 text-primary-700 fw-bold px-10 py-4 radius-6 text-xs">
+                                    Pre-Test (Awal Sesi)
+                                </span>
+                                <?php if (! empty($assessmentConfig['pre_test']['enabled'])): ?>
+                                    <span class="badge bg-success-50 text-success-700 border border-success-200 px-8 py-3 text-xs fw-bold">Aktif</span>
+                                <?php else: ?>
+                                    <span class="badge bg-neutral-200 text-neutral-600 px-8 py-3 text-xs font-medium">Non-Aktif</span>
+                                <?php endif; ?>
+                            </div>
+                            <h6 class="fw-bold text-neutral-900 mb-1" style="font-size: 14px;"><?= esc($assessmentConfig['pre_test']['title'] ?? 'Pre-Test') ?></h6>
+                            <ul class="list-unstyled text-xs text-neutral-600 mb-12">
+                                <li class="mb-1">&bull; Jumlah Butir Soal: <strong><?= count($assessmentConfig['pre_test']['questions'] ?? []) ?> Soal</strong></li>
+                                <li class="mb-1">&bull; Durasi Waktu: <strong><?= (int) ($assessmentConfig['pre_test']['duration_minutes'] ?? 15) ?> Menit</strong></li>
+                                <li>&bull; Standar Kelulusan (Passing): <strong><?= (int) ($assessmentConfig['pre_test']['passing_score'] ?? 70) ?> / 100</strong></li>
+                            </ul>
+                            <div class="pt-10 border-top d-flex justify-content-between text-xs" style="border-color: #cbd5e1;">
+                                <span class="text-neutral-500">Mengerjakan: <strong><?= (int) ($assessmentStats['pre_test_count'] ?? 0) ?> Peserta</strong></span>
+                                <span class="text-primary-700 fw-bold">Rata-rata: <?= (float) ($assessmentStats['pre_test_avg'] ?? 0) ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Post-Test Card Summary -->
+                    <div class="col-md-6">
+                        <div class="p-16 radius-10 border h-100 bg-light" style="border-color: #e2e8f0;">
+                            <div class="d-flex align-items-center justify-content-between mb-12">
+                                <span class="badge bg-info-100 text-info-700 fw-bold px-10 py-4 radius-6 text-xs">
+                                    Post-Test (Akhir Sesi)
+                                </span>
+                                <?php if (! empty($assessmentConfig['post_test']['enabled'])): ?>
+                                    <span class="badge bg-success-50 text-success-700 border border-success-200 px-8 py-3 text-xs fw-bold">Aktif</span>
+                                <?php else: ?>
+                                    <span class="badge bg-neutral-200 text-neutral-600 px-8 py-3 text-xs font-medium">Non-Aktif</span>
+                                <?php endif; ?>
+                            </div>
+                            <h6 class="fw-bold text-neutral-900 mb-1" style="font-size: 14px;"><?= esc($assessmentConfig['post_test']['title'] ?? 'Post-Test') ?></h6>
+                            <ul class="list-unstyled text-xs text-neutral-600 mb-12">
+                                <li class="mb-1">&bull; Jumlah Butir Soal: <strong><?= count($assessmentConfig['post_test']['questions'] ?? []) ?> Soal</strong></li>
+                                <li class="mb-1">&bull; Durasi Waktu: <strong><?= (int) ($assessmentConfig['post_test']['duration_minutes'] ?? 15) ?> Menit</strong></li>
+                                <li>&bull; Standar Kelulusan (Passing): <strong><?= (int) ($assessmentConfig['post_test']['passing_score'] ?? 70) ?> / 100</strong></li>
+                            </ul>
+                            <div class="pt-10 border-top d-flex justify-content-between text-xs" style="border-color: #cbd5e1;">
+                                <span class="text-neutral-500">Mengerjakan: <strong><?= (int) ($assessmentStats['post_test_count'] ?? 0) ?> Peserta</strong></span>
+                                <span class="text-info-700 fw-bold">Rata-rata: <?= (float) ($assessmentStats['post_test_avg'] ?? 0) ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: MODE PEMBELAJARAN MANDIRI (SELF-PACED LEARNING) -->
+        <div class="card mb-24 radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
+            <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom">
+                <div class="d-flex align-items-center gap-12">
+                    <div class="w-40-px h-40-px rounded-circle bg-success-50 text-success-600 d-flex justify-content-center align-items-center">
+                        <iconify-icon icon="solar:play-circle-bold" class="fs-4"></iconify-icon>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0f172a;">Mode Pembelajaran Mandiri (Self-Paced)</h6>
+                        <p class="text-xs text-neutral-600 mb-0 font-medium" style="color: #475569;">Akses rekaman video, materi tayang, dan sertifikasi mandiri setelah waktu pelaksanaan selesai.</p>
+                    </div>
+                </div>
+                <div>
+                    <?php if (! empty($selfPaced['enabled'])): ?>
+                        <span class="badge bg-success-50 text-success-700 border border-success-200 px-12 py-6 radius-6 fw-bold d-inline-flex align-items-center gap-1 text-xs">
+                            <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Jalur Mandiri Aktif
+                        </span>
+                    <?php else: ?>
+                        <span class="badge bg-neutral-100 text-neutral-600 border px-12 py-6 radius-6 font-medium text-xs">
+                            Non-Aktif
+                        </span>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="card-body p-20">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-16 radius-10 border bg-light h-100" style="border-color: #e2e8f0;">
+                            <span class="text-xs text-neutral-500 d-block mb-1 font-semibold">Tautan Rekaman Sesi Paparan:</span>
+                            <?php if (! empty($selfPaced['recording_url'])): ?>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <iconify-icon icon="solar:video-frame-bold" class="text-danger fs-5 flex-shrink-0"></iconify-icon>
+                                    <strong class="text-sm text-neutral-900"><?= esc($selfPaced['recording_title'] ?: 'Rekaman Sesi Paparan') ?></strong>
+                                </div>
+                                <a href="<?= esc($selfPaced['recording_url']) ?>" target="_blank" class="btn btn-outline-primary-600 btn-sm radius-6 text-xs fw-semibold px-12 py-6 d-inline-flex align-items-center gap-1">
+                                    <iconify-icon icon="solar:link-circle-bold"></iconify-icon> Buka Video Rekaman
+                                </a>
+                            <?php else: ?>
+                                <p class="text-xs text-neutral-400 fst-italic mb-0">Belum ada link rekaman video yang disematkan.</p>
+                            <?php endif; ?>
+
+                            <?php if (! empty($selfPaced['extended_until'])): ?>
+                                <div class="mt-12 pt-10 border-top text-xs text-neutral-600" style="border-color: #cbd5e1;">
+                                    <iconify-icon icon="solar:calendar-date-bold" class="text-info me-1"></iconify-icon>
+                                    Perpanjangan Akses s/d: <strong><?= date('d M Y, H:i', strtotime($selfPaced['extended_until'])) ?> WIB</strong>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-16 radius-10 border bg-light h-100" style="border-color: #e2e8f0;">
+                            <span class="text-xs text-neutral-500 d-block mb-2 font-semibold">Syarat Kelulusan Jalur Mandiri:</span>
+                            <ul class="list-unstyled text-xs text-neutral-700 mb-0 d-flex flex-column gap-1">
+                                <li>
+                                    <iconify-icon icon="<?= ! empty($selfPaced['require_pre_test']) ? 'solar:check-circle-bold text-success' : 'solar:minus-circle-bold text-neutral-400' ?>"></iconify-icon>
+                                    Pre-Test: <?= ! empty($selfPaced['require_pre_test']) ? '<strong>Wajib Selesai</strong>' : 'Opsional' ?>
+                                </li>
+                                <li>
+                                    <iconify-icon icon="<?= ! empty($selfPaced['require_materials']) ? 'solar:check-circle-bold text-success' : 'solar:minus-circle-bold text-neutral-400' ?>"></iconify-icon>
+                                    Bahan Tayang &amp; Rekaman: <?= ! empty($selfPaced['require_materials']) ? '<strong>Wajib Dipelajari</strong>' : 'Opsional' ?>
+                                </li>
+                                <li>
+                                    <iconify-icon icon="<?= ! empty($selfPaced['require_post_test']) ? 'solar:check-circle-bold text-success' : 'solar:minus-circle-bold text-neutral-400' ?>"></iconify-icon>
+                                    Post-Test: <?= ! empty($selfPaced['require_post_test']) ? '<strong>Wajib Lulus (Min ' . (int) ($selfPaced['min_post_test_score'] ?? 70) . ')</strong>' : 'Opsional' ?>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Participant List Table Card -->
         <div class="card radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
             <div class="card-header bg-white p-20 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
@@ -522,6 +755,54 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
                     <span>Waitlist &amp; Pembatalan</span>
                 </a>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: UNGGAH MATERI BARU -->
+<div class="modal fade" id="modalUploadMaterial" tabindex="-1" aria-labelledby="modalUploadMaterialLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content radius-12 border-0 shadow">
+            <div class="modal-header bg-info-50 border-bottom py-16 px-20">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="w-36-px h-36-px rounded-circle bg-info-600 text-white d-flex align-items-center justify-content-center">
+                        <iconify-icon icon="solar:upload-bold" class="fs-5"></iconify-icon>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold text-neutral-900 mb-0" id="modalUploadMaterialLabel">Unggah File Materi Presentasi</h6>
+                        <small class="text-xs text-neutral-600 font-medium">Bahan tayang akan dapat diakses &amp; diunduh peserta event.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/materi/upload') ?>" method="post" enctype="multipart/form-data">
+                <?= csrf_field() ?>
+                <div class="modal-body p-20">
+                    <div class="mb-14">
+                        <label class="form-label text-xs fw-bold text-neutral-800 mb-1">Pilih File Materi <span class="text-danger">*</span></label>
+                        <input type="file" name="material_file" class="form-control radius-8" required accept=".pdf,.ppt,.pptx,.xls,.xlsx,.doc,.docx" style="border-color: #cbd5e1;">
+                        <small class="text-neutral-500 text-xs d-block mt-1">Format: <strong>PDF, PPT, PPTX, XLS, XLSX, DOC, DOCX</strong>. Maks 30MB.</small>
+                    </div>
+                    <div class="mb-14">
+                        <label class="form-label text-xs fw-bold text-neutral-800 mb-1">Judul / Deskripsi Dokumen <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control radius-8" required placeholder="Contoh: Slide Kebijakan Pengadaan PBJ 2026" style="border-color: #cbd5e1;">
+                    </div>
+                    <div class="mb-14">
+                        <label class="form-label text-xs fw-bold text-neutral-800 mb-1">Nama Pemateri / Narasumber</label>
+                        <input type="text" name="speaker" class="form-control radius-8" placeholder="Contoh: Dr. Ir. Sutrisno, M.Si." style="border-color: #cbd5e1;">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label text-xs fw-bold text-neutral-800 mb-1">Catatan Tambahan (Opsional)</label>
+                        <textarea name="notes" class="form-control radius-8" rows="2" placeholder="Catatan atau instruksi membaca materi..." style="border-color: #cbd5e1;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top py-12 px-20 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-neutral-300 btn-sm radius-8 px-16 text-neutral-700" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary-600 btn-sm radius-8 px-20 fw-bold shadow-sm">
+                        <iconify-icon icon="solar:upload-bold" class="me-1"></iconify-icon> Unggah File Materi
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

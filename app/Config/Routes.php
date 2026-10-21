@@ -143,6 +143,9 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('assessment', 'ParticipantController::allAssessments', ['as' => 'workspace.participant.all-assessments']);
         $routes->get('event-saya', 'ParticipantController::myEvents', ['as' => 'workspace.participant.events']);
         $routes->get('event-saya/(:segment)', 'ParticipantController::eventDetail/$1', ['as' => 'workspace.participant.event.detail']);
+        $routes->post('event-saya/(:segment)/quiz/submit', 'ParticipantController::submitEventQuiz/$1', ['as' => 'workspace.participant.event.quiz.submit']);
+        $routes->get('event-saya/(:segment)/materi/(:num)/download', 'ParticipantController::downloadEventMaterial/$1/$2', ['as' => 'workspace.participant.event.material.download']);
+        $routes->post('event-saya/(:segment)/klaim-sertifikat-mandiri', 'ParticipantController::claimSelfPacedCertificate/$1', ['as' => 'workspace.participant.event.claim-certificate']);
         $routes->get('event/(:segment)', 'ParticipantController::eventDetail/$1');
         $routes->get('presensi-saya', 'ParticipantController::myAttendance', ['as' => 'workspace.participant.attendance']);
         $routes->post('presensi/checkin', 'ParticipantController::submitAttendanceCode', ['as' => 'workspace.participant.attendance.checkin']);
@@ -691,6 +694,9 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('event-agenda/(:segment)/buka-presensi', 'EventController::openAttendance/$1', ['as' => 'dashboard.communication.events.open-attendance']);
         $routes->post('event-agenda/(:segment)/tutup-presensi', 'EventController::closeAttendance/$1', ['as' => 'dashboard.communication.events.close-attendance']);
         $routes->post('event-agenda/(:segment)/batch-certificates', 'EventController::batchCertificates/$1', ['as' => 'dashboard.communication.events.batch-certificates']);
+        $routes->post('event-agenda/(:segment)/materi/upload', 'EventController::uploadMaterial/$1', ['as' => 'dashboard.communication.events.upload-material']);
+        $routes->post('event-agenda/(:segment)/materi/(:num)/hapus', 'EventController::deleteMaterial/$1/$2', ['as' => 'dashboard.communication.events.delete-material']);
+        $routes->post('event-agenda/(:segment)/assessment', 'EventController::saveAssessment/$1', ['as' => 'dashboard.communication.events.save-assessment']);
         $routes->post('event-agenda/(:segment)/hapus', 'EventController::delete/$1', ['as' => 'dashboard.communication.events.delete']);
 
         $routes->get('registrasi-event', 'EventRegistrationController::index', ['as' => 'dashboard.communication.event-registrations']);

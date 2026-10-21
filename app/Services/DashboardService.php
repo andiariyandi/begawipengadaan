@@ -104,7 +104,7 @@ class DashboardService
     {
         $totalPrograms        = (int) $this->db->table('programs')->countAllResults();
         $totalCourses         = (int) $this->db->table('courses')->countAllResults();
-        $activeClasses        = (int) $this->db->table('learning_classes')->whereIn('status', ['published', 'active'])->countAllResults();
+        $activeClasses        = (int) $this->db->table('learning_classes')->whereIn('status', ['published', 'active', 'scheduled', 'ongoing', 'open'])->countAllResults();
         $activeEnrollments    = (int) $this->db->table('enrollments')->where('status', 'active')->countAllResults();
         $completedEnrollments = (int) $this->db->table('enrollments')->where('status', 'completed')->countAllResults();
         $totalEnrollments     = (int) $this->db->table('enrollments')->countAllResults();

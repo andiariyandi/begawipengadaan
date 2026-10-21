@@ -100,6 +100,22 @@ body {
 <?php
 $isEdit = ($formMode ?? 'create') === 'edit';
 $item = $item ?? [];
+$materials = $materials ?? [];
+$assessmentConfig = $assessmentConfig ?? [
+    'pre_test'   => ['enabled' => false, 'title' => 'Pre-Test Pemahaman Materi', 'duration_minutes' => 15, 'passing_score' => 70, 'questions' => []],
+    'post_test'  => ['enabled' => false, 'title' => 'Post-Test Evaluasi Sesi', 'duration_minutes' => 15, 'passing_score' => 70, 'questions' => []],
+    'self_paced' => [
+        'enabled'             => false,
+        'recording_url'       => '',
+        'recording_title'     => 'Rekaman Sesi Paparan Narasumber',
+        'extended_until'      => null,
+        'min_post_test_score' => 70,
+        'require_pre_test'    => true,
+        'require_materials'   => true,
+        'require_post_test'   => true,
+        'instructions'        => '',
+    ],
+];
 $coverUrl = ! empty($item['cover_file_id']) ? site_url('file/' . (int) $item['cover_file_id']) : (! empty($item['cover_path']) ? (str_starts_with($item['cover_path'], 'http') ? $item['cover_path'] : base_url($item['cover_path'])) : null);
 ?>
 
@@ -220,8 +236,11 @@ if (empty($openAt) || empty($code)) {
 <?php endif; ?>
 
 <!-- Main Form -->
-<form action="<?= $isEdit ? site_url('dashboard/komunikasi/event-agenda/' . (int) ($eventId ?? 0) . '/ubah') : site_url('dashboard/komunikasi/event-agenda/tambah') ?>" method="post" enctype="multipart/form-data">
+<form action="<?= $isEdit ? site_url('dashboard/komunikasi/event-agenda/' . (int) ($eventId ?? 0) . '/ubah') : site_url('dashboard/komunikasi/event-agenda/tambah') ?>" method="post" enctype="multipart/form-data" id="eventMainForm">
     <?= csrf_field() ?>
+    <input type="hidden" name="pre_test_data" id="inputPreTestData" value="<?= esc(json_encode($assessmentConfig['pre_test'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">
+    <input type="hidden" name="post_test_data" id="inputPostTestData" value="<?= esc(json_encode($assessmentConfig['post_test'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">
+    <input type="hidden" name="self_paced_data" id="inputSelfPacedData" value="<?= esc(json_encode($assessmentConfig['self_paced'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">
 
     <!-- Bagian 1: Informasi Utama Kegiatan -->
     <div class="form-section-card">
@@ -530,14 +549,364 @@ if (empty($openAt) || empty($code)) {
         </div>
     </div>
 
-    <!-- Bagian 7: Pengaturan Sorotan & Hero Slider (Landing Page) -->
+    <!-- Bagian 7: Materi & Bahan Tayangan Presentasi (Opsional) -->
+    <div class="form-section-card">
+        <div class="form-section-header">
+            <div class="form-section-icon bg-info-50 text-info-600">
+                <iconify-icon icon="solar:folder-with-files-bold"></iconify-icon>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-0 text-neutral-900" style="color: #0f172a;">7. Materi &amp; Bahan Tayangan Presentasi (Opsional)</h6>
+                <small class="text-neutral-600 font-medium" style="color: #475569;">Unggah dokumen presentasi, lembar kerja, atau bahan tayang pemateri (PDF, PPT, PPTX, XLS, XLSX, DOC, DOCX).</small>
+            </div>
+        </div>
+        <div class="form-section-body">
+            <!-- Guidelines Alert -->
+            <div class="p-16 radius-8 border mb-20 bg-light d-flex align-items-start gap-3" style="border-color: #cbd5e1;">
+                <iconify-icon icon="solar:info-circle-bold" class="text-info-600 fs-4 mt-1 flex-shrink-0"></iconify-icon>
+                <div class="text-xs text-neutral-700" style="color: #334155;">
+                    <strong class="d-block text-neutral-900 mb-1" style="font-size: 13px;">Panduan Bahan Tayang:</strong>
+                    Materi yang diunggah akan otomatis dapat diakses dan diunduh oleh peserta yang terdaftar pada menu <strong>/workspace/peserta/event-saya/*</strong>.
+                    Format file yang didukung meliputi <strong>PDF, PPT, PPTX, XLS, XLSX, DOC, DOCX</strong> dengan batas ukuran hingga <strong>30 MB per file</strong>.
+                </div>
+            </div>
+
+            <?php if ($isEdit && ! empty($materials)): ?>
+                <!-- Daftar Materi yang Sudah Diunggah -->
+                <div class="mb-24">
+                    <label class="form-label fw-bold text-neutral-900 text-sm mb-2" style="color: #0f172a;">
+                        Materi yang Sudah Tersedia (<?= count($materials) ?> File):
+                    </label>
+                    <div class="table-responsive border rounded-8" style="border-color: #e2e8f0;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-neutral-50 text-xs text-neutral-700 border-bottom">
+                                <tr>
+                                    <th class="ps-16 py-12">Format</th>
+                                    <th class="py-12">Judul Materi &amp; Narasumber</th>
+                                    <th class="py-12">Ukuran</th>
+                                    <th class="py-12">Tgl Unggah</th>
+                                    <th class="pe-16 py-12 text-end">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($materials as $mat): ?>
+                                    <tr>
+                                        <td class="ps-16">
+                                            <span class="d-inline-flex align-items-center justify-content-center w-36-px h-36-px rounded-8 bg-neutral-100 fs-5">
+                                                <i class="<?= esc($mat['icon'] ?? 'fas fa-file-alt') ?>"></i>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-neutral-900 text-sm"><?= esc($mat['title']) ?></div>
+                                            <div class="text-xs text-neutral-600">
+                                                <?php if (! empty($mat['speaker'])): ?>
+                                                    <span class="text-primary-600 fw-medium"><i class="fas fa-user-tie me-1"></i><?= esc($mat['speaker']) ?></span> &bull;
+                                                <?php endif; ?>
+                                                <span class="font-monospace"><?= esc($mat['original_name']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="text-xs text-neutral-600 fw-medium"><?= esc($mat['size_human']) ?></td>
+                                        <td class="text-xs text-neutral-600"><?= esc(date('d M Y, H:i', strtotime($mat['created_at']))) ?></td>
+                                        <td class="pe-16 text-end">
+                                            <div class="d-inline-flex gap-2">
+                                                <a href="<?= esc($mat['download_url']) ?>" class="btn btn-outline-primary-600 btn-sm radius-6 px-10 py-6 text-xs fw-semibold" title="Unduh File">
+                                                    <iconify-icon icon="solar:download-bold" class="me-1"></iconify-icon> Unduh
+                                                </a>
+                                                <button type="submit" formaction="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/materi/' . (int) $mat['id'] . '/hapus') ?>"
+                                                        class="btn btn-outline-danger btn-sm radius-6 px-10 py-6 text-xs fw-semibold"
+                                                        onclick="return confirm('Hapus materi \'<?= esc(addslashes($mat['title'])) ?>\'?');"
+                                                        title="Hapus Materi">
+                                                    <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Form Upload Materi Baru (Dynamic Rows) -->
+            <label class="form-label fw-bold text-neutral-900 text-sm mb-2" style="color: #0f172a;">
+                <?= $isEdit ? 'Unggah Materi Tambahan Baru:' : 'Unggah File Materi Event:' ?>
+            </label>
+            <div id="materialsUploadContainer" class="d-flex flex-column gap-3 mb-16">
+                <!-- Initial Material Row -->
+                <div class="material-upload-row p-16 rounded-8 border bg-neutral-50" style="border-color: #cbd5e1;">
+                    <div class="row gy-3 align-items-center">
+                        <div class="col-md-5">
+                            <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Pilih File (PDF, PPT, PPTX, XLS, DOC) <span class="text-muted">(Maks 30MB)</span></label>
+                            <input type="file" name="materials[]" class="form-control form-control-sm radius-6" accept=".pdf,.ppt,.pptx,.xls,.xlsx,.doc,.docx" style="border-color: #cbd5e1;">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Judul / Keterangan Dokumen</label>
+                            <input type="text" name="material_titles[]" class="form-control form-control-sm radius-6" placeholder="Contoh: Slide Presentasi Kebijakan PBJ" style="border-color: #cbd5e1;">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Nama Pemateri / Narasumber</label>
+                            <div class="d-flex gap-2">
+                                <input type="text" name="material_speakers[]" class="form-control form-control-sm radius-6" placeholder="Contoh: Tim Fasilitator LKPP" style="border-color: #cbd5e1;">
+                                <button type="button" class="btn btn-outline-danger btn-sm radius-6 px-10 py-6 btn-remove-material-row d-none" title="Hapus Baris">
+                                    <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-outline-primary-600 btn-sm radius-8 px-14 py-8 fw-semibold" id="btnAddMaterialRow">
+                <iconify-icon icon="solar:add-circle-bold" class="me-1"></iconify-icon> + Tambah File Materi Lainnya
+            </button>
+        </div>
+    </div>
+
+    <!-- Bagian 8: Aktivitas Interaktif: Pre-Test & Post-Test (Opsional - Seperti Arena Belajar) -->
+    <div class="form-section-card">
+        <div class="form-section-header">
+            <div class="form-section-icon bg-success-50 text-success-600">
+                <iconify-icon icon="solar:clipboard-check-bold"></iconify-icon>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-0 text-neutral-900" style="color: #0f172a;">8. Aktivitas Interaktif: Pre-Test &amp; Post-Test (Opsional - Seperti Arena Belajar)</h6>
+                <small class="text-neutral-600 font-medium" style="color: #475569;">Fasilitas kuis asesmen pengayaan. Peserta tetap wajib mengisi presensi (kode sandi kehadiran) untuk menerbitkan sertifikat.</small>
+            </div>
+        </div>
+        <div class="form-section-body">
+            <!-- Alert Prinsip Kehadiran -->
+            <div class="p-16 radius-8 border mb-24 d-flex align-items-start gap-3" style="background: #f0fdf4; border-color: #bbf7d0;">
+                <iconify-icon icon="solar:shield-check-bold" class="text-success-600 fs-4 mt-1 flex-shrink-0"></iconify-icon>
+                <div class="text-xs text-neutral-700" style="color: #166534;">
+                    <strong class="d-block text-success-900 mb-1" style="font-size: 13px;">Sifat Fitur: Pengayaan Interaktif (Opsional)</strong>
+                    Pre-Test dan Post-Test di event ini dirancang seperti fitur asesmen pada <strong>Arena Belajar PBJ</strong> agar narasumber dapat berinteraksi dan menguji pemahaman peserta.
+                    Fitur ini bersifat <strong>opsional</strong>. Syarat utama dan mutlak penerbitan sertifikat tetap adalah <strong>Presensi Kehadiran Sah via Kode Presensi</strong>.
+                </div>
+            </div>
+
+            <div class="row gy-4">
+                <!-- Pre-Test Card -->
+                <div class="col-lg-6">
+                    <div class="p-20 radius-10 border h-100 d-flex flex-column justify-content-between" style="background: #ffffff; border-color: #cbd5e1 !important;">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between pb-12 mb-16 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="w-32-px h-32-px rounded-circle bg-primary-100 text-primary-700 d-flex align-items-center justify-content-center fw-bold text-sm">
+                                        1
+                                    </span>
+                                    <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0f172a;">Pre-Test (Awal Sesi)</h6>
+                                </div>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input cursor-pointer" type="checkbox" id="switchPreTest" <?= ! empty($assessmentConfig['pre_test']['enabled']) ? 'checked' : '' ?>>
+                                    <label class="form-check-label fw-bold text-xs text-neutral-700 cursor-pointer" for="switchPreTest">Aktifkan</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-14">
+                                <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Judul Pre-Test</label>
+                                <input type="text" id="inputPreTestTitle" class="form-control form-control-sm radius-6"
+                                       value="<?= esc($assessmentConfig['pre_test']['title'] ?? 'Pre-Test Pemahaman Materi') ?>"
+                                       placeholder="Judul pre-test...">
+                            </div>
+
+                            <div class="row g-2 mb-14">
+                                <div class="col-6">
+                                    <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Durasi (Menit)</label>
+                                    <input type="number" min="1" max="180" id="inputPreTestDuration" class="form-control form-control-sm radius-6"
+                                           value="<?= esc($assessmentConfig['pre_test']['duration_minutes'] ?? 15) ?>">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Nilai Kelulusan (Passing)</label>
+                                    <input type="number" min="0" max="100" id="inputPreTestPassingScore" class="form-control form-control-sm radius-6"
+                                           value="<?= esc($assessmentConfig['pre_test']['passing_score'] ?? 70) ?>">
+                                </div>
+                            </div>
+
+                            <div class="mb-14">
+                                <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Petunjuk Pengerjaan Pre-Test</label>
+                                <textarea id="inputPreTestInstructions" class="form-control form-control-sm radius-6" rows="2" placeholder="Petunjuk pengerjaan bagi peserta..."><?= esc($assessmentConfig['pre_test']['instructions'] ?? '') ?></textarea>
+                            </div>
+                        </div>
+
+                        <div class="pt-12 border-top d-flex align-items-center justify-content-between">
+                            <span id="preTestCountBadge" class="badge bg-primary-50 text-primary-700 border border-primary-200 px-10 py-6 radius-6 fw-semibold text-xs">
+                                <iconify-icon icon="solar:document-text-bold" class="me-1"></iconify-icon>
+                                <?= count($assessmentConfig['pre_test']['questions'] ?? []) ?> Soal Dikonfigurasi
+                            </span>
+                            <button type="button" class="btn btn-outline-primary-600 btn-sm radius-8 px-14 py-8 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalPreTestQuestions">
+                                <iconify-icon icon="solar:pen-new-square-bold" class="me-1"></iconify-icon> Kelola Soal Pre-Test
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post-Test Card -->
+                <div class="col-lg-6">
+                    <div class="p-20 radius-10 border h-100 d-flex flex-column justify-content-between" style="background: #ffffff; border-color: #cbd5e1 !important;">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between pb-12 mb-16 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="w-32-px h-32-px rounded-circle bg-info-100 text-info-700 d-flex align-items-center justify-content-center fw-bold text-sm">
+                                        2
+                                    </span>
+                                    <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0f172a;">Post-Test (Akhir Sesi)</h6>
+                                </div>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input cursor-pointer" type="checkbox" id="switchPostTest" <?= ! empty($assessmentConfig['post_test']['enabled']) ? 'checked' : '' ?>>
+                                    <label class="form-check-label fw-bold text-xs text-neutral-700 cursor-pointer" for="switchPostTest">Aktifkan</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-14">
+                                <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Judul Post-Test</label>
+                                <input type="text" id="inputPostTestTitle" class="form-control form-control-sm radius-6"
+                                       value="<?= esc($assessmentConfig['post_test']['title'] ?? 'Post-Test Evaluasi Sesi') ?>"
+                                       placeholder="Judul post-test...">
+                            </div>
+
+                            <div class="row g-2 mb-14">
+                                <div class="col-6">
+                                    <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Durasi (Menit)</label>
+                                    <input type="number" min="1" max="180" id="inputPostTestDuration" class="form-control form-control-sm radius-6"
+                                           value="<?= esc($assessmentConfig['post_test']['duration_minutes'] ?? 15) ?>">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Nilai Kelulusan (Passing)</label>
+                                    <input type="number" min="0" max="100" id="inputPostTestPassingScore" class="form-control form-control-sm radius-6"
+                                           value="<?= esc($assessmentConfig['post_test']['passing_score'] ?? 70) ?>">
+                                </div>
+                            </div>
+
+                            <div class="mb-14">
+                                <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Petunjuk Pengerjaan Post-Test</label>
+                                <textarea id="inputPostTestInstructions" class="form-control form-control-sm radius-6" rows="2" placeholder="Petunjuk pengerjaan bagi peserta..."><?= esc($assessmentConfig['post_test']['instructions'] ?? '') ?></textarea>
+                            </div>
+                        </div>
+
+                        <div class="pt-12 border-top d-flex align-items-center justify-content-between">
+                            <span id="postTestCountBadge" class="badge bg-info-50 text-info-700 border border-info-200 px-10 py-6 radius-6 fw-semibold text-xs">
+                                <iconify-icon icon="solar:document-text-bold" class="me-1"></iconify-icon>
+                                <?= count($assessmentConfig['post_test']['questions'] ?? []) ?> Soal Dikonfigurasi
+                            </span>
+                            <button type="button" class="btn btn-outline-info-600 btn-sm radius-8 px-14 py-8 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalPostTestQuestions">
+                                <iconify-icon icon="solar:pen-new-square-bold" class="me-1"></iconify-icon> Kelola Soal Post-Test
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bagian 9: Pembelajaran Mandiri & Perpanjangan Akses (Self-Paced Learning Setelah Selesai) -->
+    <div class="form-section-card">
+        <div class="form-section-header">
+            <div class="form-section-icon bg-success-50 text-success-600">
+                <iconify-icon icon="solar:play-circle-bold"></iconify-icon>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-0 text-neutral-900" style="color: #0f172a;">9. Pembelajaran Mandiri / Self-Paced (Setelah Jadwal Selesai)</h6>
+                <small class="text-neutral-600 font-medium" style="color: #475569;">Opsi agar kegiatan tetap dibuka untuk publik setelah melewati waktu pelaksanaan tatap muka/live. Peserta dapat mengakses rekaman video, materi, dan mengklaim sertifikat via evaluasi mandiri.</small>
+            </div>
+        </div>
+        <div class="form-section-body">
+            <!-- Alert Info -->
+            <div class="p-16 radius-8 border mb-20 bg-light d-flex align-items-start gap-3" style="border-color: #cbd5e1;">
+                <iconify-icon icon="solar:info-circle-bold" class="text-success-600 fs-4 mt-1 flex-shrink-0"></iconify-icon>
+                <div class="text-xs text-neutral-700" style="color: #334155;">
+                    <strong class="d-block text-neutral-900 mb-1" style="font-size: 13px;">Skema Pembelajaran Mandiri (Sesuai Regulasi Pelatihan):</strong>
+                    Bila opsi ini diaktifkan, kegiatan yang telah melewati tanggal realisasi (status selesai) akan tetap dapat diakses dan didaftar oleh publik. E-Sertifikat untuk peserta jalur mandiri diterbitkan <strong>berdasarkan penyelesaian aktivitas mandiri (Pre-Test, menyimak rekaman/materi, dan passing Post-Test)</strong> tanpa memerlukan kode presensi sesi live. Peserta live yang sudah presensi sebelumnya tetap aman dan tidak terpengaruh skema ini.
+                </div>
+            </div>
+
+            <div class="p-20 radius-10 border bg-white mb-20" style="border-color: #cbd5e1 !important;">
+                <div class="d-flex align-items-center justify-content-between pb-12 mb-16 border-bottom">
+                    <div>
+                        <h6 class="mb-1 fw-bold text-neutral-900" style="color: #0f172a;">Status Pembelajaran Mandiri</h6>
+                        <small class="text-neutral-500 text-xs">Aktifkan untuk membuka akses rekaman dan klaim sertifikat mandiri bagi peserta.</small>
+                    </div>
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input cursor-pointer" type="checkbox" id="switchSelfPaced" <?= ! empty($assessmentConfig['self_paced']['enabled']) ? 'checked' : '' ?>>
+                        <label class="form-check-label fw-bold text-xs text-neutral-700 cursor-pointer" for="switchSelfPaced">Buka Jalur Mandiri</label>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="mb-14">
+                            <label class="form-label text-xs fw-bold text-neutral-800 mb-1">
+                                Link Rekaman Video Sesi (YouTube / Google Drive / Zoom Cloud)
+                            </label>
+                            <input type="url" id="inputSelfPacedRecordingUrl" class="form-control form-control-sm radius-6"
+                                   placeholder="https://www.youtube.com/watch?v=... atau link Drive rekaman"
+                                   value="<?= esc($assessmentConfig['self_paced']['recording_url'] ?? '') ?>">
+                            <small class="text-neutral-500 text-xs d-block mt-1">Bila URL YouTube, video player interaktif akan otomatis tertanam pada ruang belajar peserta.</small>
+                        </div>
+
+                        <div class="mb-14">
+                            <label class="form-label text-xs fw-bold text-neutral-800 mb-1">
+                                Judul / Label Rekaman Video
+                            </label>
+                            <input type="text" id="inputSelfPacedRecordingTitle" class="form-control form-control-sm radius-6"
+                                   placeholder="Contoh: Rekaman Sesi Paparan Narasumber PBJ 2026"
+                                   value="<?= esc($assessmentConfig['self_paced']['recording_title'] ?? 'Rekaman Sesi Paparan Narasumber') ?>">
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label text-xs fw-bold text-neutral-800 mb-1">
+                                Batas Waktu Perpanjangan Mandiri (Opsional)
+                            </label>
+                            <input type="datetime-local" id="inputSelfPacedExtendedUntil" class="form-control form-control-sm radius-6"
+                                   value="<?= ! empty($assessmentConfig['self_paced']['extended_until']) ? date('Y-m-d\TH:i', strtotime($assessmentConfig['self_paced']['extended_until'])) : '' ?>">
+                            <small class="text-neutral-500 text-xs d-block mt-1">Kosongkan jika ingin dibuka secara permanen tanpa batas waktu penutupan.</small>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="mb-14">
+                            <label class="form-label text-xs fw-bold text-neutral-800 mb-1">
+                                Passing Grade Post-Test untuk Sertifikat Mandiri (0 - 100)
+                            </label>
+                            <input type="number" min="0" max="100" id="inputSelfPacedMinScore" class="form-control form-control-sm radius-6"
+                                   value="<?= esc($assessmentConfig['self_paced']['min_post_test_score'] ?? 70) ?>">
+                            <small class="text-neutral-500 text-xs d-block mt-1">Nilai minimal yang harus dicapai peserta agar tombol klaim sertifikat mandiri terbuka.</small>
+                        </div>
+
+                        <div class="mb-14 p-12 radius-8 bg-neutral-50 border border-neutral-200">
+                            <label class="form-label text-xs fw-bold text-neutral-800 mb-2 d-block">Syarat Wajib Sertifikat Mandiri:</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="checkSelfPacedReqPreTest" <?= ! empty($assessmentConfig['self_paced']['require_pre_test']) ? 'checked' : '' ?>>
+                                <label class="form-check-label text-xs text-neutral-700" for="checkSelfPacedReqPreTest">Wajib menyelesaikan Pre-Test</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="checkSelfPacedReqMaterials" <?= ! empty($assessmentConfig['self_paced']['require_materials']) ? 'checked' : '' ?>>
+                                <label class="form-check-label text-xs text-neutral-700" for="checkSelfPacedReqMaterials">Wajib membuka/mempelajari bahan tayang &amp; rekaman</label>
+                            </div>
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="checkSelfPacedReqPostTest" <?= ! empty($assessmentConfig['self_paced']['require_post_test']) ? 'checked' : '' ?>>
+                                <label class="form-check-label text-xs text-neutral-700" for="checkSelfPacedReqPostTest">Wajib lulus Post-Test sesuai passing grade</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label text-xs fw-bold text-neutral-800 mb-1">Petunjuk Pembelajaran Mandiri Peserta</label>
+                            <textarea id="inputSelfPacedInstructions" class="form-control form-control-sm radius-6" rows="2" placeholder="Petunjuk alur belajar mandiri bagi peserta..."><?= esc($assessmentConfig['self_paced']['instructions'] ?? '') ?></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bagian 10: Pengaturan Sorotan & Hero Slider (Landing Page) -->
     <div class="card mb-24 radius-12 border overflow-hidden">
         <div class="card-header bg-base border-bottom py-16 px-24 d-flex align-items-center gap-3">
             <div class="w-40-px h-40-px rounded-circle bg-warning-100 text-warning-main d-flex align-items-center justify-content-center">
                 <iconify-icon icon="solar:star-bold" class="text-xl"></iconify-icon>
             </div>
             <div>
-                <h6 class="fw-semibold mb-1 text-primary-light">7. Sorotan &amp; Hero Slider (Landing Page)</h6>
+                <h6 class="fw-semibold mb-1 text-primary-light">10. Sorotan &amp; Hero Slider (Landing Page)</h6>
                 <p class="text-secondary-light text-xs mb-0">Atur apakah agenda ini ditampilkan pada headline hero carousel dan sebagai agenda unggulan.</p>
             </div>
         </div>
@@ -600,8 +969,99 @@ if (empty($openAt) || empty($code)) {
     </div>
 </form>
 
+<!-- MODAL: KELOLA SOAL PRE-TEST -->
+<div class="modal fade" id="modalPreTestQuestions" tabindex="-1" aria-labelledby="modalPreTestQuestionsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content radius-12 border-0 shadow">
+            <div class="modal-header bg-primary-50 border-bottom py-16 px-20">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="w-36-px h-36-px rounded-circle bg-primary-600 text-white d-flex align-items-center justify-content-center">
+                        <iconify-icon icon="solar:clipboard-check-bold" class="fs-5"></iconify-icon>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold text-neutral-900 mb-0" id="modalPreTestQuestionsLabel">Kelola Soal Pre-Test (Opsional)</h6>
+                        <small class="text-xs text-neutral-600 font-medium">Buat butir soal pilihan ganda (A-D) dengan kunci jawaban dan pembahasan.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-20 bg-light">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-16">
+                    <div class="text-xs text-neutral-600">
+                        Total Soal: <strong id="preTestTotalModalLabel" class="text-primary-700">0</strong> butir
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-neutral-300 btn-sm radius-6 text-xs text-neutral-700 bg-white" id="btnLoadPreTestSample">
+                            <iconify-icon icon="solar:magic-stick-bold" class="me-1 text-warning-main"></iconify-icon> Muat Contoh Soal PBJ
+                        </button>
+                        <button type="button" class="btn btn-primary-600 btn-sm radius-6 text-xs fw-bold" id="btnAddPreTestQuestion">
+                            <iconify-icon icon="solar:add-circle-bold" class="me-1"></iconify-icon> + Tambah Soal
+                        </button>
+                    </div>
+                </div>
+
+                <div id="preTestQuestionsList" class="d-flex flex-column gap-3">
+                    <!-- Dynamic Question Items Rendered by JS -->
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top py-12 px-20 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-neutral-300 btn-sm radius-8 px-16 text-neutral-700" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-primary-600 btn-sm radius-8 px-20 fw-bold" id="btnSavePreTestQuestions" data-bs-dismiss="modal">
+                    <iconify-icon icon="solar:check-circle-bold" class="me-1"></iconify-icon> Terapkan &amp; Simpan Soal Pre-Test
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: KELOLA SOAL POST-TEST -->
+<div class="modal fade" id="modalPostTestQuestions" tabindex="-1" aria-labelledby="modalPostTestQuestionsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content radius-12 border-0 shadow">
+            <div class="modal-header bg-info-50 border-bottom py-16 px-20">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="w-36-px h-36-px rounded-circle bg-info-600 text-white d-flex align-items-center justify-content-center">
+                        <iconify-icon icon="solar:diploma-verified-bold" class="fs-5"></iconify-icon>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold text-neutral-900 mb-0" id="modalPostTestQuestionsLabel">Kelola Soal Post-Test (Opsional)</h6>
+                        <small class="text-xs text-neutral-600 font-medium">Buat butir soal evaluasi pemahaman akhir peserta sesi kegiatan.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-20 bg-light">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-16">
+                    <div class="text-xs text-neutral-600">
+                        Total Soal: <strong id="postTestTotalModalLabel" class="text-info-700">0</strong> butir
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-neutral-300 btn-sm radius-6 text-xs text-neutral-700 bg-white" id="btnLoadPostTestSample">
+                            <iconify-icon icon="solar:magic-stick-bold" class="me-1 text-warning-main"></iconify-icon> Muat Contoh Soal PBJ
+                        </button>
+                        <button type="button" class="btn btn-info-600 text-white btn-sm radius-6 text-xs fw-bold" id="btnAddPostTestQuestion">
+                            <iconify-icon icon="solar:add-circle-bold" class="me-1"></iconify-icon> + Tambah Soal
+                        </button>
+                    </div>
+                </div>
+
+                <div id="postTestQuestionsList" class="d-flex flex-column gap-3">
+                    <!-- Dynamic Question Items Rendered by JS -->
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top py-12 px-20 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-neutral-300 btn-sm radius-8 px-16 text-neutral-700" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-info-600 text-white btn-sm radius-8 px-20 fw-bold" id="btnSavePostTestQuestions" data-bs-dismiss="modal">
+                    <iconify-icon icon="solar:check-circle-bold" class="me-1"></iconify-icon> Terapkan &amp; Simpan Soal Post-Test
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // 1. Cover Image Preview Handler
     const fileInput = document.getElementById('eventCoverInput');
     const previewContainer = document.getElementById('coverPreviewContainer');
     const previewImg = document.getElementById('coverPreviewImg');
@@ -649,6 +1109,415 @@ document.addEventListener('DOMContentLoaded', function() {
             <?php endif; ?>
         });
     }
+
+    // 2. Dynamic Materials Upload Rows Handler
+    const materialsContainer = document.getElementById('materialsUploadContainer');
+    const btnAddMaterialRow = document.getElementById('btnAddMaterialRow');
+
+    function updateRemoveButtons() {
+        const rows = materialsContainer.querySelectorAll('.material-upload-row');
+        rows.forEach(function(r) {
+            const btn = r.querySelector('.btn-remove-material-row');
+            if (btn) {
+                if (rows.length > 1) {
+                    btn.classList.remove('d-none');
+                } else {
+                    btn.classList.add('d-none');
+                }
+            }
+        });
+    }
+
+    if (btnAddMaterialRow && materialsContainer) {
+        btnAddMaterialRow.addEventListener('click', function() {
+            const newRow = document.createElement('div');
+            newRow.className = 'material-upload-row p-16 rounded-8 border bg-neutral-50';
+            newRow.style.borderColor = '#cbd5e1';
+            newRow.innerHTML = `
+                <div class="row gy-3 align-items-center">
+                    <div class="col-md-5">
+                        <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Pilih File (PDF, PPT, PPTX, XLS, DOC) <span class="text-muted">(Maks 30MB)</span></label>
+                        <input type="file" name="materials[]" class="form-control form-control-sm radius-6" accept=".pdf,.ppt,.pptx,.xls,.xlsx,.doc,.docx" style="border-color: #cbd5e1;">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Judul / Keterangan Dokumen</label>
+                        <input type="text" name="material_titles[]" class="form-control form-control-sm radius-6" placeholder="Contoh: Modul & Handout Peserta" style="border-color: #cbd5e1;">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Nama Pemateri / Narasumber</label>
+                        <div class="d-flex gap-2">
+                            <input type="text" name="material_speakers[]" class="form-control form-control-sm radius-6" placeholder="Contoh: Narasumber Ahli" style="border-color: #cbd5e1;">
+                            <button type="button" class="btn btn-outline-danger btn-sm radius-6 px-10 py-6 btn-remove-material-row" title="Hapus Baris">
+                                <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            materialsContainer.appendChild(newRow);
+            updateRemoveButtons();
+        });
+
+        materialsContainer.addEventListener('click', function(e) {
+            const removeBtn = e.target.closest('.btn-remove-material-row');
+            if (removeBtn) {
+                const row = removeBtn.closest('.material-upload-row');
+                if (row && materialsContainer.querySelectorAll('.material-upload-row').length > 1) {
+                    row.remove();
+                    updateRemoveButtons();
+                }
+            }
+        });
+    }
+
+    // 3. Pre-Test & Post-Test State Management
+    let preTestData = <?= json_encode($assessmentConfig['pre_test'] ?? [
+        'enabled' => false,
+        'title' => 'Pre-Test Pemahaman Materi',
+        'duration_minutes' => 15,
+        'passing_score' => 70,
+        'instructions' => '',
+        'questions' => []
+    ], JSON_UNESCAPED_UNICODE) ?>;
+
+    let postTestData = <?= json_encode($assessmentConfig['post_test'] ?? [
+        'enabled' => false,
+        'title' => 'Post-Test Evaluasi Sesi',
+        'duration_minutes' => 15,
+        'passing_score' => 70,
+        'instructions' => '',
+        'questions' => []
+    ], JSON_UNESCAPED_UNICODE) ?>;
+
+    let selfPacedData = <?= json_encode($assessmentConfig['self_paced'] ?? [
+        'enabled'             => false,
+        'recording_url'       => '',
+        'recording_title'     => 'Rekaman Sesi Paparan Narasumber',
+        'extended_until'      => null,
+        'min_post_test_score' => 70,
+        'require_pre_test'    => true,
+        'require_materials'   => true,
+        'require_post_test'   => true,
+        'instructions'        => '',
+    ], JSON_UNESCAPED_UNICODE) ?>;
+
+    if (!Array.isArray(preTestData.questions)) preTestData.questions = [];
+    if (!Array.isArray(postTestData.questions)) postTestData.questions = [];
+
+    // Helper: Render Question List inside Modal
+    function renderQuestionList(type) {
+        const isPre = (type === 'pre_test');
+        const container = document.getElementById(isPre ? 'preTestQuestionsList' : 'postTestQuestionsList');
+        const questions = isPre ? preTestData.questions : postTestData.questions;
+        const totalLabel = document.getElementById(isPre ? 'preTestTotalModalLabel' : 'postTestTotalModalLabel');
+
+        if (totalLabel) totalLabel.textContent = questions.length;
+        if (!container) return;
+
+        if (questions.length === 0) {
+            container.innerHTML = `
+                <div class="text-center p-30 border rounded-8 bg-white text-muted">
+                    <iconify-icon icon="solar:clipboard-list-broken" class="display-5 text-neutral-400 mb-2"></iconify-icon>
+                    <p class="mb-2 fw-semibold text-neutral-700">Belum ada butir soal yang ditambahkan.</p>
+                    <p class="text-xs text-neutral-500 mb-0">Klik tombol <strong>+ Tambah Soal</strong> atau <strong>Muat Contoh Soal PBJ</strong> di atas.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        questions.forEach(function(q, idx) {
+            const qNum = idx + 1;
+            const options = Array.isArray(q.options) ? q.options : ['', '', '', ''];
+            while (options.length < 4) options.push('');
+
+            const selectedAns = parseInt(q.answer || 0, 10);
+
+            html += `
+                <div class="card border rounded-8 p-16 bg-white question-card" data-index="${idx}">
+                    <div class="d-flex justify-content-between align-items-center mb-12 pb-8 border-bottom">
+                        <span class="badge ${isPre ? 'bg-primary-100 text-primary-700' : 'bg-info-100 text-info-700'} fw-bold text-xs">
+                            Nomor Soal ${qNum}
+                        </span>
+                        <button type="button" class="btn btn-sm btn-link text-danger p-0 btn-delete-question" data-type="${type}" data-index="${idx}" title="Hapus Soal Ini">
+                            <iconify-icon icon="solar:trash-bin-trash-bold" class="fs-5"></iconify-icon> Hapus
+                        </button>
+                    </div>
+
+                    <div class="mb-12">
+                        <label class="form-label text-xs fw-bold text-neutral-800 mb-1">Pertanyaan / Soal Kasus:</label>
+                        <textarea class="form-control form-control-sm q-text" rows="2" placeholder="Tuliskan pertanyaan disini...">${escapeHtml(q.question || '')}</textarea>
+                    </div>
+
+                    <div class="mb-12">
+                        <label class="form-label text-xs fw-bold text-neutral-800 mb-1">Pilihan Jawaban (Pilih Radio untuk Kunci Jawaban Benar):</label>
+                        <div class="d-flex flex-column gap-2">
+            `;
+
+            ['A', 'B', 'C', 'D'].forEach(function(letter, optIdx) {
+                const optVal = escapeHtml(options[optIdx] || '');
+                const isChecked = (selectedAns === optIdx) ? 'checked' : '';
+                html += `
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light">
+                            <input class="form-check-input mt-0 q-correct-radio" type="radio" name="correct_${type}_${idx}" value="${optIdx}" ${isChecked}>
+                            <strong class="ms-1">${letter}</strong>
+                        </span>
+                        <input type="text" class="form-control q-opt-${optIdx}" value="${optVal}" placeholder="Pilihan ${letter}...">
+                    </div>
+                `;
+            });
+
+            html += `
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label text-xs fw-bold text-neutral-800 mb-1">Pembahasan / Penjelasan Jawaban (Opsional):</label>
+                        <input type="text" class="form-control form-control-sm q-explanation" value="${escapeHtml(q.explanation || '')}" placeholder="Penjelasan singkat acuan regulasi atau alasan...">
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Helper: Collect Questions from Modal Container
+    function collectQuestionsFromModal(type) {
+        const isPre = (type === 'pre_test');
+        const container = document.getElementById(isPre ? 'preTestQuestionsList' : 'postTestQuestionsList');
+        if (!container) return [];
+
+        const questionCards = container.querySelectorAll('.question-card');
+        const collected = [];
+
+        questionCards.forEach(function(card, idx) {
+            const qText = (card.querySelector('.q-text')?.value || '').trim();
+            if (!qText) return;
+
+            const opt0 = (card.querySelector('.q-opt-0')?.value || '').trim();
+            const opt1 = (card.querySelector('.q-opt-1')?.value || '').trim();
+            const opt2 = (card.querySelector('.q-opt-2')?.value || '').trim();
+            const opt3 = (card.querySelector('.q-opt-3')?.value || '').trim();
+
+            const options = [opt0 || 'Opsi A', opt1 || 'Opsi B', opt2 || 'Opsi C', opt3 || 'Opsi D'];
+            const checkedRadio = card.querySelector(`input[name="correct_${type}_${idx}"]:checked`);
+            const answer = checkedRadio ? parseInt(checkedRadio.value, 10) : 0;
+            const explanation = (card.querySelector('.q-explanation')?.value || '').trim();
+
+            collected.push({
+                id: idx + 1,
+                question: qText,
+                options: options,
+                answer: answer,
+                explanation: explanation
+            });
+        });
+
+        return collected;
+    }
+
+    // Sync state to hidden inputs and badges
+    function syncToHiddenInputs() {
+        const switchPre = document.getElementById('switchPreTest');
+        const switchPost = document.getElementById('switchPostTest');
+
+        preTestData.enabled = switchPre ? switchPre.checked : false;
+        preTestData.title = (document.getElementById('inputPreTestTitle')?.value || '').trim();
+        preTestData.duration_minutes = parseInt(document.getElementById('inputPreTestDuration')?.value || 15, 10);
+        preTestData.passing_score = parseInt(document.getElementById('inputPreTestPassingScore')?.value || 70, 10);
+        preTestData.instructions = (document.getElementById('inputPreTestInstructions')?.value || '').trim();
+
+        postTestData.enabled = switchPost ? switchPost.checked : false;
+        postTestData.title = (document.getElementById('inputPostTestTitle')?.value || '').trim();
+        postTestData.duration_minutes = parseInt(document.getElementById('inputPostTestDuration')?.value || 15, 10);
+        postTestData.passing_score = parseInt(document.getElementById('inputPostTestPassingScore')?.value || 70, 10);
+        postTestData.instructions = (document.getElementById('inputPostTestInstructions')?.value || '').trim();
+
+        const inputPre = document.getElementById('inputPreTestData');
+        const inputPost = document.getElementById('inputPostTestData');
+
+        if (inputPre) inputPre.value = JSON.stringify(preTestData);
+        if (inputPost) inputPost.value = JSON.stringify(postTestData);
+
+        // Self-Paced Learning Sync
+        const switchSelf = document.getElementById('switchSelfPaced');
+        selfPacedData.enabled = switchSelf ? switchSelf.checked : false;
+        selfPacedData.recording_url = (document.getElementById('inputSelfPacedRecordingUrl')?.value || '').trim();
+        selfPacedData.recording_title = (document.getElementById('inputSelfPacedRecordingTitle')?.value || '').trim();
+        selfPacedData.extended_until = (document.getElementById('inputSelfPacedExtendedUntil')?.value || '').trim() || null;
+        selfPacedData.min_post_test_score = parseInt(document.getElementById('inputSelfPacedMinScore')?.value || 70, 10);
+        selfPacedData.require_pre_test = document.getElementById('checkSelfPacedReqPreTest')?.checked ?? true;
+        selfPacedData.require_materials = document.getElementById('checkSelfPacedReqMaterials')?.checked ?? true;
+        selfPacedData.require_post_test = document.getElementById('checkSelfPacedReqPostTest')?.checked ?? true;
+        selfPacedData.instructions = (document.getElementById('inputSelfPacedInstructions')?.value || '').trim();
+
+        const inputSelfPaced = document.getElementById('inputSelfPacedData');
+        if (inputSelfPaced) inputSelfPaced.value = JSON.stringify(selfPacedData);
+
+        const badgePre = document.getElementById('preTestCountBadge');
+        if (badgePre) {
+            badgePre.innerHTML = `<iconify-icon icon="solar:document-text-bold" class="me-1"></iconify-icon> ${preTestData.questions.length} Soal Dikonfigurasi`;
+        }
+
+        const badgePost = document.getElementById('postTestCountBadge');
+        if (badgePost) {
+            badgePost.innerHTML = `<iconify-icon icon="solar:document-text-bold" class="me-1"></iconify-icon> ${postTestData.questions.length} Soal Dikonfigurasi`;
+        }
+    }
+
+    // Modal Event: Render on Open
+    const modalPreEl = document.getElementById('modalPreTestQuestions');
+    if (modalPreEl) {
+        modalPreEl.addEventListener('show.bs.modal', function() {
+            renderQuestionList('pre_test');
+        });
+    }
+
+    const modalPostEl = document.getElementById('modalPostTestQuestions');
+    if (modalPostEl) {
+        modalPostEl.addEventListener('show.bs.modal', function() {
+            renderQuestionList('post_test');
+        });
+    }
+
+    // Add New Question Buttons
+    const btnAddPreQ = document.getElementById('btnAddPreTestQuestion');
+    if (btnAddPreQ) {
+        btnAddPreQ.addEventListener('click', function() {
+            preTestData.questions = collectQuestionsFromModal('pre_test');
+            preTestData.questions.push({
+                id: preTestData.questions.length + 1,
+                question: '',
+                options: ['', '', '', ''],
+                answer: 0,
+                explanation: ''
+            });
+            renderQuestionList('pre_test');
+        });
+    }
+
+    const btnAddPostQ = document.getElementById('btnAddPostTestQuestion');
+    if (btnAddPostQ) {
+        btnAddPostQ.addEventListener('click', function() {
+            postTestData.questions = collectQuestionsFromModal('post_test');
+            postTestData.questions.push({
+                id: postTestData.questions.length + 1,
+                question: '',
+                options: ['', '', '', ''],
+                answer: 0,
+                explanation: ''
+            });
+            renderQuestionList('post_test');
+        });
+    }
+
+    // Delete Question Handlers
+    document.addEventListener('click', function(e) {
+        const delBtn = e.target.closest('.btn-delete-question');
+        if (delBtn) {
+            const type = delBtn.getAttribute('data-type');
+            const idx = parseInt(delBtn.getAttribute('data-index'), 10);
+            if (type === 'pre_test') {
+                preTestData.questions = collectQuestionsFromModal('pre_test');
+                preTestData.questions.splice(idx, 1);
+                renderQuestionList('pre_test');
+            } else {
+                postTestData.questions = collectQuestionsFromModal('post_test');
+                postTestData.questions.splice(idx, 1);
+                renderQuestionList('post_test');
+            }
+        }
+    });
+
+    // Save Buttons inside Modals
+    const btnSavePre = document.getElementById('btnSavePreTestQuestions');
+    if (btnSavePre) {
+        btnSavePre.addEventListener('click', function() {
+            preTestData.questions = collectQuestionsFromModal('pre_test');
+            syncToHiddenInputs();
+        });
+    }
+
+    const btnSavePost = document.getElementById('btnSavePostTestQuestions');
+    if (btnSavePost) {
+        btnSavePost.addEventListener('click', function() {
+            postTestData.questions = collectQuestionsFromModal('post_test');
+            syncToHiddenInputs();
+        });
+    }
+
+    // Load Sample Procurement Questions Template
+    const sampleQuestions = [
+        {
+            id: 1,
+            question: "Manakah di bawah ini yang merupakan salah satu prinsip dasar Pengadaan Barang/Jasa Pemerintah menurut Peraturan Presiden?",
+            options: [
+                "Efisien, Efektif, Transparan, Terbuka, Bersaing, Adil, dan Akuntabel",
+                "Cepat, Tanpa Evaluasi, Fleksibel, dan Mandiri",
+                "Mengutamakan Rekanan Tertentu Demi Kelancaran Proyek",
+                "Tertutup untuk Umum dan Hanya Menggunakan Penunjukan Langsung"
+            ],
+            answer: 0,
+            explanation: "Sesuai Pasal 6 Perpres PBJ, prinsip pengadaan meliputi Efisien, Efektif, Transparan, Terbuka, Bersaing, Adil/Tidak Diskriminatif, dan Akuntabel."
+        },
+        {
+            id: 2,
+            question: "Apa fungsi utama penyusunan Harga Perkiraan Sendiri (HPS) oleh Pejabat Pembuat Komitmen (PPK)?",
+            options: [
+                "Alat untuk menggugurkan semua penawaran peserta",
+                "Alat untuk menilai kewajaran harga penawaran dan batas tertinggi penawaran pengadaan",
+                "Menentukan pemenang lelang sejak awal sebelum proses tender dimulai",
+                "Sebagai dasar penetapan besaran pajak penghasilan penyedia"
+            ],
+            answer: 1,
+            explanation: "HPS berfungsi sebagai alat untuk menilai kewajaran harga penawaran dan batas tertinggi penawaran yang sah untuk tender/seleksi."
+        }
+    ];
+
+    const btnLoadPreSample = document.getElementById('btnLoadPreTestSample');
+    if (btnLoadPreSample) {
+        btnLoadPreSample.addEventListener('click', function() {
+            if (confirm('Muat 2 butir contoh soal template PBJ ke Pre-Test?')) {
+                preTestData.questions = JSON.parse(JSON.stringify(sampleQuestions));
+                renderQuestionList('pre_test');
+            }
+        });
+    }
+
+    const btnLoadPostSample = document.getElementById('btnLoadPostTestSample');
+    if (btnLoadPostSample) {
+        btnLoadPostSample.addEventListener('click', function() {
+            if (confirm('Muat 2 butir contoh soal template PBJ ke Post-Test?')) {
+                postTestData.questions = JSON.parse(JSON.stringify(sampleQuestions));
+                renderQuestionList('post_test');
+            }
+        });
+    }
+
+    // Self-Paced Inputs Live Sync Listeners
+    ['switchSelfPaced', 'checkSelfPacedReqPreTest', 'checkSelfPacedReqMaterials', 'checkSelfPacedReqPostTest'].forEach(function(id) {
+        document.getElementById(id)?.addEventListener('change', syncToHiddenInputs);
+    });
+    ['inputSelfPacedRecordingUrl', 'inputSelfPacedRecordingTitle', 'inputSelfPacedExtendedUntil', 'inputSelfPacedMinScore', 'inputSelfPacedInstructions'].forEach(function(id) {
+        document.getElementById(id)?.addEventListener('input', syncToHiddenInputs);
+    });
+
+    // Form Submit Event: Ensure latest sync
+    const eventMainForm = document.getElementById('eventMainForm');
+    if (eventMainForm) {
+        eventMainForm.addEventListener('submit', function() {
+            syncToHiddenInputs();
+        });
+    }
+
+    // Initialize sync on page load
+    syncToHiddenInputs();
 });
 </script>
 
