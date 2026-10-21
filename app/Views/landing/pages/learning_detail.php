@@ -1260,8 +1260,8 @@ $err          = session()->getFlashdata('error');
     $modules          = $modules ?? [];
     $otherClasses     = $otherClasses ?? [];
     $classStatus      = strtolower((string) ($item['status'] ?? 'scheduled'));
-    $enrollable       = in_array($classStatus, ['scheduled', 'active'], true);
-    $statusConfig     = $classStatus === 'active'
+    $enrollable       = in_array($classStatus, ['scheduled', 'active', 'open', 'published', 'ongoing'], true);
+    $statusConfig     = in_array($classStatus, ['active', 'ongoing', 'berlangsung', 'aktif'], true)
         ? ['label' => 'Sedang Berjalan (Aktif)', 'badge' => 'bg-success text-white', 'icon' => 'fa-play-circle']
         : ['label' => 'Jadwal Terbuka (Segera Dimulai)', 'badge' => 'bg-warning text-dark', 'icon' => 'fa-clock'];
 
@@ -2179,9 +2179,9 @@ $err          = session()->getFlashdata('error');
                                     <?php
                                     $clsStatus = strtolower((string) ($cls['status'] ?? 'scheduled'));
                                     $clsStatusBadge = match ($clsStatus) {
-                                        'active'    => ['label' => 'Sedang Berjalan (Aktif)', 'badge' => 'bg-success text-white', 'icon' => 'fa-play-circle'],
-                                        'completed' => ['label' => 'Selesai', 'badge' => 'bg-secondary text-white', 'icon' => 'fa-check-double'],
-                                        default     => ['label' => 'Jadwal Terbuka', 'badge' => 'bg-warning text-dark', 'icon' => 'fa-clock'],
+                                        'active', 'ongoing', 'berlangsung', 'aktif' => ['label' => 'Sedang Berjalan (Aktif)', 'badge' => 'bg-success text-white', 'icon' => 'fa-play-circle'],
+                                        'completed', 'closed', 'selesai'            => ['label' => 'Selesai', 'badge' => 'bg-secondary text-white', 'icon' => 'fa-check-double'],
+                                        default                                     => ['label' => 'Jadwal Terbuka', 'badge' => 'bg-warning text-dark', 'icon' => 'fa-clock'],
                                     };
                                     $startD = ! empty($cls['start_at']) ? date('d M Y', strtotime($cls['start_at'])) : '-';
                                     $endD   = ! empty($cls['end_at']) ? date('d M Y', strtotime($cls['end_at'])) : '-';

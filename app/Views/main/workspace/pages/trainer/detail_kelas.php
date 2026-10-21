@@ -80,8 +80,17 @@ $levelLabel = static function (?string $lvl): string {
                         <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 small fw-semibold">
                             <?= esc($c['code'] ?? 'KELAS') ?>
                         </span>
-                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 small fw-medium">
-                            <?= esc(ucfirst($c['status'] ?? 'active')) ?>
+                        <?php
+                        $rawClassStatus = strtolower((string) ($c['status'] ?? 'active'));
+                        $statusBadge = match ($rawClassStatus) {
+                            'active', 'ongoing', 'berlangsung', 'aktif' => ['bg' => 'bg-success-subtle text-success border border-success-subtle', 'label' => 'Aktif / Berjalan (Tayang)'],
+                            'scheduled', 'open', 'published', 'terbuka' => ['bg' => 'bg-primary-subtle text-primary border border-primary-subtle', 'label' => 'Jadwal Terbuka (Tayang)'],
+                            'completed', 'closed', 'selesai'            => ['bg' => 'bg-secondary-subtle text-secondary border border-secondary-subtle', 'label' => 'Selesai'],
+                            default                                     => ['bg' => 'bg-warning-subtle text-warning border border-warning-subtle', 'label' => 'Draft (Tidak Tayang)'],
+                        };
+                        ?>
+                        <span class="badge rounded-pill px-3 py-1 small fw-semibold <?= $statusBadge['bg'] ?>">
+                            <?= esc($statusBadge['label']) ?>
                         </span>
                         <?php $mb = $methodBadge($c['learning_method'] ?? null); ?>
                         <span class="badge rounded-pill px-3 py-1 small fw-semibold <?= $mb['class'] ?>">

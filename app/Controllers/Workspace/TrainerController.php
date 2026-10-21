@@ -1728,7 +1728,15 @@ class TrainerController extends BaseController
         $learningMethod = (string) ($this->request->getPost('learning_method') ?: 'online');
         $locationOrLink = trim((string) $this->request->getPost('location_or_link'));
         $targetAudience = trim((string) $this->request->getPost('target_audience'));
-        $status = (string) ($this->request->getPost('status') ?: $class['status']);
+
+        $rawStatus = (string) ($this->request->getPost('status') ?: ($class['status'] ?? 'active'));
+        $status = match (strtolower(trim($rawStatus))) {
+            'open', 'scheduled', 'published', 'terbuka' => 'scheduled',
+            'active', 'ongoing', 'berlangsung', 'aktif'  => 'active',
+            'completed', 'closed', 'selesai'             => 'completed',
+            'draft', 'archived', 'draf'                  => 'draft',
+            default                                      => in_array($rawStatus, ['scheduled', 'active', 'completed', 'draft'], true) ? $rawStatus : ($class['status'] ?: 'active'),
+        };
 
         $startAt = $this->request->getPost('start_at') ? date('Y-m-d H:i:s', strtotime((string) $this->request->getPost('start_at'))) : null;
         $endAt = $this->request->getPost('end_at') ? date('Y-m-d H:i:s', strtotime((string) $this->request->getPost('end_at'))) : null;

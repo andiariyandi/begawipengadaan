@@ -382,8 +382,17 @@ $trainerRoleLabel = static function (?string $role): string {
                                                 <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 small fw-bold">
                                                     <?= esc($c['code'] ?? 'KELAS') ?>
                                                 </span>
-                                                <span class="badge <?= ($c['class_status'] ?? '') === 'active' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' ?> rounded-pill px-2 py-1 small">
-                                                    <?= esc(ucfirst($c['class_status'] ?? 'draft')) ?>
+                                                <?php
+                                                $hcStat = strtolower((string) ($c['class_status'] ?? 'active'));
+                                                $hcBadge = match ($hcStat) {
+                                                    'active', 'ongoing', 'berlangsung', 'aktif' => ['class' => 'bg-success-subtle text-success', 'label' => 'Aktif'],
+                                                    'scheduled', 'open', 'published', 'terbuka' => ['class' => 'bg-primary-subtle text-primary', 'label' => 'Terbuka'],
+                                                    'completed', 'closed', 'selesai'            => ['class' => 'bg-secondary-subtle text-secondary', 'label' => 'Selesai'],
+                                                    default                                     => ['class' => 'bg-warning-subtle text-warning', 'label' => 'Draft'],
+                                                };
+                                                ?>
+                                                <span class="badge <?= $hcBadge['class'] ?> rounded-pill px-2 py-1 small">
+                                                    <?= esc($hcBadge['label']) ?>
                                                 </span>
                                                 <?php if (! empty($c['trainer_role'])): ?>
                                                     <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1 small">

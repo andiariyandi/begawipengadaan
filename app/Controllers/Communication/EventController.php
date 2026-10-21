@@ -5,6 +5,7 @@ namespace App\Controllers\Communication;
 use App\Controllers\BaseController;
 use App\Models\Communication\EventModel;
 use App\Services\Communication\CommunicationService;
+use App\Services\EventAssessmentService;
 
 class EventController extends BaseController
 {
@@ -65,13 +66,18 @@ class EventController extends BaseController
 
     public function create(): string
     {
+        $assessmentSvc = new EventAssessmentService();
+
         return view('dashboard/communication/events/form', [
-            'title'         => 'Tambah Event | Dashboard BegawiPengadaan',
-            'pageTitle'     => 'Tambah Event',
-            'formMode'      => 'create',
-            'activeMenu'    => 'communication',
-            'activeSubmenu' => 'events',
-            'item'          => null,
+            'title'            => 'Tambah Event | Dashboard BegawiPengadaan',
+            'pageTitle'        => 'Tambah Event',
+            'formMode'         => 'create',
+            'activeMenu'       => 'communication',
+            'activeSubmenu'    => 'events',
+            'item'             => null,
+            'assessmentConfig' => $assessmentSvc->getAssessmentConfig(0),
+            'materials'        => [],
+            'assessmentStats'  => [],
         ]);
     }
 
@@ -81,6 +87,7 @@ class EventController extends BaseController
         $post = $this->request->getPost();
         $files = $this->request->getFiles();
         $post['cover_file'] = $files['cover'] ?? null;
+        $actorId = (int) session()->get('user_id');
 
         $rules = [
             'title' => 'required|max_length[255]',
@@ -90,11 +97,45 @@ class EventController extends BaseController
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('error', 'Validasi gagal: ' . implode(', ', $this->validator->getErrors()));
         }
+
         try {
-            $id = $svc->createEvent($post, (int) session()->get('user_id'));
+            $id = $svc->createEvent($post, $actorId);
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', 'Gagal membuat event: ' . $e->getMessage());
         }
+
+        // Save optional Pre-Test, Post-Test, and Self-Paced configuration
+        $assessmentSvc = new EventAssessmentService();
+        $preTestData = $this->request->getPost('pre_test_data');
+        $postTestData = $this->request->getPost('post_test_data');
+        $selfPacedData = $this->request->getPost('self_paced_data');
+        $selfPacedPost = $this->request->getPost('self_paced');
+        $selfPacedArray = is_string($selfPacedData) ? json_decode($selfPacedData, true) : ($selfPacedData ?: $selfPacedPost);
+
+        if (! empty($preTestData) || ! empty($postTestData) || ! empty($selfPacedArray)) {
+            $config = [
+                'pre_test'   => is_string($preTestData) ? json_decode($preTestData, true) : ($preTestData ?: []),
+                'post_test'  => is_string($postTestData) ? json_decode($postTestData, true) : ($postTestData ?: []),
+                'self_paced' => is_array($selfPacedArray) ? $selfPacedArray : [],
+            ];
+            $assessmentSvc->saveAssessmentConfig($id, $config, $actorId);
+        }
+
+        // Upload any initial materials attached
+        $materialFiles = $this->request->getFileMultiple('materials');
+        $materialTitles = (array) $this->request->getPost('material_titles');
+        $materialSpeakers = (array) $this->request->getPost('material_speakers');
+        if ($materialFiles) {
+            foreach ($materialFiles as $idx => $mFile) {
+                if ($mFile && $mFile->isValid() && ! $mFile->hasMoved()) {
+                    $assessmentSvc->uploadMaterial($id, $mFile, [
+                        'title'   => $materialTitles[$idx] ?? '',
+                        'speaker' => $materialSpeakers[$idx] ?? '',
+                    ], $actorId);
+                }
+            }
+        }
+
         return redirect()->to(route_to('dashboard.communication.events.detail', (string) $id))
             ->with('success', 'Event berhasil ditambahkan.');
     }
@@ -126,13 +167,18 @@ class EventController extends BaseController
             ->countAllResults();
 
         $participants = $db->table('event_registrations er')
-            ->select('er.id AS registration_id, er.status AS registration_status, er.registered_at, u.name AS user_name, u.email AS user_email, u.phone AS user_phone, a.status AS attendance_status, a.recorded_at AS attendance_recorded_at, c.id AS certificate_id, c.certificate_number, c.status AS certificate_status')
+            ->select('er.id AS registration_id, er.user_id, er.status AS registration_status, er.registered_at, u.name AS user_name, u.email AS user_email, u.phone AS user_phone, a.status AS attendance_status, a.recorded_at AS attendance_recorded_at, c.id AS certificate_id, c.certificate_number, c.status AS certificate_status')
             ->join('users u', 'u.id = er.user_id')
             ->join('attendances a', 'a.event_registration_id = er.id', 'left')
             ->join('certificates c', 'c.source_id = er.id AND c.source_type = \'event_registration\'', 'left')
             ->where('er.event_id', $eventId)
             ->orderBy('er.registered_at', 'ASC')
             ->get()->getResultArray();
+
+        $assessmentSvc = new EventAssessmentService();
+        $materials = $assessmentSvc->getMaterials($eventId);
+        $assessmentConfig = $assessmentSvc->getAssessmentConfig($eventId);
+        $assessmentStats = $assessmentSvc->getAssessmentStats($eventId);
 
         return view('dashboard/communication/events/detail', [
             'title'            => 'Detail Event | Dashboard BegawiPengadaan',
@@ -145,6 +191,9 @@ class EventController extends BaseController
             'presentCount'     => $presentCount,
             'certifiedCount'   => $certifiedCount,
             'participants'     => $participants,
+            'materials'        => $materials,
+            'assessmentConfig' => $assessmentConfig,
+            'assessmentStats'  => $assessmentStats,
         ]);
     }
 
@@ -206,14 +255,24 @@ class EventController extends BaseController
         if ($row === null) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
         }
+
+        $eventId = (int) $id;
+        $assessmentSvc = new EventAssessmentService();
+        $materials = $assessmentSvc->getMaterials($eventId);
+        $assessmentConfig = $assessmentSvc->getAssessmentConfig($eventId);
+        $assessmentStats = $assessmentSvc->getAssessmentStats($eventId);
+
         return view('dashboard/communication/events/form', [
-            'title'         => 'Ubah Event | Dashboard BegawiPengadaan',
-            'pageTitle'     => 'Ubah Event',
-            'formMode'      => 'edit',
-            'activeMenu'    => 'communication',
-            'activeSubmenu' => 'events',
-            'item'          => $row,
-            'eventId'       => (int) $id,
+            'title'            => 'Ubah Event | Dashboard BegawiPengadaan',
+            'pageTitle'        => 'Ubah Event',
+            'formMode'         => 'edit',
+            'activeMenu'       => 'communication',
+            'activeSubmenu'    => 'events',
+            'item'             => $row,
+            'eventId'          => $eventId,
+            'materials'        => $materials,
+            'assessmentConfig' => $assessmentConfig,
+            'assessmentStats'  => $assessmentStats,
         ]);
     }
 
@@ -223,6 +282,9 @@ class EventController extends BaseController
         $post = $this->request->getPost();
         $files = $this->request->getFiles();
         $post['cover_file'] = $files['cover'] ?? null;
+        $actorId = (int) session()->get('user_id');
+        $eventId = (int) $id;
+
         $rules = [
             'title' => 'required|max_length[255]',
             'mode'  => 'permit_empty|in_list[online,offline,hybrid]',
@@ -231,13 +293,122 @@ class EventController extends BaseController
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('error', 'Validasi gagal: ' . implode(', ', $this->validator->getErrors()));
         }
+
         try {
-            $svc->updateEvent((int) $id, $post, (int) session()->get('user_id'));
+            $svc->updateEvent($eventId, $post, $actorId);
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', 'Gagal mengubah event: ' . $e->getMessage());
         }
-        return redirect()->to(route_to('dashboard.communication.events.detail', (string) $id))
+
+        // Save optional Pre-Test, Post-Test, and Self-Paced configuration
+        $assessmentSvc = new EventAssessmentService();
+        $preTestData = $this->request->getPost('pre_test_data');
+        $postTestData = $this->request->getPost('post_test_data');
+        $selfPacedData = $this->request->getPost('self_paced_data');
+        $selfPacedPost = $this->request->getPost('self_paced');
+        $selfPacedArray = is_string($selfPacedData) ? json_decode($selfPacedData, true) : ($selfPacedData ?: $selfPacedPost);
+
+        if ($preTestData !== null || $postTestData !== null || $selfPacedArray !== null) {
+            $config = [];
+            if ($preTestData !== null) {
+                $config['pre_test'] = is_string($preTestData) ? json_decode($preTestData, true) : ($preTestData ?: []);
+            }
+            if ($postTestData !== null) {
+                $config['post_test'] = is_string($postTestData) ? json_decode($postTestData, true) : ($postTestData ?: []);
+            }
+            if ($selfPacedArray !== null) {
+                $config['self_paced'] = is_array($selfPacedArray) ? $selfPacedArray : [];
+            }
+            $assessmentSvc->saveAssessmentConfig($eventId, $config, $actorId);
+        }
+
+        // Upload any newly attached materials
+        $materialFiles = $this->request->getFileMultiple('materials');
+        $materialTitles = (array) $this->request->getPost('material_titles');
+        $materialSpeakers = (array) $this->request->getPost('material_speakers');
+        if ($materialFiles) {
+            foreach ($materialFiles as $idx => $mFile) {
+                if ($mFile && $mFile->isValid() && ! $mFile->hasMoved()) {
+                    $assessmentSvc->uploadMaterial($eventId, $mFile, [
+                        'title'   => $materialTitles[$idx] ?? '',
+                        'speaker' => $materialSpeakers[$idx] ?? '',
+                    ], $actorId);
+                }
+            }
+        }
+
+        return redirect()->to(route_to('dashboard.communication.events.detail', (string) $eventId))
             ->with('success', 'Event berhasil diperbarui.');
+    }
+
+    public function uploadMaterial(string $id)
+    {
+        $assessmentSvc = new EventAssessmentService();
+        $actorId = (int) session()->get('user_id');
+        $eventId = (int) $id;
+
+        $file = $this->request->getFile('material_file');
+        $title = (string) $this->request->getPost('title');
+        $speaker = (string) $this->request->getPost('speaker');
+        $notes = (string) $this->request->getPost('notes');
+
+        if (! $file || ! $file->isValid()) {
+            return redirect()->back()->with('error', 'File materi tidak valid atau tidak dipilih.');
+        }
+
+        $fileId = $assessmentSvc->uploadMaterial($eventId, $file, [
+            'title'   => $title,
+            'speaker' => $speaker,
+            'notes'   => $notes,
+        ], $actorId);
+
+        if (! $fileId) {
+            return redirect()->back()->with('error', 'Format file tidak didukung. Harap unggah format PDF, PPT, PPTX, XLS, XLSX, DOC, atau DOCX.');
+        }
+
+        return redirect()->back()->with('success', 'Materi tayang berhasil diunggah.');
+    }
+
+    public function deleteMaterial(string $id, string $materialId)
+    {
+        $assessmentSvc = new EventAssessmentService();
+        $eventId = (int) $id;
+        $matId = (int) $materialId;
+
+        $ok = $assessmentSvc->deleteMaterial($matId, $eventId);
+        if ($ok) {
+            return redirect()->back()->with('success', 'Materi tayang berhasil dihapus.');
+        }
+
+        return redirect()->back()->with('error', 'Gagal menghapus materi.');
+    }
+
+    public function saveAssessment(string $id)
+    {
+        $assessmentSvc = new EventAssessmentService();
+        $actorId = (int) session()->get('user_id');
+        $eventId = (int) $id;
+
+        $preTestData = $this->request->getPost('pre_test_data');
+        $postTestData = $this->request->getPost('post_test_data');
+        $selfPacedData = $this->request->getPost('self_paced_data');
+        $selfPacedPost = $this->request->getPost('self_paced');
+        $selfPacedArray = is_string($selfPacedData) ? json_decode($selfPacedData, true) : ($selfPacedData ?: $selfPacedPost);
+
+        $config = [];
+        if ($preTestData !== null) {
+            $config['pre_test'] = is_string($preTestData) ? json_decode($preTestData, true) : ($preTestData ?: []);
+        }
+        if ($postTestData !== null) {
+            $config['post_test'] = is_string($postTestData) ? json_decode($postTestData, true) : ($postTestData ?: []);
+        }
+        if ($selfPacedArray !== null) {
+            $config['self_paced'] = is_array($selfPacedArray) ? $selfPacedArray : [];
+        }
+
+        $assessmentSvc->saveAssessmentConfig($eventId, $config, $actorId);
+
+        return redirect()->back()->with('success', 'Pengaturan Pre-Test & Post-Test berhasil disimpan.');
     }
 
     public function delete(string $id)

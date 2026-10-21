@@ -456,11 +456,12 @@ class LearningClassController extends BaseController
         $coverFileId = $uploadedFileId ?: ($this->request->getPost('cover_file_id') ? (int) $this->request->getPost('cover_file_id') : $existingCoverFileId);
 
         $rawStatus = (string) $this->request->getPost('status');
-        $status = match ($rawStatus) {
-            'open', 'scheduled'   => 'scheduled',
-            'active', 'ongoing'   => 'active',
-            'completed', 'closed' => 'completed',
-            default               => $rawStatus ?: 'draft',
+        $status = match (strtolower(trim($rawStatus))) {
+            'open', 'scheduled', 'published', 'terbuka' => 'scheduled',
+            'active', 'ongoing', 'berlangsung', 'aktif'  => 'active',
+            'completed', 'closed', 'selesai'             => 'completed',
+            'draft', 'archived', 'draf'                  => 'draft',
+            default                                      => in_array($rawStatus, ['scheduled', 'active', 'completed', 'draft'], true) ? $rawStatus : 'scheduled',
         };
 
         $rawQuiz = $this->request->getPost('quiz_weight');

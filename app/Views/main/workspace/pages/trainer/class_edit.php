@@ -124,13 +124,22 @@ $targetUrl  = route_to('workspace.trainer.class.update', (string) $classId);
                 <!-- Status & Banner -->
                 <div class="col-12 col-md-4">
                     <label class="form-label fw-semibold text-navy small mb-1">Status Penyelenggaraan</label>
-                    <select name="status" class="form-select rounded-3 py-2">
-                        <option value="draft" <?= (($class['status'] ?? '') === 'draft') ? 'selected' : '' ?>>Draft (Draf Awal)</option>
-                        <option value="published" <?= (($class['status'] ?? '') === 'published') ? 'selected' : '' ?>>Published (Siap / Buka Pendaftaran)</option>
-                        <option value="ongoing" <?= (($class['status'] ?? '') === 'ongoing') ? 'selected' : '' ?>>Ongoing (Sedang Berjalan)</option>
-                        <option value="completed" <?= (($class['status'] ?? '') === 'completed') ? 'selected' : '' ?>>Completed (Selesai)</option>
-                        <option value="archived" <?= (($class['status'] ?? '') === 'archived') ? 'selected' : '' ?>>Archived (Arsip)</option>
+                    <?php $curClassStatus = strtolower((string) (old('status', $class['status'] ?? 'active'))); ?>
+                    <select name="status" class="form-select rounded-3 py-2 fw-semibold" id="classStatusSelect">
+                        <option value="active" <?= in_array($curClassStatus, ['active', 'ongoing', 'berlangsung', 'aktif'], true) ? 'selected' : '' ?>>
+                            Aktif / Sedang Berjalan (Tayang di Landing Page)
+                        </option>
+                        <option value="scheduled" <?= in_array($curClassStatus, ['scheduled', 'open', 'published', 'terbuka'], true) ? 'selected' : '' ?>>
+                            Jadwal Terbuka / Pendaftaran Dibuka (Tayang di Landing Page)
+                        </option>
+                        <option value="completed" <?= in_array($curClassStatus, ['completed', 'closed', 'selesai'], true) ? 'selected' : '' ?>>
+                            Selesai (Completed)
+                        </option>
+                        <option value="draft" <?= in_array($curClassStatus, ['draft', 'archived', 'draf'], true) ? 'selected' : '' ?>>
+                            Draft (Draf Awal / Tidak Tayang Publik)
+                        </option>
                     </select>
+                    <small class="text-muted" style="font-size: 0.72rem;">Pilih <strong>Aktif</strong> atau <strong>Jadwal Terbuka</strong> agar kelas otomatis tayang di landing page publik.</small>
                 </div>
                 <div class="col-12 col-md-8">
                     <label class="form-label fw-semibold text-navy small mb-1">Ganti Cover / Banner Kelas</label>

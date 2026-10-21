@@ -122,8 +122,17 @@ $levelLabel = static function (?string $lvl): string {
                                         <?= esc($c['code'] ?? 'KELAS') ?>
                                     </span>
                                 </div>
-                                <span class="badge <?= ($c['class_status'] ?? '') === 'active' ? 'bg-success text-white' : 'bg-secondary text-white' ?> rounded-pill px-2 py-1 small shadow-sm">
-                                    <?= esc(ucfirst($c['class_status'] ?? 'active')) ?>
+                                <?php
+                                $cStat = strtolower((string) ($c['class_status'] ?? 'active'));
+                                $cBadge = match ($cStat) {
+                                    'active', 'ongoing', 'berlangsung', 'aktif' => ['class' => 'bg-success text-white', 'label' => 'Aktif'],
+                                    'scheduled', 'open', 'published', 'terbuka' => ['class' => 'bg-primary text-white', 'label' => 'Terbuka'],
+                                    'completed', 'closed', 'selesai'            => ['class' => 'bg-secondary text-white', 'label' => 'Selesai'],
+                                    default                                     => ['class' => 'bg-warning text-dark', 'label' => 'Draft'],
+                                };
+                                ?>
+                                <span class="badge <?= $cBadge['class'] ?> rounded-pill px-2 py-1 small shadow-sm">
+                                    <?= esc($cBadge['label']) ?>
                                 </span>
                             </div>
 
