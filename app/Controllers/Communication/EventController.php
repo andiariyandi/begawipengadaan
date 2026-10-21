@@ -136,8 +136,8 @@ class EventController extends BaseController
             }
         }
 
-        return redirect()->to(route_to('dashboard.communication.events.detail', (string) $id))
-            ->with('success', 'Event berhasil ditambahkan.');
+        return redirect()->to(site_url('dashboard/sertifikat/template/tambah?source_type=event&event_id=' . $id))
+            ->with('success', 'Event "' . esc($post['title']) . '" berhasil dibuat! Silakan atur template sertifikat khusus untuk event ini.');
     }
 
     public function detail(string $id)
@@ -179,6 +179,8 @@ class EventController extends BaseController
         $materials = $assessmentSvc->getMaterials($eventId);
         $assessmentConfig = $assessmentSvc->getAssessmentConfig($eventId);
         $assessmentStats = $assessmentSvc->getAssessmentStats($eventId);
+        $templateModel = new \App\Models\Certificate\CertificateTemplateModel();
+        $certTemplate  = $templateModel->findForEvent($eventId);
 
         return view('dashboard/communication/events/detail', [
             'title'            => 'Detail Event | Dashboard BegawiPengadaan',
@@ -194,6 +196,7 @@ class EventController extends BaseController
             'materials'        => $materials,
             'assessmentConfig' => $assessmentConfig,
             'assessmentStats'  => $assessmentStats,
+            'certTemplate'     => $certTemplate,
         ]);
     }
 
@@ -261,6 +264,8 @@ class EventController extends BaseController
         $materials = $assessmentSvc->getMaterials($eventId);
         $assessmentConfig = $assessmentSvc->getAssessmentConfig($eventId);
         $assessmentStats = $assessmentSvc->getAssessmentStats($eventId);
+        $templateModel = new \App\Models\Certificate\CertificateTemplateModel();
+        $certTemplate  = $templateModel->findForEvent($eventId);
 
         return view('dashboard/communication/events/form', [
             'title'            => 'Ubah Event | Dashboard BegawiPengadaan',
@@ -273,6 +278,7 @@ class EventController extends BaseController
             'materials'        => $materials,
             'assessmentConfig' => $assessmentConfig,
             'assessmentStats'  => $assessmentStats,
+            'certTemplate'     => $certTemplate,
         ]);
     }
 

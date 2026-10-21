@@ -108,6 +108,52 @@ if (! is_array($payload)) {
             </div>
         </div>
 
+        <!-- Card Cakupan & Hierarki Template (Anti-Tumpang-Tindih) -->
+        <div class="card mb-24">
+            <div class="card-header border-bottom py-16 px-24 d-flex align-items-center justify-content-between">
+                <h6 class="text-lg fw-semibold mb-0">Cakupan &amp; Aturan Hierarki</h6>
+                <span class="badge bg-primary-100 text-primary-700 px-10 py-5 radius-6 text-xs fw-bold">
+                    <?= esc($scopeDetails['entity_type'] ?? 'Standar') ?>
+                </span>
+            </div>
+            <div class="card-body p-24">
+                <div class="row gy-16">
+                    <div class="col-md-6">
+                        <p class="text-secondary-light text-xs mb-4">Tingkat Sasaran (Target Scope)</p>
+                        <div class="mt-1">
+                            <?php $sc = $scopeDetails['scope'] ?? 'global'; ?>
+                            <?php if ($sc === 'program'): ?>
+                                <span class="badge bg-purple-50 text-purple-700 border border-purple-200 px-10 py-5 radius-6 fw-bold">Tingkat Program Pembelajaran</span>
+                            <?php elseif ($sc === 'course'): ?>
+                                <span class="badge bg-info-50 text-info-700 border border-info-200 px-10 py-5 radius-6 fw-bold">Tingkat Course PBJ</span>
+                            <?php elseif ($sc === 'class'): ?>
+                                <span class="badge bg-success-50 text-success-700 border border-success-200 px-10 py-5 radius-6 fw-bold">Khusus 1 Kelas Pembelajaran</span>
+                            <?php elseif ($sc === 'event'): ?>
+                                <span class="badge bg-warning-50 text-warning-700 border border-warning-200 px-10 py-5 radius-6 fw-bold">Khusus 1 Event / Agenda (1:1)</span>
+                            <?php else: ?>
+                                <span class="badge bg-neutral-100 text-neutral-700 border border-neutral-300 px-10 py-5 radius-6 fw-bold">Standar / Global (Arena Belajar)</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-secondary-light text-xs mb-4">Entitas Terkait</p>
+                        <p class="mb-0 text-sm fw-bold text-neutral-900">
+                            <?= esc($scopeDetails['title'] ?? 'Semua Pembelajaran') ?>
+                        </p>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-12 radius-8 bg-neutral-50 border border-neutral-200 d-flex align-items-start gap-2">
+                            <iconify-icon icon="solar:shield-check-bold" class="text-primary-600 text-lg flex-shrink-0 mt-1"></iconify-icon>
+                            <div class="text-xs text-neutral-700">
+                                <strong class="d-block mb-1 text-neutral-900">Kebijakan Anti-Tumpang-Tindih &amp; Relasi:</strong>
+                                <?= esc($scopeDetails['lock_info'] ?? 'Template ini aktif sesuai aturan hierarki sistem.') ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Card Pratinjau Desain Background -->
         <?php if (! empty($payload['background_path']) || ! empty($bgAsset)): ?>
             <div class="card mb-24">

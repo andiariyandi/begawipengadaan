@@ -128,6 +128,13 @@ class WorkspaceFullAudit extends BaseCommand
             ['participant', 'workspace/aktivitas', 'Aktivitas Log Peserta'],
             ['participant', 'workspace/notifikasi', 'Pusat Notifikasi'],
             ['participant', 'workspace/bookmark', 'Bookmark Referensi'],
+            ['participant', 'workspace/bookmark/pembelajaran', 'Bookmark Pembelajaran'],
+            ['participant', 'workspace/bookmark/regulasi', 'Bookmark Regulasi'],
+            ['participant', 'workspace/bookmark/bunga-rampai', 'Bookmark Bunga Rampai'],
+            ['participant', 'workspace/bookmark/komunikasi', 'Bookmark Komunikasi'],
+            ['participant', 'workspace/bookmark/sertifikat', 'Bookmark Sertifikat'],
+            ['participant', 'workspace/konsultasi', 'Konsultasi & Tiket Saya'],
+            ['participant', 'workspace/konsultasi/buat', 'Buat Tiket Konsultasi'],
             ['participant', 'workspace/profil', 'Profil Akun'],
             ['participant', 'workspace/profil/akun', 'Profil Akun Sub-tab'],
             ['participant', 'workspace/profil/asn', 'Profil ASN'],
@@ -157,6 +164,7 @@ class WorkspaceFullAudit extends BaseCommand
             ['operator', 'workspace/operator', 'Pusat Operasional'],
             ['operator', 'workspace/operator/approval', 'Antrean Approval'],
             ['operator', 'workspace/operator/verifikasi-profil', 'Verifikasi Profil User'],
+            ['operator', 'workspace/operator/perubahan-profil', 'Permohonan Perubahan Profil User'],
             ['operator', 'workspace/operator/penugasan-trainer', 'Penugasan Trainer Kelas'],
             ['operator', 'workspace/operator/event', 'Operasional Event'],
             ['operator', 'workspace/operator/kehadiran', 'Manajemen Presensi'],
@@ -176,6 +184,7 @@ class WorkspaceFullAudit extends BaseCommand
             $routesToAudit[] = ['participant', "workspace/peserta/kelas/{$sampleClassId}/belajar", "Ruang Belajar Modular (#{$sampleClassId})"];
             $routesToAudit[] = ['participant', "workspace/peserta/kelas/{$sampleClassId}/progres", "Progres Kelas (#{$sampleClassId})"];
             $routesToAudit[] = ['trainer', "workspace/trainer/kelas/{$sampleClassId}", "Detail Kelas Trainer (#{$sampleClassId})"];
+            $routesToAudit[] = ['trainer', "workspace/trainer/kelas/{$sampleClassId}/edit", "Ubah Detail Kelas Trainer (#{$sampleClassId})"];
             $routesToAudit[] = ['trainer', "workspace/trainer/kelas/{$sampleClassId}/materi", "Materi Kelas Trainer (#{$sampleClassId})"];
             $routesToAudit[] = ['trainer', "workspace/trainer/kelas/{$sampleClassId}/modul", "Modul Kelas Trainer (#{$sampleClassId})"];
             $routesToAudit[] = ['trainer', "workspace/trainer/kelas/{$sampleClassId}/peserta", "Peserta Kelas Trainer (#{$sampleClassId})"];

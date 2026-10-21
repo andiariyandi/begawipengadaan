@@ -1062,8 +1062,15 @@ class WorkspaceSmoke extends BaseCommand
             CLI::newLine();
             CLI::write("Testing Quiz / Exam Timer Engine & Reload Resilience...", "yellow");
 
-            // Find or setup a published quiz
-            $testQuiz = $db->table('quizzes')->where('status', 'published')->orderBy('id', 'ASC')->limit(1)->get()->getRowArray();
+            // Find or setup a published quiz with questions
+            $testQuiz = $db->table('quizzes')
+                ->select('quizzes.*')
+                ->join('quiz_questions', 'quiz_questions.quiz_id = quizzes.id')
+                ->where('quizzes.status', 'published')
+                ->groupBy('quizzes.id')
+                ->orderBy('quizzes.id', 'ASC')
+                ->get()->getRowArray()
+                ?: $db->table('quizzes')->where('status', 'published')->orderBy('id', 'ASC')->limit(1)->get()->getRowArray();
             if ($testQuiz) {
                 $qClassId = (int) $testQuiz['class_id'];
                 // Set duration_minutes to 45 and generous attempt limit

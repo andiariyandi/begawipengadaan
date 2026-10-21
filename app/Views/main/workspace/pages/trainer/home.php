@@ -70,7 +70,7 @@ $trainerRoleLabel = static function (?string $role): string {
                     <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
                         <i class="fas fa-chalkboard-teacher me-1"></i> Ruang Kerja Pengajar & Instruktur
                     </span>
-                    <span class="badge bg-white-50 text-white px-3 py-2 rounded-pill small">
+                    <span class="badge bg-white text-navy px-3 py-2 rounded-pill small fw-bold shadow-sm">
                         <i class="fas fa-shield-alt text-success me-1"></i> Instruktur Terverifikasi BegawiPengadaan
                     </span>
                 </div>
@@ -113,7 +113,7 @@ $trainerRoleLabel = static function (?string $role): string {
                                 </span>
                                 <?php if (! empty($firstClass['learning_method'])): ?>
                                     <?php $fmb = $methodBadge($firstClass['learning_method']); ?>
-                                    <span class="badge bg-white-50 text-white rounded-pill px-2 py-0" style="font-size: 0.68rem;">
+                                    <span class="badge bg-white text-navy rounded-pill px-2 py-0 fw-bold shadow-sm" style="font-size: 0.68rem;">
                                         <?= $fmb['label'] ?>
                                     </span>
                                 <?php endif; ?>

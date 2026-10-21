@@ -119,7 +119,7 @@ $methodBadge = static function (?string $method): array {
                     <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold" style="font-size: 11px; letter-spacing: 0.3px;">
                         <i class="fas fa-graduation-cap me-1"></i> Ruang Kerja Peserta
                     </span>
-                    <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 px-2 py-1 rounded-pill small fw-semibold">
+                    <span class="badge bg-white text-navy px-2 py-1 rounded-pill small fw-bold shadow-sm">
                         <i class="fas fa-check-circle text-success me-1"></i> Terverifikasi BegawiPengadaan
                     </span>
                 </div>
@@ -150,11 +150,11 @@ $methodBadge = static function (?string $method): array {
 
                         <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
                             <?php $mInfo = $methodBadge($resumeClass['learning_method'] ?? 'online'); ?>
-                            <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 small px-2 py-0.5 rounded-pill">
+                            <span class="badge bg-white text-navy small px-2 py-0.5 rounded-pill fw-semibold shadow-sm">
                                 <i class="<?= $mInfo['icon'] ?> me-1"></i> <?= $mInfo['label'] ?>
                             </span>
                             <?php if (! empty($resumeClass['location_or_link'])): ?>
-                                <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 small px-2 py-0.5 rounded-pill text-truncate" style="max-width: 200px;">
+                                <span class="badge bg-white text-navy small px-2 py-0.5 rounded-pill fw-semibold shadow-sm text-truncate" style="max-width: 200px;">
                                     <i class="fas fa-map-marker-alt me-1"></i> <?= esc($resumeClass['location_or_link']) ?>
                                 </span>
                             <?php endif; ?>

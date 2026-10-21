@@ -51,7 +51,7 @@ class AdminWorkspaceController extends BaseController
 
         // 2. Metrik Pembelajaran
         $totalClasses   = $db->table('learning_classes')->countAllResults();
-        $activeClasses  = $db->table('learning_classes')->where('status', 'active')->countAllResults();
+        $activeClasses  = $db->table('learning_classes')->whereIn('status', ['active', 'scheduled', 'ongoing', 'published', 'open'])->countAllResults();
         $totalEnroll    = $db->table('enrollments')->countAllResults();
         $activeEnroll   = $db->table('enrollments')->where('status', 'active')->countAllResults();
         $completedEnroll= $db->table('enrollments')->where('status', 'completed')->countAllResults();
@@ -85,7 +85,7 @@ class AdminWorkspaceController extends BaseController
         $topClasses = $db->table('learning_classes lc')
             ->select('lc.*, courses.title AS course_title, (SELECT COUNT(*) FROM enrollments e WHERE e.class_id = lc.id) AS total_students')
             ->join('courses', 'courses.id = lc.course_id')
-            ->where('lc.status', 'active')
+            ->whereIn('lc.status', ['active', 'scheduled', 'ongoing', 'published', 'open'])
             ->orderBy('total_students', 'DESC')
             ->limit(12)
             ->get()->getResultArray();

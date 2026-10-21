@@ -69,7 +69,7 @@ $placeholdersGrouped = $availablePlaceholders ?? \App\Services\CertificateTempla
                             <label class="form-label fw-semibold text-primary-light text-sm mb-8">
                                 Nama Template Sertifikat <span class="text-danger">*</span>
                             </label>
-                            <input type="text" name="name" class="form-control radius-8" required maxlength="255"
+                            <input type="text" name="name" id="templateNameInput" class="form-control radius-8" required maxlength="255"
                                    placeholder="cth: Template Resmi Kelulusan Arena Belajar PBJ 2026"
                                    value="<?= esc(old('name', $t['name'] ?? '')) ?>">
                             <small class="text-secondary-light">Nama pengenal template untuk pengelolaan di dashboard.</small>
@@ -79,7 +79,7 @@ $placeholdersGrouped = $availablePlaceholders ?? \App\Services\CertificateTempla
                             <label class="form-label fw-semibold text-primary-light text-sm mb-8">
                                 Tipe Sumber Penerbitan <span class="text-danger">*</span>
                             </label>
-                            <select name="source_type" class="form-select radius-8" required>
+                            <select name="source_type" id="sourceTypeSelect" class="form-select radius-8" required>
                                 <?php $currentType = old('source_type', $t['source_type'] ?? 'learning'); ?>
                                 <option value="learning" <?= $currentType === 'learning' ? 'selected' : '' ?>>
                                     Arena Belajar (Kelas / Pembelajaran) &rarr; Kode: AB
@@ -89,6 +89,184 @@ $placeholdersGrouped = $availablePlaceholders ?? \App\Services\CertificateTempla
                                 </option>
                             </select>
                             <small class="text-secondary-light">Menentukan format singkatan penomoran otomatis.</small>
+                        </div>
+
+                        <!-- SECTION A: LINGKUP & ANTI-TUMPANG-TINDIH ARENA PEMBELAJARAN -->
+                        <div class="col-12" id="learningScopeSection">
+                            <div class="p-16 radius-8 border bg-neutral-50">
+                                <label class="form-label fw-semibold text-primary-light text-sm mb-8 d-flex align-items-center justify-content-between">
+                                    <span>
+                                        <iconify-icon icon="solar:layers-minimalistic-bold" class="text-primary-600 me-1"></iconify-icon>
+                                        Tingkat Sasaran Template Pembelajaran:
+                                    </span>
+                                    <span class="badge bg-warning-50 text-warning-700 px-8 py-3 radius-4 text-xs fw-semibold">
+                                        Aturan Anti-Tumpang-Tindih Aktif
+                                    </span>
+                                </label>
+                                <?php
+                                $currentScope = old('payload.target_scope', $payload['target_scope'] ?? 'global');
+                                $selProgId    = (int) old('payload.program_id', $payload['program_id'] ?? 0);
+                                $selCourseId  = (int) old('payload.course_id', $payload['course_id'] ?? 0);
+                                $selClassId   = (int) old('payload.class_id', $payload['class_id'] ?? 0);
+                                ?>
+                                <div class="row g-2 mb-16">
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="form-check p-12 radius-8 border bg-white h-100">
+                                            <input class="form-check-input" type="radio" name="payload[target_scope]" id="scopeProgram" value="program" <?= $currentScope === 'program' ? 'checked' : '' ?>>
+                                            <label class="form-check-label text-xs fw-bold cursor-pointer d-block" for="scopeProgram">
+                                                Tingkat Program
+                                                <small class="d-block text-secondary-light fw-normal mt-1">Mengunci seluruh course &amp; kelas di bawahnya</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="form-check p-12 radius-8 border bg-white h-100">
+                                            <input class="form-check-input" type="radio" name="payload[target_scope]" id="scopeCourse" value="course" <?= $currentScope === 'course' ? 'checked' : '' ?>>
+                                            <label class="form-check-label text-xs fw-bold cursor-pointer d-block" for="scopeCourse">
+                                                Tingkat Course
+                                                <small class="d-block text-secondary-light fw-normal mt-1">Mengunci seluruh kelas di bawah course ini</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="form-check p-12 radius-8 border bg-white h-100">
+                                            <input class="form-check-input" type="radio" name="payload[target_scope]" id="scopeClass" value="class" <?= $currentScope === 'class' ? 'checked' : '' ?>>
+                                            <label class="form-check-label text-xs fw-bold cursor-pointer d-block" for="scopeClass">
+                                                Khusus 1 Kelas
+                                                <small class="d-block text-secondary-light fw-normal mt-1">Hanya jika Program &amp; Course kosong</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="form-check p-12 radius-8 border bg-white h-100">
+                                            <input class="form-check-input" type="radio" name="payload[target_scope]" id="scopeGlobal" value="global" <?= $currentScope === 'global' ? 'checked' : '' ?>>
+                                            <label class="form-check-label text-xs fw-bold cursor-pointer d-block" for="scopeGlobal">
+                                                Standar / Global
+                                                <small class="d-block text-secondary-light fw-normal mt-1">Default arena belajar (AB)</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dynamic Dropdown: Program -->
+                                <div class="mb-12 scope-field" id="fieldProgram" style="<?= $currentScope === 'program' ? '' : 'display:none;' ?>">
+                                    <label class="form-label text-xs fw-semibold text-primary-light mb-4">Pilih Program Pembelajaran <span class="text-danger">*</span></label>
+                                    <select name="payload[program_id]" id="selectProgram" class="form-select radius-8 text-sm">
+                                        <option value="">-- Pilih Program PBJ --</option>
+                                        <?php foreach (($hierarchyOptions['programs'] ?? []) as $prog): ?>
+                                            <?php
+                                            $isLocked = isset($hierarchyOptions['lockInfo']['locked_programs'][(int)$prog['id']]);
+                                            $lockText = $isLocked ? ' (Sudah Memiliki Template: ' . esc($hierarchyOptions['lockInfo']['locked_programs'][(int)$prog['id']]['template_name']) . ')' : '';
+                                            ?>
+                                            <option value="<?= (int)$prog['id'] ?>" <?= $selProgId === (int)$prog['id'] ? 'selected' : '' ?> <?= ($isLocked && $selProgId !== (int)$prog['id']) ? 'disabled class="text-danger"' : '' ?>>
+                                                <?= esc($prog['title']) ?><?= $lockText ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <div class="alert alert-info py-8 px-12 radius-8 text-xs mt-6 mb-0 d-flex align-items-center gap-2">
+                                        <iconify-icon icon="solar:lock-keyhole-bold" class="text-base text-info"></iconify-icon>
+                                        <span>Course dan seluruh kelas di bawah program ini akan otomatis <strong>dikunci</strong> dan memakai template sertifikat program ini.</span>
+                                    </div>
+                                </div>
+
+                                <!-- Dynamic Dropdown: Course -->
+                                <div class="mb-12 scope-field" id="fieldCourse" style="<?= $currentScope === 'course' ? '' : 'display:none;' ?>">
+                                    <label class="form-label text-xs fw-semibold text-primary-light mb-4">Pilih Course PBJ <span class="text-danger">*</span></label>
+                                    <select name="payload[course_id]" id="selectCourse" class="form-select radius-8 text-sm">
+                                        <option value="">-- Pilih Course PBJ --</option>
+                                        <?php foreach (($hierarchyOptions['courses'] ?? []) as $co): ?>
+                                            <?php
+                                            $cId = (int)$co['id'];
+                                            $isLockedByProg = isset($hierarchyOptions['lockInfo']['course_locks'][$cId]) && $hierarchyOptions['lockInfo']['course_locks'][$cId]['locked_by'] === 'program';
+                                            $isLockedSelf   = isset($hierarchyOptions['lockInfo']['locked_courses'][$cId]);
+                                            $lockLabel = '';
+                                            if ($isLockedByProg) {
+                                                $lockLabel = ' [Terkunci: Program memiliki template aktif]';
+                                            } elseif ($isLockedSelf && $selCourseId !== $cId) {
+                                                $lockLabel = ' [Sudah Memiliki Template: ' . esc($hierarchyOptions['lockInfo']['locked_courses'][$cId]['template_name']) . ']';
+                                            }
+                                            $shouldDisable = ($isLockedByProg || ($isLockedSelf && $selCourseId !== $cId));
+                                            ?>
+                                            <option value="<?= $cId ?>" data-program-id="<?= (int)($co['program_id'] ?? 0) ?>" <?= $selCourseId === $cId ? 'selected' : '' ?> <?= $shouldDisable ? 'disabled class="text-danger"' : '' ?>>
+                                                <?= esc($co['title']) ?><?= $lockLabel ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <div class="alert alert-primary py-8 px-12 radius-8 text-xs mt-6 mb-0 d-flex align-items-center gap-2">
+                                        <iconify-icon icon="solar:shield-check-bold" class="text-base text-primary"></iconify-icon>
+                                        <span>Seluruh kelas di bawah course ini akan otomatis <strong>dikunci</strong> dan memakai template ini. Hanya dapat diset jika Program induknya belum diset template.</span>
+                                    </div>
+                                </div>
+
+                                <!-- Dynamic Dropdown: Class -->
+                                <div class="mb-12 scope-field" id="fieldClass" style="<?= $currentScope === 'class' ? '' : 'display:none;' ?>">
+                                    <label class="form-label text-xs fw-semibold text-primary-light mb-4">Pilih Kelas Pembelajaran Khusus <span class="text-danger">*</span></label>
+                                    <select name="payload[class_id]" id="selectClass" class="form-select radius-8 text-sm">
+                                        <option value="">-- Pilih Kelas Pembelajaran --</option>
+                                        <?php foreach (($hierarchyOptions['classes'] ?? []) as $cl): ?>
+                                            <?php
+                                            $clId = (int)$cl['id'];
+                                            $lockData = $hierarchyOptions['lockInfo']['class_locks'][$clId] ?? null;
+                                            $isLocked = false;
+                                            $lockReason = '';
+                                            if ($lockData) {
+                                                if ($lockData['locked_by'] === 'program') {
+                                                    $isLocked = true;
+                                                    $lockReason = ' [Terkunci oleh Template Program]';
+                                                } elseif ($lockData['locked_by'] === 'course') {
+                                                    $isLocked = true;
+                                                    $lockReason = ' [Terkunci oleh Template Course]';
+                                                } elseif ($lockData['locked_by'] === 'class' && $selClassId !== $clId) {
+                                                    $isLocked = true;
+                                                    $lockReason = ' [Sudah Memiliki Template: ' . esc($lockData['template_name']) . ']';
+                                                }
+                                            }
+                                            ?>
+                                            <option value="<?= $clId ?>" <?= $selClassId === $clId ? 'selected' : '' ?> <?= $isLocked ? 'disabled class="text-danger"' : '' ?>>
+                                                <?= esc($cl['name']) ?> (Course: <?= esc($cl['course_title'] ?? '-') ?>)<?= $lockReason ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <div class="alert alert-success py-8 px-12 radius-8 text-xs mt-6 mb-0 d-flex align-items-center gap-2">
+                                        <iconify-icon icon="solar:check-circle-bold" class="text-base text-success"></iconify-icon>
+                                        <span>Kelas terbuka untuk diset template khusus karena Program dan Course induknya belum memiliki template (kosong).</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION B: TARGET KHUSUS EVENT & AGENDA (1:1 UNIK) -->
+                        <div class="col-12" id="eventScopeSection" style="<?= $currentType === 'event' ? '' : 'display:none;' ?>">
+                            <div class="p-16 radius-8 border bg-info-50 border-info-200">
+                                <label class="form-label fw-semibold text-primary-light text-sm mb-8 d-flex align-items-center justify-content-between">
+                                    <span>
+                                        <iconify-icon icon="solar:calendar-bold" class="text-info-600 me-1"></iconify-icon>
+                                        Pilih Event / Agenda PBJ Terkait <span class="text-danger">*</span>:
+                                    </span>
+                                    <span class="badge bg-info-600 text-white px-8 py-3 radius-4 text-xs fw-bold">
+                                        Wajib Unik 1:1 Tiap Acara
+                                    </span>
+                                </label>
+                                <?php $selEventId = (int) old('payload.event_id', $payload['event_id'] ?? ($selectedEvent['id'] ?? 0)); ?>
+                                <select name="payload[event_id]" id="selectEvent" class="form-select radius-8 text-sm bg-white">
+                                    <option value="">-- Pilih Event / Agenda --</option>
+                                    <?php foreach (($hierarchyOptions['events'] ?? []) as $ev): ?>
+                                        <?php
+                                        $evId = (int) $ev['id'];
+                                        $assignedTpl = $hierarchyOptions['assignedEvents'][$evId] ?? null;
+                                        $isAssignedOther = ($assignedTpl && $assignedTpl['template_id'] !== (int)($t['id'] ?? 0));
+                                        $evNote = $isAssignedOther ? ' [Sudah Memiliki Template: ' . esc($assignedTpl['template_name']) . ']' : '';
+                                        ?>
+                                        <option value="<?= $evId ?>" data-title="<?= esc($ev['title']) ?>" <?= $selEventId === $evId ? 'selected' : '' ?> <?= $isAssignedOther ? 'disabled class="text-danger"' : '' ?>>
+                                            <?= esc($ev['title']) ?> (Tipe: <?= strtoupper(esc($ev['type'] ?? 'EVENT')) ?>, <?= esc(date('d M Y', strtotime($ev['start_at']))) ?>)<?= $evNote ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="text-xs text-neutral-600 mt-8 mb-0">
+                                    <iconify-icon icon="solar:info-circle-bold" class="text-info-600 me-1"></iconify-icon>
+                                    Template sertifikat untuk event dan agenda selalu <strong>berbeda tiap acara</strong> dan tidak bisa dibuat sama antar acara.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -486,6 +664,47 @@ document.addEventListener('DOMContentLoaded', function() {
             toast.classList.remove('d-flex');
             toast.classList.add('d-none');
         }, 3000);
+    }
+
+    // Dynamic Scope & Event switching
+    const sourceTypeSelect = document.getElementById('sourceTypeSelect');
+    const learningScopeSection = document.getElementById('learningScopeSection');
+    const eventScopeSection = document.getElementById('eventScopeSection');
+    const scopeRadios = document.querySelectorAll('input[name="payload[target_scope]"]');
+    const fieldProgram = document.getElementById('fieldProgram');
+    const fieldCourse = document.getElementById('fieldCourse');
+    const fieldClass = document.getElementById('fieldClass');
+    const selectEvent = document.getElementById('selectEvent');
+    const templateNameInput = document.getElementById('templateNameInput');
+
+    function updateScopeVisibility() {
+        const isLearning = sourceTypeSelect.value === 'learning';
+        if (learningScopeSection) learningScopeSection.style.display = isLearning ? 'block' : 'none';
+        if (eventScopeSection) eventScopeSection.style.display = isLearning ? 'none' : 'block';
+
+        if (isLearning) {
+            let activeScope = 'global';
+            scopeRadios.forEach(function(r) { if (r.checked) activeScope = r.value; });
+            if (fieldProgram) fieldProgram.style.display = (activeScope === 'program') ? 'block' : 'none';
+            if (fieldCourse)  fieldCourse.style.display  = (activeScope === 'course') ? 'block' : 'none';
+            if (fieldClass)   fieldClass.style.display   = (activeScope === 'class') ? 'block' : 'none';
+        }
+    }
+
+    if (sourceTypeSelect) {
+        sourceTypeSelect.addEventListener('change', updateScopeVisibility);
+    }
+    scopeRadios.forEach(function(r) {
+        r.addEventListener('change', updateScopeVisibility);
+    });
+
+    if (selectEvent && templateNameInput) {
+        selectEvent.addEventListener('change', function() {
+            const opt = selectEvent.options[selectEvent.selectedIndex];
+            if (opt && opt.dataset.title && (templateNameInput.value.trim() === '' || templateNameInput.value.indexOf('Template Sertifikat -') === 0)) {
+                templateNameInput.value = 'Template Sertifikat - ' + opt.dataset.title;
+            }
+        });
     }
 
     // 3. Preset Buttons

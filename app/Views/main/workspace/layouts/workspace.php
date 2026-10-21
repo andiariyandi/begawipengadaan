@@ -76,8 +76,8 @@
                     </div>
                     <?php if (! empty($userName)): ?>
                         <div class="d-none d-md-flex align-items-center gap-2">
-                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-20 px-3 py-2 rounded-pill small">
-                                <i class="fas fa-user-circle me-1 text-warning"></i> <?= esc($userName) ?> &middot; <span class="text-white-50"><?= esc($roleLabel ?? 'Pengguna') ?></span>
+                            <span class="badge bg-white text-navy px-3 py-2 rounded-pill small fw-bold shadow-sm">
+                                <i class="fas fa-user-circle me-1 text-warning"></i> <?= esc($userName) ?> &middot; <span class="text-muted fw-normal"><?= esc($roleLabel ?? 'Pengguna') ?></span>
                             </span>
                         </div>
                     <?php endif; ?>

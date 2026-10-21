@@ -143,7 +143,7 @@ $levelLabel = static function (?string $lvl): string {
                                         <i class="fas fa-id-badge me-1"></i><?= $trainerRoleLabel($c['trainer_role'] ?? 'primary') ?>
                                     </span>
                                     <?php if (! empty($c['course_level'])): ?>
-                                        <span class="badge bg-white-50 text-white rounded-pill px-2 py-1 small shadow-sm ms-1">
+                                        <span class="badge bg-white text-navy rounded-pill px-2 py-1 small fw-bold shadow-sm ms-1">
                                             <?= $levelLabel($c['course_level']) ?>
                                         </span>
                                     <?php endif; ?>

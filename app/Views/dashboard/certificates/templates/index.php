@@ -32,7 +32,7 @@
                     <thead>
                         <tr>
                             <th>Nama Template</th>
-                            <th>Tipe Sumber</th>
+                            <th>Tipe Sumber &amp; Sasaran</th>
                             <th>Background Desain</th>
                             <th>Status</th>
                             <th>Terakhir Diperbarui</th>
@@ -54,14 +54,42 @@
                                 <code class="text-xs text-secondary-light">ID: #<?= (int) $row['id'] ?></code>
                             </td>
                             <td>
-                                <?php if ($row['source_type'] === 'learning'): ?>
-                                    <span class="badge bg-primary-50 text-primary-600 px-10 py-4 radius-4 text-xs fw-semibold">
-                                        Arena Belajar (AB)
+                                <div class="mb-4">
+                                    <?php if ($row['source_type'] === 'learning'): ?>
+                                        <span class="badge bg-primary-50 text-primary-600 px-8 py-3 radius-4 text-xs fw-bold">
+                                            Arena Belajar (AB)
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-info-50 text-info-600 px-8 py-3 radius-4 text-xs fw-bold">
+                                            Event / Agenda (EV)
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php if ($row['source_type'] === 'event'): ?>
+                                    <span class="badge bg-neutral-100 text-neutral-800 px-8 py-3 radius-4 text-xs fw-semibold d-inline-block text-truncate" style="max-width: 200px;" title="<?= esc($row['target_title']) ?>">
+                                        <iconify-icon icon="solar:calendar-bold" class="text-info me-1"></iconify-icon><?= esc($row['target_title']) ?>
                                     </span>
                                 <?php else: ?>
-                                    <span class="badge bg-info-50 text-info-600 px-10 py-4 radius-4 text-xs fw-semibold">
-                                        Event / Agenda (EV)
-                                    </span>
+                                    <?php if (($row['target_scope'] ?? '') === 'program'): ?>
+                                        <span class="badge bg-purple-50 text-purple-600 px-8 py-3 radius-4 text-xs fw-bold d-block mb-1 text-truncate" style="max-width: 220px;" title="<?= esc($row['target_title']) ?>">
+                                            <iconify-icon icon="solar:layers-bold" class="me-1"></iconify-icon>Program: <?= esc($row['target_title']) ?>
+                                        </span>
+                                        <small class="text-2xs text-secondary-light d-block"><iconify-icon icon="solar:lock-bold" class="text-warning"></iconify-icon> Kunci course &amp; kelas di bawahnya</small>
+                                    <?php elseif (($row['target_scope'] ?? '') === 'course'): ?>
+                                        <span class="badge bg-primary-50 text-primary-700 px-8 py-3 radius-4 text-xs fw-bold d-block mb-1 text-truncate" style="max-width: 220px;" title="<?= esc($row['target_title']) ?>">
+                                            <iconify-icon icon="solar:book-bookmark-bold" class="me-1"></iconify-icon>Course: <?= esc($row['target_title']) ?>
+                                        </span>
+                                        <small class="text-2xs text-secondary-light d-block"><iconify-icon icon="solar:lock-bold" class="text-warning"></iconify-icon> Kunci kelas di bawahnya</small>
+                                    <?php elseif (($row['target_scope'] ?? '') === 'class'): ?>
+                                        <span class="badge bg-success-50 text-success-700 px-8 py-3 radius-4 text-xs fw-bold d-block mb-1 text-truncate" style="max-width: 220px;" title="<?= esc($row['target_title']) ?>">
+                                            <iconify-icon icon="solar:square-academic-cap-bold" class="me-1"></iconify-icon>Kelas: <?= esc($row['target_title']) ?>
+                                        </span>
+                                        <small class="text-2xs text-success-600 d-block">Khusus 1 kelas</small>
+                                    <?php else: ?>
+                                        <span class="badge bg-neutral-100 text-neutral-600 px-8 py-3 radius-4 text-xs fw-medium d-block">
+                                            Standar / Global (Fallback)
+                                        </span>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </td>
                             <td>

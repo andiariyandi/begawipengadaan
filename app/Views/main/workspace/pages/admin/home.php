@@ -11,7 +11,7 @@
                     <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
                         <i class="fas fa-crown me-1"></i> Pusat Kendali Eksekutif
                     </span>
-                    <span class="badge bg-white-50 text-white px-3 py-2 rounded-pill small">
+                    <span class="badge bg-white text-navy px-3 py-2 rounded-pill small fw-bold shadow-sm">
                         <i class="fas fa-shield-alt text-success me-1"></i> <?= esc($roleLabel) ?> BegawiPengadaan
                     </span>
                 </div>
