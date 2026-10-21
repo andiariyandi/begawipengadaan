@@ -16,6 +16,13 @@ $durationMinutes   = (int) ($durationMinutes ?? ($quiz['duration_minutes'] ?? 0)
 $remainingSeconds  = $remainingSeconds ?? null;
 $deadlineTimestamp = $deadlineTimestamp ?? null;
 
+$allAttempts       = $allAttempts ?? [];
+$highestScore      = $highestScore ?? null;
+$bestAttempt       = $bestAttempt ?? null;
+$reviewAttempt     = $reviewAttempt ?? null;
+$answersByQuestion = $answersByQuestion ?? [];
+$passingGrade      = (float) ($passingGrade ?? 70.0);
+
 $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
     'pre_test'  => ['label' => 'Pre-Test',   'class' => 'bg-warning text-dark'],
     'post_test' => ['label' => 'Post-Test',  'class' => 'bg-danger text-white'],
@@ -104,6 +111,23 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
 }
 </style>
 
+<!-- FLOATING STICKY BANNER FOR ZEN / FOCUS MODE -->
+<div class="ws-focus-banner" id="wsFocusFloatingBannerQuiz">
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 fw-bold">
+            <i class="fas fa-eye me-1"></i> Mode Zen / Ujian Fokus
+        </span>
+        <span class="small text-white text-truncate fw-medium" style="max-width: 450px;">
+            <?= esc($quiz['title'] ?? 'Ujian Komprehensif') ?>
+        </span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 fw-bold text-navy" id="btnExitFocusModeQuiz">
+            <i class="fas fa-compress me-1"></i> Keluar Mode Zen (Esc)
+        </button>
+    </div>
+</div>
+
 <!-- 1. QUIZ HERO & INFO CARD (FISTUDY DNA) -->
 <div class="ws-page-header">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
@@ -111,6 +135,9 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
             <a href="<?= route_to('workspace.participant.class.detail', (string) $classId) ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3 mb-2">
                 <i class="bi bi-arrow-left me-1"></i> Kembali ke Kelas
             </a>
+            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 mb-2 ms-1" id="btnToggleFocusModeQuiz">
+                <i class="fas fa-expand me-1"></i> Mode Zen / Fokus
+            </button>
             <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                 <span class="badge <?= $typeBadge['class'] ?> text-uppercase px-3 py-1 rounded-pill fw-bold">
                     <?= esc($typeBadge['label']) ?>
@@ -138,13 +165,26 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
             </p>
         </div>
 
-        <?php if ($latest !== null && (string) ($latest['status'] ?? '') === 'graded'): ?>
+        <?php if ($highestScore !== null || ($latest !== null && (string) ($latest['status'] ?? '') === 'graded')): ?>
+            <?php
+                $dispScore = $highestScore !== null ? (float) $highestScore : (float) ($latest['score'] ?? 0);
+                $isPass = $dispScore >= $passingGrade;
+            ?>
             <div class="p-3 px-4 rounded-4 border bg-light text-center shadow-xs">
-                <span class="d-block text-muted small fw-semibold text-uppercase" style="font-size: 11px;">Skor Percobaan Terakhir</span>
-                <strong class="display-6 fw-bold <?= (float) ($latest['score'] ?? 0) >= 70 ? 'text-success' : 'text-danger' ?>">
-                    <?= (float) ($latest['score'] ?? 0) ?>
+                <span class="badge <?= $isPass ? 'bg-success' : 'bg-danger' ?> rounded-pill mb-1 px-3 py-1 fw-bold" style="font-size: 10px;">
+                    <i class="bi <?= $isPass ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill' ?> me-1"></i>
+                    <?= $isPass ? 'Lulus Passing Grade' : 'Belum Memenuhi' ?>
+                </span>
+                <span class="d-block text-muted small fw-semibold text-uppercase" style="font-size: 11px;">Nilai Tertinggi (Digunakan)</span>
+                <strong class="display-6 fw-bold <?= $isPass ? 'text-success' : 'text-danger' ?>">
+                    <?= $dispScore ?>
                 </strong>
-                <span class="d-block text-muted" style="font-size: 11px;">Skala 100</span>
+                <span class="d-block text-muted" style="font-size: 11px;">Skala 100 &middot; Min. <?= (float) $passingGrade ?></span>
+                <?php if (count($allAttempts) > 1 && $latest !== null): ?>
+                    <small class="text-muted d-block mt-1" style="font-size: 10px;">
+                        Percobaan Terakhir: <strong><?= (float) ($latest['score'] ?? 0) ?></strong>
+                    </small>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>
@@ -779,9 +819,9 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
     </script>
 
 <?php else: ?>
-    <!-- 3. START ATTEMPT / LIMIT REACHED / EMPTY QUESTIONS STATE -->
-    <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 mb-3 text-center bg-white">
-        <?php if ($questions === []): ?>
+    <!-- 3. ASSESSMENT DASHBOARD, ATTEMPT HISTORY & DETAILED REVIEW SHEET -->
+    <?php if ($questions === []): ?>
+        <div class="card border-0 rounded-4 shadow-sm p-4 mb-3 text-center bg-white">
             <div class="py-4">
                 <i class="bi bi-file-earmark-x text-muted" style="font-size: 56px;"></i>
                 <h2 class="h4 fw-bold text-dark mt-3 mb-2" style="color: #082f5c;">Soal Belum Tersedia</h2>
@@ -792,20 +832,11 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
                     Kembali ke Kelas
                 </a>
             </div>
-        <?php elseif ($remaining <= 0): ?>
-            <div class="py-4">
-                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 76px; height: 76px; background: rgba(220, 53, 69, 0.1); color: #dc3545;">
-                    <i class="bi bi-x-circle-fill fs-1"></i>
-                </div>
-                <h2 class="h4 fw-bold text-danger mb-2">Batas Percobaan Telah Tercapai</h2>
-                <p class="text-muted mb-4 mx-auto" style="max-width: 480px;">
-                    Anda telah menggunakan seluruh kuota kesempatan pengerjaan (<strong><?= $attemptLimit ?>x</strong>) untuk evaluasi ini.
-                </p>
-                <a href="<?= route_to('workspace.participant.class.detail', (string) $classId) ?>" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
-                    Kembali ke Kelas
-                </a>
-            </div>
-        <?php else: ?>
+        </div>
+
+    <?php elseif ($allAttempts === []): ?>
+        <!-- FIRST TIME TAKING QUIZ (NO ATTEMPTS YET) -->
+        <div class="card border-0 rounded-4 shadow-sm p-4 mb-3 text-center bg-white">
             <div class="py-4">
                 <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 76px; height: 76px; background: rgba(8, 47, 92, 0.08); color: #082f5c;">
                     <i class="bi bi-mortarboard fs-1"></i>
@@ -818,7 +849,7 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
                     <?php else: ?>
                         Alokasi waktu: <strong class="text-dark">Tanpa Batas Waktu</strong>.
                     <?php endif; ?>
-                    Anda memiliki sisa kesempatan pengerjaan: <strong class="text-primary"><?= $remaining ?> kali</strong>. Pastikan koneksi internet Anda stabil sebelum memulai.
+                    Total kesempatan pengerjaan yang tersedia: <strong class="text-primary"><?= $attemptLimit ?> kali</strong>. Pastikan koneksi internet Anda stabil sebelum memulai.
                 </p>
                 <form method="post" action="<?= route_to('workspace.participant.quiz.start', (int) $quiz['id']) ?>" class="d-inline">
                     <?= csrf_field() ?>
@@ -827,8 +858,392 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
                     </button>
                 </form>
             </div>
+        </div>
+
+    <?php else: ?>
+        <!-- ATTEMPTS EXIST: SUMMARY BANNER, ATTEMPT HISTORY & REVIEW SHEET -->
+        <?php
+            $isPassingMet = ($highestScore !== null && (float) $highestScore >= $passingGrade);
+            $bestScoreDisplay = $highestScore !== null ? (float) $highestScore : 0.0;
+        ?>
+
+        <!-- 3.1 ASSESSMENT STATUS & RE-ATTEMPT ACTION CARD -->
+        <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 mb-4 bg-white">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle p-3 d-flex align-items-center justify-content-center flex-shrink-0 <?= $isPassingMet ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning-emphasis' ?>" style="width: 58px; height: 58px;">
+                            <i class="bi <?= $isPassingMet ? 'bi-patch-check-fill' : 'bi-exclamation-triangle-fill' ?> fs-3"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                <h2 class="h5 fw-bold mb-0 text-navy">
+                                    Status Evaluasi:
+                                    <span class="<?= $isPassingMet ? 'text-success' : 'text-danger' ?>">
+                                        <?= $isPassingMet ? 'Lulus Passing Grade' : 'Belum Memenuhi Passing Grade' ?>
+                                    </span>
+                                </h2>
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 small">
+                                    Min. <?= (float) $passingGrade ?>
+                                </span>
+                            </div>
+                            <p class="text-muted small mb-2">
+                                Nilai resmi yang diambil untuk kelulusan dan penerbitan sertifikat adalah <strong>Nilai Tertinggi</strong> (Best Attempt): <strong class="fs-6 <?= $isPassingMet ? 'text-success' : 'text-danger' ?>"><?= $bestScoreDisplay ?></strong>.
+                            </p>
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <span class="badge bg-light text-dark border px-3 py-1 rounded-pill small">
+                                    Percobaan Digunakan: <strong><?= $attemptCount ?></strong> dari <strong><?= $attemptLimit ?>x</strong>
+                                </span>
+                                <?php if ($remaining > 0): ?>
+                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-3 py-1 rounded-pill small fw-semibold">
+                                        <i class="bi bi-arrow-repeat me-1"></i> Sisa Kesempatan: <?= $remaining ?>x
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1 rounded-pill small">
+                                        Seluruh Kesempatan Telah Digunakan
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex flex-column flex-sm-row flex-lg-column gap-2 justify-content-end">
+                        <?php if ($remaining > 0): ?>
+                            <form method="post" action="<?= route_to('workspace.participant.quiz.start', (int) $quiz['id']) ?>" class="d-inline">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 w-100 shadow-sm">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Mulai Percobaan ke-<?= $attemptCount + 1 ?> &raquo;
+                                </button>
+                            </form>
+                        <?php endif; ?>
+
+                        <?php if ((string) ($quiz['type'] ?? '') === 'post_test'): ?>
+                            <a href="<?= route_to('workspace.participant.study', (string) $classId) ?>" class="btn btn-outline-primary rounded-pill px-4 py-2 w-100">
+                                <i class="bi bi-journal-text me-1"></i> Kembali ke Ruang Belajar
+                            </a>
+                        <?php elseif ((string) ($quiz['type'] ?? '') === 'pre_test'): ?>
+                            <a href="<?= route_to('workspace.participant.study', (string) $classId) ?>" class="btn btn-primary rounded-pill px-4 py-2 w-100 fw-semibold">
+                                Lanjut ke Materi Belajar <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        <?php else: ?>
+                            <a href="<?= route_to('workspace.participant.study', (string) $classId) ?>" class="btn btn-outline-primary rounded-pill px-4 py-2 w-100">
+                                <i class="bi bi-arrow-left me-1"></i> Kembali ke Ruang Belajar
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3.2 RIWAYAT ATTEMPT (TABEL PERCOBAAN DENGAN BADGE NILAI TERTINGGI) -->
+        <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 mb-4 bg-white">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+                <div>
+                    <h2 class="h6 fw-bold mb-1 text-navy">
+                        <i class="bi bi-clock-history text-primary me-2"></i> Riwayat Percobaan Ujian (<?= count($allAttempts) ?> Percobaan)
+                    </h2>
+                    <span class="text-muted small">Pilih salah satu percobaan untuk membuka lembar review soal, kunci jawaban, dan pembahasan.</span>
+                </div>
+                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 small fw-semibold">
+                    Aturan: Nilai Tertinggi yang Diambil
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3" style="width: 130px;">Percobaan</th>
+                            <th>Waktu Pengerjaan</th>
+                            <th class="text-center" style="width: 140px;">Skor</th>
+                            <th class="text-center" style="width: 160px;">Status Nilai</th>
+                            <th class="text-end pe-3" style="width: 160px;">Aksi Review</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($allAttempts as $att): ?>
+                            <?php
+                                $attId = (int) $att['id'];
+                                $attScore = (float) ($att['score'] ?? 0);
+                                $isThisHighest = ($bestAttempt !== null && (int) $bestAttempt['id'] === $attId);
+                                $isThisActiveReview = ($reviewAttempt !== null && (int) $reviewAttempt['id'] === $attId);
+                                $isPassThis = ($attScore >= $passingGrade);
+                            ?>
+                            <tr class="<?= $isThisActiveReview ? 'table-primary-subtle' : '' ?>">
+                                <td class="ps-3">
+                                    <strong class="text-navy">Percobaan #<?= (int) ($att['attempt_number'] ?? 1) ?></strong>
+                                    <?php if ($isThisActiveReview): ?>
+                                        <span class="badge bg-primary ms-1" style="font-size: 9px;">Sedang Ditinjau</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span class="d-block text-dark fw-medium">
+                                        <?= ! empty($att['submitted_at']) ? esc(date('d M Y, H:i', strtotime($att['submitted_at']))) : (! empty($att['created_at']) ? esc(date('d M Y, H:i', strtotime($att['created_at']))) : '-') ?> WIB
+                                    </span>
+                                    <small class="text-muted">
+                                        Status: <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 10px;"><?= esc($att['status'] ?? 'graded') ?></span>
+                                    </small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fs-5 fw-bold <?= $isPassThis ? 'text-success' : 'text-danger' ?>">
+                                        <?= $attScore ?>
+                                    </span>
+                                    <span class="text-muted small">/ 100</span>
+                                </td>
+                                <td class="text-center">
+                                    <?php if ($isThisHighest): ?>
+                                        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold shadow-xs">
+                                            <i class="bi bi-trophy-fill me-1"></i> Nilai Tertinggi
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1 rounded-pill small">
+                                            Arsip Percobaan
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-end pe-3">
+                                    <a href="<?= route_to('workspace.participant.quiz.take', (string) $quiz['id']) ?>?attempt=<?= $attId ?>#reviewSheetSection" class="btn btn-sm <?= $isThisActiveReview ? 'btn-primary' : 'btn-outline-primary' ?> rounded-pill px-3 fw-semibold">
+                                        <i class="bi bi-eye me-1"></i> <?= $isThisActiveReview ? 'Sedang Ditinjau' : 'Lihat Review' ?>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3.3 LEMBAR REVIEW SOAL, JAWABAN PESERTA, KUNCI & PEMBAHASAN -->
+        <?php if ($reviewAttempt !== null): ?>
+            <div id="reviewSheetSection" class="mb-4">
+                <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 bg-white mb-3">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pb-3 border-bottom">
+                        <div>
+                            <span class="badge bg-primary text-white rounded-pill px-3 py-1 small fw-bold text-uppercase mb-1">
+                                Lembar Review Hasil Ujian
+                            </span>
+                            <h2 class="h5 fw-bold mb-1 text-navy">
+                                Review Soal Percobaan #<?= (int) ($reviewAttempt['attempt_number'] ?? 1) ?>
+                            </h2>
+                            <span class="text-muted small">
+                                Skor Percobaan Ini: <strong class="<?= (float) ($reviewAttempt['score'] ?? 0) >= $passingGrade ? 'text-success' : 'text-danger' ?> fs-6"><?= (float) ($reviewAttempt['score'] ?? 0) ?> / 100</strong>
+                                &middot; Selesai pada: <?= ! empty($reviewAttempt['submitted_at']) ? esc(date('d M Y H:i', strtotime($reviewAttempt['submitted_at']))) : '-' ?> WIB
+                            </span>
+                        </div>
+
+                        <!-- Stat Breakdown Mini Pills -->
+                        <?php
+                            $cCount = 0;
+                            $wCount = 0;
+                            $uCount = 0;
+                            foreach ($questions as $qItem) {
+                                $ans = $answersByQuestion[(int) $qItem['id']] ?? null;
+                                if (! $ans || $ans['selected_option_id'] === null) {
+                                    $uCount++;
+                                } elseif (! empty($ans['is_correct'])) {
+                                    $cCount++;
+                                } else {
+                                    $wCount++;
+                                }
+                            }
+                        ?>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill small fw-semibold">
+                                <i class="bi bi-check-circle-fill me-1"></i> Benar: <?= $cCount ?>
+                            </span>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill small fw-semibold">
+                                <i class="bi bi-x-circle-fill me-1"></i> Salah: <?= $wCount ?>
+                            </span>
+                            <?php if ($uCount > 0): ?>
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2 rounded-pill small fw-semibold">
+                                    <i class="bi bi-dash-circle-fill me-1"></i> Kosong: <?= $uCount ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Petunjuk Tanda Visual -->
+                    <div class="p-2 px-3 rounded-3 bg-light border small text-muted mt-3 d-flex flex-wrap align-items-center gap-3" style="font-size: 11px;">
+                        <span class="fw-bold text-dark"><i class="bi bi-info-circle text-primary me-1"></i> Keterangan Tanda:</span>
+                        <span class="d-flex align-items-center gap-1">
+                            <span class="badge bg-success py-1 px-2 rounded"><i class="bi bi-check-circle-fill"></i></span> Jawaban Anda Benar
+                        </span>
+                        <span class="d-flex align-items-center gap-1">
+                            <span class="badge bg-danger py-1 px-2 rounded"><i class="bi bi-x-circle-fill"></i></span> Jawaban Anda Salah
+                        </span>
+                        <span class="d-flex align-items-center gap-1">
+                            <span class="badge bg-success-subtle text-success border border-success py-1 px-2 rounded"><i class="bi bi-key-fill"></i></span> Kunci Jawaban Benar
+                        </span>
+                    </div>
+                </div>
+
+                <!-- DAFTAR SELURUH SOAL & REVIEW LENGKAP -->
+                <?php foreach ($questions as $index => $q): ?>
+                    <?php
+                        $qIndex = $index + 1;
+                        $qid = (int) $q['id'];
+                        $opts = $optionsByQuestion[$qid] ?? [];
+                        $ans = $answersByQuestion[$qid] ?? null;
+                        $userSelectedOptId = $ans ? ($ans['selected_option_id'] ?? null) : null;
+                        $isAnsCorrect = $ans ? ((int) ($ans['is_correct'] ?? 0) === 1) : false;
+                        $isUnanswered = ($userSelectedOptId === null);
+                    ?>
+                    <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 mb-3 bg-white">
+                        <!-- Header Butir Soal -->
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pb-2 mb-3 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary text-white rounded-pill px-3 py-1 fw-bold">
+                                    Soal #<?= $qIndex ?> dari <?= $totalQ ?>
+                                </span>
+                                <?php if ($isAnsCorrect): ?>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill fw-bold">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Jawaban Anda Benar (+<?= (float) ($ans['score_awarded'] ?? $q['points']) ?> Poin)
+                                    </span>
+                                <?php elseif ($isUnanswered): ?>
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1 rounded-pill fw-semibold">
+                                        <i class="bi bi-dash-circle-fill me-1"></i> Tidak Dijawab (0 Poin)
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold">
+                                        <i class="bi bi-x-circle-fill me-1"></i> Jawaban Anda Salah (0 Poin)
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                            <span class="badge bg-light text-muted border rounded-pill px-2 py-1 small">
+                                Bobot Soal: <?= (float) $q['points'] ?> Poin
+                            </span>
+                        </div>
+
+                        <!-- Prompt Soal -->
+                        <div class="fw-semibold text-dark lh-base mb-3" style="font-size: 0.95rem;">
+                            <?= nl2br(esc($q['prompt'])) ?>
+                        </div>
+
+                        <!-- Pilihan Jawaban dengan Pembeda Visual -->
+                        <div class="options-container mb-3">
+                            <?php foreach ($opts as $i => $opt): ?>
+                                <?php
+                                    $optId = (int) $opt['id'];
+                                    $isCorrectKey = ((int) ($opt['is_correct'] ?? 0) === 1);
+                                    $isChosenByUser = ($userSelectedOptId !== null && (int) $userSelectedOptId === $optId);
+
+                                    // Tentukan CSS box styling pembeda
+                                    if ($isChosenByUser && $isCorrectKey) {
+                                        $boxClass = 'border-success bg-success-subtle text-success-emphasis';
+                                        $iconBadge = '<span class="badge bg-success ms-auto rounded-pill px-3 py-1 small fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Jawaban Anda (Benar)</span>';
+                                    } elseif ($isChosenByUser && ! $isCorrectKey) {
+                                        $boxClass = 'border-danger bg-danger-subtle text-danger-emphasis';
+                                        $iconBadge = '<span class="badge bg-danger ms-auto rounded-pill px-3 py-1 small fw-bold"><i class="bi bi-x-circle-fill me-1"></i> Jawaban Anda (Salah)</span>';
+                                    } elseif (! $isChosenByUser && $isCorrectKey) {
+                                        $boxClass = 'border-success bg-success-subtle text-success-emphasis border-2';
+                                        $iconBadge = '<span class="badge bg-success-subtle text-success border border-success ms-auto rounded-pill px-3 py-1 small fw-bold"><i class="bi bi-key-fill me-1"></i> Kunci Jawaban Benar</span>';
+                                    } else {
+                                        $boxClass = 'border-secondary-subtle bg-light text-muted opacity-75';
+                                        $iconBadge = '';
+                                    }
+                                ?>
+                                <div class="p-2 p-md-3 rounded-3 mb-2 border transition-all d-flex align-items-center gap-2 <?= $boxClass ?>">
+                                    <span class="badge rounded-circle bg-white text-dark border d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 28px; height: 28px;">
+                                        <?= chr(65 + (int) $i) ?>
+                                    </span>
+                                    <span class="fw-medium flex-grow-1" style="font-size: 0.88rem;">
+                                        <?= esc($opt['option_text']) ?>
+                                    </span>
+                                    <?= $iconBadge ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <!-- Kotak Pembahasan & Penjelasan Soal -->
+                        <div class="mt-2 p-3 rounded-3 border-start border-4 border-primary bg-primary-subtle">
+                            <div class="fw-bold text-navy small mb-1">
+                                <i class="bi bi-lightbulb-fill text-warning me-1"></i> Pembahasan / Penjelasan Materi:
+                            </div>
+                            <div class="small text-dark lh-base">
+                                <?php if (! empty($q['explanation'])): ?>
+                                    <?= nl2br(esc($q['explanation'])) ?>
+                                <?php else: ?>
+                                    Kunci jawaban yang benar untuk pertanyaan ini adalah opsi yang ditandai dengan label <strong class="text-success">Kunci Jawaban Benar</strong>.
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+
+                <!-- Back to Top / Bottom Nav -->
+                <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 bg-white text-center">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <a href="<?= route_to('workspace.participant.class.detail', (string) $classId) ?>" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="bi bi-arrow-left me-1"></i> Kembali ke Kelas
+                        </a>
+                        <div class="d-flex flex-wrap gap-2">
+                            <?php if ($remaining > 0): ?>
+                                <form method="post" action="<?= route_to('workspace.participant.quiz.start', (int) $quiz['id']) ?>" class="d-inline">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" class="btn btn-warning text-dark fw-bold rounded-pill px-4 shadow-sm">
+                                        <i class="bi bi-arrow-repeat me-1"></i> Coba Ulang Ujian (Sisa <?= $remaining ?>x)
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                            <a href="<?= route_to('workspace.participant.study', (string) $classId) ?>" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                                Lanjut Belajar <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         <?php endif; ?>
-    </div>
+    <?php endif; ?>
 <?php endif; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btnToggle = document.getElementById('btnToggleFocusModeQuiz');
+    const btnExit = document.getElementById('btnExitFocusModeQuiz');
+
+    function setFocusMode(enable) {
+        if (enable) {
+            document.body.classList.add('ws-focus-mode');
+            localStorage.setItem('ws_quiz_zen_mode', 'true');
+            if (btnToggle) {
+                btnToggle.innerHTML = '<i class="fas fa-compress me-1"></i> Keluar Zen';
+                btnToggle.classList.replace('btn-outline-primary', 'btn-light');
+            }
+        } else {
+            document.body.classList.remove('ws-focus-mode');
+            localStorage.setItem('ws_quiz_zen_mode', 'false');
+            if (btnToggle) {
+                btnToggle.innerHTML = '<i class="fas fa-expand me-1"></i> Mode Zen / Fokus';
+                btnToggle.classList.replace('btn-light', 'btn-outline-primary');
+            }
+        }
+    }
+
+    if (localStorage.getItem('ws_quiz_zen_mode') === 'true') {
+        setFocusMode(true);
+    }
+
+    if (btnToggle) {
+        btnToggle.addEventListener('click', function () {
+            const isCurrently = document.body.classList.contains('ws-focus-mode');
+            setFocusMode(!isCurrently);
+        });
+    }
+
+    if (btnExit) {
+        btnExit.addEventListener('click', function () {
+            setFocusMode(false);
+        });
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.body.classList.contains('ws-focus-mode')) {
+            setFocusMode(false);
+        }
+    });
+});
+</script>
 
 <?= $this->endSection() ?>

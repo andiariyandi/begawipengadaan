@@ -90,6 +90,7 @@ $materials = $materials ?? [];
 $assessmentConfig = $assessmentConfig ?? ['pre_test' => [], 'post_test' => [], 'self_paced' => []];
 $selfPaced = $assessmentConfig['self_paced'] ?? [];
 $assessmentStats = $assessmentStats ?? [];
+$certTemplate = $certTemplate ?? null;
 $code = (string) ($item['attendance_code'] ?? '');
 $openAt = ! empty($item['attendance_open_at']) ? strtotime($item['attendance_open_at']) : null;
 $closeAt = ! empty($item['attendance_close_at']) ? strtotime($item['attendance_close_at']) : null;
@@ -733,6 +734,71 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
                     <span class="text-neutral-600 font-medium" style="color: #475569;">Sertifikat Diterbitkan:</span>
                     <strong class="text-primary-600 fw-bold"><?= number_format($certifiedCount) ?> Lembar</strong>
                 </div>
+            </div>
+        </div>
+
+        <!-- Section: TEMPLATE SERTIFIKAT EVENT (1:1) -->
+        <div class="card mb-24 radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
+            <div class="card-header bg-white p-20 border-bottom d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-10">
+                    <div class="w-32-px h-32-px rounded-circle bg-primary-50 text-primary-600 d-flex justify-content-center align-items-center">
+                        <iconify-icon icon="solar:diploma-verified-bold" class="fs-5"></iconify-icon>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0f172a; font-size: 14px;">Template E-Sertifikat (1:1)</h6>
+                        <small class="text-xs text-neutral-500 font-medium">Khusus acara ini</small>
+                    </div>
+                </div>
+                <?php if ($certTemplate): ?>
+                    <span class="badge bg-success-50 text-success-700 px-8 py-3 radius-6 text-xs fw-bold border border-success-200">Terpasang</span>
+                <?php else: ?>
+                    <span class="badge bg-warning-50 text-warning-700 px-8 py-3 radius-6 text-xs fw-bold border border-warning-200">Belum Ada</span>
+                <?php endif; ?>
+            </div>
+            <div class="card-body p-20">
+                <?php if ($certTemplate): ?>
+                    <div class="p-12 radius-8 bg-neutral-50 border border-neutral-200 mb-16">
+                        <p class="text-xs text-neutral-500 mb-1 font-semibold">Nama Template Aktif:</p>
+                        <h6 class="text-sm fw-bold text-neutral-900 mb-2"><?= esc($certTemplate['name']) ?></h6>
+                        <div class="d-flex flex-wrap gap-2 text-xs">
+                            <span class="badge bg-neutral-200 text-neutral-800 font-monospace">#<?= (int) $certTemplate['id'] ?></span>
+                            <span class="badge bg-primary-100 text-primary-700 font-monospace">
+                                SERT-{no}/<?= strtoupper($item['type'] ?? 'EV') ?>-<?= (int) $eventId ?>/05/{thn}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <div class="d-flex gap-2">
+                            <a href="<?= site_url('dashboard/sertifikat/template/' . (int) $certTemplate['id'] . '/preview') ?>" target="_blank"
+                               class="btn btn-outline-primary-600 btn-sm radius-8 py-8 px-12 text-xs fw-semibold flex-fill d-flex align-items-center justify-content-center gap-1">
+                                <iconify-icon icon="solar:eye-bold"></iconify-icon> Pratinjau
+                            </a>
+                            <a href="<?= site_url('dashboard/sertifikat/template/' . (int) $certTemplate['id'] . '/preview-pdf') ?>" target="_blank"
+                               class="btn btn-outline-danger btn-sm radius-8 py-8 px-12 text-xs fw-semibold flex-fill d-flex align-items-center justify-content-center gap-1">
+                                <iconify-icon icon="solar:file-download-bold"></iconify-icon> PDF
+                            </a>
+                        </div>
+                        <a href="<?= site_url('dashboard/sertifikat/template/' . (int) $certTemplate['id'] . '/ubah') ?>"
+                           class="btn btn-primary-600 btn-sm radius-8 py-8 text-xs fw-bold d-flex align-items-center justify-content-center gap-1">
+                            <iconify-icon icon="solar:pen-bold"></iconify-icon> Ubah Desain &amp; Background
+                        </a>
+                        <a href="<?= site_url('dashboard/sertifikat/template/' . (int) $certTemplate['id']) ?>"
+                           class="btn btn-outline-neutral-300 btn-sm radius-8 py-7 text-xs fw-semibold text-neutral-700 text-center">
+                            Buka Detail Template
+                        </a>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center p-16 bg-light radius-8 border border-neutral-200 mb-16">
+                        <iconify-icon icon="solar:danger-triangle-linear" class="display-6 text-warning-600 mb-2"></iconify-icon>
+                        <p class="text-xs text-neutral-700 mb-1 fw-semibold">Template sertifikat belum dibuat.</p>
+                        <p class="text-xs text-neutral-500 mb-0">Setiap acara memiliki template unik. Buat template sekarang untuk melengkapi sertifikat kegiatan ini.</p>
+                    </div>
+                    <a href="<?= site_url('dashboard/sertifikat/template/tambah?source_type=event&event_id=' . (int) $eventId) ?>"
+                       class="btn btn-primary-600 btn-sm radius-8 py-9 text-xs fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm w-100">
+                        <iconify-icon icon="solar:add-circle-bold" class="text-base"></iconify-icon>
+                        <span>+ Buat Template Sertifikat Event</span>
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
 

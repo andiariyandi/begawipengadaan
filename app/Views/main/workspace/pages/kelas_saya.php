@@ -177,6 +177,37 @@ $trainerRoleLabel = static function (?string $role): string {
     </ul>
 </div>
 
+<!-- 3.5 SMART SEARCH & FILTER BAR -->
+<div class="ws-filter-bar mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col-lg-5">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3 text-muted">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" id="wsClassSearchInput" class="form-control border-start-0 rounded-end-pill py-2" placeholder="Cari berdasarkan nama kelas, topik, atau kode...">
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="d-flex flex-wrap gap-1 align-items-center">
+                <button type="button" class="ws-filter-chip active" data-method="all">Semua Metode</button>
+                <button type="button" class="ws-filter-chip" data-method="online">Online</button>
+                <button type="button" class="ws-filter-chip" data-method="offline">Tatap Muka</button>
+                <button type="button" class="ws-filter-chip" data-method="hybrid">Hybrid</button>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <select id="wsClassSortSelect" class="form-select rounded-pill py-2 small fw-semibold text-navy">
+                <option value="default">Urutkan: Bawaan</option>
+                <option value="progress_desc">Progres Tertinggi</option>
+                <option value="progress_asc">Progres Terendah</option>
+                <option value="name_asc">Nama Kelas (A-Z)</option>
+                <option value="name_desc">Nama Kelas (Z-A)</option>
+            </select>
+        </div>
+    </div>
+</div>
+
 <!-- 4. Tab Content Areas -->
 <div class="tab-content" id="kelasTabContent">
 
@@ -211,7 +242,7 @@ $trainerRoleLabel = static function (?string $role): string {
                     $postTest    = $item['post_test'] ?? [];
                     $trainers    = $item['trainers'] ?? [];
                     ?>
-                    <div class="col-12 ws-paginated-item">
+                    <div class="col-12 ws-paginated-item ws-class-card-item" data-title="<?= esc(strtolower(($item['class_name'] ?? '') . ' ' . ($item['course_title'] ?? '') . ' ' . ($item['class_code'] ?? ''))) ?>" data-method="<?= esc(strtolower($item['learning_method'] ?? 'online')) ?>" data-progress="<?= $pct ?>" data-name="<?= esc($item['class_name'] ?? '') ?>">
                         <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
                             <!-- Card Header: Badges & Class Code -->
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -408,6 +439,9 @@ $trainerRoleLabel = static function (?string $role): string {
                                         <?php endif; ?>
 
                                         <!-- Secondary Actions -->
+                                        <a href="<?= route_to('workspace.participant.transcript', (string) $classId) ?>" class="btn btn-outline-info px-3 rounded-3 text-nowrap w-100 w-sm-auto" title="Rapor & Transkrip Akademik">
+                                            <i class="fas fa-file-invoice me-1"></i> Rapor PBJ
+                                        </a>
                                         <a href="<?= route_to('workspace.participant.class.detail', $classId) ?>" class="btn btn-outline-secondary px-3 rounded-3 text-nowrap w-100 w-sm-auto">
                                             <i class="fas fa-info-circle me-1"></i> Detail Kelas
                                         </a>
@@ -449,8 +483,9 @@ $trainerRoleLabel = static function (?string $role): string {
                     $certNumber  = $item['certificate_number'] ?? null;
                     $certStatus  = $item['certificate_status'] ?? null;
                     $certEnabled = (int) ($item['certificate_enabled'] ?? 0) === 1;
+                    $pct = 100.0;
                     ?>
-                    <div class="col-12 ws-paginated-item">
+                    <div class="col-12 ws-paginated-item ws-class-card-item" data-title="<?= esc(strtolower(($item['class_name'] ?? '') . ' ' . ($item['course_title'] ?? '') . ' ' . ($item['class_code'] ?? ''))) ?>" data-method="<?= esc(strtolower($item['learning_method'] ?? 'online')) ?>" data-progress="100" data-name="<?= esc($item['class_name'] ?? '') ?>">
                         <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white border-start border-success border-4">
                             <!-- Card Header -->
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -573,6 +608,9 @@ $trainerRoleLabel = static function (?string $role): string {
                                     <i class="fas fa-info-circle me-1"></i> Seluruh materi dan arsip pembelajaran tetap dapat Anda akses untuk ditinjau kembali.
                                 </small>
                                 <div class="d-flex flex-wrap gap-2">
+                                    <a href="<?= route_to('workspace.participant.transcript', (string) $classId) ?>" class="btn btn-outline-info px-3 rounded-3" title="Rapor & Transkrip Akademik">
+                                        <i class="fas fa-file-invoice me-1"></i> Rapor PBJ
+                                    </a>
                                     <a href="<?= route_to('workspace.participant.study', $classId) ?>" class="btn btn-outline-primary px-3 rounded-3">
                                         <i class="fas fa-book-reader me-1"></i> Buka Materi & Review
                                     </a>
@@ -606,7 +644,7 @@ $trainerRoleLabel = static function (?string $role): string {
             <div class="row g-3 ws-paginated-container" data-page-size="4">
                 <?php foreach ($pendingClasses as $item): ?>
                     <?php $classId = (int) ($item['class_id'] ?? 0); ?>
-                    <div class="col-12 ws-paginated-item">
+                    <div class="col-12 ws-paginated-item ws-class-card-item" data-title="<?= esc(strtolower(($item['class_name'] ?? '') . ' ' . ($item['course_title'] ?? '') . ' ' . ($item['class_code'] ?? ''))) ?>" data-method="<?= esc(strtolower($item['learning_method'] ?? 'online')) ?>" data-progress="0" data-name="<?= esc($item['class_name'] ?? '') ?>">
                         <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white border-start border-warning border-4">
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                                 <div class="d-flex flex-wrap align-items-center gap-2">
@@ -703,7 +741,7 @@ $trainerRoleLabel = static function (?string $role): string {
                     $pct      = (float) ($item['overall_percent'] ?? ($item['progress_summary']['percent'] ?? 0));
                     $finalScore = $item['final_score'] ?? null;
                     ?>
-                    <div class="col-lg-6 ws-paginated-item">
+                    <div class="col-lg-6 ws-paginated-item ws-class-card-item" data-title="<?= esc(strtolower(($item['class_name'] ?? '') . ' ' . ($item['course_title'] ?? '') . ' ' . ($item['class_code'] ?? ''))) ?>" data-method="<?= esc(strtolower($item['learning_method'] ?? 'online')) ?>" data-progress="<?= $pct ?>" data-name="<?= esc($item['class_name'] ?? '') ?>">
                         <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                                 <div class="d-flex flex-wrap align-items-center gap-2">
@@ -748,6 +786,9 @@ $trainerRoleLabel = static function (?string $role): string {
                                         <a href="<?= route_to('workspace.participant.study', $classId) ?>" class="btn btn-primary btn-sm rounded-3 px-3 fw-semibold">
                                             <i class="fas fa-arrow-right me-1"></i> Masuk Kelas
                                         </a>
+                                        <a href="<?= route_to('workspace.participant.transcript', (string) $classId) ?>" class="btn btn-outline-info btn-sm rounded-3 px-2" title="Rapor PBJ">
+                                            Rapor
+                                        </a>
                                         <a href="<?= route_to('workspace.participant.class.detail', $classId) ?>" class="btn btn-outline-secondary btn-sm rounded-3 px-3">
                                             Detail
                                         </a>
@@ -762,6 +803,9 @@ $trainerRoleLabel = static function (?string $role): string {
                                     <div class="d-flex gap-2">
                                         <a href="<?= route_to('workspace.participant.study', $classId) ?>" class="btn btn-outline-primary btn-sm rounded-3 px-3">
                                             <i class="fas fa-book-reader me-1"></i> Review Materi
+                                        </a>
+                                        <a href="<?= route_to('workspace.participant.transcript', (string) $classId) ?>" class="btn btn-outline-info btn-sm rounded-3 px-2" title="Rapor PBJ">
+                                            Rapor
                                         </a>
                                         <?php if (! empty($item['certificate_id'])): ?>
                                             <a href="<?= route_to('workspace.participant.certificate.download', (string) $item['certificate_id']) ?>" class="btn btn-success btn-sm rounded-3 px-3">
@@ -796,4 +840,114 @@ $trainerRoleLabel = static function (?string $role): string {
     </div>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('wsClassSearchInput');
+    const filterChips = document.querySelectorAll('.ws-filter-chip');
+    const sortSelect = document.getElementById('wsClassSortSelect');
+    let activeMethod = 'all';
+
+    function getActiveTabPane() {
+        return document.querySelector('#kelasTabContent .tab-pane.active');
+    }
+
+    function applyFilterAndSort() {
+        const pane = getActiveTabPane();
+        if (!pane) return;
+
+        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+        const items = Array.from(pane.querySelectorAll('.ws-class-card-item'));
+        let visibleCount = 0;
+
+        items.forEach(function (item) {
+            const title = item.getAttribute('data-title') || '';
+            const method = (item.getAttribute('data-method') || '').toLowerCase();
+
+            const matchSearch = query === '' || title.includes(query);
+            const matchMethod = activeMethod === 'all' || method === activeMethod || (activeMethod === 'offline' && method === 'tatap_muka');
+
+            if (matchSearch && matchMethod) {
+                item.style.display = '';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        // Handle sorting if requested
+        if (sortSelect && sortSelect.value !== 'default' && items.length > 0) {
+            const container = items[0].parentElement;
+            if (container) {
+                const sortMode = sortSelect.value;
+                items.sort(function (a, b) {
+                    if (sortMode === 'progress_desc') {
+                        return parseFloat(b.getAttribute('data-progress') || 0) - parseFloat(a.getAttribute('data-progress') || 0);
+                    }
+                    if (sortMode === 'progress_asc') {
+                        return parseFloat(a.getAttribute('data-progress') || 0) - parseFloat(b.getAttribute('data-progress') || 0);
+                    }
+                    if (sortMode === 'name_asc') {
+                        return (a.getAttribute('data-name') || '').localeCompare(b.getAttribute('data-name') || '');
+                    }
+                    if (sortMode === 'name_desc') {
+                        return (b.getAttribute('data-name') || '').localeCompare(a.getAttribute('data-name') || '');
+                    }
+                    return 0;
+                });
+                items.forEach(function (el) {
+                    container.appendChild(el);
+                });
+            }
+        }
+
+        // Empty filter state
+        let emptyNotice = pane.querySelector('.ws-filter-empty-alert');
+        if (visibleCount === 0 && items.length > 0) {
+            if (!emptyNotice) {
+                emptyNotice = document.createElement('div');
+                emptyNotice.className = 'col-12 ws-filter-empty-alert';
+                emptyNotice.innerHTML = `
+                    <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white">
+                        <i class="fas fa-search fs-2 mb-2 text-secondary opacity-50"></i>
+                        <h4 class="h6 fw-bold text-navy mb-1">Tidak Ada Kelas yang Cocok</h4>
+                        <p class="small text-muted mb-0">Tidak ditemukan kelas yang sesuai dengan kata kunci atau filter metode yang dipilih.</p>
+                    </div>
+                `;
+                const container = pane.querySelector('.row.g-3');
+                if (container) container.appendChild(emptyNotice);
+            } else {
+                emptyNotice.style.display = '';
+            }
+        } else if (emptyNotice) {
+            emptyNotice.style.display = 'none';
+        }
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilterAndSort);
+    }
+
+    filterChips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            filterChips.forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            activeMethod = this.getAttribute('data-method') || 'all';
+            applyFilterAndSort();
+        });
+    });
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', applyFilterAndSort);
+    }
+
+    // Reapply on tab change
+    document.querySelectorAll('#kelasTab button[data-bs-toggle="pill"]').forEach(function (btn) {
+        btn.addEventListener('shown.bs.tab', function () {
+            applyFilterAndSort();
+        });
+    });
+});
+</script>
+
 <?= $this->endSection() ?>

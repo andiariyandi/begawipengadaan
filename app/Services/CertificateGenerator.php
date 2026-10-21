@@ -161,16 +161,11 @@ class CertificateGenerator
             throw new RuntimeException('Sertifikat untuk sumber ini sudah pernah diterbitkan.');
         }
 
-        // Template selection
-        $templateSource = CertificateModel::TEMPLATE_SOURCE_FOR_CERTIFICATE[$sourceType] ?? null;
-        if (! $templateSource) {
-            throw new RuntimeException('Tipe sumber sertifikat tidak dikenali.');
-        }
-        $template = $this->templateModel->findDefaultForSource($templateSource);
+        // Template selection via smart resolver (Event specific & Learning hierarchy: Program -> Course -> Class)
+        $template = $this->templateModel->resolveTemplate($sourceType, $source);
         if (! $template) {
             throw new RuntimeException(
-                'Template sertifikat untuk source_type "' . $templateSource
-                    . '" belum tersedia atau belum diaktifkan.'
+                'Template sertifikat untuk sumber "' . $sourceType . '" belum tersedia atau belum diaktifkan.'
             );
         }
 
@@ -331,16 +326,9 @@ class CertificateGenerator
         $issuerName = 'BegawiPengadaan — Pemerintah Provinsi Lampung';
         $now        = date('Y-m-d H:i:s');
 
-        // Template resolution
-        $template = null;
-        if (! empty($options['template_id'])) {
-            $template = $this->templateModel->find((int) $options['template_id']);
-        }
-
-        if (! $template) {
-            $templateSource = CertificateModel::TEMPLATE_SOURCE_FOR_CERTIFICATE[$sourceType] ?? 'learning';
-            $template       = $this->templateModel->findDefaultForSource($templateSource);
-        }
+        // Template resolution via smart resolver (Event specific & Learning hierarchy: Program -> Course -> Class)
+        $explicitTemplateId = ! empty($options['template_id']) ? (int) $options['template_id'] : null;
+        $template = $this->templateModel->resolveTemplate($sourceType, $source, $explicitTemplateId);
 
         if (! $template) {
             throw new RuntimeException('Template sertifikat belum tersedia atau belum diaktifkan.');
@@ -481,6 +469,7 @@ class CertificateGenerator
                     'lc.course_id',
                     'co.title AS course_title',
                     'co.duration_minutes',
+                    'p.id AS program_id',
                     'p.title AS program_title',
                 ])
                 ->join('learning_classes lc', 'lc.id = e.class_id',  'left')
@@ -516,6 +505,7 @@ class CertificateGenerator
                 'class_id'           => (int) ($enrollment['class_id'] ?? 1),
                 'learning_class_id'  => (int) ($enrollment['class_id'] ?? 1),
                 'course_id'          => (int) ($enrollment['course_id'] ?? 1),
+                'program_id'         => (int) ($enrollment['program_id'] ?? 1),
                 'user_id'            => (int) $enrollment['user_id'],
                 'title'              => (string) ($enrollment['course_title'] ?? 'Sertifikat Arena Belajar PBJ'),
                 'subtitle'           => (string) ($enrollment['class_name'] ?? ''),
@@ -622,11 +612,15 @@ class CertificateGenerator
                 'e.completed_at',
                 'e.passed_at',
                 'lc.name AS class_name',
+                'co.id AS course_id',
                 'co.title AS course_title',
                 'co.duration_minutes',
+                'p.id AS program_id',
+                'p.title AS program_title',
             ])
             ->join('learning_classes lc', 'lc.id = e.class_id', 'left')
             ->join('courses co',          'co.id = lc.course_id', 'left')
+            ->join('programs p',          'p.id = co.program_id', 'left')
             ->where('e.id', $resourceId)
             ->get()
             ->getRowArray();
@@ -642,6 +636,8 @@ class CertificateGenerator
                 'source_id'          => (int) $enrollment['id'],
                 'class_id'           => (int) ($enrollment['class_id'] ?? 1),
                 'learning_class_id'  => (int) ($enrollment['class_id'] ?? 1),
+                'course_id'          => (int) ($enrollment['course_id'] ?? 1),
+                'program_id'         => (int) ($enrollment['program_id'] ?? 1),
                 'user_id'            => (int) $enrollment['user_id'],
                 'title'              => (string) ($enrollment['course_title'] ?? 'Sertifikat Pembelajaran'),
                 'subtitle'           => (string) ($enrollment['class_name'] ?? ''),

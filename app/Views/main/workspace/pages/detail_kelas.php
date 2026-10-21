@@ -79,11 +79,18 @@ $trainerRoleLabel = static function (?string $role): string {
                 </span>
             <?php endif; ?>
         </div>
-        <div class="text-muted small">
-            <i class="bi bi-calendar3 me-1 text-primary"></i>
-            Periode: <strong><?= esc($ctx['start_at'] ? date('d M Y', strtotime($ctx['start_at'])) : 'Fleksibel') ?></strong>
-            &ndash;
-            <strong><?= esc($ctx['end_at'] ? date('d M Y', strtotime($ctx['end_at'])) : 'Selesai') ?></strong>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <div class="text-muted small me-2">
+                <i class="bi bi-calendar3 me-1 text-primary"></i>
+                Periode: <strong><?= esc($ctx['start_at'] ? date('d M Y', strtotime($ctx['start_at'])) : 'Fleksibel') ?></strong>
+                &ndash;
+                <strong><?= esc($ctx['end_at'] ? date('d M Y', strtotime($ctx['end_at'])) : 'Selesai') ?></strong>
+            </div>
+            <?php if (! in_array($stateCode, ['not_enrolled', 'enrollment_pending'], true)): ?>
+                <a href="<?= route_to('workspace.participant.transcript', (string) $ctx['id']) ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-semibold shadow-xs">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Transkrip Nilai
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -227,6 +234,13 @@ $trainerRoleLabel = static function (?string $role): string {
                         <?= esc($cta['label'] ?? 'Mulai Belajar') ?> &raquo;
                     </a>
                 <?php endif; ?>
+                <?php if (! in_array($stateCode, ['not_enrolled', 'enrollment_pending'], true)): ?>
+                    <div class="mt-2">
+                        <a href="<?= route_to('workspace.participant.transcript', (string) $ctx['id']) ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1 shadow-xs">
+                            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Rapor &amp; Transkrip Nilai
+                        </a>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -323,13 +337,21 @@ $trainerRoleLabel = static function (?string $role): string {
                         <i class="bi bi-pencil-square text-primary fs-5 flex-shrink-0"></i>
                     <?php endif; ?>
                     <div class="min-w-0">
-                        <strong class="d-block text-dark text-truncate"><?= esc($preTest['quiz']['title'] ?? 'Pre-Test') ?></strong>
+                        <?php if ($preTest['completed'] || $state['enrollmentStatus'] === 'active'): ?>
+                            <a href="<?= route_to('workspace.participant.quiz.take', (string) $preTest['quiz']['id']) ?>" class="d-block text-dark fw-bold text-truncate text-decoration-none">
+                                <?= esc($preTest['quiz']['title'] ?? 'Pre-Test') ?>
+                            </a>
+                        <?php else: ?>
+                            <strong class="d-block text-dark text-truncate"><?= esc($preTest['quiz']['title'] ?? 'Pre-Test') ?></strong>
+                        <?php endif; ?>
                         <span class="text-muted small">Baseline assessment sebelum modul dimulai</span>
                     </div>
                 </div>
                 <div class="flex-shrink-0">
                     <?php if ($preTest['completed']): ?>
-                        <span class="badge bg-success text-white rounded-pill px-3 py-2">Selesai (Skor: <?= (float) ($preTest['attempt']['score'] ?? 0) ?>)</span>
+                        <a href="<?= route_to('workspace.participant.quiz.take', (string) $preTest['quiz']['id']) ?>" class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-semibold">
+                            <i class="bi bi-search me-1"></i> Tinjau Pre-Test (Skor: <?= (float) ($preTest['attempt']['score'] ?? 0) ?>)
+                        </a>
                     <?php elseif ($state['enrollmentStatus'] === 'active'): ?>
                         <a href="<?= route_to('workspace.participant.quiz.take', (string) $preTest['quiz']['id']) ?>" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">Mulai Pre-Test</a>
                     <?php else: ?>
@@ -346,17 +368,38 @@ $trainerRoleLabel = static function (?string $role): string {
     <?php else: ?>
         <div class="modules-accordion ws-paginated-container" data-page-size="5">
             <?php foreach ($modules as $mIndex => $mod): ?>
+                <?php
+                $firstLessonId = ! empty($mod['lessons']) ? (int) $mod['lessons'][0]['id'] : 0;
+                ?>
                 <div class="border rounded-4 p-3 mb-3 ws-paginated-item <?= $mod['is_completed'] ? 'border-success' : ($mod['is_unlocked'] ? 'border-primary' : 'bg-light') ?>">
                     <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
                         <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1">
                             <span class="badge bg-light text-dark border fw-bold rounded-pill flex-shrink-0">Modul <?= esc((string) ($mIndex + 1)) ?></span>
-                            <h3 class="h6 mb-0 text-dark fw-bold text-truncate"><?= esc($mod['title']) ?></h3>
+                            <?php if ($mod['is_unlocked'] && $firstLessonId > 0): ?>
+                                <a href="<?= route_to('workspace.participant.lesson.detail', (string) $firstLessonId) ?>" class="h6 mb-0 text-dark fw-bold text-truncate text-decoration-none" title="Klik untuk membuka materi modul ini">
+                                    <?= esc($mod['title']) ?>
+                                </a>
+                            <?php else: ?>
+                                <h3 class="h6 mb-0 text-dark fw-bold text-truncate"><?= esc($mod['title']) ?></h3>
+                            <?php endif; ?>
                         </div>
                         <div class="flex-shrink-0">
                             <?php if ($mod['is_completed']): ?>
-                                <span class="badge bg-success-subtle text-success-emphasis rounded-pill px-3 py-1"><i class="bi bi-check2 me-1"></i> Modul Selesai</span>
+                                <?php if ($firstLessonId > 0): ?>
+                                    <a href="<?= route_to('workspace.participant.lesson.detail', (string) $firstLessonId) ?>" class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-semibold">
+                                        <i class="bi bi-check2 me-1"></i> Modul Selesai &middot; Tinjau
+                                    </a>
+                                <?php else: ?>
+                                    <span class="badge bg-success-subtle text-success-emphasis rounded-pill px-3 py-1"><i class="bi bi-check2 me-1"></i> Modul Selesai</span>
+                                <?php endif; ?>
                             <?php elseif ($mod['is_unlocked']): ?>
-                                <span class="badge bg-primary-subtle text-primary-emphasis rounded-pill px-3 py-1">Sedang Berjalan</span>
+                                <?php if ($firstLessonId > 0): ?>
+                                    <a href="<?= route_to('workspace.participant.lesson.detail', (string) $firstLessonId) ?>" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-semibold">
+                                        <i class="bi bi-play-circle me-1"></i> Pelajari Modul
+                                    </a>
+                                <?php else: ?>
+                                    <span class="badge bg-primary-subtle text-primary-emphasis rounded-pill px-3 py-1">Sedang Berjalan</span>
+                                <?php endif; ?>
                             <?php else: ?>
                                 <span class="badge bg-light text-dark border rounded-pill px-3 py-1"><i class="bi bi-lock-fill me-1 text-muted"></i> Terkunci</span>
                             <?php endif; ?>
@@ -367,17 +410,18 @@ $trainerRoleLabel = static function (?string $role): string {
                     <?php if (! empty($mod['lessons'])): ?>
                         <ul class="list-group list-group-flush mb-2 border rounded-3 bg-white overflow-hidden">
                             <?php foreach ($mod['lessons'] as $les): ?>
+                                <?php $canOpenLesson = ! empty($les['is_unlocked']) || ! empty($les['is_completed']); ?>
                                 <li class="list-group-item d-flex align-items-center justify-content-between gap-2 py-2 px-3">
                                     <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1">
                                         <?php if ($les['is_completed']): ?>
                                             <i class="bi bi-check-circle-fill text-success flex-shrink-0"></i>
-                                        <?php elseif ($les['is_unlocked']): ?>
+                                        <?php elseif ($canOpenLesson): ?>
                                             <i class="bi bi-play-circle-fill text-primary flex-shrink-0"></i>
                                         <?php else: ?>
                                             <i class="bi bi-lock text-muted flex-shrink-0"></i>
                                         <?php endif; ?>
                                         
-                                        <?php if ($les['is_unlocked']): ?>
+                                        <?php if ($canOpenLesson): ?>
                                             <a href="<?= route_to('workspace.participant.lesson.detail', (string) $les['id']) ?>" class="text-decoration-none fw-medium text-dark text-truncate">
                                                 <?= esc($les['title']) ?>
                                             </a>
@@ -398,17 +442,26 @@ $trainerRoleLabel = static function (?string $role): string {
 
                     <!-- Quiz Modul (Jika Configured) -->
                     <?php if (! empty($mod['quiz'])): ?>
+                        <?php $canOpenQuiz = ! empty($mod['quiz']['is_unlocked']) || ! empty($mod['quiz']['is_completed']); ?>
                         <div class="p-2 px-3 border rounded-3 bg-white d-flex align-items-center justify-content-between gap-3 mt-2">
                             <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1">
                                 <i class="bi bi-patch-question text-warning fs-5 flex-shrink-0"></i>
                                 <div class="min-w-0">
-                                    <strong class="small d-block text-dark text-truncate"><?= esc($mod['quiz']['title']) ?></strong>
+                                    <?php if ($canOpenQuiz): ?>
+                                        <a href="<?= route_to('workspace.participant.quiz.take', (string) $mod['quiz']['id']) ?>" class="small d-block text-dark fw-bold text-truncate text-decoration-none">
+                                            <?= esc($mod['quiz']['title']) ?>
+                                        </a>
+                                    <?php else: ?>
+                                        <strong class="small d-block text-dark text-truncate"><?= esc($mod['quiz']['title']) ?></strong>
+                                    <?php endif; ?>
                                     <span class="text-muted small">Quiz Evaluasi Modul</span>
                                 </div>
                             </div>
                             <div class="flex-shrink-0">
                                 <?php if ($mod['quiz']['is_completed']): ?>
-                                    <span class="badge bg-success text-white rounded-pill px-3 py-1"><i class="bi bi-check-circle me-1"></i> Skor: <?= (float) ($mod['quiz']['score'] ?? 0) ?></span>
+                                    <a href="<?= route_to('workspace.participant.quiz.take', (string) $mod['quiz']['id']) ?>" class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-semibold">
+                                        <i class="bi bi-search me-1"></i> Tinjau Kuis (Skor: <?= (float) ($mod['quiz']['score'] ?? 0) ?>)
+                                    </a>
                                 <?php elseif ($mod['quiz']['is_unlocked']): ?>
                                     <a href="<?= route_to('workspace.participant.quiz.take', (string) $mod['quiz']['id']) ?>" class="btn btn-warning btn-sm text-dark fw-bold rounded-pill px-3">Kerjakan Quiz</a>
                                 <?php else: ?>
@@ -446,6 +499,7 @@ $trainerRoleLabel = static function (?string $role): string {
 
     <!-- Step Next: Post-Test (Jika Ada) -->
     <?php if ($postTest['exists']): ?>
+        <?php $canOpenPostTest = ! empty($postTest['is_unlocked']) || ! empty($postTest['completed']); ?>
         <div class="border rounded-4 p-3 mb-3 <?= $postTest['completed'] ? 'bg-success-subtle border-success' : ($postTest['is_unlocked'] ? 'border-primary bg-primary-subtle' : 'bg-light') ?>">
             <div class="d-flex align-items-center justify-content-between gap-3">
                 <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1">
@@ -455,13 +509,28 @@ $trainerRoleLabel = static function (?string $role): string {
                         <i class="bi bi-award text-primary fs-5 flex-shrink-0"></i>
                     <?php endif; ?>
                     <div class="min-w-0">
-                        <strong class="d-block text-dark text-truncate"><?= esc($postTest['quiz']['title'] ?? 'Post-Test') ?></strong>
+                        <?php if ($canOpenPostTest): ?>
+                            <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="d-block text-dark fw-bold text-truncate text-decoration-none">
+                                <?= esc($postTest['quiz']['title'] ?? 'Post-Test') ?>
+                            </a>
+                        <?php else: ?>
+                            <strong class="d-block text-dark text-truncate"><?= esc($postTest['quiz']['title'] ?? 'Post-Test') ?></strong>
+                        <?php endif; ?>
                         <span class="text-muted small">Evaluasi akhir kelulusan kelas</span>
                     </div>
                 </div>
                 <div class="flex-shrink-0">
                     <?php if ($postTest['completed']): ?>
-                        <span class="badge bg-success text-white rounded-pill px-3 py-2">Selesai (Skor: <?= (float) ($postTest['attempt']['score'] ?? 0) ?>)</span>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-semibold">
+                                <i class="bi bi-search me-1"></i> Tinjau Post-Test (Skor: <?= (float) ($postTest['attempt']['score'] ?? 0) ?>)
+                            </a>
+                            <?php if (! empty($postTest['remaining_attempts']) && (int) $postTest['remaining_attempts'] > 0 && empty($postTest['is_passed'])): ?>
+                                <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="btn btn-warning btn-sm text-dark rounded-pill px-3 py-1 fw-bold">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Coba Ulang (Sisa <?= (int) $postTest['remaining_attempts'] ?>x)
+                                </a>
+                            <?php endif; ?>
+                        </div>
                     <?php elseif ($postTest['is_unlocked']): ?>
                         <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">Mulai Post-Test</a>
                     <?php else: ?>

@@ -215,6 +215,64 @@ class WorkspaceHomeController extends BaseController
                     ->limit(12)
                     ->get()->getResultArray();
             }
+
+            // Consolidated Calendar Schedule & Deadlines (Learning, Tasks & Events)
+            $calendarEvents = [];
+            foreach ($recentClasses as $cl) {
+                if (! empty($cl['start_at'])) {
+                    $d = date('Y-m-d', strtotime($cl['start_at']));
+                    $calendarEvents[] = [
+                        'date'  => $d,
+                        'time'  => date('H:i', strtotime($cl['start_at'])),
+                        'type'  => 'class',
+                        'badge' => 'Kelas Dimulai',
+                        'title' => $cl['class_name'] ?? 'Kelas Pembelajaran',
+                        'meta'  => $cl['course_title'] ?? '',
+                        'url'   => route_to('workspace.participant.class.detail', (string) $cl['class_id']),
+                    ];
+                }
+                if (! empty($cl['end_at'])) {
+                    $d = date('Y-m-d', strtotime($cl['end_at']));
+                    $calendarEvents[] = [
+                        'date'  => $d,
+                        'time'  => date('H:i', strtotime($cl['end_at'])),
+                        'type'  => 'class',
+                        'badge' => 'Batas Akhir Kelas',
+                        'title' => $cl['class_name'] ?? 'Kelas Pembelajaran',
+                        'meta'  => $cl['course_title'] ?? '',
+                        'url'   => route_to('workspace.participant.class.detail', (string) $cl['class_id']),
+                    ];
+                }
+            }
+            foreach ($recentTasks as $task) {
+                if (! empty($task['due_at'])) {
+                    $d = date('Y-m-d', strtotime($task['due_at']));
+                    $calendarEvents[] = [
+                        'date'  => $d,
+                        'time'  => date('H:i', strtotime($task['due_at'])),
+                        'type'  => 'task',
+                        'badge' => 'Batas Tugas',
+                        'title' => $task['title'],
+                        'meta'  => $task['class_name'] ?? '',
+                        'url'   => route_to('workspace.participant.assignments', (string) $task['class_id']),
+                    ];
+                }
+            }
+            foreach ($myEvents as $ev) {
+                if (! empty($ev['start_at'])) {
+                    $d = date('Y-m-d', strtotime($ev['start_at']));
+                    $calendarEvents[] = [
+                        'date'  => $d,
+                        'time'  => date('H:i', strtotime($ev['start_at'])),
+                        'type'  => 'event',
+                        'badge' => 'Agenda Acara',
+                        'title' => $ev['event_title'],
+                        'meta'  => ($ev['delivery_mode'] ?? 'Online') . ' • ' . (date('H:i', strtotime($ev['start_at'])) . ' WIB'),
+                        'url'   => site_url('workspace/peserta/event-saya/' . ($ev['event_slug'] ?: $ev['event_id'])),
+                    ];
+                }
+            }
+            usort($calendarEvents, static fn($a, $b) => strcmp($a['date'], $b['date']));
         } elseif ($role === 'operator') {
             // Operator Real KPIs
             $pendingVerif = $db->table('profile_verifications')->where('status', 'pending')->countAllResults();
@@ -247,6 +305,7 @@ class WorkspaceHomeController extends BaseController
             'recentActivities'  => $recentActivities,
             'myEvents'          => $myEvents ?? [],
             'myCertificates'    => $myCertificates ?? [],
+            'calendarEvents'    => $calendarEvents ?? [],
         ];
     }
 

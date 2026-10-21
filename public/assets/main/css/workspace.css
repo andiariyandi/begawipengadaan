@@ -263,7 +263,7 @@
     color: #082f5c !important;
     font-family: var(--fistudy-font, "Outfit", sans-serif) !important;
     line-height: 1.15 !important;
-}    margin: 6px 0 !important;
+    margin: 6px 0 !important;
 }
 
 /* High-contrast subtle badge pills (Exact match to landing-news.css & landing-events.css) */
@@ -1126,7 +1126,7 @@
     font-size: 0.78rem !important;
 }
 
-/* Ensure text wrapping handles spaces naturally without breaking words into single letters */
+/* Universal anti-bleeding & text breaking across workspace headings, paragraphs, spans, links */
 .workspace-shell h1,
 .workspace-shell h2,
 .workspace-shell h3,
@@ -1138,11 +1138,28 @@
 .workspace-shell strong,
 .workspace-shell b,
 .workspace-shell a,
+.workspace-shell label,
+.workspace-shell li,
+.workspace-shell dt,
+.workspace-shell dd,
 .workspace-shell .ws-eyebrow,
 .workspace-shell .card-title,
 .workspace-shell .alert {
-    overflow-wrap: break-word;
-    word-break: normal;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+}
+
+/* Flex children text truncation & anti-overflow: min-width: 0 */
+.workspace-shell .d-flex > *,
+.workspace-shell .flex-grow-1,
+.workspace-shell .col,
+.workspace-shell [class*="col-"],
+.workspace-shell .card,
+.workspace-shell .ws-card,
+.workspace-shell .ws-class-card,
+.workspace-shell .ws-hero-card,
+.workspace-shell .ws-stat-card {
+    min-width: 0;
 }
 
 /* Compact padding normalization across workspace cards (anti over-padding) */
@@ -1228,13 +1245,41 @@
     font-size: 0.72rem !important;
     padding: 3px 8px !important;
     font-weight: 600 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .badge.rounded-pill {
     text-align: center;
 }
 
-/* Badge contrast, visibility & readability guarantees */
+.workspace-shell .badge.text-wrap,
+.badge.text-wrap {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+}
+
+/* ==========================================================================
+   GLOBAL BADGE & TEXT CONTRAST SAFEGUARDS (Anti White-on-White)
+   ========================================================================== */
+/* All white/light badges must have high-contrast dark text (#082f5c) */
+.workspace-shell .badge.bg-white,
+.workspace-shell .badge.bg-light,
+.workspace-shell .badge.bg-white-50,
+.workspace-shell .badge[class*="bg-white"],
+.badge.bg-white,
+.badge.bg-light,
+.badge.bg-white-50,
+.badge[class*="bg-white"] {
+    color: #082f5c !important;
+    --bs-badge-color: #082f5c !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 700 !important;
+}
+
+/* Neutral subtle badges */
 .badge.bg-light,
 .badge.text-muted,
 .badge.text-secondary,
@@ -1245,8 +1290,69 @@
 .badge.bg-secondary-subtle.text-secondary-emphasis {
     background-color: #f1f5f9 !important;
     color: #334155 !important;
+    --bs-badge-color: #334155 !important;
     border: 1px solid #cbd5e1 !important;
     font-weight: 600 !important;
+}
+
+/* Explicit anti-white-on-white badge override (handles any combination of bg-white & text-white) */
+.workspace-shell .badge.bg-white.text-white,
+.workspace-shell .badge.bg-white-50.text-white,
+.workspace-shell .badge.bg-light.text-white,
+.workspace-shell .badge[class*="bg-white"].text-white,
+.badge.bg-white.text-white,
+.badge.bg-white-50.text-white,
+.badge.bg-light.text-white,
+.badge[class*="bg-white"].text-white {
+    color: #082f5c !important;
+    --bs-badge-color: #082f5c !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 1px 3px rgba(8, 47, 92, 0.08) !important;
+    font-weight: 700 !important;
+}
+
+/* Outline/border badges without explicit background or text color */
+.workspace-shell .badge.border:not([class*="text-"]):not([class*="bg-primary"]):not([class*="bg-success"]):not([class*="bg-danger"]):not([class*="bg-dark"]):not([class*="bg-secondary"]):not([class*="bg-info"]):not([class*="bg-purple"]),
+.badge.border:not([class*="text-"]):not([class*="bg-primary"]):not([class*="bg-success"]):not([class*="bg-danger"]):not([class*="bg-dark"]):not([class*="bg-secondary"]):not([class*="bg-info"]):not([class*="bg-purple"]) {
+    color: #082f5c !important;
+    --bs-badge-color: #082f5c !important;
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    font-weight: 600 !important;
+}
+
+/* Text-white inside light backgrounds/cards fallback safeguard */
+.workspace-shell .card:not(.bg-primary):not(.bg-dark):not(.bg-secondary):not(.ws-hero-card):not(.ws-exam-header) > .text-white,
+.workspace-shell .card-body:not(.bg-primary):not(.bg-dark):not(.bg-secondary) > .text-white,
+.workspace-shell .bg-white .text-white:not(.btn):not(.badge):not(.avatar-circle):not([class*="bg-"]),
+.workspace-shell .table .text-white:not(.btn):not(.badge):not([class*="bg-"]),
+.workspace-shell .modal-body .text-white:not(.btn):not(.badge):not([class*="bg-"]) {
+    color: #0f172a !important;
+}
+
+/* Ensure form controls and dropdowns have crisp text */
+.workspace-shell .form-control,
+.workspace-shell .form-select {
+    color: #0f172a !important;
+    background-color: #ffffff !important;
+}
+
+.workspace-shell .dropdown-menu {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    box-shadow: 0 10px 25px rgba(8, 47, 92, 0.12) !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.workspace-shell .dropdown-item {
+    color: #334155 !important;
+}
+
+.workspace-shell .dropdown-item:hover,
+.workspace-shell .dropdown-item:focus {
+    background-color: #eff6ff !important;
+    color: #082f5c !important;
 }
 
 .badge.text-primary,
@@ -1362,6 +1468,14 @@ code,
 
 .table-responsive table {
     min-width: 580px;
+}
+
+.workspace-shell .table td,
+.workspace-shell .table th,
+.table td,
+.table th {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
 }
 
 /* 5-Stage Roadmap Strip responsive layout */
@@ -1538,6 +1652,223 @@ code,
         padding: 8px 10px !important;
     }
 }
+
+/* ==========================================================================
+   WORKSPACE ENHANCEMENTS: CALENDAR, FOCUS MODE & SMART FILTER
+   ========================================================================== */
+
+/* 1. Interactive Calendar Widget */
+.ws-calendar-card {
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(8, 47, 92, 0.05);
+    overflow: hidden;
+}
+
+.ws-calendar-nav-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #082f5c;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.ws-calendar-nav-btn:hover {
+    background: #082f5c;
+    color: #ffffff;
+    border-color: #082f5c;
+}
+
+.ws-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.ws-calendar-day-header {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    padding: 8px 0;
+    letter-spacing: 0.5px;
+}
+
+.ws-calendar-cell {
+    min-height: 60px;
+    border: 1px solid #f1f5f9;
+    border-radius: 10px;
+    padding: 6px 8px;
+    cursor: pointer;
+    position: relative;
+    background: #ffffff;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.ws-calendar-cell:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+}
+
+.ws-calendar-cell.is-other-month {
+    background: #fafafa;
+    opacity: 0.4;
+}
+
+.ws-calendar-cell.is-today {
+    border: 1.5px solid #082f5c !important;
+    background: #f0f7ff;
+}
+
+.ws-calendar-cell.is-today .ws-cal-date-num {
+    color: #082f5c;
+    font-weight: 800;
+}
+
+.ws-calendar-cell.is-selected {
+    background: #082f5c !important;
+    border-color: #082f5c !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(8, 47, 92, 0.25);
+}
+
+.ws-calendar-cell.is-selected .ws-cal-date-num {
+    color: #ffffff !important;
+    font-weight: 800;
+}
+
+.ws-cal-date-num {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #334155;
+    line-height: 1;
+}
+
+.ws-cal-dots-wrap {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.ws-cal-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.ws-cal-dot.dot-class { background-color: #2563eb; }
+.ws-cal-dot.dot-task  { background-color: #dc2626; }
+.ws-cal-dot.dot-event { background-color: #16a34a; }
+
+.ws-cal-side-agenda {
+    background: #f8fafc;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 16px;
+    height: 100%;
+}
+
+.ws-cal-agenda-item {
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+}
+.ws-cal-agenda-item:hover {
+    border-color: #082f5c;
+    box-shadow: 0 3px 8px rgba(8, 47, 92, 0.08);
+}
+
+/* 2. Focus / Zen Mode for Learning & Quiz */
+body.ws-focus-mode .workspace-breadcrumb,
+body.ws-focus-mode .main-header,
+body.ws-focus-mode .main-footer,
+body.ws-focus-mode .workspace-sidebar,
+body.ws-focus-mode .scroll-to-top,
+body.ws-focus-mode .landing-internal > .custom-cursor {
+    display: none !important;
+}
+
+body.ws-focus-mode {
+    background-color: #f1f5f9 !important;
+}
+
+body.ws-focus-mode .workspace-content {
+    max-width: 1080px !important;
+    margin: 0 auto !important;
+    padding-top: 15px !important;
+    padding-bottom: 40px !important;
+    width: 100% !important;
+}
+
+body.ws-focus-mode .ws-focus-banner {
+    display: flex !important;
+}
+
+.ws-focus-banner {
+    display: none;
+    position: sticky;
+    top: 12px;
+    z-index: 1050;
+    backdrop-filter: blur(12px);
+    background: rgba(8, 47, 92, 0.95);
+    color: #ffffff;
+    border-radius: 50px;
+    padding: 8px 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    margin-bottom: 20px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* 3. Kelas Saya Smart Filter Bar & Cards */
+.ws-filter-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 12px 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.ws-filter-chip {
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+.ws-filter-chip:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+.ws-filter-chip.active {
+    background: #082f5c;
+    color: #ffffff;
+    border-color: #082f5c;
+}
+
 
 
 

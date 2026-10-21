@@ -448,6 +448,34 @@ if (empty($openAt) || empty($code)) {
                                 Terbitkan E-Sertifikat Kehadiran
                             </label>
                             <small class="text-neutral-600 d-block text-xs" style="color: #475569;">Peserta yang terbukti hadir (presensi sah) berhak mendapatkan e-sertifikat terverifikasi QR.</small>
+                            <?php if ($formMode === 'create'): ?>
+                                <div class="p-8 radius-6 bg-primary-50 border border-primary-200 text-xs text-primary-700 mt-2 d-flex align-items-center gap-2">
+                                    <iconify-icon icon="solar:info-circle-bold" class="fs-6 flex-shrink-0"></iconify-icon>
+                                    <span>Setelah simpan, sistem akan mengarahkan Anda ke pembuatan Template Sertifikat khusus acara ini.</span>
+                                </div>
+                            <?php elseif (! empty($eventId)): ?>
+                                <?php if (! empty($certTemplate)): ?>
+                                    <div class="p-8 radius-6 bg-success-50 border border-success-200 text-xs text-success-800 mt-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <span class="d-flex align-items-center gap-1">
+                                            <iconify-icon icon="solar:check-circle-bold" class="text-success-600 fs-6"></iconify-icon>
+                                            Template Sertifikat: <strong><?= esc($certTemplate['name']) ?></strong>
+                                        </span>
+                                        <a href="<?= site_url('dashboard/sertifikat/template/' . (int) $certTemplate['id'] . '/ubah') ?>" class="btn btn-outline-success btn-xs radius-4 px-8 py-2 text-xs fw-bold">
+                                            Ubah Template
+                                        </a>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="p-8 radius-6 bg-warning-50 border border-warning-200 text-xs text-warning-800 mt-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <span class="d-flex align-items-center gap-1">
+                                            <iconify-icon icon="solar:danger-circle-bold" class="text-warning-600 fs-6"></iconify-icon>
+                                            Belum ada template sertifikat unik.
+                                        </span>
+                                        <a href="<?= site_url('dashboard/sertifikat/template/tambah?source_type=event&event_id=' . (int) $eventId) ?>" class="btn btn-warning text-dark btn-xs radius-4 px-8 py-2 text-xs fw-bold">
+                                            + Buat Template
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

@@ -153,6 +153,7 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('kelas/(:segment)/belajar', 'ParticipantController::study/$1', ['as' => 'workspace.participant.study']);
         $routes->get('lesson/(:segment)', 'ParticipantController::lessonDetail/$1', ['as' => 'workspace.participant.lesson.detail']);
         $routes->get('kelas/(:segment)/progres', 'ParticipantController::progress/$1', ['as' => 'workspace.participant.progress']);
+        $routes->get('kelas/(:segment)/transkrip', 'ParticipantController::transcript/$1', ['as' => 'workspace.participant.transcript']);
         $routes->get('kelas/(:segment)/pre-test', 'ParticipantController::preTest/$1', ['as' => 'workspace.participant.pre-test']);
         $routes->get('kelas/(:segment)/pre-test/hasil', 'ParticipantController::preTestResult/$1', ['as' => 'workspace.participant.pre-test.result']);
         $routes->get('kelas/(:segment)/quiz', 'ParticipantController::quiz/$1', ['as' => 'workspace.participant.quiz']);

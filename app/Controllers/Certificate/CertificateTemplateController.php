@@ -16,6 +16,11 @@ use RuntimeException;
  *
  * Mendukung perancangan template sertifikat visual dengan upload file template
  * (PNG / JPG / PDF background) dan penataan placeholder sertifikat PBJ resmi.
+ *
+ * Mengakomodasi:
+ * 1. Arena Belajar: Tingkat Program (mengunci course & kelas di bawahnya),
+ *    Tingkat Course (mengunci kelas di bawahnya), atau Khusus Kelas (hanya jika program & course kosong).
+ * 2. Event & Agenda: Unik 1:1 per acara, tidak dapat dibuat sama antar acara.
  */
 class CertificateTemplateController extends BaseController
 {
@@ -32,10 +37,63 @@ class CertificateTemplateController extends BaseController
 
     public function index()
     {
-        $items = $this->templateModel
+        $rawItems = $this->templateModel
             ->orderBy('is_active', 'DESC')
             ->orderBy('name', 'ASC')
             ->findAll();
+
+        $items = [];
+        foreach ($rawItems as $row) {
+            $payload = json_decode((string) ($row['template_payload'] ?? ''), true);
+            if (! is_array($payload)) {
+                $payload = [];
+            }
+
+            $scope     = $payload['target_scope'] ?? 'global';
+            $metaTitle = '';
+            $lockDesc  = '';
+
+            if ($row['source_type'] === 'event') {
+                $eventId = (int) ($payload['event_id'] ?? 0);
+                if ($eventId > 0) {
+                    $ev = $this->db->table('events')->select('title')->where('id', $eventId)->get()->getRowArray();
+                    $metaTitle = $ev ? $ev['title'] : "Event #{$eventId}";
+                }
+                $lockDesc = 'Template Unik 1:1 Khusus Event';
+            } else {
+                if ($scope === 'program') {
+                    $progId = (int) ($payload['program_id'] ?? 0);
+                    if ($progId > 0) {
+                        $p = $this->db->table('programs')->select('title')->where('id', $progId)->get()->getRowArray();
+                        $metaTitle = $p ? $p['title'] : "Program #{$progId}";
+                    }
+                    $lockDesc = 'Mengunci Seluruh Course & Kelas di Bawahnya';
+                } elseif ($scope === 'course') {
+                    $courseId = (int) ($payload['course_id'] ?? 0);
+                    if ($courseId > 0) {
+                        $co = $this->db->table('courses')->select('title')->where('id', $courseId)->get()->getRowArray();
+                        $metaTitle = $co ? $co['title'] : "Course #{$courseId}";
+                    }
+                    $lockDesc = 'Mengunci Seluruh Kelas di Bawahnya';
+                } elseif ($scope === 'class') {
+                    $classId = (int) ($payload['class_id'] ?? 0);
+                    if ($classId > 0) {
+                        $cl = $this->db->table('learning_classes')->select('name')->where('id', $classId)->get()->getRowArray();
+                        $metaTitle = $cl ? $cl['name'] : "Kelas #{$classId}";
+                    }
+                    $lockDesc = 'Khusus 1 Kelas Pembelajaran';
+                } else {
+                    $scope     = 'global';
+                    $metaTitle = 'Seluruh Arena Belajar (Default)';
+                    $lockDesc  = 'Fallback Default Pembelajaran';
+                }
+            }
+
+            $row['target_scope'] = $scope;
+            $row['target_title'] = $metaTitle;
+            $row['lock_desc']    = $lockDesc;
+            $items[] = $row;
+        }
 
         return view('dashboard/certificates/templates/index', [
             'title'         => 'Template Sertifikat | Dashboard BegawiPengadaan',
@@ -48,6 +106,27 @@ class CertificateTemplateController extends BaseController
 
     public function create()
     {
+        $options = $this->loadHierarchyOptions();
+
+        $sourceTypeParam = (string) $this->request->getGet('source_type');
+        $eventIdParam    = (int)    $this->request->getGet('event_id');
+
+        $initialSourceType = in_array($sourceTypeParam, ['learning', 'event'], true) ? $sourceTypeParam : 'learning';
+        $initialName       = '';
+        $initialPayload    = $this->defaultPayload();
+
+        $selectedEvent = null;
+        if ($eventIdParam > 0) {
+            $selectedEvent = $this->db->table('events')->where('id', $eventIdParam)->where('deleted_at IS NULL')->get()->getRowArray();
+            if ($selectedEvent) {
+                $initialSourceType                = 'event';
+                $initialName                      = 'Template Sertifikat - ' . $selectedEvent['title'];
+                $initialPayload['target_scope']   = 'event';
+                $initialPayload['event_id']       = $eventIdParam;
+                $initialPayload['event_title']    = $selectedEvent['title'];
+            }
+        }
+
         return view('dashboard/certificates/templates/form', [
             'title'                 => 'Tambah Template Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'             => 'Tambah Template Sertifikat',
@@ -57,13 +136,15 @@ class CertificateTemplateController extends BaseController
             'availablePlaceholders' => CertificateTemplateRenderer::getAvailablePlaceholders(),
             'template'              => [
                 'id'                 => 0,
-                'name'               => '',
-                'source_type'        => 'learning',
-                'template_payload'   => $this->defaultPayload(),
+                'name'               => $initialName,
+                'source_type'        => $initialSourceType,
+                'template_payload'   => $initialPayload,
                 'background_file_id' => null,
                 'is_active'          => 1,
             ],
             'backgroundAsset'       => null,
+            'hierarchyOptions'      => $options,
+            'selectedEvent'         => $selectedEvent,
         ]);
     }
 
@@ -82,8 +163,13 @@ class CertificateTemplateController extends BaseController
                 throw new RuntimeException('Validasi gagal: ' . implode('; ', $this->validator->getErrors()));
             }
 
-            $payload = $this->sanitizePayload((array) $this->request->getPost('payload'));
-            $now     = date('Y-m-d H:i:s');
+            $sourceType = (string) $this->request->getPost('source_type');
+            $payload    = $this->sanitizePayload((array) $this->request->getPost('payload'));
+
+            // Validasi & Proteksi Anti-Tumpang-Tindih & Unik 1:1 Event
+            $this->validateScopeAndLock($sourceType, $payload);
+
+            $now = date('Y-m-d H:i:s');
 
             // Handle background file upload jika disertakan
             $bgAssetId = null;
@@ -97,7 +183,7 @@ class CertificateTemplateController extends BaseController
 
             $data = [
                 'name'               => trim((string) $this->request->getPost('name')),
-                'source_type'        => (string) $this->request->getPost('source_type'),
+                'source_type'        => $sourceType,
                 'template_payload'   => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                 'background_file_id' => $bgAssetId,
                 'is_active'          => (int) ($this->request->getPost('is_active') ?? 1),
@@ -119,13 +205,14 @@ class CertificateTemplateController extends BaseController
             }
 
             $this->auditService->log($actorId, 'certificate_template.created', 'certificate', 'certificate_template', $newId, [
-                'name'        => $data['name'],
-                'source_type' => $data['source_type'],
-                'is_active'   => $data['is_active'],
+                'name'         => $data['name'],
+                'source_type'  => $data['source_type'],
+                'target_scope' => $payload['target_scope'] ?? 'global',
+                'is_active'    => $data['is_active'],
             ]);
 
             return redirect()->to(site_url('dashboard/sertifikat/template/' . $newId))
-                ->with('success', 'Template sertifikat berhasil dibuat.');
+                ->with('success', 'Template sertifikat berhasil dibuat dan tersinkronisasi.');
         } catch (RuntimeException $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
@@ -144,6 +231,51 @@ class CertificateTemplateController extends BaseController
             $backgroundAsset = $this->db->table('file_assets')->where('id', $template['background_file_id'])->get()->getRowArray();
         }
 
+        $payload = json_decode((string) ($template['template_payload'] ?? ''), true);
+        if (! is_array($payload)) {
+            $payload = [];
+        }
+
+        $scopeDetails = [
+            'scope'       => $payload['target_scope'] ?? 'global',
+            'entity_type' => '',
+            'title'       => '',
+            'lock_info'   => '',
+        ];
+
+        if ($template['source_type'] === 'event') {
+            $eventId = (int) ($payload['event_id'] ?? 0);
+            $ev = $this->db->table('events')->where('id', $eventId)->get()->getRowArray();
+            $scopeDetails['entity_type'] = 'Event / Agenda PBJ';
+            $scopeDetails['title']       = $ev ? $ev['title'] : "Event #{$eventId}";
+            $scopeDetails['lock_info']   = 'Khusus dan unik untuk acara ini.';
+        } else {
+            $scope = $payload['target_scope'] ?? 'global';
+            if ($scope === 'program') {
+                $progId = (int) ($payload['program_id'] ?? 0);
+                $p = $this->db->table('programs')->where('id', $progId)->get()->getRowArray();
+                $scopeDetails['entity_type'] = 'Program Pembelajaran';
+                $scopeDetails['title']       = $p ? $p['title'] : "Program #{$progId}";
+                $scopeDetails['lock_info']   = 'Mengunci seluruh Course dan Kelas di bawah Program ini.';
+            } elseif ($scope === 'course') {
+                $courseId = (int) ($payload['course_id'] ?? 0);
+                $co = $this->db->table('courses')->where('id', $courseId)->get()->getRowArray();
+                $scopeDetails['entity_type'] = 'Course PBJ';
+                $scopeDetails['title']       = $co ? $co['title'] : "Course #{$courseId}";
+                $scopeDetails['lock_info']   = 'Mengunci seluruh Kelas di bawah Course ini.';
+            } elseif ($scope === 'class') {
+                $classId = (int) ($payload['class_id'] ?? 0);
+                $cl = $this->db->table('learning_classes')->where('id', $classId)->get()->getRowArray();
+                $scopeDetails['entity_type'] = 'Kelas Pembelajaran Spesifik';
+                $scopeDetails['title']       = $cl ? $cl['name'] : "Kelas #{$classId}";
+                $scopeDetails['lock_info']   = 'Hanya berlaku untuk kelas ini.';
+            } else {
+                $scopeDetails['entity_type'] = 'Standar Arena Belajar (Global)';
+                $scopeDetails['title']       = 'Seluruh Pembelajaran PBJ';
+                $scopeDetails['lock_info']   = 'Berlaku jika Program, Course, dan Kelas belum diset khusus.';
+            }
+        }
+
         return view('dashboard/certificates/templates/detail', [
             'title'                 => 'Detail Template | Dashboard BegawiPengadaan',
             'pageTitle'             => 'Detail Template Sertifikat',
@@ -153,12 +285,14 @@ class CertificateTemplateController extends BaseController
             'template'              => $template,
             'backgroundAsset'       => $backgroundAsset,
             'availablePlaceholders' => CertificateTemplateRenderer::getAvailablePlaceholders(),
+            'scopeDetails'          => $scopeDetails,
         ]);
     }
 
     public function edit(string $id)
     {
-        $template = $this->templateModel->find((int) $id);
+        $templateId = (int) $id;
+        $template   = $this->templateModel->find($templateId);
         if (! $template) {
             return $this->notFoundResponse('Template tidak ditemukan.');
         }
@@ -173,6 +307,13 @@ class CertificateTemplateController extends BaseController
             $backgroundAsset = $this->db->table('file_assets')->where('id', $template['background_file_id'])->get()->getRowArray();
         }
 
+        $options = $this->loadHierarchyOptions($templateId);
+
+        $selectedEvent = null;
+        if ($template['source_type'] === 'event' && ! empty($decoded['event_id'])) {
+            $selectedEvent = $this->db->table('events')->where('id', (int) $decoded['event_id'])->get()->getRowArray();
+        }
+
         return view('dashboard/certificates/templates/form', [
             'title'                 => 'Ubah Template | Dashboard BegawiPengadaan',
             'pageTitle'             => 'Ubah Template Sertifikat',
@@ -182,6 +323,8 @@ class CertificateTemplateController extends BaseController
             'availablePlaceholders' => CertificateTemplateRenderer::getAvailablePlaceholders(),
             'template'              => $template,
             'backgroundAsset'       => $backgroundAsset,
+            'hierarchyOptions'      => $options,
+            'selectedEvent'         => $selectedEvent,
         ]);
     }
 
@@ -189,8 +332,7 @@ class CertificateTemplateController extends BaseController
     {
         try {
             $this->assertManageAccess();
-            $actorId = (int) session()->get('user_id');
-
+            $actorId    = (int) session()->get('user_id');
             $templateId = (int) $id;
             $before     = $this->templateModel->find($templateId);
             if (! $before) {
@@ -206,7 +348,12 @@ class CertificateTemplateController extends BaseController
                 throw new RuntimeException('Validasi gagal: ' . implode('; ', $this->validator->getErrors()));
             }
 
-            $payload   = $this->sanitizePayload((array) $this->request->getPost('payload'));
+            $sourceType = (string) $this->request->getPost('source_type');
+            $payload    = $this->sanitizePayload((array) $this->request->getPost('payload'));
+
+            // Validasi & Proteksi Anti-Tumpang-Tindih & Unik 1:1 Event
+            $this->validateScopeAndLock($sourceType, $payload, $templateId);
+
             $now       = date('Y-m-d H:i:s');
             $bgAssetId = $before['background_file_id'] ? (int) $before['background_file_id'] : null;
 
@@ -227,7 +374,7 @@ class CertificateTemplateController extends BaseController
 
             $data = [
                 'name'               => trim((string) $this->request->getPost('name')),
-                'source_type'        => (string) $this->request->getPost('source_type'),
+                'source_type'        => $sourceType,
                 'template_payload'   => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                 'background_file_id' => $bgAssetId,
                 'is_active'          => (int) ($this->request->getPost('is_active') ?? 0),
@@ -344,8 +491,200 @@ class CertificateTemplateController extends BaseController
     }
 
     // ===============================================================
-    // Helpers
+    // Hierarchy Options & Scope Validation Helpers
     // ===============================================================
+
+    private function loadHierarchyOptions(?int $excludeTemplateId = null): array
+    {
+        $programs = $this->db->table('programs')
+            ->select('id, title')
+            ->where('deleted_at IS NULL')
+            ->orderBy('title', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $courses = $this->db->table('courses')
+            ->select('id, program_id, title')
+            ->where('deleted_at IS NULL')
+            ->orderBy('title', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $classes = $this->db->table('learning_classes lc')
+            ->select('lc.id, lc.course_id, lc.name, co.program_id, co.title AS course_title')
+            ->join('courses co', 'co.id = lc.course_id', 'left')
+            ->where('lc.deleted_at IS NULL')
+            ->orderBy('lc.name', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $events = $this->db->table('events')
+            ->select('id, title, type, mode, start_at')
+            ->where('deleted_at IS NULL')
+            ->orderBy('start_at', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        $lockInfo       = $this->templateModel->getLearningHierarchyLockInfo($excludeTemplateId);
+        $assignedEvents = $this->templateModel->getAssignedEventMap($excludeTemplateId);
+
+        return [
+            'programs'       => $programs,
+            'courses'        => $courses,
+            'classes'        => $classes,
+            'events'         => $events,
+            'lockInfo'       => $lockInfo,
+            'assignedEvents' => $assignedEvents,
+        ];
+    }
+
+    private function validateScopeAndLock(string $sourceType, array &$payload, ?int $templateId = null): void
+    {
+        if ($sourceType === 'event') {
+            $eventId = (int) ($payload['event_id'] ?? $this->request->getPost('event_id'));
+            if ($eventId < 1) {
+                throw new RuntimeException('Harap pilih Event / Agenda untuk template sertifikat ini.');
+            }
+            $event = $this->db->table('events')->where('id', $eventId)->where('deleted_at IS NULL')->get()->getRowArray();
+            if (! $event) {
+                throw new RuntimeException('Event yang dipilih tidak ditemukan.');
+            }
+
+            // Validasi Unik 1:1 antar acara
+            $assigned = $this->templateModel->getAssignedEventMap($templateId);
+            if (isset($assigned[$eventId])) {
+                throw new RuntimeException(
+                    "Event \"{$event['title']}\" sudah memiliki template sertifikat aktif (\"{$assigned[$eventId]['template_name']}\"). " .
+                    "Setiap event dan agenda selalu berbeda dan tidak dapat dibuat sama antar acara."
+                );
+            }
+
+            $payload['target_scope'] = 'event';
+            $payload['event_id']     = $eventId;
+            $payload['event_title']  = $event['title'];
+            $payload['event_type']   = $event['type'];
+            return;
+        }
+
+        // Learning
+        $scope = (string) ($payload['target_scope'] ?? $this->request->getPost('target_scope') ?? 'global');
+        if (! in_array($scope, ['program', 'course', 'class', 'global'], true)) {
+            $scope = 'global';
+        }
+
+        $lockInfo = $this->templateModel->getLearningHierarchyLockInfo($templateId);
+
+        if ($scope === 'program') {
+            $programId = (int) ($payload['program_id'] ?? $this->request->getPost('program_id'));
+            if ($programId < 1) {
+                throw new RuntimeException('Harap pilih Program pembelajaran untuk template tingkat program ini.');
+            }
+            $prog = $this->db->table('programs')->where('id', $programId)->where('deleted_at IS NULL')->get()->getRowArray();
+            if (! $prog) {
+                throw new RuntimeException('Program pembelajaran tidak ditemukan.');
+            }
+
+            if (isset($lockInfo['locked_programs'][$programId])) {
+                throw new RuntimeException(
+                    "Program \"{$prog['title']}\" sudah memiliki template aktif (\"{$lockInfo['locked_programs'][$programId]['template_name']}\")."
+                );
+            }
+
+            $payload['target_scope']  = 'program';
+            $payload['program_id']    = $programId;
+            $payload['program_title'] = $prog['title'];
+            $payload['course_id']     = 0;
+            $payload['class_id']      = 0;
+            return;
+        }
+
+        if ($scope === 'course') {
+            $courseId = (int) ($payload['course_id'] ?? $this->request->getPost('course_id'));
+            if ($courseId < 1) {
+                throw new RuntimeException('Harap pilih Course pembelajaran untuk template tingkat course ini.');
+            }
+            $course = $this->db->table('courses')->where('id', $courseId)->where('deleted_at IS NULL')->get()->getRowArray();
+            if (! $course) {
+                throw new RuntimeException('Course pembelajaran tidak ditemukan.');
+            }
+
+            // Cek apakah Program induk sudah memiliki template (jika ya, course ini terkunci!)
+            $progId = (int) ($course['program_id'] ?? 0);
+            if ($progId > 0 && isset($lockInfo['locked_programs'][$progId])) {
+                throw new RuntimeException(
+                    "Course \"{$course['title']}\" terkunci karena Program induknya (\"{$lockInfo['locked_programs'][$progId]['template_name']}\") " .
+                    "sudah memiliki template sertifikat aktif yang berlaku untuk seluruh course dan kelas di bawahnya."
+                );
+            }
+
+            if (isset($lockInfo['locked_courses'][$courseId])) {
+                throw new RuntimeException(
+                    "Course \"{$course['title']}\" sudah memiliki template aktif (\"{$lockInfo['locked_courses'][$courseId]['template_name']}\")."
+                );
+            }
+
+            $payload['target_scope']  = 'course';
+            $payload['course_id']     = $courseId;
+            $payload['course_title']  = $course['title'];
+            $payload['program_id']    = $progId;
+            $payload['class_id']      = 0;
+            return;
+        }
+
+        if ($scope === 'class') {
+            $classId = (int) ($payload['class_id'] ?? $this->request->getPost('class_id'));
+            if ($classId < 1) {
+                throw new RuntimeException('Harap pilih Kelas pembelajaran untuk template khusus kelas ini.');
+            }
+            $class = $this->db->table('learning_classes lc')
+                ->select('lc.id, lc.course_id, lc.name, co.program_id, co.title AS course_title')
+                ->join('courses co', 'co.id = lc.course_id', 'left')
+                ->where('lc.id', $classId)
+                ->where('lc.deleted_at IS NULL')
+                ->get()
+                ->getRowArray();
+            if (! $class) {
+                throw new RuntimeException('Kelas pembelajaran tidak ditemukan.');
+            }
+
+            $progId   = (int) ($class['program_id'] ?? 0);
+            $courseId = (int) ($class['course_id'] ?? 0);
+
+            // Cek apakah Program induk atau Course induk sudah diset template
+            if ($progId > 0 && isset($lockInfo['locked_programs'][$progId])) {
+                throw new RuntimeException(
+                    "Kelas \"{$class['name']}\" terkunci karena Program induknya sudah memiliki template sertifikat aktif. " .
+                    "Semua kelas di bawah program tersebut otomatis menggunakan template tingkat program."
+                );
+            }
+
+            if ($courseId > 0 && isset($lockInfo['locked_courses'][$courseId])) {
+                throw new RuntimeException(
+                    "Kelas \"{$class['name']}\" terkunci karena Course induknya (\"{$class['course_title']}\") sudah memiliki template aktif. " .
+                    "Semua kelas di bawah course tersebut otomatis menggunakan template tingkat course."
+                );
+            }
+
+            if (isset($lockInfo['locked_classes'][$classId])) {
+                throw new RuntimeException(
+                    "Kelas \"{$class['name']}\" sudah memiliki template khusus aktif (\"{$lockInfo['locked_classes'][$classId]['template_name']}\")."
+                );
+            }
+
+            $payload['target_scope'] = 'class';
+            $payload['class_id']     = $classId;
+            $payload['class_name']   = $class['name'];
+            $payload['course_id']    = $courseId;
+            $payload['program_id']   = $progId;
+            return;
+        }
+
+        // Global fallback
+        $payload['target_scope'] = 'global';
+        $payload['program_id']   = 0;
+        $payload['course_id']    = 0;
+        $payload['class_id']     = 0;
+    }
 
     /**
      * Upload dan simpan asset gambar template ke file_assets.
@@ -475,6 +814,11 @@ class CertificateTemplateController extends BaseController
             'signer_position' => mb_substr($signerPos, 0, 255),
             'signer_nip'      => mb_substr($signerNip, 0, 64),
             'qr_position'     => $qrPos,
+            'target_scope'    => $raw['target_scope'] ?? 'global',
+            'program_id'      => (int) ($raw['program_id'] ?? 0),
+            'course_id'       => (int) ($raw['course_id'] ?? 0),
+            'class_id'        => (int) ($raw['class_id'] ?? 0),
+            'event_id'        => (int) ($raw['event_id'] ?? 0),
         ];
 
         if (! empty($raw['background_path'])) {
@@ -497,6 +841,11 @@ class CertificateTemplateController extends BaseController
             'signer_position' => 'Kepala Biro Pengadaan Barang dan Jasa',
             'signer_nip'      => '19750812 199903 1 004',
             'qr_position'     => 'right',
+            'target_scope'    => 'global',
+            'program_id'      => 0,
+            'course_id'       => 0,
+            'class_id'        => 0,
+            'event_id'        => 0,
         ];
     }
 

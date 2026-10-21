@@ -226,6 +226,193 @@ class ParticipantController extends BaseController
         ]);
     }
 
+    public function transcript(string $classId)
+    {
+        $userId = $this->userId();
+        $classIdInt = (int) $classId;
+        if ($classIdInt <= 0 || ! is_numeric($classId)) {
+            $classRow = db_connect()->table('learning_classes')->select('id')->where('code', $classId)->get()->getRowArray();
+            if ($classRow) {
+                $classIdInt = (int) $classRow['id'];
+            }
+        }
+
+        $state = $this->resolveClassLearningState($classIdInt, $userId);
+        $db = db_connect();
+
+        // Must be at least enrolled (active, completed, passed, etc.)
+        if (empty($state['enrollment']) || in_array($state['enrollmentStatus'], ['not_enrolled', 'pending'], true)) {
+            return redirect()->to(route_to('workspace.participant.class.detail', (string) $classIdInt))
+                ->with('error', 'Transkrip nilai hanya dapat diakses oleh peserta yang terdaftar aktif atau telah menyelesaikan kelas.');
+        }
+
+        // Student Profile Data
+        $student = $db->table('users')
+            ->select('id, name, username, email, phone, profile_type')
+            ->where('id', $userId)
+            ->get()->getRowArray() ?: [];
+
+        $student['instansi'] = '-';
+        $student['nip']      = '-';
+        $student['nik']      = '-';
+
+        if ($db->tableExists('asn_profiles')) {
+            $asn = $db->table('asn_profiles')->where('user_id', $userId)->get()->getRowArray() ?: [];
+            if (! empty($asn['institution_name'])) $student['instansi'] = $asn['institution_name'];
+            if (! empty($asn['nip'])) $student['nip'] = $asn['nip'];
+            if (! empty($asn['nik'])) $student['nik'] = $asn['nik'];
+        }
+        if ($student['instansi'] === '-' && $db->tableExists('public_profiles')) {
+            $pub = $db->table('public_profiles')->where('user_id', $userId)->get()->getRowArray() ?: [];
+            if (! empty($pub['institution_name'])) $student['instansi'] = $pub['institution_name'];
+            if (! empty($pub['nik'])) $student['nik'] = $pub['nik'];
+        }
+        if ($student['instansi'] === '-' && $db->tableExists('user_profiles')) {
+            $uprof = $db->table('user_profiles')->where('user_id', $userId)->get()->getRowArray() ?: [];
+            if (! empty($uprof['organization'])) $student['instansi'] = $uprof['organization'];
+        }
+
+        $enrollment = $state['enrollment'];
+        $class = $state['class'];
+        $modules = $state['modules'];
+        $trainers = $state['trainers'];
+        $preTest = $state['pre_test'];
+        $postTest = $state['post_test'];
+
+        // Compute Detailed Breakdown
+        // 1. Quizzes
+        $quizScores = [];
+        $quizRows = [];
+        foreach ($modules as $mIdx => $mod) {
+            if (! empty($mod['quiz'])) {
+                $q = $mod['quiz'];
+                $highestScore = isset($q['attempt']['score']) ? (float) $q['attempt']['score'] : null;
+                if ($highestScore !== null) {
+                    $quizScores[] = $highestScore;
+                }
+                $quizRows[] = [
+                    'module_title'  => $mod['title'] ?? ('Modul ' . ($mIdx + 1)),
+                    'title'         => $q['title'] ?? ('Kuis Modul ' . ($mIdx + 1)),
+                    'passing_grade' => (float) ($class['passing_grade'] ?? 70),
+                    'attempts'      => (int) ($q['attempts_count'] ?? 0),
+                    'score'         => $highestScore,
+                    'status'        => $highestScore !== null && $highestScore >= ($class['passing_grade'] ?? 70) ? 'Lulus' : ($highestScore !== null ? 'Belum Memenuhi' : 'Belum Dikerjakan'),
+                ];
+            }
+        }
+
+        // 2. Assignments
+        $asgScores = [];
+        $asgRows = [];
+        foreach ($modules as $mIdx => $mod) {
+            if (! empty($mod['assignment'])) {
+                $asg = $mod['assignment'];
+                $asgScore = isset($asg['submission']['score']) ? (float) $asg['submission']['score'] : null;
+                if ($asgScore !== null) {
+                    $asgScores[] = $asgScore;
+                }
+                $asgRows[] = [
+                    'module_title' => $mod['title'] ?? ('Modul ' . ($mIdx + 1)),
+                    'title'        => $asg['title'] ?? ('Tugas Modul ' . ($mIdx + 1)),
+                    'due_at'       => $asg['due_at'] ?? null,
+                    'submitted_at' => $asg['submission']['submitted_at'] ?? null,
+                    'score'        => $asgScore,
+                    'feedback'     => $asg['submission']['feedback'] ?? null,
+                    'status'       => isset($asg['submission']['status']) ? ucfirst($asg['submission']['status']) : 'Belum Dikirim',
+                ];
+            }
+        }
+
+        // Weights
+        $wQuiz = (float) ($class['quiz_weight'] ?? 40.0);
+        $wAsg  = (float) ($class['assignment_weight'] ?? 0.0);
+        $wPost = (float) ($class['post_test_weight'] ?? 60.0);
+
+        // Normalize weights if needed
+        $totalWeight = $wQuiz + $wAsg + $wPost;
+        if ($totalWeight <= 0) {
+            $wQuiz = 40.0;
+            $wPost = 60.0;
+            $wAsg = 0.0;
+            $totalWeight = 100.0;
+        }
+
+        $avgQuiz = ! empty($quizScores) ? (array_sum($quizScores) / count($quizScores)) : 0.0;
+        $avgAsg  = ! empty($asgScores) ? (array_sum($asgScores) / count($asgScores)) : 0.0;
+        $postScore = isset($postTest['attempt']['score']) ? (float) $postTest['attempt']['score'] : 0.0;
+
+        $calcFinalScore = ($avgQuiz * ($wQuiz / $totalWeight)) + ($avgAsg * ($wAsg / $totalWeight)) + ($postScore * ($wPost / $totalWeight));
+        $calcFinalScore = round($calcFinalScore, 2);
+
+        // Canonical final score from database if stored and completed
+        $finalScore = $enrollment['final_score'] !== null ? (float) $enrollment['final_score'] : $calcFinalScore;
+
+        // Predicate
+        $predicate = 'Belum Memenuhi Syarat';
+        $gradeLetter = 'E';
+        $isPassed = false;
+        $passingGrade = (float) ($class['passing_grade'] ?? 70.0);
+
+        if ($finalScore >= 90.0) {
+            $predicate = 'Sangat Memuaskan';
+            $gradeLetter = 'A';
+            $isPassed = true;
+        } elseif ($finalScore >= 80.0) {
+            $predicate = 'Memuaskan (Baik Sekali)';
+            $gradeLetter = 'B';
+            $isPassed = true;
+        } elseif ($finalScore >= $passingGrade) {
+            $predicate = 'Baik / Lulus';
+            $gradeLetter = 'C';
+            $isPassed = true;
+        } elseif ($finalScore >= 55.0) {
+            $predicate = 'Cukup';
+            $gradeLetter = 'D';
+        }
+
+        // Certificate if exists
+        $certificate = null;
+        if (! empty($state['certificate'])) {
+            $certificate = $state['certificate'];
+        } else {
+            $certificate = $db->table('certificates')
+                ->where('source_type', 'learning_enrollment')
+                ->where('source_id', (int) $enrollment['id'])
+                ->where('status', 'issued')
+                ->get()->getRowArray();
+        }
+
+        return view('main/workspace/pages/transkrip_nilai', [
+            'pageTitle'        => 'Transkrip Nilai Akademik | ' . ($class['name'] ?? 'Kelas PBJ'),
+            'hideSidebar'      => false,
+            'breadcrumbTail'   => [
+                ['label' => 'Kelas Saya', 'url' => route_to('workspace.participant.classes')],
+                ['label' => $class['name'] ?? 'Detail Kelas', 'url' => route_to('workspace.participant.class.detail', (string) $classIdInt)],
+                ['label' => 'Transkrip Akademik'],
+            ],
+            'state'            => $state,
+            'student'          => $student,
+            'class'            => $class,
+            'trainers'         => $trainers,
+            'enrollment'       => $enrollment,
+            'preTest'          => $preTest,
+            'postTest'         => $postTest,
+            'quizRows'         => $quizRows,
+            'asgRows'          => $asgRows,
+            'avgQuiz'          => round($avgQuiz, 2),
+            'avgAsg'           => round($avgAsg, 2),
+            'postScore'        => round($postScore, 2),
+            'wQuiz'            => $wQuiz,
+            'wAsg'             => $wAsg,
+            'wPost'            => $wPost,
+            'finalScore'       => $finalScore,
+            'gradeLetter'      => $gradeLetter,
+            'predicate'        => $predicate,
+            'isPassed'         => $isPassed,
+            'certificate'      => $certificate,
+        ]);
+    }
+
     public function study(string $classId)
     {
         $userId = $this->userId();
@@ -259,34 +446,21 @@ class ParticipantController extends BaseController
             return redirect()->to(route_to('workspace.participant.assignment.submission', (string) $classIdInt) . '?assignment_id=' . $reqAsgId);
         }
 
-        // Automatically guide user to their next pending item
-        $activeType = $state['current_step']['type'] ?? 'overview';
-        $activeItem = $state['current_step']['item'] ?? null;
-
-        if ($activeType === 'lesson' && ! empty($activeItem['id'])) {
-            return $this->lessonDetail((string) $activeItem['id']);
-        }
-
-        if ($activeType === 'pre_test' && ! empty($state['pre_test']['quiz']['id'])) {
+        // Enforce Pre-Test gate: if pre-test exists and is not completed, guide to pre-test
+        if ($state['pre_test']['exists'] && ! $state['pre_test']['completed']) {
             return redirect()->to(route_to('workspace.participant.quiz.take', (string) $state['pre_test']['quiz']['id']))
                 ->with('info', 'Silakan selesaikan Pre-Test terlebih dahulu sebelum memulai materi pembelajaran.');
         }
 
-        if ($activeType === 'post_test' && ! empty($state['post_test']['quiz']['id'])) {
-            return redirect()->to(route_to('workspace.participant.quiz.take', (string) $state['post_test']['quiz']['id']))
-                ->with('info', 'Seluruh modul telah selesai! Silakan kerjakan Post-Test evaluasi akhir.');
+        $activeType = $state['current_step']['type'] ?? 'overview';
+        $activeItem = $state['current_step']['item'] ?? null;
+
+        // If the current step is a lesson and no explicit overview is requested, open that lesson in learning room
+        if ($activeType === 'lesson' && ! empty($activeItem['id']) && $this->request->getGet('overview') !== '1') {
+            return $this->lessonDetail((string) $activeItem['id']);
         }
 
-        if ($activeType === 'quiz' && ! empty($activeItem['id'])) {
-            return redirect()->to(route_to('workspace.participant.quiz.take', (string) $activeItem['id']))
-                ->with('info', 'Materi modul selesai! Silakan selesaikan Quiz Modul untuk membuka modul berikutnya.');
-        }
-
-        if ($activeType === 'assignment' && ! empty($activeItem['id'])) {
-            return redirect()->to(route_to('workspace.participant.assignment.submission', (string) $classIdInt) . '?assignment_id=' . $activeItem['id']);
-        }
-
-        // Renders unified Learning Room
+        // Renders unified Learning Room without forcing redirects out to quiz/post-test
         return view('main/workspace/pages/belajar', [
             'pageTitle'      => 'Learning Room | ' . ($state['class']['name'] ?? 'Kelas'),
             'hideSidebar'    => true,
@@ -342,19 +516,28 @@ class ParticipantController extends BaseController
                 ->with('warning', 'Anda wajib menyelesaikan Pre-Test terlebih dahulu sebelum mengakses materi modul.');
         }
 
-        // Check if this lesson is unlocked
+        // Check if this lesson is unlocked or already completed
         $isUnlocked = false;
         foreach ($state['modules'] as $mod) {
             foreach ($mod['lessons'] as $les) {
                 if ((int) $les['id'] === $lessonIdInt) {
-                    $isUnlocked = $les['is_unlocked'];
+                    $isUnlocked = ! empty($les['is_unlocked']) || ! empty($les['is_completed']);
                     break 2;
                 }
             }
         }
 
+        if (! $isUnlocked) {
+            $hasProg = (bool) $db->table('learning_progress')
+                ->where(['lesson_id' => $lessonIdInt, 'enrollment_id' => (int) ($state['enrollment']['id'] ?? 0)])
+                ->countAllResults();
+            if ($hasProg || ! empty($state['post_test']['completed']) || $state['enrollmentStatus'] === 'completed') {
+                $isUnlocked = true;
+            }
+        }
+
         if (! $isUnlocked && $state['enrollmentStatus'] !== 'completed') {
-            return redirect()->to(route_to('workspace.participant.study', (string) $classIdInt))
+            return redirect()->to(route_to('workspace.participant.class.detail', (string) $classIdInt))
                 ->with('error', 'Materi ini masih terkunci. Silakan selesaikan materi dan quiz modul sebelumnya terlebih dahulu.');
         }
 
@@ -1481,40 +1664,46 @@ class ParticipantController extends BaseController
                 ->with('error', 'Pendaftaran kelas belum aktif.');
         }
 
-        if ($state['stateCode'] === 'pre_test_required' && $quiz['type'] !== 'pre_test') {
-            return redirect()->to(route_to('workspace.participant.study', (string) $classId))
+        $hasAttempt = (bool) $db->table('quiz_attempts')
+            ->where(['quiz_id' => $quizId, 'enrollment_id' => (int) ($state['enrollment']['id'] ?? 0)])
+            ->countAllResults();
+
+        if ($state['stateCode'] === 'pre_test_required' && $quiz['type'] !== 'pre_test' && ! $hasAttempt) {
+            return redirect()->to(route_to('workspace.participant.class.detail', (string) $classId))
                 ->with('error', 'Pre-Test wajib dikerjakan terlebih dahulu sebelum mengakses kuis ini.');
         }
 
-        // Gate checks based on quiz type
-        if ($quiz['type'] === 'post_test') {
-            // Must have completed all modules
-            $allDone = true;
-            foreach ($state['modules'] as $mod) {
-                if (! $mod['is_completed']) {
-                    $allDone = false;
-                    break;
+        // Gate checks based on quiz type (only for first-time attempt, never block review)
+        if (! $hasAttempt && $state['enrollmentStatus'] !== 'completed') {
+            if ($quiz['type'] === 'post_test') {
+                // Must have completed all modules
+                $allDone = true;
+                foreach ($state['modules'] as $mod) {
+                    if (! $mod['is_completed']) {
+                        $allDone = false;
+                        break;
+                    }
                 }
-            }
-            if (! $allDone && $state['enrollmentStatus'] !== 'completed') {
-                return redirect()->to(route_to('workspace.participant.study', (string) $classId))
-                    ->with('error', 'Post-Test masih terkunci. Anda wajib menyelesaikan seluruh materi dan quiz modul terlebih dahulu.');
-            }
-        } elseif ($quiz['type'] === 'lesson_quiz') {
-            // Find which module this quiz belongs to and check its lessons
-            foreach ($state['modules'] as $mod) {
-                if (! empty($mod['quiz']) && (int) $mod['quiz']['id'] === $quizId) {
-                    if (! $mod['is_unlocked']) {
-                        return redirect()->to(route_to('workspace.participant.study', (string) $classId))
-                            ->with('error', 'Modul kuis ini masih terkunci. Selesaikan modul sebelumnya terlebih dahulu.');
-                    }
-                    foreach ($mod['lessons'] as $les) {
-                        if (! $les['is_completed']) {
-                            return redirect()->to(route_to('workspace.participant.study', (string) $classId))
-                                ->with('error', 'Quiz modul ini masih terkunci. Silakan selesaikan seluruh materi pada modul ini terlebih dahulu.');
+                if (! $allDone) {
+                    return redirect()->to(route_to('workspace.participant.class.detail', (string) $classId))
+                        ->with('error', 'Post-Test masih terkunci. Anda wajib menyelesaikan seluruh materi dan quiz modul terlebih dahulu.');
+                }
+            } elseif ($quiz['type'] === 'lesson_quiz') {
+                // Find which module this quiz belongs to and check its lessons
+                foreach ($state['modules'] as $mod) {
+                    if (! empty($mod['quiz']) && (int) $mod['quiz']['id'] === $quizId) {
+                        if (! $mod['is_unlocked']) {
+                            return redirect()->to(route_to('workspace.participant.class.detail', (string) $classId))
+                                ->with('error', 'Modul kuis ini masih terkunci. Selesaikan modul sebelumnya terlebih dahulu.');
                         }
+                        foreach ($mod['lessons'] as $les) {
+                            if (! $les['is_completed']) {
+                                return redirect()->to(route_to('workspace.participant.lesson.detail', (string) $les['id']))
+                                    ->with('error', 'Quiz modul ini masih terkunci. Silakan selesaikan seluruh materi pada modul ini terlebih dahulu.');
+                            }
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
@@ -1576,13 +1765,52 @@ class ParticipantController extends BaseController
             }
         }
 
-        $latest = $db->table('quiz_attempts')
+        $allAttempts = $db->table('quiz_attempts')
             ->where(['quiz_id' => $quizId, 'enrollment_id' => (int) $enrollment['id']])
-            ->orderBy('attempt_number', 'DESC')
-            ->get()->getRowArray();
-        $attemptCount = (int) $db->table('quiz_attempts')
-            ->where(['quiz_id' => $quizId, 'enrollment_id' => (int) $enrollment['id']])
-            ->countAllResults();
+            ->orderBy('attempt_number', 'ASC')
+            ->get()->getResultArray();
+        $attemptCount = count($allAttempts);
+        $attemptLimit = (int) ($quiz['attempt_limit'] ?? 1);
+        $remaining = max(0, $attemptLimit - $attemptCount);
+
+        // Cari skor tertinggi dan attempt terbaik
+        $highestScore = null;
+        $bestAttempt = null;
+        $latest = null;
+        if (! empty($allAttempts)) {
+            $latest = end($allAttempts);
+            foreach ($allAttempts as $att) {
+                if (in_array($att['status'], ['graded', 'submitted', 'completed'], true) && $att['score'] !== null) {
+                    $s = (float) $att['score'];
+                    if ($highestScore === null || $s > $highestScore) {
+                        $highestScore = $s;
+                        $bestAttempt = $att;
+                    }
+                }
+            }
+        }
+
+        // Tentukan attempt mana yang akan ditampilkan lembar review-nya
+        $reviewAttempt = null;
+        $answersByQuestion = [];
+        if ($attempt !== null && (string) ($attempt['status'] ?? '') !== 'started') {
+            $reviewAttempt = $attempt;
+        } elseif ($bestAttempt !== null) {
+            $reviewAttempt = $bestAttempt;
+        } elseif ($latest !== null) {
+            $reviewAttempt = $latest;
+        }
+
+        if ($reviewAttempt !== null) {
+            $ansRows = $db->table('quiz_answers')
+                ->where('attempt_id', (int) $reviewAttempt['id'])
+                ->get()->getResultArray();
+            foreach ($ansRows as $aRow) {
+                $payload = json_decode((string) ($aRow['answer_payload'] ?? '{}'), true);
+                $aRow['selected_option_id'] = $payload['option_id'] ?? null;
+                $answersByQuestion[(int) $aRow['question_id']] = $aRow;
+            }
+        }
 
         return view('main/workspace/pages/quiz_take', [
             'pageTitle'         => $quiz['title'] ?? 'Quiz',
@@ -1598,14 +1826,20 @@ class ParticipantController extends BaseController
             'optionsByQuestion' => $optionsByQuestion,
             'attempt'           => $attempt,
             'attemptCount'      => $attemptCount,
-            'attemptLimit'      => (int) ($quiz['attempt_limit'] ?? 1),
+            'attemptLimit'      => $attemptLimit,
             'latest'            => $latest,
-            'remaining'         => max(0, (int) ($quiz['attempt_limit'] ?? 1) - $attemptCount),
+            'remaining'         => $remaining,
             'classContext'      => $state['class'],
             'state'             => $state,
             'durationMinutes'   => $durationMinutes,
             'remainingSeconds'  => $remainingSeconds,
             'deadlineTimestamp' => $deadlineTimestamp,
+            'allAttempts'       => $allAttempts,
+            'highestScore'      => $highestScore,
+            'bestAttempt'       => $bestAttempt,
+            'reviewAttempt'     => $reviewAttempt,
+            'answersByQuestion' => $answersByQuestion,
+            'passingGrade'      => (float) ($state['class']['passing_grade'] ?? 70.0),
         ]);
     }
 
@@ -1643,35 +1877,26 @@ class ParticipantController extends BaseController
             // Re-resolve state to determine intelligent next destination
             $state = $this->resolveClassLearningState($classId, $userId);
 
-            if ($quiz['type'] === 'pre_test') {
-                if ($state['stateCode'] === 'in_learning' && ! empty($state['current_step']['item']['id'])) {
-                    return redirect()->to(route_to('workspace.participant.lesson.detail', (string) $state['current_step']['item']['id']))
-                        ->with('success', "Pre-Test berhasil diselesaikan (Skor: {$score})! Modul 1 telah dibuka.");
-                }
-                return redirect()->to(route_to('workspace.participant.study', (string) $classId))
-                    ->with('success', "Pre-Test berhasil diselesaikan (Skor: {$score})! Silakan mulai materi pembelajaran.");
-            }
-
-            if ($quiz['type'] === 'lesson_quiz') {
-                if ($state['stateCode'] === 'in_learning' && ! empty($state['current_step']['item']['id'])) {
-                    return redirect()->to(route_to('workspace.participant.lesson.detail', (string) $state['current_step']['item']['id']))
-                        ->with('success', "Quiz Modul berhasil diselesaikan (Skor: {$score})! Melanjutkan ke materi berikutnya: " . esc($state['current_step']['title']));
-                }
-                if ($state['stateCode'] === 'post_test_required' && ! empty($state['current_step']['item']['id'])) {
-                    return redirect()->to(route_to('workspace.participant.quiz.take', (string) $state['current_step']['item']['id']))
-                        ->with('success', "Quiz Modul selesai (Skor: {$score})! Seluruh modul telah selesai. Silakan kerjakan Post-Test.");
-                }
-                return redirect()->to(route_to('workspace.participant.study', (string) $classId))
-                    ->with('success', "Quiz Modul berhasil diselesaikan (Skor: {$score})! Modul berikutnya telah terbuka.");
-            }
+            $passingGrade = (float) ($state['class']['passing_grade'] ?? 70.0);
+            $postAttemptsLeft = max(0, (int) ($quiz['attempt_limit'] ?? 1) - (int) $db->table('quiz_attempts')->where(['quiz_id' => (int) $quiz['id'], 'enrollment_id' => (int) $attempt['enrollment_id']])->countAllResults());
 
             if ($quiz['type'] === 'post_test') {
-                return redirect()->to(route_to('workspace.participant.study', (string) $classId))
-                    ->with('success', "Post-Test berhasil diselesaikan (Skor: {$score})! Evaluasi kelulusan pembelajaran Anda telah diproses.");
+                if ($score >= $passingGrade) {
+                    $msg = "Selamat! Post-Test berhasil diselesaikan dengan skor {$score} (Lulus Passing Grade: {$passingGrade}). Silakan tinjau pembahasan jawaban di bawah ini.";
+                } else {
+                    $extraMsg = ($postAttemptsLeft > 0)
+                        ? " Anda masih memiliki sisa {$postAttemptsLeft}x kesempatan untuk mencoba kembali."
+                        : " Kesempatan percobaan telah habis.";
+                    $msg = "Post-Test selesai dengan skor {$score}. Belum memenuhi passing grade ({$passingGrade}).{$extraMsg} Silakan pelajari pembahasan soal di bawah ini.";
+                }
+            } elseif ($quiz['type'] === 'pre_test') {
+                $msg = "Pre-Test berhasil diselesaikan (Skor: {$score})! Modul pembelajaran telah dibuka. Anda dapat meninjau pembahasan jawaban di bawah ini atau langsung memulai materi.";
+            } else {
+                $msg = "Quiz Modul berhasil diselesaikan (Skor: {$score})! Silakan tinjau pembahasan dan kunci jawaban di bawah ini.";
             }
 
             return redirect()->to(route_to('workspace.participant.quiz.take', (string) $quiz['id']) . '?attempt=' . $attemptId)
-                ->with('success', "Quiz berhasil dinilai. Skor: {$score}");
+                ->with('success', $msg);
         } catch (Throwable $e) {
             log_message('error', 'submitQuiz failed: {message}', ['message' => $e->getMessage()]);
             return redirect()->back()->with('error', $e->getMessage());
@@ -1759,11 +1984,63 @@ class ParticipantController extends BaseController
         $certificates = array_merge($classCerts, $eventCerts);
         usort($certificates, static fn($a, $b) => strtotime($b['created_at'] ?? 'now') <=> strtotime($a['created_at'] ?? 'now'));
 
+        // Ambil data seluruh pendaftaran kelas peserta untuk memantau status eligibilitas sertifikat
+        $enrollmentRows = $db->table('enrollments e')
+            ->select('e.*, lc.name AS class_name, lc.code AS class_code, lc.passing_grade, lc.certificate_enabled, courses.title AS course_title')
+            ->join('learning_classes lc', 'lc.id = e.class_id')
+            ->join('courses', 'courses.id = lc.course_id')
+            ->where('e.user_id', $userId)
+            ->whereIn('e.status', ['active', 'completed'])
+            ->get()->getResultArray();
+
+        $issuedClassEnrollmentIds = array_map('intval', array_filter(array_column($classCerts, 'source_id')));
+
+        $eligibilityList = [];
+        foreach ($enrollmentRows as $enr) {
+            $enrId = (int) $enr['id'];
+            $isIssued = in_array($enrId, $issuedClassEnrollmentIds, true);
+            $hasApproval = (bool) $db->table('approvals')->where(['resource_type' => 'certificate', 'resource_id' => $enrId])->countAllResults();
+
+            $prog = $this->learning->calculateEnrollmentProgress($enrId);
+            $finalScore = (float) ($enr['final_score'] ?? 0);
+            $passingGrade = (float) ($enr['passing_grade'] ?? 70.0);
+            $certEnabled = (int) ($enr['certificate_enabled'] ?? 0) === 1;
+
+            $unmetReasons = [];
+            if (! $certEnabled) {
+                $unmetReasons[] = 'Kelas ini tidak mengaktifkan fitur penerbitan sertifikat.';
+            } else {
+                if ($prog['overall_percent'] < 100.0) {
+                    $unmetReasons[] = 'Kurikulum materi & kuis belum tuntas 100% (saat ini ' . $prog['overall_percent'] . '%).';
+                }
+                if ($finalScore < $passingGrade) {
+                    $unmetReasons[] = 'Nilai akhir (' . number_format($finalScore, 1) . ') belum mencapai batas kelulusan passing grade (' . number_format($passingGrade, 1) . ').';
+                }
+            }
+
+            $eligibilityList[] = [
+                'enrollment_id'       => $enrId,
+                'class_id'            => (int) $enr['class_id'],
+                'class_name'          => $enr['class_name'],
+                'class_code'          => $enr['class_code'],
+                'course_title'        => $enr['course_title'],
+                'is_cert_enabled'     => $certEnabled,
+                'is_issued'           => $isIssued,
+                'is_pending_approval' => (! $isIssued && ($enr['certificate_eligible_at'] !== null || $hasApproval)),
+                'is_eligible'         => ($certEnabled && $prog['overall_percent'] >= 100.0 && $finalScore >= $passingGrade),
+                'final_score'         => $finalScore,
+                'passing_grade'       => $passingGrade,
+                'progress_percent'    => $prog['overall_percent'],
+                'unmet_reasons'       => $unmetReasons,
+            ];
+        }
+
         return view('main/workspace/pages/sertifikat', [
-            'title'          => 'Sertifikat Saya | Workspace BegawiPengadaan',
-            'pageTitle'      => 'Sertifikat Saya',
-            'breadcrumbTail' => [['label' => 'Sertifikat Saya']],
-            'certificates'   => $certificates,
+            'title'           => 'Sertifikat Saya | Workspace BegawiPengadaan',
+            'pageTitle'       => 'Sertifikat Saya',
+            'breadcrumbTail'  => [['label' => 'Sertifikat Saya']],
+            'certificates'    => $certificates,
+            'eligibilityList' => $eligibilityList,
         ]);
     }
 
@@ -1835,38 +2112,70 @@ class ParticipantController extends BaseController
         $enrollmentId = $enrollment ? (int) $enrollment['id'] : 0;
         $enrollmentStatus = (string) ($enrollment['status'] ?? 'not_enrolled');
 
-        // 4. Pre-Test & Attempts
+        // 4. Pre-Test & Attempts (Mendukung Nilai Tertinggi & Multi-Attempt)
         $preTest = $db->table('quizzes')
             ->where(['class_id' => $classId, 'type' => 'pre_test', 'status' => 'published'])
             ->orderBy('id', 'ASC')
             ->get()->getRowArray();
 
-        $preTestAttempt = null;
-        $preTestCompleted = false;
+        $preTestAttempt           = null;
+        $preTestBestAttempt       = null;
+        $preTestCompleted         = false;
+        $preTestAttemptsCount     = 0;
+        $preTestLimit             = 1;
+        $preTestRemainingAttempts = 0;
         if ($preTest && $enrollmentId > 0) {
-            $preTestAttempt = $db->table('quiz_attempts')
+            $preTestLimit = (int) ($preTest['attempt_limit'] ?? 1);
+            $preTestAttempts = $db->table('quiz_attempts')
                 ->where(['quiz_id' => (int) $preTest['id'], 'enrollment_id' => $enrollmentId])
                 ->whereIn('status', ['submitted', 'graded', 'passed', 'completed'])
-                ->orderBy('attempt_number', 'DESC')
-                ->get()->getRowArray();
-            $preTestCompleted = $preTestAttempt !== null;
+                ->orderBy('score', 'DESC')
+                ->get()->getResultArray();
+            $preTestAttemptsCount = count($preTestAttempts);
+            $preTestRemainingAttempts = max(0, $preTestLimit - $preTestAttemptsCount);
+            if (! empty($preTestAttempts)) {
+                $preTestBestAttempt = $preTestAttempts[0];
+                $preTestCompleted = true;
+                $preTestAttempt = $preTestBestAttempt;
+            }
         }
 
-        // 5. Post-Test & Attempts
+        // 5. Post-Test & Attempts (Mendukung Multi-Attempt & Nilai Tertinggi)
         $postTest = $db->table('quizzes')
             ->where(['class_id' => $classId, 'type' => 'post_test', 'status' => 'published'])
             ->orderBy('id', 'ASC')
             ->get()->getRowArray();
 
-        $postTestAttempt = null;
-        $postTestCompleted = false;
+        $postTestAttempt           = null;
+        $postTestBestAttempt       = null;
+        $postTestCompleted         = false;
+        $postTestAttemptsCount     = 0;
+        $postTestLimit             = 1;
+        $postTestRemainingAttempts = 0;
+        $postTestPassed            = false;
+
         if ($postTest && $enrollmentId > 0) {
-            $postTestAttempt = $db->table('quiz_attempts')
+            $postTestLimit = (int) ($postTest['attempt_limit'] ?? 1);
+            $postTestAttempts = $db->table('quiz_attempts')
                 ->where(['quiz_id' => (int) $postTest['id'], 'enrollment_id' => $enrollmentId])
                 ->whereIn('status', ['submitted', 'graded', 'passed', 'completed'])
-                ->orderBy('attempt_number', 'DESC')
-                ->get()->getRowArray();
-            $postTestCompleted = $postTestAttempt !== null;
+                ->orderBy('score', 'DESC')
+                ->get()->getResultArray();
+
+            $postTestAttemptsCount = count($postTestAttempts);
+            $postTestRemainingAttempts = max(0, $postTestLimit - $postTestAttemptsCount);
+
+            if (! empty($postTestAttempts)) {
+                $postTestBestAttempt = $postTestAttempts[0]; // Nilai Tertinggi
+                $postTestCompleted = true;
+                $passingGrade = (float) ($class['passing_grade'] ?? 70.0);
+                $postTestPassed = ((float) ($postTestBestAttempt['score'] ?? 0) >= $passingGrade);
+
+                // Latest attempt by attempt_number
+                $latestAttempts = $postTestAttempts;
+                usort($latestAttempts, static fn($a, $b) => (int) $b['attempt_number'] <=> (int) $a['attempt_number']);
+                $postTestAttempt = $latestAttempts[0];
+            }
         }
 
         // 6. Lesson Quizzes & Attempts
@@ -1955,8 +2264,9 @@ class ParticipantController extends BaseController
         $nextActionItem = null;
 
         $isGraduated = ($enrollmentStatus === 'completed' || ! empty($enrollment['passed_at']));
+        $hasReachedPostTest = $isGraduated || $postTestCompleted || ($postTestAttemptsCount > 0);
 
-        if (! $isGraduated && $preTestBlocksModules && $enrollmentStatus === 'active') {
+        if (! $isGraduated && ! $hasReachedPostTest && $preTestBlocksModules && $enrollmentStatus === 'active') {
             $activeItemFound = true;
             $nextActionItem = [
                 'type'  => 'pre_test',
@@ -2006,7 +2316,7 @@ class ParticipantController extends BaseController
                 }
             }
 
-            $isModuleUnlocked = $isGraduated || ($enrollmentStatus === 'active' && $prevModuleCompleted);
+            $isModuleUnlocked = $hasReachedPostTest || $isGraduated || ($enrollmentStatus === 'active' && $prevModuleCompleted);
             $moduleLessonsData = [];
             $allModLessonsDone = true;
             $prevLessonDone = true;
@@ -2015,9 +2325,9 @@ class ParticipantController extends BaseController
                 $lid = (int) $l['id'];
                 $prog = $progressMap[$lid] ?? null;
                 $pStatus = (string) ($prog['status'] ?? 'not_started');
-                $isLessonCompleted = $isGraduated || ($pStatus === 'completed');
+                $isLessonCompleted = $hasReachedPostTest || $isGraduated || ($pStatus === 'completed');
 
-                $isLessonUnlocked = $isGraduated || ($isModuleUnlocked && $prevLessonDone);
+                $isLessonUnlocked = $hasReachedPostTest || $isGraduated || $isLessonCompleted || ($isModuleUnlocked && $prevLessonDone);
                 $isLessonActive = false;
 
                 if (! $isLessonCompleted) {
@@ -2039,7 +2349,7 @@ class ParticipantController extends BaseController
                     'title'        => $l['title'],
                     'content_type' => $l['content_type'],
                     'sort_order'   => (int) $l['sort_order'],
-                    'status'       => $isGraduated ? 'completed' : $pStatus,
+                    'status'       => ($isGraduated || $hasReachedPostTest) ? 'completed' : $pStatus,
                     'is_completed' => $isLessonCompleted,
                     'is_unlocked'  => $isLessonUnlocked,
                     'is_active'    => $isLessonActive,
@@ -2056,11 +2366,11 @@ class ParticipantController extends BaseController
             if ($modQuiz !== null) {
                 $qid = (int) $modQuiz['id'];
                 $qAttempt = $quizAttemptsMap[$qid] ?? null;
-                $isQuizCompleted = $isGraduated || ($qAttempt !== null);
-                $isQuizUnlocked = $isGraduated || ($isModuleUnlocked && $allModLessonsDone);
+                $isQuizCompleted = $hasReachedPostTest || $isGraduated || ($qAttempt !== null);
+                $isQuizUnlocked = $hasReachedPostTest || $isGraduated || $isQuizCompleted || ($isModuleUnlocked && $allModLessonsDone);
                 $isQuizActive = false;
 
-                if (! $isGraduated && $isQuizUnlocked && ! $isQuizCompleted && ! $activeItemFound && $enrollmentStatus === 'active') {
+                if (! $isGraduated && ! $hasReachedPostTest && $isQuizUnlocked && ! $isQuizCompleted && ! $activeItemFound && $enrollmentStatus === 'active') {
                     $isQuizActive = true;
                     $activeItemFound = true;
                     $nextActionItem = [
@@ -2092,13 +2402,13 @@ class ParticipantController extends BaseController
                 $aSub = $assignmentSubmissionsMap[$aid] ?? null;
                 $isSubDone = $aSub !== null && in_array($aSub['status'], ['submitted', 'in_review', 'graded'], true);
                 $isAsgRequired = (bool) ($modAssignment['is_required'] ?? 0);
-                if ($isAsgRequired && ! $isSubDone && ! $isGraduated) {
+                if ($isAsgRequired && ! $isSubDone && ! $isGraduated && ! $hasReachedPostTest) {
                     $isAsgSatisfied = false;
                 }
-                $isAsgUnlocked = $isGraduated || ($isModuleUnlocked && $allModLessonsDone);
+                $isAsgUnlocked = $hasReachedPostTest || $isGraduated || $isSubDone || ($isModuleUnlocked && $allModLessonsDone);
                 $isAsgActive = false;
 
-                if (! $isGraduated && $isAsgUnlocked && ! $isSubDone && ! $activeItemFound && $enrollmentStatus === 'active') {
+                if (! $isGraduated && ! $hasReachedPostTest && $isAsgUnlocked && ! $isSubDone && ! $activeItemFound && $enrollmentStatus === 'active') {
                     $isAsgActive = true;
                     $activeItemFound = true;
                     $nextActionItem = [
@@ -2122,7 +2432,7 @@ class ParticipantController extends BaseController
                 ];
             }
 
-            $isModuleCompleted = $isGraduated || ($isModuleUnlocked && $allModLessonsDone);
+            $isModuleCompleted = $hasReachedPostTest || $isGraduated || ($isModuleUnlocked && $allModLessonsDone);
 
             $modulesTree[] = [
                 'id'           => $mid,
@@ -2139,10 +2449,10 @@ class ParticipantController extends BaseController
             $prevModuleCompleted = $isModuleCompleted;
         }
 
-        $allModulesCompleted = $isGraduated || ($prevModuleCompleted && ! $preTestBlocksModules);
+        $allModulesCompleted = $hasReachedPostTest || $isGraduated || ($prevModuleCompleted && ! $preTestBlocksModules);
 
         // Post-Test Unlocking
-        $isPostTestUnlocked = ($isGraduated || $allModulesCompleted) && in_array($enrollmentStatus, ['active', 'completed'], true);
+        $isPostTestUnlocked = ($hasReachedPostTest || $isGraduated || $allModulesCompleted) && in_array($enrollmentStatus, ['active', 'completed'], true);
         $isPostTestActive = false;
         if ($postTest !== null) {
             if (! $isGraduated && $isPostTestUnlocked && ! $postTestCompleted && ! $activeItemFound && $enrollmentStatus === 'active') {
@@ -2157,7 +2467,9 @@ class ParticipantController extends BaseController
         }
 
         // Graduation Evaluation & Certificate Pipeline
-        $isFinishedAllActivities = $isGraduated || ($allModulesCompleted && ($postTest === null || $postTestCompleted));
+        // Aktivitas tuntas jika peserta sudah lulus atau post-test selesai dan seluruh kuota percobaan telah habis
+        $postTestFullyExhausted = ($postTest === null) || $postTestPassed || ($postTestCompleted && $postTestRemainingAttempts <= 0);
+        $isFinishedAllActivities = $isGraduated || ($allModulesCompleted && $postTestFullyExhausted);
         if ($isFinishedAllActivities && $enrollmentStatus === 'active') {
             try {
                 $this->learning->evaluateCompletion($enrollmentId);
@@ -2274,11 +2586,11 @@ class ParticipantController extends BaseController
             } else {
                 $stateCode = 'completed_failed';
                 $cta = [
-                    'label'    => 'Belum Memenuhi Passing Grade',
-                    'url'      => route_to('workspace.participant.study', (string) $classId),
+                    'label'    => 'Lihat Evaluasi & Review Post-Test',
+                    'url'      => $postTest ? route_to('workspace.participant.quiz.take', (string) $postTest['id']) : route_to('workspace.participant.study', (string) $classId),
                     'type'     => 'failed',
-                    'class'    => 'btn btn-danger disabled',
-                    'disabled' => true,
+                    'class'    => 'btn btn-outline-danger fw-semibold',
+                    'disabled' => false,
                 ];
             }
         } elseif ($preTestBlocksModules) {
@@ -2290,13 +2602,15 @@ class ParticipantController extends BaseController
                 'class'    => 'btn btn-primary',
                 'disabled' => false,
             ];
-        } elseif ($postTest !== null && ! $postTestCompleted && $allModulesCompleted) {
-            $stateCode = 'post_test_required';
+        } elseif ($postTest !== null && $allModulesCompleted && (! $postTestCompleted || (! $postTestPassed && $postTestRemainingAttempts > 0))) {
+            $stateCode = ($postTestAttemptsCount > 0) ? 'post_test_reattempt' : 'post_test_required';
             $cta = [
-                'label'    => 'Kerjakan Post-Test',
+                'label'    => ($postTestAttemptsCount > 0)
+                    ? "Coba Ulang Post-Test (Sisa {$postTestRemainingAttempts}x Kesempatan)"
+                    : 'Kerjakan Post-Test',
                 'url'      => route_to('workspace.participant.quiz.take', (string) $postTest['id']),
                 'type'     => 'post_test',
-                'class'    => 'btn btn-primary',
+                'class'    => ($postTestAttemptsCount > 0) ? 'btn btn-warning text-dark fw-bold shadow-sm' : 'btn btn-primary',
                 'disabled' => false,
             ];
         } elseif ($nextActionItem && $nextActionItem['type'] === 'lesson') {
@@ -2344,11 +2658,17 @@ class ParticipantController extends BaseController
                 'attempt'   => $preTestAttempt,
             ],
             'post_test'              => [
-                'exists'      => $postTest !== null,
-                'quiz'        => $postTest,
-                'is_unlocked' => $isPostTestUnlocked,
-                'completed'   => $postTestCompleted,
-                'attempt'     => $postTestAttempt,
+                'exists'             => $postTest !== null,
+                'quiz'               => $postTest,
+                'is_unlocked'        => $isPostTestUnlocked,
+                'completed'          => $postTestCompleted,
+                'attempt'            => $postTestBestAttempt ?? $postTestAttempt, // Nilai Tertinggi yang digunakan!
+                'best_attempt'       => $postTestBestAttempt,
+                'latest_attempt'     => $postTestAttempt,
+                'attempts_count'     => $postTestAttemptsCount,
+                'attempt_limit'      => $postTestLimit,
+                'remaining_attempts' => $postTestRemainingAttempts,
+                'is_passed'          => $postTestPassed,
             ],
             'modules'                => $modulesTree,
             'has_assignments'        => $assignments !== [],

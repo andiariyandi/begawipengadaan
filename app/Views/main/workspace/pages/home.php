@@ -119,7 +119,7 @@ $methodBadge = static function (?string $method): array {
                     <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold" style="font-size: 11px; letter-spacing: 0.3px;">
                         <i class="fas fa-graduation-cap me-1"></i> Ruang Kerja Peserta
                     </span>
-                    <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 px-2 py-1 rounded-pill small fw-semibold">
+                    <span class="badge bg-white text-navy px-2 py-1 rounded-pill small fw-bold shadow-sm">
                         <i class="fas fa-check-circle text-success me-1"></i> Terverifikasi BegawiPengadaan
                     </span>
                 </div>
@@ -150,11 +150,11 @@ $methodBadge = static function (?string $method): array {
 
                         <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
                             <?php $mInfo = $methodBadge($resumeClass['learning_method'] ?? 'online'); ?>
-                            <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 small px-2 py-0.5 rounded-pill">
+                            <span class="badge bg-white text-navy small px-2 py-0.5 rounded-pill fw-semibold shadow-sm">
                                 <i class="<?= $mInfo['icon'] ?> me-1"></i> <?= $mInfo['label'] ?>
                             </span>
                             <?php if (! empty($resumeClass['location_or_link'])): ?>
-                                <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 small px-2 py-0.5 rounded-pill text-truncate" style="max-width: 200px;">
+                                <span class="badge bg-white text-navy small px-2 py-0.5 rounded-pill fw-semibold shadow-sm text-truncate" style="max-width: 200px;">
                                     <i class="fas fa-map-marker-alt me-1"></i> <?= esc($resumeClass['location_or_link']) ?>
                                 </span>
                             <?php endif; ?>
@@ -290,6 +290,86 @@ $methodBadge = static function (?string $method): array {
                 </a>
             </div>
         <?php endif; ?>
+    </div>
+
+    <!-- 3.5 KALENDER PEMBELAJARAN & AGENDA PBJ INTERAKTIF -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
+            <div>
+                <h2 class="h5 fw-bold text-navy mb-0">
+                    <i class="fas fa-calendar-alt text-primary me-2"></i>Kalender Pembelajaran & Agenda PBJ
+                </h2>
+                <small class="text-muted">Pantau tenggat kelas, batas tugas & kuis, serta jadwal event workshop PBJ Anda</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1" id="wsCalTodayBtn">
+                    <i class="fas fa-calendar-day me-1"></i> Hari Ini
+                </button>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-start-pill px-2 py-1" id="wsCalPrevBtn" title="Bulan Sebelumnya">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="btn btn-light btn-sm px-3 py-1 fw-bold text-navy border-top border-bottom" id="wsCalMonthYearLabel" style="min-width: 150px; pointer-events: none;">
+                        Oktober 2026
+                    </span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-end-pill px-2 py-1" id="wsCalNextBtn" title="Bulan Berikutnya">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Calendar Grid Column -->
+            <div class="col-lg-8">
+                <!-- Day Headers (Min - Sab) -->
+                <div class="ws-calendar-grid mb-1">
+                    <div class="ws-calendar-day-header text-danger">Min</div>
+                    <div class="ws-calendar-day-header">Sen</div>
+                    <div class="ws-calendar-day-header">Sel</div>
+                    <div class="ws-calendar-day-header">Rab</div>
+                    <div class="ws-calendar-day-header">Kam</div>
+                    <div class="ws-calendar-day-header">Jum</div>
+                    <div class="ws-calendar-day-header text-primary">Sab</div>
+                </div>
+
+                <!-- Days Cells Grid -->
+                <div class="ws-calendar-grid" id="wsCalCellsContainer">
+                    <!-- Populated dynamically via JS -->
+                </div>
+
+                <!-- Calendar Legend -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mt-3 pt-2 border-top">
+                    <span class="small text-muted fw-semibold">Keterangan:</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 small">
+                        <span class="ws-cal-dot dot-class me-1"></span> Batas Akhir Kelas
+                    </span>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 small">
+                        <span class="ws-cal-dot dot-task me-1"></span> Batas Akhir Tugas
+                    </span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small">
+                        <span class="ws-cal-dot dot-event me-1"></span> Agenda Event / Pelatihan
+                    </span>
+                </div>
+            </div>
+
+            <!-- Day Agenda List Column -->
+            <div class="col-lg-4">
+                <div class="ws-cal-side-agenda d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div>
+                            <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Agenda Tanggal</span>
+                            <h3 class="h6 fw-bold text-navy mb-0" id="wsCalSelectedDateLabel">-</h3>
+                        </div>
+                        <span class="badge bg-navy text-white rounded-pill px-2 py-1" id="wsCalAgendaCountBadge">0 Agenda</span>
+                    </div>
+
+                    <div class="flex-grow-1 overflow-auto" id="wsCalAgendaItemsList" style="max-height: 320px;">
+                        <!-- Items rendered dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 4. 2 KOLOM: TUGAS & ASSESSMENT vs EVENT & AGENDA -->
@@ -584,4 +664,267 @@ $methodBadge = static function (?string $method): array {
     </div>
 
 </div>
+<?= $this->endSection() ?>
+
+<?= $this->section('pageScripts') ?>
+<script id="wsCalendarData" type="application/json"><?= json_encode($calendarEvents ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const dataEl = document.getElementById('wsCalendarData');
+    if (!dataEl) return;
+
+    let events = [];
+    try {
+        events = JSON.parse(dataEl.textContent || '[]');
+    } catch (e) {
+        events = [];
+    }
+
+    // Group events by YYYY-MM-DD
+    const eventsByDate = {};
+    events.forEach(function (ev) {
+        if (!ev.date) return;
+        if (!eventsByDate[ev.date]) {
+            eventsByDate[ev.date] = [];
+        }
+        eventsByDate[ev.date].push(ev);
+    });
+
+    const monthNames = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+    const today = new Date();
+    let currentYear = today.getFullYear();
+    let currentMonth = today.getMonth(); // 0-indexed
+
+    function formatDateStr(y, m, d) {
+        const mm = String(m + 1).padStart(2, '0');
+        const dd = String(d).padStart(2, '0');
+        return `${y}-${mm}-${dd}`;
+    }
+
+    const todayStr = formatDateStr(today.getFullYear(), today.getMonth(), today.getDate());
+    let selectedDateStr = todayStr;
+
+    // Check if any event exists this month; if not, and events exist elsewhere, navigate to closest
+    const allDates = Object.keys(eventsByDate).sort();
+    if (allDates.length > 0) {
+        const hasCurrentMonthEvents = allDates.some(k => k.startsWith(`${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`));
+        if (!hasCurrentMonthEvents) {
+            const firstEvDate = allDates[0];
+            const parts = firstEvDate.split('-');
+            if (parts.length === 3) {
+                currentYear = parseInt(parts[0], 10);
+                currentMonth = parseInt(parts[1], 10) - 1;
+                selectedDateStr = firstEvDate;
+            }
+        }
+    }
+
+    const cellsContainer = document.getElementById('wsCalCellsContainer');
+    const monthYearLabel = document.getElementById('wsCalMonthYearLabel');
+    const selectedDateLabel = document.getElementById('wsCalSelectedDateLabel');
+    const agendaCountBadge = document.getElementById('wsCalAgendaCountBadge');
+    const agendaItemsList = document.getElementById('wsCalAgendaItemsList');
+    const prevBtn = document.getElementById('wsCalPrevBtn');
+    const nextBtn = document.getElementById('wsCalNextBtn');
+    const todayBtn = document.getElementById('wsCalTodayBtn');
+
+    function renderCalendar() {
+        if (!cellsContainer || !monthYearLabel) return;
+        monthYearLabel.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        cellsContainer.innerHTML = '';
+
+        const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0 (Sun) - 6 (Sat)
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+        // 1. Prev month trailing days
+        for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+            const dayNum = daysInPrevMonth - i;
+            const prevMonthDate = new Date(currentYear, currentMonth - 1, dayNum);
+            const dateStr = formatDateStr(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), dayNum);
+            renderCell(dayNum, dateStr, true);
+        }
+
+        // 2. Current month days
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = formatDateStr(currentYear, currentMonth, day);
+            renderCell(day, dateStr, false);
+        }
+
+        // 3. Next month leading days to complete grid
+        const totalRendered = firstDayOfMonth + daysInMonth;
+        const remaining = (7 - (totalRendered % 7)) % 7;
+        for (let day = 1; day <= remaining; day++) {
+            const nextMonthDate = new Date(currentYear, currentMonth + 1, day);
+            const dateStr = formatDateStr(nextMonthDate.getFullYear(), nextMonthDate.getMonth(), day);
+            renderCell(day, dateStr, true);
+        }
+
+        renderAgendaList(selectedDateStr);
+    }
+
+    function renderCell(dayNum, dateStr, isOtherMonth) {
+        const cell = document.createElement('div');
+        cell.className = 'ws-calendar-cell';
+        if (isOtherMonth) cell.classList.add('is-other-month');
+        if (dateStr === todayStr) cell.classList.add('is-today');
+        if (dateStr === selectedDateStr) cell.classList.add('is-selected');
+
+        const topWrap = document.createElement('div');
+        topWrap.className = 'd-flex justify-content-between align-items-center';
+
+        const numEl = document.createElement('span');
+        numEl.className = 'ws-cal-date-num';
+        numEl.textContent = dayNum;
+        topWrap.appendChild(numEl);
+
+        const dayEvents = eventsByDate[dateStr] || [];
+        if (dayEvents.length > 0) {
+            const countBadge = document.createElement('span');
+            countBadge.className = 'badge bg-navy text-white rounded-pill px-1';
+            countBadge.style.fontSize = '9px';
+            countBadge.textContent = dayEvents.length;
+            topWrap.appendChild(countBadge);
+        }
+
+        cell.appendChild(topWrap);
+
+        // Dots wrapper
+        const dotsWrap = document.createElement('div');
+        dotsWrap.className = 'ws-cal-dots-wrap';
+        dayEvents.slice(0, 3).forEach(function (ev) {
+            const dot = document.createElement('span');
+            dot.className = 'ws-cal-dot ' + (
+                ev.type === 'class' ? 'dot-class' :
+                ev.type === 'task' ? 'dot-task' : 'dot-event'
+            );
+            dot.title = ev.title;
+            dotsWrap.appendChild(dot);
+        });
+        cell.appendChild(dotsWrap);
+
+        cell.addEventListener('click', function () {
+            selectedDateStr = dateStr;
+            document.querySelectorAll('.ws-calendar-cell').forEach(c => c.classList.remove('is-selected'));
+            cell.classList.add('is-selected');
+            renderAgendaList(dateStr);
+        });
+
+        cellsContainer.appendChild(cell);
+    }
+
+    function renderAgendaList(dateStr) {
+        if (!selectedDateLabel || !agendaItemsList) return;
+
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+            const dObj = new Date(y, m, d);
+            const dayName = dayNames[dObj.getDay()] || '';
+            selectedDateLabel.textContent = `${dayName}, ${d} ${monthNames[m]} ${y}`;
+        } else {
+            selectedDateLabel.textContent = dateStr;
+        }
+
+        const dayEvents = eventsByDate[dateStr] || [];
+        if (agendaCountBadge) {
+            agendaCountBadge.textContent = `${dayEvents.length} Agenda`;
+        }
+
+        agendaItemsList.innerHTML = '';
+        if (dayEvents.length === 0) {
+            agendaItemsList.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="far fa-calendar-check fs-2 mb-2 text-secondary opacity-50"></i>
+                    <p class="small mb-0">Tidak ada agenda kegiatan pada tanggal ini.</p>
+                </div>
+            `;
+            return;
+        }
+
+        dayEvents.forEach(function (ev) {
+            const badgeClass = ev.type === 'class' ? 'bg-primary-subtle text-primary border-primary-subtle' :
+                               (ev.type === 'task' ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-success-subtle text-success border-success-subtle');
+            const iconClass = ev.type === 'class' ? 'fas fa-graduation-cap' :
+                              (ev.type === 'task' ? 'fas fa-clipboard-check' : 'fas fa-calendar-alt');
+            const ctaText = ev.type === 'class' ? 'Buka Kelas' :
+                            (ev.type === 'task' ? 'Kerjakan' : 'Detail Acara');
+
+            const itemEl = document.createElement('div');
+            itemEl.className = 'ws-cal-agenda-item';
+            itemEl.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <span class="badge ${badgeClass} border rounded-pill px-2 py-0.5 small" style="font-size: 0.7rem;">
+                        <i class="${iconClass} me-1"></i> ${ev.badge || 'Agenda'}
+                    </span>
+                    <span class="small text-muted fw-semibold" style="font-size: 0.75rem;">
+                        <i class="far fa-clock me-1"></i> ${ev.time || '-'} WIB
+                    </span>
+                </div>
+                <h4 class="h6 fw-bold text-navy mb-1" style="font-size: 0.85rem; line-height: 1.3;">
+                    ${escapeHtml(ev.title)}
+                </h4>
+                ${ev.meta ? `<p class="small text-muted mb-2 text-truncate" style="font-size: 0.75rem;">${escapeHtml(ev.meta)}</p>` : ''}
+                <div class="text-end">
+                    <a href="${ev.url || '#'}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-0.5 small" style="font-size: 0.75rem;">
+                        ${ctaText} <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            `;
+            agendaItemsList.appendChild(itemEl);
+        });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function () {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        });
+    }
+
+    if (todayBtn) {
+        todayBtn.addEventListener('click', function () {
+            currentYear = today.getFullYear();
+            currentMonth = today.getMonth();
+            selectedDateStr = todayStr;
+            renderCalendar();
+        });
+    }
+
+    renderCalendar();
+});
+</script>
 <?= $this->endSection() ?>

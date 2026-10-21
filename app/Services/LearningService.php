@@ -529,10 +529,25 @@ class LearningService
         $isPassed = $final >= $passingGrade;
         $isCertEligible = $isPassed && (int) ($class['certificate_enabled'] ?? 0) === 1;
 
+        // Cek apakah peserta masih memiliki sisa kesempatan re-attempt pada post-test
+        $hasPostTestAttemptsRemaining = false;
+        if ($postTest && ! $isPassed) {
+            $attemptsUsed = (int) $this->db->table('quiz_attempts')
+                ->where(['quiz_id' => (int) $postTest['id'], 'enrollment_id' => $enrollmentId])
+                ->countAllResults();
+            $attemptLimit = (int) ($postTest['attempt_limit'] ?? 1);
+            if ($attemptsUsed < $attemptLimit) {
+                $hasPostTestAttemptsRemaining = true;
+            }
+        }
+
         $now = date('Y-m-d H:i:s');
+        // Jika belum lulus tapi masih memiliki kuota re-attempt, pertahankan status 'active' agar tidak terkunci
+        $newEnrollmentStatus = ($isPassed || ! $hasPostTestAttemptsRemaining) ? 'completed' : 'active';
+
         $this->db->table('enrollments')->where('id', $enrollmentId)->update([
-            'status'                  => 'completed',
-            'completed_at'            => $enrollment['completed_at'] ?: $now,
+            'status'                  => $newEnrollmentStatus,
+            'completed_at'            => $isPassed ? ($enrollment['completed_at'] ?: $now) : null,
             'final_score'             => $final,
             'passed_at'               => $isPassed ? ($enrollment['passed_at'] ?: $now) : null,
             'certificate_eligible_at' => $isCertEligible ? ($enrollment['certificate_eligible_at'] ?: $now) : null,
@@ -676,7 +691,8 @@ class LearningService
         }
 
         $enrollment = $this->db->table('enrollments')
-            ->where(['class_id' => (int) $quiz['class_id'], 'user_id' => $userId, 'status' => 'active'])
+            ->where(['class_id' => (int) $quiz['class_id'], 'user_id' => $userId])
+            ->whereIn('status', ['active', 'completed'])
             ->get()->getRowArray();
 
         if (! $enrollment) {

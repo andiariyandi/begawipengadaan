@@ -48,7 +48,7 @@ $methodBadge = static function (?string $method): array {
         ],
         default => [
             'label' => 'Online LMS',
-            'class' => 'bg-white bg-opacity-25 text-white',
+            'class' => 'bg-white text-navy fw-bold shadow-sm',
             'icon'  => 'bi bi-laptop',
         ],
     };
@@ -165,6 +165,23 @@ $prevStage = ($currentStageIndex > 0) ? $learningStages[$currentStageIndex - 1] 
 $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) ? $learningStages[$currentStageIndex + 1] : null;
 ?>
 
+<!-- FLOATING STICKY BANNER FOR FOCUS / ZEN MODE -->
+<div class="ws-focus-banner" id="wsFocusFloatingBanner">
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 fw-bold">
+            <i class="fas fa-eye me-1"></i> Mode Fokus Belajar Aktif
+        </span>
+        <span class="small text-white text-truncate fw-medium" style="max-width: 450px;">
+            <?= esc($ctx['name'] ?? 'Ruang Belajar') ?>
+        </span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 fw-bold text-navy" id="btnExitFocusMode">
+            <i class="fas fa-compress me-1"></i> Keluar Mode Fokus (Esc)
+        </button>
+    </div>
+</div>
+
 <!-- 1. LEARNING ROOM HERO HEADER (FISTUDY DNA) -->
 <div class="learning-header ws-learning-header-card mb-3 shadow-sm p-3 p-md-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 position-relative" style="z-index: 2;">
@@ -176,6 +193,9 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                 <a href="<?= route_to('workspace.participant.classes') ?>" class="btn btn-outline-light btn-sm rounded-pill px-3 py-1 opacity-90">
                     <i class="bi bi-grid me-1"></i> Kelas Saya
                 </a>
+                <button type="button" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill px-3 py-1 shadow-sm" id="btnToggleFocusMode">
+                    <i class="fas fa-expand me-1"></i> Mode Fokus
+                </button>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                 <span class="badge bg-white text-dark rounded-pill px-2 py-0.5 fw-bold">
@@ -185,7 +205,7 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                 <span class="badge <?= $mBadge['class'] ?> rounded-pill px-2 py-0.5 fw-semibold">
                     <i class="<?= $mBadge['icon'] ?> me-1"></i> <?= esc($mBadge['label']) ?>
                 </span>
-                <span class="badge bg-white bg-opacity-25 text-white rounded-pill px-2 py-0.5 font-monospace">
+                <span class="badge bg-white text-navy rounded-pill px-2 py-0.5 font-monospace fw-bold shadow-sm">
                     <?= esc($ctx['code'] ?? '-') ?>
                 </span>
             </div>
@@ -262,6 +282,7 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
 
             <!-- Modules List -->
             <?php foreach ($modules as $mIndex => $mod): ?>
+                <?php $modFirstLessonId = ! empty($mod['lessons']) ? (int) $mod['lessons'][0]['id'] : 0; ?>
                 <div class="border rounded-4 mb-3 overflow-hidden shadow-xs <?= $mod['is_completed'] ? 'border-success-subtle' : ($mod['is_unlocked'] ? 'border-primary-subtle' : 'border-light bg-light') ?>">
                     <!-- Module Header -->
                     <div class="p-2 px-3 d-flex align-items-center justify-content-between <?= $mod['is_completed'] ? 'bg-success-subtle' : ($mod['is_unlocked'] ? 'bg-light border-bottom' : 'bg-light') ?>">
@@ -273,9 +294,15 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                             <?php else: ?>
                                 <i class="bi bi-lock-fill text-muted"></i>
                             <?php endif; ?>
-                            <span class="small fw-bold text-dark text-truncate" title="<?= esc($mod['title']) ?>">
-                                M<?= ($mIndex + 1) ?>: <?= esc($mod['title']) ?>
-                            </span>
+                            <?php if ($mod['is_unlocked'] && $modFirstLessonId > 0): ?>
+                                <a href="<?= route_to('workspace.participant.lesson.detail', (string) $modFirstLessonId) ?>" class="small fw-bold text-dark text-truncate text-decoration-none" title="Buka Modul: <?= esc($mod['title']) ?>">
+                                    M<?= ($mIndex + 1) ?>: <?= esc($mod['title']) ?>
+                                </a>
+                            <?php else: ?>
+                                <span class="small fw-bold text-dark text-truncate" title="<?= esc($mod['title']) ?>">
+                                    M<?= ($mIndex + 1) ?>: <?= esc($mod['title']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
                         <?php if ($mod['is_completed']): ?>
                             <span class="badge bg-success rounded-pill" style="font-size: 9px;">Selesai</span>
@@ -289,19 +316,20 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                         <div class="list-group list-group-flush">
                             <?php foreach ($mod['lessons'] as $les): ?>
                                 <?php $isCurrentActive = ($activeType === 'lesson' && ! empty($activeItem['id']) && (int) $activeItem['id'] === (int) $les['id']); ?>
+                                <?php $canOpenLesson = ! empty($les['is_unlocked']) || ! empty($les['is_completed']); ?>
                                 <div class="list-group-item list-group-item-action p-2 px-3 border-0 d-flex align-items-center justify-content-between gap-2 <?= $isCurrentActive ? 'bg-primary-subtle text-primary border-start border-primary border-4 fw-bold' : '' ?>">
                                     <div class="d-flex align-items-center gap-2 overflow-hidden">
                                         <?php if ($les['is_completed']): ?>
                                             <i class="bi bi-check-circle-fill text-success" style="font-size: 13px;"></i>
                                         <?php elseif ($isCurrentActive): ?>
                                             <i class="bi bi-play-circle-fill text-primary" style="font-size: 13px;"></i>
-                                        <?php elseif ($les['is_unlocked']): ?>
+                                        <?php elseif ($canOpenLesson): ?>
                                             <i class="bi bi-circle text-muted" style="font-size: 13px;"></i>
                                         <?php else: ?>
                                             <i class="bi bi-lock text-muted" style="font-size: 13px;"></i>
                                         <?php endif; ?>
 
-                                        <?php if ($les['is_unlocked']): ?>
+                                        <?php if ($canOpenLesson): ?>
                                             <a href="<?= route_to('workspace.participant.lesson.detail', (string) $les['id']) ?>" class="small text-decoration-none text-truncate <?= $isCurrentActive ? 'text-primary fw-bold' : 'text-dark' ?>">
                                                 <?= esc($les['title']) ?>
                                             </a>
@@ -320,10 +348,11 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
 
                     <!-- Module Quiz (Jika Configured) -->
                     <?php if (! empty($mod['quiz'])): ?>
+                        <?php $canOpenQuiz = ! empty($mod['quiz']['is_unlocked']) || ! empty($mod['quiz']['is_completed']); ?>
                         <div class="p-2 px-3 border-top bg-white d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-2 overflow-hidden">
                                 <i class="bi bi-patch-question text-warning"></i>
-                                <?php if ($mod['quiz']['is_unlocked']): ?>
+                                <?php if ($canOpenQuiz): ?>
                                     <a href="<?= route_to('workspace.participant.quiz.take', (string) $mod['quiz']['id']) ?>" class="small text-decoration-none text-dark fw-semibold text-truncate">
                                         <?= esc($mod['quiz']['title']) ?>
                                     </a>
@@ -332,9 +361,9 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                                 <?php endif; ?>
                             </div>
                             <?php if ($mod['quiz']['is_completed']): ?>
-                                <span class="badge bg-success rounded-pill" style="font-size: 9px;"><i class="bi bi-check"></i> Skor: <?= (float) ($mod['quiz']['score'] ?? 0) ?></span>
+                                <a href="<?= route_to('workspace.participant.quiz.take', (string) $mod['quiz']['id']) ?>" class="badge bg-success text-white rounded-pill text-decoration-none" style="font-size: 9px;"><i class="bi bi-check"></i> Skor: <?= (float) ($mod['quiz']['score'] ?? 0) ?></a>
                             <?php elseif ($mod['quiz']['is_unlocked']): ?>
-                                <span class="badge bg-warning text-dark rounded-pill" style="font-size: 9px;">Siap</span>
+                                <a href="<?= route_to('workspace.participant.quiz.take', (string) $mod['quiz']['id']) ?>" class="badge bg-warning text-dark rounded-pill text-decoration-none" style="font-size: 9px;">Siap</a>
                             <?php else: ?>
                                 <span class="badge bg-light text-muted border rounded-pill" style="font-size: 9px;"><i class="bi bi-lock"></i></span>
                             <?php endif; ?>
@@ -368,15 +397,23 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
 
             <!-- Post-Test Item (Jika Ada) -->
             <?php if ($postTest['exists']): ?>
-                <div class="p-2 px-3 border rounded-3 mb-2 transition-all <?= $activeType === 'post_test' ? 'border-primary bg-primary-subtle' : ($postTest['completed'] ? 'border-success-subtle bg-success-subtle' : 'bg-light') ?>">
+                <?php
+                    $isPostTestPassed = ! empty($postTest['is_passed']);
+                    $postTestRem = (int) ($postTest['remaining_attempts'] ?? 0);
+                    $postTestBestScore = (float) ($postTest['attempt']['score'] ?? 0);
+                    $canOpenPostTest = ! empty($postTest['is_unlocked']) || ! empty($postTest['completed']);
+                ?>
+                <div class="p-2 px-3 border rounded-3 mb-2 transition-all <?= $activeType === 'post_test' ? 'border-primary bg-primary-subtle' : ($isPostTestPassed ? 'border-success-subtle bg-success-subtle' : ($postTest['completed'] ? 'border-warning-subtle bg-warning-subtle' : 'bg-light')) ?>">
                     <div class="d-flex align-items-center justify-content-between gap-1">
                         <div class="d-flex align-items-center gap-2 overflow-hidden">
-                            <?php if ($postTest['completed']): ?>
+                            <?php if ($isPostTestPassed): ?>
                                 <i class="bi bi-check-circle-fill text-success fs-6"></i>
+                            <?php elseif ($postTest['completed']): ?>
+                                <i class="bi bi-arrow-repeat text-warning-emphasis fs-6"></i>
                             <?php else: ?>
                                 <i class="bi bi-award text-primary fs-6"></i>
                             <?php endif; ?>
-                            <?php if ($postTest['is_unlocked']): ?>
+                            <?php if ($canOpenPostTest): ?>
                                 <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="small fw-semibold text-dark text-truncate text-decoration-none">
                                     <?= esc($postTest['quiz']['title'] ?? 'Post-Test') ?>
                                 </a>
@@ -384,10 +421,14 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                                 <span class="small text-muted text-truncate"><?= esc($postTest['quiz']['title'] ?? 'Post-Test') ?></span>
                             <?php endif; ?>
                         </div>
-                        <?php if ($postTest['completed']): ?>
-                            <span class="badge bg-success rounded-pill" style="font-size: 10px;">Skor: <?= (float) ($postTest['attempt']['score'] ?? 0) ?></span>
+                        <?php if ($isPostTestPassed): ?>
+                            <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="badge bg-success rounded-pill text-decoration-none" style="font-size: 10px;">Lulus: <?= $postTestBestScore ?></a>
+                        <?php elseif ($postTest['completed'] && $postTestRem > 0): ?>
+                            <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="badge bg-warning text-dark rounded-pill text-decoration-none" style="font-size: 10px;">Coba Ulang (<?= $postTestRem ?>x)</a>
+                        <?php elseif ($postTest['completed']): ?>
+                            <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="badge bg-danger rounded-pill text-decoration-none" style="font-size: 10px;">Skor: <?= $postTestBestScore ?></a>
                         <?php elseif ($postTest['is_unlocked']): ?>
-                            <span class="badge bg-primary rounded-pill" style="font-size: 10px;">Siap</span>
+                            <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="badge bg-primary rounded-pill text-decoration-none" style="font-size: 10px;">Siap</a>
                         <?php else: ?>
                             <span class="badge bg-secondary rounded-pill" style="font-size: 10px;"><i class="bi bi-lock"></i></span>
                         <?php endif; ?>
@@ -396,10 +437,16 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
             <?php endif; ?>
 
             <!-- Kelulusan & Sertifikat Item -->
-            <div class="p-2 px-3 border rounded-3 <?= in_array($stateCode, ['certificate_issued', 'completed_passed'], true) ? 'bg-success-subtle border-success' : 'bg-light' ?>">
+            <div class="p-2 px-3 border rounded-3 <?= in_array($stateCode, ['certificate_issued', 'completed_passed'], true) ? 'bg-success-subtle border-success' : ($stateCode === 'completed_failed' ? 'bg-danger-subtle border-danger' : 'bg-light') ?>">
                 <div class="d-flex align-items-center justify-content-between gap-1">
                     <div class="d-flex align-items-center gap-2 overflow-hidden">
-                        <i class="bi bi-patch-check text-success fs-6"></i>
+                        <?php if (in_array($stateCode, ['certificate_issued', 'completed_passed'], true)): ?>
+                            <i class="bi bi-patch-check-fill text-success fs-6"></i>
+                        <?php elseif ($stateCode === 'completed_failed'): ?>
+                            <i class="bi bi-x-circle-fill text-danger fs-6"></i>
+                        <?php else: ?>
+                            <i class="bi bi-patch-check text-muted fs-6"></i>
+                        <?php endif; ?>
                         <span class="small fw-semibold text-dark text-truncate">Kelulusan & Sertifikat</span>
                     </div>
                     <?php if ($stateCode === 'certificate_issued'): ?>
@@ -408,6 +455,8 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                         <span class="badge bg-warning text-dark rounded-pill" style="font-size: 10px;">Approval</span>
                     <?php elseif ($stateCode === 'completed_passed'): ?>
                         <span class="badge bg-success rounded-pill" style="font-size: 10px;">Lulus</span>
+                    <?php elseif ($stateCode === 'completed_failed'): ?>
+                        <span class="badge bg-danger rounded-pill" style="font-size: 10px;">Tidak Lulus</span>
                     <?php else: ?>
                         <span class="badge bg-secondary rounded-pill" style="font-size: 10px;"><i class="bi bi-lock"></i></span>
                     <?php endif; ?>
@@ -664,6 +713,91 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                             <i class="bi bi-clock-history me-1"></i> Menunggu Persetujuan Sertifikat
                         </span>
 
+                    <?php elseif ($stateCode === 'completed_failed'): ?>
+                        <div class="mb-3">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background: rgba(220, 53, 69, 0.1); color: #dc3545;">
+                                <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                            </div>
+                        </div>
+                        <h2 class="h4 fw-bold mb-2 text-danger">Belum Memenuhi Syarat Kelulusan & Sertifikat</h2>
+                        <p class="text-muted mb-4 mx-auto" style="max-width: 560px;">
+                            Nilai akhir terbaik Anda saat ini adalah <strong class="text-danger fs-5"><?= (float) ($finalScore ?? 0) ?></strong>, belum mencapai batas kelulusan minimum (Passing Grade: <strong><?= (float) ($ctx['passing_grade'] ?? 70.0) ?></strong>).
+                        </p>
+
+                        <!-- Checklist Eligibilitas Sertifikat -->
+                        <div class="card border border-danger-subtle bg-danger-subtle rounded-4 p-3 p-md-4 mb-4 text-start mx-auto shadow-xs" style="max-width: 580px;">
+                            <h3 class="h6 fw-bold text-danger-emphasis mb-3">
+                                <i class="bi bi-shield-x me-1"></i> Kriteria Eligibilitas Sertifikat:
+                            </h3>
+                            <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small">
+                                <li class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-check-circle-fill text-success fs-6"></i>
+                                    <span>Penyelesaian Seluruh Materi & Modul: <strong>100% Selesai</strong></span>
+                                </li>
+                                <li class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-x-circle-fill text-danger fs-6"></i>
+                                    <span>Passing Grade Minimum (<?= (float) ($ctx['passing_grade'] ?? 70.0) ?>): Nilai Tertinggi Anda <strong><?= (float) ($finalScore ?? 0) ?></strong> (Belum Memenuhi)</span>
+                                </li>
+                                <li class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-hourglass-bottom text-muted fs-6"></i>
+                                    <span class="text-muted">Penerbitan Sertifikat Resmi: Menunggu syarat nilai kelulusan terpenuhi</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <?php
+                            $pRem = (int) ($postTest['remaining_attempts'] ?? 0);
+                        ?>
+                        <?php if ($postTest['exists'] && $pRem > 0): ?>
+                            <div class="alert alert-warning border-0 rounded-4 p-3 mb-4 mx-auto text-start" style="max-width: 580px;">
+                                <div class="d-flex align-items-start gap-2">
+                                    <i class="bi bi-arrow-repeat text-warning-emphasis fs-4 mt-1"></i>
+                                    <div>
+                                        <strong class="d-block text-dark">Peluang Perbaikan Nilai Masih Tersedia!</strong>
+                                        <span class="small text-muted">Anda masih memiliki <strong><?= $pRem ?> kali kesempatan</strong> pengerjaan ulang Post-Test. Sesuai aturan sistem, <strong>nilai tertinggi</strong> dari seluruh percobaan yang akan diambil sebagai nilai akhir Anda.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="btn btn-warning btn-lg text-dark rounded-pill px-5 fw-bold shadow-sm">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Coba Ulang Post-Test Sekarang &raquo;
+                                </a>
+                            </div>
+                        <?php else: ?>
+                            <p class="text-muted small mb-4 mx-auto" style="max-width: 500px;">
+                                Seluruh kuota kesempatan pengerjaan telah digunakan. Anda dapat meninjau lembar pembahasan atau membuka tiket konsultasi untuk program bimbingan perbaikan (*remedial*).
+                            </p>
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                <?php if ($postTest['exists']): ?>
+                                    <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="btn btn-outline-danger rounded-pill px-4">
+                                        <i class="bi bi-search me-1"></i> Tinjau Pembahasan Post-Test
+                                    </a>
+                                <?php endif; ?>
+                                <a href="<?= route_to('workspace.consultation') ?>" class="btn btn-outline-primary rounded-pill px-4">
+                                    <i class="bi bi-chat-dots me-1"></i> Buka Tiket Konsultasi
+                                </a>
+                            </div>
+                        <?php endif; ?>
+
+                    <?php elseif ($stateCode === 'post_test_reattempt'): ?>
+                        <div class="mb-3">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background: rgba(255, 193, 7, 0.15); color: #b45309;">
+                                <i class="bi bi-arrow-repeat fs-1"></i>
+                            </div>
+                        </div>
+                        <h2 class="h4 fw-bold mb-2 text-navy">Peluang Perbaikan Nilai Post-Test Tersedia</h2>
+                        <p class="text-muted mb-3 mx-auto" style="max-width: 540px;">
+                            Nilai percobaan Anda saat ini adalah <strong class="text-warning-emphasis fs-5"><?= (float) ($finalScore ?? 0) ?></strong> (Passing Grade: <?= (float) ($ctx['passing_grade'] ?? 70.0) ?>). Anda masih memiliki <strong><?= (int) ($postTest['remaining_attempts'] ?? 0) ?>x kesempatan</strong> untuk mencoba kembali. Sesuai aturan sistem, <strong>nilai tertinggi</strong> yang akan diambil.
+                        </p>
+                        <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="btn btn-warning btn-lg text-dark rounded-pill px-5 fw-bold shadow-sm mb-2">
+                            <i class="bi bi-arrow-repeat me-1"></i> Coba Ulang Post-Test Sekarang &raquo;
+                        </a>
+                        <div class="mt-2">
+                            <a href="<?= route_to('workspace.participant.quiz.take', (string) $postTest['quiz']['id']) ?>" class="btn btn-link text-decoration-none small text-muted">
+                                <i class="bi bi-search me-1"></i> Pelajari Pembahasan & Kunci Jawaban Percobaan Sebelumnya
+                            </a>
+                        </div>
+
                     <?php else: ?>
                         <div class="mb-3">
                             <i class="bi bi-journal-bookmark-fill text-primary" style="font-size: 68px;"></i>
@@ -692,4 +826,52 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btnToggle = document.getElementById('btnToggleFocusMode');
+    const btnExit = document.getElementById('btnExitFocusMode');
+
+    function setFocusMode(enable) {
+        if (enable) {
+            document.body.classList.add('ws-focus-mode');
+            localStorage.setItem('ws_focus_mode', 'true');
+            if (btnToggle) {
+                btnToggle.innerHTML = '<i class="fas fa-compress me-1"></i> Keluar Fokus';
+                btnToggle.classList.replace('btn-warning', 'btn-light');
+            }
+        } else {
+            document.body.classList.remove('ws-focus-mode');
+            localStorage.setItem('ws_focus_mode', 'false');
+            if (btnToggle) {
+                btnToggle.innerHTML = '<i class="fas fa-expand me-1"></i> Mode Fokus';
+                btnToggle.classList.replace('btn-light', 'btn-warning');
+            }
+        }
+    }
+
+    if (localStorage.getItem('ws_focus_mode') === 'true') {
+        setFocusMode(true);
+    }
+
+    if (btnToggle) {
+        btnToggle.addEventListener('click', function () {
+            const isCurrently = document.body.classList.contains('ws-focus-mode');
+            setFocusMode(!isCurrently);
+        });
+    }
+
+    if (btnExit) {
+        btnExit.addEventListener('click', function () {
+            setFocusMode(false);
+        });
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.body.classList.contains('ws-focus-mode')) {
+            setFocusMode(false);
+        }
+    });
+});
+</script>
 <?= $this->endSection() ?>

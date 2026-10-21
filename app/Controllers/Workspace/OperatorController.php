@@ -98,7 +98,7 @@ class OperatorController extends BaseController
         $pendingEnroll = $this->db->table('enrollments')->where('status', 'pending')->countAllResults();
         $pendingApprov = $this->db->table('approvals')->where('status', 'pending')->countAllResults();
         $activeEvents  = $this->db->table('events')->whereIn('status', ['open_registration', 'coming_soon', 'published', 'ongoing'])->countAllResults();
-        $activeClasses = $this->db->table('learning_classes')->where('status', 'active')->countAllResults();
+        $activeClasses = $this->db->table('learning_classes')->whereIn('status', ['active', 'scheduled', 'ongoing', 'published', 'open'])->countAllResults();
 
         $activeTrainers = $this->db->table('class_trainers')
             ->select('user_id')

@@ -118,6 +118,8 @@ class QuizQuestionImportService
 
             if (! empty($existingQuestions)) {
                 $questionIds = array_column($existingQuestions, 'id');
+                // Hapus riwayat jawaban pada soal lama terlebih dahulu untuk menjaga relasi RESTRICT
+                $db->table('quiz_answers')->whereIn('question_id', $questionIds)->delete();
                 // Hapus opsi jawaban terlebih dahulu untuk menjaga relasi
                 $db->table('quiz_options')->whereIn('question_id', $questionIds)->delete();
                 // Hapus soal lama
