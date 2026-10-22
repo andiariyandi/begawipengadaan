@@ -1,6 +1,7 @@
-﻿<?= $this->extend('dashboard/layouts/dashboard') ?>
+<?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/certificates/_nav_certificate', ['activeSub' => 'templates']) ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Template Sertifikat PBJ</h6>

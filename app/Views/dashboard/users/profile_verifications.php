@@ -9,6 +9,12 @@
         <h6 class="fw-semibold mb-1">Antrean Verifikasi Profil</h6>
         <p class="text-secondary-light mb-0">Tinjau kelengkapan dan validitas profil pengguna.</p>
     </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="<?= site_url('dashboard/akses/permohonan-perubahan-profil') ?>" class="btn btn-outline-primary-600 radius-8 px-16 py-11 d-inline-flex align-items-center gap-2">
+            <iconify-icon icon="solar:user-hand-up-outline" class="text-lg"></iconify-icon>
+            <span>Permohonan Perubahan Profil</span>
+        </a>
+    </div>
 </div>
 
 <form action="<?= site_url('dashboard/akses/verifikasi-profil') ?>" method="get" class="mb-24">

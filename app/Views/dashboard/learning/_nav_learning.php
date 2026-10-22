@@ -2,7 +2,7 @@
 /**
  * Reusable Operational Sub-Navigation for Arena Belajar (Learning Management)
  *
- * @var string $activeSub 'overview'|'courses'|'curriculum'|'classes'|'assessments'|'certificates'|'feedback'
+ * @var string $activeSub 'overview'|'classes'|'curriculum'|'assessments'|'bank-soal'|'certificates'|'feedback'|'reports'
  */
 $activeSub = $activeSub ?? 'classes';
 ?>
@@ -31,11 +31,17 @@ $activeSub = $activeSub ?? 'classes';
             <li class="nav-item">
                 <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'assessments' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/pembelajaran/assessment') ?>">
                     <iconify-icon icon="solar:check-read-outline" class="text-base"></iconify-icon>
-                    <span>Evaluasi &amp; Assessment</span>
+                    <span>Evaluasi &amp; Kuis</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= in_array($activeSub, ['certificates', 'progress', 'reports'], true) ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/pembelajaran/kelayakan-sertifikat') ?>">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'bank-soal' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/pembelajaran/assessment/bank-soal') ?>">
+                    <iconify-icon icon="solar:checklist-minimalistic-outline" class="text-base"></iconify-icon>
+                    <span>Bank Soal</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'certificates' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/pembelajaran/kelayakan-sertifikat') ?>">
                     <iconify-icon icon="solar:diploma-verified-outline" class="text-base"></iconify-icon>
                     <span>Monitoring Kelulusan</span>
                 </a>
@@ -43,13 +49,19 @@ $activeSub = $activeSub ?? 'classes';
             <li class="nav-item">
                 <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'feedback' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/pembelajaran/feedback-peserta') ?>">
                     <iconify-icon icon="solar:chat-round-line-outline" class="text-base"></iconify-icon>
-                    <span>Umpan Balik Peserta</span>
+                    <span>Umpan Balik</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'reports' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/pembelajaran/laporan') ?>">
+                    <iconify-icon icon="solar:chart-2-outline" class="text-base"></iconify-icon>
+                    <span>Laporan Belajar</span>
                 </a>
             </li>
         </ul>
-        <div class="d-none d-xl-block text-2xs text-secondary-light">
-            <iconify-icon icon="solar:info-circle-outline" class="align-middle me-1"></iconify-icon>
-            Konsol Pembelajaran Terpadu
+        <div class="d-none d-xxl-block text-2xs text-secondary-light">
+            <iconify-icon icon="solar:mortarboard-outline" class="align-middle me-1"></iconify-icon>
+            Pusat Arena Belajar PBJ
         </div>
     </div>
 </div>

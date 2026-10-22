@@ -105,6 +105,7 @@ body {
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/communication/_nav_communication', ['activeSub' => 'waitlist']) ?>
 <?php
 $waiting     = $waiting   ?? [];
 $cancelled   = $cancelled ?? [];

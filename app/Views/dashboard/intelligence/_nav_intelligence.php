@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Reusable Sub-Navigation for Government Intelligence (SDM PBJ & Kematangan Daerah)
  *
@@ -41,9 +42,15 @@ $activeSub = $activeSub ?? 'home';
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= in_array($activeSub, ['certificates', 'certificate-types'], true) ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/intelligence/sertifikat-kompetensi') ?>">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'certificates' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/intelligence/sertifikat-kompetensi') ?>">
                     <iconify-icon icon="solar:diploma-verified-outline" class="text-base"></iconify-icon>
                     <span>Sertifikat Kompetensi</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'certificate-types' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/intelligence/jenis-sertifikat-kompetensi') ?>">
+                    <iconify-icon icon="solar:medal-ribbons-star-outline" class="text-base"></iconify-icon>
+                    <span>Jenis Sertifikat</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -53,9 +60,9 @@ $activeSub = $activeSub ?? 'home';
                 </a>
             </li>
         </ul>
-        <div class="d-none d-xl-block text-2xs text-secondary-light">
+        <!-- <div class="d-none d-xxl-block text-2xs text-secondary-light">
             <iconify-icon icon="solar:crown-line-duotone" class="align-middle me-1"></iconify-icon>
             Intelijen Pengadaan Daerah
-        </div>
+        </div> -->
     </div>
 </div>

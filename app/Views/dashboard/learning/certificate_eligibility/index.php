@@ -1,6 +1,7 @@
-﻿<?= $this->extend('dashboard/layouts/dashboard') ?>
+<?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/learning/_nav_learning', ['activeSub' => 'certificates']) ?>
 <?php
 $records = $records ?? [];
 $stats   = $stats ?? [];

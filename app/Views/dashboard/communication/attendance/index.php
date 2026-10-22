@@ -118,6 +118,7 @@ body {
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/communication/_nav_communication', ['activeSub' => 'attendance']) ?>
 <?php
 $items       = $items ?? [];
 $stats       = $stats ?? ['total' => count($items), 'present' => 0, 'excused' => 0, 'absent' => 0];

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Reusable Sub-Navigation for Komunikasi (Berita, Event & Layanan Bantuan)
  *
@@ -17,15 +18,33 @@ $activeSub = $activeSub ?? 'news';
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'news-categories' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/komunikasi/kategori-berita') ?>">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= in_array($activeSub, ['news-categories', 'categories'], true) ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/komunikasi/kategori-berita') ?>">
                     <iconify-icon icon="solar:tag-outline" class="text-base"></iconify-icon>
                     <span>Kategori Berita</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= in_array($activeSub, ['events', 'registrations', 'attendance', 'waitlist'], true) ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/komunikasi/event-agenda') ?>">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'events' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/komunikasi/event-agenda') ?>">
                     <iconify-icon icon="solar:calendar-outline" class="text-base"></iconify-icon>
-                    <span>Konsol Event &amp; Presensi</span>
+                    <span>Event &amp; Agenda</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'registrations' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/komunikasi/registrasi-event') ?>">
+                    <iconify-icon icon="solar:users-group-rounded-outline" class="text-base"></iconify-icon>
+                    <span>Pendaftar Event</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'attendance' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/komunikasi/kehadiran') ?>">
+                    <iconify-icon icon="solar:user-check-outline" class="text-base"></iconify-icon>
+                    <span>Log Presensi</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'waitlist' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/komunikasi/waitlist-pembatalan') ?>">
+                    <iconify-icon icon="solar:clock-circle-outline" class="text-base"></iconify-icon>
+                    <span>Waitlist &amp; Batal</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -47,9 +66,9 @@ $activeSub = $activeSub ?? 'news';
                 </a>
             </li>
         </ul>
-        <div class="d-none d-xl-block text-2xs text-secondary-light">
+        <!-- <div class="d-none d-xxl-block text-2xs text-secondary-light">
             <iconify-icon icon="solar:chat-round-dots-outline" class="align-middle me-1"></iconify-icon>
             Pusat Publikasi &amp; Komunikasi
-        </div>
+        </div> -->
     </div>
 </div>

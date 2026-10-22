@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Reusable Sub-Navigation for Pusat Laporan & Universal Export
  *
@@ -47,9 +48,9 @@ $activeReport = $activeReport ?? 'learning';
                 </a>
             </li>
         </ul>
-        <div class="d-none d-xl-block text-2xs text-secondary-light">
+        <!-- <div class="d-none d-xl-block text-2xs text-secondary-light">
             <iconify-icon icon="solar:printer-outline" class="align-middle me-1"></iconify-icon>
             Format Cetak Resmi Pemprov Lampung
-        </div>
+        </div> -->
     </div>
 </div>

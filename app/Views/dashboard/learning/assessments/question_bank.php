@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/learning/_nav_learning', ['activeSub' => 'bank-soal']) ?>
 <?php
 $questions = $questions ?? [];
 $classes   = $classes ?? [];

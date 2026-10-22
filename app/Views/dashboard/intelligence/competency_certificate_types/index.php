@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/intelligence/_nav_intelligence', ['activeSub' => 'certificate-types']) ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Standar Jenis Sertifikat Kompetensi PBJ') ?></h6>

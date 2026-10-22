@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/settings/_nav_settings', ['activeSetting' => 'general']) ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Pengaturan Umum') ?></h6>
