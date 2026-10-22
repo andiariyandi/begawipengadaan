@@ -74,13 +74,26 @@
                             <?php endif; ?>
                         </ul>
                     </div>
-                    <?php if (! empty($userName)): ?>
-                        <div class="d-none d-md-flex align-items-center gap-2">
-                            <span class="badge bg-white text-navy px-3 py-2 rounded-pill small fw-bold shadow-sm">
-                                <i class="fas fa-user-circle me-1 text-warning"></i> <?= esc($userName) ?> &middot; <span class="text-muted fw-normal"><?= esc($roleLabel ?? 'Pengguna') ?></span>
-                            </span>
-                        </div>
-                    <?php endif; ?>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Spotlight Search Trigger (Ctrl + K) -->
+                        <button type="button" 
+                                class="btn btn-sm btn-white text-navy rounded-pill shadow-sm border ws-spotlight-btn px-3 py-1.5 fw-semibold" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#wsSpotlightModal"
+                                title="Pencarian Cepat Spotlight (Ctrl + K)">
+                            <i class="fas fa-search me-1 text-primary"></i>
+                            <span class="d-none d-sm-inline">Cari Cepat</span>
+                            <kbd class="bg-light text-muted border ms-1 px-1.5 py-0.5 rounded font-monospace" style="font-size: 0.65rem;">Ctrl+K</kbd>
+                        </button>
+
+                        <?php if (! empty($userName)): ?>
+                            <div class="d-none d-md-flex align-items-center">
+                                <span class="badge bg-white text-navy px-3 py-2 rounded-pill small fw-bold shadow-sm border">
+                                    <i class="fas fa-user-circle me-1 text-warning"></i> <?= esc($userName) ?> &middot; <span class="text-muted fw-normal"><?= esc($roleLabel ?? 'Pengguna') ?></span>
+                                </span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </section>
@@ -131,6 +144,7 @@
     <?= $this->include('landing/components/mobile_menu') ?>
     <?= $this->include('landing/components/search_popup') ?>
     <?= $this->include('landing/components/satisfaction_survey_modal') ?>
+    <?= $this->include('main/workspace/components/spotlight_modal') ?>
 
     <!-- Scroll to Top -->
     <a href="#" data-target="html" class="scroll-to-target scroll-to-top">

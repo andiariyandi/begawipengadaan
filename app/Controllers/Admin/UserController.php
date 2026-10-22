@@ -134,11 +134,11 @@ class UserController extends BaseController
         $db = db_connect();
 
         $user = $db->table('users u')
-            ->select('u.*, GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ", ") AS roles')
+            ->select('u.*, GROUP_CONCAT(DISTINCT r.name ORDER BY r.name SEPARATOR ", ") AS roles')
             ->join('user_roles ur', 'ur.user_id = u.id AND ur.status = "active"', 'left')
             ->join('roles r', 'r.id = ur.role_id', 'left')
             ->where('u.id', $userId)
-            ->groupBy('u.id, r.id, ur.id')
+            ->groupBy('u.id')
             ->get()->getRowArray();
 
         if (! $user) {
@@ -304,6 +304,11 @@ class UserController extends BaseController
         if (! $user) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Pengguna tidak ditemukan.');
         }
+
+        // Ambil role aktif pengguna saat ini untuk form selector
+        $userRoles = (new \App\Models\UserModel())->getRoles($uid);
+        $user['role_id'] = ! empty($userRoles) ? (int) $userRoles[0]['id'] : null;
+
         $isSuperAdmin = (new \App\Services\Identity\AuthorizationService())->isSuperAdmin();
         $roles = (new \App\Services\Admin\RoleManagementService())->listRoles();
         if (! $isSuperAdmin) {
@@ -327,17 +332,35 @@ class UserController extends BaseController
     public function update(string $id)
     {
         $uid = ctype_digit($id) ? (int) $id : 0;
+        $userModel = new \App\Models\UserModel();
+        $targetUser = $uid > 0 ? $userModel->find($uid) : null;
+        if (! $targetUser) {
+            return redirect()->to('dashboard/akses/pengguna')->with('error', 'Pengguna tidak ditemukan.');
+        }
+
         $rules = [
-            'username'    => 'required|min_length[3]|max_length[255]',
-            'email'       => 'required|valid_email',
-            'name'        => 'required|max_length[255]',
+            'username'     => 'required|min_length[3]|max_length[255]',
+            'email'        => 'required|valid_email',
+            'name'         => 'required|max_length[255]',
             'profile_type' => 'required|in_list[asn,provider,academic,public]',
         ];
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
-        $actorId = (int) session()->get('user_id');
+
         $post = $this->request->getPost();
+
+        // Validasi password jika diisi oleh admin
+        if (! empty($post['password'])) {
+            $passRules = [
+                'password' => 'min_length[12]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]',
+            ];
+            if (! $this->validate($passRules)) {
+                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            }
+        }
+
+        $actorId = (int) session()->get('user_id');
 
         $roleId = (int) ($post['role_id'] ?? 0);
         if ($roleId > 0) {
@@ -353,12 +376,14 @@ class UserController extends BaseController
         if (! $this->saveUserAvatar($post)) {
             return redirect()->back()->withInput()->with('error', 'Upload avatar gagal.');
         }
+
         try {
             (new \App\Services\Admin\UserManagementService())->saveUser($post, $uid, $actorId);
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
-        return redirect()->to('dashboard/akses/pengguna/' . $uid)->with('success', 'Pengguna diperbarui.');
+
+        return redirect()->to('dashboard/akses/pengguna/' . $uid)->with('success', 'Data pengguna berhasil diperbarui.');
     }
 
     public function delete(string $id)

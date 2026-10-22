@@ -10,7 +10,18 @@ class UserRoleModel extends Model
     protected $primaryKey    = 'id';
     protected $returnType    = 'array';
     protected $useTimestamps = false;
-    protected $allowedFields = ['user_id', 'role_id', 'created_at'];
+    protected $allowedFields = [
+        'user_id',
+        'role_id',
+        'status',
+        'granted_by',
+        'granted_at',
+        'revoked_by',
+        'revoked_at',
+        'reason',
+        'created_at',
+        'updated_at',
+    ];
 
     public function assignRole(int $userId, int $roleId): void
     {

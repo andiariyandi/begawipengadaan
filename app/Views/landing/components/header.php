@@ -178,16 +178,24 @@ if ($isLoggedIn && $headerUserId > 0) {
                                                     $nData = !empty($n['data']) ? json_decode($n['data'], true) : [];
                                                     $targetUrl = !empty($nData['url']) ? $nData['url'] : route_to('workspace.notifications');
                                                 ?>
-                                                    <a href="<?= esc($targetUrl) ?>" class="list-group-item list-group-item-action notif-item p-2 px-3 border-bottom <?= $isNUnread ? 'is-unread' : '' ?> d-flex gap-2 align-items-start">
-                                                        <span class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-1" style="width: 28px; height: 28px; background: rgba(12, 90, 166, 0.1);">
-                                                            <i class="<?= esc($nMeta['fa']) ?>" style="font-size: 12px;"></i>
+                                                    <a href="<?= esc($targetUrl) ?>" class="list-group-item list-group-item-action notif-item p-2 px-3 border-bottom <?= $isNUnread ? 'is-unread bg-primary-subtle bg-opacity-10' : '' ?> d-flex gap-2 align-items-start">
+                                                        <span class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-1" style="width: 30px; height: 30px; background: rgba(8, 47, 92, 0.08);">
+                                                            <i class="<?= esc($nMeta['fa']) ?>" style="font-size: 13px;"></i>
                                                         </span>
                                                         <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
                                                             <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
-                                                                <strong class="text-truncate text-dark small" style="font-size: 12px;"><?= esc($n['title']) ?></strong>
+                                                                <strong class="text-truncate text-navy small" style="font-size: 12px;"><?= esc($n['title']) ?></strong>
                                                                 <span class="text-muted text-nowrap" style="font-size: 10px;"><?= esc($nTime) ?></span>
                                                             </div>
-                                                            <p class="text-muted small mb-0 text-truncate" style="font-size: 11px;"><?= esc($n['body'] ?? '') ?></p>
+                                                            <p class="text-muted small mb-1 text-truncate" style="font-size: 11px;"><?= esc($n['body'] ?? '') ?></p>
+                                                            <div class="d-flex align-items-center justify-content-between">
+                                                                <span class="badge <?= esc($nMeta['badge']) ?> rounded-pill" style="font-size: 9.5px; padding: 2px 7px;">
+                                                                    <?= esc($nMeta['label']) ?>
+                                                                </span>
+                                                                <?php if ($isNUnread): ?>
+                                                                    <span class="badge bg-primary rounded-pill small" style="font-size: 9px; padding: 1px 5px;">Baru</span>
+                                                                <?php endif; ?>
+                                                            </div>
                                                         </div>
                                                     </a>
                                                 <?php endforeach; ?>

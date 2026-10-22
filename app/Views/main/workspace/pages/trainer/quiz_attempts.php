@@ -10,6 +10,9 @@ $quiz         = $quiz ?? [];
 $attempts     = $attempts ?? [];
 $passingGrade = (float) ($passingGrade ?? 70.0);
 $stats        = $stats ?? [];
+$itemAnalysis = $itemAnalysis ?? [];
+$mostDifficultQuestion = $mostDifficultQuestion ?? null;
+$easiestQuestion       = $easiestQuestion ?? null;
 ?>
 
 <div class="trainer-quiz-attempts-wrapper">
@@ -127,6 +130,184 @@ $stats        = $stats ?? [];
             </div>
         </div>
     </div>
+
+    <!-- Analisis Butir Soal & Tingkat Kesulitan (Item Analytics) -->
+    <?php if (! empty($itemAnalysis)): ?>
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-3 border-bottom mb-4">
+                <div>
+                    <h2 class="h5 fw-bold text-navy mb-1">
+                        <i class="fas fa-chart-pie text-primary me-2"></i>Analisis Butir Soal & Tingkat Kesulitan
+                    </h2>
+                    <p class="text-muted small mb-0">
+                        Evaluasi diagnostik pemahaman peserta: mengidentifikasi materi yang sudah dikuasai dan topik yang memerlukan penguatan.
+                    </p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 small fw-semibold">
+                        <?= count($itemAnalysis) ?> Butir Soal Ujian
+                    </span>
+                </div>
+            </div>
+
+            <!-- Spotlight Card: Soal Paling Menantang vs Paling Dikuasai -->
+            <?php if ($mostDifficultQuestion !== null || $easiestQuestion !== null): ?>
+                <div class="row g-3 mb-4">
+                    <?php if ($mostDifficultQuestion !== null && $mostDifficultQuestion['total_answered'] > 0): ?>
+                        <div class="col-12 col-md-6">
+                            <div class="card border-0 rounded-4 p-3 bg-danger-subtle border border-danger-subtle h-100">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="rounded-circle bg-danger text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="badge bg-danger text-white rounded-pill px-2 py-1 small fw-bold">
+                                                Soal Paling Menantang (#<?= $mostDifficultQuestion['sort_order'] ?>)
+                                            </span>
+                                            <span class="fw-bold text-danger small">
+                                                Tingkat Error: <?= $mostDifficultQuestion['error_rate'] ?>%
+                                            </span>
+                                        </div>
+                                        <p class="small text-navy fw-semibold mb-1 line-clamp-2" style="font-size: 0.82rem;">
+                                            <?= esc(strip_tags($mostDifficultQuestion['prompt'])) ?>
+                                        </p>
+                                        <small class="text-muted d-block" style="font-size: 0.72rem;">
+                                            Hanya <?= $mostDifficultQuestion['accuracy_rate'] ?>% peserta (<?= $mostDifficultQuestion['total_correct'] ?> dari <?= $mostDifficultQuestion['total_answered'] ?>) yang menjawab benar.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($easiestQuestion !== null && $easiestQuestion['total_answered'] > 0): ?>
+                        <div class="col-12 col-md-6">
+                            <div class="card border-0 rounded-4 p-3 bg-success-subtle border border-success-subtle h-100">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="rounded-circle bg-success text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                        <i class="fas fa-check-double"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="badge bg-success text-white rounded-pill px-2 py-1 small fw-bold">
+                                                Soal Paling Dikuasai (#<?= $easiestQuestion['sort_order'] ?>)
+                                            </span>
+                                            <span class="fw-bold text-success small">
+                                                Ketepatan: <?= $easiestQuestion['accuracy_rate'] ?>%
+                                            </span>
+                                        </div>
+                                        <p class="small text-navy fw-semibold mb-1 line-clamp-2" style="font-size: 0.82rem;">
+                                            <?= esc(strip_tags($easiestQuestion['prompt'])) ?>
+                                        </p>
+                                        <small class="text-muted d-block" style="font-size: 0.72rem;">
+                                            <?= $easiestQuestion['total_correct'] ?> dari <?= $easiestQuestion['total_answered'] ?> peserta berhasil menjawab dengan benar.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- Tabel Butir Soal -->
+            <div class="table-responsive border rounded-3 overflow-hidden">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.84rem;">
+                    <thead class="table-light text-navy">
+                        <tr>
+                            <th style="width: 50px;" class="text-center">No.</th>
+                            <th style="min-width: 280px;">Butir Soal & Pertanyaan</th>
+                            <th style="min-width: 130px;">Tingkat Ketepatan</th>
+                            <th style="min-width: 140px;" class="text-center">Tingkat Kesulitan</th>
+                            <th style="min-width: 80px;" class="text-center">Total Respon</th>
+                            <th style="min-width: 70px;" class="text-center text-success">Benar</th>
+                            <th style="min-width: 70px;" class="text-center text-danger">Salah</th>
+                            <th style="width: 80px;" class="text-end">Rincian</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($itemAnalysis as $qIdx => $item): ?>
+                            <tr>
+                                <td class="text-center fw-bold text-muted"><?= $item['sort_order'] ?></td>
+                                <td>
+                                    <div class="fw-semibold text-navy mb-1" style="line-height: 1.4;">
+                                        <?= esc(strip_tags($item['prompt'])) ?>
+                                    </div>
+                                    <div class="text-muted small" style="font-size: 0.72rem;">
+                                        Bobot: <strong><?= number_format($item['points'], 1) ?> poin</strong>
+                                        <?php if (! empty($item['explanation'])): ?>
+                                            &middot; <span class="text-primary"><i class="fas fa-info-circle me-1"></i>Tersedia Pembahasan</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1 rounded-pill" style="height: 6px;">
+                                            <?php
+                                            $barColor = 'bg-danger';
+                                            if ($item['accuracy_rate'] >= 80.0) {
+                                                $barColor = 'bg-success';
+                                            } elseif ($item['accuracy_rate'] >= 50.0) {
+                                                $barColor = 'bg-info';
+                                            }
+                                            ?>
+                                            <div class="progress-bar <?= $barColor ?> rounded-pill" style="width: <?= $item['accuracy_rate'] ?>%"></div>
+                                        </div>
+                                        <strong class="small text-navy" style="font-size: 0.75rem;"><?= $item['accuracy_rate'] ?>%</strong>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge <?= $item['difficulty_badge'] ?> rounded-pill px-3 py-1 small">
+                                        <?= esc($item['difficulty']) ?>
+                                    </span>
+                                </td>
+                                <td class="text-center text-muted small"><?= $item['total_answered'] ?> kali</td>
+                                <td class="text-center fw-bold text-success small"><?= $item['total_correct'] ?></td>
+                                <td class="text-center fw-bold text-danger small"><?= $item['total_incorrect'] ?></td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-1" data-bs-toggle="collapse" data-bs-target="#wsItemCollapse_<?= $item['id'] ?>" title="Buka Opsi & Kunci Jawaban">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse bg-light-subtle" id="wsItemCollapse_<?= $item['id'] ?>">
+                                <td colspan="8" class="p-3">
+                                    <div class="card border-0 shadow-none bg-white rounded-3 p-3 mb-0">
+                                        <h6 class="fw-bold text-navy small mb-2"><i class="fas fa-list-check text-primary me-2"></i>Pilihan Jawaban:</h6>
+                                        <div class="d-flex flex-column gap-2 mb-3">
+                                            <?php if (empty($item['options'])): ?>
+                                                <span class="text-muted small">Tidak ada opsi pilihan ganda terdaftar.</span>
+                                            <?php else: ?>
+                                                <?php foreach ($item['options'] as $optIdx => $opt): ?>
+                                                    <?php $isKey = (bool) ($opt['is_correct'] ?? false); ?>
+                                                    <div class="d-flex align-items-center gap-2 p-2 rounded-2 <?= $isKey ? 'bg-success-subtle text-success border border-success-subtle fw-semibold' : 'bg-light text-navy' ?>" style="font-size: 0.8rem;">
+                                                        <span class="badge <?= $isKey ? 'bg-success text-white' : 'bg-secondary text-white' ?> rounded-circle" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">
+                                                            <?= chr(65 + $optIdx) ?>
+                                                        </span>
+                                                        <span class="flex-grow-1"><?= esc($opt['option_text'] ?? '') ?></span>
+                                                        <?php if ($isKey): ?>
+                                                            <span class="badge bg-success text-white rounded-pill px-2 py-1 small"><i class="fas fa-check me-1"></i>Kunci Benar</span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php if (! empty($item['explanation'])): ?>
+                                            <div class="p-2 rounded-2 bg-info-subtle border border-info-subtle small text-navy">
+                                                <strong><i class="fas fa-lightbulb text-info me-1"></i>Penjelasan / Pembahasan:</strong>
+                                                <p class="mb-0 mt-1"><?= nl2br(esc($item['explanation'])) ?></p>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <!-- Table Attempts Card -->
     <div class="card border-0 shadow-sm rounded-4 bg-white p-4">

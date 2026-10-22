@@ -125,6 +125,14 @@ class RegulationController extends BaseController
 
     public function store()
     {
+        // Guard against post_max_size overflow where PHP wipes $_POST
+        $contentLength = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
+        $post = $this->request->getPost();
+        if (empty($post) && $contentLength > 0) {
+            $uploadedMb = round($contentLength / (1024 * 1024), 1);
+            return redirect()->back()->withInput()->with('error', "Ukuran berkas yang diunggah ({$uploadedMb} MB) melebihi batas kapasitas maksimal server. Silakan pilih berkas dokumen berukuran lebih kecil.");
+        }
+
         $rules = [
             'title'           => 'required|max_length[255]',
             'category_id'     => 'required|is_natural_no_zero',
@@ -132,14 +140,26 @@ class RegulationController extends BaseController
             'document_year'   => 'required|numeric|exact_length[4]',
             'issuer_name'     => 'permit_empty|max_length[255]',
             'summary'         => 'permit_empty',
-            'cover_image'     => 'permit_empty|is_image[cover_image]|max_size[cover_image,3072]',
+            'cover_image'     => 'permit_empty|is_image[cover_image]|max_size[cover_image,5120]',
+            'file'            => 'permit_empty|max_size[file,65536]|ext_in[file,pdf,doc,docx]',
         ];
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        // Pre-check file upload error if any
+        $file = $this->request->getFile('file');
+        if ($file && $file->getError() !== UPLOAD_ERR_NO_FILE && ! $file->isValid()) {
+            $err = $file->getError();
+            $msg = match ($err) {
+                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Ukuran berkas melebihi batas maksimal unggahan server. Silakan pilih berkas yang lebih kecil.',
+                UPLOAD_ERR_PARTIAL => 'Berkas hanya terunggah sebagian. Silakan periksa koneksi internet Anda.',
+                default => 'Gagal mengunggah berkas dokumen: ' . $file->getErrorString(),
+            };
+            return redirect()->back()->withInput()->with('error', $msg);
+        }
+
         $svc = new RegulationService();
-        $post = $this->request->getPost();
 
         $coverFile = $this->request->getFile('cover_image');
         $coverFileId = $this->uploadCoverImage($coverFile);
@@ -274,18 +294,36 @@ class RegulationController extends BaseController
             return redirect()->to('dashboard/regulasi/dokumen')->with('error', 'Regulasi tidak ditemukan.');
         }
 
+        $contentLength = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
+        $post = $this->request->getPost();
+        if (empty($post) && $contentLength > 0) {
+            $uploadedMb = round($contentLength / (1024 * 1024), 1);
+            return redirect()->back()->withInput()->with('error', "Ukuran berkas yang diunggah ({$uploadedMb} MB) melebihi batas kapasitas maksimal server. Silakan pilih berkas dokumen berukuran lebih kecil.");
+        }
+
         $rules = [
             'title'           => 'required|max_length[255]',
             'category_id'     => 'required|is_natural_no_zero',
             'document_number' => 'required|max_length[255]',
             'document_year'   => 'required|numeric|exact_length[4]',
-            'cover_image'     => 'permit_empty|is_image[cover_image]|max_size[cover_image,3072]',
+            'cover_image'     => 'permit_empty|is_image[cover_image]|max_size[cover_image,5120]',
+            'file'            => 'permit_empty|max_size[file,65536]|ext_in[file,pdf,doc,docx]',
         ];
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $post = $this->request->getPost();
+        // Pre-check file upload error if any
+        $docFile = $this->request->getFile('file');
+        if ($docFile && $docFile->getError() !== UPLOAD_ERR_NO_FILE && ! $docFile->isValid()) {
+            $err = $docFile->getError();
+            $msg = match ($err) {
+                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Ukuran berkas melebihi batas maksimal unggahan server. Silakan pilih berkas yang lebih kecil.',
+                UPLOAD_ERR_PARTIAL => 'Berkas hanya terunggah sebagian. Silakan periksa koneksi internet Anda.',
+                default => 'Gagal mengunggah berkas dokumen: ' . $docFile->getErrorString(),
+            };
+            return redirect()->back()->withInput()->with('error', $msg);
+        }
 
         $updateData = [
             'category_id'         => (int) $post['category_id'],
@@ -438,12 +476,35 @@ class RegulationController extends BaseController
 
     public function addVersion(string $id)
     {
+        $contentLength = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
+        $post = $this->request->getPost();
+        if (empty($post) && $contentLength > 0) {
+            $uploadedMb = round($contentLength / (1024 * 1024), 1);
+            return redirect()->back()->with('error', "Ukuran berkas versi yang diunggah ({$uploadedMb} MB) melebihi batas kapasitas server. Silakan pilih berkas dokumen yang lebih kecil.");
+        }
+
         $regId = ctype_digit($id) ? (int) $id : 0;
         $file  = $this->request->getFile('file');
         $notes = (string) $this->request->getPost('changelog');
 
+        $rules = [
+            'file'      => 'uploaded[file]|max_size[file,65536]|ext_in[file,pdf,doc,docx]',
+            'changelog' => 'permit_empty|max_length[255]',
+        ];
+        if (! $this->validate($rules)) {
+            $errs = $this->validator->getErrors();
+            $msg = reset($errs) ?: 'File versi tidak memenuhi syarat.';
+            return redirect()->back()->withInput()->with('error', $msg);
+        }
+
         if (! $file || ! $file->isValid()) {
-            return redirect()->back()->with('error', 'File versi wajib diunggah.');
+            $err = $file ? $file->getError() : UPLOAD_ERR_NO_FILE;
+            $msg = match ($err) {
+                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Ukuran berkas melebihi batas maksimal unggahan server. Silakan pilih berkas di bawah 20 MB.',
+                UPLOAD_ERR_PARTIAL => 'Berkas hanya terunggah sebagian. Silakan periksa koneksi Anda.',
+                default => 'File versi wajib diunggah.',
+            };
+            return redirect()->back()->with('error', $msg);
         }
 
         try {

@@ -228,7 +228,8 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
                         <label class="form-label fw-semibold text-primary-light text-sm mb-8">
                             <?= $isEdit ? 'Unggah Berkas Baru (Membuat Versi Baru)' : 'Pilih Berkas Dokumen Versi Awal (v1.0)' ?>
                         </label>
-                        <input type="file" class="form-control radius-8" name="file" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                        <input type="file" class="form-control radius-8" name="file" id="regulationDocFileInput" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="validateDocFileSize(this, 20)">
+                        <span id="docFileFeedback" class="text-xs text-secondary-light mt-1 d-block">Maksimal 20 MB. Dokumen resmi format PDF / DOC / DOCX.</span>
                     </div>
 
                     <?php if ($isEdit): ?>
@@ -363,9 +364,40 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
 </form>
 
 <script>
+function validateDocFileSize(input, maxMb) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const maxBytes = maxMb * 1024 * 1024;
+        const feedback = document.getElementById('docFileFeedback');
+        if (file.size > maxBytes) {
+            const actualMb = (file.size / (1024 * 1024)).toFixed(2);
+            alert(`Peringatan: Ukuran berkas "${file.name}" (${actualMb} MB) melebihi batas maksimal yang diperbolehkan (${maxMb} MB).\n\nSilakan kompres berkas PDF Anda atau gunakan naskah berukuran di bawah ${maxMb} MB.`);
+            input.value = '';
+            if (feedback) {
+                feedback.className = 'text-xs text-danger fw-bold mt-1 d-block';
+                feedback.innerHTML = `<iconify-icon icon="solar:danger-circle-bold" class="align-middle me-1"></iconify-icon> Berkas "${file.name}" (${actualMb} MB) dibatalkan karena melebihi batas ${maxMb} MB.`;
+            }
+            return false;
+        } else {
+            if (feedback) {
+                feedback.className = 'text-xs text-success fw-semibold mt-1 d-block';
+                feedback.innerHTML = `<iconify-icon icon="solar:check-circle-bold" class="align-middle me-1"></iconify-icon> Berkas siap diunggah: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+            }
+        }
+    }
+    return true;
+}
+
 function previewImageFile(input, imgElementId, placeholderId) {
     if (input.files && input.files[0]) {
         const file = input.files[0];
+        const maxBytes = 5 * 1024 * 1024; // 5 MB
+        if (file.size > maxBytes) {
+            const actualMb = (file.size / (1024 * 1024)).toFixed(2);
+            alert(`Peringatan: Ukuran gambar cover (${actualMb} MB) melebihi batas 5 MB. Silakan pilih gambar yang lebih kecil.`);
+            input.value = '';
+            return;
+        }
         const reader = new FileReader();
         reader.onload = function(e) {
             const img = document.getElementById(imgElementId);
@@ -381,5 +413,28 @@ function previewImageFile(input, imgElementId, placeholderId) {
         reader.readAsDataURL(file);
     }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            const docInput = document.getElementById('regulationDocFileInput');
+            if (docInput && docInput.files && docInput.files[0]) {
+                if (!validateDocFileSize(docInput, 20)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            const coverInput = document.getElementById('regulationCoverInput');
+            if (coverInput && coverInput.files && coverInput.files[0]) {
+                if (coverInput.files[0].size > 5 * 1024 * 1024) {
+                    alert('Ukuran gambar cover melebihi batas maksimal 5 MB.');
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+    }
+});
 </script>
 <?= $this->endSection() ?>

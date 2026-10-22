@@ -114,10 +114,77 @@ $className  = $className ?? 'Kelas';
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-navy small mb-1">Catatan Feedback & Saran Konstruktif</label>
-                        <textarea name="feedback" class="form-control rounded-3" rows="6" placeholder="Berikan komentar penilaian, apresiasi analisis peserta, dan saran perbaikan kompetensi..."><?= esc($submission['feedback'] ?? '') ?></textarea>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-semibold text-navy small mb-0">Catatan Feedback & Saran Konstruktif</label>
+                            <span id="wsCannedFeedbackToast" class="badge bg-success-subtle text-success small d-none" style="font-size: 0.7rem;">
+                                <i class="fas fa-check me-1"></i>Preset Disisipkan!
+                            </span>
+                        </div>
+
+                        <!-- Canned Feedback Presets Toolbar -->
+                        <div class="mb-2 p-2 bg-light rounded-3 border">
+                            <div class="d-flex align-items-center gap-1 mb-1 text-muted" style="font-size: 0.72rem;">
+                                <i class="fas fa-bolt text-warning"></i>
+                                <span class="fw-semibold">Preset Komentar Cepat:</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1">
+                                <button type="button" class="btn btn-xs btn-white border rounded-pill px-2 py-1 small ws-canned-btn" style="font-size: 0.75rem;" data-text="Struktur dokumen spesifikasi teknis dan analisis kebutuhan pengadaan telah memenuhi ketentuan Perpres PBJ No. 12/2021. Analisis risiko sangat aplikatif dan terstruktur dengan baik." data-status="graded">
+                                    <i class="fas fa-check-circle text-success me-1"></i>Sesuai Standar PBJ
+                                </button>
+                                <button type="button" class="btn btn-xs btn-white border rounded-pill px-2 py-1 small ws-canned-btn" style="font-size: 0.75rem;" data-text="Penyusunan tugas sangat komprehensif, metodologis, dan mencerminkan pemahaman mendalam tentang tata kelola pengadaan barang/jasa pemerintah. Sangat baik!" data-status="graded">
+                                    <i class="fas fa-trophy text-warning me-1"></i>Apresiasi Sempurna
+                                </button>
+                                <button type="button" class="btn btn-xs btn-white border rounded-pill px-2 py-1 small ws-canned-btn" style="font-size: 0.75rem;" data-text="Metode penyusunan HPS perlu perbaikan pada komponen biaya umum & keuntungan (overhead & profit), serta kelengkapan bukti survei harga pasar terkini yang dapat dipertanggungjawabkan." data-status="graded">
+                                    <i class="fas fa-calculator text-primary me-1"></i>Perbaiki HPS & Biaya
+                                </button>
+                                <button type="button" class="btn btn-xs btn-white border rounded-pill px-2 py-1 small ws-canned-btn" style="font-size: 0.75rem;" data-text="Uraian Kerangka Acuan Kerja (KAK) sudah cukup terstruktur, namun rincian deliverable dan kriteria penerimaan hasil pekerjaan perlu diperjelas agar tidak menimbulkan sengketa kontrak." data-status="graded">
+                                    <i class="fas fa-file-contract text-info me-1"></i>Perjelas KAK
+                                </button>
+                                <button type="button" class="btn btn-xs btn-white border rounded-pill px-2 py-1 small ws-canned-btn" style="font-size: 0.75rem;" data-text="Tugas belum memenuhi standar minimum silabus. Harap lengkapi lampiran matriks penilaian risiko dan justifikasi penetapan metode pemilihan sebelum evaluasi akhir dapat diberikan." data-status="revision_required">
+                                    <i class="fas fa-redo text-danger me-1"></i>Minta Revisi Tugas
+                                </button>
+                            </div>
+                        </div>
+
+                        <textarea id="wsFeedbackTextarea" name="feedback" class="form-control rounded-3" rows="6" placeholder="Berikan komentar penilaian, apresiasi analisis peserta, dan saran perbaikan kompetensi..."><?= esc($submission['feedback'] ?? '') ?></textarea>
                         <small class="text-muted">Catatan feedback langsung dapat dibaca oleh peserta pada ruang tugasnya.</small>
                     </div>
+
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const feedbackArea = document.getElementById('wsFeedbackTextarea');
+                        const statusSelect = document.querySelector('select[name="status"]');
+                        const toastBadge = document.getElementById('wsCannedFeedbackToast');
+                        const cannedBtns = document.querySelectorAll('.ws-canned-btn');
+
+                        cannedBtns.forEach(function(btn) {
+                            btn.addEventListener('click', function() {
+                                const textToInsert = this.getAttribute('data-text') || '';
+                                const targetStatus = this.getAttribute('data-status');
+
+                                if (feedbackArea) {
+                                    if (feedbackArea.value.trim() === '') {
+                                        feedbackArea.value = textToInsert;
+                                    } else {
+                                        feedbackArea.value = feedbackArea.value.trim() + "\n\n" + textToInsert;
+                                    }
+                                    feedbackArea.focus();
+                                }
+
+                                if (targetStatus && statusSelect) {
+                                    statusSelect.value = targetStatus;
+                                }
+
+                                if (toastBadge) {
+                                    toastBadge.classList.remove('d-none');
+                                    setTimeout(function() {
+                                        toastBadge.classList.add('d-none');
+                                    }, 2000);
+                                }
+                            });
+                        });
+                    });
+                    </script>
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary rounded-pill py-2 fw-semibold">
