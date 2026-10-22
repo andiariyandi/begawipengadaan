@@ -654,6 +654,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('kategori/(:segment)/ubah', 'RegulationController::categoryEdit/$1', ['as' => 'dashboard.regulations.categories.edit']);
         $routes->post('kategori/(:segment)/ubah', 'RegulationController::categoryUpdate/$1', ['as' => 'dashboard.regulations.categories.update']);
         $routes->post('kategori/(:segment)/hapus', 'RegulationController::categoryDelete/$1', ['as' => 'dashboard.regulations.categories.delete']);
+        $routes->post('kategori/(:segment)/toggle', 'RegulationController::categoryToggle/$1', ['as' => 'dashboard.regulations.categories.toggle']);
         $routes->get('kategori/(:segment)', 'RegulationController::categoryShow/$1', ['as' => 'dashboard.regulations.categories.detail']);
 
         // Versions list/detail
@@ -674,6 +675,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('tahapan-pbj/(:segment)/ubah', 'RegulationController::procurementStageEdit/$1', ['as' => 'dashboard.regulations.procurement-stages.edit']);
         $routes->post('tahapan-pbj/(:segment)/ubah', 'RegulationController::procurementStageUpdate/$1', ['as' => 'dashboard.regulations.procurement-stages.update']);
         $routes->post('tahapan-pbj/(:segment)/hapus', 'RegulationController::procurementStageDelete/$1', ['as' => 'dashboard.regulations.procurement-stages.delete']);
+        $routes->post('tahapan-pbj/(:segment)/toggle', 'RegulationController::procurementStageToggle/$1', ['as' => 'dashboard.regulations.procurement-stages.toggle']);
 
         // Competencies
         $routes->get('kompetensi-terkait', 'RegulationController::competencies', ['as' => 'dashboard.regulations.competencies']);
@@ -682,6 +684,9 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('kompetensi/(:segment)/ubah', 'RegulationController::competencyEdit/$1', ['as' => 'dashboard.regulations.competencies.edit']);
         $routes->post('kompetensi/(:segment)/ubah', 'RegulationController::competencyUpdate/$1', ['as' => 'dashboard.regulations.competencies.update']);
         $routes->post('kompetensi/(:segment)/hapus', 'RegulationController::competencyDelete/$1', ['as' => 'dashboard.regulations.competencies.delete']);
+        $routes->post('kompetensi/(:segment)/toggle', 'RegulationController::competencyToggle/$1', ['as' => 'dashboard.regulations.competencies.toggle']);
+        $routes->post('kompetensi-terkait/(:segment)/hapus', 'RegulationController::competencyDelete/$1');
+        $routes->post('kompetensi-terkait/(:segment)/toggle', 'RegulationController::competencyToggle/$1');
 
         // Download logs
         $routes->get('log-download', 'RegulationController::downloadLogs', ['as' => 'dashboard.regulations.download-logs']);

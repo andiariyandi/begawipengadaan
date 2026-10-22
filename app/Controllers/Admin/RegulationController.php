@@ -676,13 +676,47 @@ class RegulationController extends BaseController
     public function categoryDelete(string $id)
     {
         $catId = ctype_digit($id) ? (int) $id : 0;
+        $category = (new RegulationCategoryModel())->find($catId);
+        if (! $category) {
+            return redirect()->to('dashboard/regulasi/kategori')->with('error', 'Kategori tidak ditemukan.');
+        }
+
+        $docCount = (int) db_connect()->table('regulations')
+            ->where('category_id', $catId)
+            ->where('deleted_at', null)
+            ->countAllResults();
+
+        if ($docCount > 0) {
+            // Jika ada dokumen terkait, tidak dihapus permanen melainkan dinonaktifkan
+            (new RegulationCategoryModel())->update($catId, ['is_active' => 0]);
+            (new AuditService())->log((int) session()->get('user_id'), 'regulation_category.deactivate', 'regulation_categories', 'regulation_category', $catId);
+            return redirect()->to('dashboard/regulasi/kategori')
+                ->with('warning', "Kategori '{$category['name']}' memiliki {$docCount} dokumen terkait sehingga tidak dapat dihapus permanen. Status kategori telah diubah menjadi Non-Aktif.");
+        }
+
         try {
             (new RegulationCategoryModel())->delete($catId);
             (new AuditService())->log((int) session()->get('user_id'), 'regulation_category.delete', 'regulation_categories', 'regulation_category', $catId);
-            return redirect()->to('dashboard/regulasi/kategori')->with('success', 'Kategori dihapus.');
+            return redirect()->to('dashboard/regulasi/kategori')->with('success', "Kategori '{$category['name']}' berhasil dihapus permanen.");
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+    }
+
+    public function categoryToggle(string $id)
+    {
+        $catId = ctype_digit($id) ? (int) $id : 0;
+        $category = (new RegulationCategoryModel())->find($catId);
+        if (! $category) {
+            return redirect()->to('dashboard/regulasi/kategori')->with('error', 'Kategori tidak ditemukan.');
+        }
+
+        $newStatus = ($category['is_active'] ?? 0) ? 0 : 1;
+        (new RegulationCategoryModel())->update($catId, ['is_active' => $newStatus]);
+        $statusText = $newStatus ? 'diaktifkan' : 'dinonaktifkan';
+        (new AuditService())->log((int) session()->get('user_id'), 'regulation_category.toggle_status', 'regulation_categories', 'regulation_category', $catId);
+        return redirect()->to('dashboard/regulasi/kategori')
+            ->with('success', "Kategori '{$category['name']}' berhasil {$statusText}.");
     }
 
     // ============== RELATIONS ==============
@@ -858,7 +892,14 @@ class RegulationController extends BaseController
 
     public function procurementStages()
     {
-        $stages = (new ProcurementStageModel())->orderBy('sort_order, name')->findAll();
+        $stages = (new ProcurementStageModel())
+            ->select('procurement_stages.*, (SELECT COUNT(DISTINCT rps.regulation_id) 
+                                             FROM regulation_procurement_stages rps 
+                                             JOIN regulations r ON r.id = rps.regulation_id AND r.deleted_at IS NULL 
+                                             WHERE rps.procurement_stage_id = procurement_stages.id) AS regulation_count')
+            ->orderBy('sort_order, name')
+            ->findAll();
+
         return view('dashboard/regulation/procurement_stages/index', [
             'title'         => 'Tahapan PBJ | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Tahapan PBJ',
@@ -953,36 +994,61 @@ class RegulationController extends BaseController
     public function procurementStageDelete(string $id)
     {
         $stgId = ctype_digit($id) ? (int) $id : 0;
+        $stage = (new ProcurementStageModel())->find($stgId);
+        if (! $stage) {
+            return redirect()->to('dashboard/regulasi/tahapan-pbj')->with('error', 'Tahapan tidak ditemukan.');
+        }
+
+        $docCount = (int) db_connect()->table('regulation_procurement_stages rps')
+            ->join('regulations r', 'r.id = rps.regulation_id AND r.deleted_at IS NULL')
+            ->where('rps.procurement_stage_id', $stgId)
+            ->countAllResults();
+
+        if ($docCount > 0) {
+            // Jika ada dokumen terkait, tidak dihapus permanen melainkan dinonaktifkan
+            (new ProcurementStageModel())->update($stgId, ['is_active' => 0]);
+            (new AuditService())->log((int) session()->get('user_id'), 'procurement_stage.deactivate', 'procurement_stages', 'procurement_stage', $stgId);
+            return redirect()->to('dashboard/regulasi/tahapan-pbj')
+                ->with('warning', "Tahapan PBJ '{$stage['name']}' memiliki {$docCount} dokumen terkait sehingga tidak dapat dihapus permanen. Status telah diubah menjadi Non-Aktif.");
+        }
+
         try {
             (new ProcurementStageModel())->delete($stgId);
             (new AuditService())->log((int) session()->get('user_id'), 'procurement_stage.delete', 'procurement_stages', 'procurement_stage', $stgId);
-            return redirect()->to('dashboard/regulasi/tahapan-pbj')->with('success', 'Tahapan dihapus.');
+            return redirect()->to('dashboard/regulasi/tahapan-pbj')->with('success', "Tahapan PBJ '{$stage['name']}' berhasil dihapus permanen.");
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+    }
+
+    public function procurementStageToggle(string $id)
+    {
+        $stgId = ctype_digit($id) ? (int) $id : 0;
+        $stage = (new ProcurementStageModel())->find($stgId);
+        if (! $stage) {
+            return redirect()->to('dashboard/regulasi/tahapan-pbj')->with('error', 'Tahapan tidak ditemukan.');
+        }
+
+        $newStatus = ($stage['is_active'] ?? 0) ? 0 : 1;
+        (new ProcurementStageModel())->update($stgId, ['is_active' => $newStatus]);
+        $statusText = $newStatus ? 'diaktifkan' : 'dinonaktifkan';
+        (new AuditService())->log((int) session()->get('user_id'), 'procurement_stage.toggle_status', 'procurement_stages', 'procurement_stage', $stgId);
+        return redirect()->to('dashboard/regulasi/tahapan-pbj')
+            ->with('success', "Tahapan PBJ '{$stage['name']}' berhasil {$statusText}.");
     }
 
     // ============== COMPETENCIES ==============
 
     public function competencies()
     {
-        $competencies = (new CompetencyModel())->orderBy('name')->findAll();
-        $pivots = db_connect()->table('regulation_competencies rc')
-            ->select('rc.regulation_id, COUNT(*) AS total')
-            ->groupBy('rc.regulation_id')
-            ->get()->getResultArray();
-        $pivotMap = [];
-        foreach ($pivots as $p) {
-            $pivotMap[(int) $p['regulation_id']] = (int) $p['total'];
-        }
-        foreach ($competencies as &$c) {
-            $c['regulation_count'] = 0;
-            foreach ($pivots as $p) {
-                if ((int) $p['regulation_id'] === (int) $c['id']) {
-                    $c['regulation_count'] = (int) $p['total'];
-                }
-            }
-        }
+        $competencies = (new CompetencyModel())
+            ->select('competencies.*, (SELECT COUNT(DISTINCT rc.regulation_id) 
+                                       FROM regulation_competencies rc 
+                                       JOIN regulations r ON r.id = rc.regulation_id AND r.deleted_at IS NULL 
+                                       WHERE rc.competency_id = competencies.id) AS regulation_count')
+            ->orderBy('name')
+            ->findAll();
+
         return view('dashboard/regulation/competencies/index', [
             'title'         => 'Kompetensi Terkait | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Kompetensi Terkait',
@@ -1073,13 +1139,47 @@ class RegulationController extends BaseController
     public function competencyDelete(string $id)
     {
         $compId = ctype_digit($id) ? (int) $id : 0;
+        $competency = (new CompetencyModel())->find($compId);
+        if (! $competency) {
+            return redirect()->to('dashboard/regulasi/kompetensi-terkait')->with('error', 'Kompetensi tidak ditemukan.');
+        }
+
+        $docCount = (int) db_connect()->table('regulation_competencies rc')
+            ->join('regulations r', 'r.id = rc.regulation_id AND r.deleted_at IS NULL')
+            ->where('rc.competency_id', $compId)
+            ->countAllResults();
+
+        if ($docCount > 0) {
+            // Jika ada dokumen terkait, tidak dihapus permanen melainkan dinonaktifkan
+            (new CompetencyModel())->update($compId, ['is_active' => 0]);
+            (new AuditService())->log((int) session()->get('user_id'), 'competency.deactivate', 'competencies', 'competency', $compId);
+            return redirect()->to('dashboard/regulasi/kompetensi-terkait')
+                ->with('warning', "Kompetensi '{$competency['name']}' memiliki {$docCount} dokumen terkait sehingga tidak dapat dihapus permanen. Status telah diubah menjadi Non-Aktif.");
+        }
+
         try {
             (new CompetencyModel())->delete($compId);
             (new AuditService())->log((int) session()->get('user_id'), 'competency.delete', 'competencies', 'competency', $compId);
-            return redirect()->to('dashboard/regulasi/kompetensi-terkait')->with('success', 'Kompetensi dihapus.');
+            return redirect()->to('dashboard/regulasi/kompetensi-terkait')->with('success', "Kompetensi '{$competency['name']}' berhasil dihapus permanen.");
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+    }
+
+    public function competencyToggle(string $id)
+    {
+        $compId = ctype_digit($id) ? (int) $id : 0;
+        $competency = (new CompetencyModel())->find($compId);
+        if (! $competency) {
+            return redirect()->to('dashboard/regulasi/kompetensi-terkait')->with('error', 'Kompetensi tidak ditemukan.');
+        }
+
+        $newStatus = ($competency['is_active'] ?? 0) ? 0 : 1;
+        (new CompetencyModel())->update($compId, ['is_active' => $newStatus]);
+        $statusText = $newStatus ? 'diaktifkan' : 'dinonaktifkan';
+        (new AuditService())->log((int) session()->get('user_id'), 'competency.toggle_status', 'competencies', 'competency', $compId);
+        return redirect()->to('dashboard/regulasi/kompetensi-terkait')
+            ->with('success', "Kompetensi '{$competency['name']}' berhasil {$statusText}.");
     }
 
     public function attachCompetency(string $regId)
