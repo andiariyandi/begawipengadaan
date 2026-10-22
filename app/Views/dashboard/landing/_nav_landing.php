@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Reusable Operational Sub-Navigation for Kelola Landing Page
  * Displays all 10 sub-features as active navigation pills so no feature is hidden.
@@ -93,9 +94,9 @@ $activeSub = $activeSub ?? 'slider';
                 </a>
             </li>
         </ul>
-        <div class="d-none d-xxl-block text-2xs text-secondary-light">
+        <!-- <div class="d-none d-xxl-block text-2xs text-secondary-light">
             <iconify-icon icon="solar:info-circle-outline" class="align-middle me-1"></iconify-icon>
             Kelola Landing Page Publik
-        </div>
+        </div> -->
     </div>
 </div>
