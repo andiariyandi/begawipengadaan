@@ -97,6 +97,7 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
     $routes->get('/', 'WorkspaceHomeController::index', ['as' => 'workspace.home']);
     $routes->get('section/(:segment)', 'WorkspaceHomeController::section/$1', ['as' => 'workspace.section']);
     $routes->get('aktivitas', 'WorkspaceHomeController::activity', ['as' => 'workspace.activity']);
+    $routes->get('search/spotlight', 'WorkspaceHomeController::spotlightSearch', ['as' => 'workspace.search.spotlight']);
 
     // Layanan Konsultasi & Ticketing Dua Arah (Helpdesk)
     $routes->group('konsultasi', static function ($routes) {
@@ -230,14 +231,17 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('submission/(:segment)/review', 'TrainerController::reviewSubmission/$1', ['as' => 'workspace.trainer.submission.review']);
         $routes->post('submission/(:segment)/review', 'TrainerController::submitReviewSubmission/$1', ['as' => 'workspace.trainer.submission.review.submit']);
         $routes->get('kelas/(:segment)/progres', 'TrainerController::progress/$1', ['as' => 'workspace.trainer.progress']);
+        $routes->get('kelas/(:segment)/gradebook/export', 'TrainerController::exportGradebook/$1', ['as' => 'workspace.trainer.class.gradebook.export']);
     });
 
     $routes->group('operator', static function ($routes) {
         $routes->get('/', 'OperatorController::index', ['as' => 'workspace.operator.home']);
         $routes->get('approval', 'OperatorController::approvals', ['as' => 'workspace.operator.approvals']);
+        $routes->post('approval/bulk', 'OperatorController::bulkApproval', ['as' => 'workspace.operator.approvals.bulk']);
         $routes->post('approval/(:segment)/setujui', 'OperatorController::approveApproval/$1', ['as' => 'workspace.operator.approvals.approve']);
         $routes->post('approval/(:segment)/tolak', 'OperatorController::rejectApproval/$1', ['as' => 'workspace.operator.approvals.reject']);
         $routes->get('verifikasi-profil', 'OperatorController::profileVerifications', ['as' => 'workspace.operator.profile-verifications']);
+        $routes->post('verifikasi-profil/bulk', 'OperatorController::bulkProfileVerification', ['as' => 'workspace.operator.profile-verifications.bulk']);
         $routes->post('verifikasi-profil/(:segment)/setujui', 'OperatorController::approveVerification/$1', ['as' => 'workspace.operator.profile-verifications.approve']);
         $routes->post('verifikasi-profil/(:segment)/tolak', 'OperatorController::rejectVerification/$1', ['as' => 'workspace.operator.profile-verifications.reject']);
         $routes->get('perubahan-profil', 'OperatorController::profileChangeRequests', ['as' => 'workspace.operator.profile-change-requests']);
@@ -250,10 +254,12 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->post('penugasan-trainer/revoke', 'OperatorController::revokeTrainer', ['as' => 'workspace.operator.class-trainers.revoke']);
         $routes->get('event', 'OperatorController::events', ['as' => 'workspace.operator.events']);
         $routes->get('event/(:segment)/peserta', 'OperatorController::eventParticipants/$1', ['as' => 'workspace.operator.events.participants']);
+        $routes->get('event/(:segment)/peserta/cetak', 'OperatorController::printEventRoster/$1', ['as' => 'workspace.operator.events.roster.print']);
         $routes->get('kehadiran', 'OperatorController::attendance', ['as' => 'workspace.operator.attendance']);
         $routes->post('kehadiran/(:segment)/update', 'OperatorController::updateAttendance/$1', ['as' => 'workspace.operator.attendance.update']);
         $routes->get('monitoring-pembelajaran', 'OperatorController::learningMonitoring', ['as' => 'workspace.operator.learning-monitoring']);
         $routes->get('verifikasi-sertifikat', 'OperatorController::certificateVerification', ['as' => 'workspace.operator.certificates']);
+        $routes->post('verifikasi-sertifikat/bulk-issue', 'OperatorController::bulkIssueCertificates', ['as' => 'workspace.operator.certificates.bulk-issue']);
         $routes->post('verifikasi-sertifikat/(:segment)/terbitkan', 'OperatorController::issueCertificate/$1', ['as' => 'workspace.operator.certificates.issue']);
         $routes->post('verifikasi-sertifikat/(:segment)/batalkan', 'OperatorController::revokeCertificate/$1', ['as' => 'workspace.operator.certificates.revoke']);
         $routes->get('enrollment', 'OperatorController::enrollments', ['as' => 'workspace.operator.enrollments']);

@@ -51,6 +51,308 @@ class WorkspaceHomeController extends BaseController
         ]);
     }
 
+    /**
+     * Endpoint API Command Palette (Ctrl + K) - Quick Spotlight Search.
+     * Pencarian instan lintas navigasi, kelas pembelajaran, event & agenda, serta regulasi.
+     */
+    public function spotlightSearch()
+    {
+        $role = $this->workspaceRole();
+        $q = trim((string) ($this->request->getGet('q') ?? ''));
+        $db = db_connect();
+
+        $categories = [];
+
+        // 1. Navigasi & Menu Cepat berdasarkan Hak Akses Role
+        $navShortcuts = [
+            [
+                'title'    => 'Dashboard Workspace',
+                'subtitle' => 'Halaman utama ringkasan ruang kerja personal',
+                'url'      => route_to('workspace.home'),
+                'icon'     => 'fas fa-home',
+                'badge'    => 'Umum',
+                'roles'    => ['participant', 'trainer', 'operator', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Kelas Saya (Pembelajaran)',
+                'subtitle' => 'Daftar seluruh kelas yang sedang aktif atau telah selesai',
+                'url'      => route_to('workspace.participant.classes'),
+                'icon'     => 'fas fa-book-reader',
+                'badge'    => 'Peserta',
+                'roles'    => ['participant', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Katalog Arena Belajar PBJ',
+                'subtitle' => 'Jelajahi dan daftar program pelatihan pengadaan barang/jasa',
+                'url'      => site_url('arena-belajar'),
+                'icon'     => 'fas fa-graduation-cap',
+                'badge'    => 'Katalog',
+                'roles'    => ['participant', 'trainer', 'operator', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Transkrip Nilai Akademik PBJ',
+                'subtitle' => 'Rekapitulasi pencapaian nilai, kuis, tugas, dan sertifikat',
+                'url'      => route_to('workspace.participant.classes'),
+                'icon'     => 'fas fa-file-invoice',
+                'badge'    => 'Nilai',
+                'roles'    => ['participant', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Event & Agenda PBJ Saya',
+                'subtitle' => 'Webinar, Bimtek, dan Workshop PBJ terdaftar',
+                'url'      => route_to('workspace.participant.events'),
+                'icon'     => 'fas fa-calendar-check',
+                'badge'    => 'Agenda',
+                'roles'    => ['participant', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Sertifikat Digital Saya',
+                'subtitle' => 'Unduh dan cetak e-sertifikat ber-QR resmi Pemprov Lampung',
+                'url'      => route_to('workspace.participant.certificates'),
+                'icon'     => 'fas fa-award',
+                'badge'    => 'Sertifikat',
+                'roles'    => ['participant', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Konsultasi & Helpdesk PBJ',
+                'subtitle' => 'Layanan bantuan dua arah dengan tim Biro PBJ',
+                'url'      => route_to('workspace.consultation.index'),
+                'icon'     => 'fas fa-comments',
+                'badge'    => 'Bantuan',
+                'roles'    => ['participant', 'trainer', 'operator', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Profil & Pengaturan Akun',
+                'subtitle' => 'Kelola identitas ASN, Penyedia, NIP/NIK, dan kata sandi',
+                'url'      => route_to('workspace.profile.index'),
+                'icon'     => 'fas fa-user-cog',
+                'badge'    => 'Akun',
+                'roles'    => ['participant', 'trainer', 'operator', 'admin', 'super_admin'],
+            ],
+            // Trainer Shortcuts
+            [
+                'title'    => 'Ruang Pengajar / Kelas Diampu',
+                'subtitle' => 'Manajemen materi, kuis, tugas, dan buku nilai kelas',
+                'url'      => route_to('workspace.trainer.home'),
+                'icon'     => 'fas fa-chalkboard-teacher',
+                'badge'    => 'Trainer',
+                'roles'    => ['trainer', 'operator', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Buku Nilai Kelas (Gradebook Matrix)',
+                'subtitle' => 'Rekapitulasi nilai dan ekspor CSV kelas bimbingan',
+                'url'      => route_to('workspace.trainer.home'),
+                'icon'     => 'fas fa-table',
+                'badge'    => 'Trainer',
+                'roles'    => ['trainer', 'operator', 'admin', 'super_admin'],
+            ],
+            // Operator Shortcuts
+            [
+                'title'    => 'Pusat Operasional Pelatihan',
+                'subtitle' => 'Antrean persetujuan, verifikasi profil, dan kelas',
+                'url'      => route_to('workspace.operator.home'),
+                'icon'     => 'fas fa-cogs',
+                'badge'    => 'Operator',
+                'roles'    => ['operator', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Pusat Approval Akun & Pendaftaran',
+                'subtitle' => 'Aksi massal persetujuan registrasi dan verifikasi berkas',
+                'url'      => route_to('workspace.operator.approvals'),
+                'icon'     => 'fas fa-user-check',
+                'badge'    => 'Operator',
+                'roles'    => ['operator', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Verifikasi Tiket Profil (Diff Viewer)',
+                'subtitle' => 'Pemeriksaan permohonan perubahan data identitas ASN/Penyedia',
+                'url'      => route_to('workspace.operator.profile-change-requests'),
+                'icon'     => 'fas fa-id-card',
+                'badge'    => 'Operator',
+                'roles'    => ['operator', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Penerbitan Sertifikat Massal',
+                'subtitle' => 'Verifikasi kelayakan dan terbitkan e-sertifikat serentak',
+                'url'      => route_to('workspace.operator.certificates'),
+                'icon'     => 'fas fa-stamp',
+                'badge'    => 'Operator',
+                'roles'    => ['operator', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Monitoring Pembelajaran Lintas Kelas',
+                'subtitle' => 'Pantau tingkat kelulusan dan progres seluruh kelas aktif',
+                'url'      => route_to('workspace.operator.learning-monitoring'),
+                'icon'     => 'fas fa-chart-line',
+                'badge'    => 'Operator',
+                'roles'    => ['operator', 'admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Daftar Hadir & Peserta Event (Roster Cetak)',
+                'subtitle' => 'Manajemen presensi dan cetak daftar hadir resmi Pemprov Lampung',
+                'url'      => route_to('workspace.operator.events'),
+                'icon'     => 'fas fa-clipboard-list',
+                'badge'    => 'Operator',
+                'roles'    => ['operator', 'admin', 'super_admin'],
+            ],
+            // Executive Admin
+            [
+                'title'    => 'Pusat Kendali Eksekutif Workspace',
+                'subtitle' => 'Executive health radar dan tata kelola ekosistem PBJ',
+                'url'      => route_to('workspace.admin.home'),
+                'icon'     => 'fas fa-crown',
+                'badge'    => 'Eksekutif',
+                'roles'    => ['admin', 'super_admin'],
+            ],
+            [
+                'title'    => 'Dashboard Utama Administrasi (WowDash)',
+                'subtitle' => 'Akses panel administrator penuh BegawiPengadaan',
+                'url'      => route_to('dashboard.home'),
+                'icon'     => 'fas fa-tachometer-alt',
+                'badge'    => 'Admin',
+                'roles'    => ['admin', 'super_admin'],
+            ],
+        ];
+
+        // Saring menu navigasi berdasarkan peran dan kata kunci
+        $matchedNav = [];
+        foreach ($navShortcuts as $item) {
+            if (! in_array($role, $item['roles'], true)) {
+                continue;
+            }
+            if ($q !== '') {
+                $match = (stripos($item['title'], $q) !== false)
+                    || (stripos($item['subtitle'], $q) !== false)
+                    || (stripos($item['badge'], $q) !== false);
+                if (! $match) {
+                    continue;
+                }
+            }
+            $matchedNav[] = $item;
+        }
+
+        if (! empty($matchedNav)) {
+            $categories[] = [
+                'name'  => 'Navigasi & Menu Cepat',
+                'icon'  => 'fas fa-compass',
+                'items' => array_slice($matchedNav, 0, 8),
+            ];
+        }
+
+        // 2. Kelas Pembelajaran Aktif
+        $classQuery = $db->table('learning_classes lc')
+            ->select('lc.id, lc.name AS class_name, lc.code AS class_code, lc.learning_method, courses.title AS course_title')
+            ->join('courses', 'courses.id = lc.course_id')
+            ->whereIn('lc.status', ['active', 'scheduled', 'ongoing', 'published', 'open']);
+
+        if ($q !== '') {
+            $classQuery->groupStart()
+                ->like('lc.name', $q)
+                ->orLike('lc.code', $q)
+                ->orLike('courses.title', $q)
+                ->groupEnd();
+        }
+        $matchedClasses = $classQuery->orderBy('lc.id', 'DESC')->limit(5)->get()->getResultArray();
+
+        if (! empty($matchedClasses)) {
+            $classItems = [];
+            foreach ($matchedClasses as $mc) {
+                $targetUrl = match ($role) {
+                    'trainer'   => route_to('workspace.trainer.class.detail', (string) $mc['id']),
+                    'operator', 'admin', 'super_admin' => route_to('workspace.operator.learning-monitoring'),
+                    default     => route_to('workspace.participant.class.detail', (string) $mc['id']),
+                };
+                $classItems[] = [
+                    'title'    => $mc['class_name'],
+                    'subtitle' => ($mc['course_title'] ?? '') . ' (' . ($mc['class_code'] ?? '') . ')',
+                    'url'      => $targetUrl,
+                    'icon'     => 'fas fa-graduation-cap',
+                    'badge'    => strtoupper((string) ($mc['learning_method'] ?? 'Kelas')),
+                ];
+            }
+            $categories[] = [
+                'name'  => 'Kelas Pembelajaran',
+                'icon'  => 'fas fa-chalkboard',
+                'items' => $classItems,
+            ];
+        }
+
+        // 3. Event & Agenda Kegiatan
+        $eventQuery = $db->table('events')
+            ->select('id, title, slug, mode, start_at, location')
+            ->whereIn('status', ['open_registration', 'coming_soon', 'published', 'ongoing']);
+
+        if ($q !== '') {
+            $eventQuery->groupStart()
+                ->like('title', $q)
+                ->orLike('location', $q)
+                ->groupEnd();
+        }
+        $matchedEvents = $eventQuery->orderBy('start_at', 'ASC')->limit(4)->get()->getResultArray();
+
+        if (! empty($matchedEvents)) {
+            $eventItems = [];
+            foreach ($matchedEvents as $ev) {
+                $eventItems[] = [
+                    'title'    => $ev['title'],
+                    'subtitle' => date('d M Y, H:i', strtotime($ev['start_at'])) . ' WIB • ' . ($ev['location'] ?: 'Online'),
+                    'url'      => site_url('event/' . ($ev['slug'] ?: $ev['id'])),
+                    'icon'     => 'fas fa-calendar-alt',
+                    'badge'    => strtoupper((string) ($ev['mode'] ?? 'Agenda')),
+                ];
+            }
+            $categories[] = [
+                'name'  => 'Event & Agenda PBJ',
+                'icon'  => 'fas fa-calendar-day',
+                'items' => $eventItems,
+            ];
+        }
+
+        // 4. Regulasi PBJ & Dokumen Acuan (hanya jika ada kata kunci pencarian)
+        if ($q !== '') {
+            $regQuery = $db->table('regulations r')
+                ->select('r.id, r.title, r.document_number, rc.name AS category_name')
+                ->join('regulation_categories rc', 'rc.id = r.category_id', 'left')
+                ->where('r.deleted_at', null)
+                ->groupStart()
+                    ->like('r.title', $q)
+                    ->orLike('r.document_number', $q)
+                ->groupEnd()
+                ->limit(3)
+                ->get()->getResultArray();
+
+            if (! empty($regQuery)) {
+                $regItems = [];
+                foreach ($regQuery as $reg) {
+                    $regItems[] = [
+                        'title'    => ($reg['document_number'] ? $reg['document_number'] . ' - ' : '') . $reg['title'],
+                        'subtitle' => 'Kategori: ' . ($reg['category_name'] ?: 'Regulasi PBJ'),
+                        'url'      => site_url('regulasi'),
+                        'icon'     => 'fas fa-book',
+                        'badge'    => 'Regulasi',
+                    ];
+                }
+                $categories[] = [
+                    'name'  => 'Regulasi & Dokumen Acuan',
+                    'icon'  => 'fas fa-file-alt',
+                    'items' => $regItems,
+                ];
+            }
+        }
+
+        $totalCount = 0;
+        foreach ($categories as $cat) {
+            $totalCount += count($cat['items']);
+        }
+
+        return $this->response->setJSON([
+            'status'     => 'success',
+            'query'      => $q,
+            'categories' => $categories,
+            'totalCount' => $totalCount,
+        ]);
+    }
+
     private function renderWorkspace(string $section)
     {
         $section = $this->normalizeSection($section);

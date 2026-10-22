@@ -275,7 +275,7 @@ class TrainerController extends BaseController
         }
 
         $activeTab = (string) ($this->request->getGet('tab') ?: 'overview');
-        if (! in_array($activeTab, ['overview', 'materi', 'peserta', 'assessment', 'assignment', 'progres'], true)) {
+        if (! in_array($activeTab, ['overview', 'materi', 'peserta', 'assessment', 'assignment', 'progres', 'gradebook'], true)) {
             $activeTab = 'overview';
         }
 
@@ -374,6 +374,9 @@ class TrainerController extends BaseController
         $completedParticipantCount = count(array_filter($participants, static fn ($p): bool => in_array($p['enrollment_status'], ['completed'], true) || ! empty($p['passed_at'])));
         $completionRate = count($participants) > 0 ? round(($completedParticipantCount / count($participants)) * 100, 1) : 0.0;
 
+        // Buku Nilai Terpadu (Gradebook Matrix)
+        $gradebook = $this->getGradebookData($classIdInt);
+
         return $this->render($class['name'] ?? 'Detail Kelas', 'trainer/detail_kelas', [
             'classCtx'                  => $class,
             'trainers'                  => $trainers,
@@ -382,6 +385,7 @@ class TrainerController extends BaseController
             'participants'              => $participants,
             'quizzes'                   => $quizzes,
             'assignments'               => $assignments,
+            'gradebook'                 => $gradebook,
             'stats'                     => [
                 'participantCount'       => count($participants),
                 'activeParticipantCount' => $activeParticipantCount,
@@ -393,6 +397,345 @@ class TrainerController extends BaseController
                 'assignmentCount'        => count($assignments),
             ],
         ], 'trainer', [['label' => 'Kelas Saya', 'url' => route_to('workspace.trainer.classes')]]);
+    }
+
+    /**
+     * EKSPOR LEMBAR BUKU NILAI KELAS (CSV)
+     * Format komprehensif siap olah spreadsheet dengan UTF-8 BOM.
+     */
+    public function exportGradebook(string $classId)
+    {
+        $userId     = $this->userId();
+        $classIdInt = (int) $classId;
+        $this->assertTrainerOf($userId, $classIdInt);
+
+        $gradebook = $this->getGradebookData($classIdInt);
+        $class     = $gradebook['class'];
+        $className = preg_replace('/[^A-Za-z0-9_\-]/', '_', (string) ($class['code'] ?? 'KELAS_' . $classIdInt));
+        $filename  = 'Buku_Nilai_' . $className . '_' . date('Ymd_His') . '.csv';
+
+        $output = fopen('php://memory', 'w+');
+        // UTF-8 BOM untuk kompatibilitas Microsoft Excel Windows
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        fputcsv($output, ['REKAPITULASI BUKU NILAI KELAS - BEGAWI PENGADAAN BIRO PBJ PEMPROV LAMPUNG']);
+        fputcsv($output, ['Nama Kelas', $class['name'] ?? '-']);
+        fputcsv($output, ['Kode Kelas', $class['code'] ?? '-']);
+        fputcsv($output, ['Kursus', $class['course_title'] ?? '-']);
+        fputcsv($output, ['Passing Grade', number_format((float) ($gradebook['stats']['passing_grade'] ?? 70), 1)]);
+        fputcsv($output, ['Tanggal Ekspor', date('d/m/Y H:i:s')]);
+        fputcsv($output, []); // Baris kosong
+
+        // Header Kolom Dinamis
+        $headers = ['No', 'Nama Peserta', 'NIP / Username', 'Email', 'Progres Belajar (%)', 'Pre-Test'];
+        foreach ($gradebook['formativeQuizzes'] as $fq) {
+            $headers[] = 'Kuis: ' . ($fq['title'] ?? 'Kuis');
+        }
+        foreach ($gradebook['assignments'] as $asg) {
+            $headers[] = 'Tugas: ' . ($asg['title'] ?? 'Tugas');
+        }
+        $headers[] = 'Post-Test';
+        $headers[] = 'Nilai Akhir';
+        $headers[] = 'Nilai Huruf';
+        $headers[] = 'Predikat';
+        $headers[] = 'Status Kelulusan';
+
+        fputcsv($output, $headers);
+
+        foreach ($gradebook['rows'] as $idx => $r) {
+            $rowLine = [
+                $idx + 1,
+                $r['name'],
+                $r['username'],
+                $r['email'],
+                $r['progress_percent'] . '%',
+                $r['pre_score'] !== null ? number_format((float) $r['pre_score'], 1) : '-',
+            ];
+
+            foreach ($gradebook['formativeQuizzes'] as $fq) {
+                $sc = $r['quiz_details'][(int) $fq['id']] ?? null;
+                $rowLine[] = $sc !== null ? number_format((float) $sc, 1) : '-';
+            }
+
+            foreach ($gradebook['assignments'] as $asg) {
+                $sub = $r['asg_details'][(int) $asg['id']] ?? null;
+                $rowLine[] = ($sub !== null && $sub['score'] !== null) ? number_format((float) $sub['score'], 1) : '-';
+            }
+
+            $rowLine[] = $r['post_score'] !== null ? number_format((float) $r['post_score'], 1) : '-';
+            $rowLine[] = number_format((float) $r['final_score'], 1);
+            $rowLine[] = $r['grade_letter'];
+            $rowLine[] = $r['predicate'];
+            $rowLine[] = $r['is_passed'] ? 'LULUS' : 'BELUM MEMENUHI';
+
+            fputcsv($output, $rowLine);
+        }
+
+        // Ringkasan Agregat
+        fputcsv($output, []);
+        fputcsv($output, ['RINGKASAN METRIK KELAS']);
+        fputcsv($output, ['Total Peserta Terdaftar', $gradebook['stats']['total']]);
+        fputcsv($output, ['Total Peserta Lulus', $gradebook['stats']['passed_count']]);
+        fputcsv($output, ['Tingkat Kelulusan', $gradebook['stats']['pass_rate'] . '%']);
+        fputcsv($output, ['Rata-rata Nilai Kelas', $gradebook['stats']['avg']]);
+        fputcsv($output, ['Nilai Tertinggi', $gradebook['stats']['max']]);
+        fputcsv($output, ['Nilai Terendah', $gradebook['stats']['min']]);
+
+        rewind($output);
+        $csvContent = stream_get_contents($output);
+        fclose($output);
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->setBody($csvContent);
+    }
+
+    /**
+     * AGREGASI DATA BUKU NILAI KELAS (GRADEBOOK ENGINE)
+     * Mengkalkulasi nilai terbobot, riwayat kuis, tugas, dan status kelulusan peserta.
+     */
+    protected function getGradebookData(int $classIdInt): array
+    {
+        $db = db_connect();
+
+        $class = $db->table('learning_classes lc')
+            ->select('lc.*, courses.title AS course_title')
+            ->join('courses', 'courses.id = lc.course_id')
+            ->where('lc.id', $classIdInt)
+            ->get()->getRowArray();
+
+        $passingGrade = (float) ($class['passing_grade'] ?? 70.0);
+        $wQuiz        = (float) ($class['quiz_weight'] ?? 40.0);
+        $wAsg         = (float) ($class['assignment_weight'] ?? 0.0);
+        $wPost        = (float) ($class['post_test_weight'] ?? 60.0);
+        $totalWeight  = $wQuiz + $wAsg + $wPost;
+        if ($totalWeight <= 0) {
+            $totalWeight = 100.0;
+        }
+
+        $quizzes = $db->table('quizzes')
+            ->where('class_id', $classIdInt)
+            ->orderBy('type', 'ASC')
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
+
+        $assignments = $db->table('assignments')
+            ->where('class_id', $classIdInt)
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
+
+        $modules = $db->table('learning_modules')->where('class_id', $classIdInt)->get()->getResultArray();
+        $modIds = array_map(static fn ($m): int => (int) $m['id'], $modules);
+        $totalLessons = 0;
+        if ($modIds !== []) {
+            $totalLessons = (int) $db->table('lessons')->whereIn('module_id', $modIds)->countAllResults();
+        }
+
+        $participants = $db->table('enrollments e')
+            ->select('e.id AS enrollment_id, e.user_id, e.status AS enrollment_status, e.enrolled_at, e.final_score, e.passed_at, e.completed_at, u.name, u.email, u.username')
+            ->join('users u', 'u.id = e.user_id')
+            ->where('e.class_id', $classIdInt)
+            ->orderBy('u.name', 'ASC')
+            ->get()->getResultArray();
+
+        $quizScores = [];
+        $enrollmentIds = array_map(static fn ($p): int => (int) $p['enrollment_id'], $participants);
+        if ($enrollmentIds !== []) {
+            $attempts = $db->table('quiz_attempts')
+                ->select('enrollment_id, quiz_id, MAX(score) AS max_score')
+                ->whereIn('enrollment_id', $enrollmentIds)
+                ->whereIn('status', ['graded', 'submitted'])
+                ->groupBy('enrollment_id, quiz_id')
+                ->get()->getResultArray();
+            foreach ($attempts as $att) {
+                $quizScores[(int) $att['enrollment_id']][(int) $att['quiz_id']] = (float) $att['max_score'];
+            }
+        }
+
+        $asgScores = [];
+        if ($enrollmentIds !== []) {
+            $submissions = $db->table('assignment_submissions')
+                ->select('enrollment_id, assignment_id, score, status')
+                ->whereIn('enrollment_id', $enrollmentIds)
+                ->get()->getResultArray();
+            foreach ($submissions as $sub) {
+                $asgScores[(int) $sub['enrollment_id']][(int) $sub['assignment_id']] = [
+                    'score'  => $sub['score'] !== null ? (float) $sub['score'] : null,
+                    'status' => $sub['status'],
+                ];
+            }
+        }
+
+        $completedLessonsMap = [];
+        if ($enrollmentIds !== []) {
+            $progressRows = $db->table('learning_progress')
+                ->select('enrollment_id, COUNT(1) AS cnt')
+                ->whereIn('enrollment_id', $enrollmentIds)
+                ->where('status', 'completed')
+                ->groupBy('enrollment_id')
+                ->get()->getResultArray();
+            foreach ($progressRows as $pr) {
+                $completedLessonsMap[(int) $pr['enrollment_id']] = (int) $pr['cnt'];
+            }
+        }
+
+        $preTests = array_values(array_filter($quizzes, static fn ($q): bool => ($q['type'] ?? '') === 'pre_test'));
+        $formativeQuizzes = array_values(array_filter($quizzes, static fn ($q): bool => ($q['type'] ?? '') === 'lesson_quiz'));
+        $postTests = array_values(array_filter($quizzes, static fn ($q): bool => ($q['type'] ?? '') === 'post_test'));
+
+        $rows = [];
+        $classScores = [];
+        $passedCount = 0;
+
+        foreach ($participants as $p) {
+            $eid = (int) $p['enrollment_id'];
+
+            // 1. Pre-test
+            $preScore = null;
+            if ($preTests !== []) {
+                $preScoresList = [];
+                foreach ($preTests as $pt) {
+                    if (isset($quizScores[$eid][(int) $pt['id']])) {
+                        $preScoresList[] = $quizScores[$eid][(int) $pt['id']];
+                    }
+                }
+                if ($preScoresList !== []) {
+                    $preScore = max($preScoresList);
+                }
+            }
+
+            // 2. Kuis formatif
+            $formativeList = [];
+            $quizDetails = [];
+            foreach ($quizzes as $q) {
+                $qid = (int) $q['id'];
+                $sc = $quizScores[$eid][$qid] ?? null;
+                $quizDetails[$qid] = $sc;
+                if ($q['type'] === 'lesson_quiz' && $sc !== null) {
+                    $formativeList[] = $sc;
+                }
+            }
+            $avgQuizScore = $formativeList !== [] ? (array_sum($formativeList) / count($formativeList)) : null;
+
+            // 3. Tugas
+            $asgList = [];
+            $assignmentDetails = [];
+            foreach ($assignments as $asg) {
+                $aid = (int) $asg['id'];
+                $item = $asgScores[$eid][$aid] ?? null;
+                $assignmentDetails[$aid] = $item;
+                if ($item !== null && $item['score'] !== null) {
+                    $asgList[] = $item['score'];
+                }
+            }
+            $avgAsgScore = $asgList !== [] ? (array_sum($asgList) / count($asgList)) : null;
+
+            // 4. Post-test
+            $postScore = null;
+            if ($postTests !== []) {
+                $postScoresList = [];
+                foreach ($postTests as $pst) {
+                    if (isset($quizScores[$eid][(int) $pst['id']])) {
+                        $postScoresList[] = $quizScores[$eid][(int) $pst['id']];
+                    }
+                }
+                if ($postScoresList !== []) {
+                    $postScore = max($postScoresList);
+                }
+            }
+
+            // 5. Nilai akhir terbobot
+            $hasDbScore = $p['final_score'] !== null && (float) $p['final_score'] > 0;
+            if ($hasDbScore) {
+                $finalScore = (float) $p['final_score'];
+            } else {
+                $termQuiz = ($avgQuizScore ?? 0.0) * ($wQuiz / $totalWeight);
+                $termAsg  = ($avgAsgScore ?? 0.0) * ($wAsg / $totalWeight);
+                $termPost = ($postScore ?? 0.0) * ($wPost / $totalWeight);
+                $finalScore = round($termQuiz + $termAsg + $termPost, 2);
+            }
+
+            // 6. Nilai Huruf & Predikat
+            if ($finalScore >= 85.0) {
+                $gradeLetter = 'A';
+                $predicate   = 'Sangat Memuaskan';
+            } elseif ($finalScore >= 75.0) {
+                $gradeLetter = 'B';
+                $predicate   = 'Memuaskan';
+            } elseif ($finalScore >= 65.0) {
+                $gradeLetter = 'C';
+                $predicate   = 'Baik';
+            } elseif ($finalScore >= 55.0) {
+                $gradeLetter = 'D';
+                $predicate   = 'Cukup';
+            } else {
+                $gradeLetter = 'E';
+                $predicate   = 'Kurang';
+            }
+
+            // 7. Status Kelulusan
+            $isPassed = ($finalScore >= $passingGrade) && ($postScore === null || $postScore >= $passingGrade);
+            if (! empty($p['passed_at'])) {
+                $isPassed = true;
+            }
+            if ($isPassed) {
+                $passedCount++;
+            }
+
+            $completedCnt = $completedLessonsMap[$eid] ?? 0;
+            $progressPct  = $totalLessons > 0 ? round(($completedCnt / $totalLessons) * 100, 1) : 0.0;
+
+            $classScores[] = $finalScore;
+
+            $rows[] = [
+                'enrollment_id'     => $eid,
+                'user_id'           => (int) $p['user_id'],
+                'name'              => $p['name'],
+                'email'             => $p['email'],
+                'username'          => $p['username'],
+                'enrollment_status' => $p['enrollment_status'],
+                'progress_percent'  => $progressPct,
+                'completed_lessons' => $completedCnt,
+                'total_lessons'     => $totalLessons,
+                'pre_score'         => $preScore,
+                'quiz_details'      => $quizDetails,
+                'avg_quiz_score'    => $avgQuizScore,
+                'asg_details'       => $assignmentDetails,
+                'avg_asg_score'     => $avgAsgScore,
+                'post_score'        => $postScore,
+                'final_score'       => $finalScore,
+                'grade_letter'      => $gradeLetter,
+                'predicate'         => $predicate,
+                'is_passed'         => $isPassed,
+                'passed_at'         => $p['passed_at'],
+            ];
+        }
+
+        $totalParticipants = count($participants);
+        $avgClassScore = $classScores !== [] ? round(array_sum($classScores) / count($classScores), 1) : 0.0;
+        $maxClassScore = $classScores !== [] ? max($classScores) : 0.0;
+        $minClassScore = $classScores !== [] ? min($classScores) : 0.0;
+        $passRate = $totalParticipants > 0 ? round(($passedCount / $totalParticipants) * 100, 1) : 0.0;
+
+        return [
+            'class'             => $class,
+            'quizzes'           => $quizzes,
+            'assignments'       => $assignments,
+            'preTests'          => $preTests,
+            'formativeQuizzes'  => $formativeQuizzes,
+            'postTests'         => $postTests,
+            'rows'              => $rows,
+            'stats'             => [
+                'total'         => $totalParticipants,
+                'passed_count'  => $passedCount,
+                'pass_rate'     => $passRate,
+                'avg'           => $avgClassScore,
+                'max'           => $maxClassScore,
+                'min'           => $minClassScore,
+                'passing_grade' => $passingGrade,
+            ],
+        ];
     }
 
     /**
@@ -1181,14 +1524,113 @@ class TrainerController extends BaseController
 
         $avgScore = $completedAttempts > 0 ? round($totalScore / $completedAttempts, 1) : 0.0;
 
+        // Analisis Butir Soal Kuis (Question Item Analytics)
+        $questions = $db->table('quiz_questions qq')
+            ->where('qq.quiz_id', $quizIdInt)
+            ->orderBy('qq.sort_order', 'ASC')
+            ->orderBy('qq.id', 'ASC')
+            ->get()->getResultArray();
+
+        $itemAnalysis = [];
+        $mostDifficultQuestion = null;
+        $highestErrorRate = -1.0;
+        $easiestQuestion = null;
+        $highestCorrectRate = -1.0;
+
+        if ($questions !== []) {
+            $questionIds = array_map(static fn ($q): int => (int) $q['id'], $questions);
+
+            $options = $db->table('quiz_options')
+                ->whereIn('question_id', $questionIds)
+                ->orderBy('sort_order', 'ASC')
+                ->get()->getResultArray();
+            $optionsByQ = [];
+            foreach ($options as $opt) {
+                $optionsByQ[(int) $opt['question_id']][] = $opt;
+            }
+
+            $answerStats = $db->table('quiz_answers qa')
+                ->select('qa.question_id, COUNT(qa.id) AS total_answered, SUM(CASE WHEN qa.is_correct = 1 THEN 1 ELSE 0 END) AS total_correct, SUM(CASE WHEN qa.is_correct = 0 THEN 1 ELSE 0 END) AS total_incorrect')
+                ->join('quiz_attempts qatt', 'qatt.id = qa.attempt_id')
+                ->where('qatt.quiz_id', $quizIdInt)
+                ->whereIn('qatt.status', ['graded', 'submitted'])
+                ->groupBy('qa.question_id')
+                ->get()->getResultArray();
+
+            $statsByQ = [];
+            foreach ($answerStats as $st) {
+                $statsByQ[(int) $st['question_id']] = [
+                    'total_answered'  => (int) $st['total_answered'],
+                    'total_correct'   => (int) $st['total_correct'],
+                    'total_incorrect' => (int) $st['total_incorrect'],
+                ];
+            }
+
+            foreach ($questions as $q) {
+                $qid = (int) $q['id'];
+                $st = $statsByQ[$qid] ?? ['total_answered' => 0, 'total_correct' => 0, 'total_incorrect' => 0];
+                $tot = $st['total_answered'];
+                $corr = $st['total_correct'];
+                $inc = $st['total_incorrect'];
+                $accuracyRate = $tot > 0 ? round(($corr / $tot) * 100, 1) : 0.0;
+                $errorRate    = $tot > 0 ? round(($inc / $tot) * 100, 1) : 0.0;
+
+                if ($tot === 0) {
+                    $difficulty = 'Belum Ada Jawaban';
+                    $difficultyBadge = 'bg-secondary-subtle text-secondary';
+                } elseif ($accuracyRate >= 80.0) {
+                    $difficulty = 'Mudah (Tinggi Pemahaman)';
+                    $difficultyBadge = 'bg-success-subtle text-success border border-success-subtle';
+                } elseif ($accuracyRate >= 50.0) {
+                    $difficulty = 'Sedang (Cukup Dipahami)';
+                    $difficultyBadge = 'bg-info-subtle text-info border border-info-subtle';
+                } else {
+                    $difficulty = 'Perlu Pembahasan / Menantang';
+                    $difficultyBadge = 'bg-danger-subtle text-danger border border-danger-subtle';
+                }
+
+                $qItem = [
+                    'id'               => $qid,
+                    'prompt'           => $q['prompt'] ?? '',
+                    'points'           => (float) ($q['points'] ?? 1.0),
+                    'sort_order'       => (int) ($q['sort_order'] ?? 1),
+                    'explanation'      => $q['explanation'] ?? '',
+                    'options'          => $optionsByQ[$qid] ?? [],
+                    'total_answered'   => $tot,
+                    'total_correct'    => $corr,
+                    'total_incorrect'  => $inc,
+                    'accuracy_rate'    => $accuracyRate,
+                    'error_rate'       => $errorRate,
+                    'difficulty'       => $difficulty,
+                    'difficulty_badge' => $difficultyBadge,
+                ];
+
+                if ($tot > 0) {
+                    if ($errorRate > $highestErrorRate) {
+                        $highestErrorRate = $errorRate;
+                        $mostDifficultQuestion = $qItem;
+                    }
+                    if ($accuracyRate > $highestCorrectRate) {
+                        $highestCorrectRate = $accuracyRate;
+                        $easiestQuestion = $qItem;
+                    }
+                }
+
+                $itemAnalysis[] = $qItem;
+            }
+        }
+
         return $this->render('Hasil Pengerjaan Ujian', 'trainer/quiz_attempts', [
-            'classId'      => $classIdInt,
-            'className'    => $this->className($classIdInt),
-            'class'        => $class,
-            'quiz'         => $quiz,
-            'attempts'     => $attempts,
-            'passingGrade' => $passingGrade,
-            'stats'        => [
+            'classId'               => $classIdInt,
+            'className'             => $this->className($classIdInt),
+            'class'                 => $class,
+            'quiz'                  => $quiz,
+            'attempts'              => $attempts,
+            'passingGrade'          => $passingGrade,
+            'itemAnalysis'          => $itemAnalysis,
+            'mostDifficultQuestion' => $mostDifficultQuestion,
+            'easiestQuestion'       => $easiestQuestion,
+            'stats'                 => [
                 'totalAttempts' => $totalAttempts,
                 'uniqueUsers'   => $uniqueUsers,
                 'avgScore'      => $avgScore,

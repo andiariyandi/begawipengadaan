@@ -215,8 +215,13 @@ class OperatorController extends BaseController
                 default    => '<span class="badge bg-warning-subtle text-warning">Menunggu</span>',
             };
 
+            $isPending = ($item['status'] === 'pending');
+            $chkHtml = $isPending
+                ? '<input type="checkbox" name="selected_ids[]" value="' . $item['id'] . '" class="form-check-input ws-bulk-check">'
+                : '<span class="text-muted">&ndash;</span>';
+
             $actionBtn = '-';
-            if ($item['status'] === 'pending') {
+            if ($isPending) {
                 $approveUrl = route_to('workspace.operator.approvals.approve', $item['id']);
                 $rejectUrl  = route_to('workspace.operator.approvals.reject', $item['id']);
                 $csrf       = csrf_field();
@@ -227,6 +232,7 @@ class OperatorController extends BaseController
             }
 
             $rows[] = [
+                $chkHtml,
                 '#' . $item['id'],
                 '<span class="badge bg-light text-dark">' . esc($item['resource_type'] ?? '-') . '</span>',
                 '<strong>' . esc($item['requested_action'] ?? '-') . '</strong>',
@@ -241,6 +247,14 @@ class OperatorController extends BaseController
             'eyebrow'     => 'Antrean Persetujuan',
             'title'       => 'Antrean Approval',
             'description' => 'Persetujuan operasional sertifikat, verifikasi profil, dan perubahan hak akses.',
+            'bulkConfig'  => [
+                'url'        => route_to('workspace.operator.approvals.bulk'),
+                'entityName' => 'Pengajuan Approval',
+                'actions'    => [
+                    ['action' => 'approve', 'label' => 'Setujui Terpilih', 'class' => 'btn-success', 'icon' => 'fas fa-check-double'],
+                    ['action' => 'reject', 'label' => 'Tolak Terpilih', 'class' => 'btn-outline-danger', 'icon' => 'fas fa-times'],
+                ],
+            ],
             'cards'       => [
                 ['title' => 'Menunggu Approval', 'value' => sprintf('%02d', $pending), 'meta' => 'perlu tindakan'],
                 ['title' => 'Telah Disetujui', 'value' => sprintf('%02d', $approved), 'meta' => 'disetujui'],
@@ -248,7 +262,7 @@ class OperatorController extends BaseController
             ],
             'tableTitle'  => 'Daftar Pengajuan Approval Sistem',
             'table'       => [
-                'headers' => ['ID', 'Tipe Objek', 'Tindakan', 'Diajukan Oleh', 'Status', 'Waktu Pengajuan', 'Aksi'],
+                'headers' => ['<input type="checkbox" id="wsBulkSelectAll" class="form-check-input" title="Pilih Semua">', 'ID', 'Tipe Objek', 'Tindakan', 'Diajukan Oleh', 'Status', 'Waktu Pengajuan', 'Aksi'],
                 'rows'    => $rows,
             ],
             'items'       => [
@@ -258,6 +272,68 @@ class OperatorController extends BaseController
         ];
 
         return $this->renderOperasional('Antrean Approval', $sectionContent);
+    }
+
+    /**
+     * TINDAKAN MASSAL (BULK ACTION): APPROVAL
+     */
+    public function bulkApproval()
+    {
+        $actorId = $this->assertOperatorAccess();
+        $action  = (string) $this->request->getPost('bulk_action');
+        $rawIds  = (array) $this->request->getPost('selected_ids');
+        $notes   = trim((string) $this->request->getPost('notes')) ?: ($action === 'approve' ? 'Disetujui massal oleh Operator.' : 'Ditolak massal oleh Operator.');
+
+        $ids = array_filter(array_map('intval', $rawIds), static fn ($id) => $id > 0);
+        if ($ids === []) {
+            return redirect()->back()->with('error', 'Tidak ada data approval yang dipilih.');
+        }
+
+        if (! in_array($action, ['approve', 'reject'], true)) {
+            return redirect()->back()->with('error', 'Tindakan massal tidak valid.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $status = $action === 'approve' ? 'approved' : 'rejected';
+
+        $approvals = $this->db->table('approvals')->whereIn('id', $ids)->get()->getResultArray();
+        $successCount = 0;
+        $certCount = 0;
+
+        foreach ($approvals as $app) {
+            $appId = (int) $app['id'];
+            $updateData = [
+                'status'      => $status,
+                'reviewed_by' => $actorId,
+                'reviewed_at' => $now,
+                'updated_at'  => $now,
+            ];
+            if ($action === 'approve') {
+                $updateData['notes'] = $notes;
+            } else {
+                $updateData['reason'] = $notes;
+            }
+
+            $this->db->table('approvals')->where('id', $appId)->update($updateData);
+            $successCount++;
+
+            if ($action === 'approve' && ($app['resource_type'] ?? '') === 'certificate' && ($app['requested_action'] ?? '') === 'issue_certificate') {
+                try {
+                    $generator = new \App\Services\CertificateGenerator();
+                    $generator->generateFromApproval($appId, $actorId);
+                    $certCount++;
+                } catch (\Throwable $e) {
+                    log_message('error', 'Bulk approval certificate failed for ID ' . $appId . ': ' . $e->getMessage());
+                }
+            }
+        }
+
+        $msg = "Berhasil memproses {$successCount} pengajuan approval ({$status}).";
+        if ($certCount > 0) {
+            $msg .= " Serta berhasil menerbitkan {$certCount} sertifikat secara otomatis.";
+        }
+
+        return redirect()->back()->with('message', $msg);
     }
 
     public function approveApproval(string $id)
@@ -342,8 +418,13 @@ class OperatorController extends BaseController
                 default    => '<span class="badge bg-warning-subtle text-warning">Menunggu</span>',
             };
 
+            $isPending = ($item['status'] === 'pending');
+            $chkHtml = $isPending
+                ? '<input type="checkbox" name="selected_ids[]" value="' . $item['id'] . '" class="form-check-input ws-bulk-check">'
+                : '<span class="text-muted">&ndash;</span>';
+
             $actionBtn = '-';
-            if ($item['status'] === 'pending') {
+            if ($isPending) {
                 $approveUrl = route_to('workspace.operator.profile-verifications.approve', $item['id']);
                 $rejectUrl  = route_to('workspace.operator.profile-verifications.reject', $item['id']);
                 $csrf       = csrf_field();
@@ -354,6 +435,7 @@ class OperatorController extends BaseController
             }
 
             $rows[] = [
+                $chkHtml,
                 '#' . $item['id'],
                 '<strong>' . esc($item['name'] ?? '-') . '</strong><br><small class="text-muted">' . esc($item['email'] ?? '') . '</small>',
                 '<span class="badge bg-light text-dark">' . esc($item['verification_type'] ?? 'umum') . '</span>',
@@ -367,6 +449,14 @@ class OperatorController extends BaseController
             'eyebrow'     => 'Operasional Akses',
             'title'       => 'Verifikasi User',
             'description' => 'Daftar pengajuan verifikasi identitas dan kesiapan akun pengguna sistem.',
+            'bulkConfig'  => [
+                'url'        => route_to('workspace.operator.profile-verifications.bulk'),
+                'entityName' => 'Verifikasi Profil',
+                'actions'    => [
+                    ['action' => 'approve', 'label' => 'Setujui Terpilih', 'class' => 'btn-success', 'icon' => 'fas fa-check-double'],
+                    ['action' => 'reject', 'label' => 'Tolak Terpilih', 'class' => 'btn-outline-danger', 'icon' => 'fas fa-times'],
+                ],
+            ],
             'cards'       => [
                 ['title' => 'Menunggu Verifikasi', 'value' => sprintf('%02d', $pending), 'meta' => 'pengajuan aktif'],
                 ['title' => 'Telah Disetujui', 'value' => sprintf('%02d', $approved), 'meta' => 'terverifikasi'],
@@ -374,7 +464,7 @@ class OperatorController extends BaseController
             ],
             'tableTitle'  => 'Daftar Pengajuan Verifikasi Profil Pengguna',
             'table'       => [
-                'headers' => ['ID', 'Nama / Email', 'Tipe Verifikasi', 'Status', 'Tanggal Pengajuan', 'Aksi'],
+                'headers' => ['<input type="checkbox" id="wsBulkSelectAll" class="form-check-input" title="Pilih Semua">', 'ID', 'Nama / Email', 'Tipe Verifikasi', 'Status', 'Tanggal Pengajuan', 'Aksi'],
                 'rows'    => $rows,
             ],
             'items'       => [
@@ -383,6 +473,48 @@ class OperatorController extends BaseController
         ];
 
         return $this->renderOperasional('Verifikasi User', $sectionContent);
+    }
+
+    /**
+     * TINDAKAN MASSAL (BULK ACTION): VERIFIKASI PROFIL
+     */
+    public function bulkProfileVerification()
+    {
+        $actorId = $this->assertOperatorAccess();
+        $action  = (string) $this->request->getPost('bulk_action');
+        $rawIds  = (array) $this->request->getPost('selected_ids');
+        $notes   = trim((string) $this->request->getPost('notes')) ?: ($action === 'approve' ? 'Diverifikasi massal oleh Operator.' : 'Ditolak massal oleh Operator.');
+
+        $ids = array_filter(array_map('intval', $rawIds), static fn ($id) => $id > 0);
+        if ($ids === []) {
+            return redirect()->back()->with('error', 'Tidak ada verifikasi profil yang dipilih.');
+        }
+
+        if (! in_array($action, ['approve', 'reject'], true)) {
+            return redirect()->back()->with('error', 'Tindakan massal tidak valid.');
+        }
+
+        $service = new \App\Services\Admin\ProfileVerificationService();
+        $successCount = 0;
+
+        foreach ($ids as $vid) {
+            try {
+                if ($action === 'approve') {
+                    if ($service->approve($vid, $actorId, $notes)) {
+                        $successCount++;
+                    }
+                } else {
+                    if ($service->reject($vid, $notes, $actorId, $notes)) {
+                        $successCount++;
+                    }
+                }
+            } catch (\Throwable $e) {
+                log_message('error', "Bulk profile verification failed for ID {$vid}: " . $e->getMessage());
+            }
+        }
+
+        $statusLabel = ($action === 'approve' ? 'disetujui' : 'ditolak');
+        return redirect()->back()->with('message', "Berhasil memproses {$successCount} verifikasi profil ({$statusLabel}).");
     }
 
     public function approveVerification(string $id)
@@ -800,28 +932,115 @@ class OperatorController extends BaseController
         }
 
         $participants = $this->db->table('event_registrations er')
-            ->select('er.id, er.registered_at, er.status, u.name AS user_name, u.email AS user_email, a.status AS attendance_status')
+            ->select('er.id, er.registered_at, er.status, u.name AS user_name, u.email AS user_email, u.username, a.status AS attendance_status, a.recorded_at AS attendance_recorded_at,
+                      asn.institution_name AS asn_instansi, asn.position_name AS asn_jabatan, asn.employee_identifier AS asn_nip,
+                      prov.business_name AS prov_instansi, prov.registrant_position AS prov_jabatan,
+                      acad.institution_name AS acad_instansi, acad.role_name AS acad_jabatan,
+                      pub.organization_name AS pub_instansi')
             ->join('users u', 'u.id = er.user_id')
             ->join('attendances a', 'a.event_registration_id = er.id', 'left')
+            ->join('asn_profiles asn', 'asn.user_id = u.id', 'left')
+            ->join('provider_profiles prov', 'prov.user_id = u.id', 'left')
+            ->join('academic_profiles acad', 'acad.user_id = u.id', 'left')
+            ->join('public_profiles pub', 'pub.user_id = u.id', 'left')
             ->where('er.event_id', $eid)
             ->orderBy('er.registered_at', 'DESC')
             ->get()->getResultArray();
 
+        foreach ($participants as &$p) {
+            $p['institution'] = $p['asn_instansi'] ?: ($p['prov_instansi'] ?: ($p['acad_instansi'] ?: ($p['pub_instansi'] ?: '-')));
+            $p['position']    = $p['asn_jabatan'] ?: ($p['prov_jabatan'] ?: ($p['acad_jabatan'] ?: '-'));
+            $p['nip']         = $p['asn_nip'] ?: ($p['username'] ?: '-');
+        }
+        unset($p);
+
+        $totalRegistered = count($participants);
+        $presentCount    = count(array_filter($participants, static fn ($p): bool => ($p['attendance_status'] ?? '') === 'present'));
+        $excusedCount    = count(array_filter($participants, static fn ($p): bool => ($p['attendance_status'] ?? '') === 'excused'));
+        $absentCount     = count(array_filter($participants, static fn ($p): bool => ($p['attendance_status'] ?? '') === 'absent'));
+        $unrecordedCount = count(array_filter($participants, static fn ($p): bool => empty($p['attendance_status'])));
+        $attendanceRate  = $totalRegistered > 0 ? round(($presentCount / $totalRegistered) * 100, 1) : 0.0;
+
+        $metrics = [
+            'total'           => $totalRegistered,
+            'present'         => $presentCount,
+            'excused'         => $excusedCount,
+            'absent'          => $absentCount,
+            'unrecorded'      => $unrecordedCount,
+            'attendance_rate' => $attendanceRate,
+            'quota'           => (int) ($event['quota'] ?? 0),
+        ];
+
         $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Operator');
 
         return view('main/workspace/pages/operator/event_participants', [
-            'title'          => 'Peserta Event: ' . esc($event['title']) . ' | Operator BegawiPengadaan',
-            'pageTitle'      => 'Peserta Event',
-            'breadcrumbTail' => [
+            'title'             => 'Peserta Event: ' . esc($event['title']) . ' | Operator BegawiPengadaan',
+            'pageTitle'         => 'Peserta Event',
+            'breadcrumbTail'    => [
                 ['label' => 'Operasional Event', 'url' => route_to('workspace.operator.events')],
                 ['label' => esc($event['title'])],
             ],
-            'userName'       => $userName,
-            'roles'          => ['operator'],
-            'primaryRole'    => 'operator',
-            'roleLabel'      => 'Operator',
-            'event'          => $event,
-            'participants'   => $participants,
+            'userName'          => $userName,
+            'roles'             => ['operator'],
+            'primaryRole'       => 'operator',
+            'roleLabel'         => 'Operator',
+            'event'             => $event,
+            'participants'      => $participants,
+            'attendanceMetrics' => $metrics,
+        ]);
+    }
+
+    /**
+     * CETAK DAFTAR HADIR RESMI ACARA (OFFICIAL ROSTER)
+     * Format lampiran dinas resmi Biro PBJ Pemprov Lampung.
+     */
+    public function printEventRoster(string $eventId)
+    {
+        $this->assertOperatorAccess();
+        $eid = (int) $eventId;
+
+        $event = $this->db->table('events')->where('id', $eid)->get()->getRowArray();
+        if (! $event) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
+        }
+
+        $participants = $this->db->table('event_registrations er')
+            ->select('er.id, er.registered_at, er.status, u.name AS user_name, u.email AS user_email, u.username, a.status AS attendance_status, a.recorded_at,
+                      asn.institution_name AS asn_instansi, asn.position_name AS asn_jabatan, asn.employee_identifier AS asn_nip,
+                      prov.business_name AS prov_instansi, prov.registrant_position AS prov_jabatan,
+                      acad.institution_name AS acad_instansi, acad.role_name AS acad_jabatan,
+                      pub.organization_name AS pub_instansi')
+            ->join('users u', 'u.id = er.user_id')
+            ->join('attendances a', 'a.event_registration_id = er.id', 'left')
+            ->join('asn_profiles asn', 'asn.user_id = u.id', 'left')
+            ->join('provider_profiles prov', 'prov.user_id = u.id', 'left')
+            ->join('academic_profiles acad', 'acad.user_id = u.id', 'left')
+            ->join('public_profiles pub', 'pub.user_id = u.id', 'left')
+            ->where('er.event_id', $eid)
+            ->orderBy('u.name', 'ASC')
+            ->get()->getResultArray();
+
+        foreach ($participants as &$p) {
+            $p['institution'] = $p['asn_instansi'] ?: ($p['prov_instansi'] ?: ($p['acad_instansi'] ?: ($p['pub_instansi'] ?: '-')));
+            $p['position']    = $p['asn_jabatan'] ?: ($p['prov_jabatan'] ?: ($p['acad_jabatan'] ?: '-'));
+            $p['nip']         = $p['asn_nip'] ?: ($p['username'] ?: '-');
+        }
+        unset($p);
+
+        $presentCount    = count(array_filter($participants, static fn ($p): bool => ($p['attendance_status'] ?? '') === 'present'));
+        $totalRegistered = count($participants);
+        $attendanceRate  = $totalRegistered > 0 ? round(($presentCount / $totalRegistered) * 100, 1) : 0.0;
+
+        return view('main/workspace/pages/operator/roster_daftar_hadir', [
+            'event'           => $event,
+            'participants'    => $participants,
+            'stats'           => [
+                'total'           => $totalRegistered,
+                'present'         => $presentCount,
+                'attendance_rate' => $attendanceRate,
+                'quota'           => (int) ($event['quota'] ?? 0),
+            ],
+            'operatorName'    => (string) (session()->get('name') ?: session()->get('username') ?: 'Operator PBJ'),
         ]);
     }
 
@@ -1047,9 +1266,46 @@ class OperatorController extends BaseController
         $actorId = $this->assertOperatorAccess();
         $eid     = (int) $enrollmentId;
 
+        $certNumber = $this->issueSingleCertificate($eid, $actorId);
+        if (! $certNumber) {
+            return redirect()->back()->with('error', 'Enrollment peserta tidak ditemukan.');
+        }
+
+        return redirect()->back()->with('message', 'Sertifikat #' . $certNumber . ' berhasil diterbitkan dan status kelulusan peserta telah diverifikasi.');
+    }
+
+    /**
+     * TINDAKAN MASSAL (BULK ACTION): PENERBITAN SERTIFIKAT
+     */
+    public function bulkIssueCertificates()
+    {
+        $actorId = $this->assertOperatorAccess();
+        $rawIds  = (array) $this->request->getPost('enrollment_ids');
+
+        $ids = array_filter(array_map('intval', $rawIds), static fn ($id) => $id > 0);
+        if ($ids === []) {
+            return redirect()->back()->with('error', 'Tidak ada peserta yang dipilih untuk penerbitan sertifikat.');
+        }
+
+        $successCount = 0;
+        foreach ($ids as $eid) {
+            $certNum = $this->issueSingleCertificate($eid, $actorId);
+            if ($certNum !== null) {
+                $successCount++;
+            }
+        }
+
+        return redirect()->back()->with('message', "Berhasil menerbitkan {$successCount} sertifikat kelulusan secara massal.");
+    }
+
+    /**
+     * HELPER LOGIKA PENERBITAN SERTIFIKAT TUNGGAL
+     */
+    private function issueSingleCertificate(int $eid, int $actorId): ?string
+    {
         $enrollment = $this->db->table('enrollments')->where('id', $eid)->get()->getRowArray();
         if (! $enrollment) {
-            return redirect()->back()->with('error', 'Enrollment peserta tidak ditemukan.');
+            return null;
         }
 
         $existing = $this->db->table('certificates')
@@ -1098,7 +1354,7 @@ class OperatorController extends BaseController
 
         $this->logAudit($actorId, 'certificate.operator_issue', 'certificate', $eid, ['enrollment_id' => $eid, 'certificate_number' => $certNumber]);
 
-        return redirect()->back()->with('message', 'Sertifikat #' . $certNumber . ' berhasil diterbitkan dan status kelulusan peserta telah diverifikasi.');
+        return $certNumber;
     }
 
     public function revokeCertificate(string $certificateId)

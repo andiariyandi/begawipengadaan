@@ -263,12 +263,13 @@ $coverImgUrl      = ! empty($regulation['cover_file_id']) ? base_url('file/' . (
                         <!-- Upload Version Form -->
                         <div class="p-20 radius-8 border bg-neutral-50">
                             <h6 class="text-sm fw-semibold mb-12 text-primary-light">Unggah Versi Baru Dokumen</h6>
-                            <form action="<?= site_url('dashboard/regulasi/dokumen/' . (int) $regulation['id'] . '/versi') ?>" method="post" enctype="multipart/form-data">
+                            <form id="uploadVersionForm" action="<?= site_url('dashboard/regulasi/dokumen/' . (int) $regulation['id'] . '/versi') ?>" method="post" enctype="multipart/form-data">
                                 <?= csrf_field() ?>
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label text-xs fw-medium mb-1">File Dokumen (PDF/DOC, Maks 20 MB)</label>
-                                        <input type="file" class="form-control radius-8 form-control-sm" name="file" required accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                                        <input type="file" id="versionFileInput" class="form-control radius-8 form-control-sm" name="file" required accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="validateVersionFileSize(this, 20)">
+                                        <span id="versionFileFeedback" class="text-2xs text-secondary-light mt-1 d-block">Format PDF/DOC/DOCX. Maksimal 20 MB.</span>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label text-xs fw-medium mb-1">Catatan Perubahan Versi (Changelog)</label>
@@ -479,5 +480,46 @@ $coverImgUrl      = ! empty($regulation['cover_file_id']) ? base_url('file/' . (
         </div>
     </div>
 </div>
+
+<script>
+function validateVersionFileSize(input, maxMb) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const maxBytes = maxMb * 1024 * 1024;
+        const feedback = document.getElementById('versionFileFeedback');
+        if (file.size > maxBytes) {
+            const actualMb = (file.size / (1024 * 1024)).toFixed(2);
+            alert(`Peringatan: Ukuran berkas "${file.name}" (${actualMb} MB) melebihi batas maksimal ${maxMb} MB.\n\nSilakan kompres berkas atau pilih naskah di bawah ${maxMb} MB.`);
+            input.value = '';
+            if (feedback) {
+                feedback.className = 'text-2xs text-danger fw-bold mt-1 d-block';
+                feedback.innerHTML = `<iconify-icon icon="solar:danger-circle-bold" class="align-middle me-1"></iconify-icon> Berkas "${file.name}" (${actualMb} MB) ditolak karena melebihi ${maxMb} MB.`;
+            }
+            return false;
+        } else {
+            if (feedback) {
+                feedback.className = 'text-2xs text-success fw-semibold mt-1 d-block';
+                feedback.innerHTML = `<iconify-icon icon="solar:check-circle-bold" class="align-middle me-1"></iconify-icon> Berkas siap: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+            }
+        }
+    }
+    return true;
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const versionForm = document.getElementById('uploadVersionForm');
+    if (versionForm) {
+        versionForm.addEventListener('submit', function (e) {
+            const input = document.getElementById('versionFileInput');
+            if (input && input.files && input.files[0]) {
+                if (!validateVersionFileSize(input, 20)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+    }
+});
+</script>
 
 <?= $this->endSection() ?>

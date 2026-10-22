@@ -90,61 +90,143 @@ $reqStatus = $request['status'] ?? 'submitted';
             </div>
         </div>
 
-        <!-- Comparison Table Card -->
+        <!-- Comparison Table Card (Visual Side-by-Side Diff Viewer) -->
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                <h5 class="fw-bold mb-0" style="color: #082f5c;">
-                    <i class="fas fa-exchange-alt text-primary me-2"></i> Perbandingan Data Profil (Lama vs Baru)
-                </h5>
-                <span class="badge bg-light text-dark border text-xs">Kuning: Data Berubah</span>
+            <?php
+            $allKeys = array_unique(array_merge(array_keys($current), array_keys($payload)));
+            $skipKeys = ['id', 'user_id', 'created_at', 'updated_at', 'deleted_at', 'password_hash', 'session_version', 'status_reason', 'last_login_at', 'email_verified_at'];
+            $diffList = [];
+            $changedCount = 0;
+
+            foreach ($allKeys as $key) {
+                if (in_array($key, $skipKeys, true)) continue;
+                $oldVal = $current[$key] ?? null;
+                $newVal = $payload[$key] ?? null;
+                if (is_array($oldVal)) { $oldVal = implode(', ', $oldVal); }
+                if (is_array($newVal)) { $newVal = implode(', ', $newVal); }
+                $isChanged = array_key_exists($key, $payload) && ((string) ($oldVal ?? '') !== (string) ($newVal ?? ''));
+                if ($isChanged) {
+                    $changedCount++;
+                }
+                $diffList[] = [
+                    'key'       => $key,
+                    'old'       => $oldVal,
+                    'new'       => $newVal,
+                    'isChanged' => $isChanged,
+                ];
+            }
+            ?>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 pb-3 border-bottom">
+                <div>
+                    <h5 class="fw-bold mb-1" style="color: #082f5c;">
+                        <i class="fas fa-exchange-alt text-primary me-2"></i> Visual Side-by-Side Diff Viewer
+                    </h5>
+                    <p class="text-muted small mb-0">
+                        Membandingkan data profil saat ini dengan usulan perubahan identitas yang diajukan pemohon.
+                    </p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-1 small fw-semibold">
+                        <i class="fas fa-edit me-1"></i><?= $changedCount ?> Field Berubah
+                    </span>
+                    <div class="btn-group btn-group-sm rounded-pill p-1 bg-light border" role="group">
+                        <button type="button" class="btn btn-sm btn-white rounded-pill px-3 fw-semibold active shadow-xs ws-diff-filter-btn" data-filter="all">
+                            Semua (<?= count($diffList) ?>)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-transparent rounded-pill px-3 fw-semibold ws-diff-filter-btn" data-filter="changed">
+                            Berubah Saja (<?= $changedCount ?>)
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" id="wsDiffTable">
                     <thead class="table-light">
                         <tr>
-                            <th class="small text-uppercase text-muted" style="width: 28%;">Field / Data</th>
-                            <th class="small text-uppercase text-muted" style="width: 36%;">Data Saat Ini (Lama)</th>
-                            <th class="small text-uppercase text-muted" style="width: 36%;">Data Diajukan (Baru)</th>
+                            <th class="small text-uppercase text-muted" style="width: 25%;">Atribut Data</th>
+                            <th class="small text-uppercase text-danger" style="width: 37%;">
+                                <i class="fas fa-minus-circle me-1"></i> Data Saat Ini (Lama)
+                            </th>
+                            <th class="small text-uppercase text-success" style="width: 38%;">
+                                <i class="fas fa-check-circle me-1"></i> Usulan Data Baru (Diajukan)
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php
-                        $allKeys = array_unique(array_merge(array_keys($current), array_keys($payload)));
-                        $skipKeys = ['id', 'user_id', 'created_at', 'updated_at', 'deleted_at', 'password_hash', 'session_version', 'status_reason', 'last_login_at', 'email_verified_at'];
-                        $rowsCount = 0;
-                        ?>
-                        <?php foreach ($allKeys as $key): ?>
-                            <?php if (in_array($key, $skipKeys, true)) continue; ?>
-                            <?php
-                            $oldVal = $current[$key] ?? null;
-                            $newVal = $payload[$key] ?? null;
-                            if (is_array($oldVal)) { $oldVal = implode(', ', $oldVal); }
-                            if (is_array($newVal)) { $newVal = implode(', ', $newVal); }
-                            $changed = array_key_exists($key, $payload) && ((string) ($oldVal ?? '') !== (string) ($newVal ?? ''));
-                            ?>
-                            <tr class="<?= $changed ? 'table-warning' : '' ?>">
-                                <td class="fw-semibold small text-dark">
-                                    <?= esc(ucwords(str_replace('_', ' ', $key))) ?>
-                                    <?php if ($changed): ?>
-                                        <span class="badge bg-warning text-dark text-2xs ms-1">Diubah</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="small text-muted"><?= esc((string) ($oldVal ?? '-') ?: '-') ?></td>
-                                <td class="small <?= $changed ? 'fw-bold text-dark' : 'text-muted' ?>">
-                                    <?= esc((string) ($newVal ?? ($changed ? '-' : ($oldVal ?? '-'))) ?: '-') ?>
-                                </td>
-                            </tr>
-                            <?php $rowsCount++; ?>
-                        <?php endforeach; ?>
-                        <?php if ($rowsCount === 0): ?>
+                        <?php if (empty($diffList)): ?>
                             <tr>
                                 <td colspan="3" class="text-center py-4 text-muted small">Tidak ada data perubahan yang ditemukan.</td>
                             </tr>
+                        <?php else: ?>
+                            <?php foreach ($diffList as $item): ?>
+                                <tr class="ws-diff-row <?= $item['isChanged'] ? 'ws-diff-changed table-warning' : 'ws-diff-unchanged' ?>" data-changed="<?= $item['isChanged'] ? '1' : '0' ?>">
+                                    <td class="fw-semibold small text-navy align-top pt-3">
+                                        <?= esc(ucwords(str_replace('_', ' ', $item['key']))) ?>
+                                        <?php if ($item['isChanged']): ?>
+                                            <span class="badge bg-warning text-dark rounded-pill px-2 py-0-5 text-2xs d-block mt-1" style="width: fit-content;">
+                                                <i class="fas fa-pen me-1"></i>Berubah
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="text-muted text-2xs d-block mt-1">Sama</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="small align-top pt-3">
+                                        <?php if ($item['isChanged']): ?>
+                                            <div class="p-2-5 rounded-3 bg-danger-subtle text-danger border border-danger-subtle">
+                                                <del class="d-block text-break">
+                                                    <?= esc((string) ($item['old'] ?? '-') ?: '-') ?>
+                                                </del>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="text-muted text-break"><?= esc((string) ($item['old'] ?? '-') ?: '-') ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="small align-top pt-3">
+                                        <?php if ($item['isChanged']): ?>
+                                            <div class="p-2-5 rounded-3 bg-success-subtle text-success border border-success-subtle fw-bold">
+                                                <ins class="text-decoration-none d-block text-break">
+                                                    <i class="fas fa-arrow-right me-1 text-primary"></i><?= esc((string) ($item['new'] ?? '-') ?: '-') ?>
+                                                </ins>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="text-muted text-break"><?= esc((string) ($item['new'] ?? ($item['old'] ?? '-')) ?: '-') ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const filterBtns = document.querySelectorAll('.ws-diff-filter-btn');
+                const rows = document.querySelectorAll('.ws-diff-row');
+
+                filterBtns.forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        filterBtns.forEach(function(b) {
+                            b.classList.remove('active', 'btn-white', 'shadow-xs');
+                            b.classList.add('btn-transparent');
+                        });
+                        this.classList.add('active', 'btn-white', 'shadow-xs');
+                        this.classList.remove('btn-transparent');
+
+                        const filter = this.getAttribute('data-filter');
+                        rows.forEach(function(r) {
+                            const isChg = r.getAttribute('data-changed') === '1';
+                            if (filter === 'changed' && !isChg) {
+                                r.style.display = 'none';
+                            } else {
+                                r.style.display = '';
+                            }
+                        });
+                    });
+                });
+            });
+            </script>
         </div>
 
         <!-- Workflow Transitions History -->

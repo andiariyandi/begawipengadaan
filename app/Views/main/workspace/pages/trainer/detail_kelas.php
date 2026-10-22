@@ -193,6 +193,12 @@ $levelLabel = static function (?string $lvl): string {
                         <i class="fas fa-chart-line me-1"></i> Progress
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-4 fw-semibold <?= $activeTab === 'gradebook' ? 'active bg-primary text-white shadow-sm' : 'text-navy bg-white border' ?>" href="?tab=gradebook">
+                        <i class="fas fa-graduation-cap me-1"></i> Buku Nilai (Gradebook)
+                        <span class="badge <?= $activeTab === 'gradebook' ? 'bg-white text-primary' : 'bg-primary-subtle text-primary' ?> rounded-pill ms-1"><?= count($gradebook['rows'] ?? []) ?></span>
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
@@ -1026,6 +1032,304 @@ $levelLabel = static function (?string $lvl): string {
                     </tbody>
                 </table>
             </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- TAB 7: BUKU NILAI KELAS (GRADEBOOK MATRIX) -->
+    <?php if ($activeTab === 'gradebook'): ?>
+        <?php
+        $gb = $gradebook ?? [];
+        $gbRows = $gb['rows'] ?? [];
+        $gbStats = $gb['stats'] ?? [];
+        $formativeQuizzes = $gb['formativeQuizzes'] ?? [];
+        $assignmentsList = $gb['assignments'] ?? [];
+        $passingGrade = (float) ($gbStats['passing_grade'] ?? 70.0);
+        ?>
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+            <!-- Header Tab & Action Bar -->
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 pb-3 border-bottom mb-4">
+                <div>
+                    <h2 class="h5 fw-bold text-navy mb-1">
+                        <i class="fas fa-graduation-cap text-primary me-2"></i>Buku Nilai & Rekapitulasi Kelulusan Kelas
+                    </h2>
+                    <p class="text-muted small mb-0">
+                        Matriks evaluasi terpadu nilai pre-test, kuis modul, tugas praktik, post-test, skor terbobot, dan predikat resmi.
+                    </p>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <a href="<?= route_to('workspace.trainer.class.gradebook.export', (string) $classId) ?>" class="btn btn-success rounded-pill px-3 shadow-sm fw-semibold">
+                        <i class="fas fa-file-csv me-1"></i> Unduh Rekap (CSV)
+                    </a>
+                    <button type="button" onclick="window.print()" class="btn btn-outline-secondary rounded-pill px-3">
+                        <i class="fas fa-print me-1"></i> Cetak Lembar Nilai
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI Metrik Buku Nilai -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="card border-0 rounded-4 p-3 bg-light-subtle border h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-3 p-2 bg-primary-subtle text-primary fs-5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Total Peserta</small>
+                                <strong class="h5 fw-bold text-navy mb-0"><?= (int) ($gbStats['total'] ?? 0) ?> Peserta</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="card border-0 rounded-4 p-3 bg-light-subtle border h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-3 p-2 bg-success-subtle text-success fs-5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Tingkat Kelulusan</small>
+                                <strong class="h5 fw-bold text-success mb-0"><?= (float) ($gbStats['pass_rate'] ?? 0) ?>%</strong>
+                                <small class="text-muted" style="font-size: 0.7rem;">(<?= (int) ($gbStats['passed_count'] ?? 0) ?> Lulus)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="card border-0 rounded-4 p-3 bg-light-subtle border h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-3 p-2 bg-info-subtle text-info fs-5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Rata-rata Kelas</small>
+                                <strong class="h5 fw-bold text-navy mb-0"><?= number_format((float) ($gbStats['avg'] ?? 0), 1) ?></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="card border-0 rounded-4 p-3 bg-light-subtle border h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-3 p-2 bg-warning-subtle text-warning fs-5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Nilai Tertinggi</small>
+                                <strong class="h5 fw-bold text-navy mb-0"><?= number_format((float) ($gbStats['max'] ?? 0), 1) ?></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="card border-0 rounded-4 p-3 bg-light-subtle border h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-3 p-2 bg-secondary-subtle text-secondary fs-5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Passing Grade</small>
+                                <strong class="h5 fw-bold text-navy mb-0"><?= number_format($passingGrade, 1) ?></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter & Instant Search Tool -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div class="position-relative flex-grow-1" style="max-width: 400px;">
+                    <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" id="wsGradebookSearch" class="form-control rounded-pill ps-5 py-2 small" placeholder="Cari nama atau NIP peserta...">
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <label class="small text-muted mb-0 me-1">Status:</label>
+                    <select id="wsGradebookStatusFilter" class="form-select form-select-sm rounded-pill px-3" style="width: auto;">
+                        <option value="all">Semua Status (<?= count($gbRows) ?>)</option>
+                        <option value="passed">Lulus Saja (<?= (int) ($gbStats['passed_count'] ?? 0) ?>)</option>
+                        <option value="failed">Belum Memenuhi (<?= count($gbRows) - (int) ($gbStats['passed_count'] ?? 0) ?>)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Matrix Gradebook Table -->
+            <?php if (empty($gbRows)): ?>
+                <div class="text-center py-5 border rounded-4 bg-light">
+                    <i class="fas fa-user-graduate fa-3x text-muted mb-3 opacity-25"></i>
+                    <h3 class="h6 fw-bold text-navy mb-1">Belum Ada Peserta Terdaftar</h3>
+                    <p class="text-muted small mb-0">Peserta yang mendaftar dan aktif di kelas ini akan otomatis tercatat di lembar buku nilai.</p>
+                </div>
+            <?php else: ?>
+                <div class="table-responsive border rounded-3 overflow-hidden">
+                    <table class="table table-hover align-middle mb-0" id="wsGradebookTable" style="font-size: 0.82rem;">
+                        <thead class="table-light text-navy text-nowrap">
+                            <tr>
+                                <th style="width: 40px;" class="text-center">#</th>
+                                <th style="min-width: 180px;">Peserta</th>
+                                <th style="min-width: 100px;">Progres</th>
+                                <th class="text-center" style="min-width: 75px;">Pre-Test</th>
+                                <?php foreach ($formativeQuizzes as $idx => $fq): ?>
+                                    <th class="text-center" style="min-width: 70px;" title="<?= esc($fq['title'] ?? 'Kuis') ?>">
+                                        <span class="d-inline-block text-truncate" style="max-width: 80px;">
+                                            Q<?= $idx + 1 ?>
+                                        </span>
+                                    </th>
+                                <?php endforeach; ?>
+                                <?php foreach ($assignmentsList as $idx => $asg): ?>
+                                    <th class="text-center" style="min-width: 70px;" title="<?= esc($asg['title'] ?? 'Tugas') ?>">
+                                        <span class="d-inline-block text-truncate" style="max-width: 80px;">
+                                            T<?= $idx + 1 ?>
+                                        </span>
+                                    </th>
+                                <?php endforeach; ?>
+                                <th class="text-center" style="min-width: 75px;">Post-Test</th>
+                                <th class="text-center" style="min-width: 80px;">Nilai Akhir</th>
+                                <th class="text-center" style="min-width: 65px;">Grade</th>
+                                <th class="text-center" style="min-width: 110px;">Status</th>
+                                <th class="text-end" style="min-width: 110px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($gbRows as $idx => $r): ?>
+                                <?php
+                                $finalSc = (float) $r['final_score'];
+                                $isPassed = (bool) $r['is_passed'];
+                                $rowStatusAttr = $isPassed ? 'passed' : 'failed';
+                                $searchText = strtolower(($r['name'] ?? '') . ' ' . ($r['email'] ?? '') . ' ' . ($r['username'] ?? ''));
+                                ?>
+                                <tr class="ws-gb-row" data-search="<?= esc($searchText) ?>" data-status="<?= $rowStatusAttr ?>">
+                                    <td class="text-center text-muted"><?= $idx + 1 ?></td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="avatar-circle bg-primary-subtle text-primary fw-bold" style="width: 32px; height: 32px; font-size: 11px;">
+                                                <?= strtoupper(substr($r['name'] ?? 'U', 0, 1)) ?>
+                                            </div>
+                                            <div>
+                                                <strong class="text-navy d-block text-truncate" style="max-width: 170px;"><?= esc($r['name']) ?></strong>
+                                                <small class="text-muted d-block text-truncate" style="max-width: 170px; font-size: 0.72rem;"><?= esc($r['email']) ?></small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1 rounded-pill" style="height: 5px;">
+                                                <div class="progress-bar <?= $r['progress_percent'] >= 100 ? 'bg-success' : 'bg-primary' ?> rounded-pill" style="width: <?= $r['progress_percent'] ?>%"></div>
+                                            </div>
+                                            <span class="small fw-semibold text-muted" style="font-size: 0.72rem;"><?= $r['progress_percent'] ?>%</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($r['pre_score'] !== null): ?>
+                                            <span class="badge bg-light text-navy border px-2 py-1"><?= number_format((float) $r['pre_score'], 1) ?></span>
+                                        <?php else: ?>
+                                            <span class="text-muted">&ndash;</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <?php foreach ($formativeQuizzes as $fq): ?>
+                                        <?php $sc = $r['quiz_details'][(int) $fq['id']] ?? null; ?>
+                                        <td class="text-center">
+                                            <?php if ($sc !== null): ?>
+                                                <span class="badge <?= $sc >= $passingGrade ? 'bg-success-subtle text-success' : 'bg-light text-navy border' ?> px-2 py-1">
+                                                    <?= number_format((float) $sc, 1) ?>
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="text-muted">&ndash;</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    <?php endforeach; ?>
+                                    <?php foreach ($assignmentsList as $asg): ?>
+                                        <?php $sub = $r['asg_details'][(int) $asg['id']] ?? null; ?>
+                                        <td class="text-center">
+                                            <?php if ($sub !== null && $sub['score'] !== null): ?>
+                                                <span class="badge <?= $sub['score'] >= $passingGrade ? 'bg-success-subtle text-success' : 'bg-light text-navy border' ?> px-2 py-1">
+                                                    <?= number_format((float) $sub['score'], 1) ?>
+                                                </span>
+                                            <?php elseif ($sub !== null): ?>
+                                                <span class="badge bg-warning-subtle text-warning px-2 py-1" title="Menunggu Penilaian">In Review</span>
+                                            <?php else: ?>
+                                                <span class="text-muted">&ndash;</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    <?php endforeach; ?>
+                                    <td class="text-center">
+                                        <?php if ($r['post_score'] !== null): ?>
+                                            <span class="badge <?= $r['post_score'] >= $passingGrade ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger' ?> px-2 py-1 fw-bold">
+                                                <?= number_format((float) $r['post_score'], 1) ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="text-muted">&ndash;</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong class="h6 mb-0 <?= $isPassed ? 'text-success fw-bold' : 'text-danger fw-bold' ?>">
+                                            <?= number_format($finalSc, 1) ?>
+                                        </strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-navy text-white rounded-pill px-2 py-1" title="<?= esc($r['predicate']) ?>">
+                                            <?= esc($r['grade_letter']) ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($isPassed): ?>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 fw-semibold">
+                                                <i class="fas fa-check-circle me-1"></i>Lulus
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1">
+                                                <i class="fas fa-hourglass-half me-1"></i>Belum Lulus
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <a href="<?= route_to('workspace.participant.transcript', (string) $classId, (string) $r['enrollment_id']) ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" title="Lihat Rapor / Transkrip Resmi">
+                                            <i class="fas fa-file-alt"></i> Transkrip
+                                        </a>
+                                        <a href="<?= route_to('workspace.trainer.participant.detail', (string) $classId, (string) $r['enrollment_id']) ?>" class="btn btn-sm btn-light text-navy border rounded-pill px-2 py-1 ms-1" title="Detail Riwayat Belajar">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Client-Side Gradebook Filter Script -->
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const searchInput = document.getElementById('wsGradebookSearch');
+                    const statusFilter = document.getElementById('wsGradebookStatusFilter');
+                    const rows = document.querySelectorAll('.ws-gb-row');
+
+                    function filterGradebook() {
+                        const q = (searchInput ? searchInput.value : '').toLowerCase().trim();
+                        const st = (statusFilter ? statusFilter.value : 'all');
+
+                        rows.forEach(function(row) {
+                            const rowSearch = row.getAttribute('data-search') || '';
+                            const rowStatus = row.getAttribute('data-status') || '';
+
+                            const matchSearch = (q === '' || rowSearch.includes(q));
+                            const matchStatus = (st === 'all' || rowStatus === st);
+
+                            if (matchSearch && matchStatus) {
+                                row.style.display = '';
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        });
+                    }
+
+                    if (searchInput) searchInput.addEventListener('input', filterGradebook);
+                    if (statusFilter) statusFilter.addEventListener('change', filterGradebook);
+                });
+                </script>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 </div>

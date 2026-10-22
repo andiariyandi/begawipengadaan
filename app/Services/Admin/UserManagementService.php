@@ -53,17 +53,53 @@ class UserManagementService
 
         if (! empty($data['password_hash'])) {
             $account['password_hash'] = (string) $data['password_hash'];
+        } elseif (! empty($data['password'])) {
+            $account['password_hash'] = password_hash((string) $data['password'], PASSWORD_DEFAULT);
+        }
+
+        $fromStatus = null;
+        if ($userId !== null) {
+            $current = $this->users->find($userId);
+            if ($current) {
+                $fromStatus = (string) ($current['account_status'] ?? 'draft');
+            }
         }
 
         if ($userId === null) {
             $userId = (int) $this->users->insert($account, true);
+            if ($userId <= 0) {
+                $errs = $this->users->errors();
+                throw new \RuntimeException($errs ? implode(', ', $errs) : 'Gagal membuat pengguna baru.');
+            }
         } else {
-            $this->users->update($userId, $account);
+            $account['id'] = $userId;
+            $ok = $this->users->update($userId, $account);
+            if ($ok === false) {
+                $errs = $this->users->errors();
+                throw new \RuntimeException($errs ? implode(', ', $errs) : 'Gagal memperbarui data pengguna.');
+            }
+            if ($fromStatus !== null && $fromStatus !== $account['account_status']) {
+                $this->recordTransition('user', $userId, $fromStatus, $account['account_status'], 'admin.user_update', $actorId);
+            }
         }
 
-        // Role assignment (single-role for admin-side create; multi-role supported via direct DB).
-        if (! empty($data['role_id'])) {
-            $this->assignRole((int) $userId, (int) $data['role_id'], $actorId);
+        // Role assignment (single-role for admin-side form; multi-role supported via direct DB).
+        if (isset($data['role_id'])) {
+            $roleId = (int) $data['role_id'];
+            if ($roleId > 0) {
+                $this->assignRole((int) $userId, $roleId, $actorId, true);
+            } elseif ($userId !== null && $data['role_id'] === '') {
+                // Admin memilih tanpa role spesifik -> nonaktifkan role lama
+                $this->userRoles
+                    ->where('user_id', $userId)
+                    ->set([
+                        'status'     => 'revoked',
+                        'revoked_by' => $actorId,
+                        'revoked_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ])
+                    ->update();
+            }
         }
 
         $this->audit->log(
@@ -77,8 +113,21 @@ class UserManagementService
         return (int) $userId;
     }
 
-    public function assignRole(int $userId, int $roleId, ?int $actorId = null): void
+    public function assignRole(int $userId, int $roleId, ?int $actorId = null, bool $replaceExisting = false): void
     {
+        if ($replaceExisting) {
+            $this->userRoles
+                ->where('user_id', $userId)
+                ->where('role_id !=', $roleId)
+                ->set([
+                    'status'     => 'revoked',
+                    'revoked_by' => $actorId,
+                    'revoked_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ])
+                ->update();
+        }
+
         $existing = $this->userRoles
             ->where('user_id', $userId)
             ->where('role_id', $roleId)
@@ -89,6 +138,7 @@ class UserManagementService
                 'status'     => 'active',
                 'revoked_by' => null,
                 'revoked_at' => null,
+                'updated_at' => date('Y-m-d H:i:s'),
             ]);
             return;
         }

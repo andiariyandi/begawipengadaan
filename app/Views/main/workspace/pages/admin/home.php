@@ -152,7 +152,232 @@
         </div>
     </div>
 
-    <!-- 3. PINTASAN AKSES CEPAT EKSEKUTIF (FiStudy Action Cards) -->
+    <!-- 3. EXECUTIVE HEALTH RADAR (4 DOMAIN PBJ) -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-primary-subtle text-primary fw-bold px-2.5 py-1 rounded-pill small">
+                        <i class="fas fa-heartbeat me-1"></i> Health Radar
+                    </span>
+                    <h2 class="h5 fw-bold text-navy mb-0">Executive Health Radar (4 Domain PBJ)</h2>
+                </div>
+                <small class="text-muted">Diagnostik kesehatan kelulusan peserta, efektivitas evaluasi trainer, kecepatan penerbitan sertifikat, dan indeks presensi acara</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill small fw-semibold">
+                    <i class="fas fa-check-circle me-1"></i> Sistem Berjalan Sehat
+                </span>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <!-- Radar 1: Kelulusan Akademik -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="ws-radar-card h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="ws-radar-avatar" style="background: #eff6ff; color: #2563eb;">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <span class="badge <?= esc($healthRadar['completion']['badge'] ?? 'bg-primary text-white') ?> rounded-pill small px-2 py-1">
+                                <i class="<?= esc($healthRadar['completion']['icon'] ?? 'fas fa-info-circle') ?> me-1"></i><?= esc($healthRadar['completion']['status'] ?? 'Normal') ?>
+                            </span>
+                        </div>
+                        <span class="text-muted small fw-semibold d-block" style="font-size: 0.78rem;">Kelulusan Akademik</span>
+                        <div class="h3 fw-bold text-navy mb-0"><?= number_format((float) ($healthRadar['completion']['rate'] ?? 0), 1) ?><span class="fs-6 fw-normal text-muted ms-1">%</span></div>
+                        <div class="ws-radar-meter">
+                            <div class="ws-radar-meter-fill bg-primary" style="width: <?= min(100, max(5, (float) ($healthRadar['completion']['rate'] ?? 0))) ?>%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="small text-muted mb-1" style="font-size: 0.72rem; line-height: 1.3; min-height: 28px;">
+                            <?= esc($healthRadar['completion']['note'] ?? '') ?>
+                        </p>
+                        <div class="pt-2 border-top d-flex justify-content-between text-muted small" style="font-size: 0.7rem;">
+                            <span>Peserta Lulus:</span>
+                            <strong class="text-navy"><?= number_format((int) ($healthRadar['completion']['completed'] ?? 0)) ?> / <?= number_format((int) ($healthRadar['completion']['total'] ?? 0)) ?></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Radar 2: Efektivitas Evaluasi Penilaian -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="ws-radar-card h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="ws-radar-avatar" style="background: #fefce8; color: #ca8a04;">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <span class="badge <?= esc($healthRadar['turnaround']['badge'] ?? 'bg-warning text-dark') ?> rounded-pill small px-2 py-1">
+                                <i class="<?= esc($healthRadar['turnaround']['icon'] ?? 'fas fa-info-circle') ?> me-1"></i><?= esc($healthRadar['turnaround']['status'] ?? 'Moderat') ?>
+                            </span>
+                        </div>
+                        <span class="text-muted small fw-semibold d-block" style="font-size: 0.78rem;">Evaluasi Tugas Trainer</span>
+                        <div class="h3 fw-bold text-navy mb-0"><?= number_format((float) ($healthRadar['turnaround']['rate'] ?? 0), 1) ?><span class="fs-6 fw-normal text-muted ms-1">%</span></div>
+                        <div class="ws-radar-meter">
+                            <div class="ws-radar-meter-fill bg-warning" style="width: <?= min(100, max(5, (float) ($healthRadar['turnaround']['rate'] ?? 0))) ?>%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="small text-muted mb-1" style="font-size: 0.72rem; line-height: 1.3; min-height: 28px;">
+                            <?= esc($healthRadar['turnaround']['note'] ?? '') ?>
+                        </p>
+                        <div class="pt-2 border-top d-flex justify-content-between text-muted small" style="font-size: 0.7rem;">
+                            <span>Tugas Dinilai:</span>
+                            <strong class="text-navy"><?= number_format((int) ($healthRadar['turnaround']['graded'] ?? 0)) ?> (<?= number_format((int) ($healthRadar['turnaround']['pending'] ?? 0)) ?> antrean)</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Radar 3: Integritas & Kecepatan Sertifikat -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="ws-radar-card h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="ws-radar-avatar" style="background: #f0fdf4; color: #16a34a;">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <span class="badge <?= esc($healthRadar['certVelocity']['badge'] ?? 'bg-success text-white') ?> rounded-pill small px-2 py-1">
+                                <i class="<?= esc($healthRadar['certVelocity']['icon'] ?? 'fas fa-check-circle') ?> me-1"></i><?= esc($healthRadar['certVelocity']['status'] ?? 'Terkendali') ?>
+                            </span>
+                        </div>
+                        <span class="text-muted small fw-semibold d-block" style="font-size: 0.78rem;">Penerbitan Sertifikat</span>
+                        <div class="h3 fw-bold text-navy mb-0"><?= number_format((float) ($healthRadar['certVelocity']['rate'] ?? 0), 1) ?><span class="fs-6 fw-normal text-muted ms-1">%</span></div>
+                        <div class="ws-radar-meter">
+                            <div class="ws-radar-meter-fill bg-success" style="width: <?= min(100, max(5, (float) ($healthRadar['certVelocity']['rate'] ?? 0))) ?>%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="small text-muted mb-1" style="font-size: 0.72rem; line-height: 1.3; min-height: 28px;">
+                            <?= esc($healthRadar['certVelocity']['note'] ?? '') ?>
+                        </p>
+                        <div class="pt-2 border-top d-flex justify-content-between text-muted small" style="font-size: 0.7rem;">
+                            <span>Bulan Ini:</span>
+                            <strong class="text-success">+<?= number_format((int) ($healthRadar['certVelocity']['thisMonth'] ?? 0)) ?> terbit</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Radar 4: Partisipasi & Presensi Event -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="ws-radar-card h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="ws-radar-avatar" style="background: #fef2f2; color: #dc2626;">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <span class="badge <?= esc($healthRadar['attendance']['badge'] ?? 'bg-danger text-white') ?> rounded-pill small px-2 py-1">
+                                <i class="<?= esc($healthRadar['attendance']['icon'] ?? 'fas fa-info-circle') ?> me-1"></i><?= esc($healthRadar['attendance']['status'] ?? 'Sedang') ?>
+                            </span>
+                        </div>
+                        <span class="text-muted small fw-semibold d-block" style="font-size: 0.78rem;">Presensi Kegiatan Event</span>
+                        <div class="h3 fw-bold text-navy mb-0"><?= number_format((float) ($healthRadar['attendance']['rate'] ?? 0), 1) ?><span class="fs-6 fw-normal text-muted ms-1">%</span></div>
+                        <div class="ws-radar-meter">
+                            <div class="ws-radar-meter-fill bg-danger" style="width: <?= min(100, max(5, (float) ($healthRadar['attendance']['rate'] ?? 0))) ?>%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="small text-muted mb-1" style="font-size: 0.72rem; line-height: 1.3; min-height: 28px;">
+                            <?= esc($healthRadar['attendance']['note'] ?? '') ?>
+                        </p>
+                        <div class="pt-2 border-top d-flex justify-content-between text-muted small" style="font-size: 0.7rem;">
+                            <span>Kehadiran Sah:</span>
+                            <strong class="text-navy"><?= number_format((int) ($healthRadar['attendance']['attended'] ?? 0)) ?> / <?= number_format((int) ($healthRadar['attendance']['total'] ?? 0)) ?></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. MONITORING UTILISASI ASET & ROLE SIMULATOR -->
+    <div class="row g-4 mb-4">
+        <!-- Kolom Kiri: Utilisasi Berkas & Aset Pembelajaran -->
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
+                    <div>
+                        <h2 class="h5 fw-bold text-navy mb-0">
+                            <i class="fas fa-database text-primary me-2"></i>Utilisasi Berkas & Aset Pembelajaran
+                        </h2>
+                        <small class="text-muted">Kapasitas penyimpanan dokumen materi, kuis, dan file sertifikat resmi</small>
+                    </div>
+                    <span class="badge bg-light text-navy border px-3 py-1.5 rounded-pill small fw-bold">
+                        <i class="fas fa-hdd me-1 text-primary"></i> <?= esc($assetStats['storageFormatted'] ?? '0 MB') ?> Terpakai
+                    </span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light rounded-3 text-center border">
+                            <i class="fas fa-file-alt text-primary fs-3 mb-2"></i>
+                            <span class="text-muted small d-block" style="font-size: 0.75rem;">Berkas Terkelola</span>
+                            <h4 class="h5 fw-bold text-navy mb-0"><?= number_format((int) ($assetStats['totalFiles'] ?? 0)) ?></h4>
+                            <small class="text-muted" style="font-size: 0.68rem;">dokumen diunggah</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light rounded-3 text-center border">
+                            <i class="fas fa-book-open text-success fs-3 mb-2"></i>
+                            <span class="text-muted small d-block" style="font-size: 0.75rem;">Materi & Lesson</span>
+                            <h4 class="h5 fw-bold text-navy mb-0"><?= number_format((int) ($assetStats['totalLessons'] ?? 0)) ?></h4>
+                            <small class="text-muted" style="font-size: 0.68rem;">materi kurikulum</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light rounded-3 text-center border">
+                            <i class="fas fa-question-circle text-warning fs-3 mb-2"></i>
+                            <span class="text-muted small d-block" style="font-size: 0.75rem;">Instrumen Kuis</span>
+                            <h4 class="h5 fw-bold text-navy mb-0"><?= number_format((int) ($assetStats['totalQuizzes'] ?? 0)) ?></h4>
+                            <small class="text-muted" style="font-size: 0.68rem;">evaluasi asesmen</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light rounded-3 text-center border">
+                            <i class="fas fa-certificate text-danger fs-3 mb-2"></i>
+                            <span class="text-muted small d-block" style="font-size: 0.75rem;">PDF Sertifikat</span>
+                            <h4 class="h5 fw-bold text-navy mb-0"><?= number_format((int) ($stats['totalCerts'] ?? 0)) ?></h4>
+                            <small class="text-muted" style="font-size: 0.68rem;">arsip digital</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kolom Kanan: Simulator Tinjau Peran (Role Preview Mode) -->
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white p-4">
+                <div class="mb-3 pb-2 border-bottom">
+                    <h2 class="h5 fw-bold text-navy mb-0">
+                        <i class="fas fa-user-secret text-warning me-2"></i>Role Simulator (Pratinjau)
+                    </h2>
+                    <small class="text-muted">Tinjau ruang kerja dari sudut pandang peran lain</small>
+                </div>
+                <p class="small text-muted mb-3" style="font-size: 0.75rem;">
+                    Buka ruang belajar atau kendali pengajar secara langsung untuk memvalidasi kendala teknis pengguna:
+                </p>
+                <div class="d-flex flex-column gap-2">
+                    <a href="<?= route_to('workspace.participant.classes') ?>" class="btn btn-sm btn-outline-primary text-start rounded-pill px-3 py-2 d-flex align-items-center justify-content-between">
+                        <span><i class="fas fa-graduation-cap me-2 text-primary"></i>Sudut Pandang Peserta</span>
+                        <i class="fas fa-arrow-right small text-muted"></i>
+                    </a>
+                    <a href="<?= route_to('workspace.trainer.home') ?>" class="btn btn-sm btn-outline-success text-start rounded-pill px-3 py-2 d-flex align-items-center justify-content-between">
+                        <span><i class="fas fa-chalkboard-teacher me-2 text-success"></i>Sudut Pandang Pengajar</span>
+                        <i class="fas fa-arrow-right small text-muted"></i>
+                    </a>
+                    <a href="<?= route_to('workspace.operator.home') ?>" class="btn btn-sm btn-outline-warning text-dark text-start rounded-pill px-3 py-2 d-flex align-items-center justify-content-between">
+                        <span><i class="fas fa-cogs me-2 text-warning"></i>Sudut Pandang Operator</span>
+                        <i class="fas fa-arrow-right small text-muted"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. PINTASAN AKSES CEPAT EKSEKUTIF (FiStudy Action Cards) -->
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-4">
         <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
             <div>
@@ -218,7 +443,7 @@
         </div>
     </div>
 
-    <!-- 4. 2 KOLOM: TOP CLASSES vs SYSTEM AUDIT LOG -->
+    <!-- 6. 2 KOLOM: TOP CLASSES vs SYSTEM AUDIT LOG -->
     <div class="row g-4 mb-4">
         <!-- Kolom Kiri: Kelas Teraktif & Ringkasan Partisipasi -->
         <div class="col-12 col-lg-7">

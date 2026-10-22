@@ -20,6 +20,19 @@
     </div>
 </div>
 
+<?php if (session('success')): ?>
+    <div class="alert alert-success mb-20 radius-8 p-16 d-flex align-items-center gap-2">
+        <iconify-icon icon="solar:check-circle-outline" class="text-xl flex-shrink-0"></iconify-icon>
+        <span><?= esc(session('success')) ?></span>
+    </div>
+<?php endif; ?>
+
+<?php if (session('error')): ?>
+    <div class="alert alert-danger mb-20 radius-8 p-16 d-flex align-items-center gap-2">
+        <iconify-icon icon="solar:danger-circle-outline" class="text-xl flex-shrink-0"></iconify-icon>
+        <span><?= esc(session('error')) ?></span>
+    </div>
+<?php endif; ?>
 
 <div class="row gy-4">
 
