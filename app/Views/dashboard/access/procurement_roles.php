@@ -1,15 +1,26 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/users/_nav_access', ['activeSub' => 'procurement-roles']) ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Peran Pengadaan</h6>
         <p class="text-secondary-light mb-0">Master data peran pengadaan barang/jasa yang terhubung ke pendaftaran ASN dan penugasan peran.</p>
     </div>
-    <a href="<?= site_url('dashboard/akses/peran-pengadaan/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11 d-inline-flex align-items-center gap-2">
-        <iconify-icon icon="solar:add-circle-bold" class="text-lg"></iconify-icon>
-        <span>Tambah Peran</span>
-    </a>
+    <div class="d-flex align-items-center gap-2">
+        <a href="<?= site_url('dashboard/akses/unit-organisasi') ?>" class="btn btn-outline-neutral-300 radius-8 px-16 py-11 d-inline-flex align-items-center gap-2">
+            <iconify-icon icon="solar:buildings-2-outline" class="text-lg"></iconify-icon>
+            <span>Unit Organisasi (OPD)</span>
+        </a>
+        <a href="<?= site_url('dashboard/akses/penugasan-pengadaan') ?>" class="btn btn-outline-primary-600 radius-8 px-16 py-11 d-inline-flex align-items-center gap-2">
+            <iconify-icon icon="solar:user-id-outline" class="text-lg"></iconify-icon>
+            <span>Penugasan Peran</span>
+        </a>
+        <a href="<?= site_url('dashboard/akses/peran-pengadaan/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11 d-inline-flex align-items-center gap-2">
+            <iconify-icon icon="solar:add-circle-bold" class="text-lg"></iconify-icon>
+            <span>Tambah Peran</span>
+        </a>
+    </div>
 </div>
 
 <div class="card">

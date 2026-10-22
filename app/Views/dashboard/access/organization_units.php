@@ -1,15 +1,26 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/users/_nav_access', ['activeSub' => 'organizations']) ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Unit Organisasi & Perangkat Daerah (OPD)</h6>
         <p class="text-secondary-light mb-0">Master data OPD dan unit organisasi yang terhubung ke pendaftaran ASN Provinsi Lampung.</p>
     </div>
-    <a href="<?= site_url('dashboard/akses/unit-organisasi/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11 d-inline-flex align-items-center gap-2">
-        <iconify-icon icon="solar:add-circle-bold" class="text-lg"></iconify-icon>
-        <span>Tambah Unit</span>
-    </a>
+    <div class="d-flex align-items-center gap-2">
+        <a href="<?= site_url('dashboard/akses/peran-pengadaan') ?>" class="btn btn-outline-primary-600 radius-8 px-16 py-11 d-inline-flex align-items-center gap-2">
+            <iconify-icon icon="solar:medal-star-outline" class="text-lg"></iconify-icon>
+            <span>Peran Pengadaan</span>
+        </a>
+        <a href="<?= site_url('dashboard/akses/penugasan-pengadaan') ?>" class="btn btn-outline-neutral-300 radius-8 px-16 py-11 d-inline-flex align-items-center gap-2">
+            <iconify-icon icon="solar:user-id-outline" class="text-lg"></iconify-icon>
+            <span>Penugasan Peran</span>
+        </a>
+        <a href="<?= site_url('dashboard/akses/unit-organisasi/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11 d-inline-flex align-items-center gap-2">
+            <iconify-icon icon="solar:add-circle-bold" class="text-lg"></iconify-icon>
+            <span>Tambah Unit</span>
+        </a>
+    </div>
 </div>
 
 <div class="card">

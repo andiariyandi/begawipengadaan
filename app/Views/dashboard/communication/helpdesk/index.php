@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/communication/_nav_communication', ['activeSub' => 'whatsapp']) ?>
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
@@ -14,7 +15,7 @@
     <div class="col-lg-5">
         <div class="card h-100">
             <div class="card-header border-bottom py-16 px-24">
-                <h6 class="text-sm fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                <h6 class="text-sm fw-bold mb-0 text-primary-light d-flex align-items-center gap-2">
                     <iconify-icon icon="logos:whatsapp-icon" class="text-xl"></iconify-icon>
                     Konfigurasi Widget WhatsApp
                 </h6>
@@ -25,7 +26,7 @@
                     <div class="mb-16">
                         <div class="form-check form-switch d-flex align-items-center gap-2">
                             <input class="form-check-input" type="checkbox" name="wa_enabled" value="1" id="waEnabledSwitch" <?= ($settings['wa_enabled'] ?? '1') === '1' ? 'checked' : '' ?> style="width: 2.5em; height: 1.3em;">
-                            <label class="form-check-label fw-bold text-dark text-sm mb-0" for="waEnabledSwitch">
+                            <label class="form-check-label fw-bold text-primary-light text-sm mb-0" for="waEnabledSwitch">
                                 Aktifkan Widget Chat Melayang
                             </label>
                         </div>
@@ -61,7 +62,7 @@
     <div class="col-lg-7">
         <div class="card mb-24">
             <div class="card-header border-bottom py-16 px-24 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <h6 class="text-sm fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                <h6 class="text-sm fw-bold mb-0 text-primary-light d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:chat-square-code-bold" class="text-primary text-xl"></iconify-icon>
                     Pilihan Topik Cepat (Quick Chips)
                 </h6>
@@ -93,7 +94,7 @@
                                         <td>
                                             <div class="d-flex align-items-center gap-2 mb-1">
                                                 <iconify-icon icon="<?= esc($t['icon_class'] ?: 'solar:chat-round-dots-bold') ?>" class="text-primary"></iconify-icon>
-                                                <strong class="text-sm text-dark"><?= esc($t['topic_title']) ?></strong>
+                                                <strong class="text-sm text-primary-light"><?= esc($t['topic_title']) ?></strong>
                                             </div>
                                             <small class="text-secondary-light d-block text-truncate" style="max-width: 380px;">"<?= esc($t['default_message']) ?>"</small>
                                         </td>
@@ -125,7 +126,7 @@
             <form method="post" action="<?= site_url('dashboard/komunikasi/whatsapp-widget/simpan-topic') ?>">
                 <?= csrf_field() ?>
                 <div class="modal-header border-bottom py-16 px-24">
-                    <h6 class="modal-title text-base fw-bold text-dark" id="modalTambahTopikLabel">Tambah Topik Cepat WhatsApp</h6>
+                    <h6 class="modal-title text-base fw-bold text-primary-light" id="modalTambahTopikLabel">Tambah Topik Cepat WhatsApp</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-24">

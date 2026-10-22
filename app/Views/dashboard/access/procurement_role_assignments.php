@@ -1,12 +1,23 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/users/_nav_access', ['activeSub' => 'procurement-assignments']) ?>
 <?php $items = $items ?? []; $roles = $roles ?? []; $filters = $filters ?? []; ?>
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1">Penugasan Peran Pengadaan</h6>
         <p class="text-secondary-light mb-0">Assign pengguna ke peran pengadaan dan kelola status verifikasi.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="<?= site_url('dashboard/akses/unit-organisasi') ?>" class="btn btn-outline-neutral-300 radius-8 px-16 py-11 d-inline-flex align-items-center gap-2">
+            <iconify-icon icon="solar:buildings-2-outline" class="text-lg"></iconify-icon>
+            <span>Unit Organisasi (OPD)</span>
+        </a>
+        <a href="<?= site_url('dashboard/akses/peran-pengadaan') ?>" class="btn btn-outline-primary-600 radius-8 px-16 py-11 d-inline-flex align-items-center gap-2">
+            <iconify-icon icon="solar:medal-star-outline" class="text-lg"></iconify-icon>
+            <span>Peran Pengadaan</span>
+        </a>
     </div>
 </div>
 

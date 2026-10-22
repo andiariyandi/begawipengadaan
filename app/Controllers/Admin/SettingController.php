@@ -195,7 +195,7 @@ class SettingController extends BaseController
             'activeSubmenu' => $activeSubmenu,
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => site_url('dashboard')],
-                ['label' => 'Sistem', 'url' => site_url('dashboard/pengaturan')],
+                ['label' => 'Sistem', 'url' => site_url('dashboard/sistem/pengaturan')],
                 ['label' => $pageTitle],
             ],
         ], $data));

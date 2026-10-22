@@ -1,17 +1,18 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/settings/_nav_settings', ['activeSetting' => 'learning']) ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Pengaturan Pembelajaran') ?></h6>
         <p class="text-secondary-light mb-0">Atur parameter standar pelaksanaan kelas dan evaluasi pembelajaran.</p>
     </div>
-    <a href="<?= site_url('dashboard/pengaturan') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
+    <a href="<?= site_url('dashboard/sistem/pengaturan') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
 </div>
 
 <div class="card">
     <div class="card-body p-24">
-        <form method="post" action="<?= site_url('dashboard/pengaturan/learning') ?>">
+        <form method="post" action="<?= site_url('dashboard/sistem/pengaturan/learning') ?>">
             <?= csrf_field() ?>
             <div class="row gy-20">
                 <div class="col-md-6">
@@ -73,7 +74,7 @@
                     </div>
                 </div>
                 <div class="col-12 d-flex justify-content-end gap-12">
-                    <a href="<?= site_url('dashboard/pengaturan/learning') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Reset</a>
+                    <a href="<?= site_url('dashboard/sistem/pengaturan-pembelajaran') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Reset</a>
                     <button type="submit" class="btn btn-primary-600 radius-8 px-20 py-11">Simpan Perubahan</button>
                 </div>
             </div>

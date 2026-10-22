@@ -3,15 +3,25 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
+use App\Services\Admin\ReportAnalyticsService;
 use App\Services\DashboardService;
 
 class DashboardController extends BaseController
 {
     private DashboardService $dashboardService;
+    private ReportAnalyticsService $reportService;
 
-    public function __construct(?DashboardService $dashboardService = null)
-    {
+    public function __construct(
+        ?DashboardService $dashboardService = null,
+        ?ReportAnalyticsService $reportService = null
+    ) {
         $this->dashboardService = $dashboardService ?? new DashboardService();
+        $this->reportService    = $reportService ?? new ReportAnalyticsService();
+    }
+
+    private function getRequest()
+    {
+        return $this->request ?? service('request');
     }
 
     public function index(): string
@@ -99,38 +109,81 @@ class DashboardController extends BaseController
         return view('dashboard/home/summary', $context);
     }
 
-    public function learningReport(): string
+    // =========================================================================
+    // MODUL PUSAT LAPORAN & EKSPOR UNIVERSAL (FASE 2)
+    // =========================================================================
+
+    public function learningReport()
     {
-        return $this->reportView('Laporan Pembelajaran', 'learning', 'learning');
+        $req  = $this->getRequest();
+        $year = (int) ($req->getGet('year') ?: date('Y'));
+        if ($req->getGet('export') === 'csv') {
+            return $this->reportService->streamCsv('pembelajaran', $year);
+        }
+        $data = $this->reportService->getLearningReport($year);
+        return $this->reportView('Laporan Pembelajaran', 'learning', 'learning', $data);
     }
 
-    public function eventReport(): string
+    public function eventReport()
     {
-        return $this->reportView('Laporan Event', 'events', 'events');
+        $req  = $this->getRequest();
+        $year = (int) ($req->getGet('year') ?: date('Y'));
+        if ($req->getGet('export') === 'csv') {
+            return $this->reportService->streamCsv('event', $year);
+        }
+        $data = $this->reportService->getEventReport($year);
+        return $this->reportView('Laporan Event', 'events', 'events', $data);
     }
 
-    public function certificateReport(): string
+    public function certificateReport()
     {
-        return $this->reportView('Laporan Sertifikat', 'certificates', 'certificates');
+        $req  = $this->getRequest();
+        $year = (int) ($req->getGet('year') ?: date('Y'));
+        if ($req->getGet('export') === 'csv') {
+            return $this->reportService->streamCsv('sertifikat', $year);
+        }
+        $data = $this->reportService->getCertificateReport($year);
+        return $this->reportView('Laporan Sertifikat', 'certificates', 'certificates', $data);
     }
 
-    public function competencyReport(): string
+    public function competencyReport()
     {
-        return $this->reportView('Laporan Kompetensi', 'competency', 'competency');
+        $req  = $this->getRequest();
+        $year = (int) ($req->getGet('year') ?: date('Y'));
+        if ($req->getGet('export') === 'csv') {
+            return $this->reportService->streamCsv('kompetensi', $year);
+        }
+        $data = $this->reportService->getCompetencyReport($year);
+        return $this->reportView('Laporan Kompetensi', 'competency', 'competency', $data);
     }
 
-    public function userReport(): string
+    public function userReport()
     {
-        return $this->reportView('Laporan Pengguna', 'users', 'users');
+        $req  = $this->getRequest();
+        $year = (int) ($req->getGet('year') ?: date('Y'));
+        if ($req->getGet('export') === 'csv') {
+            return $this->reportService->streamCsv('pengguna', $year);
+        }
+        $data = $this->reportService->getUserReport($year);
+        return $this->reportView('Laporan Pengguna', 'users', 'users', $data);
     }
 
-    public function exportHistory(): string
+    public function exportHistory()
     {
+        $data = $this->reportService->getExportHistory();
         return $this->reportView(
             'Riwayat Export',
             'export-history',
-            'export_history'
+            'export_history',
+            $data
         );
+    }
+
+    public function exportReport(string $type)
+    {
+        $req  = $this->getRequest();
+        $year = (int) ($req->getGet('year') ?: date('Y'));
+        return $this->reportService->streamCsv($type, $year);
     }
 
     /**
@@ -181,9 +234,10 @@ class DashboardController extends BaseController
     private function reportView(
         string $pageTitle,
         string $activeSubmenu,
-        string $viewName
+        string $viewName,
+        array $reportData = []
     ): string {
-        return view('dashboard/reports/' . $viewName, [
+        return view('dashboard/reports/' . $viewName, array_merge([
             'title'         => $pageTitle . ' | BegawiPengadaan',
             'pageTitle'     => $pageTitle,
             'activeMenu'    => 'reports',
@@ -193,6 +247,6 @@ class DashboardController extends BaseController
                 ['label' => 'Laporan'],
                 ['label' => $pageTitle],
             ],
-        ]);
+        ], $reportData));
     }
 }

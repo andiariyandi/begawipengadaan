@@ -9,16 +9,32 @@
                 <button type="button" class="sidebar-mobile-toggle">
                     <iconify-icon icon="heroicons:bars-3-solid" class="icon"></iconify-icon>
                 </button>
-                <form class="navbar-search" action="#" method="get">
-                    <input type="text" name="search" placeholder="Cari menu atau data">
+                
+                <!-- Quick Command Palette Trigger (Ctrl + K) -->
+                <div class="navbar-search d-flex align-items-center position-relative cursor-pointer" data-bs-toggle="modal" data-bs-target="#adminSpotlightModal" title="Cari menu, data, atau aksi cepat (Ctrl+K)">
+                    <input type="text" placeholder="Cari menu, fitur, atau data..." class="cursor-pointer pe-48" readonly>
                     <iconify-icon icon="ion:search-outline" class="icon"></iconify-icon>
-                </form>
+                    <kbd class="position-absolute end-0 top-50 translate-middle-y me-12 bg-neutral-200 text-neutral-600 border border-neutral-300 px-6 py-2 rounded text-2xs font-monospace d-none d-md-inline" style="font-size: 10px;">Ctrl+K</kbd>
+                </div>
             </div>
         </div>
 
         <div class="col-auto">
             <div class="d-flex flex-wrap align-items-center gap-3">
-                <button type="button" data-theme-toggle class="w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center"></button>
+                
+                <!-- App Switcher Quick Links -->
+                <a href="<?= site_url('workspace') ?>" class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6 d-none d-lg-inline-flex align-items-center gap-6 text-xs fw-semibold" title="Buka Ruang Kerja (Workspace)">
+                    <iconify-icon icon="solar:laptop-minimalistic-outline" class="text-base"></iconify-icon>
+                    <span>Workspace</span>
+                </a>
+                <a href="<?= site_url('/') ?>" target="_blank" class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6 d-none d-xl-inline-flex align-items-center gap-6 text-xs fw-bold header-portal-btn" title="Kunjungi Portal Publik BegawiPengadaan">
+                    <iconify-icon icon="solar:globe-outline" class="text-base"></iconify-icon>
+                    <span>Portal Publik</span>
+                    <iconify-icon icon="solar:square-top-down-linear" class="text-xs"></iconify-icon>
+                </a>
+
+                <!-- Theme Toggle Button -->
+                <button type="button" data-theme-toggle class="w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center" title="Beralih Tema Terang / Gelap"></button>
 
                 <?php
                 $headerUserId = (int) (session()->get('user_id') ?: 0);
@@ -32,7 +48,15 @@
                 $headerUnreadCount = $headerUserId > 0
                     ? $headerNotifService->unreadCount($headerUserId)
                     : $headerNotifService->unreadCountAll();
+
+                $authService = new \App\Services\Identity\AuthorizationService();
+                $isSuperAdmin = $authService->isSuperAdmin();
+                $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Administrator');
+                $userRole = $isSuperAdmin ? 'Super Administrator' : 'Administrator PBJ';
+                $userInitials = mb_strtoupper(mb_substr($userName, 0, 2));
                 ?>
+
+                <!-- Notifications Dropdown -->
                 <div class="dropdown">
                     <button class="<?= $headerUnreadCount > 0 ? 'has-indicator' : '' ?> w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Pemberitahuan Sistem">
                         <iconify-icon icon="iconoir:bell" class="text-primary-light text-xl"></iconify-icon>
@@ -97,88 +121,80 @@
                     </div>
                 </div>
 
+                <!-- User Profile Dropdown -->
                 <div class="dropdown">
-                    <button class="d-flex justify-content-center align-items-center rounded-circle" type="button" data-bs-toggle="dropdown">
-                        <img src="<?= base_url('assets/dashboard/images/user.png') ?>" alt="Admin BegawiPengadaan" class="w-40-px h-40-px object-fit-cover rounded-circle">
+                    <button class="d-flex justify-content-center align-items-center rounded-circle border-0 bg-transparent p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="<?= esc($userName) ?>">
+                        <span class="w-40-px h-40-px bg-primary-600 text-white rounded-circle d-flex justify-content-center align-items-center fw-semibold text-sm shadow-xs">
+                            <?= esc($userInitials) ?>
+                        </span>
                     </button>
                     <div class="dropdown-menu to-top dropdown-menu-sm">
-                        <div class="py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2">
-                            <div>
-                                <h6 class="text-lg text-primary-light fw-semibold mb-2">
-                                    Administrator
-                                </h6>
-                                <span class="text-secondary-light fw-medium text-sm">
-                                    BegawiPengadaan
-                                </span>
-                            </div>
+                        <div class="py-12 px-16 radius-8 bg-primary-50 mb-12">
+                            <h6 class="text-md text-primary-light fw-semibold mb-2 text-truncate" title="<?= esc($userName) ?>">
+                                <?= esc($userName) ?>
+                            </h6>
+                            <span class="badge bg-primary-600 text-white px-8 py-3 radius-4 text-3xs fw-semibold">
+                                <?= esc($userRole) ?>
+                            </span>
                         </div>
 
                         <ul class="to-top-list">
                             <li>
-                                <a
-                                    class="dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3"
-                                    href="<?= site_url('dashboard/profile') ?>">
-                                    <iconify-icon
-                                        icon="solar:user-linear"
-                                        class="icon text-xl"></iconify-icon>
+                                <a class="dropdown-item text-primary-light px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3" href="<?= site_url('dashboard/profile') ?>">
+                                    <iconify-icon icon="solar:user-linear" class="icon text-xl"></iconify-icon>
                                     Profil Saya
                                 </a>
                             </li>
-
                             <li>
-                                <a
-                                    class="dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3"
-                                    href="<?= site_url('dashboard/profile/preferences') ?>">
-                                    <iconify-icon
-                                        icon="solar:settings-outline"
-                                        class="icon text-xl"></iconify-icon>
+                                <a class="dropdown-item text-primary-light px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3" href="<?= site_url('dashboard/profile/preferences') ?>">
+                                    <iconify-icon icon="solar:settings-outline" class="icon text-xl"></iconify-icon>
                                     Preferensi Saya
                                 </a>
                             </li>
-
                             <li>
-                                <a
-                                    class="dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3"
-                                    href="<?= site_url('dashboard/profile/password') ?>">
-                                    <iconify-icon
-                                        icon="solar:lock-password-outline"
-                                        class="icon text-xl"></iconify-icon>
+                                <a class="dropdown-item text-primary-light px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3" href="<?= site_url('dashboard/profile/password') ?>">
+                                    <iconify-icon icon="solar:lock-password-outline" class="icon text-xl"></iconify-icon>
                                     Ubah Kata Sandi
                                 </a>
                             </li>
 
+                            <li><hr class="dropdown-divider my-8"></li>
+
+                            <!-- Switch to Workspace & Public Portal -->
                             <li>
-                                <hr class="dropdown-divider my-8">
+                                <a class="dropdown-item text-primary-light px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3" href="<?= site_url('workspace') ?>">
+                                    <iconify-icon icon="solar:laptop-minimalistic-outline" class="icon text-xl text-primary-600"></iconify-icon>
+                                    <span>Ruang Kerja Workspace</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-primary-light px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3" href="<?= site_url('/') ?>" target="_blank">
+                                    <iconify-icon icon="solar:globe-outline" class="icon text-xl text-success-main"></iconify-icon>
+                                    <span>Kunjungi Portal Publik</span>
+                                </a>
                             </li>
 
+                            <li><hr class="dropdown-divider my-8"></li>
+
                             <li>
-                                <a
-                                    class="dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3"
-                                    href="<?= site_url('dashboard/sistem/pengaturan') ?>">
-                                    <iconify-icon
-                                        icon="icon-park-outline:setting-two"
-                                        class="icon text-xl"></iconify-icon>
+                                <a class="dropdown-item text-primary-light px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3" href="<?= site_url('dashboard/sistem/pengaturan') ?>">
+                                    <iconify-icon icon="icon-park-outline:setting-two" class="icon text-xl"></iconify-icon>
                                     Pengaturan Sistem
                                 </a>
                             </li>
 
-                            <li>
-                                <hr class="dropdown-divider my-8">
-                            </li>
+                            <li><hr class="dropdown-divider my-8"></li>
 
                             <li>
-                                <a
-                                    class="dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-danger d-flex align-items-center gap-3"
-                                    href="<?= site_url('dashboard/keluar') ?>">
-                                    <iconify-icon
-                                        icon="lucide:power"
-                                        class="icon text-xl"></iconify-icon>
+                                <a class="dropdown-item text-danger-main px-0 py-8 hover-bg-transparent hover-text-danger d-flex align-items-center gap-3" href="<?= site_url('dashboard/keluar') ?>">
+                                    <iconify-icon icon="lucide:power" class="icon text-xl"></iconify-icon>
                                     Keluar
                                 </a>
                             </li>
                         </ul>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>

@@ -14,8 +14,10 @@ class QuizController extends BaseController
         $builder = $db->table('quizzes q')
             ->select('q.*, lm.title AS module_title, c.title AS course_title,
                       (SELECT COUNT(1) FROM quiz_questions qq WHERE qq.quiz_id = q.id) AS question_count')
-            ->join('learning_modules lm', 'lm.id = q.module_id', 'left')
-            ->join('courses c', 'c.id = lm.course_id', 'left')
+            ->join('lessons l', 'l.id = q.lesson_id', 'left')
+            ->join('learning_modules lm', 'lm.id = l.module_id', 'left')
+            ->join('learning_classes lc2', 'lc2.id = COALESCE(q.class_id, lm.class_id)', 'left')
+            ->join('courses c', 'c.id = lc2.course_id', 'left')
             ->orderBy('q.created_at', 'DESC');
 
         if ($keyword !== '') {
@@ -54,8 +56,10 @@ class QuizController extends BaseController
         $builder = $db->table('quiz_questions qq')
             ->select('qq.*, q.title AS quiz_title, c.title AS course_title')
             ->join('quizzes q', 'q.id = qq.quiz_id', 'left')
-            ->join('learning_modules lm', 'lm.id = q.module_id', 'left')
-            ->join('courses c', 'c.id = lm.course_id', 'left')
+            ->join('lessons l', 'l.id = q.lesson_id', 'left')
+            ->join('learning_modules lm', 'lm.id = l.module_id', 'left')
+            ->join('learning_classes lc2', 'lc2.id = COALESCE(q.class_id, lm.class_id)', 'left')
+            ->join('courses c', 'c.id = lc2.course_id', 'left')
             ->orderBy('qq.id', 'DESC');
 
         if ($keyword !== '') {

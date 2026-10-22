@@ -1497,7 +1497,8 @@ th {
 }
 
 .text-base {
-  color: var(--white) !important;
+  font-size: 1rem !important;
+  line-height: 1.5rem !important;
 }
 
 .text-black {
@@ -15863,3 +15864,143 @@ td.fc-header-center {
 }
 
 /* === footer css end === */
+
+
+/* ==========================================================================
+   BEGAWI ACCESSIBILITY & DARK MODE CONTRAST OVERRIDES (WCAG 2.1)
+   ========================================================================== */
+
+/* 1. Global .text-base safety */
+.text-base {
+  font-size: 1rem !important;
+  line-height: 1.5rem !important;
+}
+
+/* 2. Text-muted Dark Mode Override (Ensure > 4.5:1 ratio) */
+.dark .text-muted,
+[data-theme="dark"] .text-muted,
+html[data-theme="dark"] .text-muted {
+  color: var(--text-secondary-light, #94a3b8) !important;
+}
+
+/* 2b. Light Mode Soft Badge Contrast Fixes (WCAG AA >= 4.5:1) */
+.badge.bg-primary-100.text-primary-600,
+.badge.bg-primary-50.text-primary-600 {
+  color: #1d4ed8 !important;
+}
+
+.badge.bg-warning-100.text-warning-main,
+.badge.bg-warning-50.text-warning-main {
+  color: #b45309 !important;
+}
+
+.badge.bg-success-100.text-success-600,
+.badge.bg-success-50.text-success-600 {
+  color: #15803d !important;
+}
+
+.badge.bg-danger-100.text-danger-600 {
+  color: #b91c1c !important;
+}
+
+.badge.bg-info-focus.text-info-main {
+  color: #0369a1 !important;
+}
+
+/* 2c. Header Portal Publik High Contrast Button */
+.header-portal-btn {
+  color: #1d4ed8 !important;
+  border-color: #3b82f6 !important;
+}
+.header-portal-btn:hover {
+  background-color: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+.dark .header-portal-btn,
+[data-theme="dark"] .header-portal-btn {
+  color: #93c5fd !important;
+  border-color: #3b82f6 !important;
+}
+.dark .header-portal-btn:hover,
+[data-theme="dark"] .header-portal-btn:hover {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* 3. Dark Mode Soft Badge Inversion & Contrast Fixes */
+.dark .badge.bg-primary-100,
+[data-theme="dark"] .badge.bg-primary-100,
+html[data-theme="dark"] .badge.bg-primary-100 {
+  background-color: rgba(72, 127, 255, 0.18) !important;
+  color: #93b4ff !important;
+  border: 1px solid rgba(72, 127, 255, 0.3) !important;
+}
+
+.dark .badge.bg-primary-50,
+[data-theme="dark"] .badge.bg-primary-50,
+html[data-theme="dark"] .badge.bg-primary-50 {
+  background-color: rgba(72, 127, 255, 0.15) !important;
+  color: #93b4ff !important;
+}
+
+.dark .badge.text-primary-600,
+[data-theme="dark"] .badge.text-primary-600,
+html[data-theme="dark"] .badge.text-primary-600 {
+  color: #93b4ff !important;
+}
+
+.dark .badge.bg-warning-100,
+[data-theme="dark"] .badge.bg-warning-100,
+html[data-theme="dark"] .badge.bg-warning-100 {
+  background-color: rgba(255, 159, 41, 0.18) !important;
+  color: #ffbe76 !important;
+  border: 1px solid rgba(255, 159, 41, 0.3) !important;
+}
+
+.dark .badge.text-warning-main,
+[data-theme="dark"] .badge.text-warning-main,
+html[data-theme="dark"] .badge.text-warning-main {
+  color: #ffbe76 !important;
+}
+
+.dark .badge.bg-success-100,
+[data-theme="dark"] .badge.bg-success-100,
+html[data-theme="dark"] .badge.bg-success-100 {
+  background-color: rgba(69, 189, 98, 0.18) !important;
+  color: #7bed9f !important;
+  border: 1px solid rgba(69, 189, 98, 0.3) !important;
+}
+
+.dark .badge.text-success-600,
+[data-theme="dark"] .badge.text-success-600,
+html[data-theme="dark"] .badge.text-success-600 {
+  color: #7bed9f !important;
+}
+
+.dark .badge.bg-danger-100,
+[data-theme="dark"] .badge.bg-danger-100,
+html[data-theme="dark"] .badge.bg-danger-100 {
+  background-color: rgba(239, 74, 74, 0.18) !important;
+  color: #ff7675 !important;
+  border: 1px solid rgba(239, 74, 74, 0.3) !important;
+}
+
+.dark .badge.text-danger-600,
+[data-theme="dark"] .badge.text-danger-600,
+html[data-theme="dark"] .badge.text-danger-600 {
+  color: #ff7675 !important;
+}
+
+.dark .badge.bg-info-focus,
+[data-theme="dark"] .badge.bg-info-focus,
+html[data-theme="dark"] .badge.bg-info-focus {
+  background-color: rgba(0, 204, 255, 0.18) !important;
+  color: #70a1ff !important;
+  border: 1px solid rgba(0, 204, 255, 0.3) !important;
+}
+
+.dark .badge.text-info-main,
+[data-theme="dark"] .badge.text-info-main,
+html[data-theme="dark"] .badge.text-info-main {
+  color: #70a1ff !important;
+}

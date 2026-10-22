@@ -44,7 +44,7 @@ $media = (new \App\Models\Knowledge\KnowledgeMediaItemModel())
                             <label class="border radius-8 p-16 flex-fill cursor-pointer bg-base hover-border-primary" style="cursor: pointer;">
                                 <div class="form-check mb-0">
                                     <input class="form-check-input" type="radio" name="target_type" id="typeArticle" value="article" checked onchange="handleTargetTypeSwitch('article')">
-                                    <label class="form-check-label fw-semibold text-dark ps-2" for="typeArticle">
+                                    <label class="form-check-label fw-semibold text-primary-light ps-2" for="typeArticle">
                                         <i class="fas fa-newspaper text-primary me-1"></i> Artikel PBJ / Studi Kasus
                                     </label>
                                 </div>
@@ -54,7 +54,7 @@ $media = (new \App\Models\Knowledge\KnowledgeMediaItemModel())
                             <label class="border radius-8 p-16 flex-fill cursor-pointer bg-base hover-border-primary" style="cursor: pointer;">
                                 <div class="form-check mb-0">
                                     <input class="form-check-input" type="radio" name="target_type" id="typeMedia" value="media" onchange="handleTargetTypeSwitch('media')">
-                                    <label class="form-check-label fw-semibold text-dark ps-2" for="typeMedia">
+                                    <label class="form-check-label fw-semibold text-primary-light ps-2" for="typeMedia">
                                         <i class="fas fa-photo-video text-info me-1"></i> Media &amp; Infografik
                                     </label>
                                 </div>
@@ -161,7 +161,7 @@ $media = (new \App\Models\Knowledge\KnowledgeMediaItemModel())
                             </div>
                         </div>
                         <div id="selectedMetaBox" class="text-start d-none">
-                            <strong id="selectedMetaTitle" class="d-block text-dark text-xs mb-1"></strong>
+                            <strong id="selectedMetaTitle" class="d-block text-primary-light text-xs mb-1"></strong>
                             <span id="selectedMetaType" class="badge bg-primary-subtle text-primary-emphasis text-xs"></span>
                         </div>
                     </div>

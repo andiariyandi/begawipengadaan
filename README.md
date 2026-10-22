@@ -98,7 +98,7 @@ Sistem BegawiPengadaan memisahkan dependensi antarmuka secara mutlak untuk mence
 | **Landing Page** | FiStudy | `app/Controllers/Landing/` | `app/Views/landing/` | `public/assets/main/` |
 | **Workspace** | FiStudy | `app/Controllers/Workspace/` | `app/Views/main/workspace/` | `public/assets/main/` |
 | **Auth Terpadu** | WowDash | `app/Controllers/Dashboard/Auth/` | `app/Views/dashboard/auth/` | `public/assets/dashboard/` |
-| **Dashboard Admin**| WowDash | `app/Controllers/Dashboard/` & `App\Controllers\Communication\` | `app/Views/dashboard/` | `public/assets/dashboard/` |
+| **Dashboard Admin**| WowDash | `app/Controllers/Admin/`, `Communication/`, `Learning/`, `Knowledge/`, `Regulation/`, `Certificate/`, `Intelligence/` | `app/Views/dashboard/` | `public/assets/dashboard/` |
 | **Legacy Archives**| FiStudy / WowDash | `archive/controllers_legacy/` | `archive/views_legacy/` | *Template & controller pensiun* |
 | **Source Reference**| Reference | *Non-production (dilarang dirender)* | `app/Views/reference/` | *Source template original* |
 
@@ -158,7 +158,9 @@ Sistem BegawiPengadaan memisahkan dependensi antarmuka secara mutlak untuk mence
 5. **Inisialisasi Database:**
    Import skema SQL fresh dan data referensi wilayah ke database `db_begawipbj`:
    ```bash
-   mysql -u root -p db_begawipbj < dokumen/schema-fresh-v4-1.sql
+   mysql -u root -p db_begawipbj < schema-fresh-v4-3.sql
+   # Atau import skema langsung dengan data dummy autentik PBJ:
+   # mysql -u root -p db_begawipbj < schema-fresh-v4-3-dummy.sql
    mysql -u root -p db_begawipbj < database/reference/wilayah.sql
    ```
 
@@ -224,11 +226,14 @@ Sistem BegawiPengadaan memisahkan dependensi antarmuka secara mutlak untuk mence
 /dashboard/komunikasi/registrasi-event → Detail Peserta & Status Pendaftaran
 /dashboard/komunikasi/kehadiran → Monitoring Presensi Peserta
 /dashboard/komunikasi/waitlist-pembatalan → Antrean Waitlist & Promosi Kuota
-/dashboard/sertifikat/*        → Overview, Template, Approval, Riwayat, Verifikasi Internal
-/dashboard/arena-belajar/*     → Manajemen Program, Kursus, Kelas, Modul & Ujian
+/dashboard/sertifikat/*        → Direktori Master Sertifikat, Template Visual, Live PDF Preview & Audit Revokasi
+/dashboard/approvals/*         → Sentralisasi Antrean Persetujuan (Central Approval Hub Terpadu)
+/dashboard/pembelajaran/*      → Unified Class Console, Kurikulum, Modul, Asesmen & Duplikasi Batch (alias: /dashboard/arena-belajar/*)
 /dashboard/bunga-rampai/*      → Manajemen Artikel, FAQ, Studi Kasus, Media & Galeri
 /dashboard/regulasi/*          → Manajemen Regulasi, Versi & Relasi Hukum
-/dashboard/intelijen/*         → Pemetaan JF PPBJ & Analisis Gap Kompetensi
+/dashboard/intelligence/*      → Pemetaan JF PPBJ, Radar Kematangan PBJ Daerah & Simulasi Formasi Gap OPD (alias: /dashboard/intelijen/*)
+/dashboard/laporan/*           → Pusat Laporan & Universal Export Generator (6 Kategori, Kop Resmi Pemprov)
+/dashboard/survei-kepuasan     → Indeks Kepuasan Masyarakat (IKM) Kalkulator Otomatis PermenPAN-RB No. 14/2017
 /dashboard/sistem/pengaturan   → Pusat Pengaturan Sistem Terpadu (Umum, Keamanan, Sertifikat, Maintenance)
 /dashboard/sistem/audit-trail  → Sentralisasi Audit Trail & Jejak Aktivitas Keamanan
 ```
@@ -285,12 +290,14 @@ Audit menyeluruh (*full automated audit*) dan perbaikan arsitektural telah disel
 2. **Ekosistem Dashboard Back-Office (WowDash):**
    * **Automated Audit:** Seluruh 92 rute menu sidebar teruji valid (**100% PASS** melalui `php spark dashboard:full:audit`, 0 link rusak/404).
    * **Pembersihan Rute & Link Patah:** Menghilangkan link 404 usang (`sistem/file-media`, `sistem/pengaturan-file-storage`, `sistem/pengaturan-tampilan`).
-   * **Pusat Pengaturan & Antrean Approval:** Mengintegrasikan antarmuka sentral **Pusat Pengaturan** (`dashboard/sistem/pengaturan`) dan **Antrean Persetujuan Sertifikat** (`dashboard/sertifikat/approval`) ke navigasi sidebar.
+   * **Pusat Pengaturan & Antrean Approval:** Mengintegrasikan antarmuka sentral **Pusat Pengaturan** (`dashboard/sistem/pengaturan`) dan **Sentralisasi Antrean Persetujuan** (`dashboard/approvals`) ke navigasi sidebar.
    * **Deduplikasi Alur Kerja:** Mengonsolidasikan pengelolaan carousel lama ke Spotlight Hub dan menyatukan Audit Trail ke satu menu terpusat.
-   * **Aksesibilitas Dark Mode (WCAG):** Mengganti 25 titik utility `text-dark` hardcoded dengan token dinamis `text-primary-light` pada 6 file view profil dan manajemen akses, menjamin keterbacaan sempurna pada mode gelap maupun terang.
+   * **Aksesibilitas Dark Mode & Zero Contrast Bug (Fase A):** Memperbaiki seluruh bug kontras warna teks/background pada Light dan Dark mode sesuai token adaptif WowDash.
+   * **Reusable Advanced DataTables Engine (Fase B):** Mengintegrasikan `begawi-datatable.js` dan `begawi-datatable.css` (DataTables 2 native wrapper, auto-unwrap table-responsive, CSV export BOM UTF-8, multi-column sort, page length 10/50/100/500).
+   * **Revitalisasi Modul Operasional (Fase C - F):** Menghadirkan Unified Class Console & Duplikasi Batch di Arena Belajar, Live PDF Preview di Sertifikat, Mode Presenter & QR Presensi di Event, Radar Kematangan PBJ di Government Intelligence, Print Layout resmi Pemprov di Laporan, serta Kalkulator IKM PermenPAN-RB No. 14/2017.
 
 3. **Ekosistem Workspace Multi-Role (FiStudy):**
-   * **Automated Audit:** 38 rute workspace teruji lancar (**100% PASS** melalui `php spark workspace:full:audit` dan 34 checks pada `php spark workspace:smoke`).
+   * **Automated Full Audit:** 58 rute workspace teruji lancar (**100% PASS** melalui `php spark workspace:full:audit`, 0 error, 0 dead link, 0 relational orphan) dan 96 assertions kelulusan lintas peran.
    * **Canonical Role Dispatcher:** Routing otomatis dari `/workspace` ke beranda spesifik peran (*Participant*, *Trainer*, *Operator*, *Administrator*) tanpa duplikasi visual.
    * **Pembersihan File Yatim:** Mengarsipkan controller stub lama `PesertaController.php` dan 5 file view prototipe awal trainer ke folder `archive/`.
    * **Standardisasi Detail Sertifikat:** Menyelaraskan tampilan detail sertifikat peserta (`ParticipantController::certificateDetail()`) menggunakan view modern `main/workspace/pages/sertifikat.php` bertoken FiStudy/WowDash.
@@ -308,8 +315,8 @@ BegawiPengadaan dilengkapi dengan rangkaian test suite berbasis CodeIgniter CLI 
 # ====================================================================
 php spark landing:full:audit       # Audit menyeluruh 33 rute publik, navigasi, CMS, CSRF, & view cleanup
 php spark dashboard:full:audit     # Audit menyeluruh 92 rute sidebar, alur kerja, token dark mode, & DB
-php spark workspace:full:audit     # Audit menyeluruh 38 rute workspace 4 role, security gate, & 22 tabel DB
-php spark workspace:smoke          # Smoke test 34 checks layout FiStudy, modular journey, & live sync
+php spark workspace:full:audit     # Audit menyeluruh 58 rute workspace 4 role, security gate, & 22 tabel DB
+php spark workspace:smoke          # Smoke test 41 checks layout FiStudy, modular journey, & live sync
 
 # ====================================================================
 # PENGUJIAN KOMUNIKASI (EVENT & BERITA)
@@ -339,6 +346,22 @@ php spark knowledge:test           # Verifikasi publik Bunga Rampai
 php spark regulation:admin:test    # Verifikasi admin Regulasi PBJ
 php spark regulation:test          # Verifikasi publik Repositori Regulasi
 php spark home:landing:test        # Verifikasi beranda utama BegawiPengadaan
+
+# ====================================================================
+# PENGUJIAN REGRESI FASE ENHANCEMENT DASHBOARD & WORKSPACE
+# ====================================================================
+php spark test:admin-shell         # Verifikasi Fase 1: Shell Navigasi, Spotlight Modal, Quick Action Bar
+php spark test:admin-reports       # Verifikasi Fase 2: Pusat Laporan & Ekspor Universal Data Riil (6 Kategori)
+php spark test:admin-approvals     # Verifikasi Fase 3: Sentralisasi Antrean Persetujuan (Central Approval Hub)
+php spark test:admin-intelligence  # Verifikasi Fase 4: Government Intelligence (Radar PBJ & Gap OPD)
+php spark test:admin-system        # Verifikasi Fase 5: Penguatan Akses, Audit Trail CSV & Pengaturan Sistem
+php spark test:admin-learning-cert # Verifikasi Fase D: Unified Class Console & Direktori Master Sertifikat
+php spark test:admin-final-fase-e-f# Verifikasi Fase E/F: Event Console, Multi-Facet Users & Kalkulator IKM
+php spark test:workspace-learner   # Verifikasi Workspace Fase 1: Rapor Akademik, Kalender, Focus Mode
+php spark test:trainer-gradebook   # Verifikasi Workspace Fase 2: Gradebook Matrix, CSV Export, Item Analytics
+php spark test:operator-bulk       # Verifikasi Workspace Fase 3: Bulk Actions, Visual Diff, Roster Print
+php spark test:workspace-executive # Verifikasi Workspace Fase 4: Command Palette, Executive Radar, Storage
+php spark arena:parity:test        # Verifikasi Paritas Arena Belajar Dashboard vs Workspace (6/6 Pass)
 ```
 
 ---
@@ -365,8 +388,12 @@ Mengacu pada klasifikasi standar:
 | **Dashboard: Bunga Rampai & Regulasi** | `Production Ready` | `knowledge:admin:test`, `regulation:admin:test` (100% Pass) |
 | **Dashboard: Sistem Sertifikat Digital & Approval** | `Production Ready` | `certificate:system:test`, `certificate:smoke` (100% Pass) |
 | **Dashboard: WowDash Theme & Full Navigation** | `Production Ready` | `dashboard:full:audit` (92/92 Menu 100% Pass) |
-| **Workspace: Multi-Role Engine (Peserta, Trainer, Operator, Admin)** | `Production Ready` | `workspace:smoke` (34/34 Pass), `workspace:full:audit` (100% Pass) |
-| **Dashboard: Government Intelligence PBJ** | `Backend Ready` | Siap skema dan model query internal |
+| **Workspace: Multi-Role Engine (Peserta, Trainer, Operator, Admin)** | `Production Ready` | `workspace:full:audit` (58 rute 100% Pass), `workspace:smoke` (41/41 Pass), 96 Assertions |
+| **Dashboard: Government Intelligence PBJ** | `Production Ready` | `test:admin-intelligence` (100% Pass) |
+| **Dashboard: Central Approval Hub** | `Production Ready` | `test:admin-approvals` (10/10 Pass) |
+| **Dashboard: Pusat Laporan & Universal Export** | `Production Ready` | `test:admin-reports` (100% Pass, Kop Pemprov Resmi) |
+| **Dashboard: Survei Kepuasan (IKM) PermenPAN-RB** | `Production Ready` | `test:admin-final-fase-e-f` (100% Pass, Bobot 9 Unsur) |
+| **Dashboard: Reusable Advanced DataTables Engine** | `Production Ready` | `begawi-datatable.js` (.begawi-table, Export CSV BOM) |
 
 ---
 
@@ -380,9 +407,9 @@ archive/
 └── views_legacy/                      → Arsip aman 36 file view prototipe & legacy
 
 dokumen/
-├── laporan_audit_landingpage_begawipengadaan.md → Laporan audit komprehensif 44 rute publik & CMS
-├── laporan_audit_dashboard_begawipengadaan.md   → Laporan audit komprehensif 92 rute sidebar & dark mode
-├── laporan_audit_workspace_begawipengadaan.md   → Laporan audit komprehensif 49 rute workspace & multi-role
+├── ../laporan_audit_landingpage_begawipengadaan.md → Laporan audit 33 rute publik & CMS (Root)
+├── ../laporan_audit_dashboard_begawipengadaan.md   → Laporan audit 92 rute sidebar & dark mode (Root)
+├── ../laporan_audit_workspace_begawipengadaan.md   → Laporan audit 58 rute workspace & multi-role (Root)
 ├── route-contract.md                  → Kontrak rute, HTTP method, permission, dan filter
 ├── ui-boundary.md                     → Batasan layout, template FiStudy vs WowDash, dan asset
 ├── auth-and-rbac.md                   → Matriks role, permission, status akun, dan keamanan
@@ -391,7 +418,8 @@ dokumen/
 ├── database-blueprint.md              → Arsitektur tabel, foreign key, index, dan constraint
 ├── database-erd.md                    → Entity Relationship Diagram sistem
 ├── data-dictionary.md                 → Kamus data lengkap tabel dan kolom
-├── schema-fresh-v4-1.sql              → DDL skema database produksi versi terbaru
+├── ../schema-fresh-v4-3.sql           → DDL skema database produksi versi terbaru v4.3 (Root)
+├── ../schema-fresh-v4-3-dummy.sql     → DDL skema dan dataset lengkap autentik PBJ (Root)
 ├── implementation-status.md           → Register status detail per komponen
 ├── registration-policy.md             → Kebijakan dan validasi registrasi pengguna
 ├── assessment-and-certification-rules.md → Formula penilaian dan syarat kelulusan sertifikat

@@ -58,7 +58,7 @@
                 <iconify-icon icon="solar:camera-bold" class="text-base"></iconify-icon>
                 + Galeri Kegiatan
             </a>
-            <a href="<?= route_to('dashboard.knowledge.carousel') ?>" class="btn btn-outline-warning text-dark radius-8 px-14 py-8 text-xs fw-semibold bg-white d-inline-flex align-items-center gap-1 shadow-sm ms-auto">
+            <a href="<?= route_to('dashboard.knowledge.carousel') ?>" class="btn btn-outline-warning-600 text-warning-700 radius-8 px-14 py-8 text-xs fw-semibold bg-white d-inline-flex align-items-center gap-1 shadow-sm ms-auto">
                 <iconify-icon icon="solar:star-bold" class="text-base text-warning"></iconify-icon>
                 Atur Carousel Unggulan
             </a>
@@ -310,7 +310,7 @@
                                             </span>
                                         </td>
                                         <td class="py-12 text-secondary-light text-xs">
-                                            <div class="fw-medium text-dark"><?= esc($art['author_name'] ?? 'Biro PBJ') ?></div>
+                                            <div class="fw-medium text-primary-light"><?= esc($art['author_name'] ?? 'Biro PBJ') ?></div>
                                             <div><?= date('d M Y', strtotime($art['updated_at'])) ?></div>
                                         </td>
                                         <td class="pe-20 py-12 text-end">
@@ -364,7 +364,7 @@
                                     <div class="position-relative" style="height: 120px; background: #0b1f3a;">
                                         <img src="<?= esc($previewImg) ?>" alt="<?= esc($med['title'] ?? '') ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/main/images/gallery/gallery-page-1-1.jpg') ?>';">
                                         <div class="position-absolute top-0 start-0 m-2">
-                                            <span class="badge radius-4 px-6 py-2 text-2xs <?= $isVideo ? 'bg-danger text-white' : ($med['type'] === 'gallery' ? 'bg-dark text-white' : 'bg-info text-dark') ?>">
+                                            <span class="badge radius-4 px-6 py-2 text-2xs <?= $isVideo ? 'bg-danger text-white' : ($med['type'] === 'gallery' ? 'bg-dark text-white' : 'bg-info-50 text-info-700') ?>">
                                                 <?= $isVideo ? 'Video' : ($med['type'] === 'gallery' ? 'Galeri' : 'Infografis') ?>
                                             </span>
                                         </div>
@@ -417,7 +417,7 @@
                 <span class="text-xs text-secondary-light">Kategori taksonomi aktif yang mengelompokkan artikel, FAQ, dan media</span>
             </div>
         </div>
-        <a href="<?= route_to('dashboard.knowledge.categories') ?>" class="btn btn-sm btn-outline-warning text-dark radius-6 px-12 py-6 text-xs">
+        <a href="<?= route_to('dashboard.knowledge.categories') ?>" class="btn btn-sm btn-outline-warning-600 text-warning-700 radius-6 px-12 py-6 text-xs">
             + Kelola Kategori
         </a>
     </div>

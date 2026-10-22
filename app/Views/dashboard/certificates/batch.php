@@ -18,6 +18,9 @@ $batchSummary      = session()->getFlashdata('batch_summary');
     </div>
 </div>
 
+<!-- Sub Navigation -->
+<?= view('dashboard/certificates/_nav_certificate', ['activeSub' => 'batch']) ?>
+
 <!-- Batch Summary Alert if just processed -->
 <?php if (! empty($batchSummary) && is_array($batchSummary)): ?>
     <div class="card radius-12 border bg-base shadow-none mb-24 border-primary-600">

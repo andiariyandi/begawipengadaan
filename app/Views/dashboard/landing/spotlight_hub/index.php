@@ -19,6 +19,9 @@
     </ul>
 </div>
 
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/landing/_nav_landing', ['section' => 'promo', 'activeSub' => 'sorotan-carousel']) ?>
+
 <!-- Top Action & Description Card -->
 <div class="card mb-24">
     <div class="card-body p-20">

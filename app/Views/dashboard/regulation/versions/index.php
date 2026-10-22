@@ -10,10 +10,13 @@
     </div>
 </div>
 
-<div class="card radius-12 border bg-white shadow-sm">
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/regulation/_nav_regulation', ['section' => 'regulations', 'activeSub' => 'versi']) ?>
+
+<div class="card radius-12 border bg-base shadow-sm">
     <div class="card-body p-24">
         <div class="table-responsive scroll-sm">
-            <table class="table bordered-table sm-table mb-0 align-middle">
+            <table class="table bordered-table sm-table mb-0 align-middle begawi-table" data-table-name="versi-dokumen-regulasi" data-page-length="10">
                 <thead>
                     <tr>
                         <th style="min-width: 280px;">Regulasi PBJ</th>
@@ -49,12 +52,12 @@
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <iconify-icon icon="solar:document-text-outline" class="text-primary-600 text-lg flex-shrink-0"></iconify-icon>
-                                    <span class="text-xs fw-medium text-dark text-line-1 max-w-220-px"><?= esc($v['file_original_name'] ?? 'Berkas Naskah') ?></span>
+                                    <span class="text-xs fw-medium text-primary-light text-line-1 max-w-220-px"><?= esc($v['file_original_name'] ?? 'Berkas Naskah') ?></span>
                                 </div>
                             </td>
                             <td><span class="text-xs text-secondary-light"><?= isset($v['file_size']) ? esc(round($v['file_size'] / 1024)) . ' KB' : '-' ?></span></td>
                             <td><span class="text-xs text-secondary-light"><?= esc($v['created_at'] ? date('d M Y H:i', strtotime((string) $v['created_at'])) : '-') ?></span></td>
-                            <td><span class="text-xs text-dark fw-medium"><?= esc($v['uploader_name'] ?? 'Admin') ?></span></td>
+                            <td><span class="text-xs text-primary-light fw-medium"><?= esc($v['uploader_name'] ?? 'Admin') ?></span></td>
                             <td class="text-center">
                                 <?php if (! empty($v['is_current'])): ?>
                                     <span class="badge bg-success-50 text-success-700 radius-6 px-8 py-4 text-xs fw-bold">Versi Aktif</span>

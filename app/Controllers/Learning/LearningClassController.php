@@ -149,6 +149,24 @@ class LearningClassController extends BaseController
         $enrollmentsCount = (int) $db->table('enrollments')->where('class_id', $id)->countAllResults();
         $modulesCount = (int) $db->table('learning_modules')->where('class_id', $id)->countAllResults();
 
+        $modules = $db->table('learning_modules lm')
+            ->select('lm.*,
+                      (SELECT COUNT(1) FROM lessons l WHERE l.module_id = lm.id) AS lesson_count,
+                      (SELECT COUNT(1) FROM quizzes q WHERE q.class_id = lm.class_id AND q.lesson_id IN (SELECT id FROM lessons WHERE module_id = lm.id)) AS quiz_count')
+            ->where('lm.class_id', (int) $id)
+            ->orderBy('lm.sort_order', 'ASC')
+            ->get()->getResultArray();
+
+        $enrollments = $db->table('enrollments e')
+            ->select('e.*, u.name AS user_name, u.email AS user_email, u.username, asn.employee_identifier AS nip, COALESCE(asn.institution_name, asn.unit_name) AS instansi,
+                      cert.id AS certificate_id, cert.certificate_number, cert.status AS cert_status')
+            ->join('users u', 'u.id = e.user_id')
+            ->join('asn_profiles asn', 'asn.user_id = u.id', 'left')
+            ->join('certificates cert', 'cert.source_type = "learning_enrollment" AND cert.source_id = e.id AND cert.status = "issued"', 'left')
+            ->where('e.class_id', (int) $id)
+            ->orderBy('e.enrolled_at', 'DESC')
+            ->get()->getResultArray();
+
         $parsed = parse_class_batch_data($class['description'] ?? '');
         $class['description']             = $parsed['description'];
         $class['batch_stages']            = $parsed['stages'];
@@ -166,6 +184,8 @@ class LearningClassController extends BaseController
             'trainerCandidates' => $trainerCandidates,
             'enrollmentsCount'  => $enrollmentsCount,
             'modulesCount'      => $modulesCount,
+            'modules'           => $modules,
+            'enrollments'       => $enrollments,
             'activeMenu'        => 'learning',
             'activeSubmenu'     => 'classes',
         ]);
@@ -537,5 +557,306 @@ class LearningClassController extends BaseController
             'assignment_weight'     => $assignmentWeight,
             'post_test_weight'      => $postTestWeight,
         ];
+    }
+
+    public function duplicateBatch(string $id)
+    {
+        if (! $this->canManageClasses()) {
+            return $this->forbidClassManagement();
+        }
+
+        $source = $this->classModel->find($id);
+        if ($source === null) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas sumber tidak ditemukan.');
+        }
+
+        $newName = trim((string) $this->request->getPost('new_name'));
+        $newCode = strtoupper(trim((string) $this->request->getPost('new_code')));
+        $startAt = $this->request->getPost('start_at') ?: null;
+        $endAt   = $this->request->getPost('end_at') ?: null;
+        $copyTrainers = (bool) $this->request->getPost('copy_trainers');
+
+        if ($newName === '' || $newCode === '') {
+            return redirect()->back()->withInput()->with('error', 'Nama dan kode kelas baru wajib diisi.');
+        }
+
+        $existing = $this->classModel->where('code', $newCode)->first();
+        if ($existing !== null) {
+            return redirect()->back()->withInput()->with('error', "Kode kelas '{$newCode}' sudah digunakan. Silakan gunakan kode unik lainnya.");
+        }
+
+        $db = db_connect();
+        $db->transStart();
+
+        $userId = (int) (session()->get('user_id') ?: 1);
+
+        $newClassData = [
+            'course_id'             => $source['course_id'],
+            'code'                  => $newCode,
+            'name'                  => $newName,
+            'description'           => $source['description'],
+            'cover_file_id'         => $source['cover_file_id'] ?? null,
+            'cover_url'             => $source['cover_url'] ?? null,
+            'featured'              => 0,
+            'carousel_enabled'      => 0,
+            'status'                => 'draft',
+            'learning_method'       => $source['learning_method'] ?? 'online',
+            'location_or_link'      => $source['location_or_link'] ?? null,
+            'target_audience'       => $source['target_audience'] ?? null,
+            'registration_open_at'  => $this->request->getPost('registration_open_at') ?: null,
+            'registration_close_at' => $this->request->getPost('registration_close_at') ?: null,
+            'start_at'              => $startAt,
+            'end_at'                => $endAt,
+            'capacity'              => (int) ($this->request->getPost('capacity') ?: $source['capacity']),
+            'certificate_enabled'   => (int) ($source['certificate_enabled'] ?? 1),
+            'passing_grade'         => (int) ($source['passing_grade'] ?? 70),
+            'quiz_weight'           => (float) ($source['quiz_weight'] ?? 40),
+            'assignment_weight'     => (float) ($source['assignment_weight'] ?? 0),
+            'post_test_weight'      => (float) ($source['post_test_weight'] ?? 60),
+            'created_by'            => $userId,
+            'updated_by'            => $userId,
+        ];
+
+        $newClassId = (int) $this->classModel->insert($newClassData, true);
+
+        // Duplicate modules & lessons
+        $modules = $db->table('learning_modules')
+            ->where('class_id', (int) $id)
+            ->orderBy('sort_order', 'ASC')
+            ->get()->getResultArray();
+
+        $lessonMap = [];
+
+        foreach ($modules as $m) {
+            $newModData = [
+                'class_id'    => $newClassId,
+                'title'       => $m['title'],
+                'description' => $m['description'],
+                'sort_order'  => (int) $m['sort_order'],
+                'is_required' => (int) $m['is_required'],
+                'status'      => $m['status'],
+                'created_at'  => date('Y-m-d H:i:s'),
+                'updated_at'  => date('Y-m-d H:i:s'),
+            ];
+            $db->table('learning_modules')->insert($newModData);
+            $newModId = (int) $db->insertID();
+
+            $lessons = $db->table('lessons')
+                ->where('module_id', (int) $m['id'])
+                ->orderBy('sort_order', 'ASC')
+                ->get()->getResultArray();
+
+            foreach ($lessons as $l) {
+                $newLessonData = [
+                    'module_id'    => $newModId,
+                    'title'        => $l['title'],
+                    'slug'         => $l['slug'] . '-b' . $newClassId,
+                    'content_type' => $l['content_type'],
+                    'content'      => $l['content'],
+                    'file_id'      => $l['file_id'],
+                    'external_url' => $l['external_url'],
+                    'sort_order'   => (int) $l['sort_order'],
+                    'is_required'  => (int) $l['is_required'],
+                    'status'       => $l['status'],
+                    'visibility'   => $l['visibility'],
+                    'created_by'   => $userId,
+                    'updated_by'   => $userId,
+                    'created_at'   => date('Y-m-d H:i:s'),
+                    'updated_at'   => date('Y-m-d H:i:s'),
+                ];
+                $db->table('lessons')->insert($newLessonData);
+                $newLessonId = (int) $db->insertID();
+                $lessonMap[(int) $l['id']] = $newLessonId;
+            }
+        }
+
+        // Duplicate quizzes
+        $quizzes = $db->table('quizzes')
+            ->where('class_id', (int) $id)
+            ->get()->getResultArray();
+
+        foreach ($quizzes as $q) {
+            $mappedLessonId = ! empty($q['lesson_id']) && isset($lessonMap[(int) $q['lesson_id']])
+                ? $lessonMap[(int) $q['lesson_id']]
+                : null;
+
+            $newQuizData = [
+                'class_id'         => $newClassId,
+                'lesson_id'        => $mappedLessonId,
+                'type'             => $q['type'],
+                'title'            => $q['title'],
+                'instructions'     => $q['instructions'],
+                'duration_minutes' => (int) $q['duration_minutes'],
+                'attempt_limit'    => (int) $q['attempt_limit'],
+                'is_required'      => (int) $q['is_required'],
+                'status'           => $q['status'],
+                'created_at'       => date('Y-m-d H:i:s'),
+                'updated_at'       => date('Y-m-d H:i:s'),
+            ];
+            $db->table('quizzes')->insert($newQuizData);
+            $newQuizId = (int) $db->insertID();
+
+            $questions = $db->table('questions')
+                ->where('quiz_id', (int) $q['id'])
+                ->orderBy('sort_order', 'ASC')
+                ->get()->getResultArray();
+
+            foreach ($questions as $quest) {
+                $newQuestData = [
+                    'quiz_id'     => $newQuizId,
+                    'question'    => $quest['question'],
+                    'type'        => $quest['type'] ?? 'multiple_choice',
+                    'points'      => $quest['points'] ?? 10,
+                    'sort_order'  => (int) ($quest['sort_order'] ?? 1),
+                    'explanation' => $quest['explanation'] ?? null,
+                    'created_at'  => date('Y-m-d H:i:s'),
+                    'updated_at'  => date('Y-m-d H:i:s'),
+                ];
+                $db->table('questions')->insert($newQuestData);
+                $newQuestId = (int) $db->insertID();
+
+                $options = $db->table('question_options')
+                    ->where('question_id', (int) $quest['id'])
+                    ->orderBy('sort_order', 'ASC')
+                    ->get()->getResultArray();
+
+                foreach ($options as $opt) {
+                    $newOptData = [
+                        'question_id' => $newQuestId,
+                        'option_text' => $opt['option_text'],
+                        'is_correct'  => (int) $opt['is_correct'],
+                        'sort_order'  => (int) ($opt['sort_order'] ?? 1),
+                        'created_at'  => date('Y-m-d H:i:s'),
+                        'updated_at'  => date('Y-m-d H:i:s'),
+                    ];
+                    $db->table('question_options')->insert($newOptData);
+                }
+            }
+        }
+
+        // Copy trainers if requested
+        if ($copyTrainers) {
+            $trainers = $db->table('class_trainers')
+                ->where('class_id', (int) $id)
+                ->where('status', 'active')
+                ->get()->getResultArray();
+
+            foreach ($trainers as $tr) {
+                $db->table('class_trainers')->insert([
+                    'class_id'    => $newClassId,
+                    'user_id'     => $tr['user_id'],
+                    'role'        => $tr['role'] ?? 'lead',
+                    'status'      => 'active',
+                    'assigned_by' => $userId,
+                    'assigned_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+        }
+
+        // Audit log
+        $auditService = new \App\Services\AuditService();
+        $auditService->log(
+            $userId,
+            'learning.class.duplicated',
+            'learning',
+            'class',
+            $newClassId,
+            [
+                'source_class_id' => (int) $id,
+                'source_code'     => $source['code'],
+                'new_class_id'    => $newClassId,
+                'new_code'        => $newCode,
+                'modules_copied'  => count($modules),
+            ]
+        );
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan basis data saat menduplikasi kelas.');
+        }
+
+        return redirect()->to(site_url('dashboard/pembelajaran/kelas/' . $newClassId))
+            ->with('success', "Angkatan kelas baru '{$newName}' ({$newCode}) berhasil diduplikasi dari Batch #{$id} beserta seluruh modul dan kurikulum.");
+    }
+
+    public function exportGradebook(string $id)
+    {
+        $class = $this->classModel
+            ->select('learning_classes.*, courses.title AS course_title')
+            ->join('courses', 'courses.id = learning_classes.course_id', 'left')
+            ->find($id);
+
+        if ($class === null) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kelas tidak ditemukan.');
+        }
+
+        $db = db_connect();
+        $enrollments = $db->table('enrollments e')
+            ->select('e.*, u.name AS user_name, u.email AS user_email, u.username, asn.employee_identifier AS nip, COALESCE(asn.institution_name, asn.unit_name) AS instansi,
+                      cert.id AS certificate_id, cert.certificate_number, cert.status AS cert_status')
+            ->join('users u', 'u.id = e.user_id')
+            ->join('asn_profiles asn', 'asn.user_id = u.id', 'left')
+            ->join('certificates cert', 'cert.source_type = "learning_enrollment" AND cert.source_id = e.id AND cert.status = "issued"', 'left')
+            ->where('e.class_id', (int) $id)
+            ->orderBy('u.name', 'ASC')
+            ->get()->getResultArray();
+
+        $passingGrade = (int) ($class['passing_grade'] ?? 70);
+
+        // UTF-8 BOM
+        $csv = "\xEF\xBB\xBF";
+        $csv .= "GRADEBOOK NILAI KELAS PBJ - " . str_replace(',', ' ', $class['name']) . " (" . $class['code'] . ")\n";
+        $csv .= "No,Nama Peserta,NIP,Email,Instansi / OPD,Nilai Akhir,Passing Grade,Status Kelulusan,Nomor Sertifikat,Status Sertifikat,Tanggal Terdaftar\n";
+
+        $no = 1;
+        foreach ($enrollments as $row) {
+            $finalScore = $row['final_score'] !== null ? (float) $row['final_score'] : 0.0;
+            $isPassed = in_array($row['status'], ['completed', 'passed'], true) || ($finalScore >= $passingGrade && $row['status'] === 'active');
+            $passStatus = $isPassed ? 'LULUS' : 'BELUM LULUS';
+
+            $certStatus = ! empty($row['certificate_id'])
+                ? 'DITERBITKAN'
+                : ($isPassed ? 'LAYAK SERTIFIKAT' : 'BELUM LAYAK');
+
+            $certNum = ! empty($row['certificate_number']) ? $row['certificate_number'] : '-';
+
+            $line = [
+                $no++,
+                '"' . str_replace('"', '""', (string) $row['user_name']) . '"',
+                '"' . str_replace('"', '""', (string) ($row['nip'] ?? '-')) . '"',
+                '"' . str_replace('"', '""', (string) $row['user_email']) . '"',
+                '"' . str_replace('"', '""', (string) ($row['instansi'] ?? '-')) . '"',
+                number_format($finalScore, 1, '.', ''),
+                $passingGrade,
+                $passStatus,
+                '"' . str_replace('"', '""', $certNum) . '"',
+                $certStatus,
+                ! empty($row['enrolled_at']) ? date('d/m/Y H:i', strtotime($row['enrolled_at'])) : '-',
+            ];
+
+            $csv .= implode(',', $line) . "\n";
+        }
+
+        $auditService = new \App\Services\AuditService();
+        $auditService->log(
+            (int) (session()->get('user_id') ?: 1),
+            'learning.gradebook.exported',
+            'learning',
+            'class',
+            (int) $id,
+            [
+                'class_code' => $class['code'],
+                'total_rows' => count($enrollments),
+            ]
+        );
+
+        $safeCode = preg_replace('/[^A-Za-z0-9_-]/', '_', (string) $class['code']);
+        $filename = 'Buku_Nilai_' . $safeCode . '_' . date('Ymd_His') . '.csv';
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->setBody($csv);
     }
 }

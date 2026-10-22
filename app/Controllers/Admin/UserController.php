@@ -54,6 +54,19 @@ class UserController extends BaseController
         if ($roleId > 0) {
             $builder->where('EXISTS (SELECT 1 FROM user_roles ur2 WHERE ur2.user_id = u.id AND ur2.role_id = ' . $roleId . ' AND ur2.status = "active")', null, false);
         }
+        $verification = trim((string) $this->request->getGet('verification'));
+        if ($verification === 'verified') {
+            $builder->where('u.email_verified_at IS NOT NULL', null, false);
+        } elseif ($verification === 'unverified') {
+            $builder->where('u.email_verified_at IS NULL', null, false);
+        } elseif ($verification === 'complete') {
+            $builder->where('up.profile_completion_status', 'complete');
+        } elseif ($verification === 'incomplete') {
+            $builder->groupStart()
+                ->where('up.profile_completion_status !=', 'complete')
+                ->orWhere('up.profile_completion_status IS NULL', null, false)
+                ->groupEnd();
+        }
 
         // Sorting
         $sort = (string) ($this->request->getGet('sort') ?: 'created_at');
@@ -85,6 +98,20 @@ class UserController extends BaseController
         }
         if ($roleId > 0) {
             $countBuilder->where('EXISTS (SELECT 1 FROM user_roles ur2 WHERE ur2.user_id = u.id AND ur2.role_id = ' . $roleId . ' AND ur2.status = "active")', null, false);
+        }
+        if ($verification === 'verified') {
+            $countBuilder->where('u.email_verified_at IS NOT NULL', null, false);
+        } elseif ($verification === 'unverified') {
+            $countBuilder->where('u.email_verified_at IS NULL', null, false);
+        } elseif ($verification === 'complete') {
+            $countBuilder->join('user_profiles upc', 'upc.user_id = u.id', 'left')
+                ->where('upc.profile_completion_status', 'complete');
+        } elseif ($verification === 'incomplete') {
+            $countBuilder->join('user_profiles upc', 'upc.user_id = u.id', 'left')
+                ->groupStart()
+                ->where('upc.profile_completion_status !=', 'complete')
+                ->orWhere('upc.profile_completion_status IS NULL', null, false)
+                ->groupEnd();
         }
         $total = $countBuilder->countAllResults();
 
@@ -118,6 +145,7 @@ class UserController extends BaseController
                 'profile_type'   => $profileType,
                 'account_status' => $status,
                 'role_id'        => $roleId,
+                'verification'   => $verification,
                 'per_page'       => $perPage,
                 'sort'           => $sort,
                 'dir'            => strtolower($dir),
@@ -233,7 +261,63 @@ class UserController extends BaseController
             return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
         }
 
+        $newPassword = (string) $this->request->getPost('new_password');
+        $actorId = (int) (session()->get('user_id') ?: 0);
+
+        if ($newPassword !== '') {
+            if (strlen($newPassword) < 8) {
+                return redirect()->back()->with('error', 'Kata sandi minimal 8 karakter.');
+            }
+
+            $confirmPassword = (string) $this->request->getPost('confirm_password');
+            if ($confirmPassword !== '' && $newPassword !== $confirmPassword) {
+                return redirect()->back()->with('error', 'Konfirmasi kata sandi tidak cocok.');
+            }
+
+            $currentSessionVersion = (int) ($user['session_version'] ?? 1);
+            (new UserModel())->update($userId, [
+                'password_hash'   => password_hash($newPassword, PASSWORD_BCRYPT),
+                'session_version' => $currentSessionVersion + 1,
+                'updated_at'      => date('Y-m-d H:i:s'),
+            ]);
+
+            try {
+                (new \App\Services\AuditService())->log(
+                    $actorId ?: null,
+                    'password_reset',
+                    'users',
+                    'users',
+                    $userId,
+                    [
+                        'mode'         => 'administrative_direct',
+                        'target_email' => $user['email'] ?? null,
+                    ]
+                );
+            } catch (\Throwable $e) {
+                // Silently continue
+            }
+
+            return redirect()->to('dashboard/akses/pengguna/' . $userId)
+                ->with('success', 'Kata sandi pengguna berhasil diubah secara administratif.');
+        }
+
         (new \App\Services\Identity\PasswordResetService())->requestReset((string) $user['email']);
+
+        try {
+            (new \App\Services\AuditService())->log(
+                $actorId ?: null,
+                'password_reset_request',
+                'users',
+                'users',
+                $userId,
+                [
+                    'mode'         => 'email_dispatch',
+                    'target_email' => $user['email'] ?? null,
+                ]
+            );
+        } catch (\Throwable $e) {
+            // Silently continue
+        }
 
         return redirect()->to('dashboard/akses/pengguna/' . $userId)
             ->with('success', 'Instruksi reset kata sandi telah dikirim ke email pengguna.');

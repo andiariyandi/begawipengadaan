@@ -14,8 +14,11 @@
     </a>
 </div>
 
-<div class="card border-0 radius-16 shadow-sm bg-white">
-    <div class="card-header border-bottom p-20 bg-white d-flex align-items-center justify-content-between">
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/knowledge/_nav_knowledge', ['section' => 'taxonomy', 'activeSub' => 'tags']) ?>
+
+<div class="card border-0 radius-16 shadow-sm bg-base">
+    <div class="card-header border-bottom p-20 bg-base d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
             <iconify-icon icon="solar:hashtag-bold" class="text-primary-600 text-xl"></iconify-icon>
             <h6 class="text-base fw-bold mb-0">Semua Tagar Aktif (<?= count($items) ?>)</h6>
@@ -37,7 +40,7 @@
                                 <iconify-icon icon="solar:hashtag-bold" class="text-lg"></iconify-icon>
                             </span>
                             <div class="overflow-hidden">
-                                <span class="fw-bold text-dark text-sm text-truncate d-block" title="<?= esc($tag['name']) ?>">
+                                <span class="fw-bold text-primary-light text-sm text-truncate d-block" title="<?= esc($tag['name']) ?>">
                                     <?= esc($tag['name']) ?>
                                 </span>
                                 <small class="text-secondary-light text-xs text-truncate d-block"><?= esc($tag['slug']) ?></small>

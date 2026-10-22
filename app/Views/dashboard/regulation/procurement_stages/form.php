@@ -59,7 +59,7 @@ $stgId    = $stgId ?? null;
                 <div class="col-12">
                     <div class="form-check form-switch mb-0">
                         <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1" <?= ($stage['is_active'] ?? 1) ? 'checked' : '' ?>>
-                        <label class="form-check-label fw-bold text-sm text-dark cursor-pointer ms-2" for="is_active">
+                        <label class="form-check-label fw-bold text-sm text-primary-light cursor-pointer ms-2" for="is_active">
                             Tahapan Aktif
                         </label>
                     </div>

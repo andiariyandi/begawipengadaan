@@ -192,6 +192,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/communication/_nav_communication', ['activeSub' => 'news']) ?>
 <?php
 $items          = $items ?? [];
 $categories     = $categories ?? [];

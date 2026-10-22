@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/certificates/_nav_certificate', ['activeSub' => 'verification']) ?>
 <?php
 $certificate = $certificate ?? null;
 $searchQuery = $searchQuery ?? '';

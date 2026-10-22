@@ -29,8 +29,8 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-            <h6 class="fw-bold mb-0 text-dark"><?= esc($message['subject']) ?></h6>
-            <span class="badge bg-light text-dark border font-monospace text-xs px-8 py-4">
+            <h6 class="fw-bold mb-0 text-primary-light"><?= esc($message['subject']) ?></h6>
+            <span class="badge bg-neutral-100 text-neutral-900 border border font-monospace text-xs px-8 py-4">
                 <?= esc($ticketNo) ?>
             </span>
             <?php
@@ -83,7 +83,7 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
             <div class="card-header border-bottom py-16 px-24 d-flex align-items-center justify-content-between flex-wrap gap-2 bg-neutral-50 radius-top-16">
                 <div class="d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:chat-round-line-bold" class="text-primary-600 fs-5"></iconify-icon>
-                    <h6 class="text-sm fw-bold mb-0 text-dark">Thread Percakapan Dua Arah</h6>
+                    <h6 class="text-sm fw-bold mb-0 text-primary-light">Thread Percakapan Dua Arah</h6>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <?php if ($isRegistered): ?>
@@ -107,7 +107,7 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
                                 <?= strtoupper(mb_substr($message['sender_name'], 0, 1)) ?>
                             </span>
                             <div>
-                                <strong class="text-sm d-block text-dark"><?= esc($message['sender_name']) ?></strong>
+                                <strong class="text-sm d-block text-primary-light"><?= esc($message['sender_name']) ?></strong>
                                 <small class="text-muted text-2xs">Pemohon / Pengirim Pertama</small>
                             </div>
                         </div>
@@ -131,7 +131,7 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
 
                             if ($isInternal) {
                                 $boxClass = 'bg-warning-subtle border border-warning-subtle';
-                                $badgeTag = '<span class="badge bg-warning text-dark text-2xs"><iconify-icon icon="solar:lock-bold"></iconify-icon> Catatan Internal Petugas</span>';
+                                $badgeTag = '<span class="badge bg-warning-50 text-warning-700 border border-warning-200 text-2xs"><iconify-icon icon="solar:lock-bold"></iconify-icon> Catatan Internal Petugas</span>';
                             } elseif ($isAdminSender) {
                                 $boxClass = 'bg-primary-50 border border-primary-200 ms-auto';
                                 $channelBadge = match ($channel) {
@@ -148,11 +148,11 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
                             <div class="p-20 radius-12 <?= $boxClass ?>" style="max-width: <?= $isInternal ? '100%' : '90%' ?>;">
                                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-10 pb-8 border-bottom">
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="w-32-px h-32-px radius-circle <?= $isAdminSender ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-dark' ?> fw-bold d-flex align-items-center justify-content-center text-xs">
+                                        <span class="w-32-px h-32-px radius-circle <?= $isAdminSender ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-neutral-900' ?> fw-bold d-flex align-items-center justify-content-center text-xs">
                                             <?= strtoupper(mb_substr($th['sender_name'] ?? 'U', 0, 1)) ?>
                                         </span>
                                         <div>
-                                            <strong class="text-sm d-block text-dark"><?= esc($th['sender_name'] ?? 'Petugas') ?></strong>
+                                            <strong class="text-sm d-block text-primary-light"><?= esc($th['sender_name'] ?? 'Petugas') ?></strong>
                                             <small class="text-muted text-2xs"><?= $isAdminSender ? 'Tim Helpdesk PBJ' : 'Pemohon' ?></small>
                                         </div>
                                     </div>
@@ -176,7 +176,7 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
 
                 <!-- 3. Form Kirim Balasan / Response Dispatcher -->
                 <div class="card border radius-12 bg-white mt-16">
-                    <div class="card-header bg-white border-bottom py-12 px-20">
+                    <div class="card-header bg-base border-bottom py-12 px-20">
                         <ul class="nav nav-pills gap-2 flex-wrap" id="replyTabs" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active radius-8 text-xs py-6 px-14 fw-bold" id="portal-tab" data-bs-toggle="pill" data-bs-target="#tab-portal" type="button" role="tab">
@@ -315,7 +315,7 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
                                     </div>
 
                                     <div class="text-end">
-                                        <button type="submit" class="btn btn-warning btn-sm radius-8 px-20 py-8 fw-semibold text-dark">
+                                        <button type="submit" class="btn btn-warning-600 btn-sm radius-8 px-20 py-8 fw-semibold text-neutral-900">
                                             <iconify-icon icon="solar:lock-bold" class="me-1"></iconify-icon> Simpan Catatan Internal
                                         </button>
                                     </div>
@@ -332,8 +332,8 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
     <div class="col-xl-4 col-lg-5">
         <!-- Pengirim Info Card -->
         <div class="card mb-24 shadow-sm border-0 radius-16">
-            <div class="card-header border-bottom py-16 px-24 bg-white radius-top-16 d-flex align-items-center justify-content-between">
-                <h6 class="text-sm fw-bold mb-0 text-dark">Data Pemohon</h6>
+            <div class="card-header border-bottom py-16 px-24 bg-base radius-top-16 d-flex align-items-center justify-content-between">
+                <h6 class="text-sm fw-bold mb-0 text-primary-light">Data Pemohon</h6>
                 <?php if ($isRegistered): ?>
                     <span class="badge bg-success-subtle text-success border border-success-subtle text-2xs">User Terverifikasi</span>
                 <?php else: ?>
@@ -343,7 +343,7 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
             <div class="card-body p-24">
                 <div class="mb-14 pb-12 border-bottom">
                     <label class="text-2xs text-muted d-block text-uppercase fw-semibold mb-1">Nama Lengkap</label>
-                    <strong class="text-sm text-dark d-block"><?= esc($message['sender_name']) ?></strong>
+                    <strong class="text-sm text-primary-light d-block"><?= esc($message['sender_name']) ?></strong>
                     <?php if ($isRegistered && ! empty($senderUser['profile_type'])): ?>
                         <span class="badge bg-primary-subtle text-primary text-2xs mt-1">Tipe: <?= strtoupper(esc($senderUser['profile_type'])) ?></span>
                     <?php endif; ?>
@@ -363,7 +363,7 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
                     <label class="text-2xs text-muted d-block text-uppercase fw-semibold mb-1">No. WhatsApp / Telepon</label>
                     <?php if (! empty($message['sender_phone'])): ?>
                         <div class="d-flex align-items-center justify-content-between">
-                            <span class="text-sm text-dark"><?= esc($message['sender_phone']) ?></span>
+                            <span class="text-sm text-primary-light"><?= esc($message['sender_phone']) ?></span>
                             <?php $cleanPhone = preg_replace('/[^0-9]/', '', $message['sender_phone']); ?>
                             <a href="https://wa.me/<?= $cleanPhone ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success btn-sm radius-8 px-8 py-2 text-2xs" title="Chat WA Langsung">
                                 <iconify-icon icon="logos:whatsapp-icon"></iconify-icon>
@@ -383,8 +383,8 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
 
         <!-- Status & Manajemen Tiket Card -->
         <div class="card mb-24 shadow-sm border-0 radius-16">
-            <div class="card-header border-bottom py-16 px-24 bg-white radius-top-16">
-                <h6 class="text-sm fw-bold mb-0 text-dark">Manajemen Tiket</h6>
+            <div class="card-header border-bottom py-16 px-24 bg-base radius-top-16">
+                <h6 class="text-sm fw-bold mb-0 text-primary-light">Manajemen Tiket</h6>
             </div>
             <div class="card-body p-24">
                 <form method="post" action="<?= site_url('dashboard/komunikasi/pesan-masuk/update-status/' . $message['id']) ?>">
@@ -442,10 +442,10 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
 
         <!-- Tracking & Activity Log Card (Audit Trail) -->
         <div class="card shadow-sm border-0 radius-16">
-            <div class="card-header border-bottom py-16 px-24 bg-white radius-top-16 d-flex align-items-center justify-content-between">
+            <div class="card-header border-bottom py-16 px-24 bg-base radius-top-16 d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:history-bold" class="text-primary-600"></iconify-icon>
-                    <h6 class="text-sm fw-bold mb-0 text-dark">Tracking &amp; Log Riwayat</h6>
+                    <h6 class="text-sm fw-bold mb-0 text-primary-light">Tracking &amp; Log Riwayat</h6>
                 </div>
                 <span class="badge bg-neutral-200 text-neutral-800 text-2xs"><?= count($logs) ?> Entri</span>
             </div>
@@ -458,7 +458,7 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
                             <div class="position-relative mb-16">
                                 <span class="position-absolute translate-middle-y bg-primary-600 radius-circle" style="left: -26px; top: 10px; width: 10px; height: 10px;"></span>
                                 <div>
-                                    <strong class="text-xs text-dark d-block"><?= esc($lg['action']) ?></strong>
+                                    <strong class="text-xs text-primary-light d-block"><?= esc($lg['action']) ?></strong>
                                     <small class="text-muted text-2xs d-block mb-1">
                                         <?= esc($lg['actor']) ?> &middot; <?= date('d M Y H:i', strtotime($lg['time'])) ?> WIB
                                     </small>

@@ -9,10 +9,13 @@
     </div>
 </div>
 
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/landing/_nav_landing', ['section' => 'promo', 'activeSub' => 'banner-halaman']) ?>
+
 <div class="card basic-data-table">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table bordered-table mb-0 align-middle">
+            <table class="table bordered-table mb-0 align-middle begawi-table" data-table-name="banner-halaman-publik" data-page-length="10">
                 <thead>
                     <tr>
                         <th style="width: 50px;">No</th>

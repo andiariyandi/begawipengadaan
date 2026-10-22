@@ -192,7 +192,7 @@ $coverImgUrl      = ! empty($regulation['cover_file_id']) ? base_url('file/' . (
                                                 <span class="badge bg-info-100 text-info-700 radius-4 px-8 py-2 text-xs fw-bold">
                                                     <?= esc($st['stage_key'] ?? $st['key'] ?? 'PBJ') ?>
                                                 </span>
-                                                <h6 class="text-sm fw-bold mb-0 text-dark"><?= esc($st['stage_name'] ?? $st['name'] ?? '-') ?></h6>
+                                                <h6 class="text-sm fw-bold mb-0 text-primary-light"><?= esc($st['stage_name'] ?? $st['name'] ?? '-') ?></h6>
                                             </div>
                                             <p class="text-xs text-secondary-light mb-0"><?= esc($st['description'] ?? 'Tahapan pelaksanaan proses pengadaan barang/jasa pemerintah.') ?></p>
                                         </div>
@@ -460,11 +460,11 @@ $coverImgUrl      = ! empty($regulation['cover_file_id']) ? base_url('file/' . (
             <div class="card-body p-20">
                 <div class="mb-12">
                     <span class="text-xs text-secondary-light d-block mb-1">Dibuat Oleh:</span>
-                    <span class="text-sm fw-medium text-dark"><?= esc($regulation['creator_name'] ?: 'Administrator') ?></span>
+                    <span class="text-sm fw-medium text-primary-light"><?= esc($regulation['creator_name'] ?: 'Administrator') ?></span>
                 </div>
                 <div class="mb-12">
                     <span class="text-xs text-secondary-light d-block mb-1">Waktu Pembuatan:</span>
-                    <span class="text-sm fw-medium text-dark"><?= esc($regulation['created_at'] ? date('d M Y H:i', strtotime((string) $regulation['created_at'])) : '-') ?></span>
+                    <span class="text-sm fw-medium text-primary-light"><?= esc($regulation['created_at'] ? date('d M Y H:i', strtotime((string) $regulation['created_at'])) : '-') ?></span>
                 </div>
                 <div class="mb-12">
                     <span class="text-xs text-secondary-light d-block mb-1">Akses Visibilitas:</span>
@@ -473,7 +473,7 @@ $coverImgUrl      = ! empty($regulation['cover_file_id']) ? base_url('file/' . (
                 <?php if (! empty($regulation['publisher_name'])): ?>
                     <div class="mb-0">
                         <span class="text-xs text-secondary-light d-block mb-1">Dipublikasikan Oleh:</span>
-                        <span class="text-sm fw-medium text-dark"><?= esc($regulation['publisher_name']) ?> (<?= esc($regulation['published_at'] ? date('d M Y', strtotime((string) $regulation['published_at'])) : '-') ?>)</span>
+                        <span class="text-sm fw-medium text-primary-light"><?= esc($regulation['publisher_name']) ?> (<?= esc($regulation['published_at'] ? date('d M Y', strtotime((string) $regulation['published_at'])) : '-') ?>)</span>
                     </div>
                 <?php endif; ?>
             </div>

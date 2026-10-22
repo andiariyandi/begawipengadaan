@@ -27,6 +27,9 @@ $stats            = $stats ?? ['total' => count($regulations), 'active' => 0, 'p
     </div>
 </div>
 
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/regulation/_nav_regulation', ['section' => 'regulations', 'activeSub' => 'dokumen']) ?>
+
 <!-- KPI Summary Cards -->
 <div class="row row-cols-xxl-4 row-cols-md-2 row-cols-1 g-3 mb-24">
     <div class="col">
@@ -161,7 +164,7 @@ $stats            = $stats ?? ['total' => count($regulations), 'active' => 0, 'p
             ]) ?>
         <?php else: ?>
             <div class="table-responsive scroll-sm">
-                <table class="table bordered-table sm-table mb-0 align-middle">
+                <table class="table bordered-table sm-table mb-0 align-middle begawi-table" data-table-name="dokumen-regulasi-pbj" data-page-length="10">
                     <thead>
                         <tr>
                             <th style="min-width: 320px;">Naskah &amp; Judul Regulasi</th>
@@ -171,7 +174,7 @@ $stats            = $stats ?? ['total' => count($regulations), 'active' => 0, 'p
                             <th class="text-center">Versi</th>
                             <th class="text-center">Workflow</th>
                             <th class="text-center">Status Legal</th>
-                            <th class="text-center">Aksi</th>
+                            <th class="text-center no-sort no-export action-col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

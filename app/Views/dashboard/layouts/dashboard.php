@@ -17,6 +17,7 @@
         </div>
 
         <?= $this->include('dashboard/components/confirmation_modal') ?>
+        <?= $this->include('dashboard/components/spotlight_modal') ?>
         <?= $this->include('dashboard/components/footer') ?>
     </main>
 

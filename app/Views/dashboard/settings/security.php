@@ -1,19 +1,20 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/settings/_nav_settings', ['activeSetting' => 'security']) ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Keamanan Sistem') ?></h6>
         <p class="text-secondary-light mb-0">Kebijakan akses, kata sandi, dan pengelolaan sesi pengguna.</p>
     </div>
-    <a href="<?= site_url('dashboard/pengaturan') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
+    <a href="<?= site_url('dashboard/sistem/pengaturan') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
 </div>
 
 <div class="row gy-4">
     <div class="col-xl-7">
         <div class="card">
             <div class="card-body p-24">
-                <form method="post" action="<?= site_url('dashboard/pengaturan/security') ?>">
+                <form method="post" action="<?= site_url('dashboard/sistem/pengaturan/security') ?>">
                     <?= csrf_field() ?>
                     <h6 class="text-lg mb-20">Kebijakan Kata Sandi</h6>
                     <div class="row gy-20">
@@ -52,7 +53,7 @@
                             <input type="number" name="max_login_attempts" class="form-control radius-8" value="<?= esc($settings['max_login_attempts'] ?? '5') ?>" required>
                         </div>
                         <div class="col-12 d-flex justify-content-end gap-12">
-                            <a href="<?= site_url('dashboard/pengaturan/security') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Reset</a>
+                            <a href="<?= site_url('dashboard/sistem/pengaturan-keamanan') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Reset</a>
                             <button type="submit" class="btn btn-primary-600 radius-8 px-20 py-11">Simpan Kebijakan</button>
                         </div>
                     </div>

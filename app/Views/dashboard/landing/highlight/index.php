@@ -13,6 +13,9 @@
     </a>
 </div>
 
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/landing/_nav_landing', ['section' => 'profile', 'activeSub' => 'pilar-hierarki']) ?>
+
 <!-- Tabs Navigation for Feature Sections -->
 <div class="card mb-24">
     <div class="card-body p-12">
@@ -31,7 +34,7 @@
 <div class="card basic-data-table">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table bordered-table mb-0 align-middle">
+            <table class="table bordered-table mb-0 align-middle begawi-table" data-table-name="pilar-hierarki" data-page-length="10">
                 <thead>
                     <tr>
                         <th style="width: 50px;">Urutan</th>

@@ -1,7 +1,119 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Riwayat Export') ?></h6><p class="text-secondary-light mb-0">Riwayat permintaan dan pembuatan file laporan pada dashboard.</p></div><button type="button" class="btn btn-primary-600 radius-8 px-20 py-11"><iconify-icon icon="solar:add-circle-outline" class="me-6"></iconify-icon>Buat Export</button></div>
-<div class="row row-cols-xxxl-4 row-cols-lg-2 row-cols-1 gy-4"><div class="col"><div class="card shadow-none border bg-gradient-start-1 h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Total Export</p><h6 class="mb-0">128</h6><p class="text-sm text-primary-light mt-12 mb-0">Sepanjang tahun berjalan</p></div></div></div><div class="col"><div class="card shadow-none border bg-gradient-start-2 h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Berhasil</p><h6 class="mb-0">121</h6><p class="text-sm text-primary-light mt-12 mb-0">File siap diunduh</p></div></div></div><div class="col"><div class="card shadow-none border bg-gradient-start-3 h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Diproses</p><h6 class="mb-0">4</h6><p class="text-sm text-primary-light mt-12 mb-0">Menunggu sistem selesai</p></div></div></div><div class="col"><div class="card shadow-none border bg-gradient-start-5 h-100"><div class="card-body p-20"><p class="fw-medium text-primary-light mb-1">Gagal</p><h6 class="mb-0">3</h6><p class="text-sm text-primary-light mt-12 mb-0">Perlu pemeriksaan ulang</p></div></div></div></div>
-<div class="card mt-24"><div class="card-body p-24"><div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-20"><div><h6 class="text-lg mb-0">Daftar Riwayat Export</h6><p class="text-secondary-light text-sm mb-0 mt-4">Data dummy; fungsi unduh dapat dihubungkan setelah modul export tersedia.</p></div><div class="d-flex gap-12"><select class="form-select form-select-sm w-auto radius-8"><option>Semua Format</option><option>Excel</option><option>PDF</option><option>CSV</option></select><input type="search" class="form-control form-control-sm w-auto radius-8" placeholder="Cari export"></div></div><div class="table-responsive scroll-sm"><table class="table bordered-table sm-table mb-0"><thead><tr><th>Nama File</th><th>Jenis Laporan</th><th>Format</th><th>Dibuat Oleh</th><th>Waktu Export</th><th>Ukuran</th><th class="text-center">Status</th><th class="text-center">Aksi</th></tr></thead><tbody><?php foreach ([['file' => 'laporan-pembelajaran-juni-2026.xlsx', 'type' => 'Laporan Pembelajaran', 'format' => 'XLSX', 'by' => 'Administrator', 'time' => '29 Jun 2026, 09:45', 'size' => '1,8 MB', 'status' => 'Selesai'], ['file' => 'rekap-event-semester-1-2026.pdf', 'type' => 'Laporan Event', 'format' => 'PDF', 'by' => 'Admin Event', 'time' => '28 Jun 2026, 14:20', 'size' => '842 KB', 'status' => 'Selesai'], ['file' => 'gap-kompetensi-opd-2026.xlsx', 'type' => 'Laporan Kompetensi', 'format' => 'XLSX', 'by' => 'Admin Intelligence', 'time' => '28 Jun 2026, 10:05', 'size' => '956 KB', 'status' => 'Diproses'], ['file' => 'pengguna-aktif-juni-2026.csv', 'type' => 'Laporan Pengguna', 'format' => 'CSV', 'by' => 'Administrator', 'time' => '27 Jun 2026, 16:12', 'size' => '418 KB', 'status' => 'Gagal']] as $export): ?><tr><td><div class="d-flex align-items-center gap-10"><span class="w-36-px h-36-px bg-primary-50 text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center"><iconify-icon icon="solar:document-text-outline" class="text-xl"></iconify-icon></span><h6 class="text-md fw-medium mb-0"><?= esc($export['file']) ?></h6></div></td><td><?= esc($export['type']) ?></td><td><span class="badge bg-primary-50 text-primary-600 px-10 py-6 radius-6"><?= esc($export['format']) ?></span></td><td><?= esc($export['by']) ?></td><td><?= esc($export['time']) ?></td><td><?= esc($export['size']) ?></td><td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $export['status'] === 'Selesai' ? 'approved' : ($export['status'] === 'Diproses' ? 'review' : 'rejected'), 'label' => $export['status']]) ?></td><td class="text-center"><button type="button" class="btn btn-sm btn-outline-primary-600 radius-6" <?= $export['status'] !== 'Selesai' ? 'disabled' : '' ?>><iconify-icon icon="solar:download-minimalistic-outline"></iconify-icon></button></td></tr><?php endforeach; ?></tbody></table></div></div></div>
+<?php
+$fmt = static fn($n): string => number_format((float) $n, 0, ',', '.');
+?>
+
+<?= view('dashboard/reports/_nav_reports', ['activeReport' => 'export-history']) ?>
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+        <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Riwayat Export') ?></h6>
+        <p class="text-secondary-light mb-0">Arsip riwayat permohonan dan pengunduhan file laporan platform BegawiPengadaan dari jejak audit.</p>
+    </div>
+    <div class="dropdown">
+        <button type="button" class="btn btn-primary-600 radius-8 px-20 py-11 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <iconify-icon icon="solar:download-minimalistic-outline" class="me-6"></iconify-icon> Ekspor Laporan Baru
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-md radius-8 border-neutral-200">
+            <li><a class="dropdown-item py-8 text-sm" href="<?= site_url('dashboard/laporan/pembelajaran?export=csv') ?>"><iconify-icon icon="solar:book-2-outline" class="me-2 text-primary-600"></iconify-icon> Laporan Pembelajaran (CSV)</a></li>
+            <li><a class="dropdown-item py-8 text-sm" href="<?= site_url('dashboard/laporan/event?export=csv') ?>"><iconify-icon icon="solar:calendar-date-outline" class="me-2 text-success-main"></iconify-icon> Laporan Event & Agenda (CSV)</a></li>
+            <li><a class="dropdown-item py-8 text-sm" href="<?= site_url('dashboard/laporan/sertifikat?export=csv') ?>"><iconify-icon icon="solar:medal-ribbons-star-outline" class="me-2 text-warning-main"></iconify-icon> Laporan Sertifikat (CSV)</a></li>
+            <li><a class="dropdown-item py-8 text-sm" href="<?= site_url('dashboard/laporan/kompetensi?export=csv') ?>"><iconify-icon icon="solar:danger-triangle-outline" class="me-2 text-danger-main"></iconify-icon> Laporan Gap Kompetensi (CSV)</a></li>
+            <li><a class="dropdown-item py-8 text-sm" href="<?= site_url('dashboard/laporan/pengguna?export=csv') ?>"><iconify-icon icon="solar:users-group-two-rounded-outline" class="me-2 text-purple"></iconify-icon> Laporan Pengguna & Profil (CSV)</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="row row-cols-xxxl-4 row-cols-lg-2 row-cols-1 gy-4">
+    <div class="col">
+        <div class="card shadow-none border bg-gradient-start-1 h-100">
+            <div class="card-body p-20">
+                <p class="fw-medium text-primary-light mb-1">Total Export</p>
+                <h6 class="mb-0"><?= $fmt($total ?? 0) ?></h6>
+                <p class="text-sm text-primary-light mt-12 mb-0">Aktivitas export tercatat</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card shadow-none border bg-gradient-start-2 h-100">
+            <div class="card-body p-20">
+                <p class="fw-medium text-primary-light mb-1">Berhasil</p>
+                <h6 class="mb-0"><?= $fmt($success ?? 0) ?></h6>
+                <p class="text-sm text-primary-light mt-12 mb-0">File berhasil dibuat</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card shadow-none border bg-gradient-start-3 h-100">
+            <div class="card-body p-20">
+                <p class="fw-medium text-primary-light mb-1">Sedang Diproses</p>
+                <h6 class="mb-0"><?= $fmt($in_progress ?? 0) ?></h6>
+                <p class="text-sm text-primary-light mt-12 mb-0">Antrean pembuatan</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card shadow-none border bg-gradient-start-5 h-100">
+            <div class="card-body p-20">
+                <p class="fw-medium text-primary-light mb-1">Gagal / Dibatalkan</p>
+                <h6 class="mb-0"><?= $fmt($failed ?? 0) ?></h6>
+                <p class="text-sm text-primary-light mt-12 mb-0">Perlu pemeriksaan</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-24">
+    <div class="card-body p-24">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-20">
+            <div>
+                <h6 class="text-lg mb-0">Daftar Riwayat Export & Audit Log</h6>
+                <p class="text-secondary-light text-sm mb-0 mt-4">Pencatatan riil seluruh pengunduhan file laporan oleh administrator.</p>
+            </div>
+        </div>
+        <div class="table-responsive scroll-sm">
+            <table class="table bordered-table sm-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Nama File</th>
+                        <th>Jenis Laporan</th>
+                        <th>Format</th>
+                        <th>Dibuat Oleh</th>
+                        <th>Waktu Export</th>
+                        <th>Ukuran</th>
+                        <th class="text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($history)): ?>
+                        <tr><td colspan="7" class="text-center text-secondary-light py-24">Belum ada riwayat export yang tercatat. Silakan lakukan ekspor dari menu laporan terkait.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($history as $export): ?>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-10">
+                                        <span class="w-36-px h-36-px bg-primary-50 text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center">
+                                            <iconify-icon icon="solar:document-text-outline" class="text-xl"></iconify-icon>
+                                        </span>
+                                        <h6 class="text-md fw-medium mb-0"><?= esc($export['file']) ?></h6>
+                                    </div>
+                                </td>
+                                <td><?= esc($export['type']) ?></td>
+                                <td><span class="badge bg-primary-50 text-primary-600 px-10 py-6 radius-6"><?= esc($export['format']) ?></span></td>
+                                <td><?= esc($export['by']) ?></td>
+                                <td><?= esc($export['time']) ?></td>
+                                <td><?= esc($export['size']) ?></td>
+                                <td class="text-center">
+                                    <?= view('dashboard/components/status_badge', ['status' => $export['status'] === 'Selesai' ? 'approved' : ($export['status'] === 'Diproses' ? 'review' : 'rejected'), 'label' => $export['status']]) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 <?= $this->endSection() ?>

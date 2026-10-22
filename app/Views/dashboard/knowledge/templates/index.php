@@ -23,6 +23,9 @@ $stats       = $stats ?? ['total' => count($items), 'published' => 0, 'draft' =>
     </div>
 </div>
 
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/knowledge/_nav_knowledge', ['section' => 'articles', 'activeSub' => 'templates']) ?>
+
 <!-- KPI Cards -->
 <div class="row row-cols-xxl-4 row-cols-md-2 row-cols-1 g-3 mb-24">
     <div class="col">

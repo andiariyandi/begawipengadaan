@@ -387,6 +387,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/communication/_nav_communication', ['activeSub' => 'events']) ?>
 <?php
 $items       = $items ?? [];
 $status      = $filterStatus ?? null;
@@ -558,10 +559,10 @@ $buildFilterUrl = function (array $overrides = []) use ($status, $keyword, $mode
                         </a>
                         <!-- View Mode Switcher -->
                         <div class="btn-group border radius-8 overflow-hidden" style="border-color:#cbd5e1 !important;">
-                            <a href="<?= $buildFilterUrl(['view' => 'grid']) ?>" class="btn btn-sm <?= $viewMode === 'grid' ? 'btn-primary-600 text-white' : 'btn-light text-neutral-700 bg-white' ?>" title="Tampilan Grid">
+                            <a href="<?= $buildFilterUrl(['view' => 'grid']) ?>" class="btn btn-sm <?= $viewMode === 'grid' ? 'btn-primary-600 text-white' : 'btn-outline-neutral-300 text-primary-light' ?>" title="Tampilan Grid">
                                 <iconify-icon icon="solar:widget-4-bold"></iconify-icon>
                             </a>
-                            <a href="<?= $buildFilterUrl(['view' => 'table']) ?>" class="btn btn-sm <?= $viewMode === 'table' ? 'btn-primary-600 text-white' : 'btn-light text-neutral-700 bg-white' ?>" title="Tampilan Tabel">
+                            <a href="<?= $buildFilterUrl(['view' => 'table']) ?>" class="btn btn-sm <?= $viewMode === 'table' ? 'btn-primary-600 text-white' : 'btn-outline-neutral-300 text-primary-light' ?>" title="Tampilan Tabel">
                                 <iconify-icon icon="solar:list-bold"></iconify-icon>
                             </a>
                         </div>

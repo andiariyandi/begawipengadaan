@@ -73,12 +73,137 @@ class ApprovalModel extends Model
     public function findWithActor(int $id): ?array
     {
         $row = $this->db->table('approvals a')
-            ->select(['a.*', 'u.name AS requested_by_name', 'u.email AS requested_by_email'])
+            ->select([
+                'a.*',
+                'u.name  AS requested_by_name',
+                'u.email AS requested_by_email',
+                'u.profile_type AS requested_by_type',
+                'r.name  AS reviewed_by_name',
+                'r.email AS reviewed_by_email',
+            ])
             ->join('users u', 'u.id = a.requested_by', 'left')
+            ->join('users r', 'r.id = a.reviewed_by', 'left')
             ->where('a.id', $id)
             ->get()
             ->getRowArray();
         return $row ?: null;
+    }
+
+    /**
+     * Ambil antrean persetujuan dengan filter dinamis dan join data user.
+     *
+     * @param array<string, mixed> $filters
+     * @return array<int, array<string, mixed>>
+     */
+    public function getQueueWithActors(array $filters = [], int $limit = 50, int $offset = 0): array
+    {
+        $builder = $this->db->table('approvals a')
+            ->select([
+                'a.*',
+                'u.name  AS requested_by_name',
+                'u.email AS requested_by_email',
+                'u.profile_type AS requested_by_type',
+                'r.name  AS reviewed_by_name',
+                'r.email AS reviewed_by_email',
+            ])
+            ->join('users u', 'u.id = a.requested_by', 'left')
+            ->join('users r', 'r.id = a.reviewed_by', 'left');
+
+        $this->applyFilters($builder, $filters);
+
+        return $builder->orderBy('a.id', 'DESC')
+            ->limit($limit, $offset)
+            ->get()
+            ->getResultArray();
+    }
+
+    /**
+     * Hitung total data antrean dengan filter.
+     *
+     * @param array<string, mixed> $filters
+     */
+    public function countQueue(array $filters = []): int
+    {
+        $builder = $this->db->table('approvals a')
+            ->join('users u', 'u.id = a.requested_by', 'left');
+
+        $this->applyFilters($builder, $filters);
+
+        return $builder->countAllResults();
+    }
+
+    /**
+     * Ambil metrik ringkasan KPI persetujuan secara real-time.
+     *
+     * @return array<string, int>
+     */
+    public function getKpiMetrics(): array
+    {
+        $todayStart   = date('Y-m-d 00:00:00');
+        $todayEnd     = date('Y-m-d 23:59:59');
+        $slaThreshold = date('Y-m-d H:i:s', strtotime('-3 days'));
+
+        $pending = $this->db->table('approvals')
+            ->where('status', 'pending')
+            ->countAllResults();
+
+        $approvedToday = $this->db->table('approvals')
+            ->where('status', 'approved')
+            ->where('reviewed_at >=', $todayStart)
+            ->where('reviewed_at <=', $todayEnd)
+            ->countAllResults();
+
+        $rejectedToday = $this->db->table('approvals')
+            ->where('status', 'rejected')
+            ->where('reviewed_at >=', $todayStart)
+            ->where('reviewed_at <=', $todayEnd)
+            ->countAllResults();
+
+        $slaOverdue = $this->db->table('approvals')
+            ->where('status', 'pending')
+            ->where('created_at <=', $slaThreshold)
+            ->countAllResults();
+
+        $totalHistory = $this->db->table('approvals')
+            ->whereIn('status', ['approved', 'rejected'])
+            ->countAllResults();
+
+        return [
+            'pending'        => (int) $pending,
+            'approved_today' => (int) $approvedToday,
+            'rejected_today' => (int) $rejectedToday,
+            'sla_overdue'    => (int) $slaOverdue,
+            'total_history'  => (int) $totalHistory,
+        ];
+    }
+
+    /**
+     * Helper privat untuk menerapkan filter pada builder query.
+     */
+    private function applyFilters($builder, array $filters): void
+    {
+        if (! empty($filters['status']) && $filters['status'] !== 'all') {
+            $builder->where('a.status', (string) $filters['status']);
+        }
+
+        if (! empty($filters['resource_type']) && $filters['resource_type'] !== 'all') {
+            $builder->where('a.resource_type', (string) $filters['resource_type']);
+        }
+
+        if (! empty($filters['q'])) {
+            $q = trim((string) $filters['q']);
+            $builder->groupStart()
+                ->like('u.name', $q)
+                ->orLike('u.email', $q)
+                ->orLike('a.requested_action', $q)
+                ->orLike('a.notes', $q)
+                ->orLike('a.reason', $q);
+            if (is_numeric($q)) {
+                $builder->orWhere('a.id', (int) $q)
+                    ->orWhere('a.resource_id', (int) $q);
+            }
+            $builder->groupEnd();
+        }
     }
 
     /**

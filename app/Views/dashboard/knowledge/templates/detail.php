@@ -77,12 +77,12 @@ $fileMeta = $fileMeta ?? null;
                 </div>
                 <div>
                     <?php if ($fileMeta !== null): ?>
-                        <strong class="d-block text-dark fw-bold mb-1"><?= esc($fileMeta['original_name']) ?></strong>
+                        <strong class="d-block text-primary-light fw-bold mb-1"><?= esc($fileMeta['original_name']) ?></strong>
                         <span class="text-xs text-secondary-light">
                             Format: <strong><?= strtoupper(esc($fileMeta['extension'])) ?></strong> &middot; Ukuran: <strong><?= number_format(((int) ($fileMeta['size_bytes'] ?? 0)) / 1024, 1) ?> KB</strong>
                         </span>
                     <?php else: ?>
-                        <strong class="d-block text-dark">Belum Ada File Terlampir</strong>
+                        <strong class="d-block text-primary-light">Belum Ada File Terlampir</strong>
                         <span class="text-xs text-secondary-light">Silakan ubah data untuk mengunggah file template.</span>
                     <?php endif; ?>
                 </div>

@@ -38,7 +38,7 @@ $iconUrl     = ! empty($category['icon_file_id']) ? base_url('file/' . (int) $ca
             <?php endif; ?>
             <div class="flex-grow-1">
                 <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                    <h5 class="fw-bold mb-0 text-dark"><?= esc($category['name'] ?? '-') ?></h5>
+                    <h5 class="fw-bold mb-0 text-primary-light"><?= esc($category['name'] ?? '-') ?></h5>
                     <?= view('dashboard/components/status_badge', ['status' => ($category['is_active'] ?? 0) ? 'active' : 'inactive']) ?>
                 </div>
                 <code class="text-primary-700 bg-primary-50 px-8 py-2 radius-4 text-xs fw-bold"><?= esc($category['slug'] ?? '-') ?></code>
@@ -47,7 +47,7 @@ $iconUrl     = ! empty($category['icon_file_id']) ? base_url('file/' . (int) $ca
 
         <div class="border-top pt-16">
             <span class="text-xs text-secondary-light text-uppercase fw-semibold d-block mb-1">Deskripsi Kategori:</span>
-            <p class="text-sm text-dark mb-0"><?= nl2br(esc($category['description'] ?? '-') ?: '-') ?></p>
+            <p class="text-sm text-primary-light mb-0"><?= nl2br(esc($category['description'] ?? '-') ?: '-') ?></p>
         </div>
     </div>
 </div>
@@ -86,7 +86,7 @@ $iconUrl     = ! empty($category['icon_file_id']) ? base_url('file/' . (int) $ca
                                         <?= esc($r['document_number'] ?? '-') ?>
                                     </a>
                                 </td>
-                                <td><span class="text-xs text-dark fw-medium text-line-2"><?= esc($r['title'] ?? '-') ?></span></td>
+                                <td><span class="text-xs text-primary-light fw-medium text-line-2"><?= esc($r['title'] ?? '-') ?></span></td>
                                 <td class="text-center"><span class="fw-medium text-xs"><?= esc($r['document_year'] ?? '-') ?></span></td>
                                 <td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $r['workflow_status'] ?? 'draft']) ?></td>
                                 <td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $r['legal_status'] ?? 'active']) ?></td>

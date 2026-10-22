@@ -144,6 +144,7 @@ body {
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/communication/_nav_communication', ['activeSub' => 'registrations']) ?>
 <?php
 $items       = $items ?? [];
 $stats       = $stats ?? ['total' => count($items), 'registered' => 0, 'attended' => 0, 'waiting' => 0, 'cancelled' => 0];

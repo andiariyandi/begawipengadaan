@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/users/_nav_access', ['activeSub' => 'roles']) ?>
 <?php
 $permissions = $permissions ?? [];
 $pager = $pager ?? null;

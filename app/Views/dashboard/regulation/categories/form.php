@@ -138,7 +138,7 @@ $iconUrl  = $iconUrl ?? (! empty($category['icon_file_id']) ? base_url('file/' .
                 <div class="card-body p-24">
                     <div class="form-check form-switch mb-0">
                         <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1" <?= ($category['is_active'] ?? 1) ? 'checked' : '' ?>>
-                        <label class="form-check-label fw-bold text-sm text-dark cursor-pointer ms-2" for="is_active">
+                        <label class="form-check-label fw-bold text-sm text-primary-light cursor-pointer ms-2" for="is_active">
                             Kategori Aktif
                         </label>
                         <span class="text-xs text-secondary-light mt-1 d-block">Kategori yang tidak aktif tidak akan muncul di filter halaman publik.</span>

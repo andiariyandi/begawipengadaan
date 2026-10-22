@@ -147,7 +147,7 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
             <span class="badge bg-primary-500 text-white px-10 py-4 radius-6 text-xs fw-bold">
                 <?= esc(ucfirst($item['type'] ?? 'Webinar')) ?>
             </span>
-            <span class="badge bg-white text-neutral-900 px-10 py-4 radius-6 text-xs fw-bold d-inline-flex align-items-center gap-1">
+            <span class="badge bg-neutral-100 text-neutral-900 border border-neutral-300 px-10 py-4 radius-6 text-xs fw-bold d-inline-flex align-items-center gap-1">
                 <iconify-icon icon="solar:videocamera-record-bold" class="text-primary-600"></iconify-icon> <?= esc(ucfirst($modeKey)) ?>
             </span>
             <span class="badge bg-neutral-800 text-white px-10 py-4 radius-6 text-xs fw-medium border border-neutral-600">
@@ -168,7 +168,7 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
     <div class="col-xl-8">
         <!-- Event Overview Card -->
         <div class="card mb-24 radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white p-20 border-bottom d-flex align-items-center justify-content-between">
+            <div class="card-header bg-base p-20 border-bottom d-flex align-items-center justify-content-between">
                 <h6 class="fw-bold mb-0 text-neutral-900" style="color: #0f172a;">Deskripsi &amp; Informasi Kegiatan</h6>
                 <div>
                     <?php if ($statusKey === 'open_registration'): ?>
@@ -273,6 +273,9 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
                                 <button type="button" class="btn btn-primary-600 btn-sm radius-8 px-14 py-8 fw-semibold" onclick="copyCode()">
                                     <iconify-icon icon="solar:copy-bold" class="me-1"></iconify-icon> Salin Kode
                                 </button>
+                                <button type="button" class="btn btn-outline-primary-600 btn-sm radius-8 px-14 py-8 fw-semibold d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#qrPresenterModal">
+                                    <iconify-icon icon="solar:maximize-square-bold" class="text-base"></iconify-icon> Mode Presenter &amp; QR
+                                </button>
                                 <form action="<?= site_url('dashboard/komunikasi/event-agenda/' . $eventId . '/generate-kode-presensi') ?>" method="post" class="d-inline" onsubmit="return confirm('Regenerate akan membuat kode sandi baru. Kode sebelumnya tidak dapat digunakan lagi. Lanjutkan?')">
                                     <?= csrf_field() ?>
                                     <button type="submit" class="btn btn-outline-neutral-300 btn-sm radius-8 px-14 py-8 fw-semibold text-neutral-700" style="border-color:#cbd5e1;">
@@ -336,7 +339,7 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
 
         <!-- Section: BATCH CERTIFICATE EVENT -->
         <div class="card mb-24 radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom">
+            <div class="card-header bg-base d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom">
                 <div class="d-flex align-items-center gap-12">
                     <div class="w-40-px h-40-px rounded-circle bg-success-50 text-success-600 d-flex justify-content-center align-items-center">
                         <iconify-icon icon="solar:diploma-verified-bold" class="fs-4"></iconify-icon>
@@ -375,7 +378,7 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
 
         <!-- Section: MATERI & BAHAN TAYANGAN PRESENTASI -->
         <div class="card mb-24 radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom">
+            <div class="card-header bg-base d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom">
                 <div class="d-flex align-items-center gap-12">
                     <div class="w-40-px h-40-px rounded-circle bg-info-50 text-info-600 d-flex justify-content-center align-items-center">
                         <iconify-icon icon="solar:folder-with-files-bold" class="fs-4"></iconify-icon>
@@ -457,7 +460,7 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
 
         <!-- Section: AKTIVITAS PEMBELAJARAN INTERAKTIF (PRE-TEST & POST-TEST) -->
         <div class="card mb-24 radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom">
+            <div class="card-header bg-base d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom">
                 <div class="d-flex align-items-center gap-12">
                     <div class="w-40-px h-40-px rounded-circle bg-success-50 text-success-600 d-flex justify-content-center align-items-center">
                         <iconify-icon icon="solar:clipboard-check-bold" class="fs-4"></iconify-icon>
@@ -532,7 +535,7 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
 
         <!-- Section: MODE PEMBELAJARAN MANDIRI (SELF-PACED LEARNING) -->
         <div class="card mb-24 radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom">
+            <div class="card-header bg-base d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom">
                 <div class="d-flex align-items-center gap-12">
                     <div class="w-40-px h-40-px rounded-circle bg-success-50 text-success-600 d-flex justify-content-center align-items-center">
                         <iconify-icon icon="solar:play-circle-bold" class="fs-4"></iconify-icon>
@@ -604,7 +607,7 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
 
         <!-- Participant List Table Card -->
         <div class="card radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white p-20 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="card-header bg-base p-20 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div>
                     <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0f172a;">Daftar Peserta &amp; Status Presensi</h6>
                     <small class="text-neutral-600 font-medium" style="color: #475569;">Total <?= count($participants ?? []) ?> pendaftar terdaftar pada agenda ini.</small>
@@ -739,7 +742,7 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
 
         <!-- Section: TEMPLATE SERTIFIKAT EVENT (1:1) -->
         <div class="card mb-24 radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white p-20 border-bottom d-flex align-items-center justify-content-between">
+            <div class="card-header bg-base p-20 border-bottom d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-10">
                     <div class="w-32-px h-32-px rounded-circle bg-primary-50 text-primary-600 d-flex justify-content-center align-items-center">
                         <iconify-icon icon="solar:diploma-verified-bold" class="fs-5"></iconify-icon>
@@ -804,7 +807,7 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
 
         <!-- Quick Links Card -->
         <div class="card radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white p-20 border-bottom">
+            <div class="card-header bg-base p-20 border-bottom">
                 <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0f172a;">Tindakan Cepat</h6>
             </div>
             <div class="card-body p-20 d-grid gap-2">
@@ -872,6 +875,60 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
         </div>
     </div>
 </div>
+
+<!-- Mode Presenter / QR Layar Penuh Modal -->
+<div class="modal fade" id="qrPresenterModal" tabindex="-1" aria-labelledby="qrPresenterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content radius-16 border-0 shadow-lg bg-base overflow-hidden">
+            <div class="modal-header bg-primary-600 text-white py-16 px-24 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <iconify-icon icon="solar:videocamera-record-bold" class="text-2xl text-warning-main"></iconify-icon>
+                    <div>
+                        <h6 class="modal-title fw-bold text-white mb-0" id="qrPresenterModalLabel">Mode Presenter &bull; Presensi Acara Resmi</h6>
+                        <span class="text-xs text-white opacity-75">Tampilkan layar ini kepada peserta webinar atau ruangan kelas offline</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-32 text-center">
+                <span class="badge bg-success-50 text-success-600 px-12 py-6 radius-8 text-xs fw-bold mb-12 d-inline-flex align-items-center gap-1 border border-success-200">
+                    <span class="w-8-px h-8-px bg-success-600 rounded-circle animate-pulse me-1"></span>
+                    SESI PRESENSI AKTIF &bull; VALIDITAS TERBUKA
+                </span>
+                <h4 class="fw-bold text-primary-light mb-8"><?= esc($item['title'] ?? 'Event PBJ') ?></h4>
+                <p class="text-secondary-light text-xs mb-24">Silakan scan kode QR atau buka menu Presensi di Workspace dan masukkan Kode Sandi di bawah ini.</p>
+
+                <div class="card p-24 radius-16 bg-neutral-50 border border-primary-200 d-inline-block shadow-sm mb-20 text-center" style="max-width: 480px; width: 100%;">
+                    <div class="p-16 bg-white radius-12 d-inline-block border mb-16 shadow-2xs">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=<?= urlencode(site_url('workspace/presensi-saya')) ?>" alt="QR Presensi" class="img-fluid" style="width: 180px; height: 180px;">
+                    </div>
+                    <span class="text-2xs fw-bold text-uppercase tracking-wider text-secondary-light d-block mb-1">KODE SANDI KEHADIRAN RESMI</span>
+                    <div class="display-3 fw-bold text-primary-600 font-monospace tracking-widest letter-spacing-4 user-select-all mb-4"><?= esc($code) ?></div>
+                    <span class="text-xs text-secondary-light">Tautan Portal: <code><?= site_url('workspace/presensi-saya') ?></code></span>
+                </div>
+
+                <div class="row g-2 text-start text-xs text-secondary-light justify-content-center">
+                    <div class="col-md-10">
+                        <div class="p-12 radius-8 bg-primary-50 border border-primary-200 text-primary-900">
+                            <strong>Petunjuk untuk Peserta:</strong>
+                            <ol class="mb-0 ps-16 mt-4">
+                                <li>Scan kode QR di atas atau login ke portal BegawiPengadaan &gt; Workspace Peserta &gt; Presensi.</li>
+                                <li>Ketikkan 6 digit kode sandi: <strong class="text-primary-600 font-monospace"><?= esc($code) ?></strong> lalu klik Simpan Kehadiran.</li>
+                                <li>Presensi sah akan otomatis mengaktifkan hak penerbitan e-sertifikat kegiatan.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top py-12 px-24 bg-neutral-50 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-primary-600 radius-8 px-16 py-8 text-xs" onclick="copyCode()">
+                    <iconify-icon icon="solar:copy-bold"></iconify-icon> Salin Kode Sandi
+                </button>
+                <button type="button" class="btn btn-secondary radius-8 px-20 py-8 text-xs" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</d
 
 <script>
 function copyCode() {

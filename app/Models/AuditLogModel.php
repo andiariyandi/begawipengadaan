@@ -27,7 +27,7 @@ class AuditLogModel extends Model
 
     public function browse(?string $module = null, ?int $userId = null, ?string $from = null, ?string $to = null)
     {
-        $builder = $this->select('audit_logs.*, users.username')
+        $builder = $this->select('audit_logs.*, users.username, users.name as actor_name, users.email as actor_email')
             ->join('users', 'users.id = audit_logs.actor_id', 'left')
             ->orderBy('audit_logs.created_at', 'DESC');
 

@@ -30,10 +30,13 @@ $typeLabels = [
     </a>
 </div>
 
-<div class="card radius-12 border bg-white shadow-sm">
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/regulation/_nav_regulation', ['section' => 'regulations', 'activeSub' => 'relasi']) ?>
+
+<div class="card radius-12 border bg-base shadow-sm">
     <div class="card-body p-24">
         <div class="table-responsive scroll-sm">
-            <table class="table bordered-table sm-table mb-0 align-middle">
+            <table class="table bordered-table sm-table mb-0 align-middle begawi-table" data-table-name="relasi-regulasi" data-page-length="10">
                 <thead>
                     <tr>
                         <th style="min-width: 240px;">Regulasi Sumber</th>
@@ -80,7 +83,7 @@ $typeLabels = [
                                 <span class="text-xs text-secondary-light text-line-2"><?= esc($r['target_title'] ?? '-') ?></span>
                             </td>
                             <td><span class="text-xs text-secondary-light text-line-2"><?= esc($r['notes'] ?? '-') ?: '-' ?></span></td>
-                            <td><span class="text-xs text-dark fw-medium"><?= esc($r['creator_username'] ?? 'Admin') ?></span></td>
+                            <td><span class="text-xs text-primary-light fw-medium"><?= esc($r['creator_username'] ?? 'Admin') ?></span></td>
                             <td class="text-center">
                                 <button type="button" class="w-32-px h-32-px bg-danger-focus text-danger-main rounded-circle d-inline-flex align-items-center justify-content-center border-0"
                                     data-bs-toggle="modal" data-bs-target="#confirmationActionModal"

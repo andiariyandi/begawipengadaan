@@ -48,7 +48,7 @@ $action = $isEdit ? route_to('dashboard.knowledge.categories.edit', (string) ($c
                 <div class="col-md-3 d-flex align-items-center pt-28">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="is_active" value="1" id="is_active" <?= empty($row) || ! empty($row['is_active']) ? 'checked' : '' ?>>
-                        <label class="form-check-label fw-semibold text-dark text-sm" for="is_active">Aktifkan Kategori</label>
+                        <label class="form-check-label fw-semibold text-primary-light text-sm" for="is_active">Aktifkan Kategori</label>
                     </div>
                 </div>
                 <div class="col-12">

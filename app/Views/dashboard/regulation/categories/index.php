@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/regulation/_nav_regulation', ['activeSub' => 'categories']) ?>
 <?php $categories = $categories ?? []; ?>
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
@@ -9,6 +10,10 @@
         <p class="text-secondary-light mb-0">Kelola taksonomi dan klasifikasi jenis dokumen regulasi Pengadaan Barang/Jasa.</p>
     </div>
     <div class="d-flex align-items-center gap-2">
+        <a href="<?= site_url('dashboard/regulasi/dokumen') ?>" class="btn btn-outline-neutral-300 radius-8 px-16 py-11 d-flex align-items-center gap-2">
+            <iconify-icon icon="solar:document-text-outline" class="text-xl"></iconify-icon>
+            <span>Naskah Dokumen</span>
+        </a>
         <a href="<?= site_url('dashboard/regulasi/kategori/tambah') ?>" class="btn btn-primary-600 radius-8 px-20 py-11 d-flex align-items-center gap-2">
             <iconify-icon icon="solar:add-circle-outline" class="text-xl"></iconify-icon>
             <span>Tambah Kategori</span>

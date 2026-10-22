@@ -51,7 +51,7 @@ $sevLabel = match ($row['case_severity'] ?? 'medium') {
             <img src="<?= esc($coverImgUrl) ?>" alt="<?= esc($row['title'] ?? '') ?>" class="w-100 object-fit-cover" style="max-height: 280px;">
             <?php if ((int) ($row['featured'] ?? 0) === 1): ?>
                 <div class="position-absolute top-0 end-0 m-3">
-                    <span class="badge bg-warning text-dark radius-6 px-12 py-6 text-xs fw-bold shadow-sm">
+                    <span class="badge bg-warning-50 text-warning-700 border border-warning-200 radius-6 px-12 py-6 text-xs fw-bold shadow-sm">
                         <i class="fas fa-star me-1"></i> Kasus Unggulan
                     </span>
                 </div>
@@ -79,7 +79,7 @@ $sevLabel = match ($row['case_severity'] ?? 'medium') {
                 <h4 class="fw-bold mb-2 text-primary-900"><?= esc($row['title'] ?? '-') ?></h4>
                 <div class="d-flex flex-wrap align-items-center gap-3 text-secondary-light text-sm">
                     <?php if (! empty($row['organization_unit'])): ?>
-                        <span><iconify-icon icon="solar:buildings-bold" class="me-1 text-primary-600"></iconify-icon><strong class="text-dark"><?= esc($row['organization_unit']) ?></strong></span>
+                        <span><iconify-icon icon="solar:buildings-bold" class="me-1 text-primary-600"></iconify-icon><strong class="text-primary-light"><?= esc($row['organization_unit']) ?></strong></span>
                         <span>•</span>
                     <?php endif; ?>
                     <span><iconify-icon icon="solar:user-outline" class="me-1"></iconify-icon><?= esc($authorName) ?></span>
@@ -162,11 +162,11 @@ $sevLabel = match ($row['case_severity'] ?? 'medium') {
                 </div>
                 <div class="mb-16 pb-16 border-bottom">
                     <span class="text-secondary-light text-xs d-block mb-1">Tahap Pengadaan</span>
-                    <strong class="text-dark text-sm text-capitalize"><?= esc(str_replace('_', ' ', $row['procurement_stage'] ?? 'Umum')) ?></strong>
+                    <strong class="text-primary-light text-sm text-capitalize"><?= esc(str_replace('_', ' ', $row['procurement_stage'] ?? 'Umum')) ?></strong>
                 </div>
                 <div class="mb-16 pb-16 border-bottom">
                     <span class="text-secondary-light text-xs d-block mb-1">Instansi / Unit Kerja</span>
-                    <span class="text-dark text-sm fw-medium"><?= esc($row['organization_unit'] ?? 'Pemerintah Provinsi Lampung') ?></span>
+                    <span class="text-primary-light text-sm fw-medium"><?= esc($row['organization_unit'] ?? 'Pemerintah Provinsi Lampung') ?></span>
                 </div>
                 <div class="mb-16 pb-16 border-bottom">
                     <span class="text-secondary-light text-xs d-block mb-1">Slug URL</span>
@@ -174,7 +174,7 @@ $sevLabel = match ($row['case_severity'] ?? 'medium') {
                 </div>
                 <div>
                     <span class="text-secondary-light text-xs d-block mb-1">Waktu Publikasi</span>
-                    <span class="text-dark text-sm"><?= ! empty($row['published_at']) ? esc(date('d M Y, H:i', strtotime($row['published_at']))) : 'Belum dipublikasikan' ?></span>
+                    <span class="text-primary-light text-sm"><?= ! empty($row['published_at']) ? esc(date('d M Y, H:i', strtotime($row['published_at']))) : 'Belum dipublikasikan' ?></span>
                 </div>
             </div>
         </div>

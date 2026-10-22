@@ -6,12 +6,23 @@ $items   = $items ?? [];
 $filters = $filters ?? [];
 $modules = $modules ?? [];
 $stats   = $stats ?? ['total' => count($items), 'today' => 0, 'success' => 0, 'risk_failed' => 0];
+
+$isSystemRoute = (strpos(current_url(), 'sistem') !== false);
+$exportBaseUrl = $isSystemRoute ? site_url('dashboard/sistem/audit-trail/export') : site_url('dashboard/akses/audit/export');
+$filterQuery   = http_build_query(array_filter($filters ?? []));
+$exportUrl     = $filterQuery !== '' ? ($exportBaseUrl . '?' . $filterQuery) : $exportBaseUrl;
 ?>
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
         <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Audit Trail & Log Aktivitas') ?></h6>
         <p class="text-secondary-light mb-0">Jejak audit kepatuhan, mutasi data, dan riwayat aktivitas pengguna back-office.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="<?= esc($exportUrl) ?>" class="btn btn-outline-success-600 radius-8 px-16 py-9 d-flex align-items-center gap-2">
+            <iconify-icon icon="solar:download-square-outline" class="text-xl"></iconify-icon>
+            <span>Ekspor CSV Log</span>
+        </a>
     </div>
 </div>
 
@@ -120,7 +131,7 @@ $stats   = $stats ?? ['total' => count($items), 'today' => 0, 'success' => 0, 'r
             ]) ?>
         <?php else: ?>
             <div class="table-responsive scroll-sm">
-                <table class="table bordered-table sm-table mb-0 align-middle">
+                <table class="table bordered-table sm-table mb-0 align-middle begawi-table" data-table-name="audit-trail-log" data-page-length="25">
                     <thead>
                         <tr>
                             <th>Waktu (WIB)</th>
@@ -128,7 +139,7 @@ $stats   = $stats ?? ['total' => count($items), 'today' => 0, 'success' => 0, 'r
                             <th>Tindakan (Action)</th>
                             <th>Resource</th>
                             <th>Hasil</th>
-                            <th class="text-center">Aksi</th>
+                            <th class="text-center no-sort no-export action-col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -140,8 +151,8 @@ $stats   = $stats ?? ['total' => count($items), 'today' => 0, 'success' => 0, 'r
                                     </span>
                                 </td>
                                 <td>
-                                    <h6 class="text-sm fw-semibold mb-0 text-neutral-900"><?= esc($log['username'] ?? 'Sistem / Anonim') ?></h6>
-                                    <span class="text-2xs text-secondary-light">Actor ID: #<?= esc($log['actor_id'] ?? '0') ?></span>
+                                    <h6 class="text-sm fw-semibold mb-0 text-neutral-900"><?= esc(!empty($log['actor_name']) ? $log['actor_name'] : ($log['username'] ?? 'Sistem / Anonim')) ?></h6>
+                                    <span class="text-2xs text-secondary-light"><?= !empty($log['actor_email']) ? esc($log['actor_email']) . ' | ' : '' ?>Actor ID: #<?= esc($log['actor_id'] ?? '0') ?></span>
                                 </td>
                                 <td>
                                     <span class="badge bg-neutral-100 text-neutral-900 radius-6 px-10 py-4 font-monospace text-xs">
@@ -162,7 +173,7 @@ $stats   = $stats ?? ['total' => count($items), 'today' => 0, 'success' => 0, 'r
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm radius-8 p-8 border">
                                             <li>
-                                                <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= site_url('dashboard/akses/audit/' . (int) $log['id']) ?>">
+                                                <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= site_url(($isSystemRoute ? 'dashboard/sistem/audit-trail/' : 'dashboard/akses/audit/') . (int) $log['id']) ?>">
                                                     <iconify-icon icon="solar:eye-outline" class="text-lg text-primary-600"></iconify-icon>
                                                     <span>Lihat Detail Log</span>
                                                 </a>

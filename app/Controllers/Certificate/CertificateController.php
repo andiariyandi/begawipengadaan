@@ -211,6 +211,25 @@ class CertificateController extends BaseController
         ]);
     }
 
+    public function preview(string $id)
+    {
+        $certificate = $this->certificateModel->withFullDetail((int) $id);
+        if (! $certificate) {
+            return $this->response->setJSON(['status' => false, 'message' => 'Sertifikat tidak ditemukan'])->setStatusCode(404);
+        }
+
+        $tokenDisplay = $certificate['verification_token_hash'] ?? (string) $certificate['id'];
+        $verifyUrl    = site_url('verify/certificate/' . $tokenDisplay);
+        $downloadUrl  = site_url('dashboard/sertifikat/' . $certificate['id'] . '/unduh');
+
+        return $this->response->setJSON([
+            'status'       => true,
+            'certificate'  => $certificate,
+            'verify_url'   => $verifyUrl,
+            'download_url' => $downloadUrl,
+        ]);
+    }
+
     public function detail(string $id)
     {
         $certificate = $this->certificateModel->withFullDetail((int) $id);

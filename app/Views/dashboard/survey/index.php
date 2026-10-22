@@ -9,6 +9,61 @@
     </div>
 </div>
 
+<!-- PermenPAN-RB No. 14/2017 Official IKM Banner Card -->
+<div class="card radius-16 border-0 shadow-sm mb-24 overflow-hidden position-relative bg-base border">
+    <div class="card-body p-24">
+        <div class="row align-items-center gy-4">
+            <div class="col-xl-8 col-lg-7 border-end-lg pe-lg-24">
+                <div class="d-flex align-items-center gap-2 mb-8">
+                    <span class="badge bg-primary-50 text-primary-600 px-10 py-4 radius-6 text-2xs fw-bold text-uppercase">
+                        Standar PermenPAN-RB No. 14 Tahun 2017
+                    </span>
+                    <span class="badge <?= esc($mutuBadgeClass ?? 'bg-success-50 text-success-600') ?> px-10 py-4 radius-6 text-2xs fw-bold">
+                        Mutu <?= esc($mutuKategori ?? 'A') ?> (<?= esc($kinerjaPelayanan ?? 'Sangat Baik') ?>)
+                    </span>
+                </div>
+                <h4 class="fw-bold mb-8 text-primary-light">Indeks Kepuasan Masyarakat (IKM) Unit Layanan PBJ</h4>
+                <p class="text-secondary-light text-sm mb-16">
+                    Hasil pengukuran berkala terhadap 4 unsur penyelenggaraan layanan pengadaan digital, regulasi, helpdesk konsultasi, dan pelatihan pada Biro Pengadaan Barang &amp; Jasa Provinsi Lampung.
+                </p>
+                <div class="d-flex flex-wrap align-items-center gap-4 text-xs text-secondary-light">
+                    <span class="d-inline-flex align-items-center gap-1">
+                        <iconify-icon icon="solar:users-group-two-rounded-bold" class="text-primary-600 text-base"></iconify-icon>
+                        <strong class="text-primary-light"><?= (int) ($totalResponses ?? 0) ?></strong> Responden Terdata
+                    </span>
+                    <span>&bull;</span>
+                    <span class="d-inline-flex align-items-center gap-1">
+                        <iconify-icon icon="solar:calendar-date-bold" class="text-success-600 text-base"></iconify-icon>
+                        Tahun Anggaran <?= date('Y') ?>
+                    </span>
+                    <span>&bull;</span>
+                    <span class="d-inline-flex align-items-center gap-1">
+                        <iconify-icon icon="solar:shield-check-bold" class="text-warning-main text-base"></iconify-icon>
+                        Validitas Sensus Internal
+                    </span>
+                </div>
+            </div>
+            <div class="col-xl-4 col-lg-5 text-lg-center ps-lg-20">
+                <div class="p-16 radius-12 bg-neutral-50 border border-neutral-200 d-inline-block w-100">
+                    <span class="text-2xs fw-bold text-uppercase tracking-wider text-secondary-light d-block mb-1">NILAI IKM KONVERSI (SKALA 25-100)</span>
+                    <h1 class="display-5 fw-bold text-primary-600 mb-0"><?= number_format((float) ($ikmScore ?? 0), 2) ?></h1>
+                    <div class="d-flex justify-content-center align-items-center gap-2 mt-8">
+                        <span class="badge <?= esc($mutuBadgeClass ?? 'bg-success-50 text-success-600') ?> px-12 py-4 radius-6 text-xs fw-bold">
+                            Kinerja: <?= esc($kinerjaPelayanan ?? 'Sangat Baik') ?>
+                        </span>
+                        <span class="text-2xs text-secondary-light">NRR: <?= number_format((float) ($ikmScale4 ?? 0), 2) ?> / 4.00</span>
+                    </div>
+                </div>
+                <div class="mt-12 d-flex justify-content-center gap-2 d-print-none">
+                    <button type="button" class="btn btn-sm btn-outline-secondary radius-8 px-14 py-6 text-xs d-inline-flex align-items-center gap-1" onclick="window.print()">
+                        <iconify-icon icon="solar:printer-outline"></iconify-icon> Cetak Berita Acara IKM
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- KPI Summary Cards -->
 <div class="row gy-20 mb-24">
     <div class="col-xl-3 col-sm-6">
@@ -90,7 +145,7 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table bordered-table mb-0 align-middle">
+            <table class="table bordered-table mb-0 align-middle" id="tableAspectsIkm">
                 <thead>
                     <tr>
                         <th style="width: 50px;">No</th>
@@ -105,7 +160,7 @@
                 <tbody>
                     <?php if (empty($aspects)): ?>
                         <tr>
-                            <td colspan="7" class="text-center py-3 text-muted">Belum ada aspek survei.</td>
+                            <td colspan="7" class="text-center py-3 text-secondary-light">Belum ada aspek survei.</td>
                         </tr>
                     <?php else: ?>
                         <?php $no = 1; foreach ($aspects as $asp): ?>
@@ -194,25 +249,21 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table bordered-table mb-0 align-middle">
-                <thead>
-                    <tr>
-                        <th style="width: 50px;">No</th>
-                        <th>Responden & Instansi</th>
-                        <th>Peran</th>
-                        <th>Skor Aspek (1 - 5)</th>
-                        <th>Rata-Rata</th>
-                        <th>Kritik & Saran</th>
-                        <th>Waktu</th>
-                        <th style="width: 60px;" class="text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($responses)): ?>
-                        <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">Belum ada tanggapan survei masuk.</td>
-                        </tr>
-                    <?php else: ?>
+            <table class="table bordered-table mb-0 align-middle begawi-table" id="tableSurveyResponses" data-table-name="riwayat-responden-ikm" data-page-length="10">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">No</th>
+                    <th>Responden & Instansi</th>
+                    <th>Peran</th>
+                    <th>Skor Aspek (1 - 5)</th>
+                    <th>Rata-Rata</th>
+                    <th>Kritik & Saran</th>
+                    <th>Waktu</th>
+                    <th style="width: 60px;" class="text-center no-sort no-export action-col">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (! empty($responses)): ?>
                         <?php $no = 1; foreach ($responses as $resp): ?>
                             <?php
                             $p = (int) ($resp['service_regulation_rating'] ?? $resp['score_persyaratan'] ?? $resp['rating_overall'] ?? 5);

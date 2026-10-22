@@ -105,6 +105,7 @@ body {
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/communication/_nav_communication', ['activeSub' => 'waitlist']) ?>
 <?php
 $waiting     = $waiting   ?? [];
 $cancelled   = $cancelled ?? [];
@@ -214,7 +215,7 @@ $totalPromoted  = count($promoted);
 
     <!-- Tabbed Content Card -->
     <div class="card radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
-        <div class="card-header bg-white p-0 border-bottom">
+        <div class="card-header bg-base p-0 border-bottom">
             <ul class="nav nav-tabs wc-nav-tabs px-16" id="waitlistTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <a class="nav-link <?= $activeTab === 'waiting' ? 'active' : '' ?>" href="<?= site_url('dashboard/komunikasi/waitlist-pembatalan?tab=waiting' . ($filterEvent ? '&event_id=' . $filterEvent : '') . ($keyword ? '&q=' . urlencode($keyword) : '')) ?>">

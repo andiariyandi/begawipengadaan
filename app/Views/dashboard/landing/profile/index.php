@@ -9,6 +9,9 @@
     </div>
 </div>
 
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/landing/_nav_landing', ['section' => 'profile', 'activeSub' => 'profil-lembaga']) ?>
+
 <form method="post" action="<?= site_url('dashboard/landing/profil-lembaga') ?>" enctype="multipart/form-data">
     <?= csrf_field() ?>
 
@@ -68,7 +71,7 @@
                                             Unggah File Logo Resmi Lembaga
                                         </label>
                                         <input type="file" name="logo_file" id="logo_file" class="form-control radius-8" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml" onchange="previewImage(this, 'inst_logo_preview_img')">
-                                        <small class="text-muted d-block mt-1">Format: PNG, SVG, JPG, WEBP (disarankan PNG transparan, maks. 5 MB).</small>
+                                        <small class="text-secondary-light d-block mt-1">Format: PNG, SVG, JPG, WEBP (disarankan PNG transparan, maks. 5 MB).</small>
 
                                         <div class="mt-8">
                                             <a class="text-xs fw-semibold text-primary-600 d-inline-flex align-items-center gap-1 text-decoration-none" data-bs-toggle="collapse" href="#collapseLogoUrl" role="button" aria-expanded="false" aria-controls="collapseLogoUrl">
@@ -86,7 +89,7 @@
                                         $curLogo = $organization['logo_url'] ?? 'assets/main/images/resources/logo-1.png';
                                         $curLogoSrc = str_starts_with($curLogo, 'http') ? $curLogo : base_url($curLogo);
                                         ?>
-                                        <label class="form-label fw-semibold text-xs text-muted mb-6 d-block">Pratinjau Logo</label>
+                                        <label class="form-label fw-semibold text-xs text-secondary-light mb-6 d-block">Pratinjau Logo</label>
                                         <div class="p-8 bg-white border radius-8 d-inline-block">
                                             <img id="inst_logo_preview_img" src="<?= esc($curLogoSrc) ?>" alt="Logo Instansi" style="max-height: 48px; max-width: 140px; object-fit: contain;" onerror="this.src='<?= base_url('assets/main/images/resources/logo-1.png') ?>'">
                                         </div>
@@ -104,7 +107,7 @@
                                             Unggah File Cap / Stempel Resmi Lembaga
                                         </label>
                                         <input type="file" name="seal_file" id="seal_file" class="form-control radius-8" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml" onchange="previewImage(this, 'inst_seal_preview_img')">
-                                        <small class="text-muted d-block mt-1">Format: PNG transparan direkomendasikan (maks. 5 MB).</small>
+                                        <small class="text-secondary-light d-block mt-1">Format: PNG transparan direkomendasikan (maks. 5 MB).</small>
 
                                         <div class="mt-8">
                                             <a class="text-xs fw-semibold text-primary-600 d-inline-flex align-items-center gap-1 text-decoration-none" data-bs-toggle="collapse" href="#collapseSealUrl" role="button" aria-expanded="false" aria-controls="collapseSealUrl">
@@ -122,7 +125,7 @@
                                         $curSeal = $organization['seal_url'] ?? 'assets/main/images/resources/seal-prov-lampung.png';
                                         $curSealSrc = str_starts_with($curSeal, 'http') ? $curSeal : base_url($curSeal);
                                         ?>
-                                        <label class="form-label fw-semibold text-xs text-muted mb-6 d-block">Pratinjau Stempel</label>
+                                        <label class="form-label fw-semibold text-xs text-secondary-light mb-6 d-block">Pratinjau Stempel</label>
                                         <div class="p-8 bg-white border radius-8 d-inline-block">
                                             <img id="inst_seal_preview_img" src="<?= esc($curSealSrc) ?>" alt="Cap Lembaga" style="max-height: 52px; max-width: 52px; object-fit: contain;" onerror="this.src='<?= base_url('assets/main/images/resources/seal-prov-lampung.png') ?>'">
                                         </div>
@@ -256,7 +259,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body p-20 d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <p class="text-xs text-muted mb-0">Semua perubahan pada form ini langsung disinkronkan ke basis data <code>site_settings</code> dan tampilan publik.</p>
+                    <p class="text-xs text-secondary-light mb-0">Semua perubahan pada form ini langsung disinkronkan ke basis data <code>site_settings</code> dan tampilan publik.</p>
                     <button type="submit" class="btn btn-primary-600 radius-8 px-24 py-12 fw-semibold">
                         <iconify-icon icon="solar:diskette-bold" class="me-1"></iconify-icon>
                         Simpan Seluruh Pengaturan Profil

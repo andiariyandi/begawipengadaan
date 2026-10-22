@@ -332,6 +332,13 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     $routes->get('aktivitas-terbaru', 'DashboardController::recentActivity', ['as' => 'dashboard.summary.recent-activity']);
     $routes->get('indikator-sistem', 'DashboardController::systemIndicators', ['as' => 'dashboard.summary.system-indicators']);
 
+    // Direct approval shortcuts / compatibility
+    $routes->get('approvals', 'ApprovalController::index');
+    $routes->get('approvals/history', 'ApprovalController::history');
+    $routes->get('approvals/(:segment)', 'ApprovalController::detail/$1');
+    $routes->match(['get', 'post'], 'approvals/(:segment)/approve', 'ApprovalController::approve/$1');
+    $routes->match(['get', 'post'], 'approvals/(:segment)/reject', 'ApprovalController::reject/$1');
+
     $routes->group('profile', static function ($routes) {
         $routes->get('/', 'ProfileController::index', ['as' => 'dashboard.profile.index']);
         $routes->get('edit', 'ProfileController::edit', ['as' => 'dashboard.profile.edit']);
@@ -408,11 +415,13 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         // Audit akses (per spec: /dashboard/akses/audit)
         $routes->group('audit', static function ($routes) {
             $routes->get('/', 'AuditController::index', ['as' => 'dashboard.access.audit']);
+            $routes->get('export', 'AuditController::exportCsv', ['as' => 'dashboard.access.audit.export']);
             $routes->get('(:segment)', 'AuditController::detail/$1', ['as' => 'dashboard.access.audit.detail']);
         });
     });
 
     $routes->group('pembelajaran', ['namespace' => 'App\Controllers\Learning'], static function ($routes) {
+        $routes->addRedirect('pengajar', 'dashboard/pembelajaran/kelas');
         // 1. Overview
         $routes->get('', 'LearningOverviewController::index', ['as' => 'dashboard.learning.overview']);
 
@@ -444,6 +453,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('kelas/(:segment)', 'LearningClassController::detail/$1', ['as' => 'dashboard.learning.classes.detail']);
         $routes->post('kelas/(:segment)/trainer', 'LearningClassController::assignTrainer/$1', ['as' => 'dashboard.learning.classes.assign-trainer']);
         $routes->post('kelas/(:segment)/trainer/(:segment)/cabut', 'LearningClassController::revokeTrainer/$1/$2', ['as' => 'dashboard.learning.classes.revoke-trainer']);
+        $routes->post('kelas/(:segment)/duplikasi', 'LearningClassController::duplicateBatch/$1', ['as' => 'dashboard.learning.classes.duplicate']);
+        $routes->get('kelas/(:segment)/gradebook/export', 'LearningClassController::exportGradebook/$1', ['as' => 'dashboard.learning.classes.gradebook.export']);
 
         // 5. Trainer Assignment
         $routes->get('trainer', 'TrainerAssignmentController::index', ['as' => 'dashboard.learning.trainers']);
@@ -537,6 +548,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     });
 
     $routes->group('bunga-rampai', ['namespace' => 'App\Controllers\Knowledge'], static function ($routes) {
+        $routes->addRedirect('carousel', 'dashboard/landing/sorotan-carousel');
         $routes->get('', 'KnowledgeOverviewController::index', ['as' => 'dashboard.knowledge.overview']);
 
         $routes->get('artikel', 'ArticleController::index', ['as' => 'dashboard.knowledge.articles']);
@@ -722,6 +734,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('pesan-masuk/hapus/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::delete/$1', ['as' => 'dashboard.communication.inbox.delete']);
 
         // WhatsApp Helpdesk Widget
+        $routes->addRedirect('helpdesk', 'dashboard/komunikasi/whatsapp-widget');
         $routes->get('whatsapp-widget', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::index', ['as' => 'dashboard.communication.helpdesk']);
         $routes->post('whatsapp-widget/pengaturan', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::saveSettings', ['as' => 'dashboard.communication.helpdesk.settings']);
         $routes->post('whatsapp-widget/simpan-topic', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::storeTopic', ['as' => 'dashboard.communication.helpdesk.topic.store']);
@@ -739,6 +752,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     $routes->group('sertifikat', ['namespace' => 'App\Controllers\Certificate'], static function ($routes) {
         // 1. Overview Sertifikat
         $routes->get('/', 'CertificateController::overview', ['as' => 'dashboard.certificates.overview']);
+        $routes->get('overview', 'CertificateController::overview');
 
         // 2. Learning Certificate
         $routes->get('learning', 'CertificateLearningController::index', ['as' => 'dashboard.certificates.learning']);
@@ -775,6 +789,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
 
         // 6. Verification (Internal Dashboard)
         $routes->get('verifikasi', 'CertificateController::verification', ['as' => 'dashboard.certificates.verification']);
+        $routes->get('verification', 'CertificateController::verification');
         $routes->post('verifikasi/cari', 'CertificateController::checkVerification', ['as' => 'dashboard.certificates.verification.check']);
 
         // 7. Riwayat Sertifikat (Archive)
@@ -782,23 +797,24 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('index', 'CertificateController::riwayat', ['as' => 'dashboard.certificates.index']);
 
         // Legacy / Approval Queue compatibility
-        $routes->get('approval', 'CertificateApprovalController::index', ['as' => 'dashboard.certificates.approvals']);
-        $routes->get('approval/(:segment)', 'CertificateApprovalController::detail/$1', ['as' => 'dashboard.certificates.approvals.detail']);
-        $routes->post('approval/(:segment)/terbitkan', 'CertificateApprovalController::issue/$1', ['as' => 'dashboard.certificates.approvals.issue']);
-        $routes->post('approval/(:segment)/tolak', 'CertificateApprovalController::reject/$1', ['as' => 'dashboard.certificates.approvals.reject']);
+        $routes->get('approval', '\App\Controllers\Admin\ApprovalController::index', ['as' => 'dashboard.certificates.approvals']);
+        $routes->get('approval/(:segment)', '\App\Controllers\Admin\ApprovalController::detail/$1', ['as' => 'dashboard.certificates.approvals.detail']);
+        $routes->match(['get', 'post'], 'approval/(:segment)/terbitkan', '\App\Controllers\Admin\ApprovalController::approve/$1', ['as' => 'dashboard.certificates.approvals.issue']);
+        $routes->match(['get', 'post'], 'approval/(:segment)/tolak', '\App\Controllers\Admin\ApprovalController::reject/$1', ['as' => 'dashboard.certificates.approvals.reject']);
 
         // Certificate Operations (detail, edit, revoke, download)
         $routes->get('(:segment)/ubah', 'CertificateController::edit/$1', ['as' => 'dashboard.certificates.edit']);
         $routes->post('(:segment)/ubah', 'CertificateController::update/$1');
         $routes->post('(:segment)/cabut', 'CertificateController::revoke/$1', ['as' => 'dashboard.certificates.revoke']);
         $routes->get('(:segment)/unduh', 'CertificateDownloadController::download/$1', ['as' => 'dashboard.certificates.download']);
+        $routes->get('(:segment)/preview', 'CertificateController::preview/$1', ['as' => 'dashboard.certificates.preview']);
         $routes->get('(:segment)', 'CertificateController::detail/$1', ['as' => 'dashboard.certificates.detail']);
     });
 
     $routes->group('intelligence', ['namespace' => 'App\Controllers\Intelligence'], static function ($routes) {
         $routes->get('/', 'IntelligenceDashboardController::index', ['as' => 'dashboard.intelligence.home']);
         $routes->get('opd-unit', 'OpdController::index', ['as' => 'dashboard.intelligence.organization-units']);
-        $routes->get('opd-unit/tambah', 'OpdController::create', ['as' => 'dashboard.intelligence.organization-units.create']);
+        $routes->match(['get', 'post'], 'opd-unit/tambah', 'OpdController::create', ['as' => 'dashboard.intelligence.organization-units.create']);
         $routes->get('opd-unit/(:segment)', 'OpdController::detail/$1', ['as' => 'dashboard.intelligence.organization-units.detail']);
         $routes->get('sdm-jf-ppbj', 'JfPpbjController::index', ['as' => 'dashboard.intelligence.personnel']);
         $routes->get('sdm-jf-ppbj/(:segment)', 'JfPpbjController::detail/$1', ['as' => 'dashboard.intelligence.personnel.detail']);
@@ -817,9 +833,11 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('kompetensi', 'DashboardController::competencyReport', ['as' => 'dashboard.reports.competency']);
         $routes->get('pengguna', 'DashboardController::userReport', ['as' => 'dashboard.reports.users']);
         $routes->get('riwayat-export', 'DashboardController::exportHistory', ['as' => 'dashboard.reports.export-history']);
+        $routes->get('export/(:segment)', 'DashboardController::exportReport/$1', ['as' => 'dashboard.reports.export.download']);
     });
 
     $routes->group('landing', ['namespace' => 'App\Controllers\Admin\Landing'], static function ($routes) {
+        $routes->addRedirect('carousel', 'dashboard/landing/sorotan-carousel');
         // Pusat Manajemen Carousel & Sorotan Terpusat (Arena, Bunga Rampai, Regulasi, Berita, Event)
         $routes->get('sorotan-carousel', 'SpotlightHubController::index', ['as' => 'dashboard.landing.spotlight_hub']);
         $routes->post('sorotan-carousel/toggle', 'SpotlightHubController::toggle', ['as' => 'dashboard.landing.spotlight_hub.toggle']);
@@ -903,6 +921,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
 
     $routes->group('survei-kepuasan', ['namespace' => 'App\Controllers\Admin\Survey'], static function ($routes) {
         $routes->get('/', 'SatisfactionSurveyAdminController::index', ['as' => 'dashboard.survey.index']);
+        $routes->get('hasil', 'SatisfactionSurveyAdminController::index');
         $routes->post('update-aspect/(:segment)', 'SatisfactionSurveyAdminController::updateAspect/$1', ['as' => 'dashboard.survey.aspect.update']);
         $routes->get('hapus/(:segment)', 'SatisfactionSurveyAdminController::deleteResponse/$1', ['as' => 'dashboard.survey.response.delete']);
     });
@@ -911,11 +930,13 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
 
         $routes->get('approval', 'ApprovalController::index', ['as' => 'dashboard.system.approvals']);
         $routes->get('approval/riwayat', 'ApprovalController::history', ['as' => 'dashboard.system.approvals.history']);
-        $routes->get('approval/(:segment)/setujui', 'ApprovalController::approve/$1', ['as' => 'dashboard.system.approvals.approve']);
-        $routes->get('approval/(:segment)/tolak', 'ApprovalController::reject/$1', ['as' => 'dashboard.system.approvals.reject']);
+        $routes->post('approval/bulk', 'ApprovalController::bulk', ['as' => 'dashboard.system.approvals.bulk']);
+        $routes->match(['get', 'post'], 'approval/(:segment)/setujui', 'ApprovalController::approve/$1', ['as' => 'dashboard.system.approvals.approve']);
+        $routes->match(['get', 'post'], 'approval/(:segment)/tolak', 'ApprovalController::reject/$1', ['as' => 'dashboard.system.approvals.reject']);
         $routes->get('approval/(:segment)', 'ApprovalController::detail/$1', ['as' => 'dashboard.system.approvals.detail']);
 
         $routes->get('audit-trail', 'AuditController::index', ['as' => 'dashboard.system.audit-trail']);
+        $routes->get('audit-trail/export', 'AuditController::exportCsv', ['as' => 'dashboard.system.audit-trail.export']);
         $routes->get('audit-trail/(:segment)', 'AuditController::detail/$1', ['as' => 'dashboard.system.audit-trail.detail']);
         $routes->get('notifikasi', 'NotificationController::index', ['as' => 'dashboard.system.notifications']);
         $routes->get('notifikasi/(:segment)', 'NotificationController::detail/$1', ['as' => 'dashboard.system.notifications.detail']);
@@ -938,11 +959,32 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('pengaturan-integrasi', 'SettingController::integration', ['as' => 'dashboard.system.settings.integration']);
         $routes->get('pengaturan-keamanan', 'SettingController::security', ['as' => 'dashboard.system.settings.security']);
         $routes->get('maintenance', 'SettingController::maintenance', ['as' => 'dashboard.system.maintenance']);
+        $routes->get('pengaturan/(:segment)', 'SettingController::groupView/$1');
         $routes->post('pengaturan/(:segment)', 'SettingController::save/$1', ['as' => 'dashboard.system.settings.save']);
         $routes->get('settings', 'SettingController::index');
         $routes->get('settings/(:segment)', 'SettingController::groupView/$1');
         $routes->post('settings/(:segment)', 'SettingController::save/$1');
     });
+
+    // Compatibility aliases for settings under dashboard/settings/* and dashboard/pengaturan/*
+    $routes->get('pengaturan', 'SettingController::index');
+    $routes->get('pengaturan/(:segment)', 'SettingController::groupView/$1');
+    $routes->post('pengaturan/(:segment)', 'SettingController::save/$1');
+    $routes->get('settings', 'SettingController::index');
+    $routes->get('settings/general', 'SettingController::general');
+    $routes->get('settings/organization', 'SettingController::organization');
+    $routes->get('settings/learning', 'SettingController::learning');
+    $routes->get('settings/knowledge', 'SettingController::knowledge');
+    $routes->get('settings/regulation', 'SettingController::regulation');
+    $routes->get('settings/news', 'SettingController::news');
+    $routes->get('settings/event', 'SettingController::event');
+    $routes->get('settings/certificate', 'SettingController::certificate');
+    $routes->get('settings/notification', 'SettingController::notification');
+    $routes->get('settings/integration', 'SettingController::integration');
+    $routes->get('settings/security', 'SettingController::security');
+    $routes->get('settings/maintenance', 'SettingController::maintenance');
+    $routes->get('settings/(:segment)', 'SettingController::groupView/$1');
+    $routes->post('settings/(:segment)', 'SettingController::save/$1');
 });
 
 $routes->get('pratinjau/403', 'Landing\HomeController::forbiddenPreview', ['as' => 'preview.403']);

@@ -23,6 +23,9 @@ $stats       = $stats ?? ['total' => count($items), 'published' => 0, 'draft' =>
     </div>
 </div>
 
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/knowledge/_nav_knowledge', ['section' => 'articles', 'activeSub' => 'case-studies']) ?>
+
 <!-- KPI Cards -->
 <div class="row row-cols-xxl-4 row-cols-md-2 row-cols-1 g-3 mb-24">
     <div class="col">
@@ -147,7 +150,7 @@ $stats       = $stats ?? ['total' => count($items), 'published' => 0, 'draft' =>
                             <img src="<?= base_url('file/' . (int) $row['cover_file_id']) ?>" alt="<?= esc($row['title']) ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/main/images/blog/blog-2-2.jpg') ?>';">
                             <?php if ((int) ($row['featured'] ?? 0) === 1): ?>
                                 <div class="position-absolute top-0 end-0 m-2">
-                                    <span class="badge bg-warning text-dark radius-4 px-8 py-3 text-2xs fw-bold">
+                                    <span class="badge bg-warning-50 text-warning-700 border border-warning-200 radius-4 px-8 py-3 text-2xs fw-bold">
                                         <i class="fas fa-star me-1"></i> Unggulan
                                     </span>
                                 </div>

@@ -176,7 +176,7 @@ if (empty($openAt) || empty($code)) {
             <?= $presensiBadge ?>
         </div>
     </div>
-    <div class="card-body p-24 bg-white">
+    <div class="card-body p-24 bg-base">
         <div class="row gy-3 align-items-center">
             <div class="col-md-7">
                 <label class="form-label text-xs fw-bold text-neutral-700 text-uppercase mb-2" style="color: #475569;">Kode Presensi Peserta:</label>
@@ -470,7 +470,7 @@ if (empty($openAt) || empty($code)) {
                                             <iconify-icon icon="solar:danger-circle-bold" class="text-warning-600 fs-6"></iconify-icon>
                                             Belum ada template sertifikat unik.
                                         </span>
-                                        <a href="<?= site_url('dashboard/sertifikat/template/tambah?source_type=event&event_id=' . (int) $eventId) ?>" class="btn btn-warning text-dark btn-xs radius-4 px-8 py-2 text-xs fw-bold">
+                                        <a href="<?= site_url('dashboard/sertifikat/template/tambah?source_type=event&event_id=' . (int) $eventId) ?>" class="btn btn-warning-600 text-neutral-900 fw-semibold btn-xs radius-4 px-8 py-2 text-xs fw-bold">
                                             + Buat Template
                                         </a>
                                     </div>
