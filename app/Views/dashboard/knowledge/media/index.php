@@ -58,30 +58,11 @@ $createParam = match ($scope) {
     </div>
 </div>
 
-<!-- Sub-Nav Filter Pills -->
-<div class="card border-0 radius-12 shadow-sm mb-24 bg-white p-12">
-    <div class="d-flex flex-wrap align-items-center gap-2">
-        <a href="<?= site_url('dashboard/bunga-rampai/media-galeri') ?>" class="btn btn-sm <?= $scope === 'all' ? 'btn-primary-600 text-white' : 'btn-outline-neutral-300 text-dark' ?> radius-8 px-16 py-8 text-xs fw-semibold">
-            <iconify-icon icon="solar:gallery-wide-bold" class="me-1"></iconify-icon>
-            Semua Media &amp; Galeri (<?= (int) ($stats['total'] ?? count($items)) ?>)
-        </a>
-        <a href="<?= site_url('dashboard/bunga-rampai/media') ?>" class="btn btn-sm <?= $scope === 'infographics' ? 'btn-primary-600 text-white' : 'btn-outline-neutral-300 text-dark' ?> radius-8 px-16 py-8 text-xs fw-semibold">
-            <iconify-icon icon="solar:gallery-bold" class="me-1"></iconify-icon>
-            Media &amp; Infografik
-        </a>
-        <a href="<?= site_url('dashboard/bunga-rampai/video') ?>" class="btn btn-sm <?= $scope === 'videos' ? 'btn-primary-600 text-white' : 'btn-outline-neutral-300 text-dark' ?> radius-8 px-16 py-8 text-xs fw-semibold">
-            <iconify-icon icon="solar:play-circle-bold" class="me-1"></iconify-icon>
-            Video PBJ
-        </a>
-        <a href="<?= site_url('dashboard/bunga-rampai/galeri') ?>" class="btn btn-sm <?= $scope === 'gallery' ? 'btn-primary-600 text-white' : 'btn-outline-neutral-300 text-dark' ?> radius-8 px-16 py-8 text-xs fw-semibold">
-            <iconify-icon icon="solar:camera-bold" class="me-1"></iconify-icon>
-            Galeri Kegiatan
-        </a>
-    </div>
-</div>
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/knowledge/_nav_knowledge', ['section' => 'media', 'activeSub' => ($scope === 'all' ? 'media-gallery' : $scope)]) ?>
 
 <!-- Search & Filter Card -->
-<div class="card radius-12 mb-24 border bg-white shadow-sm">
+<div class="card radius-12 mb-24 border bg-base shadow-sm">
     <div class="card-body p-20">
         <form method="get" action="<?= current_url() ?>">
             <div class="row g-3 align-items-end">
@@ -163,7 +144,7 @@ $createParam = match ($scope) {
                 $typeBadge = match ($m['type']) {
                     'youtube', 'video_file', 'video' => 'bg-danger text-white',
                     'gallery'                        => 'bg-dark text-white',
-                    'infographic'                    => 'bg-info text-dark',
+                    'infographic'                    => 'bg-info-50 text-info-700',
                     default                          => 'bg-primary-50 text-primary-700',
                 };
             ?>
@@ -241,7 +222,7 @@ $createParam = match ($scope) {
                             </a>
 
                             <div class="d-flex align-items-center gap-2">
-                                <a href="<?= route_to('dashboard.knowledge.media-gallery.edit', (string) $m['id']) ?>" class="btn btn-sm btn-outline-warning text-dark radius-6 px-12 py-5 text-xs fw-semibold d-inline-flex align-items-center gap-1">
+                                <a href="<?= route_to('dashboard.knowledge.media-gallery.edit', (string) $m['id']) ?>" class="btn btn-sm btn-outline-warning-600 text-warning-700 radius-6 px-12 py-5 text-xs fw-semibold d-inline-flex align-items-center gap-1">
                                     <iconify-icon icon="solar:pen-bold"></iconify-icon> Ubah
                                 </a>
                                 <button type="button" class="btn btn-sm btn-outline-danger radius-6 px-10 py-5 text-xs"

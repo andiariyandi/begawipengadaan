@@ -92,7 +92,7 @@ $isInfographic = in_array($row['type'] ?? '', ['infographic', 'image', 'poster',
 
                 <?php if (! empty($row['alt_text'])): ?>
                     <div class="text-xs text-secondary-light">
-                        <strong class="text-dark">Alt Text Aksesibilitas:</strong> <?= esc($row['alt_text']) ?>
+                        <strong class="text-primary-light">Alt Text Aksesibilitas:</strong> <?= esc($row['alt_text']) ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -114,27 +114,27 @@ $isInfographic = in_array($row['type'] ?? '', ['infographic', 'image', 'poster',
 
                 <div class="mb-16 pb-16 border-bottom">
                     <span class="text-secondary-light text-xs d-block mb-1">Akses Visibilitas</span>
-                    <strong class="text-dark text-sm text-capitalize"><?= esc($row['visibility'] ?? 'public') ?></strong>
+                    <strong class="text-primary-light text-sm text-capitalize"><?= esc($row['visibility'] ?? 'public') ?></strong>
                 </div>
 
                 <?php if (! empty($row['location'])): ?>
                     <div class="mb-16 pb-16 border-bottom">
                         <span class="text-secondary-light text-xs d-block mb-1">Lokasi Acara</span>
-                        <span class="text-dark text-sm"><i class="fas fa-map-marker-alt text-danger me-1"></i><?= esc($row['location']) ?></span>
+                        <span class="text-primary-light text-sm"><i class="fas fa-map-marker-alt text-danger me-1"></i><?= esc($row['location']) ?></span>
                     </div>
                 <?php endif; ?>
 
                 <?php if (! empty($row['event_date'])): ?>
                     <div class="mb-16 pb-16 border-bottom">
                         <span class="text-secondary-light text-xs d-block mb-1">Tanggal Kegiatan</span>
-                        <span class="text-dark text-sm"><?= esc(date('d F Y', strtotime($row['event_date']))) ?></span>
+                        <span class="text-primary-light text-sm"><?= esc(date('d F Y', strtotime($row['event_date']))) ?></span>
                     </div>
                 <?php endif; ?>
 
                 <?php if (! empty($row['duration'])): ?>
                     <div class="mb-16 pb-16 border-bottom">
                         <span class="text-secondary-light text-xs d-block mb-1">Durasi Video</span>
-                        <span class="text-dark text-sm"><i class="far fa-clock text-primary me-1"></i><?= esc($row['duration']) ?></span>
+                        <span class="text-primary-light text-sm"><i class="far fa-clock text-primary me-1"></i><?= esc($row['duration']) ?></span>
                     </div>
                 <?php endif; ?>
 
@@ -149,7 +149,7 @@ $isInfographic = in_array($row['type'] ?? '', ['infographic', 'image', 'poster',
 
                 <div>
                     <span class="text-secondary-light text-xs d-block mb-1">Terakhir Diperbarui</span>
-                    <span class="text-dark text-xs"><?= esc(date('d M Y, H:i', strtotime($row['updated_at'] ?? 'now'))) ?></span>
+                    <span class="text-primary-light text-xs"><?= esc(date('d M Y, H:i', strtotime($row['updated_at'] ?? 'now'))) ?></span>
                 </div>
             </div>
         </div>

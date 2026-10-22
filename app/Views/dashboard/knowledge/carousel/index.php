@@ -27,13 +27,13 @@ $media = $media ?? [];
                 Konten yang dimasukkan ke dalam Carousel akan ditampilkan sebagai hero banner utama di halaman beranda Bunga Rampai. Pastikan konten memiliki cover gambar dengan spesifikasi berikut:
             </p>
             <div class="d-flex flex-wrap gap-2 text-xs">
-                <span class="badge bg-white text-info-800 border border-info-300 px-10 py-6 radius-6">
+                <span class="badge bg-info-50 text-info-700 border border-info-200 border border-info-300 px-10 py-6 radius-6">
                     <i class="fas fa-expand me-1"></i> Rekomendasi Banner: <strong>1920 x 600 px</strong> (Panoramic 3.2:1)
                 </span>
-                <span class="badge bg-white text-info-800 border border-info-300 px-10 py-6 radius-6">
+                <span class="badge bg-info-50 text-info-700 border border-info-200 border border-info-300 px-10 py-6 radius-6">
                     <i class="fas fa-image me-1"></i> Alternatif Landscape: <strong>1200 x 630 px</strong> (16:9)
                 </span>
-                <span class="badge bg-white text-info-800 border border-info-300 px-10 py-6 radius-6">
+                <span class="badge bg-info-50 text-info-700 border border-info-200 border border-info-300 px-10 py-6 radius-6">
                     <i class="fas fa-file-image me-1"></i> Format: <strong>WEBP, JPG, PNG</strong> (Maks 3 MB)
                 </span>
             </div>
@@ -80,7 +80,7 @@ $media = $media ?? [];
                         <tr>
                             <td>
                                 <?php if ($coverUrl): ?>
-                                    <img src="<?= esc($coverUrl) ?>" alt="Cover" class="w-80-px h-48-px radius-8 object-fit-cover border shadow-xs">
+                                    <img src="<?= esc($coverUrl) ?>" alt="Cover" class="w-80-px h-48-px radius-8 object-fit-cover border shadow-xs" onerror="this.src='<?= base_url('assets/main/images/blog/blog-2-1.jpg') ?>';">
                                 <?php else: ?>
                                     <div class="w-80-px h-48-px radius-8 bg-neutral-100 border d-flex align-items-center justify-content-center text-secondary-light text-xs">
                                         <iconify-icon icon="solar:image-linear" class="text-lg"></iconify-icon>
@@ -88,7 +88,7 @@ $media = $media ?? [];
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <a href="<?= route_to('dashboard.knowledge.articles.detail', (string) $a['id']) ?>" class="fw-semibold text-dark hover-primary text-sm d-block mb-1">
+                                <a href="<?= route_to('dashboard.knowledge.articles.detail', (string) $a['id']) ?>" class="fw-semibold text-primary-light hover-primary text-sm d-block mb-1">
                                     <?= esc($a['title']) ?>
                                 </a>
                                 <small class="text-secondary-light text-xs">ID #<?= (int) $a['id'] ?> &bull; Rekomendasi: 1920x600 px</small>
@@ -178,7 +178,7 @@ $media = $media ?? [];
                         <tr>
                             <td>
                                 <?php if ($mCover): ?>
-                                    <img src="<?= esc($mCover) ?>" alt="Cover" class="w-80-px h-48-px radius-8 object-fit-cover border shadow-xs">
+                                    <img src="<?= esc($mCover) ?>" alt="Cover" class="w-80-px h-48-px radius-8 object-fit-cover border shadow-xs" onerror="this.src='<?= base_url('assets/main/images/gallery/gallery-page-1-1.jpg') ?>';">
                                 <?php else: ?>
                                     <div class="w-80-px h-48-px radius-8 bg-neutral-100 border d-flex align-items-center justify-content-center text-secondary-light text-xs">
                                         <iconify-icon icon="solar:gallery-linear" class="text-lg"></iconify-icon>
@@ -186,7 +186,7 @@ $media = $media ?? [];
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <a href="<?= route_to('dashboard.knowledge.media-gallery.detail', (string) $m['id']) ?>" class="fw-semibold text-dark hover-primary text-sm d-block mb-1">
+                                <a href="<?= route_to('dashboard.knowledge.media-gallery.detail', (string) $m['id']) ?>" class="fw-semibold text-primary-light hover-primary text-sm d-block mb-1">
                                     <?= esc($m['title'] ?: '(Tanpa judul)') ?>
                                 </a>
                                 <small class="text-secondary-light text-xs">ID #<?= (int) $m['id'] ?> &bull; Rekomendasi: 1920x600 px</small>

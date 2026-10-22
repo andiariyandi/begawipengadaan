@@ -225,7 +225,7 @@ $filters        = $filters ?? [];
                                         </td>
                                         <td>
                                             <div class="d-flex flex-column">
-                                                <span class="text-sm fw-medium text-dark"><?= esc($cr['course_title'] ?? '-') ?></span>
+                                                <span class="text-sm fw-medium text-primary-light"><?= esc($cr['course_title'] ?? '-') ?></span>
                                                 <span class="text-xs text-secondary-light"><?= esc($cr['program_title'] ?? '-') ?></span>
                                             </div>
                                         </td>
@@ -272,7 +272,7 @@ $filters        = $filters ?? [];
                                                 'active'    => 'bg-primary-focus text-primary-600',
                                                 'ongoing'   => 'bg-info-focus text-info-main',
                                                 'completed' => 'bg-secondary-focus text-secondary-light',
-                                                default     => 'bg-light text-dark',
+                                                default     => 'bg-neutral-100 text-neutral-900',
                                             };
                                             ?>
                                             <span class="badge text-xs radius-4 px-8 py-4 <?= $badgeClass ?>">
@@ -447,7 +447,7 @@ $filters        = $filters ?? [];
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="badge text-xs radius-4 px-8 py-4 <?= ($pr['status'] ?? '') === 'active' ? 'bg-success-focus text-success-main' : 'bg-light text-dark' ?>">
+                                            <span class="badge text-xs radius-4 px-8 py-4 <?= ($pr['status'] ?? '') === 'active' ? 'bg-success-focus text-success-main' : 'bg-neutral-100 text-neutral-900' ?>">
                                                 <?= strtoupper(esc($pr['status'] ?? '-')) ?>
                                             </span>
                                         </td>

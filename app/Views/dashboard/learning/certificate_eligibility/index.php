@@ -1,4 +1,4 @@
-<?= $this->extend('dashboard/layouts/dashboard') ?>
+﻿<?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
 <?php
@@ -140,7 +140,7 @@ $filters = $filters ?? [];
 
     <div class="card-body p-0">
         <div class="table-responsive scroll-sm">
-            <table class="table bordered-table mb-0">
+            <table class="table bordered-table mb-0 begawi-table" data-table-name="kelayakan-sertifikat" data-page-length="10">
                 <thead>
                     <tr>
                         <th>Peserta</th>
@@ -149,7 +149,7 @@ $filters = $filters ?? [];
                         <th class="text-center">Status Kelayakan</th>
                         <th>Nomor Sertifikat</th>
                         <th>Tanggal Terbit / Selesai</th>
-                        <th class="text-center">Aksi</th>
+                        <th class="text-center no-sort no-export action-col">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>

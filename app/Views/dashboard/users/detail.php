@@ -283,14 +283,23 @@
                     <?php endif; ?>
 
                     <div class="col-md-3">
+                        <button type="button" class="btn btn-warning-600 w-100 radius-8"
+                                data-bs-toggle="modal"
+                                data-bs-target="#adminResetPasswordModal">
+                            <iconify-icon icon="solar:key-square-outline" class="me-6"></iconify-icon>
+                            Reset Password Langsung
+                        </button>
+                    </div>
+
+                    <div class="col-md-3">
                         <button type="button" class="btn btn-info-600 w-100 radius-8"
                                 data-bs-toggle="modal"
                                 data-bs-target="#confirmationActionModal"
                                 data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/reset-password') ?>"
                                 data-method="POST"
-                                data-title="Kirim Reset Password"
-                                data-message="Apakah Anda yakin ingin mengirim permintaan reset password untuk akun <?= esc($user['name'] ?? $user['username']) ?>?"
-                                data-btn-text="Kirim Reset"
+                                data-title="Kirim Reset Password via Email"
+                                data-message="Apakah Anda yakin ingin mengirim instruksi tautan reset password ke email <?= esc($user['email'] ?? $user['name'] ?? $user['username']) ?>?"
+                                data-btn-text="Kirim Email Reset"
                                 data-btn-class="btn-info-600"
                                 data-icon="solar:lock-password-bold"
                                 data-icon-color="info">
@@ -309,11 +318,121 @@
                 </div>
                 <p class="text-secondary-light text-xs mt-16 mb-0">
                     <iconify-icon icon="solar:info-circle-outline"></iconify-icon>
-                    Password tidak dapat diubah langsung oleh admin. Reset password mengirim instruksi ke email pengguna.
+                    Administrator dapat melakukan reset kata sandi langsung dengan audit kepatuhan atau mengirimkan tautan instruksi ke email pengguna.
                 </p>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal Reset Password Administratif Langsung -->
+<div class="modal fade" id="adminResetPasswordModal" tabindex="-1" aria-labelledby="adminResetPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content radius-16 border-0 shadow-lg">
+            <div class="modal-header border-bottom px-24 py-16">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="w-36-px h-36-px bg-warning-50 text-warning-600 rounded-circle d-flex align-items-center justify-content-center text-lg">
+                        <iconify-icon icon="solar:key-square-bold"></iconify-icon>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fs-6 fw-semibold mb-0" id="adminResetPasswordModalLabel">Reset Kata Sandi Administratif</h6>
+                        <span class="text-xs text-secondary-light">Ubah langsung kata sandi akun pengguna</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <form action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/reset-password') ?>" method="POST" id="adminResetPasswordForm">
+                <?= csrf_field() ?>
+                <div class="modal-body p-24">
+                    <div class="p-12 radius-8 bg-neutral-50 border mb-20">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="text-xs text-secondary-light">Nama Akun:</span>
+                            <span class="text-xs fw-semibold text-neutral-900"><?= esc($user['name'] ?? $user['username'] ?? '-') ?></span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mt-1">
+                            <span class="text-xs text-secondary-light">Email:</span>
+                            <span class="text-xs fw-semibold text-neutral-900"><?= esc($user['email'] ?? '-') ?></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-20">
+                        <label for="adminNewPassword" class="form-label text-sm fw-medium mb-8">Kata Sandi Baru <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" class="form-control radius-8" id="adminNewPassword" name="new_password" required minlength="8" placeholder="Masukkan kata sandi baru...">
+                            <button class="btn btn-outline-neutral-300 px-12" type="button" id="toggleAdminPasswordBtn" title="Lihat/Sembunyikan Kata Sandi">
+                                <iconify-icon icon="solar:eye-outline" id="toggleAdminPasswordIcon"></iconify-icon>
+                            </button>
+                        </div>
+                        <span class="text-2xs text-secondary-light mt-4 d-block">Minimal 8 karakter kombinasi huruf dan angka.</span>
+                    </div>
+
+                    <div class="mb-20">
+                        <label for="adminConfirmPassword" class="form-label text-sm fw-medium mb-8">Konfirmasi Kata Sandi Baru <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control radius-8" id="adminConfirmPassword" name="confirm_password" required minlength="8" placeholder="Ulangi kata sandi baru...">
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between gap-2 p-12 bg-primary-50 rounded-8 border border-primary-100 mb-20">
+                        <span class="text-xs text-primary-700 fw-medium">Buat sandi acak aman otomatis:</span>
+                        <button type="button" class="btn btn-xs btn-primary-600 radius-6 px-12 py-6 d-flex align-items-center gap-1 text-xs" id="btnGeneratePassword">
+                            <iconify-icon icon="solar:magic-stick-3-outline"></iconify-icon>
+                            <span>Generate Acak</span>
+                        </button>
+                    </div>
+
+                    <div class="alert alert-warning d-flex align-items-start gap-2 mb-0 p-12 radius-8 text-xs">
+                        <iconify-icon icon="solar:shield-warning-outline" class="text-base flex-shrink-0 mt-2"></iconify-icon>
+                        <div>
+                            Tindakan ini dicatat pada log audit kepatuhan dan akan memperbarui versi sesi akun. Pastikan memberikan kredensial baru melalui saluran aman.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-24 py-16">
+                    <button type="button" class="btn btn-outline-neutral-300 radius-8 px-20 py-10" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning-600 radius-8 px-20 py-10 d-flex align-items-center gap-2">
+                        <iconify-icon icon="solar:check-circle-outline"></iconify-icon>
+                        <span>Simpan Kata Sandi</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const pwdInput = document.getElementById('adminNewPassword');
+    const confirmInput = document.getElementById('adminConfirmPassword');
+    const toggleBtn = document.getElementById('toggleAdminPasswordBtn');
+    const toggleIcon = document.getElementById('toggleAdminPasswordIcon');
+    const generateBtn = document.getElementById('btnGeneratePassword');
+
+    if (toggleBtn && pwdInput) {
+        toggleBtn.addEventListener('click', function () {
+            const isPassword = pwdInput.getAttribute('type') === 'password';
+            const newType = isPassword ? 'text' : 'password';
+            pwdInput.setAttribute('type', newType);
+            if (confirmInput) confirmInput.setAttribute('type', newType);
+            if (toggleIcon) {
+                toggleIcon.setAttribute('icon', isPassword ? 'solar:eye-closed-outline' : 'solar:eye-outline');
+            }
+        });
+    }
+
+    if (generateBtn && pwdInput && confirmInput) {
+        generateBtn.addEventListener('click', function () {
+            const charset = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%';
+            let generated = 'Begawi';
+            for (let i = 0; i < 6; i++) {
+                generated += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            pwdInput.value = generated;
+            confirmInput.value = generated;
+            pwdInput.setAttribute('type', 'text');
+            confirmInput.setAttribute('type', 'text');
+            if (toggleIcon) toggleIcon.setAttribute('icon', 'solar:eye-closed-outline');
+        });
+    }
+});
+</script>
 
 <?= $this->endSection() ?>

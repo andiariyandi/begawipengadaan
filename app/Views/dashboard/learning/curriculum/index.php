@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/learning/_nav_learning', ['activeSub' => 'curriculum']) ?>
 <?php
 $classes          = $classes ?? [];
 $selectedClass    = $selectedClass ?? null;
@@ -510,7 +511,7 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                     </div>
                 </div>
 
-                <button type="button" class="btn btn-sm btn-warning radius-6 px-14 py-7 text-dark fw-medium d-inline-flex align-items-center gap-1" onclick="openCreateAssignmentModal()">
+                <button type="button" class="btn btn-sm btn-warning-600 radius-6 px-14 py-7 text-neutral-900 fw-semibold d-inline-flex align-items-center gap-1" onclick="openCreateAssignmentModal()">
                     <iconify-icon icon="solar:add-circle-outline"></iconify-icon>
                     <span>+ Tambah Tugas</span>
                 </button>
@@ -1160,7 +1161,7 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                 </div>
                 <div class="modal-footer border-top py-16 px-24">
                     <button type="button" class="btn btn-outline-neutral-300 radius-8 px-20 py-11" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-warning radius-8 px-20 py-11 text-dark fw-semibold" id="assignmentSubmitBtn">Simpan Tugas</button>
+                    <button type="submit" class="btn btn-warning-600 radius-8 px-20 py-11 text-neutral-900 fw-semibold" id="assignmentSubmitBtn">Simpan Tugas</button>
                 </div>
             </form>
         </div>

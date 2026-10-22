@@ -18,13 +18,16 @@ $totalBookmarks = $totalBookmarks ?? 0;
     </div>
 </div>
 
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/knowledge/_nav_knowledge', ['section' => 'taxonomy', 'activeSub' => 'bookmarks']) ?>
+
 <?php if ($totalBookmarks === 0): ?>
-    <div class="card border-0 radius-16 shadow-sm bg-white">
+    <div class="card border-0 radius-16 shadow-sm bg-base">
         <div class="card-body p-48 text-center">
             <span class="w-72-px h-72-px bg-primary-50 text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center mb-20 shadow-xs">
                 <iconify-icon icon="solar:bookmark-broken" class="text-4xl"></iconify-icon>
             </span>
-            <h5 class="mb-12 fw-bold text-dark">Belum Ada Konten yang Disimpan</h5>
+            <h5 class="mb-12 fw-bold text-primary-light">Belum Ada Konten yang Disimpan</h5>
             <p class="text-secondary-light mb-24 max-w-500-px mx-auto text-sm">
                 Anda belum menyimpan materi apa pun ke bookmark. Anda dapat menandai artikel, panduan pengadaan, template dokumen, dan infografik saat menjelajahi modul Bunga Rampai.
             </p>
@@ -43,8 +46,8 @@ $totalBookmarks = $totalBookmarks ?? 0;
         <?php foreach ($groupedBookmarks as $typeKey => $group): ?>
             <?php if (empty($group['items'])) continue; ?>
             <div class="col-12">
-                <div class="card border-0 radius-16 shadow-sm bg-white">
-                    <div class="card-header border-bottom p-20 bg-white d-flex align-items-center justify-content-between">
+                <div class="card border-0 radius-16 shadow-sm bg-base">
+                    <div class="card-header border-bottom p-20 bg-base d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-2">
                             <iconify-icon icon="solar:bookmark-square-bold" class="text-primary-600 text-xl"></iconify-icon>
                             <h6 class="text-base fw-bold mb-0"><?= esc($group['label']) ?></h6>
@@ -69,7 +72,7 @@ $totalBookmarks = $totalBookmarks ?? 0;
                                             <td>
                                                 <div class="d-flex align-items-center gap-2">
                                                     <iconify-icon icon="solar:file-text-linear" class="text-primary-600 text-lg flex-shrink-0"></iconify-icon>
-                                                    <span class="fw-semibold text-dark text-sm"><?= esc($item['title']) ?></span>
+                                                    <span class="fw-semibold text-primary-light text-sm"><?= esc($item['title']) ?></span>
                                                 </div>
                                             </td>
                                             <td class="text-secondary-light text-xs">

@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/communication/_nav_communication', ['activeSub' => 'newsletter']) ?>
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
@@ -18,14 +19,14 @@
 <div class="card basic-data-table">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table bordered-table mb-0 align-middle">
+            <table class="table bordered-table mb-0 align-middle begawi-table" data-table-name="pelanggan-newsletter">
                 <thead>
                     <tr>
                         <th style="width: 50px;">No</th>
                         <th>Alamat Email</th>
                         <th>Status Langganan</th>
                         <th>Waktu Pendaftaran</th>
-                        <th style="width: 100px;" class="text-center">Aksi</th>
+                        <th style="width: 100px;" class="text-center no-sort no-export action-col">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -38,7 +39,7 @@
                             <tr>
                                 <td class="text-center fw-bold text-secondary"><?= $no++ ?></td>
                                 <td>
-                                    <strong class="text-sm text-dark"><?= esc($sub['email']) ?></strong>
+                                    <strong class="text-sm text-primary-light"><?= esc($sub['email']) ?></strong>
                                 </td>
                                 <td>
                                     <span class="badge bg-success-subtle text-success-main border border-success-subtle px-10 py-6 radius-4 text-xs">

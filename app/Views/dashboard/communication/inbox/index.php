@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/communication/_nav_communication', ['activeSub' => 'inbox']) ?>
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
@@ -32,7 +33,7 @@
                 </span>
                 <div>
                     <span class="text-secondary-light text-xs fw-medium d-block">Total Tiket</span>
-                    <h6 class="fw-bold mb-0 text-dark"><?= number_format($totalCount ?? count($messages)) ?></h6>
+                    <h6 class="fw-bold mb-0 text-primary-light"><?= number_format($totalCount ?? count($messages)) ?></h6>
                 </div>
             </div>
         </div>
@@ -143,11 +144,14 @@
                         <iconify-icon icon="solar:magnifer-linear" class="text-secondary"></iconify-icon>
                     </span>
                     <input type="text" name="q" class="form-control form-control-sm border-start-0" placeholder="Cari tiket, nama, email..." value="<?= esc($searchQuery ?? '') ?>">
-                    <button type="submit" class="btn btn-primary-600 btn-sm radius-end-8 px-12">Cari</button>
+                    <button type="submit" class="btn btn-primary-600 btn-sm radius-end-8 px-12" aria-label="Cari Tiket" title="Cari">
+                        <iconify-icon icon="solar:magnifer-linear" class="me-1"></iconify-icon> Cari
+                    </button>
                 </div>
                 <?php if (! empty($searchQuery) || ! empty($currentCategory)): ?>
-                    <a href="<?= site_url('dashboard/komunikasi/pesan-masuk') ?>" class="btn btn-outline-secondary btn-sm radius-8 px-8 py-4" title="Reset Pencarian">
-                        <iconify-icon icon="solar:restart-bold"></iconify-icon>
+                    <a href="<?= site_url('dashboard/komunikasi/pesan-masuk') ?>" class="btn btn-outline-secondary btn-sm radius-8 px-8 py-4 d-inline-flex align-items-center gap-1" title="Reset Pencarian" aria-label="Reset Pencarian">
+                        <iconify-icon icon="solar:restart-bold" class="text-base"></iconify-icon>
+                        <span class="d-none d-sm-inline text-xs">Reset</span>
                     </a>
                 <?php endif; ?>
             </form>
@@ -210,11 +214,11 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-start gap-2">
-                                        <span class="w-32-px h-32-px radius-circle bg-neutral-200 text-dark fw-bold d-flex align-items-center justify-content-center text-xs flex-shrink-0">
+                                        <span class="w-32-px h-32-px radius-circle bg-neutral-200 text-neutral-900 fw-bold d-flex align-items-center justify-content-center text-xs flex-shrink-0">
                                             <?= strtoupper(mb_substr($msg['sender_name'], 0, 1)) ?>
                                         </span>
                                         <div>
-                                            <strong class="text-sm d-block text-dark"><?= esc($msg['sender_name']) ?></strong>
+                                            <strong class="text-sm d-block text-primary-light"><?= esc($msg['sender_name']) ?></strong>
                                             <small class="text-secondary-light text-2xs d-block text-truncate" style="max-width: 170px;"><?= esc($msg['sender_email']) ?></small>
                                             
                                             <div class="d-flex align-items-center gap-1 mt-1">
@@ -239,7 +243,7 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2 mb-1">
-                                        <h6 class="text-xs fw-bold mb-0 text-dark"><?= esc($msg['subject']) ?></h6>
+                                        <h6 class="text-xs fw-bold mb-0 text-primary-light"><?= esc($msg['subject']) ?></h6>
                                         <?php if (! empty($msg['threads_count']) && $msg['threads_count'] > 0): ?>
                                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-2xs" title="Jumlah Balasan Percakapan">
                                                 <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon> <?= $msg['threads_count'] ?> balasan

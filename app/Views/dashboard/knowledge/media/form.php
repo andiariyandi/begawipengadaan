@@ -331,14 +331,14 @@ if (! empty($row['slides_data'])) {
                     <div class="p-16 border radius-12 bg-neutral-50">
                         <div class="form-check form-switch mb-12">
                             <input class="form-check-input" type="checkbox" name="featured" value="1" id="featured" <?= ! empty($row['featured']) ? 'checked' : '' ?>>
-                            <label class="form-check-label fw-semibold text-sm text-dark" for="featured">
+                            <label class="form-check-label fw-semibold text-sm text-primary-light" for="featured">
                                 <i class="fas fa-star text-warning me-1"></i> Konten Visual Unggulan
                             </label>
                         </div>
 
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" name="carousel_enabled" value="1" id="carousel_enabled" <?= ! empty($row['carousel_enabled']) ? 'checked' : '' ?>>
-                            <label class="form-check-label fw-semibold text-sm text-dark" for="carousel_enabled">
+                            <label class="form-check-label fw-semibold text-sm text-primary-light" for="carousel_enabled">
                                 Tampilkan di Carousel Beranda
                             </label>
                         </div>
@@ -399,7 +399,7 @@ function handleMediaTypeChange(type) {
         alertBox.className = 'alert alert-dark bg-dark bg-opacity-10 border-dark border-opacity-25 radius-12 p-16 mb-16';
         recTitle.textContent = 'Rekomendasi Foto Galeri Kegiatan:';
         recList.innerHTML = `
-            <li>Resolusi Optimal: <strong class="text-dark">1200 x 800 px (3:2)</strong> atau <strong class="text-dark">1080 x 1080 px (1:1)</strong></li>
+            <li>Resolusi Optimal: <strong class="text-primary-light">1200 x 800 px (3:2)</strong> atau <strong class="text-primary-light">1080 x 1080 px (1:1)</strong></li>
             <li>Format: <strong>JPG, PNG, WEBP</strong></li>
             <li>Maksimal Ukuran File: <strong>8 MB</strong></li>
         `;

@@ -43,14 +43,93 @@ class AuditController extends BaseController
         return view('dashboard/audit/index', [
             'title'         => 'Audit Akses & Log Sistem | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Audit Trail & Log Aktivitas',
-            'activeMenu'    => 'access',
-            'activeSubmenu' => 'audit',
+            'activeMenu'    => 'system',
+            'activeSubmenu' => 'audit-trail',
+
             'items'         => $items,
             'stats'         => $stats,
             'filters'       => $filters,
             'pager'         => $pager,
             'modules'       => $model->distinctModules(),
         ]);
+    }
+
+    public function exportCsv()
+    {
+        $model = new \App\Models\AuditLogModel();
+        $filters = [
+            'userId' => $this->request->getGet('user_id') ? (int) $this->request->getGet('user_id') : null,
+            'module' => $this->request->getGet('module') ?: null,
+            'from'   => $this->request->getGet('from') ?: null,
+            'to'     => $this->request->getGet('to') ?: null,
+        ];
+
+        $builder = $model->browse($filters['module'], $filters['userId'], $filters['from'], $filters['to']);
+        $logs = $builder->get()->getResultArray();
+
+        // Audit the export action
+        $actorId = (int) (session()->get('user_id') ?: 0);
+        try {
+            (new \App\Services\AuditService())->log(
+                $actorId ?: null,
+                'export_csv',
+                'audit_logs',
+                'audit_logs',
+                null,
+                [
+                    'filters'   => array_filter($filters),
+                    'row_count' => count($logs),
+                ]
+            );
+        } catch (\Throwable $e) {
+            // Silently continue export even if audit write fails
+        }
+
+        $filename = 'audit-trail-' . date('Ymd-His') . '.csv';
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        $out = fopen('php://output', 'w');
+        // Output UTF-8 BOM for Microsoft Excel compatibility
+        fwrite($out, "\xEF\xBB\xBF");
+
+        fputcsv($out, [
+            'ID Log',
+            'Waktu (WIB)',
+            'ID Aktor',
+            'Nama Aktor',
+            'Email Aktor',
+            'Tindakan (Action)',
+            'Tipe Resource (Modul)',
+            'ID Resource',
+            'Hasil',
+            'Keterangan / Reason',
+        ]);
+
+        foreach ($logs as $row) {
+            $actorName = ! empty($row['actor_name'])
+                ? $row['actor_name']
+                : (! empty($row['username']) ? $row['username'] : 'Sistem / Anonim');
+
+            fputcsv($out, [
+                $row['id'] ?? '',
+                $row['created_at'] ?? '',
+                $row['actor_id'] ?? '',
+                $actorName,
+                $row['actor_email'] ?? '',
+                $row['action'] ?? '',
+                $row['resource_type'] ?? '',
+                $row['resource_id'] ?? '',
+                $row['result'] ?? '',
+                $row['reason'] ?? '',
+            ]);
+        }
+
+        fclose($out);
+        exit;
     }
 
     public function detail(string $auditId)
@@ -61,8 +140,9 @@ class AuditController extends BaseController
         return view('dashboard/audit/detail', [
             'title'         => 'Detail Audit | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Detail Audit',
-            'activeMenu'    => 'access',
-            'activeSubmenu' => 'audit',
+            'activeMenu'    => 'system',
+            'activeSubmenu' => 'audit-trail',
+
             'item'          => $item,
             'auditId'       => $auditId,
         ]);

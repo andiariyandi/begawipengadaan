@@ -1,4 +1,4 @@
-<?= $this->extend('dashboard/layouts/dashboard') ?>
+﻿<?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
@@ -28,7 +28,7 @@
     <div class="card">
         <div class="card-body p-24">
             <div class="table-responsive scroll-sm">
-                <table class="table bordered-table sm-table mb-0">
+                <table class="table bordered-table sm-table mb-0 begawi-table" data-table-name="template-sertifikat" data-page-length="10">
                     <thead>
                         <tr>
                             <th>Nama Template</th>
@@ -36,7 +36,7 @@
                             <th>Background Desain</th>
                             <th>Status</th>
                             <th>Terakhir Diperbarui</th>
-                            <th class="text-center">Aksi</th>
+                            <th class="text-center no-sort no-export action-col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

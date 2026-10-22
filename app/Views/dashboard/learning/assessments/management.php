@@ -32,7 +32,7 @@ $filters        = $filters ?? [];
             <iconify-icon icon="solar:add-circle-outline" class="text-xl"></iconify-icon>
             <span>+ Tambah Kuis</span>
         </button>
-        <button type="button" class="btn btn-warning radius-8 px-20 py-11 text-dark fw-medium d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#assignmentModal" onclick="openCreateAssignmentModal()">
+        <button type="button" class="btn btn-warning radius-8 px-20 py-11 text-primary-light fw-medium d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#assignmentModal" onclick="openCreateAssignmentModal()">
             <iconify-icon icon="solar:document-add-outline" class="text-xl"></iconify-icon>
             <span>+ Tambah Tugas</span>
         </button>
@@ -55,9 +55,9 @@ $filters        = $filters ?? [];
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2 mt-12 text-xs text-primary-light">
-                    <span class="badge bg-white text-neutral-800 fw-semibold"><?= (int) ($stats['pre_test_count'] ?? 0) ?> Pre-Test</span>
-                    <span class="badge bg-white text-neutral-800 fw-semibold"><?= (int) ($stats['module_quiz_count'] ?? 0) ?> Modul</span>
-                    <span class="badge bg-white text-neutral-800 fw-semibold"><?= (int) ($stats['post_test_count'] ?? 0) ?> Post-Test</span>
+                    <span class="badge bg-neutral-100 text-neutral-900 border fw-semibold"><?= (int) ($stats['pre_test_count'] ?? 0) ?> Pre-Test</span>
+                    <span class="badge bg-neutral-100 text-neutral-900 border fw-semibold"><?= (int) ($stats['module_quiz_count'] ?? 0) ?> Modul</span>
+                    <span class="badge bg-neutral-100 text-neutral-900 border fw-semibold"><?= (int) ($stats['post_test_count'] ?? 0) ?> Post-Test</span>
                 </div>
             </div>
         </div>
@@ -390,7 +390,7 @@ $filters        = $filters ?? [];
                                         <?php if (! empty($asgnGuide['instructions'])): ?>
                                             <span class="text-xs text-secondary-light line-clamp-1"><?= esc($asgnGuide['instructions']) ?></span>
                                         <?php endif; ?>
-                                        <?php if ($asgnGuide['has_guide']): ?>
+                                        <?php if (! empty($asgnGuide['has_guide']) && ! empty($asgnGuide['guide_url'])): ?>
                                             <a href="<?= base_url($asgnGuide['guide_url']) ?>" target="_blank" class="badge bg-danger-50 text-danger-600 border border-danger-200 radius-4 text-xxs mt-1 d-inline-flex align-items-center gap-1" title="Lihat Petunjuk PDF">
                                                 <iconify-icon icon="solar:file-text-bold"></iconify-icon>
                                                 <span>Petunjuk PDF: <?= esc($asgnGuide['guide_filename'] ?? 'PDF') ?></span>

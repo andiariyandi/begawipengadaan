@@ -34,7 +34,7 @@ $tags = array_column($article['tags'] ?? [], 'name');
             <img src="<?= base_url('file/' . (int) $article['cover_file_id']) ?>" alt="<?= esc($article['title']) ?>" class="w-100 object-fit-cover" style="max-height: 280px;">
             <?php if ((int) ($article['featured'] ?? 0) === 1): ?>
                 <div class="position-absolute top-0 end-0 m-3">
-                    <span class="badge bg-warning text-dark radius-6 px-12 py-6 text-xs fw-bold shadow-sm">
+                    <span class="badge bg-warning-50 text-warning-700 border border-warning-200 radius-6 px-12 py-6 text-xs fw-bold shadow-sm">
                         <i class="fas fa-star me-1"></i> Konten Unggulan (Pilihan Editor)
                     </span>
                 </div>

@@ -86,7 +86,7 @@ $attStatus = $item['attendance_status'] ?? null;
     <div class="col-xl-8">
         <!-- Participant Info Card -->
         <div class="card radius-12 border bg-white mb-24 shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white p-20 border-bottom d-flex align-items-center justify-content-between">
+            <div class="card-header bg-base p-20 border-bottom d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-12">
                     <div class="w-40-px h-40-px rounded-circle bg-primary-50 text-primary-600 d-flex align-items-center justify-content-center text-xl">
                         <iconify-icon icon="solar:user-bold"></iconify-icon>
@@ -154,7 +154,7 @@ $attStatus = $item['attendance_status'] ?? null;
 
         <!-- Event Info Card -->
         <div class="card radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white p-20 border-bottom d-flex align-items-center justify-content-between">
+            <div class="card-header bg-base p-20 border-bottom d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-12">
                     <div class="w-40-px h-40-px rounded-circle bg-info-50 text-info-600 d-flex align-items-center justify-content-center text-xl">
                         <iconify-icon icon="solar:calendar-date-bold"></iconify-icon>
@@ -202,7 +202,7 @@ $attStatus = $item['attendance_status'] ?? null;
     <div class="col-xl-4">
         <!-- Status Action Card -->
         <div class="card radius-12 border bg-white mb-24 shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white p-20 border-bottom">
+            <div class="card-header bg-base p-20 border-bottom">
                 <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0f172a;">Kelola Status Registrasi</h6>
             </div>
             <div class="card-body p-24">
@@ -227,7 +227,7 @@ $attStatus = $item['attendance_status'] ?? null;
 
         <!-- Attendance Record Card -->
         <div class="card radius-12 border bg-white mb-24 shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white p-20 border-bottom">
+            <div class="card-header bg-base p-20 border-bottom">
                 <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0f172a;">Catatan Kehadiran (Presensi)</h6>
             </div>
             <div class="card-body p-24">
@@ -283,7 +283,7 @@ $attStatus = $item['attendance_status'] ?? null;
 
         <!-- Certificate Status Card -->
         <div class="card radius-12 border bg-white shadow-none" style="border-color: #e2e8f0;">
-            <div class="card-header bg-white p-20 border-bottom">
+            <div class="card-header bg-base p-20 border-bottom">
                 <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0f172a;">E-Sertifikat Event</h6>
             </div>
             <div class="card-body p-20">

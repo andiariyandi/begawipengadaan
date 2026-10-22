@@ -6,7 +6,7 @@
         <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Pengaturan Notifikasi') ?></h6>
         <p class="text-secondary-light mb-0">Tentukan kanal komunikasi, identitas pengirim, dan preferensi notifikasi sistem.</p>
     </div>
-    <a href="<?= site_url('dashboard/settings') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
+    <a href="<?= site_url('dashboard/sistem/pengaturan') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
 </div>
 
 <div class="card">

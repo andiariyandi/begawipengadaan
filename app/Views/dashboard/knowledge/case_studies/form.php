@@ -207,7 +207,7 @@ $coverImgUrl     = ! empty($row['cover_file_id']) ? base_url('file/' . (int) $ro
                     <div class="p-16 border radius-12 bg-neutral-50">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" name="featured" value="1" id="featured" <?= ! empty($row['featured']) ? 'checked' : '' ?>>
-                            <label class="form-check-label fw-semibold text-sm text-dark" for="featured">
+                            <label class="form-check-label fw-semibold text-sm text-primary-light" for="featured">
                                 <i class="fas fa-star text-warning me-1"></i> Jadikan Kasus Unggulan
                             </label>
                         </div>

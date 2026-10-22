@@ -1,4 +1,4 @@
-<?= $this->extend('dashboard/layouts/dashboard') ?>
+﻿<?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
 <?php
@@ -13,6 +13,9 @@ $stats = $stats ?? [
     'draft'     => 0,
 ];
 ?>
+
+<!-- Sub Navigation -->
+<?= view('dashboard/learning/_nav_learning', ['activeSub' => 'classes']) ?>
 
 <!-- Summary Cards -->
 <div class="row row-cols-xxxl-4 row-cols-lg-4 row-cols-sm-2 row-cols-1 gy-4 mb-24">
@@ -139,7 +142,7 @@ $stats = $stats ?? [
 
         <!-- Table -->
         <div class="table-responsive scroll-sm">
-            <table class="table bordered-table sm-table mb-0">
+            <table class="table bordered-table sm-table mb-0 begawi-table" data-table-name="pelaksanaan-kelas" data-page-length="10">
                 <thead>
                     <tr>
                         <th>Kelas & Kode</th>
@@ -148,7 +151,7 @@ $stats = $stats ?? [
                         <th class="text-center">Peserta</th>
                         <th class="text-center">Progress Selesai</th>
                         <th class="text-center">Status</th>
-                        <th class="text-center">Aksi</th>
+                        <th class="text-center no-sort no-export action-col">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -231,6 +234,12 @@ $stats = $stats ?? [
                                                     <span>Ubah Kelas</span>
                                                 </a>
                                             </li>
+                                            <li>
+                                                <button type="button" class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm w-100 border-0 bg-transparent" onclick="openDuplicateModal(<?= (int) $class['id'] ?>, '<?= esc($class['name'], 'js') ?>', '<?= esc($class['code'], 'js') ?>')">
+                                                    <iconify-icon icon="solar:copy-outline" class="text-lg text-primary-600"></iconify-icon>
+                                                    <span>Duplikasi Angkatan</span>
+                                                </button>
+                                            </li>
                                             <li><hr class="dropdown-divider my-4"></li>
                                             <li>
                                                 <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= site_url('dashboard/pembelajaran/kurikulum/kelas/' . $class['id']) ?>">
@@ -271,4 +280,80 @@ $stats = $stats ?? [
         <?php endif; ?>
     </div>
 </div>
+<!-- Modal Wizard Duplikasi Angkatan -->
+<div class="modal fade" id="duplicateBatchModal" tabindex="-1" aria-labelledby="duplicateBatchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form method="post" id="duplicateBatchForm" class="modal-content radius-16 border-0 shadow bg-base">
+            <?= csrf_field() ?>
+            <div class="modal-header border-bottom py-16 px-24 bg-base">
+                <div class="d-flex align-items-center gap-2">
+                    <iconify-icon icon="solar:copy-bold" class="text-primary-600 text-2xl"></iconify-icon>
+                    <div>
+                        <h6 class="modal-title fs-6 fw-bold mb-0" id="duplicateBatchModalLabel">Duplikasi Angkatan Kelas (Batch Duplication)</h6>
+                        <span class="text-xs text-secondary-light">Gandakan seluruh kurikulum, modul, materi, dan soal kuis ke ID kelas baru tanpa input ulang</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-24">
+                <div class="alert alert-primary bg-primary-50 border-primary-200 radius-12 p-16 mb-20">
+                    <div class="d-flex align-items-start gap-2 text-xs text-primary-900">
+                        <iconify-icon icon="solar:info-circle-bold" class="text-primary-600 text-xl flex-shrink-0 mt-1"></iconify-icon>
+                        <div>
+                            <strong>Kelas Sumber Asal:</strong> <span id="duplicateSourceClassName">Nama Kelas</span>
+                            <div class="text-secondary-light mt-1">Sistem akan secara otomatis menyalin seluruh modul, materi/lesson, dan soal kuis yang ada ke batch baru berstatus <code>Draft</code>.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold text-primary-light text-xs mb-4">Nama Kelas Angkatan Baru <span class="text-danger">*</span></label>
+                        <input type="text" name="new_name" id="dupNewName" class="form-control radius-8" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-primary-light text-xs mb-4">Kode Batch Baru (Unik) <span class="text-danger">*</span></label>
+                        <input type="text" name="new_code" id="dupNewCode" class="form-control radius-8 font-monospace text-uppercase" required>
+                        <span class="text-2xs text-secondary-light">Contoh: BGW-PBJ-B2</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-primary-light text-xs mb-4">Opsi Trainer</label>
+                        <div class="form-check form-switch pt-8">
+                            <input class="form-check-input" type="checkbox" name="copy_trainers" value="1" id="copyTrainersCheck" checked>
+                            <label class="form-check-label text-xs fw-medium text-primary-light" for="copyTrainersCheck">
+                                Salin penugasan pengajar / trainer aktif
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-primary-light text-xs mb-4">Tanggal Mulai Baru</label>
+                        <input type="datetime-local" name="start_at" class="form-control radius-8 text-xs">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-primary-light text-xs mb-4">Tanggal Selesai Baru</label>
+                        <input type="datetime-local" name="end_at" class="form-control radius-8 text-xs">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top py-16 px-24 bg-neutral-50 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary radius-8 px-16 py-8 text-sm" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary-600 radius-8 px-20 py-8 text-sm d-inline-flex align-items-center gap-2">
+                    <iconify-icon icon="solar:copy-bold" class="text-base"></iconify-icon>
+                    <span>Mulai Kloning &amp; Duplikasi</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openDuplicateModal(classId, className, classCode) {
+        document.getElementById('duplicateBatchForm').action = '<?= site_url('dashboard/pembelajaran/kelas') ?>/' + classId + '/duplikasi';
+        document.getElementById('duplicateSourceClassName').textContent = className + ' (' + classCode + ')';
+        document.getElementById('dupNewName').value = className + ' - Batch Baru';
+        document.getElementById('dupNewCode').value = classCode + '-B2';
+        var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('duplicateBatchModal'));
+        modal.show();
+    }
+</script>
 <?= $this->endSection() ?>

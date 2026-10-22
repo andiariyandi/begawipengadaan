@@ -43,6 +43,59 @@ class SatisfactionSurveyAdminController extends BaseController
             $avgTotal = round(($avgPersyaratan + $avgSistem + $avgLayanan + $avgMateri) / 4, 2);
         }
 
+        // 2b. Standarisasi IKM PermenPAN-RB No. 14 Tahun 2017
+        $ikmScale4 = $totalResponses > 0 ? (1 + (($avgTotal - 1) / 4) * 3) : 0;
+        $ikmScore  = $totalResponses > 0 ? round($ikmScale4 * 25, 2) : 0;
+
+        if ($ikmScore >= 88.31) {
+            $mutuKategori     = 'A';
+            $kinerjaPelayanan = 'Sangat Baik';
+            $mutuBadgeClass   = 'bg-success-50 text-success-600 border border-success-200';
+        } elseif ($ikmScore >= 76.61) {
+            $mutuKategori     = 'B';
+            $kinerjaPelayanan = 'Baik';
+            $mutuBadgeClass   = 'bg-primary-50 text-primary-600 border border-primary-200';
+        } elseif ($ikmScore >= 65.00) {
+            $mutuKategori     = 'C';
+            $kinerjaPelayanan = 'Kurang Baik';
+            $mutuBadgeClass   = 'bg-warning-50 text-warning-600 border border-warning-200';
+        } else {
+            $mutuKategori     = 'D';
+            $kinerjaPelayanan = 'Tidak Baik';
+            $mutuBadgeClass   = 'bg-danger-50 text-danger-600 border border-danger-200';
+        }
+
+        $panrbElements = [
+            'u1' => [
+                'code'           => 'U1',
+                'name'           => 'Kesesuaian Persyaratan & Regulasi PBJ',
+                'nrr'            => $avgPersyaratan,
+                'nrr_4'          => $totalResponses > 0 ? round(1 + (($avgPersyaratan - 1) / 4) * 3, 2) : 0,
+                'nrr_tertimbang' => $totalResponses > 0 ? round((1 + (($avgPersyaratan - 1) / 4) * 3) * 0.25, 3) : 0,
+            ],
+            'u2' => [
+                'code'           => 'U2',
+                'name'           => 'Kemudahan Akses & Keandalan Sistem Portal',
+                'nrr'            => $avgSistem,
+                'nrr_4'          => $totalResponses > 0 ? round(1 + (($avgSistem - 1) / 4) * 3, 2) : 0,
+                'nrr_tertimbang' => $totalResponses > 0 ? round((1 + (($avgSistem - 1) / 4) * 3) * 0.25, 3) : 0,
+            ],
+            'u3' => [
+                'code'           => 'U3',
+                'name'           => 'Kecepatan Respon Helpdesk & Konsultasi',
+                'nrr'            => $avgLayanan,
+                'nrr_4'          => $totalResponses > 0 ? round(1 + (($avgLayanan - 1) / 4) * 3, 2) : 0,
+                'nrr_tertimbang' => $totalResponses > 0 ? round((1 + (($avgLayanan - 1) / 4) * 3) * 0.25, 3) : 0,
+            ],
+            'u4' => [
+                'code'           => 'U4',
+                'name'           => 'Kualitas Materi, Pembelajaran & Transparansi',
+                'nrr'            => $avgMateri,
+                'nrr_4'          => $totalResponses > 0 ? round(1 + (($avgMateri - 1) / 4) * 3, 2) : 0,
+                'nrr_tertimbang' => $totalResponses > 0 ? round((1 + (($avgMateri - 1) / 4) * 3) * 0.25, 3) : 0,
+            ],
+        ];
+
         // 3. Survey aspects
         $aspects = $this->db->table('survey_aspects')
             ->orderBy('sort_order', 'ASC')
@@ -59,7 +112,7 @@ class SatisfactionSurveyAdminController extends BaseController
             'title'          => 'Survei Kepuasan (IKM) | Dashboard BegawiPengadaan',
             'pageTitle'      => 'Survei Kepuasan Masyarakat (IKM)',
             'activeMenu'     => 'survey',
-            'activeSubmenu'  => 'ikm',
+            'activeSubmenu'  => 'index',
             'responses'      => $responses,
             'totalResponses' => $totalResponses,
             'avgTotal'       => $avgTotal,
@@ -67,7 +120,13 @@ class SatisfactionSurveyAdminController extends BaseController
             'avgSistem'      => $avgSistem,
             'avgLayanan'     => $avgLayanan,
             'avgMateri'      => $avgMateri,
-            'aspects'        => $aspects,
+            'ikmScore'         => $ikmScore,
+            'ikmScale4'        => $ikmScale4,
+            'mutuKategori'     => $mutuKategori,
+            'kinerjaPelayanan' => $kinerjaPelayanan,
+            'mutuBadgeClass'   => $mutuBadgeClass,
+            'panrbElements'    => $panrbElements,
+            'aspects'          => $aspects,
             'rolesCount'     => $rolesCount,
         ]);
     }

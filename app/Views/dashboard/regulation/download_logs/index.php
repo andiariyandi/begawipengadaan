@@ -14,7 +14,10 @@ $pager   = $pager ?? null;
     </div>
 </div>
 
-<div class="card radius-12 mb-24 border bg-white shadow-sm">
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/regulation/_nav_regulation', ['section' => 'stages', 'activeSub' => 'log-download']) ?>
+
+<div class="card radius-12 mb-24 border bg-base shadow-sm">
     <div class="card-body p-20">
         <form action="<?= site_url('dashboard/regulasi/log-download') ?>" method="get">
             <div class="row g-3 align-items-end">
@@ -47,10 +50,10 @@ $pager   = $pager ?? null;
     </div>
 </div>
 
-<div class="card radius-12 border bg-white shadow-sm">
+<div class="card radius-12 border bg-base shadow-sm">
     <div class="card-body p-24">
         <div class="table-responsive scroll-sm">
-            <table class="table bordered-table sm-table mb-0 align-middle">
+            <table class="table bordered-table sm-table mb-0 align-middle begawi-table" data-table-name="log-unduhan-regulasi">
                 <thead>
                     <tr>
                         <th style="min-width: 160px;">Waktu Unduhan</th>
@@ -72,7 +75,7 @@ $pager   = $pager ?? null;
                     <?php foreach ($logs as $log): ?>
                         <tr>
                             <td>
-                                <span class="text-xs fw-semibold text-dark d-block">
+                                <span class="text-xs fw-semibold text-primary-light d-block">
                                     <?= esc($log['created_at'] ? date('d M Y H:i:s', strtotime((string) $log['created_at'])) : '-') ?>
                                 </span>
                             </td>
@@ -81,7 +84,7 @@ $pager   = $pager ?? null;
                                     <div class="w-28-px h-28-px bg-neutral-100 text-neutral-700 rounded-circle d-flex align-items-center justify-content-center text-xs fw-bold">
                                         <iconify-icon icon="solar:user-outline"></iconify-icon>
                                     </div>
-                                    <span class="text-sm fw-medium text-dark"><?= esc($log['username'] ?? $log['user_name'] ?? 'Publik (Tamu)') ?></span>
+                                    <span class="text-sm fw-medium text-primary-light"><?= esc($log['username'] ?? $log['user_name'] ?? 'Publik (Tamu)') ?></span>
                                 </div>
                             </td>
                             <td>

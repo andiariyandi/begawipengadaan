@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/users/_nav_access', ['activeSub' => 'users']) ?>
 <?php
 $users = $users ?? [];
 $filters = $filters ?? [];
@@ -135,6 +136,16 @@ $stats = $stats ?? [
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label fw-semibold text-primary-light text-sm mb-8">Verifikasi</label>
+                    <select class="form-select radius-8" name="verification">
+                        <option value="">Semua Verifikasi</option>
+                        <option value="verified" <?= ($filters['verification'] ?? '') === 'verified' ? 'selected' : '' ?>>Email Terverifikasi</option>
+                        <option value="unverified" <?= ($filters['verification'] ?? '') === 'unverified' ? 'selected' : '' ?>>Email Belum Verifikasi</option>
+                        <option value="complete" <?= ($filters['verification'] ?? '') === 'complete' ? 'selected' : '' ?>>Profil Lengkap</option>
+                        <option value="incomplete" <?= ($filters['verification'] ?? '') === 'incomplete' ? 'selected' : '' ?>>Profil Belum Lengkap</option>
+                    </select>
+                </div>
                 <div class="col-lg-1 col-md-6">
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Baris</label>
                     <select class="form-select radius-8" name="per_page">
@@ -157,7 +168,7 @@ $stats = $stats ?? [
 
         <!-- Table / Empty State -->
         <div class="table-responsive scroll-sm">
-            <table class="table bordered-table sm-table mb-0">
+            <table class="table bordered-table sm-table mb-0 begawi-table" data-table-name="manajemen-pengguna" data-page-length="15">
                 <thead>
                     <tr>
                         <th>
@@ -185,7 +196,7 @@ $stats = $stats ?? [
                                 <iconify-icon icon="solar:sort-vertical-outline" class="text-xs"></iconify-icon>
                             </a>
                         </th>
-                        <th class="text-center">Aksi</th>
+                        <th class="text-center no-sort no-export action-col">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>

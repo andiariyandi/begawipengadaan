@@ -272,9 +272,12 @@ if (! function_exists('parse_assignment_guide')) {
             $cleanInstructions = trim(preg_replace($pattern, '', $rawInstructions));
             $payload = json_decode(trim($matches[1]), true);
             if (is_array($payload)) {
+                $guideUrl = ! empty($payload['url']) ? (string) $payload['url'] : null;
                 return [
                     'clean_instructions' => $cleanInstructions,
-                    'guide_url'          => ! empty($payload['url']) ? (string) $payload['url'] : null,
+                    'instructions'       => $cleanInstructions,
+                    'has_guide'          => ! empty($guideUrl),
+                    'guide_url'          => $guideUrl,
                     'guide_filename'     => ! empty($payload['filename']) ? (string) $payload['filename'] : null,
                     'guide_size'         => isset($payload['size']) ? (int) $payload['size'] : null,
                 ];
@@ -283,6 +286,8 @@ if (! function_exists('parse_assignment_guide')) {
 
         return [
             'clean_instructions' => $rawInstructions,
+            'instructions'       => $rawInstructions,
+            'has_guide'          => false,
             'guide_url'          => null,
             'guide_filename'     => null,
             'guide_size'         => null,

@@ -17,8 +17,11 @@ $counts = $counts ?? [];
     </a>
 </div>
 
-<div class="card border-0 radius-16 shadow-sm bg-white">
-    <div class="card-header border-bottom p-20 bg-white d-flex align-items-center justify-content-between">
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/knowledge/_nav_knowledge', ['section' => 'taxonomy', 'activeSub' => 'categories']) ?>
+
+<div class="card border-0 radius-16 shadow-sm bg-base">
+    <div class="card-header border-bottom p-20 bg-base d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
             <iconify-icon icon="solar:folder-with-files-bold" class="text-primary-600 text-xl"></iconify-icon>
             <h6 class="text-base fw-bold mb-0">Daftar Kategori Pengetahuan (<?= count($items) ?>)</h6>
@@ -32,7 +35,7 @@ $counts = $counts ?? [];
             </div>
         <?php else: ?>
         <div class="table-responsive scroll-sm">
-            <table class="table bordered-table sm-table mb-0 align-middle">
+            <table class="table bordered-table sm-table mb-0 align-middle begawi-table" data-table-name="kategori-pengetahuan">
                 <thead>
                     <tr>
                         <th>Nama Kategori</th>
@@ -41,7 +44,7 @@ $counts = $counts ?? [];
                         <th class="text-center">Jumlah Konten</th>
                         <th class="text-center">Urutan</th>
                         <th class="text-center">Status</th>
-                        <th class="text-end">Aksi</th>
+                        <th class="text-end no-sort no-export action-col">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -57,7 +60,7 @@ $counts = $counts ?? [];
                                         <iconify-icon icon="solar:folder-linear"></iconify-icon>
                                     </span>
                                     <div>
-                                        <span class="fw-semibold text-dark text-sm d-block"><?= esc($cat['name']) ?></span>
+                                        <span class="fw-semibold text-primary-light text-sm d-block"><?= esc($cat['name']) ?></span>
                                         <?php if (! empty($cat['description'])): ?>
                                             <small class="text-secondary-light text-xs"><?= esc(mb_strimwidth($cat['description'], 0, 50, '...')) ?></small>
                                         <?php endif; ?>

@@ -23,7 +23,7 @@ $featureIcon = $featureIcons[$item['feature'] ?? ''] ?? 'solar:slider-vertical-b
     <td style="width: 80px;">
         <div class="w-64-px h-40-px radius-8 overflow-hidden bg-neutral-100 flex-shrink-0 d-flex align-items-center justify-content-center border border-neutral-200 position-relative">
             <?php if (! empty($item['cover_url'])): ?>
-                <img src="<?= esc($item['cover_url']) ?>" alt="<?= esc($item['title']) ?>" class="w-100 h-100 object-fit-cover" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.classList.remove('d-none');">
+                <img src="<?= esc($item['cover_url']) ?>" alt="<?= esc($item['title']) ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/main/images/event/event-details-top-img-1.jpg') ?>';">
                 <div class="w-100 h-100 d-none align-items-center justify-content-center bg-neutral-100 text-secondary-light">
                     <iconify-icon icon="<?= $featureIcon ?>" class="text-xl"></iconify-icon>
                 </div>

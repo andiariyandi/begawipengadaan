@@ -12,4 +12,5 @@
 <script src="<?= base_url('assets/dashboard/js/lib/file-upload.js') ?>"></script>
 <script src="<?= base_url('assets/dashboard/js/lib/audioplayer.js') ?>"></script>
 <script src="<?= base_url('assets/dashboard/js/app.js') ?>"></script>
+<script src="<?= base_url('assets/dashboard/js/begawi-datatable.js?v=' . (file_exists(FCPATH . 'assets/dashboard/js/begawi-datatable.js') ? filemtime(FCPATH . 'assets/dashboard/js/begawi-datatable.js') : '2.0')) ?>"></script>
 <?= $this->renderSection('pageScripts') ?>

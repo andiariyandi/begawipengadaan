@@ -6,12 +6,12 @@
         <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Pengaturan Bunga Rampai') ?></h6>
         <p class="text-secondary-light mb-0">Atur parameter etalase pengetahuan, repositori dokumen, dan slider sorotan publik.</p>
     </div>
-    <a href="<?= site_url('dashboard/pengaturan') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
+    <a href="<?= site_url('dashboard/sistem/pengaturan') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
 </div>
 
 <div class="card">
     <div class="card-body p-24">
-        <form method="post" action="<?= site_url('dashboard/pengaturan/knowledge') ?>">
+        <form method="post" action="<?= site_url('dashboard/sistem/pengaturan/knowledge') ?>">
             <?= csrf_field() ?>
             <div class="row gy-20">
                 <div class="col-12">
@@ -44,7 +44,7 @@
                 </div>
 
                 <div class="col-12 d-flex justify-content-end gap-12 mt-16">
-                    <a href="<?= site_url('dashboard/pengaturan/knowledge') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Reset</a>
+                    <a href="<?= site_url('dashboard/sistem/pengaturan-bunga-rampai') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Reset</a>
                     <button type="submit" class="btn btn-primary-600 radius-8 px-20 py-11">Simpan Perubahan</button>
                 </div>
             </div>

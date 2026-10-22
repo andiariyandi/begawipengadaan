@@ -1,6 +1,7 @@
 <?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
+<?= view('dashboard/users/_nav_access', ['activeSub' => 'verification']) ?>
 <?php $items = $items ?? []; ?>
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">

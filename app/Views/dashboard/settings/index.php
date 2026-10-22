@@ -11,18 +11,18 @@
 <div class="row gy-4">
     <?php
     $settingCards = [
-        ['title' => 'Pengaturan Umum', 'description' => 'Identitas aplikasi, bahasa, zona waktu, dan preferensi dasar.', 'icon' => 'solar:settings-outline', 'url' => 'dashboard/settings/general'],
-        ['title' => 'Organisasi', 'description' => 'Data instansi, OPD, unit, dan struktur organisasi.', 'icon' => 'solar:buildings-2-outline', 'url' => 'dashboard/settings/organization'],
-        ['title' => 'Pembelajaran', 'description' => 'Konfigurasi kelas, enrolment, evaluasi, dan progres.', 'icon' => 'solar:book-2-outline', 'url' => 'dashboard/settings/learning'],
-        ['title' => 'Bunga Rampai', 'description' => 'Konfigurasi slider sorotan hero dan etalase literasi pengetahuan.', 'icon' => 'solar:library-outline', 'url' => 'dashboard/settings/knowledge'],
-        ['title' => 'Regulasi', 'description' => 'Konfigurasi slider sorotan headline dan repositori dokumen hukum PBJ.', 'icon' => 'solar:document-text-outline', 'url' => 'dashboard/settings/regulation'],
-        ['title' => 'Berita & Artikel', 'description' => 'Konfigurasi slider sorotan headline dan kurasi artikel berita PBJ.', 'icon' => 'solar:newspaper-outline', 'url' => 'dashboard/settings/news'],
-        ['title' => 'Event & Agenda', 'description' => 'Pengaturan registrasi, kuota, kehadiran, dan slider sorotan agenda.', 'icon' => 'solar:calendar-outline', 'url' => 'dashboard/settings/event'],
-        ['title' => 'Sertifikat', 'description' => 'Template, nomor, validasi, dan masa berlaku sertifikat.', 'icon' => 'solar:medal-ribbons-star-outline', 'url' => 'dashboard/settings/certificate'],
-        ['title' => 'Notifikasi', 'description' => 'Kanal pemberitahuan, template, dan jadwal pengiriman.', 'icon' => 'solar:bell-outline', 'url' => 'dashboard/settings/notification'],
-        ['title' => 'Integrasi', 'description' => 'Konfigurasi API, webhook, dan layanan eksternal.', 'icon' => 'solar:link-outline', 'url' => 'dashboard/settings/integration'],
-        ['title' => 'Keamanan', 'description' => 'Kebijakan kata sandi, sesi, akses, dan audit keamanan.', 'icon' => 'solar:shield-check-outline', 'url' => 'dashboard/settings/security'],
-        ['title' => 'Maintenance', 'description' => 'Status layanan, mode perawatan, cache, dan backup.', 'icon' => 'solar:server-square-update-outline', 'url' => 'dashboard/settings/maintenance'],
+        ['title' => 'Pengaturan Umum', 'description' => 'Identitas aplikasi, bahasa, zona waktu, dan preferensi dasar.', 'icon' => 'solar:settings-outline', 'url' => 'dashboard/sistem/pengaturan-umum'],
+        ['title' => 'Organisasi', 'description' => 'Data instansi, OPD, unit, dan struktur organisasi.', 'icon' => 'solar:buildings-2-outline', 'url' => 'dashboard/sistem/pengaturan-organisasi'],
+        ['title' => 'Pembelajaran', 'description' => 'Konfigurasi kelas, enrolment, evaluasi, dan progres.', 'icon' => 'solar:book-2-outline', 'url' => 'dashboard/sistem/pengaturan-pembelajaran'],
+        ['title' => 'Bunga Rampai', 'description' => 'Konfigurasi slider sorotan hero dan etalase literasi pengetahuan.', 'icon' => 'solar:library-outline', 'url' => 'dashboard/sistem/pengaturan-bunga-rampai'],
+        ['title' => 'Regulasi', 'description' => 'Konfigurasi slider sorotan headline dan repositori dokumen hukum PBJ.', 'icon' => 'solar:document-text-outline', 'url' => 'dashboard/sistem/pengaturan-regulasi'],
+        ['title' => 'Berita & Artikel', 'description' => 'Konfigurasi slider sorotan headline dan kurasi artikel berita PBJ.', 'icon' => 'solar:newspaper-outline', 'url' => 'dashboard/sistem/pengaturan-berita'],
+        ['title' => 'Event & Agenda', 'description' => 'Pengaturan registrasi, kuota, kehadiran, dan slider sorotan agenda.', 'icon' => 'solar:calendar-outline', 'url' => 'dashboard/sistem/pengaturan-event'],
+        ['title' => 'Sertifikat', 'description' => 'Template, nomor, validasi, dan masa berlaku sertifikat.', 'icon' => 'solar:medal-ribbons-star-outline', 'url' => 'dashboard/sistem/pengaturan-sertifikat'],
+        ['title' => 'Notifikasi', 'description' => 'Kanal pemberitahuan, template, dan jadwal pengiriman.', 'icon' => 'solar:bell-outline', 'url' => 'dashboard/sistem/pengaturan-notifikasi'],
+        ['title' => 'Integrasi', 'description' => 'Konfigurasi API, webhook, dan layanan eksternal.', 'icon' => 'solar:link-outline', 'url' => 'dashboard/sistem/pengaturan-integrasi'],
+        ['title' => 'Keamanan', 'description' => 'Kebijakan kata sandi, sesi, akses, dan audit keamanan.', 'icon' => 'solar:shield-check-outline', 'url' => 'dashboard/sistem/pengaturan-keamanan'],
+        ['title' => 'Maintenance', 'description' => 'Status layanan, mode perawatan, cache, dan backup.', 'icon' => 'solar:server-square-update-outline', 'url' => 'dashboard/sistem/maintenance'],
     ];
     ?>
     <?php foreach ($settingCards as $setting): ?>

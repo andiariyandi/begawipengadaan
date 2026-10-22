@@ -14,10 +14,13 @@
     </a>
 </div>
 
-<div class="card radius-12 border bg-white shadow-sm">
+<!-- Reusable Tabbed Console Navigation -->
+<?= view('dashboard/regulation/_nav_regulation', ['section' => 'stages', 'activeSub' => 'tahapan-pbj']) ?>
+
+<div class="card radius-12 border bg-base shadow-sm">
     <div class="card-body p-24">
         <div class="table-responsive scroll-sm">
-            <table class="table bordered-table sm-table mb-0 align-middle">
+            <table class="table bordered-table sm-table mb-0 align-middle begawi-table" data-table-name="tahapan-siklus-pbj" data-page-length="10">
                 <thead>
                     <tr>
                         <th class="text-center" style="width: 80px;">Urutan</th>

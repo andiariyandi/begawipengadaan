@@ -95,6 +95,73 @@ $roleBadge = $isSuperAdmin ? 'Super Administrator' : 'Administrator Back-Office'
     </ul>
 </div>
 
+<!-- Quick Action Bar -->
+<div class="card border-0 shadow-none bg-base radius-12 mb-24 p-16 border border-neutral-200">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="w-32-px h-32-px bg-warning-50 text-warning-600 rounded-circle d-flex justify-content-center align-items-center">
+                <iconify-icon icon="solar:bolt-bold" class="text-lg"></iconify-icon>
+            </span>
+            <span class="text-sm fw-semibold text-primary-light">Aksi Cepat:</span>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <a href="<?= site_url('dashboard/akses/pengguna/tambah') ?>" class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6 d-inline-flex align-items-center gap-1 text-xs fw-semibold">
+                <iconify-icon icon="solar:user-plus-bold" class="text-sm"></iconify-icon>
+                <span>+ Pengguna</span>
+            </a>
+            <a href="<?= site_url('dashboard/pembelajaran/kelas/tambah') ?>" class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6 d-inline-flex align-items-center gap-1 text-xs fw-semibold">
+                <iconify-icon icon="solar:book-2-bold" class="text-sm"></iconify-icon>
+                <span>+ Kelas PBJ</span>
+            </a>
+            <a href="<?= site_url('dashboard/komunikasi/event-agenda/tambah') ?>" class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6 d-inline-flex align-items-center gap-1 text-xs fw-semibold">
+                <iconify-icon icon="solar:calendar-add-bold" class="text-sm"></iconify-icon>
+                <span>+ Event</span>
+            </a>
+            <a href="<?= site_url('dashboard/regulasi/dokumen/tambah') ?>" class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6 d-inline-flex align-items-center gap-1 text-xs fw-semibold">
+                <iconify-icon icon="solar:document-add-bold" class="text-sm"></iconify-icon>
+                <span>+ Regulasi</span>
+            </a>
+            <a href="<?= site_url('dashboard/landing/pengumuman') ?>" class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6 d-inline-flex align-items-center gap-1 text-xs fw-semibold">
+                <iconify-icon icon="solar:bell-bing-bold" class="text-sm"></iconify-icon>
+                <span>+ Pengumuman</span>
+            </a>
+            <button type="button" class="btn btn-sm btn-neutral-200 text-secondary-light radius-8 px-12 py-6 d-inline-flex align-items-center gap-1 text-xs fw-medium" data-bs-toggle="modal" data-bs-target="#adminSpotlightModal">
+                <iconify-icon icon="ion:search-outline" class="text-sm"></iconify-icon>
+                <span>Pencarian Cepat (Ctrl+K)</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Time Range Filter Bar -->
+<div class="card border-0 shadow-none bg-base radius-12 mb-24 p-16 border border-neutral-200">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="w-32-px h-32-px bg-primary-50 text-primary-600 rounded-circle d-flex justify-content-center align-items-center">
+                <iconify-icon icon="solar:calendar-date-bold" class="text-lg"></iconify-icon>
+            </span>
+            <div>
+                <span class="text-sm fw-semibold text-primary-light d-block">Periode Analisis Eksekutif:</span>
+                <span class="text-2xs text-secondary-light">Agregasi performa operasional seluruh modul platform BegawiPengadaan</span>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6 text-xs fw-semibold">
+                <iconify-icon icon="solar:clock-circle-outline" class="me-1"></iconify-icon> Hari Ini
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6 text-xs fw-semibold">
+                7 Hari Terakhir
+            </button>
+            <button type="button" class="btn btn-sm btn-primary-600 radius-8 px-12 py-6 text-xs fw-semibold">
+                <iconify-icon icon="solar:check-circle-bold" class="me-1"></iconify-icon> Bulan Ini
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6 text-xs fw-semibold">
+                Tahun Berjalan (YTD)
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Row 1: KPI Stat Cards Per Modul Utama -->
 <div class="row row-cols-xxxl-5 row-cols-lg-3 row-cols-sm-2 row-cols-1 gy-4">
     <!-- Card 1: Arena Belajar -->
@@ -284,7 +351,7 @@ $roleBadge = $isSuperAdmin ? 'Super Administrator' : 'Administrator Back-Office'
                         <h6 class="mb-1 text-lg fw-semibold">Antrean Persetujuan & Approval</h6>
                         <p class="text-secondary-light text-xs mb-0">Permohonan penerbitan sertifikat dan approval yang perlu ditindaklanjuti.</p>
                     </div>
-                    <a href="<?= site_url('dashboard/sertifikat/approval') ?>" class="text-primary-600 hover-text-primary text-sm fw-medium d-flex align-items-center gap-1">
+                    <a href="<?= site_url('dashboard/sistem/approval') ?>" class="text-primary-600 hover-text-primary text-sm fw-medium d-flex align-items-center gap-1">
                         Lihat Semua <iconify-icon icon="solar:alt-arrow-right-linear" class="icon"></iconify-icon>
                     </a>
                 </div>

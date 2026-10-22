@@ -59,8 +59,8 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
         <!-- Kolom Kiri: Informasi Utama & Konten Regulasi -->
         <div class="col-xl-8 col-lg-7">
             <!-- Informasi Utama Dokumen -->
-            <div class="card border-0 radius-16 shadow-sm mb-24 bg-white">
-                <div class="card-header border-bottom p-20 bg-white d-flex align-items-center gap-2">
+            <div class="card border-0 radius-16 shadow-sm mb-24 bg-base">
+                <div class="card-header border-bottom p-20 bg-base d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:document-text-bold" class="text-primary-600 text-xl"></iconify-icon>
                     <h6 class="text-base fw-bold mb-0">Informasi Pokok Regulasi</h6>
                 </div>
@@ -122,8 +122,8 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
             </div>
 
             <!-- Ringkasan, Abstrak & Kata Kunci -->
-            <div class="card border-0 radius-16 shadow-sm mb-24 bg-white">
-                <div class="card-header border-bottom p-20 bg-white d-flex align-items-center gap-2">
+            <div class="card border-0 radius-16 shadow-sm mb-24 bg-base">
+                <div class="card-header border-bottom p-20 bg-base d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:notes-bold" class="text-primary-600 text-xl"></iconify-icon>
                     <h6 class="text-base fw-bold mb-0">Ringkasan Substansi &amp; Kata Kunci</h6>
                 </div>
@@ -143,8 +143,8 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
             </div>
 
             <!-- Pemetaan Tahapan PBJ & Kompetensi -->
-            <div class="card border-0 radius-16 shadow-sm mb-24 bg-white">
-                <div class="card-header border-bottom p-20 bg-white d-flex align-items-center justify-content-between">
+            <div class="card border-0 radius-16 shadow-sm mb-24 bg-base">
+                <div class="card-header border-bottom p-20 bg-base d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-2">
                         <iconify-icon icon="solar:route-bold" class="text-info-600 text-xl"></iconify-icon>
                         <h6 class="text-base fw-bold mb-0">Pemetaan Tahapan PBJ &amp; Kompetensi Terkait</h6>
@@ -165,7 +165,7 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
                                     <div class="col-md-6">
                                         <div class="form-check p-12 border radius-8 bg-neutral-50 h-100 d-flex align-items-center gap-2">
                                             <input class="form-check-input ms-0 flex-shrink-0" type="checkbox" name="stages[]" value="<?= (int) $stg['id'] ?>" id="stage_<?= (int) $stg['id'] ?>" <?= in_array((int) $stg['id'], $selectedStages, true) ? 'checked' : '' ?>>
-                                            <label class="form-check-label fw-medium text-sm text-dark cursor-pointer flex-grow-1" for="stage_<?= (int) $stg['id'] ?>">
+                                            <label class="form-check-label fw-medium text-sm text-primary-light cursor-pointer flex-grow-1" for="stage_<?= (int) $stg['id'] ?>">
                                                 <span class="fw-bold text-primary-700 me-1">[<?= esc($stg['key']) ?>]</span>
                                                 <?= esc($stg['name']) ?>
                                             </label>
@@ -190,7 +190,7 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
                                     <div class="col-md-6">
                                         <div class="form-check p-12 border radius-8 bg-neutral-50 h-100 d-flex align-items-center gap-2">
                                             <input class="form-check-input ms-0 flex-shrink-0" type="checkbox" name="competencies[]" value="<?= (int) $comp['id'] ?>" id="comp_<?= (int) $comp['id'] ?>" <?= in_array((int) $comp['id'], $selectedCompetencies, true) ? 'checked' : '' ?>>
-                                            <label class="form-check-label fw-medium text-sm text-dark cursor-pointer flex-grow-1" for="comp_<?= (int) $comp['id'] ?>">
+                                            <label class="form-check-label fw-medium text-sm text-primary-light cursor-pointer flex-grow-1" for="comp_<?= (int) $comp['id'] ?>">
                                                 <?= esc($comp['name']) ?>
                                             </label>
                                         </div>
@@ -203,8 +203,8 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
             </div>
 
             <!-- Upload Berkas Naskah Dokumen -->
-            <div class="card border-0 radius-16 shadow-sm mb-24 bg-white">
-                <div class="card-header border-bottom p-20 bg-white d-flex align-items-center gap-2">
+            <div class="card border-0 radius-16 shadow-sm mb-24 bg-base">
+                <div class="card-header border-bottom p-20 bg-base d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:file-download-bold" class="text-success-600 text-xl"></iconify-icon>
                     <h6 class="text-base fw-bold mb-0">Berkas Dokumen Resmi (PDF / Naskah Asli)</h6>
                 </div>
@@ -217,7 +217,7 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
                                 <strong class="d-block text-success-900 mb-1">Rekomendasi Dokumen Resmi:</strong>
                                 <ul class="mb-0 ps-16 text-secondary-light">
                                     <li>Format Berkas: <strong class="text-success-800">PDF</strong> (Sangat disarankan dengan OCR teks), DOC, DOCX</li>
-                                    <li>Ukuran Maksimal Berkas: <strong>20 MB</strong></li>
+                                    <li>Ukuran Maksimal Berkas: <strong>10 MB</strong></li>
                                     <li>Pastikan naskah lengkap termasuk Lampiran jika ada.</li>
                                 </ul>
                             </div>
@@ -228,8 +228,8 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
                         <label class="form-label fw-semibold text-primary-light text-sm mb-8">
                             <?= $isEdit ? 'Unggah Berkas Baru (Membuat Versi Baru)' : 'Pilih Berkas Dokumen Versi Awal (v1.0)' ?>
                         </label>
-                        <input type="file" class="form-control radius-8" name="file" id="regulationDocFileInput" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="validateDocFileSize(this, 20)">
-                        <span id="docFileFeedback" class="text-xs text-secondary-light mt-1 d-block">Maksimal 20 MB. Dokumen resmi format PDF / DOC / DOCX.</span>
+                        <input type="file" class="form-control radius-8" name="file" id="regulationDocFileInput" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="validateDocFileSize(this, 10)">
+                        <span id="docFileFeedback" class="text-xs text-secondary-light mt-1 d-block">Maksimal 10 MB. Dokumen resmi format PDF / DOC / DOCX.</span>
                     </div>
 
                     <?php if ($isEdit): ?>
@@ -246,8 +246,8 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
         <!-- Kolom Kanan: Cover Image, Status & Visibilitas -->
         <div class="col-xl-4 col-lg-5">
             <!-- Upload Cover Image / Banner Dokumen -->
-            <div class="card border-0 radius-16 shadow-sm mb-24 bg-white">
-                <div class="card-header border-bottom p-20 bg-white d-flex align-items-center gap-2">
+            <div class="card border-0 radius-16 shadow-sm mb-24 bg-base">
+                <div class="card-header border-bottom p-20 bg-base d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:camera-bold" class="text-primary-600 text-xl"></iconify-icon>
                     <h6 class="text-base fw-bold mb-0">Cover Banner Regulasi</h6>
                 </div>
@@ -294,8 +294,8 @@ $coverImgUrl          = $coverImgUrl ?? (! empty($regulation['cover_file_id']) ?
             </div>
 
             <!-- Status Hukum, Visibilitas & Sorotan -->
-            <div class="card border-0 radius-16 shadow-sm mb-24 bg-white">
-                <div class="card-header border-bottom p-20 bg-white d-flex align-items-center gap-2">
+            <div class="card border-0 radius-16 shadow-sm mb-24 bg-base">
+                <div class="card-header border-bottom p-20 bg-base d-flex align-items-center gap-2">
                     <iconify-icon icon="solar:settings-bold" class="text-warning-600 text-xl"></iconify-icon>
                     <h6 class="text-base fw-bold mb-0">Status &amp; Pengaturan Akses</h6>
                 </div>
@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', function () {
         form.addEventListener('submit', function (e) {
             const docInput = document.getElementById('regulationDocFileInput');
             if (docInput && docInput.files && docInput.files[0]) {
-                if (!validateDocFileSize(docInput, 20)) {
+                if (!validateDocFileSize(docInput, 10)) {
                     e.preventDefault();
                     return false;
                 }
