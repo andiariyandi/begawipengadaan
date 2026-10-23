@@ -217,7 +217,7 @@ class OperatorController extends BaseController
 
             $isPending = ($item['status'] === 'pending');
             $chkHtml = $isPending
-                ? '<input type="checkbox" name="selected_ids[]" value="' . $item['id'] . '" class="form-check-input ws-bulk-check">'
+                ? '<input type="checkbox" name="selected_ids[]" value="' . $item['id'] . '" class="form-check-input ws-bulk-check" form="wsBulkActionForm">'
                 : '<span class="text-muted">&ndash;</span>';
 
             $actionBtn = '-';
@@ -284,7 +284,7 @@ class OperatorController extends BaseController
         $rawIds  = (array) $this->request->getPost('selected_ids');
         $notes   = trim((string) $this->request->getPost('notes')) ?: ($action === 'approve' ? 'Disetujui massal oleh Operator.' : 'Ditolak massal oleh Operator.');
 
-        $ids = array_filter(array_map('intval', $rawIds), static fn($id) => $id > 0);
+        $ids = array_values(array_unique(array_filter(array_map('intval', $rawIds), static fn($id) => $id > 0)));
         if ($ids === []) {
             return redirect()->back()->with('error', 'Tidak ada data approval yang dipilih.');
         }
@@ -520,7 +520,7 @@ class OperatorController extends BaseController
 
             $isPending = ($item['status'] === 'pending');
             $chkHtml = $isPending
-                ? '<input type="checkbox" name="selected_ids[]" value="' . $item['id'] . '" class="form-check-input ws-bulk-check">'
+                ? '<input type="checkbox" name="selected_ids[]" value="' . $item['id'] . '" class="form-check-input ws-bulk-check" form="wsBulkActionForm">'
                 : '<span class="text-muted">&ndash;</span>';
 
             $actionBtn = '-';
@@ -585,7 +585,7 @@ class OperatorController extends BaseController
         $rawIds  = (array) $this->request->getPost('selected_ids');
         $notes   = trim((string) $this->request->getPost('notes')) ?: ($action === 'approve' ? 'Diverifikasi massal oleh Operator.' : 'Ditolak massal oleh Operator.');
 
-        $ids = array_filter(array_map('intval', $rawIds), static fn($id) => $id > 0);
+        $ids = array_values(array_unique(array_filter(array_map('intval', $rawIds), static fn($id) => $id > 0)));
         if ($ids === []) {
             return redirect()->back()->with('error', 'Tidak ada verifikasi profil yang dipilih.');
         }

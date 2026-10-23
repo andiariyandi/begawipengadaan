@@ -64,24 +64,30 @@ class OperatorBulkTest extends BaseCommand
         }
 
         // Test eksekusi bulkApproval
-        $testAppId1 = (int) $db->table('approvals')->insert([
+        $otherUser = $db->table('users')->where('id !=', $actorId)->get()->getRowArray();
+        $targetUserId = (int) ($otherUser['id'] ?? ($actorId + 1));
+
+        $db->table('approvals')->insert([
             'resource_type'    => 'test_resource',
             'resource_id'      => 9991,
-            'requested_by'     => $actorId,
+            'requested_by'     => $targetUserId,
             'requested_action' => 'test_action_1',
             'status'           => 'pending',
             'created_at'       => date('Y-m-d H:i:s'),
             'updated_at'       => date('Y-m-d H:i:s'),
         ]);
-        $testAppId2 = (int) $db->table('approvals')->insert([
+        $testAppId1 = (int) $db->insertID();
+
+        $db->table('approvals')->insert([
             'resource_type'    => 'test_resource',
             'resource_id'      => 9992,
-            'requested_by'     => $actorId,
+            'requested_by'     => $targetUserId,
             'requested_action' => 'test_action_2',
             'status'           => 'pending',
             'created_at'       => date('Y-m-d H:i:s'),
             'updated_at'       => date('Y-m-d H:i:s'),
         ]);
+        $testAppId2 = (int) $db->insertID();
 
         $bulkAppReq = $this->createMockRequest('workspace/operator/approval/bulk', 'POST', [], [
             'bulk_action'  => 'approve',
@@ -102,6 +108,7 @@ class OperatorBulkTest extends BaseCommand
             CLI::write(" [FAIL] Eksekusi bulkApproval gagal memperbarui status data", 'red');
             $failCount++;
         }
+        $db->table('approvals')->whereIn('id', [$testAppId1, $testAppId2])->delete();
 
         // 2. Uji Multi-Select Checkboxes & Bulk Verifikasi Profil
         CLI::write("\n2. Menguji Multi-Select Checkboxes & Bulk Verifikasi Profil...", 'yellow');
