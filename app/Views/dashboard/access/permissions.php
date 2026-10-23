@@ -102,9 +102,44 @@ $pager = $pager ?? null;
                                             <li>
                                                 <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= site_url('dashboard/akses/permission/' . (int) $permission['id']) ?>">
                                                     <iconify-icon icon="solar:eye-outline" class="text-lg text-primary-600"></iconify-icon>
-                                                    <span>Detail Permission</span>
+                                                    <span>Detail &amp; Kontrol</span>
                                                 </a>
                                             </li>
+                                            <li><hr class="dropdown-divider my-4"></li>
+                                            <li>
+                                                <button type="button" class="dropdown-item px-12 py-8 radius-4 text-warning-600 bg-hover-warning-100 d-flex align-items-center gap-2 text-sm w-100 text-start border-0 bg-transparent"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#confirmationActionModal"
+                                                        data-action="<?= site_url('dashboard/akses/permission/' . (int) $permission['id'] . '/nonaktifkan') ?>"
+                                                        data-method="POST"
+                                                        data-title="Nonaktifkan Permission"
+                                                        data-message="Cabut izin '<?= esc($permission['key']) ?>' dari seluruh peran di sistem?"
+                                                        data-btn-text="Ya, Nonaktifkan"
+                                                        data-btn-class="btn-warning-600"
+                                                        data-icon="solar:shield-cross-bold"
+                                                        data-icon-color="warning">
+                                                    <iconify-icon icon="solar:shield-cross-outline" class="text-lg"></iconify-icon>
+                                                    <span>Nonaktifkan (Deactive)</span>
+                                                </button>
+                                            </li>
+                                            <?php if (empty($permission['is_system'])): ?>
+                                                <li>
+                                                    <button type="button" class="dropdown-item px-12 py-8 radius-4 text-danger-600 bg-hover-danger-100 d-flex align-items-center gap-2 text-sm w-100 text-start border-0 bg-transparent"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#confirmationActionModal"
+                                                            data-action="<?= site_url('dashboard/akses/permission/' . (int) $permission['id'] . '/hapus') ?>"
+                                                            data-method="POST"
+                                                            data-title="Hapus Permission Kustom"
+                                                            data-message="Hapus permission kustom '<?= esc($permission['key']) ?>' secara permanen?"
+                                                            data-btn-text="Ya, Hapus"
+                                                            data-btn-class="btn-danger-600"
+                                                            data-icon="solar:trash-bin-trash-bold"
+                                                            data-icon-color="danger">
+                                                        <iconify-icon icon="solar:trash-bin-trash-outline" class="text-lg"></iconify-icon>
+                                                        <span>Hapus Permission</span>
+                                                    </button>
+                                                </li>
+                                            <?php endif; ?>
                                         </ul>
                                     </div>
                                 </td>

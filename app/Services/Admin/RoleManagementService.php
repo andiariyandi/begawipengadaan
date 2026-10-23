@@ -196,4 +196,81 @@ class RoleManagementService
 
         $this->audit->log($actorId, 'role.permission.sync', 'role_permissions', 'role', $roleId);
     }
+
+    /**
+     * Nonaktifkan permission: mencabut izin ini dari seluruh peran di sistem.
+     */
+    public function deactivatePermission(int $permissionId, ?int $actorId = null): void
+    {
+        $db = db_connect();
+        $db->table('role_permissions')->where('permission_id', $permissionId)->delete();
+        $this->audit->log($actorId, 'permission.deactivate', 'role_permissions', 'permission', $permissionId, [
+            'action' => 'revoked_from_all_roles',
+        ]);
+    }
+
+    /**
+     * Aktifkan permission: memasang izin ini kembali ke peran Administrator & Super Administrator.
+     */
+    public function activatePermission(int $permissionId, ?int $actorId = null): void
+    {
+        $db = db_connect();
+        $roles = $db->table('roles')->whereIn('key', ['super_administrator', 'administrator'])->get()->getResultArray();
+        $now = date('Y-m-d H:i:s');
+        foreach ($roles as $r) {
+            $exists = $db->table('role_permissions')
+                ->where('role_id', $r['id'])
+                ->where('permission_id', $permissionId)
+                ->countAllResults();
+            if ($exists === 0) {
+                $db->table('role_permissions')->insert([
+                    'role_id'       => $r['id'],
+                    'permission_id' => $permissionId,
+                    'granted_by'    => $actorId,
+                    'created_at'    => $now,
+                ]);
+            }
+        }
+        $this->audit->log($actorId, 'permission.activate', 'role_permissions', 'permission', $permissionId, [
+            'action' => 'granted_to_administrators',
+        ]);
+    }
+
+    /**
+     * Cabut izin permission dari satu peran spesifik.
+     */
+    public function revokeRolePermission(int $permissionId, int $roleId, ?int $actorId = null): void
+    {
+        $db = db_connect();
+        $db->table('role_permissions')
+            ->where('permission_id', $permissionId)
+            ->where('role_id', $roleId)
+            ->delete();
+        $this->audit->log($actorId, 'permission.role.revoke', 'role_permissions', 'permission', $permissionId, [
+            'role_id' => $roleId,
+        ]);
+    }
+
+    /**
+     * Berikan izin permission ke satu peran spesifik.
+     */
+    public function grantRolePermission(int $permissionId, int $roleId, ?int $actorId = null): void
+    {
+        $db = db_connect();
+        $exists = $db->table('role_permissions')
+            ->where('role_id', $roleId)
+            ->where('permission_id', $permissionId)
+            ->countAllResults();
+        if ($exists === 0) {
+            $db->table('role_permissions')->insert([
+                'role_id'       => $roleId,
+                'permission_id' => $permissionId,
+                'granted_by'    => $actorId,
+                'created_at'    => date('Y-m-d H:i:s'),
+            ]);
+            $this->audit->log($actorId, 'permission.role.grant', 'role_permissions', 'permission', $permissionId, [
+                'role_id' => $roleId,
+            ]);
+        }
+    }
 }

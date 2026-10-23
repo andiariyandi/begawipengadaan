@@ -98,26 +98,104 @@ class PermissionController extends BaseController
             return $res;
         }
         $permId = ctype_digit($id) ? (int) $id : 0;
-        $permission = (new RoleManagementService())->findPermission($permId);
+        $service = new RoleManagementService();
+        $permission = $service->findPermission($permId);
         if (! $permission) {
             return redirect()->to('dashboard/akses/permission')->with('error', 'Permission tidak ditemukan.');
         }
 
-        $roles = db_connect()->table('role_permissions rp')
-            ->select('r.id, r.key, r.name')
+        $db = db_connect();
+        $roles = $db->table('role_permissions rp')
+            ->select('r.id, r.key, r.name, r.is_system, rp.created_at AS assigned_at')
             ->join('roles r', 'r.id = rp.role_id')
             ->where('rp.permission_id', $permId)
+            ->orderBy('r.name', 'ASC')
             ->get()->getResultArray();
 
+        $roleIds = array_column($roles, 'id');
+        $userCount = 0;
+        if (! empty($roleIds)) {
+            $userCount = (int) $db->table('user_roles ur')
+                ->join('users u', 'u.id = ur.user_id')
+                ->whereIn('ur.role_id', $roleIds)
+                ->where('ur.status', 'active')
+                ->where('u.account_status', 'active')
+                ->countAllResults();
+        }
+
+        $allRoles = $db->table('roles')->orderBy('name', 'ASC')->get()->getResultArray();
+        $assignedRoleIds = array_map('intval', array_column($roles, 'id'));
+        $unassignedRoles = array_values(array_filter($allRoles, static fn($r) => ! in_array((int) $r['id'], $assignedRoleIds, true)));
+
         return view('dashboard/access/permission_detail', [
-            'title'         => 'Detail Permission | Dashboard BegawiPengadaan',
-            'pageTitle'     => 'Detail Permission',
-            'activeMenu'    => 'access',
-            'activeSubmenu' => 'roles',
-            'permission'    => $permission,
-            'roles'         => $roles,
-            'permissionId'  => $permId,
+            'title'           => 'Detail Permission | Dashboard BegawiPengadaan',
+            'pageTitle'       => 'Detail Permission',
+            'activeMenu'      => 'access',
+            'activeSubmenu'   => 'roles',
+            'permission'      => $permission,
+            'roles'           => $roles,
+            'unassignedRoles' => $unassignedRoles,
+            'userCount'       => $userCount,
+            'permissionId'    => $permId,
+            'isActive'        => count($roles) > 0,
         ]);
+    }
+
+    public function deactivate(string $id)
+    {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
+        $permId = ctype_digit($id) ? (int) $id : 0;
+        $actorId = (int) session()->get('user_id');
+        (new RoleManagementService())->deactivatePermission($permId, $actorId);
+
+        return redirect()->to('dashboard/akses/permission/' . $permId)
+            ->with('success', 'Permission berhasil dinonaktifkan (hak akses telah dicabut dari seluruh peran di sistem).');
+    }
+
+    public function activate(string $id)
+    {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
+        $permId = ctype_digit($id) ? (int) $id : 0;
+        $actorId = (int) session()->get('user_id');
+        (new RoleManagementService())->activatePermission($permId, $actorId);
+
+        return redirect()->to('dashboard/akses/permission/' . $permId)
+            ->with('success', 'Permission berhasil diaktifkan kembali dan dipasang ke peran Administrator.');
+    }
+
+    public function revokeRole(string $id, string $roleId)
+    {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
+        $permId = ctype_digit($id) ? (int) $id : 0;
+        $rId = ctype_digit($roleId) ? (int) $roleId : 0;
+        $actorId = (int) session()->get('user_id');
+        (new RoleManagementService())->revokeRolePermission($permId, $rId, $actorId);
+
+        return redirect()->to('dashboard/akses/permission/' . $permId)
+            ->with('success', 'Hak akses berhasil dicabut dari peran tersebut.');
+    }
+
+    public function grantRole(string $id)
+    {
+        if ($res = $this->checkSuperAdmin()) {
+            return $res;
+        }
+        $permId = ctype_digit($id) ? (int) $id : 0;
+        $rId = (int) $this->request->getPost('role_id');
+        if ($rId <= 0) {
+            return redirect()->back()->with('error', 'Silakan pilih peran yang valid.');
+        }
+        $actorId = (int) session()->get('user_id');
+        (new RoleManagementService())->grantRolePermission($permId, $rId, $actorId);
+
+        return redirect()->to('dashboard/akses/permission/' . $permId)
+            ->with('success', 'Hak akses berhasil diberikan ke peran yang dipilih.');
     }
 
     public function update(string $id)
