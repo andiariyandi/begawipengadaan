@@ -19,7 +19,7 @@ use CodeIgniter\Model;
  *  - replaced_by_certificate_id→ certificates.id
  *
  * Life-cycle driver: baris certificates dibuat oleh CertificateGenerator
- * dari approval yang sudah approved. TIDAK ada create manual dari form admin.
+ * dari approval yang sudah approved. TIDAK ada create manual dari form administrator.
  */
 class CertificateModel extends Model
 {
@@ -54,12 +54,12 @@ class CertificateModel extends Model
     ];
 
     /**
-     * Daftar sertifikat untuk halaman index dashboard admin
+     * Daftar sertifikat untuk halaman index dashboard administrator
      * (issued/revoked/expired — bukan pending, karena pending hanya
      * ada di antrean approvals).
      */
     /**
-     * Daftar sertifikat untuk halaman index / riwayat dashboard admin.
+     * Daftar sertifikat untuk halaman index / riwayat dashboard administrator.
      */
     public function listForAdmin(
         ?string $keyword = null,

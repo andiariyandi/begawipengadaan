@@ -130,7 +130,7 @@ $statusLabel = match ($ticket['status']) {
                 <div class="d-flex flex-column gap-3 mb-4">
                     <?php foreach ($threads as $th): ?>
                         <?php
-                        $isThAdmin = ($th['sender_type'] ?? '') === 'admin';
+                        $isThAdmin = ($th['sender_type'] ?? '') === 'administrator';
                         ?>
                         <?php if ($isThAdmin): ?>
                             <!-- Tanggapan Helpdesk (Admin) -->

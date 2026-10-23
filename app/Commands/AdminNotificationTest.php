@@ -83,7 +83,8 @@ class AdminNotificationTest extends BaseCommand
 
             $db = db_connect();
             $row = $db->table('notifications')->where('id', $testNotifId)->get()->getRowArray();
-            $this->assert(!empty($row['read_at']), "read_at timestamp is populated: {$row['read_at']}");
+            $readAt = $row['read_at'] ?? 'null';
+            $this->assert(!empty($row['read_at']), "read_at timestamp is populated: {$readAt}");
 
             $deleted = $service->delete($testNotifId);
             $this->assert($deleted, "Notification deleted successfully");

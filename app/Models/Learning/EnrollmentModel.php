@@ -11,10 +11,17 @@ class EnrollmentModel extends Model
     protected $returnType    = 'array';
     protected $useTimestamps = false;
     protected $allowedFields = [
-        'class_id', 'user_id', 'status',
-        'enrolled_at', 'activated_at', 'completed_at',
-        'final_score', 'passed_at', 'certificate_eligible_at',
-        'withdrawn_at', 'cancelled_at',
+        'class_id',
+        'user_id',
+        'status',
+        'enrolled_at',
+        'activated_at',
+        'completed_at',
+        'final_score',
+        'passed_at',
+        'certificate_eligible_at',
+        'withdrawn_at',
+        'cancelled_at',
     ];
 
     /**
@@ -30,7 +37,7 @@ class EnrollmentModel extends Model
 
     /**
      * Daftar enrollment + class + course + program.
-     * Dipakai EnrollmentController admin (dashboard) untuk list & detail.
+     * Dipakai EnrollmentController administrator (dashboard) untuk list & detail.
      */
     public function withClassDetail()
     {

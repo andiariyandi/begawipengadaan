@@ -140,7 +140,7 @@ class NotificationService
     }
 
     /**
-     * Ambil notifikasi terpaginasi untuk panel dashboard admin dengan filter dinamis.
+     * Ambil notifikasi terpaginasi untuk panel dashboard administrator dengan filter dinamis.
      */
     public function getAdminNotifications(array $filters = [], int $perPage = 15, int $page = 1): array
     {
@@ -157,7 +157,7 @@ class NotificationService
                 ->orLike('users.name', $q)
                 ->orLike('users.email', $q)
                 ->orLike('users.username', $q)
-            ->groupEnd();
+                ->groupEnd();
         }
 
         // Filter: kategori / type
@@ -338,7 +338,7 @@ class NotificationService
     {
         $adminUsers = $this->db->table('user_roles ur')
             ->join('roles r', 'r.id = ur.role_id')
-            ->whereIn('r.key', ['super_admin', 'admin', 'administrator', 'super_administrator'])
+            ->whereIn('r.key', ['administrator', 'super_administrator'])
             ->select('DISTINCT(ur.user_id) AS uid', false)
             ->get()->getResultArray();
 

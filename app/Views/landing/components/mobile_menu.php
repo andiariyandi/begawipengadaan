@@ -4,21 +4,21 @@ $roles = (array) session()->get('roles');
 $userName = trim((string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna'));
 $accountInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
 $roleLabel = match (true) {
-    in_array('super_admin', $roles, true) => 'Super Admin',
-    in_array('admin', $roles, true)       => 'Admin',
+    in_array('super_administrator', $roles, true) => 'Super Admin',
+    in_array('administrator', $roles, true)       => 'Admin',
     in_array('operator', $roles, true)    => 'Operator',
     in_array('trainer', $roles, true)     => 'Pengajar',
     default                               => 'Peserta',
 };
 $workspaceHome = match (true) {
-    in_array('super_admin', $roles, true) || in_array('admin', $roles, true) => route_to('workspace.admin.home'),
+    in_array('super_administrator', $roles, true) || in_array('administrator', $roles, true) => route_to('workspace.admin.home'),
     in_array('trainer', $roles, true)                                        => route_to('workspace.trainer.home'),
     in_array('operator', $roles, true)                                       => route_to('workspace.operator.home'),
     default                                                                  => route_to('workspace.home'),
 };
 $hasDashboardAccess = (bool) session()->get('dashboard_access')
-    || in_array('admin', $roles, true)
-    || in_array('super_admin', $roles, true);
+    || in_array('administrator', $roles, true)
+    || in_array('super_administrator', $roles, true);
 $mobileUserId = (int) (session()->get('user_id') ?: 0);
 $mobileUnreadNotifCount = 0;
 if ($isLoggedIn && $mobileUserId > 0) {
@@ -39,7 +39,7 @@ if ($isLoggedIn && $mobileUserId > 0) {
                 <img src="<?= esc($logoSrc) ?>" width="125" alt="BegawiPengadaan">
             </a>
         </div>
-        
+
         <div class="mobile-nav__actions px-3 pt-2 pb-3">
             <?php if (! $isLoggedIn): ?>
                 <div class="d-flex gap-2 mb-2">

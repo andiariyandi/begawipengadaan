@@ -165,15 +165,17 @@
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label survey-field-label">Kategori / Peran Pengguna <span class="text-danger">*</span></label>
-                                    <select class="form-select survey-select ignore" name="respondent_role" required>
+                                    <select class="form-select survey-select ignore" name="respondent_role" id="surveyRespondentRole" required>
+                                        <option value="" selected disabled>-- Pilih Kategori / Peran Anda --</option>
                                         <option value="Pejabat Pembuat Komitmen (PPK) / Pejabat Pengadaan">Pejabat Pembuat Komitmen (PPK) / Pejabat Pengadaan</option>
                                         <option value="Pokja Pemilihan / Biro Pengadaan UKPBJ">Pokja Pemilihan / Biro Pengadaan UKPBJ</option>
-                                        <option value="Penyedia Barang / Jasa (Vendor / Rekanan / UMKM)" selected>Penyedia Barang / Jasa (Vendor / Rekanan / UMKM)</option>
+                                        <option value="Penyedia Barang / Jasa (Vendor / Rekanan / UMKM)">Penyedia Barang / Jasa (Vendor / Rekanan / UMKM)</option>
                                         <option value="Pengawas / APIP / Inspektorat / Auditor">Pengawas / APIP / Inspektorat / Auditor</option>
                                         <option value="ASN OPD Perangkat Daerah Pemprov Lampung">ASN OPD Perangkat Daerah Pemprov Lampung</option>
                                         <option value="Akademisi / Mahasiswa / Peneliti">Akademisi / Mahasiswa / Peneliti</option>
                                         <option value="Masyarakat Umum / Pengguna Lainnya">Masyarakat Umum / Pengguna Lainnya</option>
                                     </select>
+                                    <div class="invalid-feedback">Silakan pilih kategori / peran Anda terlebih dahulu.</div>
                                 </div>
 
                                 <div class="col-12">
@@ -220,10 +222,10 @@
                             <!-- Quick Suggestion Tags -->
                             <div class="survey-quick-tags mb-3">
                                 <span class="survey-quick-tags__title"><i class="fas fa-tags me-1"></i> Ide Cepat:</span>
-                                <button type="button" class="btn-quick-tag" data-text="Layanan konsultasi dan helpdesk sangat responsif dan ramah.">+ Helpdesk Responsif</button>
-                                <button type="button" class="btn-quick-tag" data-text="Portal BegawiPengadaan mudah dinavigasi dan informasi regulasi sangat lengkap.">+ Portal Sangat Membantu</button>
-                                <button type="button" class="btn-quick-tag" data-text="Mohon perbanyak contoh berkas template dokumen pemilihan (SDP) dan studi kasus lapangan.">+ Perbanyak Contoh Dokumen</button>
-                                <button type="button" class="btn-quick-tag" data-text="Tingkatkan frekuensi pelatihan dan bimtek daring bagi UMKM lokal Lampung.">+ Tambah Bimtek UMKM</button>
+                                <button type="button" class="btn-quick-tag" data-text="Materi di Arena Pembelajaran sangat aplikatif dan terstruktur, mohon perbanyak kelas teknis dan simulasi ujian sertifikasi PBJ."><i class="fas fa-graduation-cap me-1 text-primary"></i>+ Arena Pembelajaran</button>
+                                <button type="button" class="btn-quick-tag" data-text="Koleksi artikel, studi kasus, dan template dokumen di Bunga Rampai sangat informatif untuk acuan kerja pengadaan."><i class="fas fa-book-open me-1 text-warning"></i>+ Bunga Rampai</button>
+                                <button type="button" class="btn-quick-tag" data-text="Agenda pelatihan, webinar, dan bimtek di Event Agenda sangat bermanfaat, mohon kuota peserta dan frekuensi kegiatan diperbanyak."><i class="fas fa-calendar-alt me-1 text-success"></i>+ Event &amp; Agenda</button>
+                                <button type="button" class="btn-quick-tag" data-text="Repositori Regulasi PBJ sangat lengkap dan terstruktur, pencarian dokumen hukum serta hierarki aturan mudah diakses."><i class="fas fa-gavel me-1 text-info"></i>+ Regulasi PBJ</button>
                             </div>
 
                             <div class="mb-3">
@@ -470,10 +472,28 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // 5.5 Role Select Validation Helper
+    const roleSelect = surveyForm ? surveyForm.querySelector('[name="respondent_role"]') : null;
+    if (roleSelect) {
+        roleSelect.addEventListener('change', function () {
+            if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+            }
+        });
+    }
+
     // 6. Form Submission (AJAX with Fallback)
     if (surveyForm) {
         surveyForm.addEventListener('submit', function (e) {
             e.preventDefault();
+
+            // Client-side validation: Kategori / Peran Pengguna wajib dipilih
+            if (roleSelect && !roleSelect.value.trim()) {
+                roleSelect.classList.add('is-invalid');
+                roleSelect.focus();
+                roleSelect.reportValidity();
+                return;
+            }
 
             // UI Feedback: Button Loading
             if (submitBtn) submitBtn.disabled = true;

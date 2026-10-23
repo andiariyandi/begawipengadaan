@@ -147,6 +147,9 @@ class SliderController extends BaseController
 
     public function delete($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $slider = $this->db->table('home_sliders')->where('id', $id)->get()->getRowArray();
         if ($slider) {
             $this->db->table('home_sliders')->where('id', $id)->delete();
@@ -159,6 +162,9 @@ class SliderController extends BaseController
 
     public function toggle($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $slider = $this->db->table('home_sliders')->where('id', $id)->get()->getRowArray();
         if ($slider) {
             $newStatus = $slider['is_active'] ? 0 : 1;

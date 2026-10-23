@@ -358,6 +358,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('pengguna/(:segment)/ubah', 'UserController::edit/$1', ['as' => 'dashboard.access.users.edit']);
         $routes->post('pengguna/(:segment)/ubah', 'UserController::update/$1', ['as' => 'dashboard.access.users.update']);
         $routes->post('pengguna/(:segment)/aktifkan', 'UserController::activate/$1', ['as' => 'dashboard.access.users.activate']);
+        $routes->post('pengguna/(:segment)/tolak', 'UserController::reject/$1', ['as' => 'dashboard.access.users.reject']);
         $routes->post('pengguna/(:segment)/suspend', 'UserController::suspend/$1', ['as' => 'dashboard.access.users.suspend']);
         $routes->post('pengguna/(:segment)/reset-password', 'UserController::resetPassword/$1', ['as' => 'dashboard.access.users.reset-password']);
         $routes->get('pengguna/(:segment)', 'UserController::detail/$1', ['as' => 'dashboard.access.users.detail']);
@@ -381,6 +382,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('role/matrix', 'RoleController::syncMatrix', ['as' => 'dashboard.access.roles.matrix.sync']);
         $routes->get('role/(:segment)', 'RoleController::detail/$1', ['as' => 'dashboard.access.roles.detail']);
         $routes->get('permission', 'PermissionController::index', ['as' => 'dashboard.access.permissions']);
+        $routes->post('permission/sync-katalog', 'PermissionController::syncCatalog', ['as' => 'dashboard.access.permissions.syncCatalog']);
+        $routes->post('permission/import', 'PermissionController::import', ['as' => 'dashboard.access.permissions.import']);
         $routes->get('permission/tambah', 'PermissionController::create', ['as' => 'dashboard.access.permissions.create']);
         $routes->post('permission/tambah', 'PermissionController::store', ['as' => 'dashboard.access.permissions.store']);
         $routes->post('permission/(:segment)/ubah', 'PermissionController::update/$1', ['as' => 'dashboard.access.permissions.update']);
@@ -736,7 +739,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('pesan-masuk/detail/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::detail/$1', ['as' => 'dashboard.communication.inbox.detail']);
         $routes->post('pesan-masuk/reply/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::reply/$1', ['as' => 'dashboard.communication.inbox.reply']);
         $routes->post('pesan-masuk/update-status/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::updateStatus/$1', ['as' => 'dashboard.communication.inbox.update-status']);
-        $routes->get('pesan-masuk/hapus/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::delete/$1', ['as' => 'dashboard.communication.inbox.delete']);
+        $routes->match(['get', 'post'], 'pesan-masuk/hapus/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::delete/$1', ['as' => 'dashboard.communication.inbox.delete']);
 
         // WhatsApp Helpdesk Widget
         $routes->addRedirect('helpdesk', 'dashboard/komunikasi/whatsapp-widget');
@@ -744,13 +747,13 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('whatsapp-widget/pengaturan', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::saveSettings', ['as' => 'dashboard.communication.helpdesk.settings']);
         $routes->post('whatsapp-widget/simpan-topic', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::storeTopic', ['as' => 'dashboard.communication.helpdesk.topic.store']);
         $routes->post('whatsapp-widget/ubah-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::updateTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.update']);
-        $routes->get('whatsapp-widget/hapus-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::deleteTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.delete']);
-        $routes->get('whatsapp-widget/toggle-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::toggleTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.toggle']);
+        $routes->match(['get', 'post'], 'whatsapp-widget/hapus-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::deleteTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.delete']);
+        $routes->match(['get', 'post'], 'whatsapp-widget/toggle-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::toggleTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.toggle']);
 
         // Newsletter
         $routes->get('newsletter', '\App\Controllers\Admin\Communication\NewsletterController::index', ['as' => 'dashboard.communication.newsletter']);
         $routes->get('newsletter/export', '\App\Controllers\Admin\Communication\NewsletterController::exportCsv', ['as' => 'dashboard.communication.newsletter.export']);
-        $routes->get('newsletter/hapus/(:segment)', '\App\Controllers\Admin\Communication\NewsletterController::delete/$1', ['as' => 'dashboard.communication.newsletter.delete']);
+        $routes->match(['get', 'post'], 'newsletter/hapus/(:segment)', '\App\Controllers\Admin\Communication\NewsletterController::delete/$1', ['as' => 'dashboard.communication.newsletter.delete']);
     });
 
 
@@ -856,8 +859,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('slider/simpan', 'SliderController::store', ['as' => 'dashboard.landing.sliders.store']);
         $routes->get('slider/ubah/(:segment)', 'SliderController::edit/$1', ['as' => 'dashboard.landing.sliders.edit']);
         $routes->post('slider/ubah/(:segment)', 'SliderController::update/$1', ['as' => 'dashboard.landing.sliders.update']);
-        $routes->get('slider/hapus/(:segment)', 'SliderController::delete/$1', ['as' => 'dashboard.landing.sliders.delete']);
-        $routes->get('slider/toggle/(:segment)', 'SliderController::toggle/$1', ['as' => 'dashboard.landing.sliders.toggle']);
+        $routes->match(['get', 'post'], 'slider/hapus/(:segment)', 'SliderController::delete/$1', ['as' => 'dashboard.landing.sliders.delete']);
+        $routes->match(['get', 'post'], 'slider/toggle/(:segment)', 'SliderController::toggle/$1', ['as' => 'dashboard.landing.sliders.toggle']);
 
         // Popup Pengumuman & Promo
         $routes->get('pengumuman', 'AnnouncementController::index', ['as' => 'dashboard.landing.announcements']);
@@ -866,8 +869,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('pengumuman/simpan', 'AnnouncementController::store', ['as' => 'dashboard.landing.announcements.store']);
         $routes->get('pengumuman/ubah/(:segment)', 'AnnouncementController::edit/$1', ['as' => 'dashboard.landing.announcements.edit']);
         $routes->post('pengumuman/ubah/(:segment)', 'AnnouncementController::update/$1', ['as' => 'dashboard.landing.announcements.update']);
-        $routes->get('pengumuman/hapus/(:segment)', 'AnnouncementController::delete/$1', ['as' => 'dashboard.landing.announcements.delete']);
-        $routes->get('pengumuman/toggle/(:segment)', 'AnnouncementController::toggle/$1', ['as' => 'dashboard.landing.announcements.toggle']);
+        $routes->match(['get', 'post'], 'pengumuman/hapus/(:segment)', 'AnnouncementController::delete/$1', ['as' => 'dashboard.landing.announcements.delete']);
+        $routes->match(['get', 'post'], 'pengumuman/toggle/(:segment)', 'AnnouncementController::toggle/$1', ['as' => 'dashboard.landing.announcements.toggle']);
 
         // Profil Lembaga, Visi Misi, Filosofi
         $routes->get('profil-lembaga', 'InstitutionProfileController::index', ['as' => 'dashboard.landing.profile']);
@@ -879,8 +882,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('pilar-hierarki/simpan', 'HighlightFeatureController::store', ['as' => 'dashboard.landing.highlights.store']);
         $routes->get('pilar-hierarki/ubah/(:segment)', 'HighlightFeatureController::edit/$1', ['as' => 'dashboard.landing.highlights.edit']);
         $routes->post('pilar-hierarki/ubah/(:segment)', 'HighlightFeatureController::update/$1', ['as' => 'dashboard.landing.highlights.update']);
-        $routes->get('pilar-hierarki/hapus/(:segment)', 'HighlightFeatureController::delete/$1', ['as' => 'dashboard.landing.highlights.delete']);
-        $routes->get('pilar-hierarki/toggle/(:segment)', 'HighlightFeatureController::toggle/$1', ['as' => 'dashboard.landing.highlights.toggle']);
+        $routes->match(['get', 'post'], 'pilar-hierarki/hapus/(:segment)', 'HighlightFeatureController::delete/$1', ['as' => 'dashboard.landing.highlights.delete']);
+        $routes->match(['get', 'post'], 'pilar-hierarki/toggle/(:segment)', 'HighlightFeatureController::toggle/$1', ['as' => 'dashboard.landing.highlights.toggle']);
 
         // Portal Eksternal
         $routes->get('portal-eksternal', 'ExternalPortalController::index', ['as' => 'dashboard.landing.portals']);
@@ -888,8 +891,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('portal-eksternal/simpan', 'ExternalPortalController::store', ['as' => 'dashboard.landing.portals.store']);
         $routes->get('portal-eksternal/ubah/(:segment)', 'ExternalPortalController::edit/$1', ['as' => 'dashboard.landing.portals.edit']);
         $routes->post('portal-eksternal/ubah/(:segment)', 'ExternalPortalController::update/$1', ['as' => 'dashboard.landing.portals.update']);
-        $routes->get('portal-eksternal/hapus/(:segment)', 'ExternalPortalController::delete/$1', ['as' => 'dashboard.landing.portals.delete']);
-        $routes->get('portal-eksternal/toggle/(:segment)', 'ExternalPortalController::toggle/$1', ['as' => 'dashboard.landing.portals.toggle']);
+        $routes->match(['get', 'post'], 'portal-eksternal/hapus/(:segment)', 'ExternalPortalController::delete/$1', ['as' => 'dashboard.landing.portals.delete']);
+        $routes->match(['get', 'post'], 'portal-eksternal/toggle/(:segment)', 'ExternalPortalController::toggle/$1', ['as' => 'dashboard.landing.portals.toggle']);
 
         // Testimoni Pengguna
         $routes->get('testimoni', 'TestimonialController::index', ['as' => 'dashboard.landing.testimonials']);
@@ -897,8 +900,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('testimoni/simpan', 'TestimonialController::store', ['as' => 'dashboard.landing.testimonials.store']);
         $routes->get('testimoni/ubah/(:segment)', 'TestimonialController::edit/$1', ['as' => 'dashboard.landing.testimonials.edit']);
         $routes->post('testimoni/ubah/(:segment)', 'TestimonialController::update/$1', ['as' => 'dashboard.landing.testimonials.update']);
-        $routes->get('testimoni/hapus/(:segment)', 'TestimonialController::delete/$1', ['as' => 'dashboard.landing.testimonials.delete']);
-        $routes->get('testimoni/toggle/(:segment)', 'TestimonialController::toggle/$1', ['as' => 'dashboard.landing.testimonials.toggle']);
+        $routes->match(['get', 'post'], 'testimoni/hapus/(:segment)', 'TestimonialController::delete/$1', ['as' => 'dashboard.landing.testimonials.delete']);
+        $routes->match(['get', 'post'], 'testimoni/toggle/(:segment)', 'TestimonialController::toggle/$1', ['as' => 'dashboard.landing.testimonials.toggle']);
 
         // Tim Inovator
         $routes->get('tim', 'TeamMemberController::index', ['as' => 'dashboard.landing.team']);
@@ -906,8 +909,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('tim/simpan', 'TeamMemberController::store', ['as' => 'dashboard.landing.team.store']);
         $routes->get('tim/ubah/(:segment)', 'TeamMemberController::edit/$1', ['as' => 'dashboard.landing.team.edit']);
         $routes->post('tim/ubah/(:segment)', 'TeamMemberController::update/$1', ['as' => 'dashboard.landing.team.update']);
-        $routes->get('tim/hapus/(:segment)', 'TeamMemberController::delete/$1', ['as' => 'dashboard.landing.team.delete']);
-        $routes->get('tim/toggle/(:segment)', 'TeamMemberController::toggle/$1', ['as' => 'dashboard.landing.team.toggle']);
+        $routes->match(['get', 'post'], 'tim/hapus/(:segment)', 'TeamMemberController::delete/$1', ['as' => 'dashboard.landing.team.delete']);
+        $routes->match(['get', 'post'], 'tim/toggle/(:segment)', 'TeamMemberController::toggle/$1', ['as' => 'dashboard.landing.team.toggle']);
 
         // Banner Halaman Publik
         $routes->get('banner-halaman', 'PageBannerController::index', ['as' => 'dashboard.landing.banners']);
@@ -920,15 +923,15 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('kategori-layanan/simpan', 'ServiceCategoryController::store', ['as' => 'dashboard.landing.categories.store']);
         $routes->get('kategori-layanan/ubah/(:segment)', 'ServiceCategoryController::edit/$1', ['as' => 'dashboard.landing.categories.edit']);
         $routes->post('kategori-layanan/ubah/(:segment)', 'ServiceCategoryController::update/$1', ['as' => 'dashboard.landing.categories.update']);
-        $routes->get('kategori-layanan/hapus/(:segment)', 'ServiceCategoryController::delete/$1', ['as' => 'dashboard.landing.categories.delete']);
-        $routes->get('kategori-layanan/toggle/(:segment)', 'ServiceCategoryController::toggle/$1', ['as' => 'dashboard.landing.categories.toggle']);
+        $routes->match(['get', 'post'], 'kategori-layanan/hapus/(:segment)', 'ServiceCategoryController::delete/$1', ['as' => 'dashboard.landing.categories.delete']);
+        $routes->match(['get', 'post'], 'kategori-layanan/toggle/(:segment)', 'ServiceCategoryController::toggle/$1', ['as' => 'dashboard.landing.categories.toggle']);
     });
 
     $routes->group('survei-kepuasan', ['namespace' => 'App\Controllers\Admin\Survey'], static function ($routes) {
         $routes->get('/', 'SatisfactionSurveyAdminController::index', ['as' => 'dashboard.survey.index']);
         $routes->get('hasil', 'SatisfactionSurveyAdminController::index');
         $routes->post('update-aspect/(:segment)', 'SatisfactionSurveyAdminController::updateAspect/$1', ['as' => 'dashboard.survey.aspect.update']);
-        $routes->get('hapus/(:segment)', 'SatisfactionSurveyAdminController::deleteResponse/$1', ['as' => 'dashboard.survey.response.delete']);
+        $routes->match(['get', 'post'], 'hapus/(:segment)', 'SatisfactionSurveyAdminController::deleteResponse/$1', ['as' => 'dashboard.survey.response.delete']);
     });
 
     $routes->group('sistem', static function ($routes) {

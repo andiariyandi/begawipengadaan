@@ -151,6 +151,9 @@ class ExternalPortalController extends BaseController
 
     public function delete($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $portal = $this->db->table('external_portals')->where('id', $id)->get()->getRowArray();
         if ($portal) {
             $this->db->table('external_portals')->where('id', $id)->delete();
@@ -163,6 +166,9 @@ class ExternalPortalController extends BaseController
 
     public function toggle($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $portal = $this->db->table('external_portals')->where('id', $id)->get()->getRowArray();
         if ($portal) {
             $newStatus = $portal['is_active'] ? 0 : 1;

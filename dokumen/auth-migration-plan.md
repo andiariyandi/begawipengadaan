@@ -166,8 +166,8 @@ Only after all of: (a) no production route references them, (b) no service refer
 ### Step 7 — Seeder for Admin/Super Admin
 
 - Create `app/Database/Seeds/AdminUserSeeder.php` (or add to existing seeder).
-- Insert one `super_admin` user with known password.
-- Insert roles: `super_admin`, `admin`, `operator`, `participant`, `trainer`, `evaluator`, `public_user`.
+- Insert one `super_administrator` user with known password.
+- Insert roles: `super_administrator`, `admin`, `operator`, `participant`, `trainer`, `evaluator`, `public_user`.
 - Insert baseline permissions per CLAUDE.md §14.
 - Wire `user_roles.status='active'` after the Step 2 schema alignment.
 
@@ -227,7 +227,7 @@ Manual flow tests per CLAUDE.md §30:
 3. **Actual DB inspection.** Schema above is from migration file; production DB may differ. Run `SHOW CREATE TABLE` for each affected table before authoring migrations.
 4. **Session key decision** (`roles.key` vs `roles.slug`). Affects `UserModel`, `AuthenticationService`, `AuthorizationService`.
 5. **Where to put multi-step registration methods** — `Dashboard\Auth\RegisterController` (single controller, multiple methods) or split into `RegisterController` + `RegisterProfileController` + `RegisterReviewController`. CLAUDE.md §9 names `RegisterController`, `RegisterProfileController`, `AccountStatusController`.
-6. **No seeder exists** for `super_admin`/`admin`. Login cannot be tested end-to-end until one is created.
+6. **No seeder exists** for `super_administrator`/`admin`. Login cannot be tested end-to-end until one is created.
 7. **Audit log column direction** — schema (`user_id`, `module`, `target_type`, `target_id`, `ip_address`, `metadata`) vs code (`actor_id`, `resource_type`, `resource_id`, `result`, `reason`, `ip_hash`, `user_agent_hash`, `request_id`). The current `AuditService` is broken either way; pick one and align both sides.
 9. **Profile pages routes (`/profil/*`)** still in `Routes.php` lines 161-163 reference `Auth\ProfileController` (modified in working tree). Out of scope for auth cleanup but will block deletion of that file.
 10. **Empty stub Auth controllers** (`EmailVerificationController`, `PasswordController`, `RegisterProfileController`, `RoleRequestController`, `ProfileChangeRequestController`) — all 1-line files. Decide: leave inert, or delete before audit, or implement.

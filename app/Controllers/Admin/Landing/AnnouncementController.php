@@ -162,6 +162,9 @@ class AnnouncementController extends BaseController
 
     public function delete($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $announcement = $this->db->table('site_announcements')->where('id', $id)->get()->getRowArray();
         if ($announcement) {
             $this->db->table('site_announcements')->where('id', $id)->delete();
@@ -174,6 +177,9 @@ class AnnouncementController extends BaseController
 
     public function toggle($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $announcement = $this->db->table('site_announcements')->where('id', $id)->get()->getRowArray();
         if ($announcement) {
             $newStatus = $announcement['is_active'] ? 0 : 1;

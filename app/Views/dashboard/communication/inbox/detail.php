@@ -62,7 +62,7 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
             </span>
         </div>
         <p class="text-secondary-light mb-0 text-xs">
-            Dibuat: <?= date('d F Y, H:i', strtotime($message['created_at'])) ?> WIB &middot; 
+            Dibuat: <?= date('d F Y, H:i', strtotime($message['created_at'])) ?> WIB &middot;
             Kategori: <strong><?= esc($message['service_category'] ?: 'Umum') ?></strong> &middot;
             Total Pesan: <strong><?= count($threads) + 1 ?> percakapan</strong>
         </p>
@@ -116,7 +116,7 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
                             <small class="text-muted text-2xs d-block"><?= date('d M Y, H:i:s', strtotime($message['created_at'])) ?> WIB</small>
                         </div>
                     </div>
-                    
+
                     <div class="text-slate-800 leading-relaxed" style="font-size: 14.5px; white-space: pre-wrap;"><?= esc($message['message']) ?></div>
                 </div>
 
@@ -125,7 +125,7 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
                     <div class="d-flex flex-column gap-3 mb-20">
                         <?php foreach ($threads as $index => $th): ?>
                             <?php
-                            $isAdminSender = ($th['sender_type'] ?? '') === 'admin';
+                            $isAdminSender = ($th['sender_type'] ?? '') === 'administrator';
                             $channel       = $th['channel'] ?? 'portal';
                             $isInternal    = $channel === 'internal';
 

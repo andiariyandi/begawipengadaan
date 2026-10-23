@@ -11,14 +11,14 @@ $isLoggedIn = session()->get('isLoggedIn') === true;
 $roles = (array) session()->get('roles');
 $userName = trim((string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna'));
 $workspaceHome = match (true) {
-    in_array('super_admin', $roles, true) || in_array('admin', $roles, true) => route_to('workspace.admin.home'),
+    in_array('super_administrator', $roles, true) || in_array('administrator', $roles, true) => route_to('workspace.admin.home'),
     in_array('trainer', $roles, true)                                        => route_to('workspace.trainer.home'),
     in_array('operator', $roles, true)                                       => route_to('workspace.operator.home'),
     default                                                                  => route_to('workspace.home'),
 };
 $roleLabel = match (true) {
-    in_array('super_admin', $roles, true) => 'Super Admin',
-    in_array('admin', $roles, true)       => 'Admin',
+    in_array('super_administrator', $roles, true) => 'Super Admin',
+    in_array('administrator', $roles, true)       => 'Admin',
     in_array('operator', $roles, true)    => 'Operator',
     in_array('evaluator', $roles, true)   => 'Evaluator',
     in_array('trainer', $roles, true)     => 'Pengajar',
@@ -26,8 +26,8 @@ $roleLabel = match (true) {
 };
 $accountInitial = strtoupper(substr($userName, 0, 1));
 $hasDashboardAccess = (bool) session()->get('dashboard_access')
-    || in_array('admin', $roles, true)
-    || in_array('super_admin', $roles, true);
+    || in_array('administrator', $roles, true)
+    || in_array('super_administrator', $roles, true);
 $isHomeView = !empty($isHome);
 $headerUserId = (int) (session()->get('user_id') ?: 0);
 $userUnreadNotifCount = 0;

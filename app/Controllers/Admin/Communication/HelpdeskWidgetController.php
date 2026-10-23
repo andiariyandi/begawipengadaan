@@ -111,12 +111,18 @@ class HelpdeskWidgetController extends BaseController
 
     public function deleteTopic($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $this->db->table('helpdesk_topics')->where('id', $id)->delete();
         return redirect()->to('dashboard/komunikasi/whatsapp-widget')->with('success', 'Topik cepat berhasil dihapus.');
     }
 
     public function toggleTopic($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $topic = $this->db->table('helpdesk_topics')->where('id', $id)->get()->getRowArray();
         if ($topic) {
             $newStatus = $topic['is_active'] ? 0 : 1;

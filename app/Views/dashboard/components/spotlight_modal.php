@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
         { title: 'Presensi & Kehadiran Event', category: 'Komunikasi', icon: 'solar:check-read-outline', url: '<?= site_url('dashboard/komunikasi/kehadiran') ?>', desc: 'Verifikasi check-in dan tanda tangan hadir' },
         { title: 'Waitlist dan Pembatalan', category: 'Komunikasi', icon: 'solar:clock-circle-outline', url: '<?= site_url('dashboard/komunikasi/waitlist-pembatalan') ?>', desc: 'Antrean kuota cadangan dan pembatalan tiket' },
         { title: 'Pesan Masuk (Inbox Helpdesk)', category: 'Komunikasi', icon: 'solar:inbox-line-outline', url: '<?= site_url('dashboard/komunikasi/pesan-masuk') ?>', desc: 'Tiket pertanyaan dan permohonan dari masyarakat' },
-        { title: 'Widget Bantuan WhatsApp', category: 'Komunikasi', icon: 'solar:chat-round-call-outline', url: '<?= site_url('dashboard/komunikasi/whatsapp-widget') ?>', desc: 'Pengaturan nomor kontak admin helpdesk live' },
+        { title: 'Widget Bantuan WhatsApp', category: 'Komunikasi', icon: 'solar:chat-round-call-outline', url: '<?= site_url('dashboard/komunikasi/whatsapp-widget') ?>', desc: 'Pengaturan nomor kontak administrator helpdesk live' },
         { title: 'Pelanggan Newsletter', category: 'Komunikasi', icon: 'solar:mailbox-outline', url: '<?= site_url('dashboard/komunikasi/newsletter') ?>', desc: 'Daftar email pelanggan buletin berita PBJ' },
 
         // Sertifikat

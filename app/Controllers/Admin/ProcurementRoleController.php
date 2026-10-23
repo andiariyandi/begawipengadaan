@@ -55,7 +55,13 @@ class ProcurementRoleController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         $actorId = (int) session()->get('user_id') ?: null;
-        $id = (new ProcurementRoleService())->createRole($postData, $actorId);
+        $filteredData = [
+            'key'         => trim((string) ($postData['key'] ?? '')),
+            'name'        => trim((string) ($postData['name'] ?? '')),
+            'description' => trim((string) ($postData['description'] ?? '')),
+            'is_active'   => isset($postData['is_active']) ? (int) $postData['is_active'] : 1,
+        ];
+        $id = (new ProcurementRoleService())->createRole($filteredData, $actorId);
         return redirect()->to('dashboard/akses/peran-pengadaan/' . $id)->with('success', 'Peran pengadaan berhasil dibuat.');
     }
 
@@ -113,7 +119,12 @@ class ProcurementRoleController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         $actorId = (int) session()->get('user_id') ?: null;
-        (new ProcurementRoleService())->updateRole($roleId, $postData, $actorId);
+        $filteredData = [
+            'name'        => trim((string) ($postData['name'] ?? '')),
+            'description' => trim((string) ($postData['description'] ?? '')),
+            'is_active'   => isset($postData['is_active']) ? (int) $postData['is_active'] : 1,
+        ];
+        (new ProcurementRoleService())->updateRole($roleId, $filteredData, $actorId);
         return redirect()->to('dashboard/akses/peran-pengadaan/' . $roleId)->with('success', 'Peran pengadaan berhasil diperbarui.');
     }
 

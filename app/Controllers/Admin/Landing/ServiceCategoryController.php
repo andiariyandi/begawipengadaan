@@ -123,6 +123,9 @@ class ServiceCategoryController extends BaseController
 
     public function delete($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $category = $this->db->table('service_categories')->where('id', $id)->get()->getRowArray();
         if ($category) {
             $this->db->table('service_categories')->where('id', $id)->delete();
@@ -135,6 +138,9 @@ class ServiceCategoryController extends BaseController
 
     public function toggle($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $category = $this->db->table('service_categories')->where('id', $id)->get()->getRowArray();
         if ($category) {
             $newStatus = $category['is_active'] ? 0 : 1;

@@ -113,7 +113,7 @@ if (! empty($activeClasses)) {
     }
 }
 
-// Assemble based on admin spotlight mode & limit
+// Assemble based on administrator spotlight mode & limit
 if ($spotlightMode === 'program') {
     $sliderItems = array_slice($progItems, 0, $spotlightLimit);
 } elseif ($spotlightMode === 'course') {
@@ -998,7 +998,7 @@ if ($spotlightMode === 'program') {
 
 <?= $this->section('pageScripts') ?>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         var carouselEl = document.getElementById('arenaHeadlineCarousel');
         if (!carouselEl) return;
 
@@ -1040,7 +1040,7 @@ if ($spotlightMode === 'program') {
 
         function syncIndicatorDots(targetIdx) {
             if (!indicatorButtons || indicatorButtons.length === 0) return;
-            indicatorButtons.forEach(function (btn, idx) {
+            indicatorButtons.forEach(function(btn, idx) {
                 if (idx === targetIdx) {
                     btn.classList.add('active');
                     btn.setAttribute('aria-current', 'true');
@@ -1052,21 +1052,21 @@ if ($spotlightMode === 'program') {
         }
 
         // Listen for slide start and slide complete events to guarantee 100% synchronization
-        carouselEl.addEventListener('slide.bs.carousel', function (e) {
+        carouselEl.addEventListener('slide.bs.carousel', function(e) {
             if (typeof e.to !== 'undefined') {
                 syncIndicatorDots(e.to);
             }
         });
 
-        carouselEl.addEventListener('slid.bs.carousel', function (e) {
+        carouselEl.addEventListener('slid.bs.carousel', function(e) {
             if (typeof e.to !== 'undefined') {
                 syncIndicatorDots(e.to);
             }
         });
 
         // Click handler for dots to ensure explicit navigation
-        indicatorButtons.forEach(function (btn, idx) {
-            btn.addEventListener('click', function (e) {
+        indicatorButtons.forEach(function(btn, idx) {
+            btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 if (myCarousel && typeof myCarousel.to === 'function') {
                     myCarousel.to(idx);

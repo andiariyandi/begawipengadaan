@@ -137,7 +137,7 @@ Pengujian otomatis dilakukan menggunakan mesin audit `php spark landing:full:aud
 - **Deteksi State Aktif (`$isActive` & `$isPrefixActive`)**: Berfungsi akurat untuk menandai menu aktif sesuai URI segmen pertama.
 - **User Session & Role Badge**:
   - Tamu (*Guest*): Menampilkan tombol Masuk dan Daftar.
-  - Pengguna *Logged-in*: Menampilkan *avatar circle* inisial, nama pengguna (dipotong aman 16 karakter), *badge role*, dan tautan ke Workspace (`/workspace`), Kelas Saya, Bookmark, Notifikasi, serta Dashboard Administrasi jika memiliki *role* `admin` / `super_admin`.
+  - Pengguna *Logged-in*: Menampilkan *avatar circle* inisial, nama pengguna (dipotong aman 16 karakter), *badge role*, dan tautan ke Workspace (`/workspace`), Kelas Saya, Bookmark, Notifikasi, serta Dashboard Administrasi jika memiliki *role* `admin` / `super_administrator`.
 - **Status Dead Links**: **0 link rusak** (hanya 2 elemen JS trigger: *mobile nav toggler* dan *dropdown trigger* `href="#"`).
 
 ### B. Mobile Navigation Drawer (`app/Views/landing/components/mobile_menu.php`)

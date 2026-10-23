@@ -63,7 +63,7 @@ class LearningService
     }
 
     /**
-     * Aktifkan enrollment peserta (oleh operator/admin).
+     * Aktifkan enrollment peserta (oleh operator/administrator).
      */
     public function activateEnrollment(int $enrollmentId): void
     {

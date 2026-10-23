@@ -406,7 +406,7 @@ $roleBadge = $isSuperAdmin ? 'Super Administrator' : 'Administrator Back-Office'
                 <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between mb-16">
                     <div>
                         <h6 class="mb-1 text-lg fw-semibold">Verifikasi Pengguna Baru</h6>
-                        <p class="text-secondary-light text-xs mb-0">Registrasi mandiri yang menunggu verifikasi berkas operator/admin.</p>
+                        <p class="text-secondary-light text-xs mb-0">Registrasi mandiri yang menunggu verifikasi berkas operator/administrator.</p>
                     </div>
                     <a href="<?= site_url('dashboard/akses/verifikasi-profil') ?>" class="text-primary-600 hover-text-primary text-sm fw-medium">
                         Buka Antrean <i class="ri-arrow-right-s-line"></i>

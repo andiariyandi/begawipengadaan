@@ -2,6 +2,45 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= esc($pageTitle) ?></title>
+<meta name="csrf-token-name" content="<?= csrf_token() ?>">
+<meta name="csrf-token-hash" content="<?= csrf_hash() ?>">
+<meta name="csrf-header-name" content="<?= config('Security')->headerName ?? 'X-CSRF-TOKEN' ?>">
+<script>
+    window.csrfTokenName = '<?= csrf_token() ?>';
+    window.csrfTokenHash = '<?= csrf_hash() ?>';
+    window.csrfHeaderName = '<?= config('Security')->headerName ?? 'X-CSRF-TOKEN' ?>';
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof jQuery !== 'undefined') {
+            jQuery.ajaxSetup({
+                headers: {
+                    [window.csrfHeaderName]: window.csrfTokenHash
+                }
+            });
+        }
+    });
+    (function() {
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            options = options || {};
+            const method = (options.method || 'GET').toUpperCase();
+            if (method !== 'GET' && method !== 'HEAD') {
+                options.headers = options.headers || {};
+                if (options.headers instanceof Headers) {
+                    if (!options.headers.has(window.csrfHeaderName)) {
+                        options.headers.set(window.csrfHeaderName, window.csrfTokenHash);
+                    }
+                } else if (Array.isArray(options.headers)) {
+                    options.headers.push([window.csrfHeaderName, window.csrfTokenHash]);
+                } else {
+                    if (!options.headers[window.csrfHeaderName]) {
+                        options.headers[window.csrfHeaderName] = window.csrfTokenHash;
+                    }
+                }
+            }
+            return originalFetch(url, options);
+        };
+    })();
+</script>
 <link rel="icon" type="image/png" href="<?= base_url('assets/dashboard/images/favicon.png') ?>" sizes="16x16">
 <link rel="stylesheet" href="<?= base_url('assets/dashboard/css/remixicon.css') ?>">
 <link rel="stylesheet" href="<?= base_url('assets/dashboard/css/lib/bootstrap.min.css') ?>">

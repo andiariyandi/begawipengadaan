@@ -33,7 +33,7 @@ class TrainerController extends BaseController
 
     /**
      * 1. TRAINER HOME
-     * Tampilan dashboard operasional pengajar (bukan admin).
+     * Tampilan dashboard operasional pengajar (bukan administrator).
      */
     public function index()
     {
@@ -60,7 +60,7 @@ class TrainerController extends BaseController
                 ->get()->getResultArray();
         }
 
-        $classIds = array_map(static fn ($c): int => (int) $c['class_id'], $assignedClasses);
+        $classIds = array_map(static fn($c): int => (int) $c['class_id'], $assignedClasses);
 
         if ($classIds === []) {
             return $this->render('Beranda Pengajar', 'trainer/home', [
@@ -121,7 +121,7 @@ class TrainerController extends BaseController
             $mCount   = (int) $db->table('learning_modules')->where('class_id', $cid)->countAllResults();
             $asgCount = (int) $db->table('assignments')->where('class_id', $cid)->countAllResults();
             $qzCount  = (int) $db->table('quizzes')->where('class_id', $cid)->countAllResults();
-            
+
             $clsAvgProg = (float) ($db->table('enrollments e')
                 ->selectAvg('lp.progress_percent', 'avg_p')
                 ->join('learning_progress lp', 'lp.enrollment_id = e.id')
@@ -185,13 +185,13 @@ class TrainerController extends BaseController
             ->limit(6)->get()->getResultArray();
 
         $allActivities = array_merge($recentEnrollments, $recentLessons, $recentSubmissions, $recentQuizAttempts);
-        usort($allActivities, static fn ($a, $b) => strcmp((string) ($b['time'] ?? ''), (string) ($a['time'] ?? '')));
+        usort($allActivities, static fn($a, $b) => strcmp((string) ($b['time'] ?? ''), (string) ($a['time'] ?? '')));
         $allActivities = array_slice($allActivities, 0, 16);
 
         return $this->render('Beranda Pengajar', 'trainer/home', [
             'hasClasses'            => true,
             'assignedClasses'       => $classesWithMetrics,
-            'pendingSubmissionsList'=> $pendingSubmissionsList,
+            'pendingSubmissionsList' => $pendingSubmissionsList,
             'stats'                 => [
                 'totalClasses'       => $totalClasses,
                 'activeParticipants' => $activeParticipants,
@@ -303,7 +303,7 @@ class TrainerController extends BaseController
 
         $lessons = [];
         if ($modules !== []) {
-            $modIds = array_map(static fn ($m): int => (int) $m['id'], $modules);
+            $modIds = array_map(static fn($m): int => (int) $m['id'], $modules);
             $lessons = $db->table('lessons')
                 ->whereIn('module_id', $modIds)
                 ->orderBy('sort_order', 'ASC')
@@ -313,7 +313,7 @@ class TrainerController extends BaseController
         $modulesWithLessons = [];
         foreach ($modules as $mod) {
             $mid = (int) $mod['id'];
-            $mod['lessons'] = array_values(array_filter($lessons, static fn ($l): bool => (int) $l['module_id'] === $mid));
+            $mod['lessons'] = array_values(array_filter($lessons, static fn($l): bool => (int) $l['module_id'] === $mid));
             $modulesWithLessons[] = $mod;
         }
 
@@ -370,8 +370,8 @@ class TrainerController extends BaseController
         unset($asg);
 
         // Ringkasan metrik kelas
-        $activeParticipantCount = count(array_filter($participants, static fn ($p): bool => $p['enrollment_status'] === 'active'));
-        $completedParticipantCount = count(array_filter($participants, static fn ($p): bool => in_array($p['enrollment_status'], ['completed'], true) || ! empty($p['passed_at'])));
+        $activeParticipantCount = count(array_filter($participants, static fn($p): bool => $p['enrollment_status'] === 'active'));
+        $completedParticipantCount = count(array_filter($participants, static fn($p): bool => in_array($p['enrollment_status'], ['completed'], true) || ! empty($p['passed_at'])));
         $completionRate = count($participants) > 0 ? round(($completedParticipantCount / count($participants)) * 100, 1) : 0.0;
 
         // Buku Nilai Terpadu (Gradebook Matrix)
@@ -526,7 +526,7 @@ class TrainerController extends BaseController
             ->get()->getResultArray();
 
         $modules = $db->table('learning_modules')->where('class_id', $classIdInt)->get()->getResultArray();
-        $modIds = array_map(static fn ($m): int => (int) $m['id'], $modules);
+        $modIds = array_map(static fn($m): int => (int) $m['id'], $modules);
         $totalLessons = 0;
         if ($modIds !== []) {
             $totalLessons = (int) $db->table('lessons')->whereIn('module_id', $modIds)->countAllResults();
@@ -540,7 +540,7 @@ class TrainerController extends BaseController
             ->get()->getResultArray();
 
         $quizScores = [];
-        $enrollmentIds = array_map(static fn ($p): int => (int) $p['enrollment_id'], $participants);
+        $enrollmentIds = array_map(static fn($p): int => (int) $p['enrollment_id'], $participants);
         if ($enrollmentIds !== []) {
             $attempts = $db->table('quiz_attempts')
                 ->select('enrollment_id, quiz_id, MAX(score) AS max_score')
@@ -580,9 +580,9 @@ class TrainerController extends BaseController
             }
         }
 
-        $preTests = array_values(array_filter($quizzes, static fn ($q): bool => ($q['type'] ?? '') === 'pre_test'));
-        $formativeQuizzes = array_values(array_filter($quizzes, static fn ($q): bool => ($q['type'] ?? '') === 'lesson_quiz'));
-        $postTests = array_values(array_filter($quizzes, static fn ($q): bool => ($q['type'] ?? '') === 'post_test'));
+        $preTests = array_values(array_filter($quizzes, static fn($q): bool => ($q['type'] ?? '') === 'pre_test'));
+        $formativeQuizzes = array_values(array_filter($quizzes, static fn($q): bool => ($q['type'] ?? '') === 'lesson_quiz'));
+        $postTests = array_values(array_filter($quizzes, static fn($q): bool => ($q['type'] ?? '') === 'post_test'));
 
         $rows = [];
         $classScores = [];
@@ -750,7 +750,7 @@ class TrainerController extends BaseController
         if ($assignedClasses === []) {
             return $this->render('Materi Pembelajaran', 'trainer/all_materials', [
                 'classes'      => [],
-                'selectedClass'=> null,
+                'selectedClass' => null,
                 'modules'      => [],
             ], 'trainer');
         }
@@ -768,12 +768,12 @@ class TrainerController extends BaseController
             ->orderBy('sort_order', 'ASC')
             ->get()->getResultArray();
 
-        $modIds = array_map(static fn ($m): int => (int) $m['id'], $modules);
+        $modIds = array_map(static fn($m): int => (int) $m['id'], $modules);
         $lessons = $modIds !== [] ? $db->table('lessons')->whereIn('module_id', $modIds)->orderBy('sort_order', 'ASC')->get()->getResultArray() : [];
 
         foreach ($modules as &$mod) {
             $mid = (int) $mod['id'];
-            $mod['lessons'] = array_values(array_filter($lessons, static fn ($l): bool => (int) $l['module_id'] === $mid));
+            $mod['lessons'] = array_values(array_filter($lessons, static fn($l): bool => (int) $l['module_id'] === $mid));
         }
         unset($mod);
 
@@ -796,7 +796,7 @@ class TrainerController extends BaseController
         if ($assignedClasses === []) {
             return $this->render('Assessment & Ujian', 'trainer/all_quizzes', [
                 'classes'      => [],
-                'selectedClass'=> null,
+                'selectedClass' => null,
                 'quizzes'      => [],
             ], 'trainer');
         }
@@ -837,7 +837,7 @@ class TrainerController extends BaseController
         $db     = db_connect();
 
         $assignedClasses = $this->getTrainerClasses($userId);
-        $classIds = array_map(static fn ($c): int => (int) $c['id'], $assignedClasses);
+        $classIds = array_map(static fn($c): int => (int) $c['id'], $assignedClasses);
 
         if ($classIds === []) {
             return $this->render('Peserta Kelas', 'trainer/all_participants', [
@@ -892,12 +892,12 @@ class TrainerController extends BaseController
         $db     = db_connect();
 
         $assignedClasses = $this->getTrainerClasses($userId);
-        $classIds = array_map(static fn ($c): int => (int) $c['id'], $assignedClasses);
+        $classIds = array_map(static fn($c): int => (int) $c['id'], $assignedClasses);
 
         if ($classIds === []) {
             return $this->render('Progress Peserta', 'trainer/all_progress', [
                 'classes'      => [],
-                'classSummaries'=> [],
+                'classSummaries' => [],
             ], 'trainer');
         }
 
@@ -982,7 +982,7 @@ class TrainerController extends BaseController
             'enrollment'           => $enrollment,
             'lessonsProgress'      => $lessonsProgress,
             'quizAttempts'         => $quizAttempts,
-            'assignmentSubmissions'=> $assignmentSubmissions,
+            'assignmentSubmissions' => $assignmentSubmissions,
             'className'            => $enrollment['class_name'],
         ], 'trainer', $this->trainerBreadcrumb($cid, 'Detail Peserta'));
     }
@@ -1329,7 +1329,7 @@ class TrainerController extends BaseController
         $optionsByQuestion = [];
         if ($questions !== []) {
             $rows = db_connect()->table('quiz_options')
-                ->whereIn('question_id', array_map(static fn ($q): int => (int) $q['id'], $questions))
+                ->whereIn('question_id', array_map(static fn($q): int => (int) $q['id'], $questions))
                 ->orderBy('sort_order', 'ASC')
                 ->get()->getResultArray();
             foreach ($rows as $row) {
@@ -1363,7 +1363,7 @@ class TrainerController extends BaseController
             }
             $options = (array) $this->request->getPost('options');
             $correct = (int) $this->request->getPost('correct_option');
-            $options = array_values(array_filter(array_map('trim', $options), static fn ($o): bool => $o !== ''));
+            $options = array_values(array_filter(array_map('trim', $options), static fn($o): bool => $o !== ''));
             if (count($options) < 2) {
                 return redirect()->back()->withInput()->with('error', 'Minimal sediakan dua pilihan jawaban.');
             }
@@ -1378,7 +1378,7 @@ class TrainerController extends BaseController
                 'prompt'     => $prompt,
                 'points'     => max(0.01, (float) ($this->request->getPost('points') ?: 1.0)),
                 'sort_order' => $maxOrder + 1,
-                'explanation'=> (string) $this->request->getPost('explanation'),
+                'explanation' => (string) $this->request->getPost('explanation'),
             ], true);
 
             foreach ($options as $i => $optionText) {
@@ -1538,7 +1538,7 @@ class TrainerController extends BaseController
         $highestCorrectRate = -1.0;
 
         if ($questions !== []) {
-            $questionIds = array_map(static fn ($q): int => (int) $q['id'], $questions);
+            $questionIds = array_map(static fn($q): int => (int) $q['id'], $questions);
 
             $options = $db->table('quiz_options')
                 ->whereIn('question_id', $questionIds)
@@ -2445,7 +2445,7 @@ class TrainerController extends BaseController
             'mime_type'       => 'application/octet-stream',
             'size_bytes'      => 0,
             'visibility'      => 'internal',
-            'lifecycle_status'=> 'pending_upload',
+            'lifecycle_status' => 'pending_upload',
             'resource_type'   => 'lesson',
             'created_at'      => $now,
             'updated_at'      => $now,
@@ -2459,7 +2459,7 @@ class TrainerController extends BaseController
     private function isPrivilegedOperator(): bool
     {
         $roles = (array) session()->get('roles');
-        return array_intersect(['operator', 'admin', 'super_admin', 'administrator'], $roles) !== [];
+        return array_intersect(['operator', 'administrator', 'super_administrator'], $roles) !== [];
     }
 
     private function assertTrainerOf(int $userId, int $classId): void
@@ -2514,7 +2514,7 @@ class TrainerController extends BaseController
             exit;
         }
         $roles   = (array) session()->get('roles');
-        $allowed = ['trainer', 'operator', 'admin', 'super_admin', 'administrator'];
+        $allowed = ['trainer', 'operator', 'administrator', 'super_administrator'];
         if (array_intersect($allowed, $roles) === []) {
             redirect()->to('/dashboard/masuk')->with('error', 'Anda tidak memiliki akses Trainer/Operator.')->send();
             exit;

@@ -12,15 +12,9 @@ $activeSub = $activeSub ?? 'users';
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
         <ul class="nav nav-pills gap-2 flex-wrap mb-0">
             <li class="nav-item">
-                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'users' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/akses/pengguna') ?>">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= in_array($activeSub, ['users', 'verification'], true) ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/akses/pengguna') ?>">
                     <iconify-icon icon="solar:users-group-rounded-outline" class="text-base"></iconify-icon>
-                    <span>Pengguna</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'verification' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/akses/verifikasi-profil') ?>">
-                    <iconify-icon icon="solar:user-check-outline" class="text-base"></iconify-icon>
-                    <span>Verifikasi Profil</span>
+                    <span>Pengguna &amp; Verifikasi Akun</span>
                 </a>
             </li>
             <li class="nav-item">

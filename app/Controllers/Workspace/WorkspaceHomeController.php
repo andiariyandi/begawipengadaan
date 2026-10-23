@@ -10,7 +10,7 @@ class WorkspaceHomeController extends BaseController
     {
         $role = $this->workspaceRole();
 
-        if ($role === 'super_admin' || $role === 'admin') {
+        if ($role === 'super_administrator' || $role === 'administrator') {
             return redirect()->to(route_to('workspace.admin.home'));
         }
         if ($role === 'trainer') {
@@ -71,7 +71,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.home'),
                 'icon'     => 'fas fa-home',
                 'badge'    => 'Umum',
-                'roles'    => ['participant', 'trainer', 'operator', 'admin', 'super_admin'],
+                'roles'    => ['participant', 'trainer', 'operator', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Kelas Saya (Pembelajaran)',
@@ -79,7 +79,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.participant.classes'),
                 'icon'     => 'fas fa-book-reader',
                 'badge'    => 'Peserta',
-                'roles'    => ['participant', 'admin', 'super_admin'],
+                'roles'    => ['participant', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Katalog Arena Belajar PBJ',
@@ -87,7 +87,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => site_url('arena-belajar'),
                 'icon'     => 'fas fa-graduation-cap',
                 'badge'    => 'Katalog',
-                'roles'    => ['participant', 'trainer', 'operator', 'admin', 'super_admin'],
+                'roles'    => ['participant', 'trainer', 'operator', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Transkrip Nilai Akademik PBJ',
@@ -95,7 +95,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.participant.classes'),
                 'icon'     => 'fas fa-file-invoice',
                 'badge'    => 'Nilai',
-                'roles'    => ['participant', 'admin', 'super_admin'],
+                'roles'    => ['participant', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Event & Agenda PBJ Saya',
@@ -103,7 +103,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.participant.events'),
                 'icon'     => 'fas fa-calendar-check',
                 'badge'    => 'Agenda',
-                'roles'    => ['participant', 'admin', 'super_admin'],
+                'roles'    => ['participant', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Sertifikat Digital Saya',
@@ -111,7 +111,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.participant.certificates'),
                 'icon'     => 'fas fa-award',
                 'badge'    => 'Sertifikat',
-                'roles'    => ['participant', 'admin', 'super_admin'],
+                'roles'    => ['participant', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Konsultasi & Helpdesk PBJ',
@@ -119,7 +119,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.consultation.index'),
                 'icon'     => 'fas fa-comments',
                 'badge'    => 'Bantuan',
-                'roles'    => ['participant', 'trainer', 'operator', 'admin', 'super_admin'],
+                'roles'    => ['participant', 'trainer', 'operator', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Profil & Pengaturan Akun',
@@ -127,7 +127,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.profile.index'),
                 'icon'     => 'fas fa-user-cog',
                 'badge'    => 'Akun',
-                'roles'    => ['participant', 'trainer', 'operator', 'admin', 'super_admin'],
+                'roles'    => ['participant', 'trainer', 'operator', 'administrator', 'super_administrator'],
             ],
             // Trainer Shortcuts
             [
@@ -136,7 +136,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.trainer.home'),
                 'icon'     => 'fas fa-chalkboard-teacher',
                 'badge'    => 'Trainer',
-                'roles'    => ['trainer', 'operator', 'admin', 'super_admin'],
+                'roles'    => ['trainer', 'operator', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Buku Nilai Kelas (Gradebook Matrix)',
@@ -144,7 +144,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.trainer.home'),
                 'icon'     => 'fas fa-table',
                 'badge'    => 'Trainer',
-                'roles'    => ['trainer', 'operator', 'admin', 'super_admin'],
+                'roles'    => ['trainer', 'operator', 'administrator', 'super_administrator'],
             ],
             // Operator Shortcuts
             [
@@ -153,7 +153,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.operator.home'),
                 'icon'     => 'fas fa-cogs',
                 'badge'    => 'Operator',
-                'roles'    => ['operator', 'admin', 'super_admin'],
+                'roles'    => ['operator', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Pusat Approval Akun & Pendaftaran',
@@ -161,7 +161,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.operator.approvals'),
                 'icon'     => 'fas fa-user-check',
                 'badge'    => 'Operator',
-                'roles'    => ['operator', 'admin', 'super_admin'],
+                'roles'    => ['operator', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Verifikasi Tiket Profil (Diff Viewer)',
@@ -169,7 +169,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.operator.profile-change-requests'),
                 'icon'     => 'fas fa-id-card',
                 'badge'    => 'Operator',
-                'roles'    => ['operator', 'admin', 'super_admin'],
+                'roles'    => ['operator', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Penerbitan Sertifikat Massal',
@@ -177,7 +177,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.operator.certificates'),
                 'icon'     => 'fas fa-stamp',
                 'badge'    => 'Operator',
-                'roles'    => ['operator', 'admin', 'super_admin'],
+                'roles'    => ['operator', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Monitoring Pembelajaran Lintas Kelas',
@@ -185,7 +185,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.operator.learning-monitoring'),
                 'icon'     => 'fas fa-chart-line',
                 'badge'    => 'Operator',
-                'roles'    => ['operator', 'admin', 'super_admin'],
+                'roles'    => ['operator', 'administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Daftar Hadir & Peserta Event (Roster Cetak)',
@@ -193,7 +193,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.operator.events'),
                 'icon'     => 'fas fa-clipboard-list',
                 'badge'    => 'Operator',
-                'roles'    => ['operator', 'admin', 'super_admin'],
+                'roles'    => ['operator', 'administrator', 'super_administrator'],
             ],
             // Executive Admin
             [
@@ -202,7 +202,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('workspace.admin.home'),
                 'icon'     => 'fas fa-crown',
                 'badge'    => 'Eksekutif',
-                'roles'    => ['admin', 'super_admin'],
+                'roles'    => ['administrator', 'super_administrator'],
             ],
             [
                 'title'    => 'Dashboard Utama Administrasi (WowDash)',
@@ -210,7 +210,7 @@ class WorkspaceHomeController extends BaseController
                 'url'      => route_to('dashboard.home'),
                 'icon'     => 'fas fa-tachometer-alt',
                 'badge'    => 'Admin',
-                'roles'    => ['admin', 'super_admin'],
+                'roles'    => ['administrator', 'super_administrator'],
             ],
         ];
 
@@ -259,7 +259,7 @@ class WorkspaceHomeController extends BaseController
             foreach ($matchedClasses as $mc) {
                 $targetUrl = match ($role) {
                     'trainer'   => route_to('workspace.trainer.class.detail', (string) $mc['id']),
-                    'operator', 'admin', 'super_admin' => route_to('workspace.operator.learning-monitoring'),
+                    'operator', 'administrator', 'super_administrator' => route_to('workspace.operator.learning-monitoring'),
                     default     => route_to('workspace.participant.class.detail', (string) $mc['id']),
                 };
                 $classItems[] = [
@@ -315,8 +315,8 @@ class WorkspaceHomeController extends BaseController
                 ->join('regulation_categories rc', 'rc.id = r.category_id', 'left')
                 ->where('r.deleted_at', null)
                 ->groupStart()
-                    ->like('r.title', $q)
-                    ->orLike('r.document_number', $q)
+                ->like('r.title', $q)
+                ->orLike('r.document_number', $q)
                 ->groupEnd()
                 ->limit(3)
                 ->get()->getResultArray();
@@ -625,10 +625,10 @@ class WorkspaceHomeController extends BaseController
     {
         $roles = (array) session()->get('roles');
 
-        if (in_array('super_admin', $roles, true) || in_array('super_administrator', $roles, true)) {
-            return 'super_admin';
+        if (in_array('super_administrator', $roles, true) || in_array('super_administrator', $roles, true)) {
+            return 'super_administrator';
         }
-        if (in_array('admin', $roles, true) || in_array('administrator', $roles, true)) {
+        if (in_array('administrator', $roles, true) || in_array('administrator', $roles, true)) {
             return 'admin';
         }
         if (in_array('operator', $roles, true)) {
@@ -644,8 +644,8 @@ class WorkspaceHomeController extends BaseController
     private function roleLabel(string $role): string
     {
         return [
-            'super_admin' => 'Super Administrator',
-            'admin'       => 'Administrator',
+            'super_administrator' => 'Super Administrator',
+            'administrator'       => 'Administrator',
             'operator'    => 'Operator',
             'trainer'     => 'Pengajar',
             'participant' => 'Peserta',

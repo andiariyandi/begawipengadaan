@@ -34,6 +34,54 @@
     </div>
 <?php endif; ?>
 
+<?php if (in_array($user['account_status'] ?? '', ['pending_approval', 'pending_verification', 'submitted', 'revision_required'], true)): ?>
+    <div class="alert alert-warning mb-24 radius-12 p-20 d-flex flex-wrap align-items-center justify-content-between gap-3 border-warning-200 bg-warning-50">
+        <div class="d-flex align-items-center gap-16">
+            <div class="w-48-px h-48-px rounded-circle bg-warning-500 text-white d-flex align-items-center justify-content-center text-2xl flex-shrink-0">
+                <iconify-icon icon="solar:clock-circle-bold"></iconify-icon>
+            </div>
+            <div>
+                <h6 class="text-md fw-semibold text-warning-900 mb-1">Akun &amp; Berkas Profil Menunggu Persetujuan (Verifikasi)</h6>
+                <p class="text-sm text-warning-800 mb-0">Pengguna ini sedang menunggu peninjauan administrator. Menyetujui akun akan otomatis mengaktifkan akun dan mengesahkan profil dalam satu proses terpadu.</p>
+            </div>
+        </div>
+        <div class="d-flex gap-8">
+            <button type="button" class="btn btn-success-600 radius-8 px-20 py-10 d-flex align-items-center gap-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#confirmationActionModal"
+                    data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/aktifkan') ?>"
+                    data-method="POST"
+                    data-title="Setujui Akun &amp; Profil Pengguna"
+                    data-message="Apakah Anda yakin ingin menyetujui akun dan memverifikasi profil <?= esc($user['name'] ?? $user['username']) ?>? Akun akan langsung aktif dan berkas profil disahkan secara terpadu."
+                    data-btn-text="Ya, Setujui Akun & Profil"
+                    data-btn-class="btn-success-600"
+                    data-icon="solar:user-check-rounded-bold"
+                    data-icon-color="success">
+                <iconify-icon icon="solar:check-circle-outline" class="text-lg"></iconify-icon>
+                <span>Setujui Akun &amp; Profil</span>
+            </button>
+            <button type="button" class="btn btn-danger-600 radius-8 px-16 py-10 d-flex align-items-center gap-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#confirmationActionModal"
+                    data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/tolak') ?>"
+                    data-method="POST"
+                    data-title="Tolak Verifikasi Akun &amp; Profil"
+                    data-message="Apakah Anda yakin ingin menolak akun <?= esc($user['name'] ?? $user['username']) ?> beserta berkas profilnya?"
+                    data-btn-text="Ya, Tolak"
+                    data-btn-class="btn-danger-600"
+                    data-require-input="true"
+                    data-input-label="Alasan Penolakan *"
+                    data-input-name="reason"
+                    data-input-placeholder="Tulis alasan penolakan..."
+                    data-icon="solar:close-circle-bold"
+                    data-icon-color="danger">
+                <iconify-icon icon="solar:close-circle-outline" class="text-lg"></iconify-icon>
+                <span>Tolak</span>
+            </button>
+        </div>
+    </div>
+<?php endif; ?>
+
 <div class="row gy-4">
 
     <!-- Summary User -->
@@ -227,8 +275,63 @@
 
         </div>
 
-    </div>
+        <?php if (! empty($typeProfile)): ?>
+        <div class="card mt-24">
+            <div class="card-body p-24">
+                <div class="d-flex align-items-center justify-content-between mb-20">
+                    <h6 class="text-lg mb-0">
+                        Data Profil Spesifik (<?= esc(strtoupper($user['profile_type'] ?? 'Profil')) ?>)
+                    </h6>
+                    <span class="badge bg-primary-50 text-primary-600 px-10 py-4 radius-4 text-xs fw-semibold">
+                        Verifikasi Terpadu
+                    </span>
+                </div>
+                <div class="row gy-20">
+                    <?php foreach ($typeProfile as $key => $value): ?>
+                        <?php if (in_array($key, ['id', 'user_id', 'created_at', 'updated_at'], true)) continue; ?>
+                        <div class="col-md-6">
+                            <p class="text-secondary-light mb-4"><?= esc(ucwords(str_replace('_', ' ', $key))) ?></p>
+                            <h6 class="text-md mb-0"><?= esc((is_array($value) ? implode(', ', $value) : (string) $value) ?: '-') ?></h6>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
 
+        <?php if (! empty($verifications)): ?>
+        <div class="card mt-24">
+            <div class="card-body p-24">
+                <h6 class="text-lg mb-16">Riwayat Verifikasi Profil Pengguna</h6>
+                <div class="table-responsive">
+                    <table class="table bordered-table sm-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Waktu Pengajuan</th>
+                                <th>Status</th>
+                                <th>Ditinjau Oleh</th>
+                                <th>Waktu Ditinjau</th>
+                                <th>Catatan Review</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($verifications as $v): ?>
+                                <tr>
+                                    <td><?= esc(date('d M Y H:i', strtotime($v['created_at']))) ?></td>
+                                    <td><?= view('dashboard/components/status_badge', ['status' => $v['status'] ?? 'pending']) ?></td>
+                                    <td><?= esc($v['reviewed_by'] ? 'User #' . $v['reviewed_by'] : '-') ?></td>
+                                    <td><?= ! empty($v['reviewed_at']) ? esc(date('d M Y H:i', strtotime($v['reviewed_at']))) : '-' ?></td>
+                                    <td><?= esc($v['notes'] ?? '-') ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+    </div>
 
 </div>
 
@@ -247,14 +350,37 @@
                                 data-bs-target="#confirmationActionModal"
                                 data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/aktifkan') ?>"
                                 data-method="POST"
-                                data-title="Aktifkan Akun Pengguna"
-                                data-message="Apakah Anda yakin ingin mengaktifkan akun <?= esc($user['name'] ?? $user['username']) ?>?"
-                                data-btn-text="Ya, Aktifkan"
+                                data-title="Setujui Akun &amp; Profil Pengguna"
+                                data-message="Apakah Anda yakin ingin menyetujui akun dan memverifikasi profil <?= esc($user['name'] ?? $user['username']) ?>? Akun akan langsung aktif dan berkas profil disahkan secara terpadu."
+                                data-btn-text="Ya, Setujui Akun & Profil"
                                 data-btn-class="btn-success-600"
                                 data-icon="solar:user-check-rounded-bold"
                                 data-icon-color="success">
                             <iconify-icon icon="solar:check-circle-outline" class="me-6"></iconify-icon>
-                            Aktifkan Akun
+                            Setujui Akun &amp; Profil
+                        </button>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (in_array($user['account_status'] ?? '', ['pending_approval', 'pending_verification', 'submitted', 'revision_required'], true)): ?>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-danger-600 w-100 radius-8"
+                                data-bs-toggle="modal"
+                                data-bs-target="#confirmationActionModal"
+                                data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/tolak') ?>"
+                                data-method="POST"
+                                data-title="Tolak Verifikasi Akun &amp; Profil"
+                                data-message="Apakah Anda yakin ingin menolak akun <?= esc($user['name'] ?? $user['username']) ?> beserta berkas profilnya?"
+                                data-btn-text="Ya, Tolak"
+                                data-btn-class="btn-danger-600"
+                                data-require-input="true"
+                                data-input-label="Alasan Penolakan *"
+                                data-input-name="reason"
+                                data-input-placeholder="Tulis alasan penolakan..."
+                                data-icon="solar:close-circle-bold"
+                                data-icon-color="danger">
+                            <iconify-icon icon="solar:close-circle-outline" class="me-6"></iconify-icon>
+                            Tolak Akun &amp; Profil
                         </button>
                     </div>
                     <?php endif; ?>
@@ -275,6 +401,9 @@
                                 data-require-input="true"
                                 data-input-label="Alasan Penangguhan *"
                                 data-input-name="reason"
+                                data-input-placeholder="Tulis alasan penangguhan akun...">
+                            <iconify-icon icon="solar:pause-circle-outline" class="me-6"></iconify-icon>
+                            Suspend Akun
                                 data-input-placeholder="Tulis alasan penangguhan akun...">
                             <iconify-icon icon="solar:pause-circle-outline" class="me-6"></iconify-icon>
                             Suspend Akun

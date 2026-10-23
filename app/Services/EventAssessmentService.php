@@ -415,7 +415,7 @@ class EventAssessmentService
             'total_questions' => $totalQuestions,
             'passing_score'   => $passingScore,
             'is_passed'       => $isPassed,
-            'submitted_answers'=> $submittedAnswers,
+            'submitted_answers' => $submittedAnswers,
             'review'          => $review,
             'submitted_at'    => $now,
         ];
@@ -483,7 +483,7 @@ class EventAssessmentService
     }
 
     /**
-     * Get assessment statistics for an event (for admin view).
+     * Get assessment statistics for an event (for administrator view).
      */
     public function getAssessmentStats(int $eventId): array
     {

@@ -57,7 +57,9 @@ class KnowledgeAdminTest extends BaseCommand
         $session->set([
             'isLoggedIn' => true,
             'user_id'    => $adminId,
-            'role'       => 'superadmin',
+            'role'           => 'super_administrator',
+            'roles'          => ['super_administrator'],
+            'account_status' => 'active',
             'email'      => $adminUser['email'] ?? 'admin@begawipbj.test',
             'name'       => $adminUser['name'] ?? 'Super Administrator',
         ]);

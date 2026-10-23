@@ -285,7 +285,7 @@ class LearningClassController extends BaseController
     /**
      * Gate untuk aksi manajemen kelas (CRUD + assign trainer).
      * Mengikuti pola CLAUDE.md §28: role + permission + scope.
-     * Boleh dilakukan oleh permission learning.class.create/update atau role super_admin/admin
+     * Boleh dilakukan oleh permission learning.class.create/update atau role super_administrator/admin
      * (di mana admin tradisional hanya butuh satu permission saja).
      */
     private function canManageClasses(): bool
@@ -301,9 +301,7 @@ class LearningClassController extends BaseController
             return true;
         }
         $roles = (array) session()->get('roles');
-        return in_array('super_admin', $roles, true)
-            || in_array('admin', $roles, true)
-            || in_array('super_administrator', $roles, true)
+        return in_array('super_administrator', $roles, true)
             || in_array('administrator', $roles, true);
     }
 

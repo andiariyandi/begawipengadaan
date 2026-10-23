@@ -51,7 +51,14 @@ class OrganizationController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         try {
-            $id = (new OrganizationService())->create($this->request->getPost(), (int) session()->get('user_id'));
+            $payload = [
+                'code'        => trim((string) $this->request->getPost('code')),
+                'name'        => trim((string) $this->request->getPost('name')),
+                'type'        => trim((string) $this->request->getPost('type')),
+                'parent_id'   => $this->request->getPost('parent_id') ?: null,
+                'description' => trim((string) $this->request->getPost('description')),
+            ];
+            $id = (new OrganizationService())->create($payload, (int) session()->get('user_id'));
             return redirect()->to('dashboard/akses/unit-organisasi/' . $id)->with('success', 'Unit organisasi dibuat.');
         } catch (\InvalidArgumentException $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
@@ -115,7 +122,13 @@ class OrganizationController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         try {
-            (new OrganizationService())->update($unitId, $this->request->getPost(), (int) session()->get('user_id'));
+            $payload = [
+                'name'        => trim((string) $this->request->getPost('name')),
+                'type'        => trim((string) $this->request->getPost('type')),
+                'parent_id'   => $this->request->getPost('parent_id') ?: null,
+                'description' => trim((string) $this->request->getPost('description')),
+            ];
+            (new OrganizationService())->update($unitId, $payload, (int) session()->get('user_id'));
             return redirect()->to('dashboard/akses/unit-organisasi/' . $unitId)->with('success', 'Unit diperbarui.');
         } catch (\InvalidArgumentException $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());

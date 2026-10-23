@@ -53,7 +53,7 @@ class OperatorController extends BaseController
 
     /**
      * Pastikan pengguna memiliki hak akses Operator atau Administrator.
-     * Mengikuti prinsip hierarki: admin/super_admin mewarisi semua hak operator.
+     * Mengikuti prinsip hierarki: administrator/super_administrator mewarisi semua hak operator.
      */
     private function assertOperatorAccess(): int
     {
@@ -69,7 +69,7 @@ class OperatorController extends BaseController
         }
 
         $roles = (array) session()->get('roles');
-        $allowed = ['operator', 'admin', 'administrator', 'super_admin', 'super_administrator'];
+        $allowed = ['operator', 'administrator', 'super_administrator'];
         $hasAccess = false;
         foreach ($allowed as $r) {
             if (in_array($r, $roles, true)) {
@@ -284,7 +284,7 @@ class OperatorController extends BaseController
         $rawIds  = (array) $this->request->getPost('selected_ids');
         $notes   = trim((string) $this->request->getPost('notes')) ?: ($action === 'approve' ? 'Disetujui massal oleh Operator.' : 'Ditolak massal oleh Operator.');
 
-        $ids = array_filter(array_map('intval', $rawIds), static fn ($id) => $id > 0);
+        $ids = array_filter(array_map('intval', $rawIds), static fn($id) => $id > 0);
         if ($ids === []) {
             return redirect()->back()->with('error', 'Tidak ada data approval yang dipilih.');
         }
@@ -485,7 +485,7 @@ class OperatorController extends BaseController
         $rawIds  = (array) $this->request->getPost('selected_ids');
         $notes   = trim((string) $this->request->getPost('notes')) ?: ($action === 'approve' ? 'Diverifikasi massal oleh Operator.' : 'Ditolak massal oleh Operator.');
 
-        $ids = array_filter(array_map('intval', $rawIds), static fn ($id) => $id > 0);
+        $ids = array_filter(array_map('intval', $rawIds), static fn($id) => $id > 0);
         if ($ids === []) {
             return redirect()->back()->with('error', 'Tidak ada verifikasi profil yang dipilih.');
         }
@@ -955,10 +955,10 @@ class OperatorController extends BaseController
         unset($p);
 
         $totalRegistered = count($participants);
-        $presentCount    = count(array_filter($participants, static fn ($p): bool => ($p['attendance_status'] ?? '') === 'present'));
-        $excusedCount    = count(array_filter($participants, static fn ($p): bool => ($p['attendance_status'] ?? '') === 'excused'));
-        $absentCount     = count(array_filter($participants, static fn ($p): bool => ($p['attendance_status'] ?? '') === 'absent'));
-        $unrecordedCount = count(array_filter($participants, static fn ($p): bool => empty($p['attendance_status'])));
+        $presentCount    = count(array_filter($participants, static fn($p): bool => ($p['attendance_status'] ?? '') === 'present'));
+        $excusedCount    = count(array_filter($participants, static fn($p): bool => ($p['attendance_status'] ?? '') === 'excused'));
+        $absentCount     = count(array_filter($participants, static fn($p): bool => ($p['attendance_status'] ?? '') === 'absent'));
+        $unrecordedCount = count(array_filter($participants, static fn($p): bool => empty($p['attendance_status'])));
         $attendanceRate  = $totalRegistered > 0 ? round(($presentCount / $totalRegistered) * 100, 1) : 0.0;
 
         $metrics = [
@@ -1027,7 +1027,7 @@ class OperatorController extends BaseController
         }
         unset($p);
 
-        $presentCount    = count(array_filter($participants, static fn ($p): bool => ($p['attendance_status'] ?? '') === 'present'));
+        $presentCount    = count(array_filter($participants, static fn($p): bool => ($p['attendance_status'] ?? '') === 'present'));
         $totalRegistered = count($participants);
         $attendanceRate  = $totalRegistered > 0 ? round(($presentCount / $totalRegistered) * 100, 1) : 0.0;
 
@@ -1282,7 +1282,7 @@ class OperatorController extends BaseController
         $actorId = $this->assertOperatorAccess();
         $rawIds  = (array) $this->request->getPost('enrollment_ids');
 
-        $ids = array_filter(array_map('intval', $rawIds), static fn ($id) => $id > 0);
+        $ids = array_filter(array_map('intval', $rawIds), static fn($id) => $id > 0);
         if ($ids === []) {
             return redirect()->back()->with('error', 'Tidak ada peserta yang dipilih untuk penerbitan sertifikat.');
         }

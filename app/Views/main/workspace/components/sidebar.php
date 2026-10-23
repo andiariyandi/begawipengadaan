@@ -5,10 +5,10 @@ $hasRole = static fn (string $role): bool => in_array($role, $roles, true);
 
 // Determine primary role priority
 $primaryRole = 'participant';
-if ($hasRole('super_admin') || $hasRole('super_administrator')) {
-    $primaryRole = 'super_admin';
-} elseif ($hasRole('admin') || $hasRole('administrator')) {
-    $primaryRole = 'admin';
+if ($hasRole('super_administrator')) {
+    $primaryRole = 'super_administrator';
+} elseif ($hasRole('administrator')) {
+    $primaryRole = 'administrator';
 } elseif ($hasRole('operator')) {
     $primaryRole = 'operator';
 } elseif ($hasRole('trainer')) {
@@ -16,11 +16,11 @@ if ($hasRole('super_admin') || $hasRole('super_administrator')) {
 }
 
 $roleLabel = match ($primaryRole) {
-    'super_admin' => 'Super Administrator',
-    'admin'       => 'Administrator',
-    'operator'    => 'Operator',
-    'trainer'     => 'Pengajar (Trainer)',
-    default       => 'Peserta (Participant)',
+    'super_administrator' => 'Super Administrator',
+    'administrator'       => 'Administrator',
+    'operator'            => 'Operator',
+    'trainer'             => 'Pengajar (Trainer)',
+    default               => 'Peserta (Participant)',
 };
 
 $displayName = (string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna');
@@ -84,7 +84,7 @@ $quizzesUrl  = ($trainerClassId > 0) ? route_to('workspace.trainer.quizzes', $tr
 
 // Role-based menu definitions
 $menuItems = match ($primaryRole) {
-    'super_admin', 'admin' => [
+    'super_administrator', 'administrator' => [
         ['Pusat Eksekutif', route_to('workspace.admin.home'), 'fas fa-crown'],
         ['Pusat Operasional', route_to('workspace.operator.home'), 'fas fa-cogs'],
         ['Antrean Approval', route_to('workspace.operator.approvals'), 'fas fa-stamp'],

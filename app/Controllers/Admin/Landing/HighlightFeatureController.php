@@ -158,6 +158,9 @@ class HighlightFeatureController extends BaseController
 
     public function delete($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $item = $this->db->table('feature_highlights')->where('id', $id)->get()->getRowArray();
         if ($item) {
             $this->db->table('feature_highlights')->where('id', $id)->delete();
@@ -172,6 +175,9 @@ class HighlightFeatureController extends BaseController
 
     public function toggle($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $item = $this->db->table('feature_highlights')->where('id', $id)->get()->getRowArray();
         if ($item) {
             $newStatus = $item['is_active'] ? 0 : 1;

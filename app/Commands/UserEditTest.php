@@ -36,8 +36,8 @@ class UserEditTest extends BaseCommand
             'isLoggedIn'        => true,
             'email'             => 'superadmin@begawipbj.go.id',
             'name'              => 'Super Administrator',
-            'role'              => 'super_admin',
-            'roles'             => ['super_admin', 'super_administrator'],
+            'role'              => 'super_administrator',
+            'roles'             => ['super_administrator'],
             'dashboard_access'  => true,
             'account_status'    => 'active',
         ]);

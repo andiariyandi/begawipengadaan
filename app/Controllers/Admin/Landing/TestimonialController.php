@@ -147,6 +147,9 @@ class TestimonialController extends BaseController
 
     public function delete($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $testimonial = $this->db->table('testimonials')->where('id', $id)->get()->getRowArray();
         if ($testimonial) {
             $this->db->table('testimonials')->where('id', $id)->delete();
@@ -159,6 +162,9 @@ class TestimonialController extends BaseController
 
     public function toggle($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $testimonial = $this->db->table('testimonials')->where('id', $id)->get()->getRowArray();
         if ($testimonial) {
             $newStatus = $testimonial['is_active'] ? 0 : 1;

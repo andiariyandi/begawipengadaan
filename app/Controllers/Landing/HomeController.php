@@ -632,7 +632,16 @@ class HomeController extends BaseController
         }
 
         $isAnonymous = $this->request->getPost('is_anonymous') !== '0';
-        $respondentRole = trim((string) ($this->request->getPost('respondent_role') ?: 'Pengguna Layanan / Masyarakat'));
+        $respondentRole = trim((string) $this->request->getPost('respondent_role'));
+        if ($respondentRole === '') {
+            if ($this->request->isAJAX() || $this->request->getHeaderLine('Accept') === 'application/json' || $this->request->getGet('ajax') === '1') {
+                return $this->response->setStatusCode(422)->setJSON([
+                    'success' => false,
+                    'message' => 'Silakan pilih Kategori / Peran Pengguna terlebih dahulu.',
+                ]);
+            }
+            return redirect()->back()->with('error', 'Silakan pilih Kategori / Peran Pengguna terlebih dahulu.');
+        }
         $name = $isAnonymous ? 'Anonim' : trim((string) ($this->request->getPost('respondent_name') ?: 'Anonim'));
         $institution = $isAnonymous ? null : trim((string) $this->request->getPost('respondent_institution'));
         $contact = $isAnonymous ? null : trim((string) $this->request->getPost('respondent_contact'));

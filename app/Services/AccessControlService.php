@@ -11,7 +11,7 @@ class AccessControlService
 
     public function isAdmin(array $roles): bool
     {
-        return in_array('admin', $roles, true)
-            || in_array('super_admin', $roles, true);
+        return in_array('administrator', $roles, true)
+            || in_array('super_administrator', $roles, true);
     }
 }

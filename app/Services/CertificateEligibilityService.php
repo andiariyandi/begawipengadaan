@@ -45,7 +45,7 @@ use RuntimeException;
  *   status             = 'pending'
  *
  * Catatan:
- *  - Caller yang sudah menulis approval (mis. manual dari admin) akan
+ *  - Caller yang sudah menulis approval (mis. manual dari administrator) akan
  *    di-skip — eligibleFor...() menangani idempotency dengan
  *    ApprovalModel::hasActive().
  */

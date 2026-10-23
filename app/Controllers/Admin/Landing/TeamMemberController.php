@@ -159,6 +159,9 @@ class TeamMemberController extends BaseController
 
     public function delete($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $member = $this->db->table('team_members')->where('id', $id)->get()->getRowArray();
         if ($member) {
             $this->db->table('team_members')->where('id', $id)->delete();
@@ -171,6 +174,9 @@ class TeamMemberController extends BaseController
 
     public function toggle($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $member = $this->db->table('team_members')->where('id', $id)->get()->getRowArray();
         if ($member) {
             $newStatus = $member['is_active'] ? 0 : 1;

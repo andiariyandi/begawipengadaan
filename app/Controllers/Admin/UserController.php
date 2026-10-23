@@ -34,6 +34,7 @@ class UserController extends BaseController
             ->orderBy('u.created_at', 'DESC');
 
         // Filters
+        $tab = trim((string) $this->request->getGet('tab'));
         $keyword = trim((string) $this->request->getGet('keyword'));
         if ($keyword !== '') {
             $builder->groupStart()
@@ -47,7 +48,9 @@ class UserController extends BaseController
             $builder->where('u.profile_type', $profileType);
         }
         $status = trim((string) $this->request->getGet('account_status'));
-        if ($status !== '' && in_array($status, UserManagementService::ALLOWED_STATUSES, true)) {
+        if ($tab === 'verification' || $tab === 'pending') {
+            $builder->whereIn('u.account_status', ['pending_approval', 'pending_verification', 'submitted', 'revision_required']);
+        } elseif ($status !== '' && in_array($status, UserManagementService::ALLOWED_STATUSES, true)) {
             $builder->where('u.account_status', $status);
         }
         $roleId = (int) $this->request->getGet('role_id');
@@ -93,7 +96,9 @@ class UserController extends BaseController
         if ($profileType !== '' && in_array($profileType, UserManagementService::ALLOWED_PROFILE_TYPES, true)) {
             $countBuilder->where('u.profile_type', $profileType);
         }
-        if ($status !== '' && in_array($status, UserManagementService::ALLOWED_STATUSES, true)) {
+        if ($tab === 'verification' || $tab === 'pending') {
+            $countBuilder->whereIn('u.account_status', ['pending_approval', 'pending_verification', 'submitted', 'revision_required']);
+        } elseif ($status !== '' && in_array($status, UserManagementService::ALLOWED_STATUSES, true)) {
             $countBuilder->where('u.account_status', $status);
         }
         if ($roleId > 0) {
@@ -123,10 +128,11 @@ class UserController extends BaseController
         $pager->store('users', $page, $perPage, $total, 0);
 
         $stats = [
-            'total'   => (int) $db->table('users')->countAllResults(),
-            'active'  => (int) $db->table('users')->where('account_status', 'active')->countAllResults(),
-            'pending' => (int) $db->table('users')->whereIn('account_status', ['pending_approval', 'pending_verification', 'submitted'])->countAllResults(),
-            'asn'     => (int) $db->table('users')->where('profile_type', 'asn')->countAllResults(),
+            'total'     => (int) $db->table('users')->countAllResults(),
+            'active'    => (int) $db->table('users')->where('account_status', 'active')->countAllResults(),
+            'pending'   => (int) $db->table('users')->whereIn('account_status', ['pending_approval', 'pending_verification', 'submitted', 'revision_required'])->countAllResults(),
+            'suspended' => (int) $db->table('users')->whereIn('account_status', ['suspended', 'rejected', 'inactive'])->countAllResults(),
+            'asn'       => (int) $db->table('users')->where('profile_type', 'asn')->countAllResults(),
         ];
 
         return view('dashboard/users/index', [
@@ -136,11 +142,13 @@ class UserController extends BaseController
             'activeSubmenu' => 'users',
             'users'         => $users,
             'stats'         => $stats,
+            'currentTab'    => $tab,
             'pager'         => $pager,
             'perPage'       => $perPage,
             'sort'          => $sort,
             'dir'           => strtolower($dir),
             'filters'       => [
+                'tab'            => $tab,
                 'keyword'        => $keyword,
                 'profile_type'   => $profileType,
                 'account_status' => $status,
@@ -231,7 +239,23 @@ class UserController extends BaseController
         $actorId = (int) session()->get('user_id');
         try {
             (new UserManagementService())->activate($userId, $actorId, 'admin.activate');
-            return redirect()->to('dashboard/akses/pengguna/' . $userId)->with('success', 'Akun diaktifkan.');
+            return redirect()->back()->with('success', 'Akun dan profil pengguna berhasil disetujui (Status: Aktif & Terverifikasi).');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function reject(string $id)
+    {
+        $userId = ctype_digit($id) ? (int) $id : 0;
+        $reason = trim((string) $this->request->getPost('reason'));
+        if ($reason === '') {
+            return redirect()->back()->with('error', 'Alasan penolakan wajib diisi.');
+        }
+        $actorId = (int) session()->get('user_id');
+        try {
+            (new UserManagementService())->reject($userId, $reason, $actorId);
+            return redirect()->back()->with('success', 'Akun dan berkas verifikasi profil pengguna telah ditolak.');
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
@@ -495,6 +519,22 @@ class UserController extends BaseController
         $file = $this->request->getFile('avatar');
         if (! $file || ! $file->isValid() || $file->hasMoved()) {
             return true;
+        }
+
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        $allowedExts  = ['jpg', 'jpeg', 'png', 'webp'];
+        $maxSizeBytes = 2 * 1024 * 1024; // 2 MB
+
+        if ($file->getSize() > $maxSizeBytes) {
+            session()->setFlashdata('error', 'Ukuran file avatar maksimal 2 MB.');
+            return false;
+        }
+
+        $clientMime = $file->getClientMimeType();
+        $ext = strtolower($file->getClientExtension());
+        if (! in_array($clientMime, $allowedMimes, true) || ! in_array($ext, $allowedExts, true)) {
+            session()->setFlashdata('error', 'Format avatar tidak valid. Hanya JPG, PNG, atau WebP yang diperbolehkan.');
+            return false;
         }
         $dir = WRITEPATH . 'uploads/users';
         if (! is_dir($dir) && ! @mkdir($dir, 0755, true)) {

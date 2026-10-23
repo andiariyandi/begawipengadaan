@@ -178,7 +178,7 @@ trainer
 evaluator
 ```
 
-Role `operator`, `admin`, dan `super_admin` tidak dibuat melalui self-service role request.
+Role `operator`, `admin`, dan `super_administrator` tidak dibuat melalui self-service role request.
 
 ### Status
 

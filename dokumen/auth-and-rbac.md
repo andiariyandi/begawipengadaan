@@ -74,7 +74,7 @@ Empat konsep harus dipisahkan:
 |---|---|---|
 | Tipe profil | Mengelompokkan data profil saat registrasi | ASN, Penyedia Barang/Jasa, Akademisi, Masyarakat Umum |
 | Account status | Menentukan lifecycle dan kelayakan akun mengakses area aplikasi | `draft`, `submitted`, `pending_verification`, `revision_required`, `active`, `rejected`, `inactive`, `suspended`, `archived` |
-| Role | Menjelaskan tanggung jawab bisnis pengguna | `public_user`, `participant`, `trainer`, `evaluator`, `operator`, `admin`, `super_admin` |
+| Role | Menjelaskan tanggung jawab bisnis pengguna | `public_user`, `participant`, `trainer`, `evaluator`, `operator`, `admin`, `super_administrator` |
 | Permission | Hak granular atas resource dan aksi | `learning.study`, `learning.assignment.grade`, `certificate.issue` |
 
 Akses efektif selalu ditentukan oleh:
@@ -159,7 +159,7 @@ Tipe profil digunakan untuk menentukan data registrasi dan profil, bukan hak aks
 | Akademisi | `academic` | Profil institusi pendidikan/riset serta bidang keahlian |
 | Masyarakat Umum | `public` | Profil warga, komunitas, pelaku pendukung, atau Perangkat Desa |
 
-Tipe profil tidak boleh menjadi dasar tunggal untuk memberikan role `operator`, `admin`, atau `super_admin`.
+Tipe profil tidak boleh menjadi dasar tunggal untuk memberikan role `operator`, `admin`, atau `super_administrator`.
 
 ---
 
@@ -175,7 +175,7 @@ Tipe profil tidak boleh menjadi dasar tunggal untuk memberikan role `operator`, 
 | Evaluator | `evaluator` | Workspace | Penilaian manual, feedback, revisi, serta final grading sesuai assignment |
 | Operator | `operator` | Workspace | Verifikasi, administrasi operasional, enrollment, absensi, dan approval terdelegasi |
 | Admin | `admin` | Dashboard Back-office | Administrasi domain sesuai permission yang diberikan |
-| Super Admin | `super_admin` | Dashboard Back-office | Konfigurasi strategis, RBAC, audit, serta administrasi sistem sesuai permission |
+| Super Admin | `super_administrator` | Dashboard Back-office | Konfigurasi strategis, RBAC, audit, serta administrasi sistem sesuai permission |
 
 Satu account dapat memiliki lebih dari satu role.
 
@@ -204,10 +204,10 @@ Pengguna tidak dapat menetapkan sendiri:
 ```text
 operator
 admin
-super_admin
+super_administrator
 ```
 
-Role `operator`, `admin`, dan `super_admin` hanya diberikan melalui penetapan internal oleh actor yang memiliki permission relevan. Setiap grant/revoke role harus memiliki actor, target, alasan, waktu, state keputusan, dan audit record.
+Role `operator`, `admin`, dan `super_administrator` hanya diberikan melalui penetapan internal oleh actor yang memiliki permission relevan. Setiap grant/revoke role harus memiliki actor, target, alasan, waktu, state keputusan, dan audit record.
 
 ---
 

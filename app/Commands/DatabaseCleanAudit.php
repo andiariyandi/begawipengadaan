@@ -31,7 +31,7 @@ class DatabaseCleanAudit extends BaseCommand
 
         CLI::newLine();
         CLI::write("=== USERS WITH ADMIN / SUPERADMIN ROLES ===", "yellow");
-        $adminRoles = ['super_admin', 'super_administrator', 'admin', 'administrator', 'superadmin'];
+        $adminRoles = ['super_administrator', 'administrator'];
         $admins = $db->table('users u')
             ->select('u.id, u.username, u.name, u.email, u.account_status, r.name AS role_name, r.key AS role_key')
             ->join('user_roles ur', 'ur.user_id = u.id', 'left')

@@ -871,7 +871,7 @@ class ArenaBelajarController extends BaseController
                 ->with('error', $e->getMessage());
         }
         return redirect()->to(route_to('public.learning.class.detail', $slug))
-            ->with('success', 'Pengajuan enrollment berhasil. Menunggu persetujuan admin.');
+            ->with('success', 'Pengajuan enrollment berhasil. Menunggu persetujuan administrator.');
     }
 
     private function lookupEnrollmentStatus(int $classId, int $userId): ?string
