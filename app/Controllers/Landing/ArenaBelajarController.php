@@ -76,6 +76,8 @@ class ArenaBelajarController extends BaseController
             ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, courses.cover_url AS course_cover_url, programs.title AS program_title')
             ->join('courses', 'courses.id = learning_classes.course_id')
             ->join('programs', 'programs.id = courses.program_id', 'left')
+            ->where('courses.deleted_at IS NULL', null, false)
+            ->where('(programs.deleted_at IS NULL OR programs.id IS NULL)', null, false)
             ->whereIn('learning_classes.status', ['scheduled', 'active', 'open', 'published', 'ongoing'])
             ->where('courses.status', 'published')
             ->where('courses.visibility', 'public')
@@ -91,6 +93,7 @@ class ArenaBelajarController extends BaseController
                 ->join('users', 'users.id = ct.user_id')
                 ->where('ct.class_id', (int) $cl['id'])
                 ->where('ct.status', 'active')
+                ->where('users.deleted_at IS NULL', null, false)
                 ->orderBy('users.name', 'ASC')
                 ->get()->getResultArray();
             $cl['enrolled_count'] = (int) $db->table('enrollments')
@@ -108,6 +111,7 @@ class ArenaBelajarController extends BaseController
             ->where('ct.status', 'active')
             ->where('users.account_status', 'active')
             ->where('users.deleted_at IS NULL', null, false)
+            ->where('lc.deleted_at IS NULL', null, false)
             ->whereIn('lc.status', ['scheduled', 'active', 'open', 'published', 'ongoing'])
             ->groupBy('users.id, users.name, users.username, users.profile_type')
             ->orderBy('total_classes', 'DESC')
@@ -174,6 +178,8 @@ class ArenaBelajarController extends BaseController
             $item['class_count'] = (int) $db->table('learning_classes lc')
                 ->join('courses c', 'c.id = lc.course_id')
                 ->where('c.program_id', (int) $item['id'])
+                ->where('lc.deleted_at IS NULL', null, false)
+                ->where('c.deleted_at IS NULL', null, false)
                 ->whereIn('lc.status', ['scheduled', 'active', 'open', 'published', 'ongoing'])
                 ->countAllResults();
 
@@ -182,6 +188,8 @@ class ArenaBelajarController extends BaseController
                 ->join('learning_classes lc', 'lc.id = e.class_id')
                 ->join('courses c', 'c.id = lc.course_id')
                 ->where('c.program_id', (int) $item['id'])
+                ->where('lc.deleted_at IS NULL', null, false)
+                ->where('c.deleted_at IS NULL', null, false)
                 ->whereIn('e.status', ['active', 'completed'])
                 ->countAllResults();
 
@@ -189,6 +197,7 @@ class ArenaBelajarController extends BaseController
             $item['sample_courses'] = $db->table('courses')
                 ->select('id, title, slug, level')
                 ->where('program_id', (int) $item['id'])
+                ->where('deleted_at IS NULL', null, false)
                 ->where('status', 'published')
                 ->where('visibility', 'public')
                 ->orderBy('id', 'ASC')
@@ -309,6 +318,8 @@ class ArenaBelajarController extends BaseController
             ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, courses.level AS course_level, courses.duration_minutes AS course_duration, courses.cover_url AS course_cover_url, programs.title AS program_title, programs.slug AS program_slug')
             ->join('courses', 'courses.id = learning_classes.course_id')
             ->join('programs', 'programs.id = courses.program_id', 'left')
+            ->where('courses.deleted_at IS NULL', null, false)
+            ->where('(programs.deleted_at IS NULL OR programs.id IS NULL)', null, false)
             ->whereIn('learning_classes.status', ['scheduled', 'active', 'open', 'published', 'ongoing'])
             ->where('courses.status', 'published')
             ->where('courses.visibility', 'public');
@@ -407,6 +418,8 @@ class ArenaBelajarController extends BaseController
             ->where('class_trainers.status', 'active')
             ->where('users.account_status', 'active')
             ->where('users.deleted_at IS NULL', null, false)
+            ->where('learning_classes.deleted_at IS NULL', null, false)
+            ->where('courses.deleted_at IS NULL', null, false)
             ->whereIn('learning_classes.status', ['scheduled', 'active', 'open', 'published', 'ongoing'])
             ->where('courses.status', 'published')
             ->where('courses.visibility', 'public');
@@ -550,6 +563,8 @@ class ArenaBelajarController extends BaseController
             ->select('lc.*, c.title AS course_title, c.slug AS course_slug, c.cover_url AS course_cover_url')
             ->join('courses c', 'c.id = lc.course_id')
             ->where('c.program_id', (int) $program['id'])
+            ->where('lc.deleted_at IS NULL', null, false)
+            ->where('c.deleted_at IS NULL', null, false)
             ->whereIn('lc.status', ['scheduled', 'active', 'open', 'published', 'ongoing'])
             ->orderBy('lc.start_at', 'ASC')
             ->get()->getResultArray();
@@ -558,6 +573,8 @@ class ArenaBelajarController extends BaseController
             ->join('learning_classes lc', 'lc.id = e.class_id')
             ->join('courses c', 'c.id = lc.course_id')
             ->where('c.program_id', (int) $program['id'])
+            ->where('lc.deleted_at IS NULL', null, false)
+            ->where('c.deleted_at IS NULL', null, false)
             ->whereIn('e.status', ['active', 'completed'])
             ->countAllResults();
 
@@ -571,6 +588,8 @@ class ArenaBelajarController extends BaseController
             ->where('ct.status', 'active')
             ->where('u.account_status', 'active')
             ->where('u.deleted_at IS NULL', null, false)
+            ->where('lc.deleted_at IS NULL', null, false)
+            ->where('c.deleted_at IS NULL', null, false)
             ->groupBy('u.id, u.name, u.username, u.profile_type, ct.role')
             ->orderBy('total_classes', 'DESC')
             ->limit(4)
@@ -859,6 +878,15 @@ class ArenaBelajarController extends BaseController
         if (! in_array($class['status'] ?? null, ['scheduled', 'active', 'open', 'published', 'ongoing'], true)) {
             return redirect()->to(route_to('public.learning.class.detail', $slug))
                 ->with('error', 'Kelas tidak dapat diikuti pada status saat ini.');
+        }
+        $now = time();
+        if (! empty($class['registration_open_at']) && strtotime((string) $class['registration_open_at']) > $now) {
+            return redirect()->to(route_to('public.learning.class.detail', $slug))
+                ->with('error', 'Pendaftaran untuk kelas ini belum dibuka.');
+        }
+        if (! empty($class['registration_close_at']) && strtotime((string) $class['registration_close_at']) < $now) {
+            return redirect()->to(route_to('public.learning.class.detail', $slug))
+                ->with('error', 'Pendaftaran untuk kelas ini sudah ditutup.');
         }
         if ((new \App\Models\EnrollmentModel())->alreadyEnrolled($userId, (int) $class['id'])) {
             return redirect()->to(route_to('public.learning.class.detail', $slug))

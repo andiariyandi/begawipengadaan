@@ -124,7 +124,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                             <div>
                                 <span class="badge bg-primary text-white px-2 py-1 radius-12 small text-uppercase" style="letter-spacing: 0.5px; font-size: 12px;">
-                                    <i class="fas fa-route me-1"></i> Jalur Kompetensi Standar LKPP
+                                    <i class="fas fa-route me-1"></i> Jalur Kompetensi Standar
                                 </span>
                                 <h4 class="fw-bold mt-1 mb-1" style="color: #082f5c; font-size: 20px;">
                                     Roadmap Kurikulum Pengadaan Barang &amp; Jasa Berjenjang
@@ -440,7 +440,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                     </article>
                                 </div>
 
-                            <!-- ==================== 2. CLASSES SUB-MENU ==================== -->
+                                <!-- ==================== 2. CLASSES SUB-MENU ==================== -->
                             <?php elseif ($catalogType === 'classes'): ?>
                                 <?php
                                 $imgIdx = ($index % 6) + 1;
@@ -497,7 +497,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                     </article>
                                 </div>
 
-                            <!-- ==================== 3. TRAINERS SUB-MENU ==================== -->
+                                <!-- ==================== 3. TRAINERS SUB-MENU ==================== -->
                             <?php elseif ($catalogType === 'trainers'): ?>
                                 <?php
                                 $imgIdx = ($index % 4) + 1;
@@ -536,7 +536,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                                     </article>
                                 </div>
 
-                            <!-- ==================== 4. PROGRAMS SUB-MENU ==================== -->
+                                <!-- ==================== 4. PROGRAMS SUB-MENU ==================== -->
                             <?php else: ?>
                                 <?php
                                 $imgIdx = ($index % 5) + 1;
@@ -729,7 +729,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                         </h4>
                         <?php foreach (array_slice($topCourses, 0, 3) as $cRank => $cItem):
                             $cLvl = strtolower((string) ($cItem['level'] ?? 'basic'));
-                            $cLvlLabel = match($cLvl) {
+                            $cLvlLabel = match ($cLvl) {
                                 'intermediate' => 'Menengah',
                                 'advanced'     => 'Lanjutan',
                                 default        => 'Dasar',

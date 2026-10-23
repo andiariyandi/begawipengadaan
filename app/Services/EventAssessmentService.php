@@ -640,6 +640,8 @@ class EventAssessmentService
 
         $attActor = $this->sanitizeUserId($actorId) ?: $this->sanitizeUserId($userId);
 
+        $this->db->transStart();
+
         // Update or insert attendance record marked as present
         $existingAtt = $this->db->table('attendances')
             ->where('event_registration_id', $registrationId)
@@ -668,9 +670,15 @@ class EventAssessmentService
         // Generate certificate using official CertificateGenerator
         $generator = new \App\Services\CertificateGenerator();
         $adminUser = $this->db->table('users')->where('deleted_at IS NULL')->orderBy('id', 'ASC')->get()->getRowArray();
-        $generatorActor = $attActor ?: (int) ($adminUser['id'] ?? 13);
+        $generatorActor = $attActor ?: ($adminUser ? (int) $adminUser['id'] : null);
 
         $certResult = $generator->generateDirect('event_registration', $registrationId, $generatorActor);
+
+        $this->db->transComplete();
+
+        if (! $this->db->transStatus()) {
+            throw new \RuntimeException('Gagal memproses kehadiran dan penerbitan sertifikat mandiri.');
+        }
 
         return [
             'success'            => true,

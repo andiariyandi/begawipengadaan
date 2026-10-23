@@ -61,6 +61,13 @@ class LoginController extends BaseController
         $email    = strtolower(trim((string) ($postData['email'] ?? '')));
         $password = (string) ($postData['password'] ?? '');
 
+        // M-13: Rate limit percobaan login (maks 10 percobaan per 60 detik per IP dan email)
+        $throttler = service('throttler');
+        $ip = $this->request->getIPAddress();
+        if ($throttler->check('auth_login_' . md5($ip . '_' . $email), 10, 60) === false) {
+            return redirect()->back()->withInput()->with('error', 'Terlalu banyak percobaan masuk. Silakan tunggu 1 menit sebelum mencoba kembali.');
+        }
+
         $result = (new AuthenticationService())->authenticate($email, $password);
 
         if (! $result['ok']) {

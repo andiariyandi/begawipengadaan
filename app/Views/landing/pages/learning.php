@@ -440,7 +440,7 @@ if ($spotlightMode === 'program') {
                                             </p>
                                             <div class="arena-card__meta">
                                                 <span><i class="fas fa-book-open text-primary"></i> <?= (int) ($prog['course_count'] ?? 0) ?> Course</span>
-                                                <span><i class="fas fa-shield-alt text-success"></i> Standar LKPP</span>
+                                                <span><i class="fas fa-shield-alt text-success"></i> Standar</span>
                                             </div>
                                             <div class="arena-card__actions mt-auto">
                                                 <a href="<?= route_to('public.learning.program.detail', $prog['slug']) ?>" class="arena-btn-primary flex-grow-1 justify-content-center">
@@ -637,7 +637,7 @@ if ($spotlightMode === 'program') {
                         <button type="submit" aria-label="Cari"><i class="fas fa-search"></i></button>
                     </form>
                     <div class="d-flex flex-wrap gap-1 mt-3">
-                        <a href="<?= site_url('arena-belajar/course?q=' . urlencode('Perpres 12/2021')) ?>" class="badge bg-light text-dark border text-decoration-none">Perpres 12/2021</a>
+                        <a href="<?= site_url('arena-belajar/course?q=' . urlencode('Perpres 46/2025')) ?>" class="badge bg-light text-dark border text-decoration-none">Perpres 46/2025</a>
                         <a href="<?= site_url('arena-belajar/course?q=' . urlencode('HPS')) ?>" class="badge bg-light text-dark border text-decoration-none">HPS</a>
                         <a href="<?= site_url('arena-belajar/course?q=' . urlencode('E-Katalog')) ?>" class="badge bg-light text-dark border text-decoration-none">E-Katalog</a>
                         <a href="<?= site_url('arena-belajar/course?q=' . urlencode('Kontrak')) ?>" class="badge bg-light text-dark border text-decoration-none">Kontrak</a>
@@ -736,7 +736,7 @@ if ($spotlightMode === 'program') {
                                     <div class="berita-trend__meta">
                                         <span><i class="fas fa-book-open text-primary me-1"></i> <?= (int) ($pItem['course_count'] ?? 0) ?> Course</span>
                                         <span>&middot;</span>
-                                        <span class="text-success fw-semibold"><i class="fas fa-certificate me-1"></i> Standar LKPP</span>
+                                        <span class="text-success fw-semibold"><i class="fas fa-certificate me-1"></i> Standar</span>
                                     </div>
                                 </div>
                             </div>

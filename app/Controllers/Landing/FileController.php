@@ -13,40 +13,27 @@ class FileController extends Controller
     public function show($id): ResponseInterface
     {
         $id = (int) $id;
-        $row = $id > 0 ? db_connect()->table('file_assets')->where('id', $id)->get()->getRowArray() : null;
+        // C-1: Hanya aset publik yang sah, berstatus available, dan belum dihapus yang boleh diakses publik
+        $row = $id > 0 ? db_connect()->table('file_assets')
+            ->where('id', $id)
+            ->where('visibility', 'public')
+            ->where('lifecycle_status', 'available')
+            ->where('deleted_at', null)
+            ->get()->getRowArray() : null;
 
-        $fullPath = false;
-        $mime = $row['mime_type'] ?? null;
-        $originalName = $row['original_name'] ?? ('file_' . $id);
-
-        if ($row && ! empty($row['path'])) {
-            $relativePath = ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $row['path']), DIRECTORY_SEPARATOR);
-
-            // 1. Check under writable
-            $candidate1 = realpath(WRITEPATH . $relativePath);
-            if ($candidate1 && is_file($candidate1)) {
-                $fullPath = $candidate1;
-            }
-
-            // 2. Check under public (FCPATH)
-            if (! $fullPath) {
-                $candidate2 = realpath(FCPATH . $relativePath);
-                if ($candidate2 && is_file($candidate2)) {
-                    $fullPath = $candidate2;
-                }
-            }
-
-            // 3. Check under ROOTPATH
-            if (! $fullPath) {
-                $candidate3 = realpath(ROOTPATH . $relativePath);
-                if ($candidate3 && is_file($candidate3)) {
-                    $fullPath = $candidate3;
-                }
-            }
+        if (! $row) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setHeader('Content-Type', 'text/plain')
+                ->setBody('Aset berkas tidak ditemukan atau tidak tersedia untuk publik.');
         }
 
-        // If physical file exists, stream it
-        if ($fullPath && is_file($fullPath)) {
+        $fullPath = $this->resolveSafePath((string) ($row['path'] ?? ''));
+        $mime = $row['mime_type'] ?? null;
+        $originalName = str_replace(['"', "'", "\r", "\n", "\t", '/', '\\'], '_', (string) ($row['original_name'] ?? ('file_' . $id)));
+
+        // If physical file exists and is strictly contained, stream it
+        if ($fullPath !== null && is_file($fullPath)) {
             if (empty($mime)) {
                 $mime = mime_content_type($fullPath) ?: 'application/octet-stream';
             }
@@ -60,7 +47,7 @@ class FileController extends Controller
                 ->setBody(file_get_contents($fullPath));
         }
 
-        // --- FALLBACK LOGIC (Zero 404/500) ---
+        // --- FALLBACK LOGIC (Zero 404/500 untuk aset publik valid yang berkas fisiknya belum tersedia) ---
         $isPdf = ($mime === 'application/pdf') || (isset($row['extension']) && strtolower($row['extension']) === 'pdf');
 
         if ($isPdf) {
@@ -96,5 +83,40 @@ class FileController extends Controller
             ->setHeader('Content-Type', 'image/svg+xml')
             ->setHeader('Content-Disposition', 'inline; filename="placeholder.svg"')
             ->setBody($svg);
+    }
+
+    /**
+     * C-1: Validasi bahwa path relatif benar-benar berada di dalam direktori penyimpanan yang diizinkan (Anti Path Traversal).
+     */
+    private function resolveSafePath(string $relativePath): ?string
+    {
+        $clean = ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath), DIRECTORY_SEPARATOR);
+        if ($clean === '') {
+            return null;
+        }
+
+        $allowedBases = [
+            realpath(FCPATH . 'uploads'),
+            realpath(WRITEPATH . 'uploads'),
+            realpath(FCPATH . 'assets'),
+        ];
+
+        foreach ($allowedBases as $basePath) {
+            if ($basePath === false) {
+                continue;
+            }
+
+            $candidate = realpath($basePath . DIRECTORY_SEPARATOR . $clean);
+            if ($candidate === false || ! is_file($candidate)) {
+                continue;
+            }
+
+            $baseReal = rtrim($basePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            if (strncmp($candidate, $baseReal, strlen($baseReal)) === 0) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 }

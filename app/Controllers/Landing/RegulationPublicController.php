@@ -61,7 +61,7 @@ class RegulationPublicController extends BaseController
 
         return view('landing/pages/regulation', [
             'title'               => 'Pusat Regulasi & Tata Kelola PBJ Lampung | BegawiPengadaan',
-            'metaDescription'     => 'Kompilasi regulasi Pengadaan Barang/Jasa Pemerintah terlengkap: Perpres 12/2021, Peraturan LKPP, Peraturan Daerah Lampung, status keberlakuan hukum, riwayat versi, dan unduh dokumen resmi.',
+            'metaDescription'     => 'Kompilasi regulasi Pengadaan Barang/Jasa Pemerintah terlengkap: Perpres 46/2025, Peraturan LKPP, Peraturan Daerah Lampung, status keberlakuan hukum, riwayat versi, dan unduh dokumen resmi.',
             'pageTitle'           => 'Pusat Regulasi PBJ',
             'regulations'         => $result['items'],
             'totalRegulations'    => $result['total'],
@@ -230,9 +230,10 @@ class RegulationPublicController extends BaseController
         }
 
         $mime = ! empty($version['mime_type']) ? $version['mime_type'] : 'application/octet-stream';
+        $safeDocNumber = preg_replace('/[^\w.\-]/', '_', (string) ($regulation['document_number'] ?? 'preview'));
         return $this->response
             ->setHeader('Content-Type', $mime)
-            ->setHeader('Content-Disposition', 'inline; filename="' . ($regulation['document_number'] ?? 'preview') . '"')
+            ->setHeader('Content-Disposition', 'inline; filename="' . $safeDocNumber . '"')
             ->setBody(file_get_contents($fullPath));
     }
 
@@ -283,7 +284,10 @@ class RegulationPublicController extends BaseController
         // application/octet-stream fallback) and stream the file as attachment.
         $mime = ! empty($version['mime_type']) ? $version['mime_type'] : 'application/octet-stream';
         $ext  = ! empty($version['extension']) ? $version['extension'] : pathinfo($fullPath, PATHINFO_EXTENSION);
-        $filename = ($regulation['document_number'] ?? 'regulasi') . '-v' . ($version['version_number'] ?? '1') . '.' . $ext;
+        $safeDocNumber = preg_replace('/[^\w.\-]/', '_', (string) ($regulation['document_number'] ?? 'regulasi'));
+        $safeVersion = preg_replace('/[^\w.\-]/', '_', (string) ($version['version_number'] ?? '1'));
+        $safeExt = preg_replace('/[^\w]/', '', (string) $ext);
+        $filename = $safeDocNumber . '-v' . $safeVersion . ($safeExt !== '' ? '.' . $safeExt : '');
 
         return $this->response
             ->setHeader('Content-Type', $mime)

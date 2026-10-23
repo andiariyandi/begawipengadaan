@@ -354,17 +354,21 @@ class BungaRampaiController extends BaseController
             return redirect()->back()->with('error', 'File lampiran belum tersedia untuk template ini.');
         }
 
-        $file = $this->db->table('file_assets')->where('id', $downloadFileId)->get()->getRowArray();
+        $file = $this->db->table('file_assets')
+            ->where('id', $downloadFileId)
+            ->where('deleted_at', null)
+            ->get()->getRowArray();
         if ($file === null) {
             return redirect()->back()->with('error', 'File template tidak ditemukan di sistem.');
         }
 
         $response = $this->response ?? response();
 
-        $absolutePath = WRITEPATH . $file['path'];
-        if (is_file($absolutePath)) {
-            return $response->download($absolutePath, null)
-                ->setFileName($file['original_name']);
+        $safePath = $this->resolveSafePath((string) ($file['path'] ?? ''));
+        if ($safePath !== null && is_file($safePath)) {
+            $safeName = preg_replace('/[^\w.\-]/', '_', (string) ($file['original_name'] ?: 'template-dokumen'));
+            return $response->download($safePath, null)
+                ->setFileName($safeName);
         }
 
         // Graceful fallback for generated template content
@@ -376,8 +380,43 @@ class BungaRampaiController extends BaseController
         $content .= "PETUNJUK PENGGUNAAN:\n" . ($row['content'] ?? '') . "\n\n";
         $content .= "Disiapkan oleh Biro Pengadaan Barang dan Jasa Provinsi Lampung.";
 
-        $downloadFilename = ! empty($file['original_name']) ? $file['original_name'] : ($row['slug'] . '.txt');
+        $downloadFilename = ! empty($file['original_name']) ? preg_replace('/[^\w.\-]/', '_', $file['original_name']) : ($row['slug'] . '.txt');
         return $response->download($downloadFilename, $content);
+    }
+
+    /**
+     * M-7: Validasi path containment untuk file download Bunga Rampai (Anti Path Traversal).
+     */
+    private function resolveSafePath(string $relativePath): ?string
+    {
+        $clean = ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath), DIRECTORY_SEPARATOR);
+        if ($clean === '') {
+            return null;
+        }
+
+        $allowedBases = [
+            realpath(WRITEPATH . 'uploads'),
+            realpath(FCPATH . 'uploads'),
+            realpath(FCPATH . 'assets'),
+        ];
+
+        foreach ($allowedBases as $basePath) {
+            if ($basePath === false) {
+                continue;
+            }
+
+            $candidate = realpath($basePath . DIRECTORY_SEPARATOR . $clean);
+            if ($candidate === false || ! is_file($candidate)) {
+                continue;
+            }
+
+            $baseReal = rtrim($basePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            if (strncmp($candidate, $baseReal, strlen($baseReal)) === 0) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     // ------------------------------------------------------------------
@@ -541,8 +580,8 @@ class BungaRampaiController extends BaseController
     ): array {
         $builder = $this->db->table('knowledge_media km')
             ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type, fa.path AS file_path, fa.size_bytes AS file_size_bytes, ft.original_name AS thumb_original_name, ft.path AS thumb_path')
-            ->join('file_assets fa', 'fa.id = km.file_id', 'left')
-            ->join('file_assets ft', 'ft.id = km.thumbnail_file_id', 'left')
+            ->join('file_assets fa', 'fa.id = km.file_id AND fa.deleted_at IS NULL', 'left')
+            ->join('file_assets ft', 'ft.id = km.thumbnail_file_id AND ft.deleted_at IS NULL', 'left')
             ->where('km.workflow_status', 'published')
             ->where('km.visibility', 'public');
 
@@ -633,8 +672,8 @@ class BungaRampaiController extends BaseController
     {
         $builder = $this->db->table('knowledge_media km')
             ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type, fa.path AS file_path, ft.original_name AS thumb_original_name, ft.path AS thumb_path')
-            ->join('file_assets fa', 'fa.id = km.file_id', 'left')
-            ->join('file_assets ft', 'ft.id = km.thumbnail_file_id', 'left')
+            ->join('file_assets fa', 'fa.id = km.file_id AND fa.deleted_at IS NULL', 'left')
+            ->join('file_assets ft', 'ft.id = km.thumbnail_file_id AND ft.deleted_at IS NULL', 'left')
             ->where('km.workflow_status', 'published')
             ->where('km.visibility', 'public')
             ->orderBy('km.sort_order', 'ASC')
@@ -902,8 +941,8 @@ class BungaRampaiController extends BaseController
         $fetchMedia = function (int $maxCount): array {
             $items = $this->db->table('knowledge_media km')
                 ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type, fa.path AS file_path, ft.original_name AS thumb_original_name, ft.path AS thumb_path')
-                ->join('file_assets fa', 'fa.id = km.file_id', 'left')
-                ->join('file_assets ft', 'ft.id = km.thumbnail_file_id', 'left')
+                ->join('file_assets fa', 'fa.id = km.file_id AND fa.deleted_at IS NULL', 'left')
+                ->join('file_assets ft', 'ft.id = km.thumbnail_file_id AND ft.deleted_at IS NULL', 'left')
                 ->where('km.workflow_status', 'published')
                 ->where('km.visibility', 'public')
                 ->orderBy('km.carousel_enabled', 'DESC')

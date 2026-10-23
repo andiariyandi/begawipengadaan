@@ -47,7 +47,7 @@ class CertificateSequenceModel extends Model
         $db->query($sql, [$year, $now, $now, $now]);
 
         $row = $db->query(
-            'SELECT last_number FROM certificate_sequences WHERE year = ?',
+            'SELECT last_number FROM certificate_sequences WHERE year = ? FOR UPDATE',
             [$year]
         )->getRowArray();
 

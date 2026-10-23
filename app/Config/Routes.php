@@ -758,6 +758,17 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('newsletter', '\App\Controllers\Admin\Communication\NewsletterController::index', ['as' => 'dashboard.communication.newsletter']);
         $routes->get('newsletter/export', '\App\Controllers\Admin\Communication\NewsletterController::exportCsv', ['as' => 'dashboard.communication.newsletter.export']);
         $routes->match(['get', 'post'], 'newsletter/hapus/(:segment)', '\App\Controllers\Admin\Communication\NewsletterController::delete/$1', ['as' => 'dashboard.communication.newsletter.delete']);
+
+        // Pusat Siaran Email (Manual Admin Control)
+        $routes->get('email', '\App\Controllers\Admin\Communication\EmailBroadcastController::index', ['as' => 'dashboard.communication.email']);
+        $routes->post('email/broadcast', '\App\Controllers\Admin\Communication\EmailBroadcastController::sendBroadcast', ['as' => 'dashboard.communication.email.broadcast']);
+        $routes->post('email/send-one', '\App\Controllers\Admin\Communication\EmailBroadcastController::sendOne', ['as' => 'dashboard.communication.email.send-one']);
+        $routes->post('email/dispatch-item/(:num)', '\App\Controllers\Admin\Communication\EmailBroadcastController::dispatchItem/$1', ['as' => 'dashboard.communication.email.dispatch-item']);
+        $routes->post('email/dispatch-ready', '\App\Controllers\Admin\Communication\EmailBroadcastController::dispatchReady', ['as' => 'dashboard.communication.email.dispatch-ready']);
+        $routes->post('email/retry/(:num)', '\App\Controllers\Admin\Communication\EmailBroadcastController::retry/$1', ['as' => 'dashboard.communication.email.retry']);
+        $routes->post('email/delete/(:num)', '\App\Controllers\Admin\Communication\EmailBroadcastController::delete/$1', ['as' => 'dashboard.communication.email.delete']);
+        $routes->get('email/count-audience', '\App\Controllers\Admin\Communication\EmailBroadcastController::countAudience', ['as' => 'dashboard.communication.email.count-audience']);
+        $routes->post('email/preview', '\App\Controllers\Admin\Communication\EmailBroadcastController::preview', ['as' => 'dashboard.communication.email.preview']);
     });
 
 
@@ -968,6 +979,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('pengaturan-event', 'SettingController::event', ['as' => 'dashboard.system.settings.event']);
         $routes->get('pengaturan-sertifikat', 'SettingController::certificate', ['as' => 'dashboard.system.settings.certificate']);
         $routes->get('pengaturan-notifikasi', 'SettingController::notification', ['as' => 'dashboard.system.settings.notification']);
+        $routes->post('pengaturan-notifikasi/test-email', 'SettingController::testEmail', ['as' => 'dashboard.system.settings.notification.test']);
         $routes->get('pengaturan-integrasi', 'SettingController::integration', ['as' => 'dashboard.system.settings.integration']);
         $routes->get('pengaturan-keamanan', 'SettingController::security', ['as' => 'dashboard.system.settings.security']);
         $routes->get('maintenance', 'SettingController::maintenance', ['as' => 'dashboard.system.maintenance']);

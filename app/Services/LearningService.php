@@ -27,10 +27,27 @@ class LearningService
             throw new RuntimeException('Kelas tidak dapat diikuti pada status saat ini.');
         }
 
+        // M-3: Penegakan batas waktu jendela pendaftaran kelas
+        $nowTime = time();
+        $regOpenAt = ! empty($class['registration_open_at']) ? strtotime((string) $class['registration_open_at']) : null;
+        $regCloseAt = ! empty($class['registration_close_at']) ? strtotime((string) $class['registration_close_at']) : null;
+
+        if ($regOpenAt && $nowTime < $regOpenAt) {
+            throw new RuntimeException('Pendaftaran kelas belum dibuka.');
+        }
+        if ($regCloseAt && $nowTime > $regCloseAt) {
+            throw new RuntimeException('Pendaftaran kelas telah ditutup.');
+        }
+
+        // M-2: Transaksi atomik untuk mencegah TOCTOU kuota enrollment
+        $now = date('Y-m-d H:i:s');
+        $this->db->transStart();
+
         $existing = $this->db->table('enrollments')
             ->where(['class_id' => $classId, 'user_id' => $userId])
             ->get()->getRowArray();
         if ($existing) {
+            $this->db->transRollback();
             throw new RuntimeException('Anda sudah terdaftar pada kelas ini.');
         }
 
@@ -41,25 +58,28 @@ class LearningService
                 ->whereIn('status', ['pending', 'active', 'completed'])
                 ->countAllResults();
             if ($currentEnrolled >= (int) $class['capacity']) {
+                $this->db->transRollback();
                 throw new RuntimeException('Kuota peserta kelas telah penuh.');
             }
         }
 
-        $now = date('Y-m-d H:i:s');
-        try {
-            $this->db->table('enrollments')->insert([
-                'class_id'    => $classId,
-                'user_id'     => $userId,
-                'status'      => 'pending',
-                'enrolled_at' => $now,
-                'created_at'  => $now,
-                'updated_at'  => $now,
-            ]);
-        } catch (\Throwable $e) {
-            throw new RuntimeException('Enrollment ganda tidak diizinkan.');
+        $this->db->table('enrollments')->insert([
+            'class_id'    => $classId,
+            'user_id'     => $userId,
+            'status'      => 'pending',
+            'enrolled_at' => $now,
+            'created_at'  => $now,
+            'updated_at'  => $now,
+        ]);
+
+        $newId = (int) $this->db->insertID();
+        $this->db->transComplete();
+
+        if (! $this->db->transStatus() || $newId < 1) {
+            throw new RuntimeException('Enrollment ganda tidak diizinkan atau gagal diproses.');
         }
 
-        return (int) $this->db->insertID();
+        return $newId;
     }
 
     /**
@@ -190,26 +210,85 @@ class LearningService
             }
         }
 
-        $attempts = $this->db->table('quiz_attempts')
-            ->where(['quiz_id' => $quizId, 'enrollment_id' => $context['enrollment']['id']])
-            ->countAllResults();
+        $this->db->transStart();
+        try {
+            $attempts = $this->db->table('quiz_attempts')
+                ->where(['quiz_id' => $quizId, 'enrollment_id' => $context['enrollment']['id']])
+                ->countAllResults();
 
-        if ($attempts >= (int) $context['quiz']['attempt_limit']) {
-            throw new RuntimeException('Batas percobaan quiz sudah tercapai.');
+            if ($attempts >= (int) $context['quiz']['attempt_limit']) {
+                $this->db->transRollback();
+                throw new RuntimeException('Batas percobaan quiz sudah tercapai.');
+            }
+
+            $now = date('Y-m-d H:i:s');
+            $this->db->table('quiz_attempts')->insert([
+                'quiz_id'        => $quizId,
+                'enrollment_id'  => $context['enrollment']['id'],
+                'attempt_number' => $attempts + 1,
+                'status'         => 'started',
+                'started_at'     => $now,
+                'created_at'     => $now,
+                'updated_at'     => $now,
+            ]);
+
+            $newAttemptId = (int) $this->db->insertID();
+            $this->db->transComplete();
+
+            if (! $this->db->transStatus() || $newAttemptId < 1) {
+                $concurrent = $this->db->table('quiz_attempts')
+                    ->where(['quiz_id' => $quizId, 'enrollment_id' => $context['enrollment']['id'], 'status' => 'started'])
+                    ->orderBy('id', 'DESC')
+                    ->get()->getRowArray();
+                if ($concurrent) {
+                    return (int) $concurrent['id'];
+                }
+                throw new RuntimeException('Gagal memulai sesi pengerjaan kuis.');
+            }
+
+            // Forensic audit log (M-10)
+            try {
+                $req = service('request');
+                $ip = ($req instanceof \CodeIgniter\HTTP\IncomingRequest) ? $req->getIPAddress() : '127.0.0.1';
+                $userAgent = ($req instanceof \CodeIgniter\HTTP\IncomingRequest) ? mb_substr((string) $req->getUserAgent(), 0, 255) : 'CLI/BegawiPengadaan';
+                $this->db->table('audit_logs')->insert([
+                    'actor_id'        => $userId,
+                    'action'          => 'learning.quiz.start',
+                    'resource_type'   => 'quiz_attempt',
+                    'resource_id'     => (string) $newAttemptId,
+                    'result'          => 'success',
+                    'before_snapshot' => null,
+                    'after_snapshot'  => json_encode([
+                        'quiz_id'          => $quizId,
+                        'attempt_id'       => $newAttemptId,
+                        'enrollment_id'    => (int) $context['enrollment']['id'],
+                        'attempt_number'   => $attempts + 1,
+                        'score'            => null,
+                        'duration_seconds' => null,
+                        'started_at'       => $now,
+                    ], JSON_UNESCAPED_UNICODE),
+                    'reason'          => 'Forensik pengerjaan kuis peserta',
+                    'ip_hash'         => hash('sha256', (string) $ip),
+                    'user_agent_hash' => hash('sha256', (string) $userAgent),
+                    'request_id'      => bin2hex(random_bytes(8)),
+                    'created_at'      => $now,
+                ]);
+            } catch (\Throwable $e) {
+                log_message('error', 'Quiz forensic audit failed: {message}', ['message' => $e->getMessage()]);
+            }
+
+            return $newAttemptId;
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            $active = $this->db->table('quiz_attempts')
+                ->where(['quiz_id' => $quizId, 'enrollment_id' => $context['enrollment']['id'], 'status' => 'started'])
+                ->orderBy('id', 'DESC')
+                ->get()->getRowArray();
+            if ($active) {
+                return (int) $active['id'];
+            }
+            throw $e;
         }
-
-        $now = date('Y-m-d H:i:s');
-        $this->db->table('quiz_attempts')->insert([
-            'quiz_id'        => $quizId,
-            'enrollment_id'  => $context['enrollment']['id'],
-            'attempt_number' => $attempts + 1,
-            'status'         => 'started',
-            'started_at'     => $now,
-            'created_at'     => $now,
-            'updated_at'     => $now,
-        ]);
-
-        return (int) $this->db->insertID();
     }
 
     /**
@@ -219,12 +298,21 @@ class LearningService
     {
         $attempt = $this->db->table('quiz_attempts')->where('id', $attemptId)->get()->getRowArray();
         if (! $attempt || $attempt['status'] !== 'started') {
-            throw new RuntimeException('Percobaan quiz tidak valid atau sudah disubmit.');
+            throw new RuntimeException('Data percobaan kuis tidak ditemukan atau tidak dapat diakses.');
         }
 
         $context = $this->quizContext($userId, (int) $attempt['quiz_id']);
         if ((int) $context['enrollment']['id'] !== (int) $attempt['enrollment_id']) {
-            throw new RuntimeException('Percobaan quiz bukan milik enrollment Anda.');
+            throw new RuntimeException('Data percobaan kuis tidak ditemukan atau tidak dapat diakses.');
+        }
+
+        // H-1: Penegakan batas waktu kuis di server (+ toleransi grace period 120 detik)
+        $duration = (int) ($context['quiz']['duration_minutes'] ?? 0);
+        if ($duration > 0 && ! empty($attempt['started_at'])) {
+            $deadline = strtotime($attempt['started_at']) + ($duration * 60);
+            if (time() > ($deadline + 120)) {
+                throw new RuntimeException('Batas waktu pengerjaan quiz telah berakhir.');
+            }
         }
 
         $questions = $this->db->table('quiz_questions')
@@ -232,6 +320,21 @@ class LearningService
             ->get()->getResultArray();
 
         $this->db->transStart();
+
+        // M-1 & M-2: Atomic conditional lock/update untuk mencegah race condition & double submit
+        $this->db->table('quiz_attempts')
+            ->where('id', $attemptId)
+            ->where('status', 'started')
+            ->update(['status' => 'submitted', 'updated_at' => date('Y-m-d H:i:s')]);
+
+        if ($this->db->affectedRows() === 0) {
+            $this->db->transRollback();
+            throw new RuntimeException('Data percobaan kuis tidak valid atau sudah disubmit.');
+        }
+
+        // Bersihkan jawaban parsial jika ada untuk mencegah duplikasi (attempt_id, question_id)
+        $this->db->table('quiz_answers')->where('attempt_id', $attemptId)->delete();
+
         $totalPoints = 0.0;
         $awarded = 0.0;
 
@@ -268,6 +371,8 @@ class LearningService
 
         $scorePercent = $totalPoints > 0 ? round(($awarded / $totalPoints) * 100, 2) : 0.0;
         $now = date('Y-m-d H:i:s');
+        $durationSeconds = ! empty($attempt['started_at']) ? (time() - strtotime($attempt['started_at'])) : 0;
+
         $this->db->table('quiz_attempts')->where('id', $attemptId)->update([
             'status'       => 'graded',
             'submitted_at' => $now,
@@ -275,10 +380,41 @@ class LearningService
             'score'        => $scorePercent,
             'updated_at'   => $now,
         ]);
+
         $this->db->transComplete();
 
         if (! $this->db->transStatus()) {
             throw new RuntimeException('Jawaban quiz gagal disimpan.');
+        }
+
+        // M-10: Forensic audit trail (dilakukan setelah transaksi kuis sukses)
+        try {
+            $req = service('request');
+            $ip = ($req instanceof \CodeIgniter\HTTP\IncomingRequest) ? $req->getIPAddress() : '127.0.0.1';
+            $userAgent = ($req instanceof \CodeIgniter\HTTP\IncomingRequest) ? mb_substr((string) $req->getUserAgent(), 0, 255) : 'CLI/BegawiPengadaan';
+            $this->db->table('audit_logs')->insert([
+                'actor_id'        => $userId,
+                'action'          => 'learning.quiz.submit',
+                'resource_type'   => 'quiz_attempt',
+                'resource_id'     => (string) $attemptId,
+                'result'          => 'success',
+                'before_snapshot' => null,
+                'after_snapshot'  => json_encode([
+                    'quiz_id'          => (int) $context['quiz']['id'],
+                    'attempt_id'       => $attemptId,
+                    'enrollment_id'    => (int) $context['enrollment']['id'],
+                    'score'            => $scorePercent,
+                    'duration_seconds' => $durationSeconds,
+                    'submitted_at'     => $now,
+                ], JSON_UNESCAPED_UNICODE),
+                'reason'          => 'Forensik pengerjaan kuis peserta',
+                'ip_hash'         => hash('sha256', (string) $ip),
+                'user_agent_hash' => hash('sha256', (string) $userAgent),
+                'request_id'      => bin2hex(random_bytes(8)),
+                'created_at'      => $now,
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'Quiz forensic audit failed: {message}', ['message' => $e->getMessage()]);
         }
 
         // Evaluasi kelulusan jika ini post_test atau lesson_quiz

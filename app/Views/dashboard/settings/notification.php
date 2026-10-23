@@ -47,21 +47,51 @@
                 </div>
 
                 <div class="col-12">
-                    <h6 class="text-lg mb-4">Identitas Pengirim Email</h6>
-                    <p class="text-secondary-light text-sm mb-0">Informasi identitas resmi yang tertera pada pengiriman email sistem.</p>
+                    <h6 class="text-lg mb-4 d-flex align-items-center gap-2">
+                        <iconify-icon icon="solar:letter-bold" class="text-primary-600 text-xl"></iconify-icon>
+                        Konfigurasi Akun Google Mail (Gmail SMTP)
+                    </h6>
+                    <p class="text-secondary-light text-sm mb-0">Atur akun Gmail biasa dan Sandi Aplikasi Google (App Password) untuk pengiriman email resmi secara manual.</p>
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="sender_email">Email Pengirim <span class="text-danger-600">*</span></label>
-                    <input type="email" id="sender_email" name="sender_email" class="form-control radius-8" value="<?= esc($settings['sender_email'] ?? 'noreply@begawipbj.lampungprov.go.id') ?>" required>
-                    <span class="text-xs text-secondary-light mt-4 d-block">Contoh: noreply@begawipbj.lampungprov.go.id</span>
+                    <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="smtp_user">Alamat Akun Gmail Pengirim <span class="text-danger-600">*</span></label>
+                    <input type="email" id="smtp_user" name="smtp_user" class="form-control radius-8" value="<?= esc($emailConfig['smtp_user'] ?? $settings['sender_email'] ?? '') ?>" placeholder="contoh@gmail.com" required>
+                    <span class="text-xs text-secondary-light mt-4 d-block">Gunakan alamat Gmail biasa pengelola (misal: begawipbj.lampung@gmail.com)</span>
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="sender_name">Nama Pengirim <span class="text-danger-600">*</span></label>
-                    <input type="text" id="sender_name" name="sender_name" class="form-control radius-8" value="<?= esc($settings['sender_name'] ?? 'BegawiPengadaan') ?>" required>
-                    <span class="text-xs text-secondary-light mt-4 d-block">Nama institusi atau sistem pemancar email</span>
+                    <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="smtp_pass">Sandi Aplikasi Google (App Password 16-Karakter) <span class="text-danger-600">*</span></label>
+                    <input type="password" id="smtp_pass" name="smtp_pass" class="form-control radius-8" value="<?= esc($emailConfig['smtp_pass'] ?? '') ?>" placeholder="16 karakter sandi aplikasi" autocomplete="new-password">
+                    <span class="text-xs text-secondary-light mt-4 d-block">Dibuat via Akun Google &gt; Keamanan &gt; Verifikasi 2 Langkah &gt; <strong>Sandi Aplikasi</strong> (Bukan kata sandi login biasa).</span>
                 </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="from_name">Nama Pengirim Resmi <span class="text-danger-600">*</span></label>
+                    <input type="text" id="from_name" name="from_name" class="form-control radius-8" value="<?= esc($emailConfig['from_name'] ?? $settings['sender_name'] ?? 'BegawiPengadaan Provinsi Lampung') ?>" required>
+                    <span class="text-xs text-secondary-light mt-4 d-block">Nama resmi instansi yang muncul di inbox penerima</span>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="smtp_port">Port SMTP</label>
+                            <input type="number" id="smtp_port" name="smtp_port" class="form-control radius-8" value="<?= esc($emailConfig['smtp_port'] ?? 587) ?>">
+                            <span class="text-xxs text-secondary-light mt-2 d-block">587 (TLS) atau 465 (SSL)</span>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="smtp_crypto">Protokol Keamanan</label>
+                            <select id="smtp_crypto" name="smtp_crypto" class="form-select radius-8">
+                                <option value="tls" <?= ($emailConfig['smtp_crypto'] ?? 'tls') === 'tls' ? 'selected' : '' ?>>TLS (STARTTLS)</option>
+                                <option value="ssl" <?= ($emailConfig['smtp_crypto'] ?? 'tls') === 'ssl' ? 'selected' : '' ?>>SSL</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" name="smtp_host" value="smtp.gmail.com">
+                <input type="hidden" name="sender_email" value="<?= esc($emailConfig['smtp_user'] ?? $settings['sender_email'] ?? '') ?>">
+                <input type="hidden" name="sender_name" value="<?= esc($emailConfig['from_name'] ?? $settings['sender_name'] ?? 'BegawiPengadaan') ?>">
 
                 <div class="col-12">
                     <hr class="my-8">
@@ -98,6 +128,34 @@
                 </div>
             </div>
         </form>
+
+        <hr class="my-24">
+
+        <!-- Form Uji Coba Pengiriman Email -->
+        <div class="bg-neutral-50 border border-neutral-200 radius-8 p-20">
+            <h6 class="text-base fw-bold mb-4 d-flex align-items-center gap-2">
+                <iconify-icon icon="solar:shield-check-bold" class="text-success-main text-xl"></iconify-icon>
+                Uji Koneksi Google Mail SMTP (Test Connection)
+            </h6>
+            <p class="text-xs text-secondary-light mb-16">
+                Kirim 1 email pengujian formal untuk memverifikasi apakah akun Gmail dan sandi aplikasi 16-karakter sudah dapat melakukan handshake TLS dengan sukses.
+            </p>
+            <form action="<?= site_url('dashboard/sistem/pengaturan-notifikasi/test-email') ?>" method="post" class="row g-3 align-items-center">
+                <?= csrf_field() ?>
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><iconify-icon icon="solar:letter-linear"></iconify-icon></span>
+                        <input type="email" name="test_target_email" class="form-control radius-end-8" placeholder="Masukkan email penerima uji coba..." value="<?= esc(session()->get('email') ?? $emailConfig['smtp_user'] ?? '') ?>" required>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-outline-success radius-8 px-20 py-10 d-inline-flex align-items-center gap-2 text-sm w-100 justify-content-center">
+                        <iconify-icon icon="solar:plain-bold" class="text-base"></iconify-icon>
+                        Kirim Email Uji Coba Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 <?= $this->endSection() ?>

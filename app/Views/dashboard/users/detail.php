@@ -14,9 +14,9 @@
 
     <div class="d-flex gap-12">
         <a href="<?= site_url('dashboard/akses/pengguna') ?>"
-           class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
+            class="btn btn-outline-neutral-300 radius-8 px-20 py-11">Kembali</a>
         <a href="<?= site_url('dashboard/akses/pengguna/' . ($userId ?? '1') . '/ubah') ?>"
-           class="btn btn-primary-600 radius-8 px-20 py-11">Ubah Pengguna</a>
+            class="btn btn-primary-600 radius-8 px-20 py-11">Ubah Pengguna</a>
     </div>
 </div>
 
@@ -47,34 +47,34 @@
         </div>
         <div class="d-flex gap-8">
             <button type="button" class="btn btn-success-600 radius-8 px-20 py-10 d-flex align-items-center gap-2"
-                    data-bs-toggle="modal"
-                    data-bs-target="#confirmationActionModal"
-                    data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/aktifkan') ?>"
-                    data-method="POST"
-                    data-title="Setujui Akun &amp; Profil Pengguna"
-                    data-message="Apakah Anda yakin ingin menyetujui akun dan memverifikasi profil <?= esc($user['name'] ?? $user['username']) ?>? Akun akan langsung aktif dan berkas profil disahkan secara terpadu."
-                    data-btn-text="Ya, Setujui Akun & Profil"
-                    data-btn-class="btn-success-600"
-                    data-icon="solar:user-check-rounded-bold"
-                    data-icon-color="success">
+                data-bs-toggle="modal"
+                data-bs-target="#confirmationActionModal"
+                data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/aktifkan') ?>"
+                data-method="POST"
+                data-title="Setujui Akun &amp; Profil Pengguna"
+                data-message="Apakah Anda yakin ingin menyetujui akun dan memverifikasi profil <?= esc($user['name'] ?? $user['username']) ?>? Akun akan langsung aktif dan berkas profil disahkan secara terpadu."
+                data-btn-text="Ya, Setujui Akun & Profil"
+                data-btn-class="btn-success-600"
+                data-icon="solar:user-check-rounded-bold"
+                data-icon-color="success">
                 <iconify-icon icon="solar:check-circle-outline" class="text-lg"></iconify-icon>
                 <span>Setujui Akun &amp; Profil</span>
             </button>
             <button type="button" class="btn btn-danger-600 radius-8 px-16 py-10 d-flex align-items-center gap-2"
-                    data-bs-toggle="modal"
-                    data-bs-target="#confirmationActionModal"
-                    data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/tolak') ?>"
-                    data-method="POST"
-                    data-title="Tolak Verifikasi Akun &amp; Profil"
-                    data-message="Apakah Anda yakin ingin menolak akun <?= esc($user['name'] ?? $user['username']) ?> beserta berkas profilnya?"
-                    data-btn-text="Ya, Tolak"
-                    data-btn-class="btn-danger-600"
-                    data-require-input="true"
-                    data-input-label="Alasan Penolakan *"
-                    data-input-name="reason"
-                    data-input-placeholder="Tulis alasan penolakan..."
-                    data-icon="solar:close-circle-bold"
-                    data-icon-color="danger">
+                data-bs-toggle="modal"
+                data-bs-target="#confirmationActionModal"
+                data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/tolak') ?>"
+                data-method="POST"
+                data-title="Tolak Verifikasi Akun &amp; Profil"
+                data-message="Apakah Anda yakin ingin menolak akun <?= esc($user['name'] ?? $user['username']) ?> beserta berkas profilnya?"
+                data-btn-text="Ya, Tolak"
+                data-btn-class="btn-danger-600"
+                data-require-input="true"
+                data-input-label="Alasan Penolakan *"
+                data-input-name="reason"
+                data-input-placeholder="Tulis alasan penolakan..."
+                data-icon="solar:close-circle-bold"
+                data-icon-color="danger">
                 <iconify-icon icon="solar:close-circle-outline" class="text-lg"></iconify-icon>
                 <span>Tolak</span>
             </button>
@@ -276,59 +276,59 @@
         </div>
 
         <?php if (! empty($typeProfile)): ?>
-        <div class="card mt-24">
-            <div class="card-body p-24">
-                <div class="d-flex align-items-center justify-content-between mb-20">
-                    <h6 class="text-lg mb-0">
-                        Data Profil Spesifik (<?= esc(strtoupper($user['profile_type'] ?? 'Profil')) ?>)
-                    </h6>
-                    <span class="badge bg-primary-50 text-primary-600 px-10 py-4 radius-4 text-xs fw-semibold">
-                        Verifikasi Terpadu
-                    </span>
-                </div>
-                <div class="row gy-20">
-                    <?php foreach ($typeProfile as $key => $value): ?>
-                        <?php if (in_array($key, ['id', 'user_id', 'created_at', 'updated_at'], true)) continue; ?>
-                        <div class="col-md-6">
-                            <p class="text-secondary-light mb-4"><?= esc(ucwords(str_replace('_', ' ', $key))) ?></p>
-                            <h6 class="text-md mb-0"><?= esc((is_array($value) ? implode(', ', $value) : (string) $value) ?: '-') ?></h6>
-                        </div>
-                    <?php endforeach; ?>
+            <div class="card mt-24">
+                <div class="card-body p-24">
+                    <div class="d-flex align-items-center justify-content-between mb-20">
+                        <h6 class="text-lg mb-0">
+                            Data Profil Spesifik (<?= esc(strtoupper($user['profile_type'] ?? 'Profil')) ?>)
+                        </h6>
+                        <span class="badge bg-primary-50 text-primary-600 px-10 py-4 radius-4 text-xs fw-semibold">
+                            Verifikasi Terpadu
+                        </span>
+                    </div>
+                    <div class="row gy-20">
+                        <?php foreach ($typeProfile as $key => $value): ?>
+                            <?php if (in_array($key, ['id', 'user_id', 'created_at', 'updated_at'], true)) continue; ?>
+                            <div class="col-md-6">
+                                <p class="text-secondary-light mb-4"><?= esc(ucwords(str_replace('_', ' ', $key))) ?></p>
+                                <h6 class="text-md mb-0"><?= esc((is_array($value) ? implode(', ', $value) : (string) $value) ?: '-') ?></h6>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             </div>
-        </div>
         <?php endif; ?>
 
         <?php if (! empty($verifications)): ?>
-        <div class="card mt-24">
-            <div class="card-body p-24">
-                <h6 class="text-lg mb-16">Riwayat Verifikasi Profil Pengguna</h6>
-                <div class="table-responsive">
-                    <table class="table bordered-table sm-table mb-0">
-                        <thead>
-                            <tr>
-                                <th>Waktu Pengajuan</th>
-                                <th>Status</th>
-                                <th>Ditinjau Oleh</th>
-                                <th>Waktu Ditinjau</th>
-                                <th>Catatan Review</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($verifications as $v): ?>
+            <div class="card mt-24">
+                <div class="card-body p-24">
+                    <h6 class="text-lg mb-16">Riwayat Verifikasi Profil Pengguna</h6>
+                    <div class="table-responsive">
+                        <table class="table bordered-table sm-table mb-0">
+                            <thead>
                                 <tr>
-                                    <td><?= esc(date('d M Y H:i', strtotime($v['created_at']))) ?></td>
-                                    <td><?= view('dashboard/components/status_badge', ['status' => $v['status'] ?? 'pending']) ?></td>
-                                    <td><?= esc($v['reviewed_by'] ? 'User #' . $v['reviewed_by'] : '-') ?></td>
-                                    <td><?= ! empty($v['reviewed_at']) ? esc(date('d M Y H:i', strtotime($v['reviewed_at']))) : '-' ?></td>
-                                    <td><?= esc($v['notes'] ?? '-') ?></td>
+                                    <th>Waktu Pengajuan</th>
+                                    <th>Status</th>
+                                    <th>Ditinjau Oleh</th>
+                                    <th>Waktu Ditinjau</th>
+                                    <th>Catatan Review</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($verifications as $v): ?>
+                                    <tr>
+                                        <td><?= esc(date('d M Y H:i', strtotime($v['created_at']))) ?></td>
+                                        <td><?= view('dashboard/components/status_badge', ['status' => $v['status'] ?? 'pending']) ?></td>
+                                        <td><?= esc($v['reviewed_by'] ? 'User #' . $v['reviewed_by'] : '-') ?></td>
+                                        <td><?= ! empty($v['reviewed_at']) ? esc(date('d M Y H:i', strtotime($v['reviewed_at']))) : '-' ?></td>
+                                        <td><?= esc($v['notes'] ?? '-') ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
         <?php endif; ?>
 
     </div>
@@ -344,8 +344,8 @@
                 <div class="row gy-16">
 
                     <?php if (($user['account_status'] ?? '') !== 'active'): ?>
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-success-600 w-100 radius-8"
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-success-600 w-100 radius-8"
                                 data-bs-toggle="modal"
                                 data-bs-target="#confirmationActionModal"
                                 data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/aktifkan') ?>"
@@ -356,15 +356,15 @@
                                 data-btn-class="btn-success-600"
                                 data-icon="solar:user-check-rounded-bold"
                                 data-icon-color="success">
-                            <iconify-icon icon="solar:check-circle-outline" class="me-6"></iconify-icon>
-                            Setujui Akun &amp; Profil
-                        </button>
-                    </div>
+                                <iconify-icon icon="solar:check-circle-outline" class="me-6"></iconify-icon>
+                                Setujui Akun &amp; Profil
+                            </button>
+                        </div>
                     <?php endif; ?>
 
                     <?php if (in_array($user['account_status'] ?? '', ['pending_approval', 'pending_verification', 'submitted', 'revision_required'], true)): ?>
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-danger-600 w-100 radius-8"
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-danger-600 w-100 radius-8"
                                 data-bs-toggle="modal"
                                 data-bs-target="#confirmationActionModal"
                                 data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/tolak') ?>"
@@ -379,15 +379,15 @@
                                 data-input-placeholder="Tulis alasan penolakan..."
                                 data-icon="solar:close-circle-bold"
                                 data-icon-color="danger">
-                            <iconify-icon icon="solar:close-circle-outline" class="me-6"></iconify-icon>
-                            Tolak Akun &amp; Profil
-                        </button>
-                    </div>
+                                <iconify-icon icon="solar:close-circle-outline" class="me-6"></iconify-icon>
+                                Tolak Akun &amp; Profil
+                            </button>
+                        </div>
                     <?php endif; ?>
 
                     <?php if (($user['account_status'] ?? '') !== 'suspended'): ?>
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-warning-600 w-100 radius-8"
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-warning-600 w-100 radius-8"
                                 data-bs-toggle="modal"
                                 data-bs-target="#confirmationActionModal"
                                 data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/suspend') ?>"
@@ -402,19 +402,16 @@
                                 data-input-label="Alasan Penangguhan *"
                                 data-input-name="reason"
                                 data-input-placeholder="Tulis alasan penangguhan akun...">
-                            <iconify-icon icon="solar:pause-circle-outline" class="me-6"></iconify-icon>
-                            Suspend Akun
-                                data-input-placeholder="Tulis alasan penangguhan akun...">
-                            <iconify-icon icon="solar:pause-circle-outline" class="me-6"></iconify-icon>
-                            Suspend Akun
-                        </button>
-                    </div>
+                                <iconify-icon icon="solar:pause-circle-outline" class="me-6"></iconify-icon>
+                                Suspend Akun
+                            </button>
+                        </div>
                     <?php endif; ?>
 
                     <div class="col-md-3">
                         <button type="button" class="btn btn-warning-600 w-100 radius-8"
-                                data-bs-toggle="modal"
-                                data-bs-target="#adminResetPasswordModal">
+                            data-bs-toggle="modal"
+                            data-bs-target="#adminResetPasswordModal">
                             <iconify-icon icon="solar:key-square-outline" class="me-6"></iconify-icon>
                             Reset Password Langsung
                         </button>
@@ -422,16 +419,16 @@
 
                     <div class="col-md-3">
                         <button type="button" class="btn btn-info-600 w-100 radius-8"
-                                data-bs-toggle="modal"
-                                data-bs-target="#confirmationActionModal"
-                                data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/reset-password') ?>"
-                                data-method="POST"
-                                data-title="Kirim Reset Password via Email"
-                                data-message="Apakah Anda yakin ingin mengirim instruksi tautan reset password ke email <?= esc($user['email'] ?? $user['name'] ?? $user['username']) ?>?"
-                                data-btn-text="Kirim Email Reset"
-                                data-btn-class="btn-info-600"
-                                data-icon="solar:lock-password-bold"
-                                data-icon-color="info">
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmationActionModal"
+                            data-action="<?= site_url('dashboard/akses/pengguna/' . (int) ($userId ?? 0) . '/reset-password') ?>"
+                            data-method="POST"
+                            data-title="Kirim Reset Password via Email"
+                            data-message="Apakah Anda yakin ingin mengirim instruksi tautan reset password ke email <?= esc($user['email'] ?? $user['name'] ?? $user['username']) ?>?"
+                            data-btn-text="Kirim Email Reset"
+                            data-btn-class="btn-info-600"
+                            data-icon="solar:lock-password-bold"
+                            data-icon-color="info">
                             <iconify-icon icon="solar:lock-password-outline" class="me-6"></iconify-icon>
                             Kirim Reset Password
                         </button>
@@ -528,40 +525,40 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const pwdInput = document.getElementById('adminNewPassword');
-    const confirmInput = document.getElementById('adminConfirmPassword');
-    const toggleBtn = document.getElementById('toggleAdminPasswordBtn');
-    const toggleIcon = document.getElementById('toggleAdminPasswordIcon');
-    const generateBtn = document.getElementById('btnGeneratePassword');
+    document.addEventListener('DOMContentLoaded', function() {
+        const pwdInput = document.getElementById('adminNewPassword');
+        const confirmInput = document.getElementById('adminConfirmPassword');
+        const toggleBtn = document.getElementById('toggleAdminPasswordBtn');
+        const toggleIcon = document.getElementById('toggleAdminPasswordIcon');
+        const generateBtn = document.getElementById('btnGeneratePassword');
 
-    if (toggleBtn && pwdInput) {
-        toggleBtn.addEventListener('click', function () {
-            const isPassword = pwdInput.getAttribute('type') === 'password';
-            const newType = isPassword ? 'text' : 'password';
-            pwdInput.setAttribute('type', newType);
-            if (confirmInput) confirmInput.setAttribute('type', newType);
-            if (toggleIcon) {
-                toggleIcon.setAttribute('icon', isPassword ? 'solar:eye-closed-outline' : 'solar:eye-outline');
-            }
-        });
-    }
+        if (toggleBtn && pwdInput) {
+            toggleBtn.addEventListener('click', function() {
+                const isPassword = pwdInput.getAttribute('type') === 'password';
+                const newType = isPassword ? 'text' : 'password';
+                pwdInput.setAttribute('type', newType);
+                if (confirmInput) confirmInput.setAttribute('type', newType);
+                if (toggleIcon) {
+                    toggleIcon.setAttribute('icon', isPassword ? 'solar:eye-closed-outline' : 'solar:eye-outline');
+                }
+            });
+        }
 
-    if (generateBtn && pwdInput && confirmInput) {
-        generateBtn.addEventListener('click', function () {
-            const charset = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%';
-            let generated = 'Begawi';
-            for (let i = 0; i < 6; i++) {
-                generated += charset.charAt(Math.floor(Math.random() * charset.length));
-            }
-            pwdInput.value = generated;
-            confirmInput.value = generated;
-            pwdInput.setAttribute('type', 'text');
-            confirmInput.setAttribute('type', 'text');
-            if (toggleIcon) toggleIcon.setAttribute('icon', 'solar:eye-closed-outline');
-        });
-    }
-});
+        if (generateBtn && pwdInput && confirmInput) {
+            generateBtn.addEventListener('click', function() {
+                const charset = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%';
+                let generated = 'Begawi';
+                for (let i = 0; i < 6; i++) {
+                    generated += charset.charAt(Math.floor(Math.random() * charset.length));
+                }
+                pwdInput.value = generated;
+                confirmInput.value = generated;
+                pwdInput.setAttribute('type', 'text');
+                confirmInput.setAttribute('type', 'text');
+                if (toggleIcon) toggleIcon.setAttribute('icon', 'solar:eye-closed-outline');
+            });
+        }
+    });
 </script>
 
 <?= $this->endSection() ?>

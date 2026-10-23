@@ -745,7 +745,7 @@ $err          = session()->getFlashdata('error');
                                 </span>
                             <?php endif; ?>
                             <span class="badge bg-white text-primary fw-bold px-2 py-1 radius-8 shadow-sm" style="font-size: 11.5px;">
-                                <i class="fas fa-shield-alt me-1"></i> Standar LKPP
+                                <i class="fas fa-shield-alt me-1"></i> Standar
                             </span>
                             <span class="badge bg-success text-white px-2 py-1 radius-8" style="font-size: 11.5px;">
                                 <i class="fas fa-check-circle me-1"></i> Terbuka untuk Publik &amp; ASN
@@ -1726,7 +1726,7 @@ $err          = session()->getFlashdata('error');
                             </span>
                         </div>
 
-                        <?php 
+                        <?php
                         $effectiveClassCover = ! empty($item['cover_url']) ? $item['cover_url'] : ($item['course_cover_url'] ?? '');
                         if (! empty($effectiveClassCover)): ?>
                             <?php

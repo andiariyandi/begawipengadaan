@@ -10,10 +10,12 @@
         transition: transform 0.25s ease, box-shadow 0.25s ease;
         border: 1px solid #edf2f7 !important;
     }
+
     .knowledge-catalog-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 25px rgba(8, 47, 92, 0.08) !important;
     }
+
     @media (max-width: 767.98px) {
         .insta-slide {
             height: 200px !important;
@@ -504,7 +506,7 @@ if (! empty($carouselSlides)) {
                                             </p>
                                             <div class="arena-card__meta">
                                                 <span><i class="fas fa-user-circle text-primary"></i> <?= esc($feat['author_name'] ?? 'Biro PBJ') ?></span>
-                                                <span><i class="fas fa-certificate text-success"></i> Standar LKPP</span>
+                                                <span><i class="fas fa-certificate text-success"></i> Standar</span>
                                             </div>
                                             <div class="arena-card__actions mt-auto">
                                                 <a href="<?= esc($fUrl) ?>" class="arena-btn-primary flex-grow-1 justify-content-center">
@@ -1247,9 +1249,9 @@ if (! empty($carouselSlides)) {
 
     function renderModalSlide(slideIndex) {
         if (!currentModalData) return;
-        const slides = Array.isArray(currentModalData.slides) && currentModalData.slides.length > 0
-            ? currentModalData.slides
-            : [{
+        const slides = Array.isArray(currentModalData.slides) && currentModalData.slides.length > 0 ?
+            currentModalData.slides :
+            [{
                 url: currentModalData.preview_url,
                 is_video: currentModalData.is_video,
                 embed_url: currentModalData.embed_url,
@@ -1415,7 +1417,7 @@ if (! empty($carouselSlides)) {
 
 <?= $this->section('pageScripts') ?>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         var carouselEl = document.getElementById('knowledgeHeadlineCarousel');
         if (!carouselEl) return;
 
@@ -1457,7 +1459,7 @@ if (! empty($carouselSlides)) {
 
         function syncIndicatorDots(targetIdx) {
             if (!indicatorButtons || indicatorButtons.length === 0) return;
-            indicatorButtons.forEach(function (btn, idx) {
+            indicatorButtons.forEach(function(btn, idx) {
                 if (idx === targetIdx) {
                     btn.classList.add('active');
                     btn.setAttribute('aria-current', 'true');
@@ -1469,21 +1471,21 @@ if (! empty($carouselSlides)) {
         }
 
         // Listen for slide start and slide complete events to guarantee 100% synchronization
-        carouselEl.addEventListener('slide.bs.carousel', function (e) {
+        carouselEl.addEventListener('slide.bs.carousel', function(e) {
             if (typeof e.to !== 'undefined') {
                 syncIndicatorDots(e.to);
             }
         });
 
-        carouselEl.addEventListener('slid.bs.carousel', function (e) {
+        carouselEl.addEventListener('slid.bs.carousel', function(e) {
             if (typeof e.to !== 'undefined') {
                 syncIndicatorDots(e.to);
             }
         });
 
         // Click handler for dots to ensure explicit navigation
-        indicatorButtons.forEach(function (btn, idx) {
-            btn.addEventListener('click', function (e) {
+        indicatorButtons.forEach(function(btn, idx) {
+            btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 if (myCarousel && typeof myCarousel.to === 'function') {
                     myCarousel.to(idx);

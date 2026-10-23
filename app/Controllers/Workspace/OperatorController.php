@@ -298,10 +298,27 @@ class OperatorController extends BaseController
 
         $approvals = $this->db->table('approvals')->whereIn('id', $ids)->get()->getResultArray();
         $successCount = 0;
+        $failedCount = 0;
         $certCount = 0;
+
+        $roles = (array) session()->get('roles');
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
 
         foreach ($approvals as $app) {
             $appId = (int) $app['id'];
+
+            // Status Guard: hanya proses yang berstatus pending
+            if (($app['status'] ?? '') !== 'pending') {
+                $failedCount++;
+                continue;
+            }
+
+            // Anti Self-Approval: tolak jika pemohon sama dengan operator (kecuali super_administrator)
+            if (! $isSuperAdmin && (int) ($app['requested_by'] ?? 0) === $actorId) {
+                $failedCount++;
+                continue;
+            }
+
             $updateData = [
                 'status'      => $status,
                 'reviewed_by' => $actorId,
@@ -314,21 +331,46 @@ class OperatorController extends BaseController
                 $updateData['reason'] = $notes;
             }
 
-            $this->db->table('approvals')->where('id', $appId)->update($updateData);
-            $successCount++;
+            try {
+                $this->db->transStart();
+                $this->db->table('approvals')
+                    ->where('id', $appId)
+                    ->where('status', 'pending')
+                    ->update($updateData);
 
-            if ($action === 'approve' && ($app['resource_type'] ?? '') === 'certificate' && ($app['requested_action'] ?? '') === 'issue_certificate') {
-                try {
+                if ($this->db->affectedRows() < 1) {
+                    $this->db->transRollback();
+                    $failedCount++;
+                    continue;
+                }
+
+                if ($action === 'approve' && ($app['resource_type'] ?? '') === 'certificate' && ($app['requested_action'] ?? '') === 'issue_certificate') {
                     $generator = new \App\Services\CertificateGenerator();
                     $generator->generateFromApproval($appId, $actorId);
                     $certCount++;
-                } catch (\Throwable $e) {
-                    log_message('error', 'Bulk approval certificate failed for ID ' . $appId . ': ' . $e->getMessage());
                 }
+
+                $this->db->transComplete();
+
+                if ($this->db->transStatus()) {
+                    $successCount++;
+                } else {
+                    $failedCount++;
+                }
+            } catch (\Throwable $e) {
+                $this->db->transRollback();
+                $failedCount++;
+                log_message('error', 'Bulk approval item failed for ID {appId}: {message}', [
+                    'appId'   => $appId,
+                    'message' => $e->getMessage(),
+                ]);
             }
         }
 
         $msg = "Berhasil memproses {$successCount} pengajuan approval ({$status}).";
+        if ($failedCount > 0) {
+            $msg .= " Terdapat {$failedCount} pengajuan dilewati (sudah diproses atau melanggar prinsip anti self-approval).";
+        }
         if ($certCount > 0) {
             $msg .= " Serta berhasil menerbitkan {$certCount} sertifikat secara otomatis.";
         }
@@ -347,26 +389,56 @@ class OperatorController extends BaseController
             return redirect()->back()->with('error', 'Approval tidak ditemukan.');
         }
 
-        $now = date('Y-m-d H:i:s');
-        $this->db->table('approvals')->where('id', $approvalId)->update([
-            'status'      => 'approved',
-            'reviewed_by' => $actorId,
-            'reviewed_at' => $now,
-            'notes'       => $notes,
-            'updated_at'  => $now,
-        ]);
+        // Status Guard
+        if (($approval['status'] ?? '') !== 'pending') {
+            return redirect()->back()->with('error', 'Pengajuan approval ini sudah pernah diproses sebelumnya.');
+        }
 
+        // Anti Self-Approval
+        $roles = (array) session()->get('roles');
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
+        if (! $isSuperAdmin && (int) ($approval['requested_by'] ?? 0) === $actorId) {
+            return redirect()->back()->with('error', 'Sesuai prinsip Segregation of Duties, Anda tidak dapat menyetujui permohonan yang Anda ajukan sendiri.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $this->db->transStart();
+
+        $this->db->table('approvals')
+            ->where('id', $approvalId)
+            ->where('status', 'pending')
+            ->update([
+                'status'      => 'approved',
+                'reviewed_by' => $actorId,
+                'reviewed_at' => $now,
+                'notes'       => $notes,
+                'updated_at'  => $now,
+            ]);
+
+        if ($this->db->affectedRows() < 1) {
+            $this->db->transRollback();
+            return redirect()->back()->with('error', 'Pengajuan approval ini sudah pernah diproses atau tidak lagi berstatus pending.');
+        }
+
+        $certMessage = '';
         if (($approval['resource_type'] ?? '') === 'certificate' && ($approval['requested_action'] ?? '') === 'issue_certificate') {
             try {
                 $generator = new \App\Services\CertificateGenerator();
                 $result = $generator->generateFromApproval($approvalId, $actorId);
-                return redirect()->back()->with('message', 'Approval disetujui dan Sertifikat #' . ($result['certificate_number'] ?? '') . ' berhasil diterbitkan.');
+                $certMessage = ' dan Sertifikat #' . ($result['certificate_number'] ?? '') . ' berhasil diterbitkan.';
             } catch (\Throwable $e) {
+                $this->db->transRollback();
                 return redirect()->back()->with('error', 'Approval disetujui, namun pembuatan berkas sertifikat mengalami kendala: ' . $e->getMessage());
             }
         }
 
-        return redirect()->back()->with('message', 'Approval #' . $approvalId . ' berhasil disetujui.');
+        $this->db->transComplete();
+
+        if (! $this->db->transStatus()) {
+            return redirect()->back()->with('error', 'Gagal memproses persetujuan approval.');
+        }
+
+        return redirect()->back()->with('message', 'Approval #' . $approvalId . ' berhasil disetujui' . $certMessage);
     }
 
     public function rejectApproval(string $id)
@@ -380,14 +452,42 @@ class OperatorController extends BaseController
             return redirect()->back()->with('error', 'Approval tidak ditemukan.');
         }
 
+        // Status Guard
+        if (($approval['status'] ?? '') !== 'pending') {
+            return redirect()->back()->with('error', 'Pengajuan approval ini sudah pernah diproses sebelumnya.');
+        }
+
+        // Anti Self-Approval
+        $roles = (array) session()->get('roles');
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
+        if (! $isSuperAdmin && (int) ($approval['requested_by'] ?? 0) === $actorId) {
+            return redirect()->back()->with('error', 'Sesuai prinsip Segregation of Duties, Anda tidak dapat memproses permohonan yang Anda ajukan sendiri.');
+        }
+
         $now = date('Y-m-d H:i:s');
-        $this->db->table('approvals')->where('id', $approvalId)->update([
-            'status'      => 'rejected',
-            'reviewed_by' => $actorId,
-            'reviewed_at' => $now,
-            'reason'      => $reason,
-            'updated_at'  => $now,
-        ]);
+        $this->db->transStart();
+
+        $this->db->table('approvals')
+            ->where('id', $approvalId)
+            ->where('status', 'pending')
+            ->update([
+                'status'      => 'rejected',
+                'reviewed_by' => $actorId,
+                'reviewed_at' => $now,
+                'reason'      => $reason,
+                'updated_at'  => $now,
+            ]);
+
+        if ($this->db->affectedRows() < 1) {
+            $this->db->transRollback();
+            return redirect()->back()->with('error', 'Pengajuan approval ini sudah pernah diproses atau tidak lagi berstatus pending.');
+        }
+
+        $this->db->transComplete();
+
+        if (! $this->db->transStatus()) {
+            return redirect()->back()->with('error', 'Gagal memproses penolakan approval.');
+        }
 
         return redirect()->back()->with('message', 'Approval #' . $approvalId . ' telah ditolak.');
     }
@@ -496,25 +596,55 @@ class OperatorController extends BaseController
 
         $service = new \App\Services\Admin\ProfileVerificationService();
         $successCount = 0;
+        $failedCount = 0;
+
+        $roles = (array) session()->get('roles');
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
 
         foreach ($ids as $vid) {
+            $ver = $this->db->table('profile_verifications')->where('id', $vid)->get()->getRowArray();
+            if (! $ver || ($ver['status'] ?? '') !== 'pending') {
+                $failedCount++;
+                continue;
+            }
+
+            if (! $isSuperAdmin && (int) ($ver['user_id'] ?? 0) === $actorId) {
+                $failedCount++;
+                continue;
+            }
+
             try {
+                $this->db->transStart();
+                $processed = false;
                 if ($action === 'approve') {
-                    if ($service->approve($vid, $actorId, $notes)) {
-                        $successCount++;
-                    }
+                    $processed = $service->approve($vid, $actorId, $notes);
                 } else {
-                    if ($service->reject($vid, $notes, $actorId, $notes)) {
-                        $successCount++;
-                    }
+                    $processed = $service->reject($vid, $notes, $actorId, $notes);
+                }
+                $this->db->transComplete();
+
+                if ($processed && $this->db->transStatus()) {
+                    $successCount++;
+                } else {
+                    $failedCount++;
                 }
             } catch (\Throwable $e) {
-                log_message('error', "Bulk profile verification failed for ID {$vid}: " . $e->getMessage());
+                $this->db->transRollback();
+                $failedCount++;
+                log_message('error', 'Bulk profile verification failed for ID {vid}: {message}', [
+                    'vid'     => $vid,
+                    'message' => $e->getMessage(),
+                ]);
             }
         }
 
         $statusLabel = ($action === 'approve' ? 'disetujui' : 'ditolak');
-        return redirect()->back()->with('message', "Berhasil memproses {$successCount} verifikasi profil ({$statusLabel}).");
+        $msg = "Berhasil memproses {$successCount} verifikasi profil ({$statusLabel}).";
+        if ($failedCount > 0) {
+            $msg .= " Sebanyak {$failedCount} pengajuan dilewati karena sudah diproses atau melanggar prinsip anti self-approval.";
+        }
+
+        return redirect()->back()->with('message', $msg);
     }
 
     public function approveVerification(string $id)
@@ -523,11 +653,37 @@ class OperatorController extends BaseController
         $verificationId = (int) $id;
         $notes          = (string) $this->request->getPost('notes');
 
+        $ver = $this->db->table('profile_verifications')->where('id', $verificationId)->get()->getRowArray();
+        if (! $ver) {
+            return redirect()->back()->with('error', 'Verifikasi profil tidak ditemukan.');
+        }
+
+        // Status Guard
+        if (($ver['status'] ?? '') !== 'pending') {
+            return redirect()->back()->with('error', 'Pengajuan verifikasi profil ini sudah pernah diproses sebelumnya.');
+        }
+
+        // Anti Self-Approval
+        $roles = (array) session()->get('roles');
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
+        if (! $isSuperAdmin && (int) ($ver['user_id'] ?? 0) === $actorId) {
+            return redirect()->back()->with('error', 'Sesuai prinsip Segregation of Duties, Anda tidak dapat memverifikasi profil akun Anda sendiri.');
+        }
+
+        $this->db->transStart();
         $service = new \App\Services\Admin\ProfileVerificationService();
-        if ($service->approve($verificationId, $actorId, $notes)) {
+        $ok = $service->approve($verificationId, $actorId, $notes);
+        if (! $ok) {
+            $this->db->transRollback();
+            return redirect()->back()->with('error', 'Pengajuan verifikasi profil ini sudah pernah diproses atau tidak lagi berstatus pending.');
+        }
+        $this->db->transComplete();
+
+        if ($this->db->transStatus()) {
             return redirect()->back()->with('message', 'Pengajuan verifikasi profil #' . $verificationId . ' berhasil disetujui.');
         }
-        return redirect()->back()->with('error', 'Verifikasi profil tidak ditemukan.');
+
+        return redirect()->back()->with('error', 'Gagal memproses persetujuan verifikasi profil.');
     }
 
     public function rejectVerification(string $id)
@@ -537,15 +693,41 @@ class OperatorController extends BaseController
         $reason         = trim((string) $this->request->getPost('reason')) ?: 'Data profil tidak sesuai.';
         $notes          = (string) $this->request->getPost('notes');
 
+        $ver = $this->db->table('profile_verifications')->where('id', $verificationId)->get()->getRowArray();
+        if (! $ver) {
+            return redirect()->back()->with('error', 'Verifikasi profil tidak ditemukan.');
+        }
+
+        // Status Guard
+        if (($ver['status'] ?? '') !== 'pending') {
+            return redirect()->back()->with('error', 'Pengajuan verifikasi profil ini sudah pernah diproses sebelumnya.');
+        }
+
+        // Anti Self-Approval
+        $roles = (array) session()->get('roles');
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
+        if (! $isSuperAdmin && (int) ($ver['user_id'] ?? 0) === $actorId) {
+            return redirect()->back()->with('error', 'Sesuai prinsip Segregation of Duties, Anda tidak dapat menolak verifikasi profil akun Anda sendiri.');
+        }
+
+        $this->db->transStart();
         $service = new \App\Services\Admin\ProfileVerificationService();
         try {
-            if ($service->reject($verificationId, $reason, $actorId, $notes)) {
+            $ok = $service->reject($verificationId, $reason, $actorId, $notes);
+            if (! $ok) {
+                $this->db->transRollback();
+                return redirect()->back()->with('error', 'Pengajuan verifikasi profil ini sudah pernah diproses atau tidak lagi berstatus pending.');
+            }
+            $this->db->transComplete();
+            if ($this->db->transStatus()) {
                 return redirect()->back()->with('message', 'Pengajuan verifikasi profil #' . $verificationId . ' telah ditolak.');
             }
         } catch (\Throwable $e) {
+            $this->db->transRollback();
             return redirect()->back()->with('error', $e->getMessage());
         }
-        return redirect()->back()->with('error', 'Verifikasi profil tidak ditemukan.');
+
+        return redirect()->back()->with('error', 'Gagal memproses penolakan verifikasi profil.');
     }
 
     /**
@@ -682,8 +864,32 @@ class OperatorController extends BaseController
         $requestId = ctype_digit($id) ? (int) $id : 0;
         $notes     = (string) $this->request->getPost('notes');
 
+        $req = $this->db->table('profile_change_requests')->where('id', $requestId)->get()->getRowArray();
+        if (! $req) {
+            return redirect()->back()->with('error', 'Permohonan perubahan profil tidak ditemukan.');
+        }
+
+        // Status Guard
+        if (! in_array($req['status'] ?? '', ['submitted', 'in_review'], true)) {
+            return redirect()->back()->with('error', 'Permohonan perubahan profil ini sudah pernah diproses sebelumnya.');
+        }
+
+        // Anti Self-Approval
+        $roles = (array) session()->get('roles');
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
+        if (! $isSuperAdmin && (int) ($req['user_id'] ?? 0) === $actorId) {
+            return redirect()->back()->with('error', 'Sesuai prinsip Segregation of Duties, Anda tidak dapat memverifikasi permohonan perubahan profil milik Anda sendiri.');
+        }
+
         try {
+            $this->db->transStart();
             (new \App\Services\Admin\ProfileChangeRequestService())->approve($requestId, $actorId, $notes);
+            $this->db->transComplete();
+
+            if (! $this->db->transStatus()) {
+                throw new \RuntimeException('Gagal menerapkan perubahan profil ke database.');
+            }
+
             return redirect()->to(route_to('workspace.operator.profile-change-requests'))
                 ->with('message', 'Permohonan perubahan profil #' . $requestId . ' berhasil disetujui dan diterapkan.');
         } catch (\Throwable $e) {
@@ -698,8 +904,32 @@ class OperatorController extends BaseController
         $reason    = trim((string) $this->request->getPost('reason')) ?: 'Permohonan perubahan profil ditolak oleh Operator.';
         $notes     = (string) $this->request->getPost('notes');
 
+        $req = $this->db->table('profile_change_requests')->where('id', $requestId)->get()->getRowArray();
+        if (! $req) {
+            return redirect()->back()->with('error', 'Permohonan perubahan profil tidak ditemukan.');
+        }
+
+        // Status Guard
+        if (! in_array($req['status'] ?? '', ['submitted', 'in_review'], true)) {
+            return redirect()->back()->with('error', 'Permohonan perubahan profil ini sudah pernah diproses sebelumnya.');
+        }
+
+        // Anti Self-Approval
+        $roles = (array) session()->get('roles');
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
+        if (! $isSuperAdmin && (int) ($req['user_id'] ?? 0) === $actorId) {
+            return redirect()->back()->with('error', 'Sesuai prinsip Segregation of Duties, Anda tidak dapat menolak permohonan perubahan profil milik Anda sendiri.');
+        }
+
         try {
+            $this->db->transStart();
             (new \App\Services\Admin\ProfileChangeRequestService())->reject($requestId, $reason, $actorId, $notes);
+            $this->db->transComplete();
+
+            if (! $this->db->transStatus()) {
+                throw new \RuntimeException('Gagal memproses penolakan perubahan profil.');
+            }
+
             return redirect()->to(route_to('workspace.operator.profile-change-requests'))
                 ->with('message', 'Permohonan perubahan profil #' . $requestId . ' ditolak.');
         } catch (\Throwable $e) {
@@ -717,11 +947,35 @@ class OperatorController extends BaseController
             return redirect()->back()->with('error', 'Catatan revisi wajib diisi.');
         }
 
+        $req = $this->db->table('profile_change_requests')->where('id', $requestId)->get()->getRowArray();
+        if (! $req) {
+            return redirect()->back()->with('error', 'Permohonan perubahan profil tidak ditemukan.');
+        }
+
+        // Status Guard
+        if (! in_array($req['status'] ?? '', ['submitted', 'in_review'], true)) {
+            return redirect()->back()->with('error', 'Permohonan perubahan profil ini sudah pernah diproses sebelumnya.');
+        }
+
+        // Anti Self-Approval
+        $roles = (array) session()->get('roles');
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
+        if (! $isSuperAdmin && (int) ($req['user_id'] ?? 0) === $actorId) {
+            return redirect()->back()->with('error', 'Sesuai prinsip Segregation of Duties, Anda tidak dapat memproses permohonan milik Anda sendiri.');
+        }
+
         try {
+            $this->db->transStart();
             (new \App\Services\Admin\ProfileChangeRequestService())->requestRevision($requestId, $note, $actorId);
+            $this->db->transComplete();
+
+            if (! $this->db->transStatus()) {
+                throw new \RuntimeException('Gagal memproses permintaan revisi perubahan profil.');
+            }
+
             return redirect()->to(route_to('workspace.operator.profile-change-requests'))
                 ->with('message', 'Permintaan revisi perubahan profil #' . $requestId . ' berhasil dikirim ke pengguna.');
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
@@ -805,7 +1059,23 @@ class OperatorController extends BaseController
             return redirect()->back()->with('error', 'Kelas pembelajaran tidak ditemukan.');
         }
 
+        // H-8: Validasi ketat bahwa pengguna berstatus active DAN memegang role 'trainer'
+        $isTrainer = $this->db->table('users u')
+            ->join('user_roles ur', 'ur.user_id = u.id AND ur.status = \'active\'')
+            ->join('roles r', 'r.id = ur.role_id')
+            ->where('u.id', $userId)
+            ->where('u.account_status', 'active')
+            ->where('u.deleted_at IS NULL')
+            ->where('r.key', 'trainer')
+            ->countAllResults() > 0;
+
+        if (! $isTrainer) {
+            return redirect()->back()->with('error', 'Penugasan ditolak: Pengguna yang dipilih bukan trainer/pengajar aktif atau akun sedang tidak aktif.');
+        }
+
         $now = date('Y-m-d H:i:s');
+        $this->db->transStart();
+
         $existing = $this->db->table('class_trainers')
             ->where('class_id', $classId)
             ->where('user_id', $userId)
@@ -831,6 +1101,11 @@ class OperatorController extends BaseController
         }
 
         $this->logAudit($actorId, 'class_trainer.assign', 'class_trainer', $classId, ['class_id' => $classId, 'user_id' => $userId]);
+        $this->db->transComplete();
+
+        if (! $this->db->transStatus()) {
+            return redirect()->back()->with('error', 'Gagal menyimpan penugasan trainer ke database.');
+        }
 
         return redirect()->back()->with('message', 'Trainer berhasil ditugaskan ke kelas ' . esc($class['name']) . '. Penugasan langsung aktif di ruang kerja trainer.');
     }
@@ -1117,16 +1392,29 @@ class OperatorController extends BaseController
         $status  = (string) $this->request->getPost('status');
         $notes   = (string) $this->request->getPost('notes');
 
-        if (! in_array($status, ['present', 'absent', 'excused'], true)) {
+        $allowedStatuses = ['present', 'absent', 'excused', 'late'];
+        if (! in_array($status, $allowedStatuses, true)) {
             $status = 'present';
         }
 
-        $attendance = $this->db->table('attendances')->where('id', $aid)->get()->getRowArray();
+        $attendance = $this->db->table('attendances a')
+            ->select('a.*, er.event_id, er.user_id AS participant_id, e.status AS event_status')
+            ->join('event_registrations er', 'er.id = a.event_registration_id', 'left')
+            ->join('events e', 'e.id = er.event_id', 'left')
+            ->where('a.id', $aid)
+            ->get()->getRowArray();
+
         if (! $attendance) {
             return redirect()->back()->with('error', 'Catatan presensi tidak ditemukan.');
         }
 
+        if (empty($attendance['event_registration_id']) || empty($attendance['event_id'])) {
+            return redirect()->back()->with('error', 'Data presensi tidak terhubung ke registrasi event yang sah.');
+        }
+
         $now = date('Y-m-d H:i:s');
+        $this->db->transStart();
+
         $this->db->table('attendances')->where('id', $aid)->update([
             'status'      => $status,
             'notes'       => $notes,
@@ -1136,6 +1424,11 @@ class OperatorController extends BaseController
         ]);
 
         $this->logAudit($actorId, 'attendance.operator_update', 'attendance', $aid, ['attendance_id' => $aid, 'status' => $status], $notes);
+        $this->db->transComplete();
+
+        if (! $this->db->transStatus()) {
+            return redirect()->back()->with('error', 'Gagal memperbarui catatan presensi.');
+        }
 
         return redirect()->back()->with('message', 'Catatan presensi berhasil diperbarui.');
     }
@@ -1263,15 +1556,19 @@ class OperatorController extends BaseController
 
     public function issueCertificate(string $enrollmentId)
     {
-        $actorId = $this->assertOperatorAccess();
-        $eid     = (int) $enrollmentId;
+        $actorId       = $this->assertOperatorAccess();
+        $eid           = (int) $enrollmentId;
+        $justification = trim((string) $this->request->getPost('justification'));
 
-        $certNumber = $this->issueSingleCertificate($eid, $actorId);
-        if (! $certNumber) {
-            return redirect()->back()->with('error', 'Enrollment peserta tidak ditemukan.');
+        try {
+            $certNumber = $this->issueSingleCertificate($eid, $actorId, $justification ?: null);
+            if (! $certNumber) {
+                return redirect()->back()->with('error', 'Enrollment peserta tidak ditemukan.');
+            }
+            return redirect()->back()->with('message', 'Sertifikat #' . $certNumber . ' berhasil diterbitkan dan status kelulusan peserta telah diverifikasi.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
         }
-
-        return redirect()->back()->with('message', 'Sertifikat #' . $certNumber . ' berhasil diterbitkan dan status kelulusan peserta telah diverifikasi.');
     }
 
     /**
@@ -1279,8 +1576,9 @@ class OperatorController extends BaseController
      */
     public function bulkIssueCertificates()
     {
-        $actorId = $this->assertOperatorAccess();
-        $rawIds  = (array) $this->request->getPost('enrollment_ids');
+        $actorId       = $this->assertOperatorAccess();
+        $rawIds        = (array) $this->request->getPost('enrollment_ids');
+        $justification = trim((string) $this->request->getPost('justification'));
 
         $ids = array_filter(array_map('intval', $rawIds), static fn($id) => $id > 0);
         if ($ids === []) {
@@ -1288,25 +1586,76 @@ class OperatorController extends BaseController
         }
 
         $successCount = 0;
+        $failedCount = 0;
+
         foreach ($ids as $eid) {
-            $certNum = $this->issueSingleCertificate($eid, $actorId);
-            if ($certNum !== null) {
-                $successCount++;
+            try {
+                $certNum = $this->issueSingleCertificate($eid, $actorId, $justification ?: null);
+                if ($certNum !== null) {
+                    $successCount++;
+                } else {
+                    $failedCount++;
+                }
+            } catch (\Throwable $e) {
+                $failedCount++;
+                log_message('error', 'Bulk issue certificate failed for enrollment #{eid}: {message}', [
+                    'eid'     => $eid,
+                    'message' => $e->getMessage(),
+                ]);
             }
         }
 
-        return redirect()->back()->with('message', "Berhasil menerbitkan {$successCount} sertifikat kelulusan secara massal.");
+        $msg = "Berhasil menerbitkan {$successCount} sertifikat kelulusan.";
+        if ($failedCount > 0) {
+            $msg .= " Sebanyak {$failedCount} peserta dilewati karena belum memenuhi syarat kelulusan atau data tidak valid.";
+        }
+
+        return redirect()->back()->with('message', $msg);
     }
 
     /**
      * HELPER LOGIKA PENERBITAN SERTIFIKAT TUNGGAL
+     * H-2: Evaluasi kelayakan kelulusan & catat justifikasi override jika belum memenuhi syarat
      */
-    private function issueSingleCertificate(int $eid, int $actorId): ?string
+    private function issueSingleCertificate(int $eid, int $actorId, ?string $justification = null): ?string
     {
         $enrollment = $this->db->table('enrollments')->where('id', $eid)->get()->getRowArray();
         if (! $enrollment) {
             return null;
         }
+
+        // H-2: Panggil evaluasi kelayakan riil via LearningService
+        try {
+            $learningService = new \App\Services\LearningService($this->db);
+            $learningService->evaluateCompletion($eid);
+        } catch (\Throwable $e) {
+            log_message('warning', 'Evaluasi kelayakan sertifikat enrollment #{eid} gagal: {message}', [
+                'eid'     => $eid,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        // Ambil data enrollment terbaru setelah evaluasi
+        $freshEnrollment = $this->db->table('enrollments')->where('id', $eid)->get()->getRowArray();
+        $isEligible = ! empty($freshEnrollment['certificate_eligible_at']) && ($freshEnrollment['status'] ?? '') === 'completed';
+
+        $isOverride = false;
+        if (! $isEligible) {
+            // Anti self-issuance: non-admin operators cannot issue override certificates to themselves
+            $roles = (array) session()->get('roles');
+            $isAdmin = ! empty(array_intersect(['administrator', 'super_administrator'], $roles));
+            if (! $isAdmin && (int) ($freshEnrollment['user_id'] ?? $enrollment['user_id']) === $actorId) {
+                throw new \RuntimeException('Operator tidak diizinkan menerbitkan sertifikat override untuk diri sendiri.');
+            }
+
+            // H-2: Jika belum memenuhi syarat kelulusan, wajib ada justifikasi override minimal 10 karakter
+            if ($justification === null || mb_strlen($justification) < 10) {
+                throw new \RuntimeException("Peserta #{$eid} belum memenuhi syarat kelulusan kelas. Penerbitan hanya diizinkan dengan justifikasi override resmi (minimal 10 karakter).");
+            }
+            $isOverride = true;
+        }
+
+        $this->db->transStart();
 
         $existing = $this->db->table('certificates')
             ->where('source_type', 'learning_enrollment')
@@ -1346,13 +1695,37 @@ class OperatorController extends BaseController
 
         $this->db->table('enrollments')->where('id', $eid)->update([
             'status'                  => 'completed',
-            'completed_at'            => $enrollment['completed_at'] ?? $now,
-            'passed_at'               => $enrollment['passed_at'] ?? $now,
-            'certificate_eligible_at' => $enrollment['certificate_eligible_at'] ?? $now,
+            'completed_at'            => $freshEnrollment['completed_at'] ?? $now,
+            'passed_at'               => $freshEnrollment['passed_at'] ?? $now,
+            'certificate_eligible_at' => $freshEnrollment['certificate_eligible_at'] ?? $now,
             'updated_at'              => $now,
         ]);
 
-        $this->logAudit($actorId, 'certificate.operator_issue', 'certificate', $eid, ['enrollment_id' => $eid, 'certificate_number' => $certNumber]);
+        $auditPayload = [
+            'enrollment_id'        => $eid,
+            'certificate_number'   => $certNumber,
+            'is_override'          => $isOverride,
+            'requires_admin_audit' => $isOverride,
+            'eligibility_snapshot' => [
+                'final_score' => $freshEnrollment['final_score'],
+                'status'      => $freshEnrollment['status'],
+            ],
+        ];
+
+        $this->logAudit(
+            $actorId,
+            $isOverride ? 'certificate.operator_override_issue' : 'certificate.operator_issue',
+            'certificate',
+            $eid,
+            $auditPayload,
+            $justification
+        );
+
+        $this->db->transComplete();
+
+        if (! $this->db->transStatus()) {
+            throw new \RuntimeException('Gagal menyimpan penerbitan sertifikat ke database.');
+        }
 
         return $certNumber;
     }
@@ -1369,6 +1742,8 @@ class OperatorController extends BaseController
         }
 
         $now = date('Y-m-d H:i:s');
+        $this->db->transStart();
+
         $this->db->table('certificates')->where('id', $cid)->update([
             'status'            => 'revoked',
             'revoked_at'        => $now,
@@ -1378,6 +1753,11 @@ class OperatorController extends BaseController
         ]);
 
         $this->logAudit($actorId, 'certificate.operator_revoke', 'certificate', $cid, ['certificate_id' => $cid], $reason);
+        $this->db->transComplete();
+
+        if (! $this->db->transStatus()) {
+            return redirect()->back()->with('error', 'Gagal mencabut sertifikat.');
+        }
 
         return redirect()->back()->with('message', 'Sertifikat #' . ($cert['certificate_number'] ?? $cid) . ' telah berhasil dicabut/dibatalkan.');
     }
@@ -1499,13 +1879,21 @@ class OperatorController extends BaseController
         $reason  = trim((string) $this->request->getPost('override_reason')) ?: 'Penyesuaian nilai oleh kewenangan Operator.';
 
         $submission = $this->db->table('assignment_submissions s')
-            ->select('s.*, a.class_id')
+            ->select('s.*, a.class_id, e.user_id AS participant_user_id')
             ->join('assignments a', 'a.id = s.assignment_id')
+            ->join('enrollments e', 'e.id = s.enrollment_id', 'left')
             ->where('s.id', (int) $submissionId)
             ->get()->getRowArray();
 
         if (! $submission) {
             return redirect()->back()->with('error', 'Submission tugas tidak ditemukan.');
+        }
+
+        // Anti Self-Override
+        $roles = (array) session()->get('roles');
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
+        if (! $isSuperAdmin && (int) ($submission['participant_user_id'] ?? 0) === $actorId) {
+            return redirect()->back()->with('error', 'Sesuai prinsip Segregation of Duties, Anda tidak dapat meng-override penilaian tugas milik Anda sendiri.');
         }
 
         if (! in_array($status, ['graded', 'revision_required', 'in_review'], true)) {
@@ -1518,6 +1906,7 @@ class OperatorController extends BaseController
         $overrideTag = "[OVERRIDE OPERATOR " . date('d/m/Y H:i') . "]: " . $reason;
         $updatedFeedback = $existingFeedback !== '' ? ($existingFeedback . "\n\n" . $overrideTag) : $overrideTag;
 
+        $this->db->transStart();
         $this->db->table('assignment_submissions')->where('id', (int) $submissionId)->update([
             'score'      => $score,
             'status'     => $status,
@@ -1531,7 +1920,7 @@ class OperatorController extends BaseController
             try {
                 (new \App\Services\LearningService($this->db))->evaluateCompletion((int) $submission['enrollment_id']);
             } catch (\Throwable $e) {
-                log_message('error', 'evaluateCompletion failed on override: {m}', ['m' => $e->getMessage()]);
+                log_message('error', 'evaluateCompletion failed on override: {message}', ['message' => $e->getMessage()]);
             }
         }
 
@@ -1549,6 +1938,12 @@ class OperatorController extends BaseController
             $reason
         );
 
+        $this->db->transComplete();
+
+        if (! $this->db->transStatus()) {
+            return redirect()->back()->with('error', 'Gagal menyimpan override penilaian tugas.');
+        }
+
         return redirect()->to(route_to('workspace.operator.evaluations'))
             ->with('message', 'Penilaian submission #' . $submissionId . ' berhasil di-override oleh Operator (Nilai: ' . $score . ', Status: ' . $status . ').');
     }
@@ -1556,13 +1951,26 @@ class OperatorController extends BaseController
     public function overrideEnrollmentScore(string $enrollmentId)
     {
         $actorId = $this->assertOperatorAccess();
+        $eid     = (int) $enrollmentId;
         $score   = (float) $this->request->getPost('final_score');
         $status  = (string) $this->request->getPost('status') ?: 'completed';
-        $reason  = trim((string) $this->request->getPost('reason')) ?: 'Penyesuaian nilai akhir / kelulusan khusus oleh Operator.';
+        $reason  = trim((string) $this->request->getPost('reason'));
 
-        $enrollment = $this->db->table('enrollments')->where('id', (int) $enrollmentId)->get()->getRowArray();
+        // H-3: Wajibkan input alasan/justifikasi minimal 10 karakter
+        if (mb_strlen($reason) < 10) {
+            return redirect()->back()->with('error', 'Alasan / justifikasi override nilai wajib diisi minimal 10 karakter.');
+        }
+
+        $enrollment = $this->db->table('enrollments')->where('id', $eid)->get()->getRowArray();
         if (! $enrollment) {
             return redirect()->back()->with('error', 'Enrollment tidak ditemukan.');
+        }
+
+        // H-3: Cegah operator meng-override nilai miliknya sendiri (Anti Self-Override)
+        $roles = (array) session()->get('roles');
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
+        if (! $isSuperAdmin && (int) ($enrollment['user_id'] ?? 0) === $actorId) {
+            return redirect()->back()->with('error', 'Sesuai prinsip Segregation of Duties, Anda tidak dapat mengubah/meng-override nilai milik Anda sendiri.');
         }
 
         if (! in_array($status, ['active', 'completed', 'withdrawn', 'cancelled'], true)) {
@@ -1583,13 +1991,14 @@ class OperatorController extends BaseController
             $updateData['certificate_eligible_at'] = $now;
         }
 
-        $this->db->table('enrollments')->where('id', (int) $enrollmentId)->update($updateData);
+        $this->db->transStart();
+        $this->db->table('enrollments')->where('id', $eid)->update($updateData);
 
         $this->logAudit(
             $actorId,
             'enrollment.operator_override',
             'enrollment',
-            (int) $enrollmentId,
+            $eid,
             [
                 'old_score'  => $enrollment['final_score'],
                 'new_score'  => $score,
@@ -1599,7 +2008,24 @@ class OperatorController extends BaseController
             $reason
         );
 
-        return redirect()->back()->with('message', 'Nilai akhir dan status kelulusan enrollment #' . $enrollmentId . ' berhasil di-override oleh Operator.');
+        $this->db->transComplete();
+
+        if (! $this->db->transStatus()) {
+            return redirect()->back()->with('error', 'Gagal menyimpan override nilai ke database.');
+        }
+
+        // H-3: Evaluasi kelulusan & kelayakan sertifikat secara otomatis setelah override nilai
+        try {
+            $learningService = new \App\Services\LearningService($this->db);
+            $learningService->evaluateCompletion($eid);
+        } catch (\Throwable $e) {
+            log_message('warning', 'Evaluasi otomatis completion setelah override nilai enrollment #{eid} gagal: {message}', [
+                'eid'     => $eid,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return redirect()->back()->with('message', 'Nilai akhir dan status kelulusan enrollment #' . $eid . ' berhasil di-override oleh Operator.');
     }
 
     /**

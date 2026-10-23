@@ -69,7 +69,11 @@ class CertificateDownloadController extends BaseController
         }
 
         // Authorization
-        $this->assertDownloadAccess($actorId, $certificate);
+        try {
+            $this->assertDownloadAccess($actorId, $certificate);
+        } catch (RuntimeException $e) {
+            return $this->forbiddenResponse($e->getMessage());
+        }
 
         // Ambil file_assets row
         $fileRow = $this->db->table('file_assets')

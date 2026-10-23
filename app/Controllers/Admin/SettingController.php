@@ -99,10 +99,39 @@ class SettingController extends BaseController
 
     public function notification(): string
     {
+        $emailService = new \App\Services\Email\EmailService();
         return $this->view('Pengaturan Notifikasi', 'notification-settings', 'notification', [
-            'settings' => $this->settingService->getGroup('notification'),
-            'group'    => 'notification',
+            'settings'    => $this->settingService->getGroup('notification'),
+            'group'       => 'notification',
+            'emailConfig' => $emailService->getConfig(),
         ]);
+    }
+
+    public function testEmail()
+    {
+        if ($res = $this->checkAccess()) {
+            return $res;
+        }
+
+        $targetEmail = trim((string) $this->request->getPost('test_target_email'));
+        if (! filter_var($targetEmail, FILTER_VALIDATE_EMAIL)) {
+            $user = session()->get('user') ?? [];
+            $targetEmail = $user['email'] ?? session()->get('email') ?? setting('notification.sender_email') ?? '';
+        }
+
+        if (empty($targetEmail) || ! filter_var($targetEmail, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->back()->with('error', 'Alamat email tujuan uji coba tidak valid.');
+        }
+
+        $emailService = new \App\Services\Email\EmailService();
+        $adminName = (string) (session()->get('name') ?: 'Administrator BegawiPengadaan');
+        $result = $emailService->testConnection($targetEmail, $adminName);
+
+        if ($result['success']) {
+            return redirect()->back()->with('message', 'Sukses! Handshake SMTP berhasil dan email uji coba telah terkirim ke ' . $targetEmail . '.');
+        }
+
+        return redirect()->back()->with('error', 'Gagal terhubung ke Google Mail SMTP: ' . $result['message']);
     }
 
     public function integration(): string
@@ -173,6 +202,9 @@ class SettingController extends BaseController
             default                                                      => $group,
         };
 
+        if ($groupKey === 'notification') {
+            (new \App\Services\Email\EmailService())->saveConfig($postData);
+        }
         $ok = $this->settingService->saveGroup($groupKey, $postData);
 
         if ($ok) {
