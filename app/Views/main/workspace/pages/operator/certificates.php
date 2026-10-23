@@ -68,9 +68,10 @@
 
     <!-- Table 1: Antrean Peserta Memenuhi Syarat (Eligible) -->
     <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
-        <form id="wsBulkCertForm" method="POST" action="<?= route_to('workspace.operator.certificates.bulk-issue') ?>">
+        <form id="wsBulkCertForm" method="POST" action="<?= route_to('workspace.operator.certificates.bulk-issue') ?>" class="d-none">
             <?= csrf_field() ?>
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        </form>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <div>
                     <h2 class="h5 fw-bold text-navy mb-0"><i class="fas fa-user-graduate text-warning me-2"></i>Antrean Peserta Memenuhi Syarat Sertifikasi</h2>
                     <small class="text-muted">Peserta yang telah lulus kurikulum dan siap diterbitkan sertifikatnya oleh Operator.</small>
@@ -143,7 +144,6 @@
                     </tbody>
                 </table>
             </div>
-        </form>
 
         <!-- Modal Konfirmasi Penerbitan Massal -->
         <div class="modal fade" id="wsCertConfirmModal" tabindex="-1" aria-hidden="true">
@@ -230,16 +230,33 @@
                         const bsModal = new bootstrap.Modal(modalEl);
                         bsModal.show();
                     } else if (confirm('Terbitkan sertifikat untuk ' + selected + ' peserta terpilih?')) {
-                        if (bulkForm) bulkForm.submit();
+                        submitCertBulk();
                     }
                 });
+            }
+
+            function submitCertBulk() {
+                if (!bulkForm) return;
+                bulkForm.querySelectorAll('input[name="enrollment_ids[]"]').forEach(function(el) {
+                    el.remove();
+                });
+                checkboxes.forEach(function(cb) {
+                    if (cb.checked) {
+                        const hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = 'enrollment_ids[]';
+                        hidden.value = cb.value;
+                        bulkForm.appendChild(hidden);
+                    }
+                });
+                bulkForm.submit();
             }
 
             if (modalSubmitBtn && bulkForm) {
                 modalSubmitBtn.addEventListener('click', function() {
                     modalSubmitBtn.disabled = true;
                     modalSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menerbitkan...';
-                    bulkForm.submit();
+                    submitCertBulk();
                 });
             }
         });

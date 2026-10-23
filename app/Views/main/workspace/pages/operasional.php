@@ -28,9 +28,10 @@
 <?php if (! empty($sectionContent['table'])): ?>
     <?php $hasBulk = ! empty($sectionContent['bulkConfig']); ?>
     <?php if ($hasBulk): ?>
-        <form id="wsBulkActionForm" method="POST" action="<?= esc($sectionContent['bulkConfig']['url']) ?>">
+        <form id="wsBulkActionForm" method="POST" action="<?= esc($sectionContent['bulkConfig']['url']) ?>" class="d-none">
             <?= csrf_field() ?>
             <input type="hidden" name="bulk_action" id="wsBulkActionInput" value="">
+        </form>
     <?php endif; ?>
 
     <div class="card border rounded shadow-sm mb-4">
@@ -83,8 +84,6 @@
     </div>
 
     <?php if ($hasBulk): ?>
-        </form>
-
         <!-- Modal Konfirmasi Tindakan Massal -->
         <div class="modal fade" id="wsBulkConfirmModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -181,16 +180,33 @@
                         const bsModal = new bootstrap.Modal(modalEl);
                         bsModal.show();
                     } else if (confirm('Apakah Anda yakin ingin memproses ' + selected + ' data terpilih?')) {
-                        if (bulkForm) bulkForm.submit();
+                        submitBulk();
                     }
                 });
             });
+
+            function submitBulk() {
+                if (!bulkForm) return;
+                bulkForm.querySelectorAll('input[name="selected_ids[]"]').forEach(function(el) {
+                    el.remove();
+                });
+                checkboxes.forEach(function(cb) {
+                    if (cb.checked) {
+                        const hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = 'selected_ids[]';
+                        hidden.value = cb.value;
+                        bulkForm.appendChild(hidden);
+                    }
+                });
+                bulkForm.submit();
+            }
 
             if (modalSubmitBtn && bulkForm) {
                 modalSubmitBtn.addEventListener('click', function() {
                     modalSubmitBtn.disabled = true;
                     modalSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
-                    bulkForm.submit();
+                    submitBulk();
                 });
             }
         });
