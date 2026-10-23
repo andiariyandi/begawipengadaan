@@ -73,6 +73,15 @@ class RoleRequestReviewController extends BaseController
         $requestId = ctype_digit($id) ? (int) $id : 0;
         $actorId = (int) session()->get('user_id');
         $notes = (string) $this->request->getPost('notes');
+
+        // Anti Self-Approval: tolak jika pemohon adalah akun sendiri kecuali super_administrator
+        $row = db_connect()->table('role_requests')->where('id', $requestId)->get()->getRowArray();
+        if ($row) {
+            $isSuperAdmin = (new \App\Services\Identity\AuthorizationService())->isSuperAdmin();
+            if ((int) $row['user_id'] === $actorId && ! $isSuperAdmin) {
+                return redirect()->back()->with('error', 'Anti Self-Approval: Anda tidak diizinkan menyetujui permohonan role untuk akun Anda sendiri.');
+            }
+        }
         try {
             (new RoleRequestService())->approve($requestId, $actorId, $notes);
             return redirect()->to('dashboard/akses/permohonan-role')->with('success', 'Permohonan role disetujui.');

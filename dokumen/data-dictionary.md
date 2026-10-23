@@ -115,7 +115,7 @@ trainer
 evaluator
 operator
 admin
-super_admin
+super_administrator
 ```
 
 ### Workflow publikasi

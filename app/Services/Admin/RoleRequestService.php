@@ -93,6 +93,9 @@ class RoleRequestService
         );
 
         $db->transComplete();
+        if ($db->transStatus() === false) {
+            throw new \RuntimeException('Gagal menyetujui permohonan role.');
+        }
 
         $this->audit->log($actorId, 'role_request.approve', 'role_requests', 'role_request', $requestId);
         return true;

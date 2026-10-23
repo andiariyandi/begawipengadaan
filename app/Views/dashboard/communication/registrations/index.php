@@ -2,144 +2,168 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
-/* Bulletproof Jitter-Free & Shake-Free Scroll at Viewport Extremities */
-html {
-    scroll-behavior: auto !important;
-    overflow-x: clip !important;
-    overflow-y: scroll !important;
-    overscroll-behavior: none !important;
-    overscroll-behavior-y: none !important;
-    overflow-anchor: none !important;
-}
-body {
-    overflow-x: clip !important;
-    overflow-y: visible !important;
-    overscroll-behavior: none !important;
-    overscroll-behavior-y: none !important;
-    overflow-anchor: none !important;
-    min-height: 100vh;
-}
-.dashboard-main {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    transition: margin-inline-start 0.3s ease, margin-left 0.3s ease !important;
-}
-.dashboard-main-body {
-    flex: 1 0 auto;
-}
-.d-footer {
-    margin-block-start: 24px !important;
-    position: relative;
-    z-index: 1;
-}
+    /* Bulletproof Jitter-Free & Shake-Free Scroll at Viewport Extremities */
+    html {
+        scroll-behavior: auto !important;
+        overflow-x: clip !important;
+        overflow-y: scroll !important;
+        overscroll-behavior: none !important;
+        overscroll-behavior-y: none !important;
+        overflow-anchor: none !important;
+    }
 
-/* High-contrast and legibility overrides for Admin Dashboard */
-.text-secondary-light, .text-muted, .text-neutral-500 {
-    color: #475569 !important;
-}
-.text-neutral-600 {
-    color: #334155 !important;
-}
-.text-neutral-700 {
-    color: #1e293b !important;
-}
-.text-neutral-800, .text-neutral-900 {
-    color: #0f172a !important;
-}
-.registrations-container {
-    color: #1e293b;
-    overflow-x: clip;
-    padding-bottom: 24px;
-}
-.kpi-reg-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 12px;
-    padding: 16px 18px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.kpi-reg-card:hover {
-    border-color: #93c5fd !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-.btn-action-dropdown {
-    background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #1e293b !important;
-    border-radius: 8px !important;
-    padding: 6px 10px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-}
-.btn-action-dropdown:hover,
-.btn-action-dropdown:focus {
-    background: #0284c7 !important;
-    border-color: #0284c7 !important;
-    color: #ffffff !important;
-}
-.btn-action-dropdown:hover iconify-icon,
-.btn-action-dropdown:focus iconify-icon {
-    color: #ffffff !important;
-}
-.btn-action-dropdown iconify-icon {
-    color: #1e293b !important;
-    font-size: 18px !important;
-}
-.reg-table-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-}
-.reg-table th {
-    background: #f8fafc !important;
-    color: #334155 !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 14px 16px !important;
-    border-bottom: 2px solid #e2e8f0 !important;
-}
-.reg-table td {
-    padding: 14px 16px !important;
-    vertical-align: middle;
-    border-bottom: 1px solid #f1f5f9;
-    color: #1e293b;
-}
-.reg-table tbody tr:hover {
-    background-color: #f8fafc;
-}
-.reg-pagination .page-link {
-    border-radius: 8px !important;
-    padding: 6px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #334155;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    transition: all 0.2s ease;
-}
-.reg-pagination .page-link:hover {
-    background: #f1f5f9;
-    color: #0284c7;
-    border-color: #93c5fd;
-}
-.reg-pagination .page-item.active .page-link {
-    background: #0284c7 !important;
-    border-color: #0284c7 !important;
-    color: #ffffff !important;
-}
+    body {
+        overflow-x: clip !important;
+        overflow-y: visible !important;
+        overscroll-behavior: none !important;
+        overscroll-behavior-y: none !important;
+        overflow-anchor: none !important;
+        min-height: 100vh;
+    }
+
+    .dashboard-main {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        transition: margin-inline-start 0.3s ease, margin-left 0.3s ease !important;
+    }
+
+    .dashboard-main-body {
+        flex: 1 0 auto;
+    }
+
+    .d-footer {
+        margin-block-start: 24px !important;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* High-contrast and legibility overrides for Admin Dashboard */
+    .text-secondary-light,
+    .text-muted,
+    .text-neutral-500 {
+        color: #475569 !important;
+    }
+
+    .text-neutral-600 {
+        color: #334155 !important;
+    }
+
+    .text-neutral-700 {
+        color: #1e293b !important;
+    }
+
+    .text-neutral-800,
+    .text-neutral-900 {
+        color: #0f172a !important;
+    }
+
+    .registrations-container {
+        color: #1e293b;
+        overflow-x: clip;
+        padding-bottom: 24px;
+    }
+
+    .kpi-reg-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px;
+        padding: 16px 18px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .kpi-reg-card:hover {
+        border-color: #93c5fd !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .btn-action-dropdown {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #1e293b !important;
+        border-radius: 8px !important;
+        padding: 6px 10px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .btn-action-dropdown:hover,
+    .btn-action-dropdown:focus {
+        background: #0284c7 !important;
+        border-color: #0284c7 !important;
+        color: #ffffff !important;
+    }
+
+    .btn-action-dropdown:hover iconify-icon,
+    .btn-action-dropdown:focus iconify-icon {
+        color: #ffffff !important;
+    }
+
+    .btn-action-dropdown iconify-icon {
+        color: #1e293b !important;
+        font-size: 18px !important;
+    }
+
+    .reg-table-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    .reg-table th {
+        background: #f8fafc !important;
+        color: #334155 !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 14px 16px !important;
+        border-bottom: 2px solid #e2e8f0 !important;
+    }
+
+    .reg-table td {
+        padding: 14px 16px !important;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1e293b;
+    }
+
+    .reg-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .reg-pagination .page-link {
+        border-radius: 8px !important;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        transition: all 0.2s ease;
+    }
+
+    .reg-pagination .page-link:hover {
+        background: #f1f5f9;
+        color: #0284c7;
+        border-color: #93c5fd;
+    }
+
+    .reg-pagination .page-item.active .page-link {
+        background: #0284c7 !important;
+        border-color: #0284c7 !important;
+        color: #ffffff !important;
+    }
 </style>
 <?= $this->endSection() ?>
 
@@ -402,7 +426,7 @@ $buildFilterUrl = function (array $overrides = []) use ($filterEvent, $status, $
                                                     <form action="<?= site_url('dashboard/komunikasi/kehadiran/' . (int) $r['id'] . '/catatan') ?>" method="post">
                                                         <?= csrf_field() ?>
                                                         <input type="hidden" name="status" value="present">
-                                                        <input type="hidden" name="notes" value="Presensi manual oleh admin">
+                                                        <input type="hidden" name="notes" value="Presensi manual oleh administrator">
                                                         <input type="hidden" name="redirect_to" value="<?= current_url() . '?' . http_build_query($_GET) ?>">
                                                         <button type="submit" class="dropdown-item text-xs fw-semibold py-8 px-14 d-flex align-items-center gap-2 text-success-700 border-0 bg-transparent w-100 text-start">
                                                             <iconify-icon icon="solar:check-circle-bold" class="text-sm"></iconify-icon>
@@ -487,19 +511,23 @@ $buildFilterUrl = function (array $overrides = []) use ($filterEvent, $status, $
 
 <?= $this->section('pageScripts') ?>
 <script>
-(function() {
-    // Bulletproof zero-jitter clamping at scroll extremities (especially for Windows mouse wheel)
-    var isClamping = false;
-    window.addEventListener('scroll', function() {
-        var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-        if (window.scrollY > maxScroll) {
-            if (!isClamping) {
-                isClamping = true;
-                window.scrollTo(0, maxScroll);
-                requestAnimationFrame(function() { isClamping = false; });
+    (function() {
+        // Bulletproof zero-jitter clamping at scroll extremities (especially for Windows mouse wheel)
+        var isClamping = false;
+        window.addEventListener('scroll', function() {
+            var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+            if (window.scrollY > maxScroll) {
+                if (!isClamping) {
+                    isClamping = true;
+                    window.scrollTo(0, maxScroll);
+                    requestAnimationFrame(function() {
+                        isClamping = false;
+                    });
+                }
             }
-        }
-    }, { passive: true });
-})();
+        }, {
+            passive: true
+        });
+    })();
 </script>
 <?= $this->endSection() ?>

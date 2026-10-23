@@ -30,7 +30,7 @@ class AdminApprovalsTest extends BaseCommand
             'user_id'    => 13,
             'name'       => 'Super Administrator',
             'username'   => 'superadmin',
-            'roles'      => ['super_admin']
+            'roles'      => ['super_administrator']
         ]);
 
         // 1. Uji ApprovalModel::getKpiMetrics()

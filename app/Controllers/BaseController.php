@@ -9,16 +9,6 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
-/**
- * Class BaseController
- *
- * BaseController provides a convenient place for loading components
- * and performing functions that are needed by all your controllers.
- * Extend this class in any new controllers:
- *     class Home extends BaseController
- *
- * For security be sure to declare any new methods as protected or private.
- */
 abstract class BaseController extends Controller
 {
     /**
@@ -38,21 +28,29 @@ abstract class BaseController extends Controller
     protected $helpers = ['url', 'text', 'form'];
 
     /**
-     * Be sure to declare properties for any property fetch you initialized.
-     * The creation of dynamic property is deprecated in PHP 8.2.
-     */
-    // protected $session;
-
-    /**
      * @return void
      */
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
         // Do Not Edit This Line
         parent::initController($request, $response, $logger);
+    }
 
-        // Preload any models, libraries, etc, here.
+    /**
+     * Validates that state-mutating requests (delete/toggle) either come via POST
+     * or via GET with a trusted internal same-origin Referer.
+     */
+    protected function validateSafeMutation(): ?ResponseInterface
+    {
+        $req = $this->request ?? service('request');
+        if (strtoupper($req->getMethod()) === 'GET') {
+            $referer = (string) $req->getServer('HTTP_REFERER');
+            $siteOrigin = rtrim(site_url(), '/');
+            if ($referer === '' || ! str_starts_with($referer, $siteOrigin)) {
+                return service('response')->setStatusCode(403)->setBody('Akses ditolak: Operasi mutasi data memerlukan metode POST yang aman atau Referer internal yang valid.');
+            }
+        }
 
-        // E.g.: $this->session = service('session');
+        return null;
     }
 }

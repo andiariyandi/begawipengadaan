@@ -207,7 +207,7 @@ User aktif dengan lebih dari satu konteks yang valid
   ditetapkan oleh WorkspaceNavigationService.
 ```
 
-Dashboard permission lebih spesifik daripada sekadar role `admin` atau `super_admin`. Sistem tetap harus memeriksa permission granular pada setiap route Back-office.
+Dashboard permission lebih spesifik daripada sekadar role `admin` atau `super_administrator`. Sistem tetap harus memeriksa permission granular pada setiap route Back-office.
 
 ---
 
@@ -375,7 +375,7 @@ dashboard/settings/
 ### Aturan
 
 - Dashboard Back-office memerlukan `auth`, `verifiedEmail`, `accountStatus:active`, `dashboardAccess`, dan permission granular sesuai tindakan.
-- Role `admin` atau `super_admin` tidak menggantikan pemeriksaan permission granular.
+- Role `admin` atau `super_administrator` tidak menggantikan pemeriksaan permission granular.
 - Dashboard Back-office tidak boleh merender view Workspace sebagai halaman Back-office.
 - Dashboard Back-office tidak boleh memakai asset dari `public/assets/main/`.
 - Aksi CRUD, approval, pengaturan, RBAC, export, dan operasi data restricted wajib memiliki audit context.

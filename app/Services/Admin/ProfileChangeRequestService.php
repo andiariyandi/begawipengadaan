@@ -206,6 +206,9 @@ class ProfileChangeRequestService
             );
 
             $db->transComplete();
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Gagal menerapkan transaksi perubahan profil.');
+            }
         } catch (\Throwable $e) {
             $db->transRollback();
             throw new \RuntimeException('Gagal menerapkan perubahan profil: ' . $e->getMessage(), 0, $e);

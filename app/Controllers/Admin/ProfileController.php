@@ -326,7 +326,7 @@ class ProfileController extends BaseController
             }
         }
 
-        // Fallback to primary admin account if session is absent (e.g. CLI runner or testing)
+        // Fallback to primary administrator account if session is absent (e.g. CLI runner or testing)
         $admin = $this->userModel->where('username', 'admin')->where('account_status', 'active')->first();
         if ($admin) {
             return $admin;

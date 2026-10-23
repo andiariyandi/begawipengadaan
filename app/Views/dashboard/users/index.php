@@ -98,8 +98,57 @@ $stats = $stats ?? [
     </div>
 
     <div class="card-body p-24">
+        <!-- Segmented Tab Navigation: Semua vs Antrean Verifikasi -->
+        <?php $currentTab = $currentTab ?? ($filters['tab'] ?? ''); ?>
+        <ul class="nav nav-tabs border-bottom mb-20 gap-2">
+            <li class="nav-item">
+                <a class="nav-link py-10 px-16 fw-semibold text-sm d-flex align-items-center gap-2 <?= empty($currentTab) && empty($filters['account_status']) ? 'active text-primary-600 border-primary-600' : 'text-secondary-light' ?>"
+                   href="<?= site_url('dashboard/akses/pengguna') ?>">
+                    <iconify-icon icon="solar:users-group-two-rounded-outline"></iconify-icon>
+                    <span>Semua Pengguna</span>
+                    <span class="badge bg-neutral-200 text-secondary-dark px-8 py-2 radius-4 text-xs"><?= number_format($stats['total'] ?? 0) ?></span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-10 px-16 fw-semibold text-sm d-flex align-items-center gap-2 <?= $currentTab === 'verification' || ($filters['account_status'] ?? '') === 'pending_verification' ? 'active text-primary-600 border-primary-600' : 'text-secondary-light' ?>"
+                   href="<?= site_url('dashboard/akses/pengguna?tab=verification') ?>">
+                    <iconify-icon icon="solar:shield-warning-outline" class="text-warning-main"></iconify-icon>
+                    <span>Antrean Verifikasi (Akun &amp; Profil)</span>
+                    <span class="badge bg-warning-500 text-white px-8 py-2 radius-4 text-xs"><?= number_format($stats['pending'] ?? 0) ?></span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-10 px-16 fw-semibold text-sm d-flex align-items-center gap-2 <?= ($filters['account_status'] ?? '') === 'active' && empty($currentTab) ? 'active text-primary-600 border-primary-600' : 'text-secondary-light' ?>"
+                   href="<?= site_url('dashboard/akses/pengguna?account_status=active') ?>">
+                    <iconify-icon icon="solar:user-check-rounded-outline" class="text-success-main"></iconify-icon>
+                    <span>Pengguna Aktif</span>
+                    <span class="badge bg-success-50 text-success-600 border border-success-200 px-8 py-2 radius-4 text-xs"><?= number_format($stats['active'] ?? 0) ?></span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link py-10 px-16 fw-semibold text-sm d-flex align-items-center gap-2 <?= in_array($filters['account_status'] ?? '', ['suspended', 'rejected'], true) ? 'active text-primary-600 border-primary-600' : 'text-secondary-light' ?>"
+                   href="<?= site_url('dashboard/akses/pengguna?account_status=suspended') ?>">
+                    <iconify-icon icon="solar:user-block-rounded-outline" class="text-danger-main"></iconify-icon>
+                    <span>Ditangguhkan / Ditolak</span>
+                    <span class="badge bg-danger-50 text-danger-600 border border-danger-200 px-8 py-2 radius-4 text-xs"><?= number_format($stats['suspended'] ?? 0) ?></span>
+                </a>
+            </li>
+        </ul>
+
+        <?php if ($currentTab === 'verification' || ($filters['account_status'] ?? '') === 'pending_verification'): ?>
+            <div class="alert alert-warning bg-warning-50 text-warning-900 border-warning-200 radius-8 p-16 mb-20 d-flex align-items-center gap-12">
+                <iconify-icon icon="solar:shield-check-outline" class="text-warning-600 text-2xl flex-shrink-0"></iconify-icon>
+                <div class="text-sm">
+                    <strong>Persetujuan Terpadu:</strong> Menyetujui akun pengguna di antrean ini akan secara otomatis memverifikasi dan mengesahkan profil pengguna (ASN / Penyedia / Akademisi / Umum) dalam satu proses sekaligus.
+                </div>
+            </div>
+        <?php endif; ?>
+
         <!-- Filter Form -->
         <form action="<?= site_url('dashboard/akses/pengguna') ?>" method="get" class="mb-20">
+            <?php if (! empty($currentTab)): ?>
+                <input type="hidden" name="tab" value="<?= esc($currentTab) ?>">
+            <?php endif; ?>
             <div class="row g-12 align-items-end">
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Pencarian</label>
@@ -244,61 +293,119 @@ $stats = $stats ?? [
                                 <td><?= esc(date('d M Y', strtotime($user['created_at'] ?? 'now'))) ?></td>
                                 <td class="text-center"><?= view('dashboard/components/status_badge', ['status' => $user['account_status'] ?? 'draft']) ?></td>
                                 <td class="text-center">
-                                    <div class="dropdown">
-                                        <button type="button" class="btn btn-outline-neutral-200 btn-sm radius-8 px-8 py-4 text-secondary-light" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <iconify-icon icon="solar:menu-dots-bold" class="text-lg"></iconify-icon>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm radius-8 p-8 border">
-                                            <li>
-                                                <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id']) ?>">
-                                                    <iconify-icon icon="solar:eye-outline" class="text-lg text-primary-600"></iconify-icon>
-                                                    <span>Lihat Detail</span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id'] . '/ubah') ?>">
-                                                    <iconify-icon icon="solar:pen-new-square-outline" class="text-lg text-warning-main"></iconify-icon>
-                                                    <span>Ubah Data</span>
-                                                </a>
-                                            </li>
-                                            <?php if (($user['account_status'] ?? '') === 'active'): ?>
-                                                <li><hr class="dropdown-divider my-4"></li>
+                                    <div class="d-flex align-items-center justify-content-center gap-2">
+                                        <?php if (in_array($user['account_status'] ?? '', ['pending_approval', 'pending_verification', 'submitted', 'revision_required'], true)): ?>
+                                            <button type="button" class="btn btn-xs btn-success-600 radius-6 px-10 py-5 d-inline-flex align-items-center gap-1 text-xs"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#confirmationActionModal"
+                                                    data-action="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id'] . '/aktifkan') ?>"
+                                                    data-method="POST"
+                                                    data-title="Setujui Akun &amp; Profil"
+                                                    data-message="Setujui akun <?= esc($user['name'] ?? $user['username']) ?> beserta verifikasi profilnya?"
+                                                    data-btn-text="Ya, Setujui"
+                                                    data-btn-class="btn-success-600"
+                                                    data-icon="solar:user-check-rounded-bold"
+                                                    data-icon-color="success"
+                                                    title="Setujui akun dan verifikasi profil dalam satu proses">
+                                                <iconify-icon icon="solar:check-circle-outline"></iconify-icon>
+                                                <span>Setujui</span>
+                                            </button>
+                                        <?php endif; ?>
+
+                                        <div class="dropdown">
+                                            <button type="button" class="btn btn-outline-neutral-200 btn-sm radius-8 px-8 py-4 text-secondary-light" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <iconify-icon icon="solar:menu-dots-bold" class="text-lg"></iconify-icon>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm radius-8 p-8 border">
                                                 <li>
-                                                    <button type="button" class="dropdown-item px-12 py-8 radius-4 text-danger-600 bg-hover-danger-100 d-flex align-items-center gap-2 text-sm w-100 text-start border-0 bg-transparent"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#confirmationActionModal"
-                                                            data-action="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id'] . '/suspend') ?>"
-                                                            data-method="POST"
-                                                            data-title="Tangguhkan Akun Pengguna"
-                                                            data-message="Apakah Anda yakin ingin menangguhkan akun <?= esc($user['name'] ?? $user['username']) ?>? Pengguna tidak akan dapat masuk ke sistem."
-                                                            data-btn-text="Ya, Tangguhkan"
-                                                            data-btn-class="btn-danger-600"
-                                                            data-icon="solar:user-block-rounded-bold"
-                                                            data-icon-color="danger">
-                                                        <iconify-icon icon="solar:user-block-rounded-outline" class="text-lg"></iconify-icon>
-                                                        <span>Tangguhkan</span>
-                                                    </button>
+                                                    <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id']) ?>">
+                                                        <iconify-icon icon="solar:eye-outline" class="text-lg text-primary-600"></iconify-icon>
+                                                        <span>Lihat Detail</span>
+                                                    </a>
                                                 </li>
-                                            <?php elseif (($user['account_status'] ?? '') === 'suspended'): ?>
-                                                <li><hr class="dropdown-divider my-4"></li>
                                                 <li>
-                                                    <button type="button" class="dropdown-item px-12 py-8 radius-4 text-success-600 bg-hover-success-100 d-flex align-items-center gap-2 text-sm w-100 text-start border-0 bg-transparent"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#confirmationActionModal"
-                                                            data-action="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id'] . '/activate') ?>"
-                                                            data-method="POST"
-                                                            data-title="Aktifkan Akun Pengguna"
-                                                            data-message="Apakah Anda yakin ingin mengaktifkan kembali akun <?= esc($user['name'] ?? $user['username']) ?>?"
-                                                            data-btn-text="Ya, Aktifkan"
-                                                            data-btn-class="btn-success-600"
-                                                            data-icon="solar:user-check-rounded-bold"
-                                                            data-icon-color="success">
-                                                        <iconify-icon icon="solar:user-check-rounded-outline" class="text-lg"></iconify-icon>
-                                                        <span>Aktifkan</span>
-                                                    </button>
+                                                    <a class="dropdown-item px-12 py-8 radius-4 text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2 text-sm" href="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id'] . '/ubah') ?>">
+                                                        <iconify-icon icon="solar:pen-new-square-outline" class="text-lg text-warning-main"></iconify-icon>
+                                                        <span>Ubah Data</span>
+                                                    </a>
                                                 </li>
-                                            <?php endif; ?>
-                                        </ul>
+                                                <?php if (in_array($user['account_status'] ?? '', ['pending_approval', 'pending_verification', 'submitted', 'revision_required'], true)): ?>
+                                                    <li><hr class="dropdown-divider my-4"></li>
+                                                    <li>
+                                                        <button type="button" class="dropdown-item px-12 py-8 radius-4 text-success-600 bg-hover-success-100 d-flex align-items-center gap-2 text-sm w-100 text-start border-0 bg-transparent"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#confirmationActionModal"
+                                                                data-action="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id'] . '/aktifkan') ?>"
+                                                                data-method="POST"
+                                                                data-title="Setujui Akun &amp; Profil Pengguna"
+                                                                data-message="Apakah Anda yakin ingin menyetujui akun dan berkas profil <?= esc($user['name'] ?? $user['username']) ?>? Status akun akan langsung aktif dan profil terverifikasi."
+                                                                data-btn-text="Ya, Setujui Akun & Profil"
+                                                                data-btn-class="btn-success-600"
+                                                                data-icon="solar:user-check-rounded-bold"
+                                                                data-icon-color="success">
+                                                            <iconify-icon icon="solar:check-circle-outline" class="text-lg"></iconify-icon>
+                                                            <span>Setujui Akun &amp; Profil</span>
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button type="button" class="dropdown-item px-12 py-8 radius-4 text-danger-600 bg-hover-danger-100 d-flex align-items-center gap-2 text-sm w-100 text-start border-0 bg-transparent"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#confirmationActionModal"
+                                                                data-action="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id'] . '/tolak') ?>"
+                                                                data-method="POST"
+                                                                data-title="Tolak Verifikasi Akun &amp; Profil"
+                                                                data-message="Apakah Anda yakin ingin menolak akun <?= esc($user['name'] ?? $user['username']) ?> beserta berkas profilnya?"
+                                                                data-btn-text="Ya, Tolak"
+                                                                data-btn-class="btn-danger-600"
+                                                                data-require-input="true"
+                                                                data-input-label="Alasan Penolakan *"
+                                                                data-input-name="reason"
+                                                                data-input-placeholder="Tulis alasan penolakan..."
+                                                                data-icon="solar:close-circle-bold"
+                                                                data-icon-color="danger">
+                                                            <iconify-icon icon="solar:close-circle-outline" class="text-lg"></iconify-icon>
+                                                            <span>Tolak Akun &amp; Profil</span>
+                                                        </button>
+                                                    </li>
+                                                <?php elseif (($user['account_status'] ?? '') === 'active'): ?>
+                                                    <li><hr class="dropdown-divider my-4"></li>
+                                                    <li>
+                                                        <button type="button" class="dropdown-item px-12 py-8 radius-4 text-danger-600 bg-hover-danger-100 d-flex align-items-center gap-2 text-sm w-100 text-start border-0 bg-transparent"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#confirmationActionModal"
+                                                                data-action="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id'] . '/suspend') ?>"
+                                                                data-method="POST"
+                                                                data-title="Tangguhkan Akun Pengguna"
+                                                                data-message="Apakah Anda yakin ingin menangguhkan akun <?= esc($user['name'] ?? $user['username']) ?>? Pengguna tidak akan dapat masuk ke sistem."
+                                                                data-btn-text="Ya, Tangguhkan"
+                                                                data-btn-class="btn-danger-600"
+                                                                data-icon="solar:user-block-rounded-bold"
+                                                                data-icon-color="danger">
+                                                            <iconify-icon icon="solar:user-block-rounded-outline" class="text-lg"></iconify-icon>
+                                                            <span>Tangguhkan</span>
+                                                        </button>
+                                                    </li>
+                                                <?php elseif (($user['account_status'] ?? '') === 'suspended'): ?>
+                                                    <li><hr class="dropdown-divider my-4"></li>
+                                                    <li>
+                                                        <button type="button" class="dropdown-item px-12 py-8 radius-4 text-success-600 bg-hover-success-100 d-flex align-items-center gap-2 text-sm w-100 text-start border-0 bg-transparent"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#confirmationActionModal"
+                                                                data-action="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id'] . '/activate') ?>"
+                                                                data-method="POST"
+                                                                data-title="Aktifkan Akun Pengguna"
+                                                                data-message="Apakah Anda yakin ingin mengaktifkan kembali akun <?= esc($user['name'] ?? $user['username']) ?>?"
+                                                                data-btn-text="Ya, Aktifkan"
+                                                                data-btn-class="btn-success-600"
+                                                                data-icon="solar:user-check-rounded-bold"
+                                                                data-icon-color="success">
+                                                            <iconify-icon icon="solar:user-check-rounded-outline" class="text-lg"></iconify-icon>
+                                                            <span>Aktifkan</span>
+                                                        </button>
+                                                    </li>
+                                                <?php endif; ?>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

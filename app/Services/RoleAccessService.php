@@ -19,7 +19,7 @@ class RoleAccessService
     public function adminAllowed(array $roles): bool
     {
         return count(array_intersect(
-            ['admin', 'super_admin'],
+            ['administrator', 'super_administrator'],
             $roles
         )) > 0;
     }

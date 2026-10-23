@@ -97,7 +97,7 @@ class RegulationUploadSizeTest extends BaseCommand
                 'isLoggedIn' => true,
                 'email'      => $admin['email'] ?? 'admin@begawi.test',
                 'name'       => $admin['name'] ?? 'Administrator',
-                'roles'      => ['admin', 'super_admin'],
+                'roles'      => ['administrator', 'super_administrator'],
             ]);
 
             $controller = new \App\Controllers\Admin\RegulationController();

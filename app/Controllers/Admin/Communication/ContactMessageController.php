@@ -55,7 +55,7 @@ class ContactMessageController extends BaseController
             $msg['priority']     = $notes['priority'] ?? 'normal';
             $msg['assigned_to']  = $notes['assigned_to'] ?? null;
             $msg['threads_count'] = count($notes['threads'] ?? []);
-            
+
             // Check if sender is a registered user
             $regUser = $this->db->table('users')->select('id, name, profile_type, account_status')->where('email', $msg['sender_email'])->get()->getRowArray();
             $msg['is_registered'] = ! empty($regUser);
@@ -112,7 +112,7 @@ class ContactMessageController extends BaseController
             $notes['logs'][] = [
                 'time'       => date('Y-m-d H:i:s'),
                 'actor'      => (string) (session()->get('name') ?: 'Administrator'),
-                'actor_role' => 'admin',
+                'actor_role' => 'administrator',
                 'action'     => 'Tiket Dibuka',
                 'detail'     => 'Status tiket otomatis diperbarui menjadi Sudah Dibaca (Read).',
             ];
@@ -131,7 +131,7 @@ class ContactMessageController extends BaseController
             ->where('email', $message['sender_email'])
             ->get()->getRowArray();
 
-        // Get admin / operator staff list for assignment
+        // Get administrator / operator staff list for assignment
         $staffUsers = $this->db->table('users')
             ->select('id, name, email, username')
             ->where('account_status', 'active')
@@ -169,7 +169,7 @@ class ContactMessageController extends BaseController
         $actorName = (string) (session()->get('name') ?: 'Petugas Helpdesk PBJ');
 
         $threadMessage = [
-            'sender_type' => 'admin',
+            'sender_type' => 'administrator',
             'sender_name' => $actorName,
             'sender_id'   => $actorId,
             'channel'     => $channel, // 'portal', 'email', 'whatsapp', 'internal'
@@ -243,7 +243,7 @@ class ContactMessageController extends BaseController
         $newStatus   = trim((string) $this->request->getPost('status'));
         $priority    = trim((string) $this->request->getPost('priority'));
         $assignedTo  = trim((string) $this->request->getPost('assigned_to'));
-        $internalNote= trim((string) $this->request->getPost('admin_notes'));
+        $internalNote = trim((string) $this->request->getPost('admin_notes'));
 
         $meta = [
             'status'        => $newStatus,
@@ -261,6 +261,9 @@ class ContactMessageController extends BaseController
 
     public function delete($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $message = $this->messageModel->find($id);
         if ($message) {
             $this->messageModel->delete($id);

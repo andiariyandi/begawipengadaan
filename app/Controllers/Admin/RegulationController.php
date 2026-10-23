@@ -580,7 +580,7 @@ class RegulationController extends BaseController
                 'description'  => $post['description'] ?? null,
                 'icon_class'   => ! empty($post['icon_class']) ? $post['icon_class'] : 'solar:document-outline',
                 'icon_file_id' => $iconFileId,
-                'is_active'    => isset($post['is_active']) ? 1 : 1,
+                'is_active'    => isset($post['is_active']) ? 1 : 0,
             ], true);
             (new AuditService())->log((int) session()->get('user_id'), 'regulation_category.create', 'regulation_categories', 'regulation_category', $id);
             return redirect()->to('dashboard/regulasi/kategori/' . $id)->with('success', 'Kategori dibuat.');

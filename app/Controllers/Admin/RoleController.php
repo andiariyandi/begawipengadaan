@@ -83,7 +83,12 @@ class RoleController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         $actorId = (int) session()->get('user_id');
-        $id = (new RoleManagementService())->createRole($this->request->getPost(), $actorId);
+        $service = new RoleManagementService();
+        $id = $service->createRole($this->request->getPost(), $actorId);
+        $permissionIds = (array) $this->request->getPost('permission_ids');
+        if ($permissionIds !== []) {
+            $service->syncRolePermissions($id, array_map('intval', $permissionIds), $actorId);
+        }
         return redirect()->to('dashboard/akses/role/' . $id)->with('success', 'Role dibuat.');
     }
 
@@ -190,7 +195,7 @@ class RoleController extends BaseController
         $matrix = [];
         foreach ($roles as $role) {
             $rows = $db->table('role_permissions')->where('role_id', $role['id'])->get()->getResultArray();
-            $matrix[$role['id']] = array_column($rows, 'permission_id');
+            $matrix[$role['id']] = array_map('intval', array_column($rows, 'permission_id'));
         }
 
         return view('dashboard/access/role_permission_matrix', [
@@ -213,10 +218,17 @@ class RoleController extends BaseController
         $service = new RoleManagementService();
         $payload = (array) $this->request->getPost('matrix');
 
+        // Proteksi mutlak Super Administrator agar tidak kehilangan izin
+        $superAdminRole = db_connect()->table('roles')->where('key', 'super_administrator')->get()->getRowArray();
+        if ($superAdminRole) {
+            $allPerms = db_connect()->table('permissions')->get()->getResultArray();
+            $payload[$superAdminRole['id']] = array_map('intval', array_column($allPerms, 'id'));
+        }
+
         foreach ($payload as $roleId => $permissionIds) {
             $service->syncRolePermissions((int) $roleId, array_map('intval', (array) $permissionIds), $actorId);
         }
 
-        return redirect()->to('dashboard/akses/role/matrix')->with('success', 'Matrix disinkronkan.');
+        return redirect()->to('dashboard/akses/role/matrix')->with('success', 'Matriks hak akses berhasil disinkronkan.');
     }
 }

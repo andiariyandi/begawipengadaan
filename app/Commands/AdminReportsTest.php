@@ -28,7 +28,7 @@ class AdminReportsTest extends BaseCommand
             'user_id'    => 1,
             'name'       => 'Administrator Test',
             'username'   => 'admin_test',
-            'roles'      => ['super_admin']
+            'roles'      => ['super_administrator']
         ]);
 
         // 1. Uji ReportAnalyticsService::getLearningReport()

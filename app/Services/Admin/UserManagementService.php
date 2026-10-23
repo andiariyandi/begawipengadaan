@@ -21,8 +21,15 @@ class UserManagementService
 {
     public const ALLOWED_PROFILE_TYPES = ['asn', 'provider', 'academic', 'public'];
     public const ALLOWED_STATUSES = [
-        'draft', 'submitted', 'pending_verification', 'revision_required',
-        'active', 'rejected', 'inactive', 'suspended', 'archived',
+        'draft',
+        'submitted',
+        'pending_verification',
+        'revision_required',
+        'active',
+        'rejected',
+        'inactive',
+        'suspended',
+        'archived',
     ];
 
     public function __construct(
@@ -33,7 +40,7 @@ class UserManagementService
     ) {}
 
     /**
-     * Create or update a user record (admin-side, not self-registration).
+     * Create or update a user record (administrator-side, not self-registration).
      *
      * @param array $data validated input (username, email, name, profile_type,
      *                    phone, password_hash, account_status, optional role_id)
@@ -79,11 +86,11 @@ class UserManagementService
                 throw new \RuntimeException($errs ? implode(', ', $errs) : 'Gagal memperbarui data pengguna.');
             }
             if ($fromStatus !== null && $fromStatus !== $account['account_status']) {
-                $this->recordTransition('user', $userId, $fromStatus, $account['account_status'], 'admin.user_update', $actorId);
+                $this->recordTransition('user', $userId, $fromStatus, $account['account_status'], 'administrator.user_update', $actorId);
             }
         }
 
-        // Role assignment (single-role for admin-side form; multi-role supported via direct DB).
+        // Role assignment (single-role for administrator-side form; multi-role supported via direct DB).
         if (isset($data['role_id'])) {
             $roleId = (int) $data['role_id'];
             if ($roleId > 0) {
@@ -199,11 +206,101 @@ class UserManagementService
     }
 
     /**
-     * Activate helper.
+     * Activate / Approve helper.
+     * Mengaktifkan akun pengguna sekaligus menyetujui (approve) seluruh berkas verifikasi profil yang pending.
      */
     public function activate(int $userId, ?int $actorId = null, ?string $reason = null): void
     {
         $this->updateStatus($userId, 'active', $actorId, $reason);
+
+        $db = db_connect();
+        $now = date('Y-m-d H:i:s');
+
+        // Jika email_verified_at masih kosong, tandai terverifikasi agar akun bisa langsung aktif lancar
+        $user = $this->users->find($userId);
+        if ($user && empty($user['email_verified_at'])) {
+            $this->users->update($userId, [
+                'email_verified_at' => $now,
+            ]);
+        }
+
+        // APPROVE AKUN ARTINYA APPROVE PROFILE JUGA:
+        // Setujui seluruh antrean verifikasi profil pengguna ini
+        $pendingVerifications = $db->table('profile_verifications')
+            ->where('user_id', $userId)
+            ->whereIn('status', ['pending', 'in_review', 'revision_required', 'submitted'])
+            ->get()->getResultArray();
+
+        foreach ($pendingVerifications as $pv) {
+            $db->table('profile_verifications')->where('id', $pv['id'])->update([
+                'status'      => 'approved',
+                'reviewed_by' => $actorId,
+                'reviewed_at' => $now,
+                'notes'       => $reason ?: 'Disetujui bersamaan dengan persetujuan akun pengguna.',
+                'updated_at'  => $now,
+            ]);
+
+            $this->recordTransition(
+                'profile_verification',
+                (int) $pv['id'],
+                (string) ($pv['status'] ?? 'pending'),
+                'approved',
+                'profile_verification.approve',
+                $actorId,
+                $reason ?: 'Persetujuan akun & profil terpadu',
+                $reason ?: 'Disetujui bersamaan dengan aktivasi akun.',
+            );
+
+            $this->audit->log($actorId, 'profile_verification.approve', 'profile_verifications', 'profile_verification', (int) $pv['id']);
+        }
+
+        // Tandai kelengkapan profil pada tabel user_profiles jika belum lengkap
+        $userProfile = $db->table('user_profiles')->where('user_id', $userId)->get()->getRowArray();
+        if ($userProfile && ($userProfile['profile_completion_status'] ?? '') !== 'complete') {
+            $db->table('user_profiles')->where('user_id', $userId)->update([
+                'profile_completion_status' => 'complete',
+                'updated_at'                => $now,
+            ]);
+        }
+    }
+
+    /**
+     * Reject helper — menolak akun pengguna dan seluruh berkas verifikasi profil yang pending.
+     */
+    public function reject(int $userId, string $reason, ?int $actorId = null): void
+    {
+        $this->updateStatus($userId, 'rejected', $actorId, $reason);
+
+        $db = db_connect();
+        $now = date('Y-m-d H:i:s');
+
+        $pendingVerifications = $db->table('profile_verifications')
+            ->where('user_id', $userId)
+            ->whereIn('status', ['pending', 'in_review', 'revision_required', 'submitted'])
+            ->get()->getResultArray();
+
+        foreach ($pendingVerifications as $pv) {
+            $db->table('profile_verifications')->where('id', $pv['id'])->update([
+                'status'      => 'rejected',
+                'reviewed_by' => $actorId,
+                'reviewed_at' => $now,
+                'notes'       => $reason,
+                'updated_at'  => $now,
+            ]);
+
+            $this->recordTransition(
+                'profile_verification',
+                (int) $pv['id'],
+                (string) ($pv['status'] ?? 'pending'),
+                'rejected',
+                'profile_verification.reject',
+                $actorId,
+                $reason,
+                $reason,
+            );
+
+            $this->audit->log($actorId, 'profile_verification.reject', 'profile_verifications', 'profile_verification', (int) $pv['id']);
+        }
     }
 
     public function recordTransition(

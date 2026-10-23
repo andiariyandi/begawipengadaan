@@ -279,7 +279,7 @@ class EnrollmentController extends BaseController
         }
 
         $roles = (array) session()->get('roles');
-        if (in_array('super_admin', $roles, true) || in_array('admin', $roles, true) || in_array('super_administrator', $roles, true) || in_array('administrator', $roles, true) || in_array('operator', $roles, true)) {
+        if (in_array('super_administrator', $roles, true) || in_array('administrator', $roles, true) || in_array('operator', $roles, true)) {
             return;
         }
 

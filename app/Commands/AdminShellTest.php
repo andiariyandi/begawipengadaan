@@ -88,7 +88,7 @@ class AdminShellTest extends BaseCommand
                 'user_id'    => 1,
                 'name'       => 'Admin Test Pengadaan',
                 'username'   => 'admin_test',
-                'roles'      => ['super_admin']
+                'roles'      => ['super_administrator']
             ]);
             $controller = new \App\Controllers\Admin\DashboardController();
             $output = $controller->index();

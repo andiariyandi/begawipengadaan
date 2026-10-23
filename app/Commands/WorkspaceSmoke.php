@@ -116,7 +116,7 @@ class WorkspaceSmoke extends BaseCommand
                 'Audit Aktivitas',
                 'Dashboard WowDash',
             ],
-            'super_admin' => [
+            'super_administrator' => [
                 'Pusat Eksekutif',
                 'Pusat Operasional',
                 'Antrean Approval',
@@ -228,108 +228,108 @@ class WorkspaceSmoke extends BaseCommand
             $db = db_connect();
             $hasSampleClass = $db->table('learning_classes')->where('id', 4)->countAllResults() > 0;
             if ($hasSampleClass) {
-            // Test with a user who is not enrolled (e.g. user 9999)
-            $unregisteredState = $controller->resolveClassLearningState(4, 99999);
-            if ($unregisteredState['stateCode'] === 'not_enrolled' && $unregisteredState['cta']['type'] === 'enroll') {
-                CLI::write(" [PASS] State 'not_enrolled': Correct CTA '[Daftar Kelas Ini]'", 'green');
-                $passed++;
-            } else {
-                CLI::error(" [FAIL] State 'not_enrolled' failed: got " . $unregisteredState['stateCode']);
-                $failed++;
-            }
+                // Test with a user who is not enrolled (e.g. user 9999)
+                $unregisteredState = $controller->resolveClassLearningState(4, 99999);
+                if ($unregisteredState['stateCode'] === 'not_enrolled' && $unregisteredState['cta']['type'] === 'enroll') {
+                    CLI::write(" [PASS] State 'not_enrolled': Correct CTA '[Daftar Kelas Ini]'", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] State 'not_enrolled' failed: got " . $unregisteredState['stateCode']);
+                    $failed++;
+                }
 
-            // Test on user 36 (enrolled active in class 4 with pre-test unfinished)
-            $activeState = $controller->resolveClassLearningState(4, 36);
-            $hasPreTest = $activeState['pre_test']['exists'] === true;
-            $preTestBlocks = $activeState['stateCode'] === 'pre_test_required';
-            $firstModuleLocked = ! $activeState['modules'][0]['is_unlocked'];
+                // Test on user 36 (enrolled active in class 4 with pre-test unfinished)
+                $activeState = $controller->resolveClassLearningState(4, 36);
+                $hasPreTest = $activeState['pre_test']['exists'] === true;
+                $preTestBlocks = $activeState['stateCode'] === 'pre_test_required';
+                $firstModuleLocked = ! $activeState['modules'][0]['is_unlocked'];
 
-            if ($hasPreTest && $preTestBlocks && $firstModuleLocked) {
-                CLI::write(" [PASS] State 'pre_test_required': Pre-test blocks Module 1 until completed. CTA '[Mulai Pre-Test]'", 'green');
-                $passed++;
-            } else {
-                CLI::error(" [FAIL] Pre-test gate failed (hasPreTest: {$hasPreTest}, preTestBlocks: {$preTestBlocks}, mod1Locked: {$firstModuleLocked})");
-                $failed++;
-            }
+                if ($hasPreTest && $preTestBlocks && $firstModuleLocked) {
+                    CLI::write(" [PASS] State 'pre_test_required': Pre-test blocks Module 1 until completed. CTA '[Mulai Pre-Test]'", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] Pre-test gate failed (hasPreTest: {$hasPreTest}, preTestBlocks: {$preTestBlocks}, mod1Locked: {$firstModuleLocked})");
+                    $failed++;
+                }
 
-            // Test study() dispatch when pre-test is required (should return RedirectResponse without TypeError)
-            $session->set(['isLoggedIn' => true, 'user_id' => 36, 'roles' => ['participant']]);
-            $studyResult = $controller->study('4');
-            if ($studyResult instanceof \CodeIgniter\HTTP\RedirectResponse) {
-                CLI::write(" [PASS] Controller study(): Gracefully returns RedirectResponse when navigating to pre-test gate", 'green');
-                $passed++;
-            } else {
-                CLI::error(" [FAIL] Controller study(): Expected RedirectResponse, got " . (is_object($studyResult) ? get_class($studyResult) : gettype($studyResult)));
-                $failed++;
-            }
+                // Test study() dispatch when pre-test is required (should return RedirectResponse without TypeError)
+                $session->set(['isLoggedIn' => true, 'user_id' => 36, 'roles' => ['participant']]);
+                $studyResult = $controller->study('4');
+                if ($studyResult instanceof \CodeIgniter\HTTP\RedirectResponse) {
+                    CLI::write(" [PASS] Controller study(): Gracefully returns RedirectResponse when navigating to pre-test gate", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] Controller study(): Expected RedirectResponse, got " . (is_object($studyResult) ? get_class($studyResult) : gettype($studyResult)));
+                    $failed++;
+                }
 
-            // Check trainers retrieval
-            $hasTrainers = ! empty($activeState['trainers']);
-            if ($hasTrainers) {
-                CLI::write(" [PASS] Class Trainers: Successfully retrieved active trainers for class", 'green');
-                $passed++;
-            } else {
-                CLI::error(" [FAIL] Class Trainers: No trainers found for class 4");
-                $failed++;
-            }
+                // Check trainers retrieval
+                $hasTrainers = ! empty($activeState['trainers']);
+                if ($hasTrainers) {
+                    CLI::write(" [PASS] Class Trainers: Successfully retrieved active trainers for class", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] Class Trainers: No trainers found for class 4");
+                    $failed++;
+                }
 
-            // Test detail_kelas view rendering
-            $detailHtml = view('main/workspace/pages/detail_kelas', [
-                'state'        => $activeState,
-                'classContext' => $activeState['class'],
-                'trainers'     => $activeState['trainers'],
-                'enrollment'   => $activeState['enrollment'],
-                'modules'      => $activeState['modules'],
-                'cta'          => $activeState['cta'],
-            ]);
+                // Test detail_kelas view rendering
+                $detailHtml = view('main/workspace/pages/detail_kelas', [
+                    'state'        => $activeState,
+                    'classContext' => $activeState['class'],
+                    'trainers'     => $activeState['trainers'],
+                    'enrollment'   => $activeState['enrollment'],
+                    'modules'      => $activeState['modules'],
+                    'cta'          => $activeState['cta'],
+                ]);
 
-            $hasHero = str_contains($detailHtml, 'Passing Grade') && str_contains($detailHtml, 'Bobot Quiz');
-            $hasCtaBanner = str_contains($detailHtml, 'Mulai Pre-Test');
-            $hasRoadmap = str_contains($detailHtml, 'Silabus & Roadmap Pembelajaran');
+                $hasHero = str_contains($detailHtml, 'Passing Grade') && str_contains($detailHtml, 'Bobot Quiz');
+                $hasCtaBanner = str_contains($detailHtml, 'Mulai Pre-Test');
+                $hasRoadmap = str_contains($detailHtml, 'Silabus & Roadmap Pembelajaran');
 
-            if ($hasHero && $hasCtaBanner && $hasRoadmap) {
-                CLI::write(" [PASS] View detail_kelas.php: Class overview, trainer, dynamic state CTA banner, and roadmap rendered OK", 'green');
-                $passed++;
-            } else {
-                CLI::error(" [FAIL] View detail_kelas.php rendering verification mismatch");
-                $failed++;
-            }
+                if ($hasHero && $hasCtaBanner && $hasRoadmap) {
+                    CLI::write(" [PASS] View detail_kelas.php: Class overview, trainer, dynamic state CTA banner, and roadmap rendered OK", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] View detail_kelas.php rendering verification mismatch");
+                    $failed++;
+                }
 
-            // Test belajar view rendering
-            $learningHtml = view('main/workspace/pages/belajar', [
-                'state'        => $activeState,
-                'activeType'   => 'lesson',
-                'activeItem'   => $activeState['modules'][0]['lessons'][0] ?? null,
-                'classContext' => $activeState['class'],
-                'trainers'     => $activeState['trainers'],
-                'enrollment'   => $activeState['enrollment'],
-                'modules'      => $activeState['modules'],
-            ]);
+                // Test belajar view rendering
+                $learningHtml = view('main/workspace/pages/belajar', [
+                    'state'        => $activeState,
+                    'activeType'   => 'lesson',
+                    'activeItem'   => $activeState['modules'][0]['lessons'][0] ?? null,
+                    'classContext' => $activeState['class'],
+                    'trainers'     => $activeState['trainers'],
+                    'enrollment'   => $activeState['enrollment'],
+                    'modules'      => $activeState['modules'],
+                ]);
 
-            $hasLearningHeader = str_contains($learningHtml, 'learning-header');
-            $hasLearningSidebar = str_contains($learningHtml, 'learning-sidebar') && str_contains($learningHtml, 'Kurikulum Kelas');
-            $hasActionBtn = str_contains($learningHtml, 'Tandai Selesai & Lanjut') || str_contains($learningHtml, 'Materi Ini Telah Selesai');
-            $hasHiddenSidebar = str_contains($learningHtml, 'col-12 workspace-content') && ! str_contains($learningHtml, 'workspace-sidebar-wrap');
-            $hasStageNavigation = str_contains($learningHtml, 'learning-nav-btn') && str_contains($learningHtml, 'Kembali ke Kelas');
+                $hasLearningHeader = str_contains($learningHtml, 'learning-header');
+                $hasLearningSidebar = str_contains($learningHtml, 'learning-sidebar') && str_contains($learningHtml, 'Kurikulum Kelas');
+                $hasActionBtn = str_contains($learningHtml, 'Tandai Selesai & Lanjut') || str_contains($learningHtml, 'Materi Ini Telah Selesai');
+                $hasHiddenSidebar = str_contains($learningHtml, 'col-12 workspace-content') && ! str_contains($learningHtml, 'workspace-sidebar-wrap');
+                $hasStageNavigation = str_contains($learningHtml, 'learning-nav-btn') && str_contains($learningHtml, 'Kembali ke Kelas');
 
-            if ($hasLearningHeader && $hasLearningSidebar && $hasActionBtn && $hasHiddenSidebar && $hasStageNavigation) {
-                CLI::write(" [PASS] View belajar.php: Full Learning Layout (Sidebar Hidden), Modular Tree, and Step-by-Step Navigation OK", 'green');
-                $passed++;
-            } else {
-                CLI::error(" [FAIL] View belajar.php rendering verification mismatch: header=" . ($hasLearningHeader ? 'Y' : 'N') . " sidebar=" . ($hasLearningSidebar ? 'Y' : 'N') . " action=" . ($hasActionBtn ? 'Y' : 'N') . " hiddenSidebar=" . ($hasHiddenSidebar ? 'Y' : 'N') . " stageNav=" . ($hasStageNavigation ? 'Y' : 'N'));
-                $failed++;
-            }
+                if ($hasLearningHeader && $hasLearningSidebar && $hasActionBtn && $hasHiddenSidebar && $hasStageNavigation) {
+                    CLI::write(" [PASS] View belajar.php: Full Learning Layout (Sidebar Hidden), Modular Tree, and Step-by-Step Navigation OK", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] View belajar.php rendering verification mismatch: header=" . ($hasLearningHeader ? 'Y' : 'N') . " sidebar=" . ($hasLearningSidebar ? 'Y' : 'N') . " action=" . ($hasActionBtn ? 'Y' : 'N') . " hiddenSidebar=" . ($hasHiddenSidebar ? 'Y' : 'N') . " stageNav=" . ($hasStageNavigation ? 'Y' : 'N'));
+                    $failed++;
+                }
 
-            // Test on user 31 (enrolled in class 3 - completed/passed learning)
-            $completedState = $controller->resolveClassLearningState(3, 31);
-            $isComplete = in_array($completedState['stateCode'], ['certificate_issued', 'waiting_certificate', 'completed_passed'], true);
-            if ($isComplete && $completedState['is_passed']) {
-                CLI::write(" [PASS] Graduation & Certificate Pipeline: User 31 marked completed/passed with State '{$completedState['stateCode']}'", 'green');
-                $passed++;
-            } else {
-                CLI::error(" [FAIL] Graduation state check failed: got " . $completedState['stateCode']);
-                $failed++;
-            }
+                // Test on user 31 (enrolled in class 3 - completed/passed learning)
+                $completedState = $controller->resolveClassLearningState(3, 31);
+                $isComplete = in_array($completedState['stateCode'], ['certificate_issued', 'waiting_certificate', 'completed_passed'], true);
+                if ($isComplete && $completedState['is_passed']) {
+                    CLI::write(" [PASS] Graduation & Certificate Pipeline: User 31 marked completed/passed with State '{$completedState['stateCode']}'", 'green');
+                    $passed++;
+                } else {
+                    CLI::error(" [FAIL] Graduation state check failed: got " . $completedState['stateCode']);
+                    $failed++;
+                }
             } else {
                 CLI::write(" [SKIP] Modular Participant Learning Journey: Kelas #4 belum diisi pada database rilis v.1", 'yellow');
             }
@@ -418,7 +418,6 @@ class WorkspaceSmoke extends BaseCommand
                     $failed++;
                 }
             }
-
         } catch (\Throwable $e) {
             CLI::error(" [ERR] Modular Learning State error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
             $failed++;
@@ -475,7 +474,7 @@ class WorkspaceSmoke extends BaseCommand
                     [
                         'type'      => 'enrollment',
                         'user_name' => 'Budi Santoso',
-                        'class_name'=> 'Pengantar PBJ',
+                        'class_name' => 'Pengantar PBJ',
                         'time'      => date('Y-m-d H:i:s'),
                     ]
                 ],
@@ -551,11 +550,11 @@ class WorkspaceSmoke extends BaseCommand
             ]);
 
             $hasTabs = str_contains($detailClassHtml, 'Overview') &&
-                       str_contains($detailClassHtml, 'Materi & Modul') &&
-                       str_contains($detailClassHtml, 'Peserta') &&
-                       str_contains($detailClassHtml, 'Assessment') &&
-                       str_contains($detailClassHtml, 'Assignment') &&
-                       str_contains($detailClassHtml, 'Progress');
+                str_contains($detailClassHtml, 'Materi & Modul') &&
+                str_contains($detailClassHtml, 'Peserta') &&
+                str_contains($detailClassHtml, 'Assessment') &&
+                str_contains($detailClassHtml, 'Assignment') &&
+                str_contains($detailClassHtml, 'Progress');
 
             if ($hasTabs) {
                 CLI::write(" [PASS] View trainer/detail_kelas.php: Learning Management Room with all 6 tabs rendered OK", 'green');
@@ -587,9 +586,9 @@ class WorkspaceSmoke extends BaseCommand
             ]);
 
             $hasAggregates = str_contains($materialsHtml, 'Materi Pembelajaran') &&
-                             str_contains($quizzesHtml, 'Assessment') &&
-                             str_contains($participantsHtml, 'Peserta Pembelajaran') &&
-                             str_contains($progressHtml, 'Progress Peserta');
+                str_contains($quizzesHtml, 'Assessment') &&
+                str_contains($participantsHtml, 'Peserta Pembelajaran') &&
+                str_contains($progressHtml, 'Progress Peserta');
 
             if ($hasAggregates) {
                 CLI::write(" [PASS] Aggregate Views: all_materials, all_quizzes, all_participants, and all_progress rendered OK", 'green');
@@ -704,7 +703,6 @@ class WorkspaceSmoke extends BaseCommand
             } else {
                 CLI::write(" [SKIP] Integration Trainer -> Participant: Kelas #4 belum diisi pada database rilis v.1", 'yellow');
             }
-
         } catch (\Throwable $e) {
             CLI::error(" [ERR] Trainer Experience error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
             $failed++;
@@ -777,7 +775,6 @@ class WorkspaceSmoke extends BaseCommand
                 CLI::error(" [FAIL] Evaluator route still exists: " . var_export($evaluatorRoute, true));
                 $failed++;
             }
-
         } catch (\Throwable $e) {
             CLI::error(" [ERR] Operator Override error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
             $failed++;
@@ -954,7 +951,6 @@ class WorkspaceSmoke extends BaseCommand
                 CLI::error(" [FAIL] Administrator failed to inherit Operator Workspace access");
                 $failed++;
             }
-
         } catch (\Throwable $e) {
             CLI::error(" [ERR] Comprehensive Operator Suite error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
             $failed++;
@@ -971,7 +967,7 @@ class WorkspaceSmoke extends BaseCommand
                 'isLoggedIn' => true,
                 'user_id'    => $operatorUserId,
                 'name'       => 'Super Administrator',
-                'roles'      => ['super_admin'],
+                'roles'      => ['super_administrator'],
             ]);
             $execHtml = $adminWorkspaceController->index();
             $hasExecElements = str_contains($execHtml, 'Pusat Kendali Eksekutif')
@@ -1263,7 +1259,6 @@ class WorkspaceSmoke extends BaseCommand
                 CLI::error(" [FAIL] ProfileController index() rendered output missing critical profile sections");
                 $failed++;
             }
-
         } catch (\Throwable $e) {
             CLI::error(" [ERR] Canonical Homepages Verification error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
             $failed++;

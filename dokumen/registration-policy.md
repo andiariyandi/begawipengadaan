@@ -375,7 +375,7 @@ Role berikut tidak dapat diajukan sendiri:
 ```text
 operator
 admin
-super_admin
+super_administrator
 ```
 
 Workflow role request:

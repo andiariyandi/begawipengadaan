@@ -16,7 +16,7 @@ use RuntimeException;
  *   GET /dashboard/sertifikat/{id}/unduh
  *
  * Authorization:
- *   - admin / super_admin → semua sertifikat yang issued
+ *   - admin / super_administrator → semua sertifikat yang issued
  *   - pemilik sertifikat sendiri → sertifikat miliknya
  *
  * Audit: certificate.downloaded.
@@ -105,7 +105,7 @@ class CertificateDownloadController extends BaseController
     }
 
     /**
-     * Authorization: admin/super_admin OR pemilik sertifikat sendiri.
+     * Authorization: admin/super_administrator OR pemilik sertifikat sendiri.
      */
     private function assertDownloadAccess(int $actorId, array $certificate): void
     {
@@ -119,15 +119,15 @@ class CertificateDownloadController extends BaseController
             return;
         }
 
-        // Bukan pemilik → cek role admin/super_admin (r.key sesuai schema v4)
+        // Bukan pemilik → cek role administrator/super_administrator (r.key sesuai schema v4)
         $hasPerm = $this->db->table('user_roles ur')
             ->join('roles r', 'r.id = ur.role_id')
             ->where(['ur.user_id' => $actorId, 'ur.status' => 'active'])
             ->groupStart()
-                ->where('r.key', 'admin')
-                ->orWhere('r.key', 'super_admin')
-                ->orWhere('r.name', 'admin')
-                ->orWhere('r.name', 'super_admin')
+            ->where('r.key', 'administrator')
+            ->orWhere('r.key', 'super_administrator')
+            ->orWhere('r.name', 'Administrator')
+            ->orWhere('r.name', 'Super Administrator')
             ->groupEnd()
             ->countAllResults() > 0;
         if (! $hasPerm) {

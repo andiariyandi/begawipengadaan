@@ -555,7 +555,7 @@ class CertificateTemplateController extends BaseController
             if (isset($assigned[$eventId])) {
                 throw new RuntimeException(
                     "Event \"{$event['title']}\" sudah memiliki template sertifikat aktif (\"{$assigned[$eventId]['template_name']}\"). " .
-                    "Setiap event dan agenda selalu berbeda dan tidak dapat dibuat sama antar acara."
+                        "Setiap event dan agenda selalu berbeda dan tidak dapat dibuat sama antar acara."
                 );
             }
 
@@ -613,7 +613,7 @@ class CertificateTemplateController extends BaseController
             if ($progId > 0 && isset($lockInfo['locked_programs'][$progId])) {
                 throw new RuntimeException(
                     "Course \"{$course['title']}\" terkunci karena Program induknya (\"{$lockInfo['locked_programs'][$progId]['template_name']}\") " .
-                    "sudah memiliki template sertifikat aktif yang berlaku untuk seluruh course dan kelas di bawahnya."
+                        "sudah memiliki template sertifikat aktif yang berlaku untuk seluruh course dan kelas di bawahnya."
                 );
             }
 
@@ -654,14 +654,14 @@ class CertificateTemplateController extends BaseController
             if ($progId > 0 && isset($lockInfo['locked_programs'][$progId])) {
                 throw new RuntimeException(
                     "Kelas \"{$class['name']}\" terkunci karena Program induknya sudah memiliki template sertifikat aktif. " .
-                    "Semua kelas di bawah program tersebut otomatis menggunakan template tingkat program."
+                        "Semua kelas di bawah program tersebut otomatis menggunakan template tingkat program."
                 );
             }
 
             if ($courseId > 0 && isset($lockInfo['locked_courses'][$courseId])) {
                 throw new RuntimeException(
                     "Kelas \"{$class['name']}\" terkunci karena Course induknya (\"{$class['course_title']}\") sudah memiliki template aktif. " .
-                    "Semua kelas di bawah course tersebut otomatis menggunakan template tingkat course."
+                        "Semua kelas di bawah course tersebut otomatis menggunakan template tingkat course."
                 );
             }
 
@@ -887,15 +887,15 @@ class CertificateTemplateController extends BaseController
             return;
         }
 
-        // Fallback: admin/super_admin
+        // Fallback: administrator/super_administrator
         $isAdmin = $this->db->table('user_roles ur')
             ->join('roles r', 'r.id = ur.role_id')
             ->where(['ur.user_id' => $actorId, 'ur.status' => 'active'])
             ->groupStart()
-            ->where('r.key', 'admin')
-            ->orWhere('r.key', 'super_admin')
-            ->orWhere('r.name', 'admin')
-            ->orWhere('r.name', 'super_admin')
+            ->where('r.key', 'administrator')
+            ->orWhere('r.key', 'super_administrator')
+            ->orWhere('r.name', 'Administrator')
+            ->orWhere('r.name', 'Super Administrator')
             ->groupEnd()
             ->countAllResults() > 0;
 

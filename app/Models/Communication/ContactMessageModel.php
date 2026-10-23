@@ -90,7 +90,7 @@ class ContactMessageModel extends Model
         $msgId = 'msg_' . time() . '_' . substr(bin2hex(random_bytes(3)), 0, 4);
 
         $channel    = $threadMessage['channel'] ?? 'portal';
-        $senderType = $threadMessage['sender_type'] ?? 'admin'; // 'admin', 'user', 'system'
+        $senderType = $threadMessage['sender_type'] ?? 'administrator'; // 'administrator', 'user', 'system'
         $senderName = $threadMessage['sender_name'] ?? 'Petugas Helpdesk';
         $senderId   = $threadMessage['sender_id'] ?? $actorUserId;
         $content    = trim((string) ($threadMessage['message'] ?? ''));
@@ -136,7 +136,7 @@ class ContactMessageModel extends Model
         }
 
         // Set replied_at if an official reply is sent to the user
-        if (in_array($senderType, ['admin', 'system'], true) && in_array($channel, ['portal', 'email', 'whatsapp'], true)) {
+        if (in_array($senderType, ['administrator', 'system'], true) && in_array($channel, ['portal', 'email', 'whatsapp'], true)) {
             $updateData['replied_at'] = $now;
         }
 
@@ -186,7 +186,7 @@ class ContactMessageModel extends Model
                 $notes['logs'][] = [
                     'time'       => $now,
                     'actor'      => $actorName,
-                    'actor_role' => 'admin',
+                    'actor_role' => 'administrator',
                     'action'     => 'Prioritas Diubah',
                     'detail'     => "Prioritas diubah dari {$notes['priority']} ke {$meta['priority']}",
                 ];
@@ -200,7 +200,7 @@ class ContactMessageModel extends Model
                 $notes['logs'][] = [
                     'time'       => $now,
                     'actor'      => $actorName,
-                    'actor_role' => 'admin',
+                    'actor_role' => 'administrator',
                     'action'     => 'Petugas Ditugaskan',
                     'detail'     => "Tiket ditugaskan kepada: " . ($newAssignee ?: 'Belum ditugaskan'),
                 ];
@@ -224,7 +224,7 @@ class ContactMessageModel extends Model
             $notes['logs'][] = [
                 'time'       => $now,
                 'actor'      => $actorName,
-                'actor_role' => 'admin',
+                'actor_role' => 'administrator',
                 'action'     => 'Status Diperbarui',
                 'detail'     => "Status tiket diubah dari '{$oldStatus}' menjadi '{$meta['status']}'",
             ];

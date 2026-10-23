@@ -61,7 +61,7 @@ class CertificatePdfGenerator
 
     /**
      * Validasi HTML minimal agar Dompdf tidak bingung. Beberapa template
-     * yang dibuat admin berpotensi lupa <html> / <head>; renderer kita
+     * yang dibuat administrator berpotensi lupa <html> / <head>; renderer kita
      * sudah menyediakannya, tapi kalau HTML sudah dimulai dengan doctype
      * kita biarkan apa adanya.
      */

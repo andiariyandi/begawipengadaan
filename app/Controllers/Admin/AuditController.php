@@ -65,7 +65,7 @@ class AuditController extends BaseController
         ];
 
         $builder = $model->browse($filters['module'], $filters['userId'], $filters['from'], $filters['to']);
-        $logs = $builder->get()->getResultArray();
+        $logs = $builder->limit(1000)->get()->getResultArray();
 
         // Audit the export action
         $actorId = (int) (session()->get('user_id') ?: 0);
@@ -150,7 +150,14 @@ class AuditController extends BaseController
 
     public function files()
     {
+        $db = db_connect();
+        $files = $db->table('file_assets')
+            ->orderBy('created_at', 'DESC')
+            ->limit(500)
+            ->get()->getResultArray();
+
         return view('dashboard/audit/files', [
+            'files'         => $files,
             'title'         => 'File dan Media | Dashboard BegawiPengadaan',
             'pageTitle'     => 'File dan Media',
             'activeMenu'    => 'system',

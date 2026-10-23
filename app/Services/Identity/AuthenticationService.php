@@ -40,14 +40,24 @@ class AuthenticationService
         if (session_status() === PHP_SESSION_ACTIVE && ! is_cli()) {
             session()->regenerate(true);
         }
+
+        $roleKeys = array_column($roles, 'key');
+        $hasDashboardAccess = (new AuthorizationService())->hasDashboardAccess(
+            (int) $user['id'],
+            $roleKeys,
+            $permissions,
+            $user['account_status'] ?? null
+        );
+
         session()->set([
-            'isLoggedIn' => true,
-            'user_id' => (int) $user['id'],
-            'name' => $user['name'],
-            'username' => $user['username'],
-            'account_status' => $user['account_status'],
-            'roles' => array_column($roles, 'key'),
-            'permissions' => $permissions,
+            'isLoggedIn'       => true,
+            'user_id'          => (int) $user['id'],
+            'name'             => $user['name'],
+            'username'         => $user['username'],
+            'account_status'   => $user['account_status'],
+            'roles'            => $roleKeys,
+            'permissions'      => $permissions,
+            'dashboard_access' => $hasDashboardAccess,
         ]);
         $this->users->skipValidation(true)->update((int) $user['id'], ['last_login_at' => date('Y-m-d H:i:s')]);
         $this->audit->log((int) $user['id'], 'login', 'auth', 'users', (int) $user['id']);

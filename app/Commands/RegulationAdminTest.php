@@ -44,7 +44,9 @@ class RegulationAdminTest extends BaseCommand
         $session->set([
             'isLoggedIn' => true,
             'user_id'    => $adminId,
-            'role'       => 'superadmin',
+            'role'           => 'super_administrator',
+            'roles'          => ['super_administrator'],
+            'account_status' => 'active',
         ]);
 
         $controller = new RegulationController();

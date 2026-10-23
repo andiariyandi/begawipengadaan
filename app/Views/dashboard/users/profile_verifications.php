@@ -10,11 +10,28 @@
         <p class="text-secondary-light mb-0">Tinjau kelengkapan dan validitas profil pengguna.</p>
     </div>
     <div class="d-flex align-items-center gap-2">
+        <a href="<?= site_url('dashboard/akses/pengguna?tab=verification') ?>" class="btn btn-primary-600 radius-8 px-16 py-11 d-inline-flex align-items-center gap-2">
+            <iconify-icon icon="solar:users-group-rounded-outline" class="text-lg"></iconify-icon>
+            <span>Buka di Pengguna Terpadu</span>
+        </a>
         <a href="<?= site_url('dashboard/akses/permohonan-perubahan-profil') ?>" class="btn btn-outline-primary-600 radius-8 px-16 py-11 d-inline-flex align-items-center gap-2">
             <iconify-icon icon="solar:user-hand-up-outline" class="text-lg"></iconify-icon>
             <span>Permohonan Perubahan Profil</span>
         </a>
     </div>
+</div>
+
+<div class="alert alert-info bg-info-50 text-info-900 border-info-100 radius-8 p-16 mb-24 d-flex flex-wrap align-items-center justify-content-between gap-12">
+    <div class="d-flex align-items-center gap-2">
+        <iconify-icon icon="solar:info-circle-outline" class="text-info-600 text-xl flex-shrink-0"></iconify-icon>
+        <span class="text-sm">
+            <strong>Pemberitahuan Terpadu:</strong> Verifikasi profil kini telah disatukan secara terpadu di menu <strong>Pengguna &amp; Verifikasi</strong>. Menyetujui akun pengguna otomatis menyetujui profil terkait.
+        </span>
+    </div>
+    <a href="<?= site_url('dashboard/akses/pengguna?tab=verification') ?>" class="btn btn-sm btn-primary-600 radius-6 px-12 py-6 text-xs d-inline-flex align-items-center gap-1">
+        <span>Lihat Tab Antrean Verifikasi</span>
+        <iconify-icon icon="solar:arrow-right-outline"></iconify-icon>
+    </a>
 </div>
 
 <form action="<?= site_url('dashboard/akses/verifikasi-profil') ?>" method="get" class="mb-24">

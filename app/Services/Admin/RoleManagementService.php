@@ -190,6 +190,9 @@ class RoleManagementService
         }
 
         $db->transComplete();
+        if ($db->transStatus() === false) {
+            throw new \RuntimeException('Gagal menyinkronkan permission role.');
+        }
 
         $this->audit->log($actorId, 'role.permission.sync', 'role_permissions', 'role', $roleId);
     }

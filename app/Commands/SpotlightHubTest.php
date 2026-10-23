@@ -35,7 +35,14 @@ class SpotlightHubTest extends BaseCommand
             // Mock session user
             $adminUser = $db->table('users')->orderBy('id', 'ASC')->get()->getRowArray();
             $adminId   = ! empty($adminUser['id']) ? (int) $adminUser['id'] : 13;
-            session()->set(['user_id' => $adminId, 'role' => 'superadmin', 'is_logged_in' => true]);
+            session()->set([
+                'user_id'        => $adminId,
+                'role'           => 'super_administrator',
+                'roles'          => ['super_administrator'],
+                'isLoggedIn'     => true,
+                'is_logged_in'   => true,
+                'account_status' => 'active',
+            ]);
 
             $controller = new SpotlightHubController();
             $controller->initController($request, service('response'), service('logger'));

@@ -17,6 +17,15 @@ class SettingController extends BaseController
         $this->auditService = new AuditService();
     }
 
+    private function checkAccess(): ?\CodeIgniter\HTTP\ResponseInterface
+    {
+        $auth = new \App\Services\Identity\AuthorizationService();
+        if (! $auth->isAdmin() && ! $auth->can('system.settings')) {
+            return redirect()->to(site_url('dashboard'))->with('error', 'Akses ditolak: Memerlukan hak akses Administrator untuk Pengaturan Sistem.');
+        }
+        return null;
+    }
+
     public function index(): string
     {
         return $this->view('Pengaturan Sistem', 'settings', 'index');
@@ -141,6 +150,9 @@ class SettingController extends BaseController
 
     public function save(string $group)
     {
+        if ($res = $this->checkAccess()) {
+            return $res;
+        }
         $actorId = (int) (session()->get('user_id') ?: 1);
         $postData = $this->request->getPost();
 

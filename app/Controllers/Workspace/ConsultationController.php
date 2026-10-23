@@ -117,8 +117,8 @@ class ConsultationController extends BaseController
             || (isset($notes['user_id']) && (int) $notes['user_id'] === $userId);
 
         $isAdmin = (bool) session()->get('dashboard_access')
-            || in_array('admin', (array) session()->get('roles'), true)
-            || in_array('super_admin', (array) session()->get('roles'), true);
+            || in_array('administrator', (array) session()->get('roles'), true)
+            || in_array('super_administrator', (array) session()->get('roles'), true);
 
         if (! $isOwner && ! $isAdmin) {
             return redirect()->to(route_to('workspace.consultation.index'))
@@ -172,14 +172,14 @@ class ConsultationController extends BaseController
             || (isset($notes['user_id']) && (int) $notes['user_id'] === $userId);
 
         $isAdmin = (bool) session()->get('dashboard_access')
-            || in_array('admin', (array) session()->get('roles'), true)
-            || in_array('super_admin', (array) session()->get('roles'), true);
+            || in_array('administrator', (array) session()->get('roles'), true)
+            || in_array('super_administrator', (array) session()->get('roles'), true);
 
         if (! $isOwner && ! $isAdmin) {
             return redirect()->to(route_to('workspace.consultation.index'))->with('error', 'Akses ditolak.');
         }
 
-        // Closed ticket response restriction - view only for workspace sender/non-admin
+        // Closed ticket response restriction - view only for workspace sender/non-administrator
         if (! $isAdmin && in_array($ticket['status'], ['closed', ContactMessageModel::STATUS_CLOSED], true)) {
             return redirect()->to(route_to('workspace.consultation.detail', $ticket['ticket_number']))
                 ->with('error', 'Tiket konsultasi ini telah ditutup oleh Administrator. Anda hanya dapat melihat riwayat percakapan.');
@@ -191,7 +191,7 @@ class ConsultationController extends BaseController
         }
 
         $senderName = (string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna');
-        $senderType = $isAdmin ? 'admin' : 'user';
+        $senderType = $isAdmin ? 'administrator' : 'user';
         $newStatus  = $isAdmin ? ContactMessageModel::STATUS_REPLIED : ContactMessageModel::STATUS_WAITING_ADMIN;
 
         $threadMessage = [
@@ -208,7 +208,7 @@ class ConsultationController extends BaseController
             return redirect()->back()->with('error', 'Gagal mengirimkan balasan pesan.');
         }
 
-        // Notifikasi ke admin bila balasan dari pemohon
+        // Notifikasi ke administrator bila balasan dari pemohon
         if (! $isAdmin) {
             try {
                 (new \App\Services\NotificationService())->notifyAdmins(
@@ -252,8 +252,8 @@ class ConsultationController extends BaseController
 
         $userId   = (int) session()->get('user_id');
         $userName = (string) (session()->get('name') ?: session()->get('username'));
-        $userEmail= (string) session()->get('email');
-        $userPhone= (string) (session()->get('phone') ?: $this->request->getPost('phone'));
+        $userEmail = (string) session()->get('email');
+        $userPhone = (string) (session()->get('phone') ?: $this->request->getPost('phone'));
 
         $ticketNumber = 'TKT-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
 
@@ -298,7 +298,7 @@ class ConsultationController extends BaseController
                 ['ticket_number' => $ticketNumber, 'subject' => (string) $this->request->getPost('subject')]
             );
 
-            // Notifikasi ke admin helpdesk bahwa tiket baru telah dibuat
+            // Notifikasi ke administrator helpdesk bahwa tiket baru telah dibuat
             try {
                 (new \App\Services\NotificationService())->notifyAdmins(
                     'ticket_created',

@@ -34,8 +34,8 @@ class WorkspaceExecutiveTest extends BaseCommand
             'isLoggedIn'     => true,
             'email'          => $adminUser['email'] ?? 'admin@begawi.test',
             'name'           => $adminUser['name'] ?? 'Administrator Begawi',
-            'role'           => 'admin',
-            'roles'          => ['admin', 'super_admin'],
+            'role'           => 'administrator',
+            'roles'          => ['administrator', 'super_administrator'],
             'account_status' => 'active',
         ]);
 

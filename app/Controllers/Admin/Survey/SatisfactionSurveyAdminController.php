@@ -153,6 +153,9 @@ class SatisfactionSurveyAdminController extends BaseController
 
     public function deleteResponse($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $this->db->table('satisfaction_surveys')->where('id', $id)->delete();
         return redirect()->to('dashboard/survei-kepuasan')->with('success', 'Data responden berhasil dihapus.');
     }

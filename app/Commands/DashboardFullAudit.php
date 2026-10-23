@@ -41,7 +41,10 @@ class DashboardFullAudit extends BaseCommand
         $adminId   = ! empty($adminUser['id']) ? (int) $adminUser['id'] : 13;
         session()->set([
             'user_id'       => $adminId,
-            'role'          => 'superadmin',
+            'role'           => 'super_administrator',
+            'roles'          => ['super_administrator'],
+            'isLoggedIn'     => true,
+            'account_status' => 'active',
             'is_logged_in'  => true,
             'username'      => 'admin_audit',
         ]);

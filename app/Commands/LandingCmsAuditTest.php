@@ -27,7 +27,7 @@ class LandingCmsAuditTest extends BaseCommand
             'after'  => ['name' => 'New Name'],
         ]);
         $row1 = $db->table('audit_logs')->where('resource_id', 9999)->where('action', 'landing.team.updated')->orderBy('id', 'DESC')->get()->getRowArray();
-        if (! $row1 || $row1['resource_type'] !== 'team_members') {
+        if (! $row1 || ($row1['resource_type'] ?? '') !== 'team_members') {
             CLI::error("FAIL: Canonical log failed or resource_type mismatch: " . json_encode($row1));
             return;
         }
@@ -37,7 +37,7 @@ class LandingCmsAuditTest extends BaseCommand
         CLI::write("[TEST 2] Legacy/snapshot log() call where targetId is an array (the exact bug case)...");
         $auditService->log(1, 'landing.team.updated_legacy', 'team_members', '8888', ['name' => 'Legacy Before'], ['name' => 'Legacy After']);
         $row2 = $db->table('audit_logs')->where('resource_id', 8888)->where('action', 'landing.team.updated_legacy')->orderBy('id', 'DESC')->get()->getRowArray();
-        if (! $row2 || $row2['resource_type'] !== 'team_members') {
+        if (! $row2 || ($row2['resource_type'] ?? '') !== 'team_members') {
             CLI::error("FAIL: Legacy log failed or resource_type mismatch: " . json_encode($row2));
             return;
         }

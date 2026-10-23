@@ -193,7 +193,7 @@
                                     <h6 class="fw-bold text-dark small mb-2"><i class="fas fa-comments text-success me-1"></i> Jawaban &amp; Percakapan Helpdesk:</h6>
                                     <div class="d-flex flex-column gap-2 mb-2">
                                         <?php foreach ($trackedTicket['public_threads'] as $pth): ?>
-                                            <div class="p-2 rounded-2 <?= ($pth['sender_type'] ?? '') === 'admin' ? 'bg-primary-subtle border border-primary-subtle' : 'bg-light border' ?> small">
+                                            <div class="p-2 rounded-2 <?= ($pth['sender_type'] ?? '') === 'administrator' ? 'bg-primary-subtle border border-primary-subtle' : 'bg-light border' ?> small">
                                                 <div class="d-flex justify-content-between mb-1 text-2xs text-muted">
                                                     <strong><?= esc($pth['sender_name'] ?? 'Petugas') ?></strong>
                                                     <span><?= date('d M Y H:i', strtotime($pth['created_at'])) ?> WIB</span>
@@ -437,10 +437,14 @@
                 if (!isClamping) {
                     isClamping = true;
                     window.scrollTo(0, maxScroll);
-                    requestAnimationFrame(function() { isClamping = false; });
+                    requestAnimationFrame(function() {
+                        isClamping = false;
+                    });
                 }
             }
-        }, { passive: true });
+        }, {
+            passive: true
+        });
     })();
 </script>
 <?= $this->endSection() ?>

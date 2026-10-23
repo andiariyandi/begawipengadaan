@@ -31,12 +31,12 @@ class LandingImageUploadService
             'image/webp',
             'image/jpg',
             'image/gif',
-            'image/svg+xml'
+
         ];
 
         $mime = $file->getMimeType();
         if (! in_array($mime, $allowedMimes, true)) {
-            session()->setFlashdata('error', 'Format file gambar harus JPG, JPEG, PNG, WEBP, atau SVG.');
+            session()->setFlashdata('error', 'Format file gambar harus JPG, JPEG, PNG, WEBP, atau GIF.');
             return $currentPath;
         }
 

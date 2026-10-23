@@ -27,11 +27,11 @@ class ArenaDemoSeed extends BaseCommand
         // -------------------------------------------------------------
         CLI::write(">>> [1/7] Ensuring Required Roles Exist...", "yellow");
         $requiredRoles = [
-            ['key' => 'superadmin', 'name' => 'Super Administrator', 'description' => 'Akses penuh seluruh modul sistem'],
-            ['key' => 'admin',      'name' => 'Administrator PBJ',   'description' => 'Akses manajerial modul pengadaan'],
-            ['key' => 'operator',   'name' => 'Operator LMS',        'description' => 'Operator pengelola kelas & kurikulum LMS'],
-            ['key' => 'trainer',    'name' => 'Trainer / Instruktur','description' => 'Fasilitator pengajar dan penilai tugas'],
-            ['key' => 'user',       'name' => 'Peserta Pelatihan',   'description' => 'Pengguna umum / peserta pembelajaran'],
+            ['key' => 'super_administrator', 'name' => 'Super Administrator', 'description' => 'Akses penuh seluruh modul sistem'],
+            ['key' => 'administrator',       'name' => 'Administrator PBJ',   'description' => 'Akses manajerial modul pengadaan'],
+            ['key' => 'operator',            'name' => 'Operator LMS',        'description' => 'Operator pengelola kelas & kurikulum LMS'],
+            ['key' => 'trainer',             'name' => 'Trainer / Instruktur','description' => 'Fasilitator pengajar dan penilai tugas'],
+            ['key' => 'peserta',             'name' => 'Peserta Pelatihan',   'description' => 'Pengguna umum / peserta pembelajaran'],
         ];
 
         $roleIds = [];
@@ -79,7 +79,7 @@ class ArenaDemoSeed extends BaseCommand
                 'inst'     => 'Biro Pengadaan Barang dan Jasa Provinsi Lampung',
             ],
             [
-                'role_key' => 'user',
+                'role_key' => 'peserta',
                 'email'    => 'ani.peserta@lampungprov.go.id',
                 'username' => 'ani.peserta',
                 'name'     => 'Ani Lestari, S.AP.',
@@ -91,7 +91,7 @@ class ArenaDemoSeed extends BaseCommand
                 'progress_pct'  => 50,
             ],
             [
-                'role_key' => 'user',
+                'role_key' => 'peserta',
                 'email'    => 'budi.peserta@lampungprov.go.id',
                 'username' => 'budi.peserta',
                 'name'     => 'Budi Pratama, S.E.',
@@ -103,7 +103,7 @@ class ArenaDemoSeed extends BaseCommand
                 'progress_pct'  => 100,
             ],
             [
-                'role_key' => 'user',
+                'role_key' => 'peserta',
                 'email'    => 'citra.peserta@lampungprov.go.id',
                 'username' => 'citra.peserta',
                 'name'     => 'Citra Dewi, S.H.',
@@ -115,7 +115,7 @@ class ArenaDemoSeed extends BaseCommand
                 'progress_pct'  => 0,
             ],
             [
-                'role_key' => 'user',
+                'role_key' => 'peserta',
                 'email'    => 'doni.peserta@lampungprov.go.id',
                 'username' => 'doni.peserta',
                 'name'     => 'Doni Kusuma, S.T.',
@@ -157,7 +157,7 @@ class ArenaDemoSeed extends BaseCommand
             $userIds[$u['username']] = $uId;
 
             // User Role
-            $roleId = $roleIds[$u['role_key']] ?? $roleIds['user'];
+            $roleId = $roleIds[$u['role_key']] ?? $roleIds['peserta'];
             $existingUr = $db->table('user_roles')
                 ->where('user_id', $uId)
                 ->where('role_id', $roleId)
@@ -846,7 +846,7 @@ class ArenaDemoSeed extends BaseCommand
         CLI::write(">>> [7/7] Seeding Authentic Enrollments across Multiple Lifecycle States...", "yellow");
 
         foreach ($demoUsers as $u) {
-            if ($u['role_key'] !== 'user') {
+            if ($u['role_key'] !== 'peserta') {
                 continue;
             }
             $uId = $userIds[$u['username']] ?? null;

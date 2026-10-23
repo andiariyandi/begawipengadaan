@@ -12,9 +12,9 @@ class LoginController extends BaseController
         if (session()->get('isLoggedIn')) {
             $loggedRoles = (array) session()->get('roles');
             $isAdmin     = in_array('super_administrator', $loggedRoles, true)
-                || in_array('administrator', $loggedRoles, true)
-                || in_array('super_admin', $loggedRoles, true)
-                || in_array('admin', $loggedRoles, true);
+                || in_array('administrator', $loggedRoles, true);;
+
+
 
             if ($isAdmin) {
                 return redirect()->to(site_url('dashboard'));
@@ -77,9 +77,9 @@ class LoginController extends BaseController
 
         $loggedRoles = (array) session()->get('roles');
         $isAdmin     = in_array('super_administrator', $loggedRoles, true)
-            || in_array('administrator', $loggedRoles, true)
-            || in_array('super_admin', $loggedRoles, true)
-            || in_array('admin', $loggedRoles, true);
+            || in_array('administrator', $loggedRoles, true);
+
+
         $userName    = (string) session()->get('name');
 
         if ($isAdmin) {

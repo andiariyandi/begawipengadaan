@@ -137,6 +137,15 @@ class ApprovalController extends BaseController
         $actorId = (int) (session()->get('user_id') ?: (session()->get('id') ?: 13));
         $notes   = trim((string) ($req->getPost('notes') ?? '')) ?: 'Disetujui oleh Administrator.';
 
+        // Anti Self-Approval: tolak jika pemohon atau target user adalah akun sendiri kecuali super_administrator
+        $isSuperAdmin = (new \App\Services\Identity\AuthorizationService())->isSuperAdmin();
+        $requesterId  = (int) ($approval['requested_by'] ?? 0);
+        $targetUserId = (int) ($approval['resource_id'] ?? 0);
+        if (! $isSuperAdmin && ($requesterId === $actorId || ($approval['resource_type'] === 'user_registration' && $targetUserId === $actorId))) {
+            return redirect()->to(site_url('dashboard/sistem/approval'))
+                ->with('error', 'Anti Self-Approval: Anda tidak diizinkan menyetujui permohonan persetujuan milik Anda sendiri.');
+        }
+
         $this->approvalModel->markApproved($id, $actorId, $notes);
 
         $extraNotice = '';

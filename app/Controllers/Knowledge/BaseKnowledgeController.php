@@ -33,15 +33,30 @@ abstract class BaseKnowledgeController extends BaseController
 
     protected function assertCanManage()
     {
-        if ($this->authz === null || ! $this->authz->can('kms.manage')) {
+        if ($this->authz !== null) {
+            if ($this->authz->isSuperAdmin() || $this->authz->isAdmin()) {
+                return null;
+            }
+            if ($this->authz->can('kms.manage') || $this->authz->canAny([
+                'bunga.article.manage',
+                'bunga.faq.manage',
+                'bunga.casestudy.manage',
+                'bunga.template.manage',
+                'bunga.media.manage',
+                'bunga.taxonomy.manage',
+            ])) {
+                return null;
+            }
+        } else {
             $roles = (array) session()->get('roles');
-            if (! in_array('super_admin', $roles, true) && ! in_array('admin', $roles, true)) {
-                return service('response')->setStatusCode(403)->setBody(
-                    '<h1>403 Forbidden</h1><p>Anda tidak memiliki izin mengelola Bunga Rampai.</p>'
-                );
+            if (in_array('super_administrator', $roles, true) || in_array('administrator', $roles, true)) {
+                return null;
             }
         }
-        return null;
+
+        return service('response')->setStatusCode(403)->setBody(
+            view('dashboard/errors/403', ['message' => 'Anda tidak memiliki izin mengelola Bunga Rampai.'])
+        );
     }
 
     protected function currentUserId(): int
@@ -79,7 +94,7 @@ abstract class BaseKnowledgeController extends BaseController
             'mime_type'       => $file->getClientMimeType() ?: 'application/octet-stream',
             'size_bytes'      => (int) ($file->getSize() ?: 0),
             'visibility'      => $visibility,
-            'lifecycle_status'=> $lifecycleStatus,
+            'lifecycle_status' => $lifecycleStatus,
             'resource_type'   => $resourceType,
             'uploaded_by'     => $this->currentUserId() ?: null,
             'created_at'      => $now,

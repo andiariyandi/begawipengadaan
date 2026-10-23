@@ -23,7 +23,7 @@ class AdminWorkspaceController extends BaseController
         }
 
         $roles   = (array) session()->get('roles');
-        $allowed = ['super_admin', 'super_administrator', 'admin', 'administrator'];
+        $allowed = ['super_administrator', 'administrator'];
         if (array_intersect($allowed, $roles) === []) {
             redirect()->to('/workspace')->with('error', 'Akses ditolak. Halaman khusus Administrator / Super Administrator.')->send();
             exit;
@@ -41,7 +41,7 @@ class AdminWorkspaceController extends BaseController
         $db = db_connect();
 
         $roles = (array) session()->get('roles');
-        $isSuperAdmin = in_array('super_admin', $roles, true) || in_array('super_administrator', $roles, true);
+        $isSuperAdmin = in_array('super_administrator', $roles, true);
 
         // 1. Metrik Pengguna & Verifikasi
         $totalUsers    = $db->table('users')->countAllResults();

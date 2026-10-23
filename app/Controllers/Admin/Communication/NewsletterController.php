@@ -30,6 +30,9 @@ class NewsletterController extends BaseController
 
     public function delete($id)
     {
+        if ($res = $this->validateSafeMutation()) {
+            return $res;
+        }
         $this->db->table('newsletter_subscribers')->where('id', $id)->delete();
         return redirect()->to('dashboard/komunikasi/newsletter')->with('success', 'Pelanggan berhasil dihapus.');
     }
