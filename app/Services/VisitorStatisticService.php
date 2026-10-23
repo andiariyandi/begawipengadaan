@@ -104,7 +104,7 @@ class VisitorStatisticService
             'arena_belajar' => [
                 'label'       => 'Arena Belajar',
                 'description' => 'Kursus, silabus mandiri & sertifikasi kompetensi',
-                'icon'        => 'solar:mortarboard-bold',
+                'icon'        => 'solar:square-academic-cap-2-bold',
                 'color'       => '#0c5aa6',
                 'bg'          => '#eff6ff',
                 'border'      => '#bfdbfe',

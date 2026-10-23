@@ -8,6 +8,9 @@ $filters = $filters ?? [];
 $roles = $roles ?? [];
 $profileTypes = $profileTypes ?? [];
 $statuses = $statuses ?? [];
+$availableProfileTypes = $availableProfileTypes ?? [];
+$availableOpds = $availableOpds ?? [];
+$availableStatuses = $availableStatuses ?? [];
 $pager = $pager ?? null;
 $stats = $stats ?? [
     'total'   => count($users),
@@ -159,11 +162,34 @@ $stats = $stats ?? [
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-6">
-                    <label class="form-label fw-semibold text-primary-light text-sm mb-8">Tipe Profil</label>
-                    <select class="form-select radius-8" name="profile_type">
-                        <option value="">Semua Profil</option>
-                        <?php foreach ($profileTypes as $pt): ?>
-                            <option value="<?= esc($pt) ?>" <?= ($filters['profile_type'] ?? '') === $pt ? 'selected' : '' ?>><?= esc(strtoupper($pt)) ?></option>
+                    <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                        <iconify-icon icon="solar:user-id-outline" class="me-1 text-primary-600"></iconify-icon> Tipe Profil
+                    </label>
+                    <select class="form-select radius-8" name="profile_type" id="filter-user-profile-type">
+                        <option value="">Semua Profil (<?= number_format($stats['total'] ?? 0) ?>)</option>
+                        <?php if (! empty($availableProfileTypes)): ?>
+                            <?php foreach ($availableProfileTypes as $pt): ?>
+                                <option value="<?= esc($pt['code']) ?>" <?= ($filters['profile_type'] ?? '') === $pt['code'] ? 'selected' : '' ?>>
+                                    <?= esc($pt['label']) ?> (<?= $pt['count'] ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <?php foreach ($profileTypes as $pt): ?>
+                                <option value="<?= esc($pt) ?>" <?= ($filters['profile_type'] ?? '') === $pt ? 'selected' : '' ?>><?= esc(strtoupper($pt)) ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-6 <?= ($filters['profile_type'] ?? '') === 'asn' ? '' : 'd-none' ?>" id="container-user-opd">
+                    <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                        <iconify-icon icon="solar:buildings-outline" class="me-1 text-info-600"></iconify-icon> OPD / Satuan Kerja (unit_name)
+                    </label>
+                    <select class="form-select radius-8" name="unit_name" id="filter-user-opd">
+                        <option value="">Semua OPD ASN (<?= count($availableOpds) ?> Unit)</option>
+                        <?php foreach ($availableOpds as $opd): ?>
+                            <option value="<?= esc($opd['unit_name']) ?>" <?= ($filters['unit_name'] ?? '') === $opd['unit_name'] ? 'selected' : '' ?>>
+                                <?= esc($opd['unit_name']) ?> (<?= $opd['count'] ?>)
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -171,9 +197,17 @@ $stats = $stats ?? [
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Status Akun</label>
                     <select class="form-select radius-8" name="account_status">
                         <option value="">Semua Status</option>
-                        <?php foreach ($statuses as $st): ?>
-                            <option value="<?= esc($st) ?>" <?= ($filters['account_status'] ?? '') === $st ? 'selected' : '' ?>><?= esc(ucwords(str_replace('_', ' ', $st))) ?></option>
-                        <?php endforeach; ?>
+                        <?php if (! empty($availableStatuses)): ?>
+                            <?php foreach ($availableStatuses as $st): ?>
+                                <option value="<?= esc($st['code']) ?>" <?= ($filters['account_status'] ?? '') === $st['code'] ? 'selected' : '' ?>>
+                                    <?= esc($st['label']) ?> (<?= $st['count'] ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <?php foreach ($statuses as $st): ?>
+                                <option value="<?= esc($st) ?>" <?= ($filters['account_status'] ?? '') === $st ? 'selected' : '' ?>><?= esc(ucwords(str_replace('_', ' ', $st))) ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </select>
                 </div>
                 <div class="col-lg-2 col-md-6">
@@ -282,6 +316,11 @@ $stats = $stats ?? [
                                     <span class="badge bg-neutral-100 text-secondary-light px-10 py-4 radius-4 fw-medium text-xs">
                                         <?= esc(strtoupper($user['profile_type'] ?? '-')) ?>
                                     </span>
+                                    <?php if (! empty($user['unit_name'])): ?>
+                                        <small class="text-secondary-light d-block text-xs mt-1" title="OPD: <?= esc($user['unit_name']) ?>">
+                                            <iconify-icon icon="solar:buildings-outline" class="me-1 text-primary-600"></iconify-icon><?= esc($user['unit_name']) ?>
+                                        </small>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <?php if (! empty($user['roles'])): ?>
@@ -421,4 +460,25 @@ $stats = $stats ?? [
         <?php endif; ?>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const profileTypeSelect = document.getElementById('filter-user-profile-type');
+    const opdContainer = document.getElementById('container-user-opd');
+    const opdSelect = document.getElementById('filter-user-opd');
+
+    if (profileTypeSelect) {
+        profileTypeSelect.addEventListener('change', function () {
+            if (this.value === 'asn') {
+                if (opdContainer) opdContainer.classList.remove('d-none');
+            } else {
+                if (opdContainer) {
+                    opdContainer.classList.add('d-none');
+                    if (opdSelect) opdSelect.value = '';
+                }
+            }
+        });
+    }
+});
+</script>
+
 <?= $this->endSection() ?>

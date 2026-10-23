@@ -211,14 +211,14 @@ $bulanIndo = [
                         </div>
                         <div class="gateway-kpi-info">
                             <div class="gateway-kpi-num"><?= number_format((int) ($stats['total_regulations'] ?? 0)) ?></div>
-                            <div class="gateway-kpi-label">Regulasi PBJ Terbit</div>
+                            <div class="gateway-kpi-label">Regulasi Terdata</div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
                     <div class="gateway-kpi-item">
                         <div class="gateway-kpi-icon kpi-icon--info">
-                            <iconify-icon icon="solar:mortarboard-bold"></iconify-icon>
+                            <iconify-icon icon="solar:square-academic-cap-2-bold"></iconify-icon>
                         </div>
                         <div class="gateway-kpi-info">
                             <div class="gateway-kpi-num"><?= number_format((int) ($stats['total_courses'] ?? 0)) ?><?= ((int) ($stats['total_courses'] ?? 0)) > 0 ? '+' : '' ?></div>
@@ -273,7 +273,7 @@ $bulanIndo = [
                 <div class="pillar-card" style="--pillar-accent: #0c5aa6; --pillar-bg: #eff6ff;">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <div class="pillar-icon-box">
-                            <iconify-icon icon="solar:mortarboard-bold"></iconify-icon>
+                            <iconify-icon icon="solar:square-academic-cap-2-bold"></iconify-icon>
                         </div>
                         <span class="badge-soft-primary px-3 py-1 radius-999 text-xs fw-bold">E-Learning &amp; Sertifikasi</span>
                     </div>
@@ -389,7 +389,7 @@ $bulanIndo = [
         <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
             <div>
                 <div class="section-title-tag">
-                    <iconify-icon icon="solar:mortarboard-bold"></iconify-icon>
+                    <iconify-icon icon="solar:square-academic-cap-2-bold"></iconify-icon>
                     <span>Arena Belajar PBJ</span>
                 </div>
                 <h2 class="section-title-main mb-1">Materi &amp; Kursus Terpopuler</h2>

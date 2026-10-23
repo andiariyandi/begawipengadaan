@@ -426,13 +426,86 @@ $methodBadge = match ($class['learning_method'] ?? 'online') {
                         <p class="text-xs mb-0">Belum ada peserta yang mendaftar pada kelas ini.</p>
                     </div>
                 <?php else: ?>
+                    <!-- FILTER PANEL KHUSUS PESERTA TERDAFTAR (DATA AKTIF KELAS) -->
+                    <div class="card border radius-12 bg-neutral-50 p-16 mb-20">
+                        <div class="row g-3 align-items-end">
+                            <!-- 1. Dropdown Tipe Profil (Hanya yang ada terdaftar di kelas) -->
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <label for="filter-peserta-profile-type" class="form-label text-xs fw-semibold text-secondary-light mb-1">
+                                    <iconify-icon icon="solar:user-id-outline" class="me-1 text-primary-600"></iconify-icon> Tipe Profil
+                                </label>
+                                <select id="filter-peserta-profile-type" class="form-select form-select-sm radius-8 bg-base">
+                                    <option value="all">Semua Tipe Profil (<?= count($enrollments) ?>)</option>
+                                    <?php foreach ($availableProfileTypes as $ptCode => $ptInfo): ?>
+                                        <option value="<?= esc($ptCode) ?>" <?= ($selectedProfileType === $ptCode) ? 'selected' : '' ?>>
+                                            <?= esc($ptInfo['label']) ?> (<?= $ptInfo['count'] ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <!-- 2. Dropdown OPD (unit_name) - Bersyarat: Hanya muncul jika Tipe Profil ASN dipilih -->
+                            <div class="col-12 col-sm-6 col-md-4 <?= ($selectedProfileType === 'asn') ? '' : 'd-none' ?>" id="container-filter-opd">
+                                <label for="filter-peserta-opd" class="form-label text-xs fw-semibold text-secondary-light mb-1">
+                                    <iconify-icon icon="solar:buildings-outline" class="me-1 text-info-600"></iconify-icon> OPD / Satuan Kerja (unit_name)
+                                </label>
+                                <select id="filter-peserta-opd" class="form-select form-select-sm radius-8 bg-base">
+                                    <option value="all">Semua OPD ASN (<?= count($availableOpds) ?> Unit)</option>
+                                    <?php foreach ($availableOpds as $opdName => $opdCount): ?>
+                                        <option value="<?= esc(strtolower($opdName)) ?>" <?= (strtolower((string) $selectedOpd) === strtolower($opdName)) ? 'selected' : '' ?>>
+                                            <?= esc($opdName) ?> (<?= $opdCount ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <!-- 3. Dropdown Status Pendaftaran (Hanya status yang ada di kelas ini) -->
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <label for="filter-peserta-status" class="form-label text-xs fw-semibold text-secondary-light mb-1">
+                                    <iconify-icon icon="solar:check-circle-outline" class="me-1 text-success-main"></iconify-icon> Status Pendaftaran
+                                </label>
+                                <select id="filter-peserta-status" class="form-select form-select-sm radius-8 bg-base">
+                                    <option value="all">Semua Status</option>
+                                    <?php foreach ($availableStatuses as $statusCode => $statusCount): ?>
+                                        <option value="<?= esc($statusCode) ?>" <?= ($selectedStatus === $statusCode) ? 'selected' : '' ?>>
+                                            <?= ucfirst(esc($statusCode)) ?> (<?= $statusCount ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <!-- 4. Tombol Reset Filter -->
+                            <div class="col-12 col-sm-6 col-md-2 d-flex align-items-center">
+                                <button type="button" id="btn-reset-filter-peserta" class="btn btn-sm btn-outline-secondary radius-8 px-12 py-8 text-xs fw-semibold w-100 d-inline-flex align-items-center justify-content-center gap-1 shadow-none">
+                                    <iconify-icon icon="solar:restart-outline"></iconify-icon>
+                                    <span>Reset Filter</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bar Status Filter Aktif -->
+                        <div id="filter-summary-bar" class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-12 pt-12 border-top border-neutral-200 d-none">
+                            <div class="d-flex align-items-center gap-2 text-xs text-secondary-light">
+                                <iconify-icon icon="solar:filter-outline" class="text-primary-600 text-sm"></iconify-icon>
+                                <span>Filter Aktif:</span>
+                                <span id="badge-filter-profile" class="badge bg-primary-100 text-primary-700 px-8 py-4 radius-6 text-xs d-none"></span>
+                                <span id="badge-filter-opd" class="badge bg-info-100 text-info-700 px-8 py-4 radius-6 text-xs d-none"></span>
+                                <span id="badge-filter-status" class="badge bg-warning-100 text-warning-700 px-8 py-4 radius-6 text-xs d-none"></span>
+                            </div>
+                            <div class="text-xs fw-medium text-secondary-light">
+                                Menampilkan <span id="filtered-peserta-count" class="fw-bold text-primary-600"><?= count($enrollments) ?></span> dari <?= count($enrollments) ?> peserta
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
-                        <table class="table bordered-table mb-0 align-middle begawi-table" data-table-name="peserta-kelas-pbj" data-page-length="10">
+                        <table class="table bordered-table mb-0 align-middle begawi-table" id="table-peserta-kelas" data-table-name="peserta-kelas-pbj" data-page-length="10">
                             <thead>
                                 <tr>
                                     <th>Peserta</th>
+                                    <th>Tipe Profil</th>
                                     <th>NIP / Identitas</th>
-                                    <th>Instansi / OPD</th>
+                                    <th>Instansi / OPD (unit_name)</th>
                                     <th>Waktu Daftar</th>
                                     <th class="text-center">Status</th>
                                     <th class="text-center">Nilai Akhir</th>
@@ -440,8 +513,12 @@ $methodBadge = match ($class['learning_method'] ?? 'online') {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($enrollments as $e): ?>
-                                    <tr>
+                                <?php foreach ($enrollments as $e): 
+                                    $ptCode = strtolower((string)($e['profile_type'] ?? 'public'));
+                                    $unitNameVal = trim((string)($e['unit_name'] ?? ''));
+                                    $statusVal = strtolower((string)($e['status'] ?? 'active'));
+                                ?>
+                                    <tr data-profile-type="<?= esc($ptCode) ?>" data-unit-name="<?= esc(strtolower($unitNameVal)) ?>" data-status="<?= esc($statusVal) ?>">
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
                                                 <div class="w-32-px h-32-px bg-primary-50 text-primary-600 rounded-circle d-flex align-items-center justify-content-center fw-bold text-xs">
@@ -453,8 +530,32 @@ $methodBadge = match ($class['learning_method'] ?? 'online') {
                                                 </div>
                                             </div>
                                         </td>
+                                        <td>
+                                            <?php if ($ptCode === 'asn'): ?>
+                                                <span class="badge bg-primary-50 text-primary-600 px-8 py-4 radius-6 text-xs fw-semibold">
+                                                    <iconify-icon icon="solar:shield-user-outline" class="me-1"></iconify-icon> ASN
+                                                </span>
+                                            <?php elseif ($ptCode === 'provider'): ?>
+                                                <span class="badge bg-info-50 text-info-600 px-8 py-4 radius-6 text-xs fw-semibold">
+                                                    <iconify-icon icon="solar:shop-outline" class="me-1"></iconify-icon> Penyedia
+                                                </span>
+                                            <?php elseif ($ptCode === 'academic'): ?>
+                                                <span class="badge bg-success-50 text-success-600 px-8 py-4 radius-6 text-xs fw-semibold">
+                                                    <iconify-icon icon="solar:diploma-outline" class="me-1"></iconify-icon> Akademisi
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge bg-neutral-100 text-neutral-700 px-8 py-4 radius-6 text-xs fw-semibold">
+                                                    <iconify-icon icon="solar:user-outline" class="me-1"></iconify-icon> Umum
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><code class="text-xs"><?= esc($e['nip'] ?? '-') ?></code></td>
-                                        <td><span class="text-xs text-secondary-light"><?= esc($e['instansi'] ?? '-') ?></span></td>
+                                        <td>
+                                            <span class="text-xs fw-semibold text-primary-light d-block"><?= esc($e['unit_name'] ?: ($e['instansi'] ?: '-')) ?></span>
+                                            <?php if (! empty($e['institution_name']) && $e['institution_name'] !== ($e['unit_name'] ?? '')): ?>
+                                                <small class="text-2xs text-secondary-light d-block"><?= esc($e['institution_name']) ?></small>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><span class="text-xs text-secondary-light"><?= ! empty($e['enrolled_at']) ? date('d M Y H:i', strtotime($e['enrolled_at'])) : '-' ?></span></td>
                                         <td class="text-center">
                                             <?= view('dashboard/components/status_badge', ['status' => $e['status'] ?? 'active']) ?>
@@ -650,5 +751,171 @@ $methodBadge = match ($class['learning_method'] ?? 'online') {
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Tab parameter activation (?tab=peserta)
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        if (tabParam === 'peserta') {
+            const pesertaTabBtn = document.getElementById('tab-peserta');
+            if (pesertaTabBtn && window.bootstrap && window.bootstrap.Tab) {
+                new bootstrap.Tab(pesertaTabBtn).show();
+            }
+        }
+    } catch (e) {
+        console.warn('Tab activation warning:', e);
+    }
+
+    // 2. Peserta Terdaftar table filtering logic
+    const tableEl = document.getElementById('table-peserta-kelas');
+    if (!tableEl) return;
+
+    const $table = $(tableEl);
+    const filterProfileType = document.getElementById('filter-peserta-profile-type');
+    const filterOpd = document.getElementById('filter-peserta-opd');
+    const containerOpd = document.getElementById('container-filter-opd');
+    const filterStatus = document.getElementById('filter-peserta-status');
+    const btnReset = document.getElementById('btn-reset-filter-peserta');
+    const countBadge = document.getElementById('filtered-peserta-count');
+    const summaryBar = document.getElementById('filter-summary-bar');
+    const badgeProfile = document.getElementById('badge-filter-profile');
+    const badgeOpd = document.getElementById('badge-filter-opd');
+    const badgeStatus = document.getElementById('badge-filter-status');
+
+    // Register DataTables 2.x custom filter plugin strictly for this table
+    if (window.jQuery && jQuery.fn && jQuery.fn.dataTable && jQuery.fn.dataTable.ext) {
+        jQuery.fn.dataTable.ext.search.push(function (settings, searchData, index, rowData, counter) {
+            if (!settings.nTable || settings.nTable.id !== 'table-peserta-kelas') {
+                return true;
+            }
+
+            const nTr = settings.aoData[index] ? settings.aoData[index].nTr : null;
+            if (!nTr) return true;
+
+            const rowProfileType = (nTr.getAttribute('data-profile-type') || '').trim().toLowerCase();
+            const rowUnitName = (nTr.getAttribute('data-unit-name') || '').trim().toLowerCase();
+            const rowStatus = (nTr.getAttribute('data-status') || '').trim().toLowerCase();
+
+            const selectedProfileType = filterProfileType ? filterProfileType.value.trim().toLowerCase() : 'all';
+            const selectedOpd = filterOpd ? filterOpd.value.trim().toLowerCase() : 'all';
+            const selectedStatus = filterStatus ? filterStatus.value.trim().toLowerCase() : 'all';
+
+            // Filter 1: Profile Type
+            if (selectedProfileType !== 'all' && rowProfileType !== selectedProfileType) {
+                return false;
+            }
+
+            // Filter 2: OPD (unit_name) - only when Profile Type is ASN
+            if (selectedProfileType === 'asn' && selectedOpd !== 'all') {
+                if (rowUnitName !== selectedOpd) {
+                    return false;
+                }
+            }
+
+            // Filter 3: Status
+            if (selectedStatus !== 'all' && rowStatus !== selectedStatus) {
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    function applyPesertaFilters() {
+        const selectedProfile = filterProfileType ? filterProfileType.value : 'all';
+        const selectedOpdVal = filterOpd ? filterOpd.value : 'all';
+        const selectedStatusVal = filterStatus ? filterStatus.value : 'all';
+
+        // Conditional OPD Dropdown Visibility: ONLY visible if profile_type === 'asn'
+        if (selectedProfile === 'asn') {
+            if (containerOpd) containerOpd.classList.remove('d-none');
+        } else {
+            if (containerOpd) {
+                containerOpd.classList.add('d-none');
+                if (filterOpd) filterOpd.value = 'all';
+            }
+        }
+
+        // Trigger DataTables redraw
+        if (window.jQuery && jQuery.fn.DataTable && jQuery.fn.DataTable.isDataTable($table)) {
+            const dt = $table.DataTable();
+            dt.draw();
+            const filteredCount = dt.rows({ search: 'applied' }).count();
+            if (countBadge) countBadge.textContent = filteredCount;
+
+            // Update Active Filter Badges & Summary Bar
+            const isFiltered = (selectedProfile !== 'all') || (selectedProfile === 'asn' && selectedOpdVal !== 'all') || (selectedStatusVal !== 'all');
+            if (summaryBar) {
+                if (isFiltered) {
+                    summaryBar.classList.remove('d-none');
+                } else {
+                    summaryBar.classList.add('d-none');
+                }
+            }
+
+            if (badgeProfile) {
+                if (selectedProfile !== 'all') {
+                    const profileLabel = filterProfileType.options[filterProfileType.selectedIndex].text.replace(/\(\d+\)/, '').trim();
+                    badgeProfile.textContent = 'Profil: ' + profileLabel;
+                    badgeProfile.classList.remove('d-none');
+                } else {
+                    badgeProfile.classList.add('d-none');
+                }
+            }
+
+            if (badgeOpd) {
+                if (selectedProfile === 'asn' && selectedOpdVal !== 'all') {
+                    const opdLabel = filterOpd.options[filterOpd.selectedIndex].text.replace(/\(\d+\)/, '').trim();
+                    badgeOpd.textContent = 'OPD: ' + opdLabel;
+                    badgeOpd.classList.remove('d-none');
+                } else {
+                    badgeOpd.classList.add('d-none');
+                }
+            }
+
+            if (badgeStatus) {
+                if (selectedStatusVal !== 'all') {
+                    const statusLabel = filterStatus.options[filterStatus.selectedIndex].text.replace(/\(\d+\)/, '').trim();
+                    badgeStatus.textContent = 'Status: ' + statusLabel;
+                    badgeStatus.classList.remove('d-none');
+                } else {
+                    badgeStatus.classList.add('d-none');
+                }
+            }
+        }
+    }
+
+    if (filterProfileType) {
+        filterProfileType.addEventListener('change', function () {
+            if (this.value !== 'asn' && filterOpd) {
+                filterOpd.value = 'all';
+            }
+            applyPesertaFilters();
+        });
+    }
+
+    if (filterOpd) {
+        filterOpd.addEventListener('change', applyPesertaFilters);
+    }
+
+    if (filterStatus) {
+        filterStatus.addEventListener('change', applyPesertaFilters);
+    }
+
+    if (btnReset) {
+        btnReset.addEventListener('click', function () {
+            if (filterProfileType) filterProfileType.value = 'all';
+            if (filterOpd) filterOpd.value = 'all';
+            if (filterStatus) filterStatus.value = 'all';
+            applyPesertaFilters();
+        });
+    }
+
+    // Run after DataTables auto-initialization completes
+    setTimeout(applyPesertaFilters, 150);
+});
+</script>
 
 <?= $this->endSection() ?>
