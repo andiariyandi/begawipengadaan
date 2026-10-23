@@ -20,21 +20,25 @@
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
         text-transform: uppercase !important;
     }
+
     .reg-thumb-badge--berlaku {
         background: #15803d !important;
         color: #ffffff !important;
         border: 1px solid #166534 !important;
     }
+
     .reg-thumb-badge--diubah {
         background: #f59e0b !important;
         color: #0f172a !important;
         border: 1px solid #d97706 !important;
     }
+
     .reg-thumb-badge--dicabut {
         background: #dc2626 !important;
         color: #ffffff !important;
         border: 1px solid #b91c1c !important;
     }
+
     .reg-thumb-badge--year {
         background: rgba(15, 23, 42, 0.88) !important;
         color: #ffffff !important;
@@ -51,6 +55,7 @@
         padding: 0;
         list-style: none;
     }
+
     .berita-catlist a {
         display: flex !important;
         align-items: center !important;
@@ -65,12 +70,14 @@
         text-decoration: none !important;
         transition: all 0.2s ease !important;
     }
+
     .berita-catlist a:hover,
     .berita-catlist a.is-active {
         background: #eff6ff !important;
         color: #0284c7 !important;
         border-color: #bae6fd !important;
     }
+
     .berita-catlist a .left {
         display: inline-flex !important;
         align-items: center !important;
@@ -80,12 +87,14 @@
         text-overflow: ellipsis !important;
         white-space: nowrap !important;
     }
+
     .berita-catlist a .dot {
         width: 8px !important;
         height: 8px !important;
         border-radius: 50% !important;
         flex-shrink: 0 !important;
     }
+
     .berita-catlist a .count {
         background: #ffffff !important;
         color: #475569 !important;
@@ -104,9 +113,11 @@
         align-items: center;
         vertical-align: middle;
     }
+
     .reg-select-pill .nice-select {
         display: none !important;
     }
+
     .reg-select-pill select {
         appearance: none !important;
         -webkit-appearance: none !important;
@@ -128,17 +139,20 @@
         white-space: nowrap !important;
         text-overflow: ellipsis !important;
     }
+
     .reg-select-pill select:hover {
         background: #f8fafc !important;
         border-color: #94a3b8 !important;
         color: #0f172a !important;
     }
+
     .reg-select-pill select:focus {
         background: #ffffff !important;
         border-color: #0284c7 !important;
         box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15) !important;
         color: #0284c7 !important;
     }
+
     .reg-select-pill__prefix {
         position: absolute;
         left: 8px;
@@ -149,6 +163,7 @@
         pointer-events: none;
         transition: color 0.2s ease;
     }
+
     .reg-select-pill__suffix {
         position: absolute;
         right: 8px;
@@ -159,16 +174,19 @@
         pointer-events: none;
         transition: color 0.2s ease;
     }
-    .reg-select-pill select:focus ~ .reg-select-pill__prefix,
-    .reg-select-pill select:focus ~ .reg-select-pill__suffix {
+
+    .reg-select-pill select:focus~.reg-select-pill__prefix,
+    .reg-select-pill select:focus~.reg-select-pill__suffix {
         color: #0284c7;
     }
+
     .reg-select-pill--active select {
         background: #eff6ff !important;
         border-color: #38bdf8 !important;
         color: #0284c7 !important;
         font-weight: 700 !important;
     }
+
     .reg-select-pill--active .reg-select-pill__prefix,
     .reg-select-pill--active .reg-select-pill__suffix {
         color: #0284c7 !important;
@@ -178,14 +196,17 @@
         .evt-hero-banner {
             padding: 18px 14px !important;
         }
+
         .evt-hero-title {
             font-size: 20px !important;
         }
     }
+
     @media (max-width: 575.98px) {
         .reg-select-pill {
             flex: 1 1 calc(50% - 4px);
         }
+
         .reg-select-pill select {
             width: 100%;
             max-width: 100%;
@@ -440,7 +461,7 @@ $renderArenaRegulationCard = function (array $reg, int $idx = 0) {
                     <p class="evt-hero-desc mb-0">
                         <?= ! empty($selectedCategoryObj)
                             ? 'Kompilasi dokumen ' . esc($selectedCategoryObj['name']) . ' terverifikasi, status hukum resmi, riwayat versi, dan naskah digital siap unduh.'
-                            : 'Kompilasi peraturan perundang-undangan PBJ, Perpres 12/2021, Peraturan LKPP, Peraturan Daerah &amp; Pergub Lampung, hierarki norma hukum, status keberlakuan resmi, serta dokumen pengadaan yang transparan dan akuntabel.'
+                            : 'Kompilasi peraturan perundang-undangan PBJ, Perpres 46/2025, Peraturan LKPP, Peraturan Daerah &amp; Pergub Lampung, hierarki norma hukum, status keberlakuan resmi, serta dokumen pengadaan yang transparan dan akuntabel.'
                         ?>
                     </p>
                 </div>
@@ -1195,7 +1216,7 @@ $renderArenaRegulationCard = function (array $reg, int $idx = 0) {
 
             function syncIndicatorDots(targetIdx) {
                 if (!indicatorButtons || indicatorButtons.length === 0) return;
-                indicatorButtons.forEach(function (btn, idx) {
+                indicatorButtons.forEach(function(btn, idx) {
                     if (idx === targetIdx) {
                         btn.classList.add('active');
                         btn.setAttribute('aria-current', 'true');
@@ -1206,20 +1227,20 @@ $renderArenaRegulationCard = function (array $reg, int $idx = 0) {
                 });
             }
 
-            carouselEl.addEventListener('slide.bs.carousel', function (e) {
+            carouselEl.addEventListener('slide.bs.carousel', function(e) {
                 if (typeof e.to !== 'undefined') {
                     syncIndicatorDots(e.to);
                 }
             });
 
-            carouselEl.addEventListener('slid.bs.carousel', function (e) {
+            carouselEl.addEventListener('slid.bs.carousel', function(e) {
                 if (typeof e.to !== 'undefined') {
                     syncIndicatorDots(e.to);
                 }
             });
 
-            indicatorButtons.forEach(function (btn, idx) {
-                btn.addEventListener('click', function (e) {
+            indicatorButtons.forEach(function(btn, idx) {
+                btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     if (myCarousel && typeof myCarousel.to === 'function') {
                         myCarousel.to(idx);

@@ -58,20 +58,27 @@ class ProfileVerificationService
     public function approve(int $verificationId, ?int $actorId = null, ?string $notes = null): bool
     {
         $row = $this->verifications->find($verificationId);
-        if (! $row) {
+        if (! $row || ($row['status'] ?? '') !== 'pending') {
             return false;
         }
 
         $userId = (int) $row['user_id'];
         $now = date('Y-m-d H:i:s');
 
-        $this->verifications->update($verificationId, [
-            'status'      => 'approved',
-            'reviewed_by' => $actorId,
-            'reviewed_at' => $now,
-            'notes'       => $notes,
-            'updated_at'  => $now,
-        ]);
+        $affected = $this->verifications
+            ->where('id', $verificationId)
+            ->where('status', 'pending')
+            ->set([
+                'status'      => 'approved',
+                'reviewed_by' => $actorId,
+                'reviewed_at' => $now,
+                'notes'       => $notes,
+                'updated_at'  => $now,
+            ])->update();
+
+        if (! $affected || db_connect()->affectedRows() < 1) {
+            return false;
+        }
 
         $this->userService->updateStatus($userId, 'active', $actorId, 'profile_verification.approved');
         $this->userService->recordTransition(
@@ -104,21 +111,28 @@ class ProfileVerificationService
         }
 
         $row = $this->verifications->find($verificationId);
-        if (! $row) {
+        if (! $row || ($row['status'] ?? '') !== 'pending') {
             return false;
         }
 
         $userId = (int) $row['user_id'];
         $now = date('Y-m-d H:i:s');
 
-        $this->verifications->update($verificationId, [
-            'status'      => 'rejected',
-            'reviewed_by' => $actorId,
-            'reviewed_at' => $now,
-            'reason'      => $reason,
-            'notes'       => $notes,
-            'updated_at'  => $now,
-        ]);
+        $affected = $this->verifications
+            ->where('id', $verificationId)
+            ->where('status', 'pending')
+            ->set([
+                'status'      => 'rejected',
+                'reviewed_by' => $actorId,
+                'reviewed_at' => $now,
+                'reason'      => $reason,
+                'notes'       => $notes,
+                'updated_at'  => $now,
+            ])->update();
+
+        if (! $affected || db_connect()->affectedRows() < 1) {
+            return false;
+        }
 
         $this->userService->updateStatus($userId, 'rejected', $actorId, $reason);
         $this->userService->recordTransition(

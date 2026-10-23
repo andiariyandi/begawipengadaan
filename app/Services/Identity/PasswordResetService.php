@@ -57,6 +57,14 @@ class PasswordResetService
 
         $this->audit->log($userId, 'password_reset_requested', 'auth', 'users', $userId);
 
+        // Kirim email pemulihan kata sandi resmi via Google Mail
+        try {
+            $emailService = new \App\Services\Email\EmailService();
+            $emailService->sendPasswordReset((string) $user['email'], (string) ($user['name'] ?? 'Pengguna'), $plainToken);
+        } catch (\Throwable $e) {
+            log_message('error', 'Failed to send password reset email: ' . $e->getMessage());
+        }
+
         return true;
     }
 
@@ -90,17 +98,35 @@ class PasswordResetService
         }
 
         $userId = (int) $row['user_id'];
+        $db = \Config\Database::connect();
+        $db->transStart();
 
-        $this->users->skipValidation(true)->update($userId, [
-            'password_hash' => password_hash($newPassword, PASSWORD_DEFAULT),
-        ]);
+        try {
+            // M-14: Conditional atomic invalidation to prevent race condition reuse
+            $now = date('Y-m-d H:i:s');
+            $db->table('password_resets')
+                ->where('id', (int) $row['id'])
+                ->where('used_at IS NULL', null, false)
+                ->where('expires_at >', $now)
+                ->update(['used_at' => $now]);
 
-        $this->resets->update((int) $row['id'], [
-            'used_at' => date('Y-m-d H:i:s'),
-        ]);
+            if ($db->affectedRows() < 1) {
+                $db->transRollback();
+                return false;
+            }
 
-        $this->audit->log($userId, 'password_reset_completed', 'auth', 'users', $userId);
+            $this->users->skipValidation(true)->update($userId, [
+                'password_hash' => password_hash($newPassword, PASSWORD_DEFAULT),
+            ]);
 
-        return true;
+            $this->audit->log($userId, 'password_reset_completed', 'auth', 'users', $userId);
+            $db->transComplete();
+
+            return $db->transStatus() !== false;
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            log_message('error', 'Password reset failure: ' . $e->getMessage());
+            return false;
+        }
     }
 }

@@ -24,7 +24,7 @@ class HighlightFeatureController extends BaseController
             'pilar_begawi'        => '5 Pilar Ekosistem Begawi',
             'budaya_patik'        => '5 Budaya Kerja PATIK',
             'hierarki_hukum'      => '4 Tingkat Hierarki Hukum PBJ',
-            'roadmap_lkpp'        => '4 Level Roadmap Kompetensi LKPP',
+            'roadmap_lkpp'        => '4 Level Roadmap Kompetensi',
             'keamanan_sertifikat' => '4 Pilar Kriptografi & Keamanan Sertifikat',
         ];
 
@@ -43,7 +43,7 @@ class HighlightFeatureController extends BaseController
             'activeMenu'    => 'landing',
             'activeSubmenu' => 'pilar-hierarki',
             'items'         => $items,
-            'currentSection'=> $section,
+            'currentSection' => $section,
             'validSections' => $validSections,
         ]);
     }

@@ -21,20 +21,39 @@ class NotificationController extends BaseController
 
     public function detail(string $id)
     {
-        $userId = $this->userId();
-        if ($userId > 0) {
-            $this->service->markAsRead((int) $id, $userId);
+        $userId  = $this->userId();
+        $notifId = (int) $id;
+
+        $notif = db_connect()->table('notifications')
+            ->where('id', $notifId)
+            ->where('user_id', $userId)
+            ->get()->getRowArray();
+
+        if (! $notif) {
+            return redirect()->to(site_url('workspace/notifikasi'))
+                ->with('error', 'Notifikasi tidak ditemukan atau tidak dapat diakses.');
         }
+
+        $this->service->markAsRead($notifId, $userId);
 
         return $this->render('Detail Notifikasi', 'Informasi rinci terkait notifikasi #' . esc($id) . '.');
     }
 
     public function markAsRead(string $id)
     {
-        $userId = $this->userId();
-        if ($userId > 0) {
-            $this->service->markAsRead((int) $id, $userId);
+        $userId  = $this->userId();
+        $notifId = (int) $id;
+
+        $notif = db_connect()->table('notifications')
+            ->where('id', $notifId)
+            ->where('user_id', $userId)
+            ->get()->getRowArray();
+
+        if (! $notif) {
+            return redirect()->back()->with('error', 'Notifikasi tidak ditemukan atau tidak dapat diakses.');
         }
+
+        $this->service->markAsRead($notifId, $userId);
 
         return redirect()->back()->with('message', 'Notifikasi telah ditandai dibaca.');
     }

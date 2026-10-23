@@ -859,19 +859,43 @@ class TrainerController extends BaseController
 
         $participants = $query->get()->getResultArray();
 
+        // O(1) Pre-fetch lesson counts per class (Anti N+1)
+        $classLessonMap = [];
+        if (! empty($targetClassIds)) {
+            $lessonCounts = $db->table('lessons l')
+                ->select('m.class_id, COUNT(l.id) AS total_lessons')
+                ->join('learning_modules m', 'm.id = l.module_id')
+                ->whereIn('m.class_id', $targetClassIds)
+                ->groupBy('m.class_id')
+                ->get()->getResultArray();
+            foreach ($lessonCounts as $lc) {
+                $classLessonMap[(int) $lc['class_id']] = (int) $lc['total_lessons'];
+            }
+        }
+
+        // O(1) Pre-fetch completed lessons per enrollment (Anti N+1)
+        $enrollmentIds = array_filter(array_map('intval', array_column($participants, 'enrollment_id')));
+        $doneMap = [];
+        if (! empty($enrollmentIds)) {
+            $doneCounts = $db->table('learning_progress')
+                ->select('enrollment_id, COUNT(id) AS done_lessons')
+                ->whereIn('enrollment_id', $enrollmentIds)
+                ->where('status', 'completed')
+                ->groupBy('enrollment_id')
+                ->get()->getResultArray();
+            foreach ($doneCounts as $dc) {
+                $doneMap[(int) $dc['enrollment_id']] = (int) $dc['done_lessons'];
+            }
+        }
+
         foreach ($participants as &$p) {
             $eid = (int) $p['enrollment_id'];
             $cid = (int) $p['class_id'];
-            $totalLessons = (int) $db->table('lessons l')
-                ->join('learning_modules m', 'm.id = l.module_id')
-                ->where('m.class_id', $cid)->countAllResults();
+            $totalLessons = $classLessonMap[$cid] ?? 0;
+            $doneLessons  = $doneMap[$eid] ?? 0;
 
-            $doneLessons = (int) $db->table('learning_progress')
-                ->where('enrollment_id', $eid)
-                ->where('status', 'completed')->countAllResults();
-
-            $p['total_lessons']   = $totalLessons;
-            $p['done_lessons']    = $doneLessons;
+            $p['total_lessons']    = $totalLessons;
+            $p['done_lessons']     = $doneLessons;
             $p['progress_percent'] = $totalLessons > 0 ? round(($doneLessons / $totalLessons) * 100, 1) : 0.0;
         }
         unset($p);
@@ -901,24 +925,45 @@ class TrainerController extends BaseController
             ], 'trainer');
         }
 
+        // O(1) Pre-fetch enrollment statistics per class (Anti N+1)
+        $enrollmentStats = $db->table('enrollments')
+            ->select('class_id, status, COUNT(id) AS total_count')
+            ->whereIn('class_id', $classIds)
+            ->groupBy(['class_id', 'status'])
+            ->get()->getResultArray();
+
+        $statsMap = [];
+        foreach ($enrollmentStats as $es) {
+            $cid = (int) $es['class_id'];
+            $st  = (string) $es['status'];
+            $statsMap[$cid][$st] = (int) $es['total_count'];
+        }
+
+        $avgProgStats = $db->table('enrollments e')
+            ->select('e.class_id, AVG(lp.progress_percent) AS avg_p')
+            ->join('learning_progress lp', 'lp.enrollment_id = e.id')
+            ->whereIn('e.class_id', $classIds)
+            ->groupBy('e.class_id')
+            ->get()->getResultArray();
+
+        $avgProgMap = [];
+        foreach ($avgProgStats as $aps) {
+            $avgProgMap[(int) $aps['class_id']] = (float) $aps['avg_p'];
+        }
+
         $classSummaries = [];
         foreach ($assignedClasses as $ac) {
             $cid = (int) $ac['id'];
-            $totalEnrollments = (int) $db->table('enrollments')->where('class_id', $cid)->countAllResults();
-            $activeEnrollments = (int) $db->table('enrollments')->where('class_id', $cid)->where('status', 'active')->countAllResults();
-            $completedEnrollments = (int) $db->table('enrollments')->where('class_id', $cid)->where('status', 'completed')->countAllResults();
+            $activeCount    = $statsMap[$cid]['active'] ?? 0;
+            $completedCount = $statsMap[$cid]['completed'] ?? 0;
+            $totalCount     = array_sum($statsMap[$cid] ?? []);
+            $avgProg        = $avgProgMap[$cid] ?? 0.0;
 
-            $avgProg = (float) ($db->table('enrollments e')
-                ->selectAvg('lp.progress_percent', 'avg_p')
-                ->join('learning_progress lp', 'lp.enrollment_id = e.id')
-                ->where('e.class_id', $cid)
-                ->get()->getRowArray()['avg_p'] ?? 0.0);
-
-            $ac['total_enrollments']     = $totalEnrollments;
-            $ac['active_enrollments']    = $activeEnrollments;
-            $ac['completed_enrollments'] = $completedEnrollments;
+            $ac['total_enrollments']     = $totalCount;
+            $ac['active_enrollments']    = $activeCount;
+            $ac['completed_enrollments'] = $completedCount;
             $ac['avg_progress']          = round($avgProg, 1);
-            $ac['completion_rate']       = $totalEnrollments > 0 ? round(($completedEnrollments / $totalEnrollments) * 100, 1) : 0.0;
+            $ac['completion_rate']       = $totalCount > 0 ? round(($completedCount / $totalCount) * 100, 1) : 0.0;
             $classSummaries[]            = $ac;
         }
 
@@ -1452,16 +1497,45 @@ class TrainerController extends BaseController
     public function deleteQuestion(string $classId, string $quizId, string $questionId)
     {
         $userId = $this->userId();
-        $this->assertTrainerOf($userId, (int) $classId);
+        $classIdInt = (int) $classId;
+        $quizIdInt = (int) $quizId;
+        $questionIdInt = (int) $questionId;
+        $this->assertTrainerOf($userId, $classIdInt);
+
+        $db = db_connect();
+
+        // 1. Verifikasi kuis memang milik kelas ini
+        $quiz = $db->table('quizzes')
+            ->where('id', $quizIdInt)
+            ->where('class_id', $classIdInt)
+            ->get()->getRowArray();
+        if (! $quiz) {
+            return redirect()->back()->with('error', 'Kuis tidak ditemukan pada kelas binaan Anda.');
+        }
+
+        // 2. Verifikasi soal memang milik kuis ini (Anti IDOR)
+        $question = $db->table('quiz_questions')
+            ->where('id', $questionIdInt)
+            ->where('quiz_id', $quizIdInt)
+            ->get()->getRowArray();
+        if (! $question) {
+            return redirect()->back()->with('error', 'Soal tidak ditemukan atau bukan milik kuis ini.');
+        }
 
         try {
-            db_connect()->table('quiz_options')->where('question_id', (int) $questionId)->delete();
-            (new QuestionModel())->where('id', (int) $questionId)->where('quiz_id', (int) $quizId)->delete();
+            $db->transStart();
+            $db->table('quiz_options')->where('question_id', $questionIdInt)->delete();
+            $db->table('quiz_questions')->where('id', $questionIdInt)->where('quiz_id', $quizIdInt)->delete();
+            $db->transComplete();
+
+            if (! $db->transStatus()) {
+                throw new \RuntimeException('Gagal menghapus butir soal dari database.');
+            }
         } catch (Throwable $e) {
             return redirect()->back()->with('error', 'Soal gagal dihapus: ' . $e->getMessage());
         }
 
-        return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, $quizId))->with('success', 'Soal dihapus.');
+        return redirect()->to(route_to('workspace.trainer.quiz.edit', $classId, $quizId))->with('success', 'Soal berhasil dihapus.');
     }
 
     /**
@@ -2223,34 +2297,59 @@ class TrainerController extends BaseController
 
         // Cover image upload
         $coverFile = $this->request->getFile('cover_image');
+        $coverAsset = null;
         if ($coverFile && $coverFile->isValid() && ! $coverFile->hasMoved()) {
+            $allowedMimes = [
+                'image/jpeg' => 'jpg',
+                'image/png'  => 'png',
+                'image/webp' => 'webp',
+            ];
+            $serverMime = (string) $coverFile->getMimeType();
+            $clientExt  = strtolower((string) $coverFile->getClientExtension());
+            $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+
+            if ($coverFile->getSize() > 2 * 1024 * 1024 || ! isset($allowedMimes[$serverMime]) || ! in_array($clientExt, $allowedExts, true)) {
+                return redirect()->back()->withInput()->with('error', 'File sampul kelas tidak valid. Format harus gambar JPG, PNG, atau WEBP dan ukuran maksimal 2 MB.');
+            }
+
+            $safeExt = $allowedMimes[$serverMime];
             $targetDir = FCPATH . 'uploads/learning/covers/';
             if (! is_dir($targetDir)) {
                 mkdir($targetDir, 0755, true);
             }
-            $newFilename = 'class_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $coverFile->getClientExtension();
+            $newFilename = 'class_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $safeExt;
             $coverFile->move($targetDir, $newFilename);
             $coverUrl = 'uploads/learning/covers/' . $newFilename;
 
-            $db->table('file_assets')->insert([
-                'user_id'         => $userId,
-                'collection'      => 'class_covers',
-                'filename'        => $newFilename,
-                'original_name'   => $coverFile->getClientName(),
-                'mime_type'       => $coverFile->getClientMimeType(),
-                'size_bytes'      => $coverFile->getSize(),
-                'path'            => $coverUrl,
-                'visibility'      => 'public',
-                'storage_driver'  => 'local',
-                'created_at'      => date('Y-m-d H:i:s'),
-                'updated_at'      => date('Y-m-d H:i:s'),
-            ]);
+            $coverAsset = [
+                'user_id'        => $userId,
+                'collection'     => 'class_covers',
+                'filename'       => $newFilename,
+                'original_name'  => $coverFile->getClientName(),
+                'mime_type'      => $serverMime,
+                'size_bytes'     => $coverFile->getSize(),
+                'path'           => $coverUrl,
+                'visibility'     => 'public',
+                'storage_driver' => 'local',
+                'created_at'     => date('Y-m-d H:i:s'),
+                'updated_at'     => date('Y-m-d H:i:s'),
+            ];
+        }
+
+        $db->transStart();
+        if ($coverAsset !== null) {
+            $db->table('file_assets')->insert($coverAsset);
             $assetId = (int) $db->insertID();
             $updateData['cover_file_id'] = $assetId > 0 ? $assetId : null;
             $updateData['cover_url'] = $coverUrl;
         }
 
         $db->table('learning_classes')->where('id', $classIdInt)->update($updateData);
+        $db->transComplete();
+
+        if (! $db->transStatus()) {
+            return redirect()->back()->withInput()->with('error', 'Gagal memperbarui informasi kelas ke database.');
+        }
 
         return redirect()->to(route_to('workspace.trainer.class.detail', $classId))
             ->with('success', 'Informasi detail kelas berhasil diperbarui.');
@@ -2349,7 +2448,7 @@ class TrainerController extends BaseController
                     $pdfFile->move($uploadDir, $storedName);
                     @chmod($uploadDir . $storedName, 0664);
                 } catch (\Throwable $e) {
-                    log_message('error', '[TrainerController] PDF move failed: ' . $e->getMessage());
+                    log_message('error', '[TrainerController] PDF move failed: {message}', ['message' => $e->getMessage()]);
                     return ['error' => 'Gagal memindahkan berkas PDF: ' . $e->getMessage()];
                 }
 

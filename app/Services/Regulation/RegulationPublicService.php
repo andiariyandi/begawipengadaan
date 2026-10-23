@@ -341,7 +341,7 @@ class RegulationPublicService
     {
         $db = db_connect();
 
-        // Outgoing: source = $regulationId
+        // Outgoing: source = $regulationId (H-5: hanya tampilkan regulasi published & public)
         $out = $db->table('regulation_relations rr')
             ->select('rr.relation_type, rr.notes, "outgoing" AS direction,
                       r_other.id AS related_id, r_other.slug AS related_slug,
@@ -350,9 +350,11 @@ class RegulationPublicService
             ->join('regulations r_other', 'r_other.id = rr.target_regulation_id', 'left')
             ->where('rr.source_regulation_id', $regulationId)
             ->where('r_other.deleted_at', null)
+            ->where('r_other.workflow_status', 'published')
+            ->where('r_other.visibility', 'public')
             ->get()->getResultArray();
 
-        // Incoming: target = $regulationId
+        // Incoming: target = $regulationId (H-5: hanya tampilkan regulasi published & public)
         $inc = $db->table('regulation_relations rr')
             ->select('rr.relation_type, rr.notes, "incoming" AS direction,
                       r_other.id AS related_id, r_other.slug AS related_slug,
@@ -361,6 +363,8 @@ class RegulationPublicService
             ->join('regulations r_other', 'r_other.id = rr.source_regulation_id', 'left')
             ->where('rr.target_regulation_id', $regulationId)
             ->where('r_other.deleted_at', null)
+            ->where('r_other.workflow_status', 'published')
+            ->where('r_other.visibility', 'public')
             ->get()->getResultArray();
 
         return array_merge($out, $inc);

@@ -327,6 +327,11 @@ $adminUnreadNotifCount = $sbUserId > 0
                                     <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Layanan Bantuan &amp; Inbox
                                 </a>
                             </li>
+                            <li>
+                                <a class="<?= $activeClass('communication', ['email']) ?>" href="<?= site_url('dashboard/komunikasi/email') ?>">
+                                    <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pusat Siaran Email
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 <?php endif; ?>

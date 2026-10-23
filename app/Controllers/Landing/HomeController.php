@@ -316,10 +316,10 @@ class HomeController extends BaseController
 
         return view('landing/home/index', [
             'isHome'            => true,
-            'title'             => 'BegawiPengadaan | Platform Pengadaan Barang/Jasa Pemerintah Provinsi Lampung',
-            'pageTitle'         => 'BegawiPengadaan | Transformasi Digital Pengadaan Barang/Jasa Provinsi Lampung',
+            'title'             => 'BegawiPengadaan | Platform Bimbingan Edukasi & Gerakan Akselerasi Wawasan PBJ',
+            'pageTitle'         => 'BegawiPengadaan | Transformasi Digital Bimbingan Edukasi & Gerakan Akselerasi Wawasan PBJ',
             'metaDescription'   => 'Platform resmi terintegrasi Pembelajaran Pengadaan (Arena Belajar), Repositori Pengetahuan (Bunga Rampai), dan Pusat Regulasi Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.',
-            'metaKeywords'      => 'BegawiPengadaan, PBJ Lampung, Biro PBJ Setda Lampung, Arena Belajar, Bunga Rampai, Regulasi PBJ, Pengadaan Barang Jasa Pemerintah, LKPP',
+            'metaKeywords'      => 'BegawiPengadaan, PBJ Lampung, Biro PBJ Setda Lampung, Arena Belajar, Bunga Rampai, Regulasi PBJ, Pengadaan Barang Jasa Pemerintah, LKPP, Transformasi Digital Bimbingan Edukasi & Gerakan Akselerasi Wawasan PBJ',
             'stats'             => $stats,
             'courses'           => $courses,
             'regulations'       => $regulations,
@@ -495,6 +495,14 @@ class HomeController extends BaseController
 
     public function sendContact()
     {
+        $throttler = service('throttler');
+        $clientIp = $this->request->getIPAddress();
+        if ($throttler->check('contact_' . md5($clientIp), 5, 60) === false) {
+            return redirect()->back()
+                ->withInput()
+                ->with('contact_error', 'Terlalu banyak permintaan pengiriman pesan dari perangkat Anda. Silakan tunggu satu menit sebelum mencoba kembali.');
+        }
+
         $rules = [
             'name'         => 'required|min_length[3]|max_length[100]',
             'email'        => 'required|valid_email|max_length[150]',
@@ -536,6 +544,7 @@ class HomeController extends BaseController
             ],
         ];
 
+        $db->transStart();
         try {
             $db->table('contact_messages')->insert([
                 'ticket_number'    => $ticketNumber,
@@ -550,12 +559,8 @@ class HomeController extends BaseController
                 'created_at'       => date('Y-m-d H:i:s'),
                 'updated_at'       => date('Y-m-d H:i:s'),
             ]);
-        } catch (\Throwable $e) {
-            log_message('error', 'Contact message DB save error: ' . $e->getMessage());
-        }
 
-        // Catat log audit
-        try {
+            // Catat log audit di dalam transaksi
             $auditService = new \App\Services\AuditService();
             $auditService->log($userId, 'contact.inquiry_submitted', 'contact_messages', $ticketNumber, 0, [
                 'name'         => substr((string) $this->request->getPost('name'), 0, 100),
@@ -563,7 +568,10 @@ class HomeController extends BaseController
                 'service_type' => substr((string) $this->request->getPost('service_type'), 0, 100),
                 'subject'      => substr((string) $this->request->getPost('subject'), 0, 150),
             ]);
-        } catch (\Throwable) {
+            $db->transComplete();
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            log_message('error', 'Contact message save error: ' . $e->getMessage());
         }
 
         if ($isLoggedIn) {
@@ -577,6 +585,15 @@ class HomeController extends BaseController
 
     public function subscribeNewsletter()
     {
+        $throttler = service('throttler');
+        $clientIp = $this->request->getIPAddress();
+        if ($throttler->check('newsletter_' . md5($clientIp), 5, 60) === false) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setStatusCode(429)->setJSON(['status' => 'error', 'message' => 'Terlalu banyak permintaan. Silakan tunggu beberapa saat lagi.']);
+            }
+            return redirect()->back()->with('newsletter_error', 'Terlalu banyak permintaan. Silakan tunggu beberapa saat lagi.');
+        }
+
         $email = trim((string) $this->request->getPost('email'));
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             if ($this->request->isAJAX()) {
@@ -586,6 +603,7 @@ class HomeController extends BaseController
         }
 
         $db = \Config\Database::connect();
+        $db->transStart();
         try {
             $existing = $db->table('newsletter_subscribers')->where('email', $email)->get()->getRow();
             if (! $existing) {
@@ -597,7 +615,9 @@ class HomeController extends BaseController
                     'updated_at'    => date('Y-m-d H:i:s'),
                 ]);
             }
+            $db->transComplete();
         } catch (\Throwable $e) {
+            $db->transRollback();
             log_message('error', 'Newsletter subscribe DB error: ' . $e->getMessage());
         }
 
@@ -626,6 +646,18 @@ class HomeController extends BaseController
 
     public function submitSurvey()
     {
+        $throttler = service('throttler');
+        $clientIp = $this->request->getIPAddress();
+        if ($throttler->check('survey_' . md5($clientIp), 5, 60) === false) {
+            if ($this->request->isAJAX() || $this->request->getHeaderLine('Accept') === 'application/json' || $this->request->getGet('ajax') === '1') {
+                return $this->response->setStatusCode(429)->setJSON([
+                    'success' => false,
+                    'message' => 'Terlalu banyak pengiriman survei dari perangkat Anda. Silakan tunggu beberapa saat.',
+                ]);
+            }
+            return redirect()->back()->with('error', 'Terlalu banyak pengiriman survei dari perangkat Anda. Silakan tunggu beberapa saat.');
+        }
+
         $rating = (int) $this->request->getPost('rating_overall');
         if ($rating < 1 || $rating > 5) {
             $rating = 5;
@@ -674,27 +706,35 @@ class HomeController extends BaseController
             'user_agent'                 => substr((string) $this->request->getUserAgent(), 0, 255),
         ];
 
+        $db = \Config\Database::connect();
+        $db->transStart();
         try {
             $surveyModel->insert($data);
-        } catch (\Throwable $e) {
-            log_message('error', 'Satisfaction Survey insert error: ' . $e->getMessage());
-        }
-
-        try {
             $auditService = new \App\Services\AuditService();
             $auditService->log(null, 'survey.satisfaction_submitted', 'survey', 'satisfaction_surveys', 0, [
                 'ticket_number'   => $ticketNumber,
                 'rating_overall'  => $rating,
                 'respondent_role' => $respondentRole,
             ]);
-        } catch (\Throwable) {
+            $db->transComplete();
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            log_message('error', 'Satisfaction Survey insert error: ' . $e->getMessage());
         }
 
         $indonesianMonths = [
-            'January' => 'Januari', 'February' => 'Februari', 'March' => 'Maret',
-            'April' => 'April', 'May' => 'Mei', 'June' => 'Juni',
-            'July' => 'Juli', 'August' => 'Agustus', 'September' => 'September',
-            'October' => 'Oktober', 'November' => 'November', 'December' => 'Desember',
+            'January' => 'Januari',
+            'February' => 'Februari',
+            'March' => 'Maret',
+            'April' => 'April',
+            'May' => 'Mei',
+            'June' => 'Juni',
+            'July' => 'Juli',
+            'August' => 'Agustus',
+            'September' => 'September',
+            'October' => 'Oktober',
+            'November' => 'November',
+            'December' => 'Desember',
         ];
         $formattedDate = strtr(date('d F Y, H:i'), $indonesianMonths) . ' WIB';
 

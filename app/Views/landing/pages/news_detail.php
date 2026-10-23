@@ -169,7 +169,18 @@ $catSlug = $news['category_slug'] ?? 'umum';
 
                     <!-- Article Body Content -->
                     <div class="news-article-body" id="articleBodyContent">
-                        <?= $news['content'] /* HTML allowed in article body */ ?>
+                        <?php
+                        // C-2: Anti Stored-XSS Sanitization
+                        $rawContent = (string) ($news['content'] ?? '');
+                        $safeHtml = strip_tags($rawContent, '<p><br><b><strong><i><em><u><a><ul><ol><li><h1><h2><h3><h4><h5><h6><blockquote><code><pre><hr>');
+                        $safeHtml = preg_replace('/\s+on[a-z]+\s*=\s*(["\'][^"\']*["\']|[^\s>]+)/i', '', $safeHtml);
+                        $safeHtml = preg_replace('/\b(href)\s*=\s*["\']\s*(javascript|data):[^"\']*["\']/i', '$1="#"', $safeHtml);
+                        if ($safeHtml === strip_tags($safeHtml)) {
+                            echo nl2br(esc($safeHtml));
+                        } else {
+                            echo $safeHtml;
+                        }
+                        ?>
 
                         <?php if (! empty($sourceName) || ! empty($sourceUrl)): ?>
                             <div class="news-source">

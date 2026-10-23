@@ -44,7 +44,8 @@ class NewsPublicController extends BaseController
      */
     public function category(string $slug): string
     {
-        $category = $this->categoryModel->where('slug', $slug)->first();
+        // M-9: Pastikan kategori berstatus aktif
+        $category = $this->categoryModel->where('slug', $slug)->where('is_active', 1)->first();
         if (! $category) {
             throw PageNotFoundException::forPageNotFound('Kategori berita tidak ditemukan: ' . esc($slug));
         }
@@ -224,14 +225,15 @@ class NewsPublicController extends BaseController
             ->limit(4)
             ->get()->getResultArray();
 
-        // Metrics ribbon
+        // Metrics ribbon (M-10: filter workflow_status dan visibility public)
         $stats = [
-            'total_news'       => (int) $this->db->table('news')->where('deleted_at', null)->where('workflow_status', 'published')->countAllResults(),
+            'total_news'       => (int) $this->db->table('news')->where('deleted_at', null)->where('workflow_status', 'published')->where('visibility', 'public')->countAllResults(),
             'total_categories' => (int) $this->db->table('news_categories')->where('is_active', 1)->countAllResults(),
-            'total_views'      => (int) ($this->db->table('news')->where('deleted_at', null)->selectSum('view_count')->get()->getRow()->view_count ?? 0),
+            'total_views'      => (int) ($this->db->table('news')->where('deleted_at', null)->where('workflow_status', 'published')->where('visibility', 'public')->selectSum('view_count')->get()->getRow()->view_count ?? 0),
             'this_month'       => (int) $this->db->table('news')
                 ->where('deleted_at', null)
                 ->where('workflow_status', 'published')
+                ->where('visibility', 'public')
                 ->where('published_at >=', date('Y-m-01 00:00:00'))
                 ->countAllResults(),
         ];
@@ -281,6 +283,8 @@ class NewsPublicController extends BaseController
             ->join('file_assets fa', 'fa.id = n.cover_file_id', 'left')
             ->where('n.slug', $slug)
             ->where('n.deleted_at', null)
+            ->where('n.workflow_status', 'published')
+            ->where('n.visibility', 'public')
             ->get()->getRowArray();
 
         if (! $news) {

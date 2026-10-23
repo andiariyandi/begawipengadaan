@@ -1281,6 +1281,27 @@ class ParticipantController extends BaseController
         }
         $eventId = (int) $event['id'];
 
+        // Otorisasi: verifikasi peserta terdaftar sah pada event (kecuali peran internal/staff)
+        $userRoles = (array) session()->get('roles');
+        $isStaff = ! empty(array_intersect(['super_administrator', 'administrator', 'operator', 'trainer'], $userRoles));
+
+        if (! $isStaff) {
+            if (($event['status'] ?? '') !== 'published') {
+                throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Materi event belum dapat diakses.');
+            }
+
+            $isRegistered = $db->table('event_registrations')
+                ->where('event_id', $eventId)
+                ->where('user_id', $userId)
+                ->whereIn('status', ['registered', 'confirmed', 'attended', 'present', 'completed'])
+                ->countAllResults() > 0;
+
+            if (! $isRegistered) {
+                return redirect()->to(site_url('workspace/peserta/event-saya'))
+                    ->with('error', 'Anda harus terdaftar pada event ini untuk mengunduh materi.');
+            }
+        }
+
         $file = $db->table('file_assets')
             ->where('id', (int) $fileId)
             ->where('resource_type', 'event_material')
@@ -1292,18 +1313,39 @@ class ParticipantController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('File materi tidak ditemukan.');
         }
 
-        $fullPath = WRITEPATH . ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $file['path']), DIRECTORY_SEPARATOR);
-        if (! is_file($fullPath)) {
+        // Cegah Path Traversal: verifikasi direktori sah (WRITEPATH atau FCPATH uploads)
+        $cleanRel = ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, (string) $file['path']), DIRECTORY_SEPARATOR);
+        $fullPath = realpath(WRITEPATH . $cleanRel);
+        $baseWritable = realpath(WRITEPATH);
+        $baseUploads = realpath(FCPATH . 'uploads');
+
+        if (! $fullPath || ! is_file($fullPath)) {
+            $altPath = realpath(FCPATH . $cleanRel);
+            if ($altPath && is_file($altPath)) {
+                $fullPath = $altPath;
+            }
+        }
+
+        $isSafeDir = false;
+        if ($fullPath && $baseWritable && str_starts_with($fullPath, $baseWritable)) {
+            $isSafeDir = true;
+        }
+        if ($fullPath && $baseUploads && str_starts_with($fullPath, $baseUploads)) {
+            $isSafeDir = true;
+        }
+
+        if (! $fullPath || ! is_file($fullPath) || ! $isSafeDir) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('File materi tidak ada pada disk server.');
         }
 
-        $filename = $file['original_name'] ?: 'materi-event.' . ($file['extension'] ?? 'pdf');
-        $mime = $file['mime_type'] ?: 'application/octet-stream';
+        // Cegah Header Injection: sanitasi nama file
+        $origName = basename((string) ($file['original_name'] ?: 'materi-event.' . ($file['extension'] ?? 'pdf')));
+        $safeName = preg_replace('/[^a-zA-Z0-9._-]/', '_', $origName);
+        if ($safeName === '' || $safeName === '.') {
+            $safeName = 'materi-event.pdf';
+        }
 
-        return $this->response
-            ->setHeader('Content-Type', $mime)
-            ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
-            ->setBody(file_get_contents($fullPath));
+        return $this->response->download($fullPath, null)->setFileName($safeName);
     }
 
     public function claimSelfPacedCertificate(string $idOrSlug)
@@ -1524,6 +1566,35 @@ class ParticipantController extends BaseController
         $fileData = null;
         $file = $this->request->getFile('submission_file');
         if ($file && $file->isValid() && ! $file->hasMoved()) {
+            // Validasi ukuran berkas: maksimal 10 MB
+            if ($file->getSize() > 10 * 1024 * 1024) {
+                return redirect()->back()->withInput()->with('error', 'Ukuran berkas tugas melebihi batas maksimal 10 MB.');
+            }
+
+            // Validasi ekstensi yang diizinkan (allowlist)
+            $allowedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip'];
+            $ext = strtolower((string) $file->getClientExtension());
+            if (! in_array($ext, $allowedExtensions, true)) {
+                return redirect()->back()->withInput()->with('error', 'Format berkas tidak diizinkan. Hanya dokumen PDF, Word, Excel, PowerPoint, atau ZIP yang diperbolehkan.');
+            }
+
+            // Filter ekstensi berbahaya
+            $dangerousExtensions = ['php', 'phtml', 'phar', 'html', 'htm', 'svg', 'js', 'exe', 'sh', 'bat', 'cmd', 'py', 'cgi', 'pl'];
+            if (in_array($ext, $dangerousExtensions, true)) {
+                return redirect()->back()->withInput()->with('error', 'Ekstensi berkas berbahaya ditolak oleh sistem keamanan.');
+            }
+
+            // Validasi MIME type server-side
+            $mime = strtolower((string) $file->getMimeType());
+            $dangerousMimes = [
+                'text/html', 'text/javascript', 'application/javascript', 'application/x-javascript',
+                'application/x-php', 'application/x-httpd-php', 'text/x-php', 'application/x-executable',
+                'application/x-sh', 'application/x-bat', 'image/svg+xml',
+            ];
+            if (in_array($mime, $dangerousMimes, true)) {
+                return redirect()->back()->withInput()->with('error', 'Tipe konten (MIME) berkas berbahaya ditolak.');
+            }
+
             $uploadDir = WRITEPATH . 'uploads/assignments/';
             if (! is_dir($uploadDir)) {
                 @mkdir($uploadDir, 0775, true);
@@ -1534,13 +1605,13 @@ class ParticipantController extends BaseController
                 $file->move($uploadDir, $newName);
                 @chmod($uploadDir . $newName, 0664);
             } catch (\Throwable $e) {
-                log_message('error', '[ParticipantController] Assignment move failed: ' . $e->getMessage());
+                log_message('error', '[ParticipantController] Assignment move failed: {message}', ['message' => $e->getMessage()]);
                 return redirect()->back()->withInput()->with('error', 'Gagal memindahkan berkas tugas: ' . $e->getMessage());
             }
             $fileData = [
                 'path'          => 'uploads/assignments/' . $newName,
                 'original_name' => $file->getClientName(),
-                'mime_type'     => $file->getClientMimeType(),
+                'mime_type'     => $mime,
                 'size_bytes'    => $file->getSize(),
             ];
         }
@@ -1759,7 +1830,7 @@ class ParticipantController extends BaseController
                         return redirect()->to(route_to('workspace.participant.quiz.take', (string) $quizId) . '?attempt=' . $attempt['id'])
                             ->with('error', 'Waktu pengerjaan ujian telah habis. Jawaban Anda telah otomatis dikumpulkan.');
                     } catch (\Throwable $e) {
-                        log_message('error', 'Auto-submit on expired timer failed: ' . $e->getMessage());
+                        log_message('error', 'Auto-submit on expired timer failed: {message}', ['message' => $e->getMessage()]);
                     }
                 }
             }
@@ -1850,12 +1921,12 @@ class ParticipantController extends BaseController
 
         $attempt = $db->table('quiz_attempts')->where('id', $attemptId)->get()->getRowArray();
         if (! $attempt) {
-            return redirect()->back()->with('error', 'Percobaan quiz tidak ditemukan.');
+            return redirect()->back()->with('error', 'Data percobaan kuis tidak ditemukan atau tidak dapat diakses.');
         }
 
         $quiz = $db->table('quizzes')->where('id', (int) $attempt['quiz_id'])->get()->getRowArray();
         if (! $quiz) {
-            return redirect()->back()->with('error', 'Quiz tidak ditemukan.');
+            return redirect()->back()->with('error', 'Data percobaan kuis tidak ditemukan atau tidak dapat diakses.');
         }
 
         // If attempt was already submitted or graded

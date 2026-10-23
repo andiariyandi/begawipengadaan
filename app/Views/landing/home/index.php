@@ -194,7 +194,7 @@ $bulanIndo = [
             <!-- Quick Keyword Tags -->
             <div class="hero-quick-tags">
                 <span class="quick-tags-label"><iconify-icon icon="solar:bolt-bold" class="text-warning"></iconify-icon> Pencarian Cepat:</span>
-                <a href="<?= site_url('regulasi?q=Perpres+12+Tahun+2021') ?>" class="quick-tag-pill">Perpres 12/2021</a>
+                <a href="<?= site_url('regulasi?q=Perpres+46+Tahun+2025') ?>" class="quick-tag-pill">Perpres 46/2025</a>
                 <a href="<?= site_url('regulasi?q=Peraturan+LKPP') ?>" class="quick-tag-pill">Peraturan LKPP</a>
                 <a href="<?= site_url('bunga-rampai/template-dokumen') ?>" class="quick-tag-pill">Template KAK &amp; HPS</a>
                 <a href="<?= site_url('arena-belajar/course') ?>" class="quick-tag-pill">Course PBJ</a>
@@ -412,7 +412,8 @@ $bulanIndo = [
                     </div>
                 </div>
             <?php else: ?>
-                <?php $ci = 0; foreach ($courses as $c): ?>
+                <?php $ci = 0;
+                foreach ($courses as $c): ?>
                     <?php
                     $lvl = strtolower((string) ($c['level'] ?? 'basic'));
                     $lvlText = match ($lvl) {
@@ -465,7 +466,8 @@ $bulanIndo = [
                             </div>
                         </div>
                     </div>
-                <?php $ci++; endforeach; ?>
+                <?php $ci++;
+                endforeach; ?>
             <?php endif; ?>
         </div>
     </div>
@@ -1127,35 +1129,35 @@ $bulanIndo = [
      10. TESTIMONI PENGGUNA (TESTIMONIAL SPOTLIGHT)
      ========================================================= -->
 <?php if (!empty($testimonials)): ?>
-<section class="testimonial-one section-testimonies" id="section-testimonies">
-    <div class="container">
-        <!-- Section Title & Single Nav Arrows Header -->
-        <div class="testimony-header-wrap mb-4">
-            <div class="d-flex align-items-end justify-content-between flex-wrap gap-3">
-                <div style="max-width: 820px;">
-                    <div class="section-title-tag">
-                        <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
-                        <span>Suara Pemangku Kepentingan</span>
+    <section class="testimonial-one section-testimonies" id="section-testimonies">
+        <div class="container">
+            <!-- Section Title & Single Nav Arrows Header -->
+            <div class="testimony-header-wrap mb-4">
+                <div class="d-flex align-items-end justify-content-between flex-wrap gap-3">
+                    <div style="max-width: 820px;">
+                        <div class="section-title-tag">
+                            <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
+                            <span>Suara Pemangku Kepentingan</span>
+                        </div>
+                        <h2 class="section-title-main mb-1">Testimoni &amp; Pengalaman Nyata Pengguna BegawiPengadaan</h2>
+                        <p class="section-title-desc mb-0">Aspirasi, pengalaman, dan evaluasi langsung dari PPK, Pokja Pemilihan, Auditor APIP, dan Rekanan Penyedia di Provinsi Lampung.</p>
                     </div>
-                    <h2 class="section-title-main mb-1">Testimoni &amp; Pengalaman Nyata Pengguna BegawiPengadaan</h2>
-                    <p class="section-title-desc mb-0">Aspirasi, pengalaman, dan evaluasi langsung dari PPK, Pokja Pemilihan, Auditor APIP, dan Rekanan Penyedia di Provinsi Lampung.</p>
-                </div>
-                <!-- Single Nav Arrow Controller (No duplicates, no number pagination) -->
-                <div class="testimony-slider-nav d-inline-flex align-items-center gap-2 ms-auto">
-                    <button type="button" class="team-nav-btn testimony-nav-prev" id="testimonySliderPrev" aria-label="Testimoni Sebelumnya">
-                        <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
-                    </button>
-                    <button type="button" class="team-nav-btn testimony-nav-next" id="testimonySliderNext" aria-label="Testimoni Selanjutnya">
-                        <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
-                    </button>
+                    <!-- Single Nav Arrow Controller (No duplicates, no number pagination) -->
+                    <div class="testimony-slider-nav d-inline-flex align-items-center gap-2 ms-auto">
+                        <button type="button" class="team-nav-btn testimony-nav-prev" id="testimonySliderPrev" aria-label="Testimoni Sebelumnya">
+                            <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
+                        </button>
+                        <button type="button" class="team-nav-btn testimony-nav-next" id="testimonySliderNext" aria-label="Testimoni Selanjutnya">
+                            <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
 
-        <!-- Testimonial Carousel (Bubble Chat Design, Multi-Card, Loop) -->
-        <div class="testimonial-one__inner">
-            <div class="testimonial-one__carousel owl-theme owl-carousel">
+            <!-- Testimonial Carousel (Bubble Chat Design, Multi-Card, Loop) -->
+            <div class="testimonial-one__inner">
+                <div class="testimonial-one__carousel owl-theme owl-carousel">
                     <?php foreach ($testimonials as $tIdx => $t): ?>
                         <?php
                         $tId = 't' . ($tIdx + 1);
@@ -1217,44 +1219,44 @@ $bulanIndo = [
                             </div>
                         </div>
                     <?php endforeach; ?>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 <?php endif; ?>
 
 <!-- =========================================================
      11. TIM INOVATOR & PENGEMBANG (TEAM SPOTLIGHT)
      ========================================================= -->
 <?php if (!empty($teamMembers)): ?>
-<section class="team-one section-team" id="section-team">
-    <div class="container">
-        <!-- Section Title & Single Nav Arrows Header -->
-        <div class="team-header-wrap mb-4">
-            <div class="d-flex align-items-end justify-content-between flex-wrap gap-3">
-                <div style="max-width: 820px;">
-                    <div class="section-title-tag">
-                        <iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon>
-                        <span>Kolaborator &amp; Pengembang</span>
+    <section class="team-one section-team" id="section-team">
+        <div class="container">
+            <!-- Section Title & Single Nav Arrows Header -->
+            <div class="team-header-wrap mb-4">
+                <div class="d-flex align-items-end justify-content-between flex-wrap gap-3">
+                    <div style="max-width: 820px;">
+                        <div class="section-title-tag">
+                            <iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon>
+                            <span>Kolaborator &amp; Pengembang</span>
+                        </div>
+                        <h2 class="section-title-main mb-1">Tim Inovator di Balik Ekosistem BegawiPengadaan</h2>
+                        <p class="section-title-desc mb-0">Sinergi kepemimpinan daerah, birokrasi profesional, tim perekayasa perangkat lunak, dan fasilitator ahli pengadaan barang/jasa.</p>
                     </div>
-                    <h2 class="section-title-main mb-1">Tim Inovator di Balik Ekosistem BegawiPengadaan</h2>
-                    <p class="section-title-desc mb-0">Sinergi kepemimpinan daerah, birokrasi profesional, tim perekayasa perangkat lunak, dan fasilitator ahli pengadaan barang/jasa.</p>
-                </div>
-                <!-- Single Nav Arrow Controller (No duplicates, no number pagination) -->
-                <div class="team-slider-nav d-inline-flex align-items-center gap-2 ms-auto">
-                    <button type="button" class="team-nav-btn team-nav-prev" id="teamSliderPrev" aria-label="Slide Tim Sebelumnya">
-                        <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
-                    </button>
-                    <button type="button" class="team-nav-btn team-nav-next" id="teamSliderNext" aria-label="Slide Tim Selanjutnya">
-                        <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
-                    </button>
+                    <!-- Single Nav Arrow Controller (No duplicates, no number pagination) -->
+                    <div class="team-slider-nav d-inline-flex align-items-center gap-2 ms-auto">
+                        <button type="button" class="team-nav-btn team-nav-prev" id="teamSliderPrev" aria-label="Slide Tim Sebelumnya">
+                            <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
+                        </button>
+                        <button type="button" class="team-nav-btn team-nav-next" id="teamSliderNext" aria-label="Slide Tim Selanjutnya">
+                            <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Team Photo Card Slider Carousel (4-5 Cards Desktop, Loop, Photos with Badges) -->
-        <div class="team-one__inner">
-            <div class="team-spotlight__carousel owl-theme owl-carousel">
+            <!-- Team Photo Card Slider Carousel (4-5 Cards Desktop, Loop, Photos with Badges) -->
+            <div class="team-one__inner">
+                <div class="team-spotlight__carousel owl-theme owl-carousel">
                     <?php foreach ($teamMembers as $mIdx => $m): ?>
                         <?php
                         $tmId = 'tm' . ($mIdx + 1);
@@ -1288,49 +1290,49 @@ $bulanIndo = [
                             </div>
                         </div>
                     <?php endforeach; ?>
+                </div>
             </div>
-        </div>
 
-        <!-- Team Values & Commitment Banner -->
-        <div class="team-values-banner">
-            <div class="row g-4 align-items-center">
-                <div class="col-12 col-md-4">
-                    <div class="team-value-item">
-                        <div class="team-value-icon">
-                            <iconify-icon icon="solar:shield-check-bold"></iconify-icon>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold text-white mb-1 text-sm">Budaya Kerja PATIK</h5>
-                            <p class="text-slate-300 mb-0 text-xs">Profesional, Akuntabel, Transparan, Integritas, dan Kredibel tanpa gratifikasi.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-md-4">
-                    <div class="team-value-item">
-                        <div class="team-value-icon">
-                            <iconify-icon icon="solar:medal-star-bold"></iconify-icon>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold text-white mb-1 text-sm">Standar Mutu Level 3 LKPP</h5>
-                            <p class="text-slate-300 mb-0 text-xs">UKPBJ Lampung bertransformasi proaktif sebagai pusat keunggulan pengadaan nasional.</p>
+            <!-- Team Values & Commitment Banner -->
+            <div class="team-values-banner">
+                <div class="row g-4 align-items-center">
+                    <div class="col-12 col-md-4">
+                        <div class="team-value-item">
+                            <div class="team-value-icon">
+                                <iconify-icon icon="solar:shield-check-bold"></iconify-icon>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-white mb-1 text-sm">Budaya Kerja PATIK</h5>
+                                <p class="text-slate-300 mb-0 text-xs">Profesional, Akuntabel, Transparan, Integritas, dan Kredibel tanpa gratifikasi.</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-12 col-md-4">
-                    <div class="team-value-item">
-                        <div class="team-value-icon">
-                            <iconify-icon icon="solar:shop-2-bold"></iconify-icon>
+                    <div class="col-12 col-md-4">
+                        <div class="team-value-item">
+                            <div class="team-value-icon">
+                                <iconify-icon icon="solar:medal-star-bold"></iconify-icon>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-white mb-1 text-sm">Standar Mutu Level 3 LKPP</h5>
+                                <p class="text-slate-300 mb-0 text-xs">UKPBJ Lampung bertransformasi proaktif sebagai pusat keunggulan pengadaan nasional.</p>
+                            </div>
                         </div>
-                        <div>
-                            <h5 class="fw-bold text-white mb-1 text-sm">Pemberdayaan UMKM Lokal</h5>
-                            <p class="text-slate-300 mb-0 text-xs">Mendorong penyerapan optimal produk buatan daerah dalam etalase e-katalog lokal.</p>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="team-value-item">
+                            <div class="team-value-icon">
+                                <iconify-icon icon="solar:shop-2-bold"></iconify-icon>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-white mb-1 text-sm">Pemberdayaan UMKM Lokal</h5>
+                                <p class="text-slate-300 mb-0 text-xs">Mendorong penyerapan optimal produk buatan daerah dalam etalase e-katalog lokal.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 <?php endif; ?>
 
 <!-- Modal Detail Testimoni Interaktif -->

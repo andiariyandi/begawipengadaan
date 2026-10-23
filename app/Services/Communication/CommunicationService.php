@@ -26,6 +26,14 @@ class CommunicationService
         private readonly AuditService $audit = new AuditService(),
     ) {}
 
+    // C-2: Anti Stored-XSS Sanitizer untuk konten publik
+    private function sanitizeHtmlContent(string $raw): string
+    {
+        $clean = strip_tags($raw, '<p><br><b><strong><i><em><u><a><ul><ol><li><h1><h2><h3><h4><h5><h6><blockquote><code><pre><hr>');
+        $clean = preg_replace('/\s+on[a-z]+\s*=\s*(["\'][^"\']*["\']|[^\s>]+)/i', '', $clean);
+        return preg_replace('/\b(href)\s*=\s*["\']\s*(javascript|data):[^"\']*["\']/i', '$1="#"', $clean);
+    }
+
     // ============== NEWS ==============
 
     public function createNews(array $data, ?int $actorId = null): int
@@ -38,7 +46,7 @@ class CommunicationService
             'summary'         => (string) ($data['summary'] ?? ''),
             'reading_time'    => ! empty($data['reading_time']) ? trim((string) $data['reading_time']) : null,
             'tags'            => ! empty($data['tags']) ? trim((string) $data['tags']) : null,
-            'content'         => (string) ($data['content'] ?? ''),
+            'content'         => $this->sanitizeHtmlContent((string) ($data['content'] ?? '')),
             'source_name'     => ! empty($data['source_name']) ? trim((string) $data['source_name']) : null,
             'source_url'      => ! empty($data['source_url']) ? trim((string) $data['source_url']) : null,
             'cover_caption'   => ! empty($data['cover_caption']) ? trim((string) $data['cover_caption']) : null,
@@ -81,7 +89,7 @@ class CommunicationService
             'summary'         => (string) ($data['summary'] ?? ''),
             'reading_time'    => ! empty($data['reading_time']) ? trim((string) $data['reading_time']) : null,
             'tags'            => ! empty($data['tags']) ? trim((string) $data['tags']) : null,
-            'content'         => (string) ($data['content'] ?? ''),
+            'content'         => $this->sanitizeHtmlContent((string) ($data['content'] ?? '')),
             'source_name'     => ! empty($data['source_name']) ? trim((string) $data['source_name']) : null,
             'source_url'      => ! empty($data['source_url']) ? trim((string) $data['source_url']) : null,
             'cover_caption'   => ! empty($data['cover_caption']) ? trim((string) $data['cover_caption']) : null,
@@ -457,35 +465,67 @@ class CommunicationService
 
     public function validateAndCheckIn(string $rawCode, int $userId): array
     {
+        // H-7: Rate-limiting anti brute-force presensi (5 attempts / 60 detik)
+        $throttler = \Config\Services::throttler();
+        $ip = service('request')->getIPAddress();
+        $throttleKey = 'attendance_checkin_' . $userId . '_' . md5($ip);
+
+        if (! $throttler->check($throttleKey, 5, 60)) {
+            $this->audit->log(
+                $userId,
+                'attendance.rate_limited',
+                'events',
+                'event',
+                null,
+                ['ip' => $ip, 'user_id' => $userId],
+                'Percobaan input kode presensi melebihi batas aman (rate limit).'
+            );
+            throw new \RuntimeException('Terlalu banyak percobaan kode presensi. Harap tunggu 1 menit sebelum mencoba kembali.');
+        }
+
         $code = trim(strtoupper($rawCode));
         if ($code === '') {
-            throw new \RuntimeException('Kode presensi tidak valid');
+            throw new \RuntimeException('Kode presensi tidak valid atau presensi belum dibuka.');
         }
 
         $db = db_connect();
+        $codeHash = hash('sha256', $code);
 
-        // 1. Kode cocok dengan event
+        // 1. Kode cocok dengan event (utamakan attendance_code_hash SHA-256, fallback ke attendance_code dengan hash_equals)
         $event = $db->table('events')
-            ->where('attendance_code', $code)
+            ->where('attendance_code_hash', $codeHash)
             ->where('deleted_at IS NULL')
             ->get()->getRowArray();
 
         if (! $event) {
-            throw new \RuntimeException('Kode presensi tidak valid');
+            $candidates = $db->table('events')
+                ->where('attendance_code', $code)
+                ->where('deleted_at IS NULL')
+                ->get()->getResultArray();
+
+            foreach ($candidates as $cand) {
+                if (! empty($cand['attendance_code']) && hash_equals($cand['attendance_code'], $code)) {
+                    $event = $cand;
+                    if (empty($event['attendance_code_hash'])) {
+                        $db->table('events')->where('id', $event['id'])->update(['attendance_code_hash' => $codeHash]);
+                    }
+                    break;
+                }
+            }
         }
 
         $now = time();
         $openAt = ! empty($event['attendance_open_at']) ? strtotime((string) $event['attendance_open_at']) : null;
         $closeAt = ! empty($event['attendance_close_at']) ? strtotime((string) $event['attendance_close_at']) : null;
 
-        // 2. Presensi belum dibuka
-        if ($openAt === null || $openAt > $now) {
-            throw new \RuntimeException('Presensi belum tersedia');
+        // H-7: Samakan pesan error ketika kode salah atau presensi belum dibuka agar tidak menjadi oracle
+        if (! $event || $openAt === null || $openAt > $now) {
+            throw new \RuntimeException('Kode presensi tidak valid atau presensi belum dibuka.');
         }
 
         // Presensi sudah ditutup
         if ($closeAt !== null && $closeAt <= $now) {
-            throw new \RuntimeException('Presensi sudah ditutup');
+            throw new \RuntimeException('Sesi presensi untuk kegiatan ini telah ditutup.');
         }
 
         // 3. Peserta sudah terdaftar
@@ -496,7 +536,7 @@ class CommunicationService
             ->get()->getRowArray();
 
         if (! $reg) {
-            throw new \RuntimeException('Anda belum terdaftar pada event ini');
+            throw new \RuntimeException('Anda belum terdaftar pada event ini.');
         }
 
         $registrationId = (int) $reg['id'];
@@ -507,10 +547,12 @@ class CommunicationService
             ->get()->getRowArray();
 
         if ($existingAttendance && in_array(strtolower($existingAttendance['status']), ['present', 'hadir'], true)) {
-            throw new \RuntimeException('Anda sudah melakukan presensi');
+            throw new \RuntimeException('Anda sudah melakukan presensi sebelumnya.');
         }
 
         $nowTime = date('Y-m-d H:i:s');
+        $db->transStart();
+
         if ($existingAttendance) {
             $db->table('attendances')->where('id', $existingAttendance['id'])->update([
                 'status'      => 'present',
@@ -523,12 +565,12 @@ class CommunicationService
         } else {
             $db->table('attendances')->insert([
                 'event_registration_id' => $registrationId,
-                'status'               => 'present',
-                'recorded_by'          => $userId,
-                'recorded_at'          => $nowTime,
-                'notes'                => 'Presensi mandiri melalui kode sandi: ' . $code,
-                'created_at'           => $nowTime,
-                'updated_at'           => $nowTime,
+                'status'                => 'present',
+                'recorded_by'           => $userId,
+                'recorded_at'           => $nowTime,
+                'notes'                 => 'Presensi mandiri melalui kode sandi: ' . $code,
+                'created_at'            => $nowTime,
+                'updated_at'            => $nowTime,
             ]);
             $attendanceId = (int) $db->insertID();
         }
@@ -538,6 +580,12 @@ class CommunicationService
             'registration_id' => $registrationId,
             'code'            => $code,
         ]);
+
+        $db->transComplete();
+
+        if (! $db->transStatus()) {
+            throw new \RuntimeException('Gagal menyimpan pencatatan presensi ke database.');
+        }
 
         return [
             'event'           => $event,

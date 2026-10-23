@@ -351,6 +351,7 @@ class EventPublicController extends BaseController
             ->join('users u', 'u.id = e.created_by', 'left')
             ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
             ->where('e.slug', $slug)
+            ->where('e.visibility', 'public')
             ->where('e.deleted_at', null)
             ->get()->getRowArray();
 
@@ -384,7 +385,7 @@ class EventPublicController extends BaseController
             $userRegData = $this->db->table('event_registrations')
                 ->where(['event_id' => $event['id'], 'user_id' => $userId])
                 ->get()->getRowArray();
-            $isRegistered = ! empty($userRegData) && in_array($userRegData['status'], ['registered', 'attended', 'confirmed', 'promoted', 'waitlist']);
+            $isRegistered = ! empty($userRegData) && in_array($userRegData['status'], ['registered', 'attended', 'confirmed', 'promoted', 'waitlisted', 'waitlist']);
 
             if ($userRegData) {
                 $userAttendance = $this->db->table('attendances')
@@ -489,9 +490,15 @@ class EventPublicController extends BaseController
             return redirect()->to(site_url('masuk'))->with('error', 'Silakan masuk ke akun Anda terlebih dahulu untuk mendaftar kegiatan ini.');
         }
 
-        $event = $this->db->table('events')->where(['slug' => $slug, 'deleted_at' => null])->get()->getRowArray();
+        $event = $this->db->table('events')->where(['slug' => $slug, 'visibility' => 'public', 'deleted_at' => null])->get()->getRowArray();
         if (! $event) {
             throw PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
+        }
+
+        // H-3: Cegah pendaftaran jika event dibatalkan, draft, atau diarsipkan
+        if (in_array(($event['status'] ?? ''), ['cancelled', 'draft', 'archived'], true)) {
+            $statusLabel = ($event['status'] === 'cancelled') ? 'telah dibatalkan' : 'tidak dibuka untuk umum';
+            return redirect()->back()->with('error', "Pendaftaran tidak dapat diproses karena kegiatan ini {$statusLabel}.");
         }
 
         // Check if self-paced learning is active for past events
@@ -518,16 +525,20 @@ class EventPublicController extends BaseController
             }
         }
 
+        $now = date('Y-m-d H:i:s');
+        $this->db->transStart();
+
         // Check if already registered
         $existing = $this->db->table('event_registrations')
             ->where(['event_id' => $event['id'], 'user_id' => $userId])
             ->get()->getRowArray();
 
         if ($existing) {
+            $this->db->transRollback();
             return redirect()->back()->with('error', 'Anda sudah terdaftar pada kegiatan ini.');
         }
 
-        // Check capacity & waitlist
+        // M-1: Check capacity & waitlist under transaction
         $currentCount = $this->db->table('event_registrations')
             ->where('event_id', $event['id'])
             ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
@@ -538,14 +549,14 @@ class EventPublicController extends BaseController
 
         if (! $isUnlimited && $currentCount >= $capacity) {
             if (empty($event['waitlist_enabled'])) {
+                $this->db->transRollback();
                 return redirect()->back()->with('error', 'Mohon maaf, kuota peserta telah terpenuhi dan antrian waitlist tidak dibuka untuk kegiatan ini.');
             }
-            $status = 'waitlist';
+            $status = 'waitlisted'; // H-2: Gunakan 'waitlisted' sesuai database check constraint
         } else {
             $status = 'registered';
         }
 
-        $now = date('Y-m-d H:i:s');
         $this->db->table('event_registrations')->insert([
             'event_id'      => $event['id'],
             'user_id'       => $userId,
@@ -555,21 +566,34 @@ class EventPublicController extends BaseController
             'updated_at'    => $now,
         ]);
 
-        $this->auditService->log(
-            $userId,
-            'event.registered',
-            'event_registration',
-            (string) $this->db->insertID(),
-            null,
-            ['event_id' => $event['id'], 'event_title' => $event['title'], 'status' => $status]
-        );
+        $newRegId = (string) $this->db->insertID();
+
+        // M-8: Audit log terpadu dalam alur transaksi pendaftaran event
+        try {
+            $this->auditService->log(
+                $userId,
+                'event.registered',
+                'event_registration',
+                $newRegId,
+                null,
+                ['event_id' => $event['id'], 'event_title' => $event['title'], 'status' => $status]
+            );
+        } catch (\Throwable $e) {
+            log_message('warning', 'Event registration audit log error: {message}', ['message' => $e->getMessage()]);
+        }
+
+        $this->db->transComplete();
+
+        if (! $this->db->transStatus()) {
+            return redirect()->back()->with('error', 'Gagal memproses pendaftaran event. Silakan coba kembali.');
+        }
 
         if ($isSelfPacedActive && $status === 'registered') {
             return redirect()->to(site_url('workspace/peserta/event-saya/' . $event['slug']))
                 ->with('success', 'Pendaftaran berhasil! Anda kini terdaftar pada Mode Pembelajaran Mandiri. Simak rekaman sesi dan selesaikan kuis untuk klaim E-Sertifikat resmi.');
         }
 
-        $msg = ($status === 'waitlist')
+        $msg = ($status === 'waitlisted')
             ? 'Kuota utama telah terpenuhi. Anda otomatis tercatat dalam antrian tunggu (waitlist) resmi.'
             : 'Selamat! Pendaftaran Anda berhasil dikonfirmasi. Simpan jadwal pada kalender Anda.';
 

@@ -10,6 +10,7 @@
         transition: transform 0.25s ease, box-shadow 0.25s ease;
         border: 1px solid #edf2f7 !important;
     }
+
     .knowledge-catalog-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 25px rgba(8, 47, 92, 0.08) !important;
@@ -22,17 +23,20 @@
         user-select: none;
         background: #0b1329;
     }
+
     .insta-track {
         display: flex;
         width: 100%;
         transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1);
     }
+
     .insta-slide {
         flex: 0 0 100%;
         width: 100%;
         position: relative;
         cursor: pointer;
     }
+
     .insta-arrow-btn {
         position: absolute;
         top: 50%;
@@ -53,13 +57,21 @@
         transition: all 0.2s ease;
         padding: 0;
     }
+
     .insta-arrow-btn:hover {
         background: #ffffff;
         color: #0284c7;
         transform: translateY(-50%) scale(1.08);
     }
-    .insta-arrow-prev { left: 10px; }
-    .insta-arrow-next { right: 10px; }
+
+    .insta-arrow-prev {
+        left: 10px;
+    }
+
+    .insta-arrow-next {
+        right: 10px;
+    }
+
     .insta-dots-indicator {
         position: absolute;
         bottom: 12px;
@@ -71,6 +83,7 @@
         z-index: 10;
         pointer-events: auto;
     }
+
     .insta-dot {
         width: 6px;
         height: 6px;
@@ -80,6 +93,7 @@
         cursor: pointer;
         display: inline-block;
     }
+
     .insta-dot.active {
         width: 8px;
         height: 8px;
@@ -107,26 +121,36 @@
         cursor: pointer;
         transition: all 0.2s ease;
     }
+
     .modal-slide-arrow:hover {
         background: rgba(2, 132, 199, 0.92);
         border-color: #38bdf8;
         transform: translateY(-50%) scale(1.08);
     }
-    .modal-slide-prev { left: 14px; }
-    .modal-slide-next { right: 14px; }
+
+    .modal-slide-prev {
+        left: 14px;
+    }
+
+    .modal-slide-next {
+        right: 14px;
+    }
 
     @media (max-width: 767.98px) {
         .evt-hero-banner {
             padding: 16px 14px !important;
             border-radius: 12px;
         }
+
         .evt-hero-title {
             font-size: 20px !important;
         }
+
         .evt-search-box {
             margin-top: 10px;
             width: 100% !important;
         }
+
         .insta-slide {
             height: 300px !important;
         }
@@ -254,7 +278,7 @@ $stats = $stats ?? [
 $isVisualMediaCategory = in_array($catalogType, ['media', 'videos', 'gallery', 'multimedia'], true);
 
 $catalogChips = [
-    'articles'   => ['Perpres 12/2021', 'Penyusunan HPS', 'E-Katalog', 'Mitigasi Risiko', 'Evaluasi Teknis'],
+    'articles'   => ['Perpres 46/2025', 'Penyusunan HPS', 'E-Katalog', 'Mitigasi Risiko', 'Evaluasi Teknis'],
     'faqs'       => ['Kualifikasi', 'Sanggahan', 'Uang Muka', 'Jaminan', 'Addendum'],
     'cases'      => ['Audit BPK', 'Keterlambatan', 'Wanprestasi', 'Sengketa Kontrak', 'Pemutusan'],
     'templates'  => ['KAK', 'HPS', 'SPK', 'BAST', 'Surat Perjanjian'],
@@ -263,7 +287,7 @@ $catalogChips = [
     'gallery'    => ['Bimtek', 'Workshop', 'Rakor', 'Monitoring'],
     'multimedia' => ['Infografik PBJ', 'Video Tutorial', 'Bimtek', 'Galeri Dokumentasi', 'SPSE'],
 ];
-$chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
+$chips = $catalogChips[$catalogType] ?? ['Perpres 46/2025', 'HPS', 'KAK'];
 ?>
 
 <!-- =========================================================================
@@ -386,7 +410,7 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                                     </button>
                                 </div>
                             </div>
-                        <!-- Filter Pills for Articles -->
+                            <!-- Filter Pills for Articles -->
                         <?php elseif ($catalogType === 'articles'): ?>
                             <div class="d-flex flex-wrap align-items-center gap-1">
                                 <a href="<?= $buildFilterUrl(['stage' => '']) ?>" class="btn btn-sm <?= $stageFilter === '' ? 'btn-primary' : 'btn-outline-secondary' ?> radius-20 px-2 py-0 fw-semibold" style="font-size: 11.5px;">
@@ -401,7 +425,7 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                                     <i class="fas fa-star me-1"></i> Unggulan
                                 </a>
                             </div>
-                        <!-- Filter Pills for Case Studies -->
+                            <!-- Filter Pills for Case Studies -->
                         <?php elseif ($catalogType === 'cases'): ?>
                             <div class="d-flex flex-wrap align-items-center gap-1">
                                 <a href="<?= $buildFilterUrl(['severity' => '']) ?>" class="btn btn-sm <?= $severityFilter === '' ? 'btn-primary' : 'btn-outline-secondary' ?> radius-20 px-2 py-0 fw-semibold" style="font-size: 11.5px;">
@@ -423,7 +447,7 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                                     <i class="fas fa-star me-1"></i> Unggulan
                                 </a>
                             </div>
-                        <!-- Filter Pills for Templates -->
+                            <!-- Filter Pills for Templates -->
                         <?php elseif ($catalogType === 'templates'): ?>
                             <div class="d-flex flex-wrap align-items-center gap-1">
                                 <a href="<?= $buildFilterUrl(['category' => '']) ?>" class="btn btn-sm <?= $categoryFilter === '' ? 'btn-primary' : 'btn-outline-secondary' ?> radius-20 px-2 py-0 fw-semibold" style="font-size: 11.5px;">
@@ -520,8 +544,8 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                                             <!-- Top Badges -->
                                             <div class="position-absolute top-0 start-0 m-2 z-2 d-flex flex-wrap gap-1">
                                                 <?php
-                                                    $itemType = (string) ($item['type'] ?? '');
-                                                    if ($isVideo || in_array($itemType, ['youtube', 'video_file'], true)):
+                                                $itemType = (string) ($item['type'] ?? '');
+                                                if ($isVideo || in_array($itemType, ['youtube', 'video_file'], true)):
                                                 ?>
                                                     <span class="badge bg-danger text-white radius-6 px-2 py-1 small fw-semibold">
                                                         <i class="fab fa-youtube me-1"></i> Video PBJ
@@ -769,7 +793,7 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                                                     <i class="far fa-comment-alt" style="font-size: 17px;"></i>
                                                     <span class="fw-semibold ms-1 small text-dark"><?= (int) ($item['shares_count'] ?? 5) ?></span>
                                                 </button>
-                                                <button type="button" class="btn btn-link text-decoration-none p-0 text-muted" onclick="copyMediaShareUrl('<?= esc(addslashes($item['title'] ?? '')) ?>')" title="Salin Tautan">
+                                                <button type="button" class="btn btn-link text-decoration-none p-0 text-muted" data-share-title="<?= esc($item['title'] ?? '') ?>" onclick="copyMediaShareUrl(this.dataset.shareTitle)" title="Salin Tautan">
                                                     <i class="far fa-paper-plane" style="font-size: 17px;"></i>
                                                 </button>
                                             </div>
@@ -807,7 +831,7 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                             </div>
                         </div>
 
-                    <!-- ===========================================================
+                        <!-- ===========================================================
                          ARTIKEL PBJ CATALOG
                          =========================================================== -->
                     <?php elseif ($catalogType === 'articles'): ?>
@@ -881,7 +905,7 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                             <?php endforeach; ?>
                         </div>
 
-                    <!-- ===========================================================
+                        <!-- ===========================================================
                          FAQ CATALOG
                          =========================================================== -->
                     <?php elseif ($catalogType === 'faqs'): ?>
@@ -934,7 +958,7 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                             <?php endforeach; ?>
                         </div>
 
-                    <!-- ===========================================================
+                        <!-- ===========================================================
                          STUDI KASUS CATALOG
                          =========================================================== -->
                     <?php elseif ($catalogType === 'cases'): ?>
@@ -1014,7 +1038,7 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                             <?php endforeach; ?>
                         </div>
 
-                    <!-- ===========================================================
+                        <!-- ===========================================================
                          TEMPLATE DOKUMEN CATALOG
                          =========================================================== -->
                     <?php elseif ($catalogType === 'templates'): ?>
@@ -1032,12 +1056,12 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                                 <div class="col-12">
                                     <article class="card h-100 border-0 shadow-2xs radius-12 p-3 d-flex flex-column knowledge-catalog-card bg-white border">
                                         <?php
-                                            $isCoverImg = false;
-                                            if (! empty($item['file_original_name'])) {
-                                                $cExt = strtolower(pathinfo($item['file_original_name'], PATHINFO_EXTENSION));
-                                                $isCoverImg = in_array($cExt, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'], true);
-                                            }
-                                            $tmplCover = ! empty($item['cover_url']) ? $item['cover_url'] : (! empty($item['cover_file_id']) && $isCoverImg ? site_url('file/' . (int) $item['cover_file_id']) : null);
+                                        $isCoverImg = false;
+                                        if (! empty($item['file_original_name'])) {
+                                            $cExt = strtolower(pathinfo($item['file_original_name'], PATHINFO_EXTENSION));
+                                            $isCoverImg = in_array($cExt, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'], true);
+                                        }
+                                        $tmplCover = ! empty($item['cover_url']) ? $item['cover_url'] : (! empty($item['cover_file_id']) && $isCoverImg ? site_url('file/' . (int) $item['cover_file_id']) : null);
                                         ?>
                                         <div class="d-flex align-items-start gap-3 mb-2">
                                             <?php if ($tmplCover): ?>
@@ -1122,7 +1146,7 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                         <button type="submit" aria-label="Cari"><i class="fas fa-search"></i></button>
                     </form>
                     <div class="d-flex flex-wrap gap-1 mt-3">
-                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Perpres 12/2021')) ?>" class="badge border text-decoration-none" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-size: 11.5px; font-weight: 600;">Perpres 12/2021</a>
+                        <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Perpres 46/2025')) ?>" class="badge border text-decoration-none" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-size: 11.5px; font-weight: 600;">Perpres 46/2025</a>
                         <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('Penyusunan HPS')) ?>" class="badge border text-decoration-none" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-size: 11.5px; font-weight: 600;">Penyusunan HPS</a>
                         <a href="<?= site_url('bunga-rampai/artikel?q=' . urlencode('E-Katalog')) ?>" class="badge border text-decoration-none" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-size: 11.5px; font-weight: 600;">E-Katalog</a>
                         <a href="<?= site_url('bunga-rampai/template-dokumen?q=' . urlencode('KAK')) ?>" class="badge border text-decoration-none" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-size: 11.5px; font-weight: 600;">Template KAK</a>
@@ -1270,7 +1294,7 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
                                 <div class="berita-trend__body">
                                     <h5 class="berita-trend__title">
                                         <a href="<?= route_to('public.knowledge.templates.detail', $tItem['slug']) ?>">
-                                             <?= esc($tItem['title']) ?>
+                                            <?= esc($tItem['title']) ?>
                                         </a>
                                     </h5>
                                     <div class="berita-trend__meta">
@@ -1517,9 +1541,8 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 12/2021', 'HPS', 'KAK'];
 
     function renderModalSlide(slideIndex) {
         if (!currentModalData) return;
-        const slides = Array.isArray(currentModalData.slides) && currentModalData.slides.length > 0
-            ? currentModalData.slides
-            : [{
+        const slides = Array.isArray(currentModalData.slides) && currentModalData.slides.length > 0 ?
+            currentModalData.slides : [{
                 url: currentModalData.preview_url,
                 is_video: currentModalData.is_video,
                 embed_url: currentModalData.embed_url,
