@@ -24,13 +24,15 @@ class UserController extends BaseController
         $db = db_connect();
         $builder = $db->table('users u')
             ->select('u.id, u.username, u.email, u.name, u.phone, u.profile_type, u.account_status, u.created_at,
-                      GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ", ") AS roles,
-                      ou.name AS organization_name')
+                      GROUP_CONCAT(DISTINCT r.name ORDER BY r.name SEPARATOR ", ") AS roles,
+                      ou.name AS organization_name,
+                      asn.unit_name, asn.institution_name')
             ->join('user_roles ur', 'ur.user_id = u.id AND ur.status = "active"', 'left')
             ->join('roles r', 'r.id = ur.role_id', 'left')
             ->join('user_profiles up', 'up.user_id = u.id', 'left')
+            ->join('asn_profiles asn', 'asn.user_id = u.id', 'left')
             ->join('organization_units ou', 'ou.id = up.province_code OR ou.id = up.regency_code', 'left', false)
-            ->groupBy('u.id, ou.id, r.id, ur.id')
+            ->groupBy('u.id, asn.id, ou.id')
             ->orderBy('u.created_at', 'DESC');
 
         // Filters
@@ -44,8 +46,12 @@ class UserController extends BaseController
                 ->groupEnd();
         }
         $profileType = trim((string) $this->request->getGet('profile_type'));
-        if ($profileType !== '' && in_array($profileType, UserManagementService::ALLOWED_PROFILE_TYPES, true)) {
+        if ($profileType !== '') {
             $builder->where('u.profile_type', $profileType);
+        }
+        $opd = trim((string) $this->request->getGet('unit_name'));
+        if ($profileType === 'asn' && $opd !== '') {
+            $builder->where('EXISTS (SELECT 1 FROM asn_profiles asn_f WHERE asn_f.user_id = u.id AND asn_f.unit_name = ' . $db->escape($opd) . ')', null, false);
         }
         $status = trim((string) $this->request->getGet('account_status'));
         if ($tab === 'verification' || $tab === 'pending') {
@@ -93,8 +99,11 @@ class UserController extends BaseController
                 ->orLike('u.email', $keyword)
                 ->groupEnd();
         }
-        if ($profileType !== '' && in_array($profileType, UserManagementService::ALLOWED_PROFILE_TYPES, true)) {
+        if ($profileType !== '') {
             $countBuilder->where('u.profile_type', $profileType);
+        }
+        if ($profileType === 'asn' && $opd !== '') {
+            $countBuilder->where('EXISTS (SELECT 1 FROM asn_profiles asn_f WHERE asn_f.user_id = u.id AND asn_f.unit_name = ' . $db->escape($opd) . ')', null, false);
         }
         if ($tab === 'verification' || $tab === 'pending') {
             $countBuilder->whereIn('u.account_status', ['pending_approval', 'pending_verification', 'submitted', 'revision_required']);
@@ -135,6 +144,69 @@ class UserController extends BaseController
             'asn'       => (int) $db->table('users')->where('profile_type', 'asn')->countAllResults(),
         ];
 
+        // Distinct Profile Types yang benar-benar ada pada tabel users (Data Aktual)
+        $profileTypeLabels = [
+            'asn'      => 'Aparatur Sipil Negara (ASN)',
+            'provider' => 'Penyedia PBJ',
+            'academic' => 'Akademisi',
+            'public'   => 'Masyarakat Umum',
+        ];
+        $rawProfileTypes = $db->table('users')
+            ->select('profile_type, COUNT(1) AS user_count')
+            ->where('profile_type IS NOT NULL')
+            ->where('profile_type !=', '')
+            ->groupBy('profile_type')
+            ->orderBy('profile_type', 'ASC')
+            ->get()->getResultArray();
+
+        $availableProfileTypes = [];
+        foreach ($rawProfileTypes as $row) {
+            $code = strtolower((string) $row['profile_type']);
+            $availableProfileTypes[] = [
+                'code'  => $code,
+                'label' => $profileTypeLabels[$code] ?? strtoupper($code),
+                'count' => (int) $row['user_count'],
+            ];
+        }
+
+        // Distinct OPD (unit_name) yang benar-benar ada pada profil ASN terdaftar
+        $rawOpds = $db->table('asn_profiles asn')
+            ->select('asn.unit_name, COUNT(1) AS user_count')
+            ->join('users u', 'u.id = asn.user_id')
+            ->where('asn.unit_name IS NOT NULL')
+            ->where('asn.unit_name !=', '')
+            ->where('u.profile_type', 'asn')
+            ->groupBy('asn.unit_name')
+            ->orderBy('asn.unit_name', 'ASC')
+            ->get()->getResultArray();
+
+        $availableOpds = [];
+        foreach ($rawOpds as $row) {
+            $availableOpds[] = [
+                'unit_name' => trim((string) $row['unit_name']),
+                'count'     => (int) $row['user_count'],
+            ];
+        }
+
+        // Distinct Status Akun yang benar-benar ada pada tabel users
+        $rawStatuses = $db->table('users')
+            ->select('account_status, COUNT(1) AS user_count')
+            ->where('account_status IS NOT NULL')
+            ->where('account_status !=', '')
+            ->groupBy('account_status')
+            ->orderBy('account_status', 'ASC')
+            ->get()->getResultArray();
+
+        $availableStatuses = [];
+        foreach ($rawStatuses as $row) {
+            $code = strtolower((string) $row['account_status']);
+            $availableStatuses[] = [
+                'code'  => $code,
+                'label' => ucwords(str_replace('_', ' ', $code)),
+                'count' => (int) $row['user_count'],
+            ];
+        }
+
         return view('dashboard/users/index', [
             'title'         => 'Pengguna | Dashboard BegawiPengadaan',
             'pageTitle'     => 'Manajemen Pengguna',
@@ -151,6 +223,7 @@ class UserController extends BaseController
                 'tab'            => $tab,
                 'keyword'        => $keyword,
                 'profile_type'   => $profileType,
+                'unit_name'      => $opd,
                 'account_status' => $status,
                 'role_id'        => $roleId,
                 'verification'   => $verification,
@@ -158,9 +231,12 @@ class UserController extends BaseController
                 'sort'           => $sort,
                 'dir'            => strtolower($dir),
             ],
-            'roles'         => $db->table('roles')->select('id, name')->orderBy('name')->get()->getResultArray(),
-            'profileTypes'  => UserManagementService::ALLOWED_PROFILE_TYPES,
-            'statuses'      => UserManagementService::ALLOWED_STATUSES,
+            'roles'                 => $db->table('roles')->select('id, name')->orderBy('name')->get()->getResultArray(),
+            'profileTypes'          => UserManagementService::ALLOWED_PROFILE_TYPES,
+            'statuses'              => UserManagementService::ALLOWED_STATUSES,
+            'availableProfileTypes' => $availableProfileTypes,
+            'availableOpds'         => $availableOpds,
+            'availableStatuses'     => $availableStatuses,
         ]);
     }
 

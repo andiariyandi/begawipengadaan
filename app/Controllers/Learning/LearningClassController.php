@@ -158,14 +158,70 @@ class LearningClassController extends BaseController
             ->get()->getResultArray();
 
         $enrollments = $db->table('enrollments e')
-            ->select('e.*, u.name AS user_name, u.email AS user_email, u.username, asn.employee_identifier AS nip, COALESCE(asn.institution_name, asn.unit_name) AS instansi,
+            ->select('e.*, u.name AS user_name, u.email AS user_email, u.username, u.profile_type,
+                      asn.employee_identifier AS nip, asn.unit_name, asn.institution_name,
+                      COALESCE(NULLIF(asn.unit_name, ""), NULLIF(asn.institution_name, ""), prov.business_name, acad.institution_name, pub.organization_name, "Umum") AS instansi,
                       cert.id AS certificate_id, cert.certificate_number, cert.status AS cert_status')
             ->join('users u', 'u.id = e.user_id')
             ->join('asn_profiles asn', 'asn.user_id = u.id', 'left')
+            ->join('provider_profiles prov', 'prov.user_id = u.id', 'left')
+            ->join('academic_profiles acad', 'acad.user_id = u.id', 'left')
+            ->join('public_profiles pub', 'pub.user_id = u.id', 'left')
             ->join('certificates cert', 'cert.source_type = "learning_enrollment" AND cert.source_id = e.id AND cert.status = "issued"', 'left')
             ->where('e.class_id', (int) $id)
             ->orderBy('e.enrolled_at', 'DESC')
             ->get()->getResultArray();
+
+        $profileTypeLabels = [
+            'asn'      => 'Aparatur Sipil Negara (ASN)',
+            'provider' => 'Penyedia PBJ',
+            'academic' => 'Akademisi',
+            'public'   => 'Masyarakat Umum',
+        ];
+
+        $availableProfileTypes = [];
+        $availableOpds         = [];
+        $availableStatuses     = [];
+
+        foreach ($enrollments as $e) {
+            $pt = strtolower((string) ($e['profile_type'] ?? 'public'));
+            if ($pt !== '') {
+                if (! isset($availableProfileTypes[$pt])) {
+                    $availableProfileTypes[$pt] = [
+                        'code'  => $pt,
+                        'label' => $profileTypeLabels[$pt] ?? ucfirst($pt),
+                        'count' => 0,
+                    ];
+                }
+                $availableProfileTypes[$pt]['count']++;
+            }
+
+            // Only collect OPD (unit_name) for ASN participants in this class
+            if ($pt === 'asn') {
+                $opd = trim((string) ($e['unit_name'] ?? ''));
+                if ($opd !== '') {
+                    if (! isset($availableOpds[$opd])) {
+                        $availableOpds[$opd] = 0;
+                    }
+                    $availableOpds[$opd]++;
+                }
+            }
+
+            $st = strtolower((string) ($e['status'] ?? ''));
+            if ($st !== '') {
+                if (! isset($availableStatuses[$st])) {
+                    $availableStatuses[$st] = 0;
+                }
+                $availableStatuses[$st]++;
+            }
+        }
+
+        ksort($availableOpds, SORT_NATURAL | SORT_FLAG_CASE);
+        ksort($availableStatuses, SORT_NATURAL | SORT_FLAG_CASE);
+
+        $filterProfileType = trim((string) $this->request->getGet('profile_type'));
+        $filterOpd         = trim((string) $this->request->getGet('unit_name'));
+        $filterStatus      = trim((string) $this->request->getGet('status'));
 
         $parsed = parse_class_batch_data($class['description'] ?? '');
         $class['description']             = $parsed['description'];
@@ -174,20 +230,26 @@ class LearningClassController extends BaseController
         $class['custom_duration_minutes'] = $parsed['custom_duration_minutes'];
 
         return view('dashboard/learning/classes/detail', [
-            'title'             => 'Detail Kelas | Dashboard BegawiPengadaan',
-            'pageTitle'         => 'Detail Kelas',
-            'classId'           => $id,
-            'class'             => $class,
-            'batchStages'       => $parsed['stages'],
-            'batchStagesSubtitle' => $parsed['stages_subtitle'],
-            'trainers'          => $trainers,
-            'trainerCandidates' => $trainerCandidates,
-            'enrollmentsCount'  => $enrollmentsCount,
-            'modulesCount'      => $modulesCount,
-            'modules'           => $modules,
-            'enrollments'       => $enrollments,
-            'activeMenu'        => 'learning',
-            'activeSubmenu'     => 'classes',
+            'title'                 => 'Detail Kelas | Dashboard BegawiPengadaan',
+            'pageTitle'             => 'Detail Kelas',
+            'classId'               => $id,
+            'class'                 => $class,
+            'batchStages'           => $parsed['stages'],
+            'batchStagesSubtitle'   => $parsed['stages_subtitle'],
+            'trainers'              => $trainers,
+            'trainerCandidates'     => $trainerCandidates,
+            'enrollmentsCount'      => $enrollmentsCount,
+            'modulesCount'          => $modulesCount,
+            'modules'               => $modules,
+            'enrollments'           => $enrollments,
+            'availableProfileTypes' => $availableProfileTypes,
+            'availableOpds'         => $availableOpds,
+            'availableStatuses'     => $availableStatuses,
+            'selectedProfileType'   => $filterProfileType,
+            'selectedOpd'           => $filterOpd,
+            'selectedStatus'        => $filterStatus,
+            'activeMenu'            => 'learning',
+            'activeSubmenu'         => 'classes',
         ]);
     }
 
