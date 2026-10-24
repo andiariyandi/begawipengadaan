@@ -231,54 +231,83 @@ class RegulationPublicService
             ->limit($limit)
             ->get()->getResultArray();
     }
-
     /**
      * Fetch regulations for the landing page hero headline carousel based on spotlight mode & limit.
+     * Adheres strictly to priority rules:
+     * 1. Manual active sliders (carousel_enabled = 1) prioritized first.
+     * 2. Remaining quota filled with latest regulations based on mode without duplicate items.
      */
     public function spotlightRegulations(string $mode = 'all', int $limit = 6): array
     {
         $limit = max(1, min(15, $limit));
         $db = db_connect();
 
-        $builder = $db->table('regulations r')
-            ->select('r.id, r.slug, r.title, r.document_number, r.document_year, r.legal_status,
+        $selectCols = 'r.id, r.slug, r.title, r.document_number, r.document_year, r.legal_status,
                       r.issuer_name, r.official_date, r.effective_date, r.summary,
                       r.cover_file_id, r.cover_image_path, r.is_featured, r.carousel_enabled, r.carousel_order,
                       r.published_at,
                       rc.name AS category_name, rc.slug AS category_slug,
-                      (SELECT COUNT(rd.id) FROM regulation_downloads rd WHERE rd.regulation_id = r.id) AS download_count')
+                      (SELECT COUNT(rd.id) FROM regulation_downloads rd WHERE rd.regulation_id = r.id) AS download_count';
+
+        // 1. Priority 1: Manual active slider regulations (carousel_enabled = 1)
+        $manualBuilder = $db->table('regulations r')
+            ->select($selectCols)
             ->join('regulation_categories rc', 'rc.id = r.category_id', 'left')
             ->where('r.workflow_status', 'published')
             ->where('r.visibility', 'public')
-            ->where('r.deleted_at', null);
+            ->where('r.deleted_at', null)
+            ->where('r.carousel_enabled', 1);
 
-        if ($mode === 'featured') {
-            $builder->groupStart()
-                ->where('r.carousel_enabled', 1)
-                ->orWhere('r.is_featured', 1)
-                ->groupEnd();
-        } elseif ($mode !== 'all' && $mode !== '') {
-            $builder->where('rc.slug', $mode);
+        if ($mode !== 'all' && $mode !== '' && $mode !== 'featured') {
+            $manualBuilder->where('rc.slug', $mode);
         }
 
-        // Prioritize carousel_enabled, is_featured, carousel_order, then download count & published date
-        $builder->orderBy('r.carousel_enabled', 'DESC')
-            ->orderBy('r.is_featured', 'DESC')
-            ->orderBy('CASE WHEN r.carousel_order IS NULL THEN 1 ELSE 0 END', 'ASC', false)
-            ->orderBy('r.carousel_order', 'ASC')
-            ->orderBy('download_count', 'DESC')
-            ->orderBy('r.published_at', 'DESC')
-            ->limit($limit);
+        $manualResults = $manualBuilder
+            ->orderBy('CASE WHEN r.carousel_order IS NULL THEN 9999 ELSE r.carousel_order END', 'ASC', false)
+            ->orderBy('r.id', 'DESC')
+            ->limit($limit)
+            ->get()->getResultArray();
 
-        $results = $builder->get()->getResultArray();
+        $finalResults = $manualResults;
+
+        // 2. Priority 2: Fill remaining quota with newest regulations
+        if (count($finalResults) < $limit) {
+            $remaining = $limit - count($finalResults);
+            $usedIds   = array_column($finalResults, 'id');
+
+            $fillerBuilder = $db->table('regulations r')
+                ->select($selectCols)
+                ->join('regulation_categories rc', 'rc.id = r.category_id', 'left')
+                ->where('r.workflow_status', 'published')
+                ->where('r.visibility', 'public')
+                ->where('r.deleted_at', null);
+
+            if (! empty($usedIds)) {
+                $fillerBuilder->whereNotIn('r.id', $usedIds);
+            }
+
+            if ($mode !== 'all' && $mode !== '' && $mode !== 'featured') {
+                $fillerBuilder->where('rc.slug', $mode);
+            }
+
+            $fillerResults = $fillerBuilder
+                ->orderBy('r.published_at', 'DESC')
+                ->orderBy('r.id', 'DESC')
+                ->limit($remaining)
+                ->get()->getResultArray();
+
+            $finalResults = array_merge($finalResults, $fillerResults);
+        }
 
         // Graceful fallback to all regulations if specific filter mode returned no results
-        if (empty($results) && $mode !== 'all') {
+        if (empty($finalResults) && $mode !== 'all') {
             return $this->spotlightRegulations('all', $limit);
         }
 
-        return $results;
+        return $finalResults;
     }
+
+    
 
     /**
      * Single regulation detail. Returns null if not published+public.

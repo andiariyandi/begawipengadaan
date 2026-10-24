@@ -6,10 +6,20 @@ $items   = $items ?? [];
 $filters = $filters ?? [];
 $modules = $modules ?? [];
 $stats   = $stats ?? ['total' => count($items), 'today' => 0, 'success' => 0, 'risk_failed' => 0];
+$total   = $total ?? ($stats['total'] ?? count($items));
+$page    = $page ?? 1;
+$perPage = $perPage ?? 25;
 
-$isSystemRoute = (strpos(current_url(), 'sistem') !== false);
-$exportBaseUrl = $isSystemRoute ? site_url('dashboard/sistem/audit-trail/export') : site_url('dashboard/akses/audit/export');
-$filterQuery   = http_build_query(array_filter($filters ?? []));
+$isSystemRoute = $isSystemRoute ?? (strpos(current_url(), 'sistem') !== false || strpos($_SERVER['REQUEST_URI'] ?? '', 'sistem') !== false || strpos($_SERVER['REQUEST_URI'] ?? '', 'audit-trail') !== false);
+$routePath     = $routePath ?? ($isSystemRoute ? 'dashboard/sistem/audit-trail' : 'dashboard/akses/audit');
+$baseUrl       = $baseUrl ?? site_url($routePath);
+$exportBaseUrl = $exportBaseUrl ?? site_url($routePath . '/export');
+$exportParams  = array_filter($filters ?? [], static fn($v) => $v !== null && $v !== '');
+unset($exportParams['per_page']); // Ekspor mengambil seluruh data hasil filter
+if (isset($exportParams['q']) && isset($exportParams['keyword'])) {
+    unset($exportParams['keyword']);
+}
+$filterQuery   = http_build_query($exportParams);
 $exportUrl     = $filterQuery !== '' ? ($exportBaseUrl . '?' . $filterQuery) : $exportBaseUrl;
 ?>
 
@@ -85,9 +95,22 @@ $exportUrl     = $filterQuery !== '' ? ($exportBaseUrl . '?' . $filterQuery) : $
 <!-- Filter Toolbar -->
 <div class="card radius-12 mb-24 border">
     <div class="card-body p-20">
-        <form method="get" action="<?= current_url() ?>">
+        <form method="get" action="<?= esc($baseUrl) ?>">
+            <input type="hidden" name="sort" value="<?= esc($filters['sort'] ?? 'created_at') ?>">
+            <input type="hidden" name="dir" value="<?= esc($filters['dir'] ?? 'desc') ?>">
+
             <div class="row g-3 align-items-end">
-                <div class="col-md-3">
+                <!-- Pencarian Cepat -->
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label text-sm fw-medium mb-1">Pencarian Cepat</label>
+                    <div class="position-relative">
+                        <input type="text" name="q" class="form-control radius-8 ps-36" placeholder="Aktor, email, aksi, ID..." value="<?= esc($filters['keyword'] ?? '') ?>">
+                        <iconify-icon icon="solar:magnifer-outline" class="position-absolute top-50 start-0 translate-middle-y ms-12 text-secondary-light text-lg"></iconify-icon>
+                    </div>
+                </div>
+
+                <!-- Modul / Resource -->
+                <div class="col-lg-2 col-md-6">
                     <label class="form-label text-sm fw-medium mb-1">Modul / Resource</label>
                     <select name="module" class="form-select radius-8">
                         <option value="">Semua Modul</option>
@@ -99,21 +122,51 @@ $exportUrl     = $filterQuery !== '' ? ($exportBaseUrl . '?' . $filterQuery) : $
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-3">
+
+                <!-- Status / Hasil -->
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label text-sm fw-medium mb-1">Status / Hasil</label>
+                    <select name="result" class="form-select radius-8">
+                        <option value="">Semua Hasil</option>
+                        <option value="success" <?= ($filters['result'] ?? '') === 'success' ? 'selected' : '' ?>>Berhasil (Success)</option>
+                        <option value="failure" <?= ($filters['result'] ?? '') === 'failure' ? 'selected' : '' ?>>Gagal (Failure)</option>
+                        <option value="error" <?= ($filters['result'] ?? '') === 'error' ? 'selected' : '' ?>>Error</option>
+                        <option value="denied" <?= ($filters['result'] ?? '') === 'denied' ? 'selected' : '' ?>>Ditolak (Denied)</option>
+                    </select>
+                </div>
+
+                <!-- Dari Tanggal -->
+                <div class="col-lg-2 col-md-6">
                     <label class="form-label text-sm fw-medium mb-1">Dari Tanggal</label>
                     <input type="date" name="from" class="form-control radius-8" value="<?= esc($filters['from'] ?? '') ?>">
                 </div>
-                <div class="col-md-3">
+
+                <!-- Sampai Tanggal -->
+                <div class="col-lg-2 col-md-6">
                     <label class="form-label text-sm fw-medium mb-1">Sampai Tanggal</label>
                     <input type="date" name="to" class="form-control radius-8" value="<?= esc($filters['to'] ?? '') ?>">
                 </div>
-                <div class="col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary-600 radius-8 flex-grow-1 d-flex align-items-center justify-content-center gap-1">
-                        <iconify-icon icon="solar:filter-outline"></iconify-icon> Filter
-                    </button>
-                    <a href="<?= current_url() ?>" class="btn btn-outline-neutral-300 radius-8" title="Reset">
-                        <iconify-icon icon="solar:restart-outline"></iconify-icon>
+
+                <!-- Baris Per Halaman -->
+                <div class="col-lg-1 col-md-6">
+                    <label class="form-label text-sm fw-medium mb-1">Baris</label>
+                    <select name="per_page" class="form-select radius-8">
+                        <?php foreach ([10, 25, 50, 100] as $pp): ?>
+                            <option value="<?= $pp ?>" <?= (int) ($filters['per_page'] ?? 25) === $pp ? 'selected' : '' ?>><?= $pp ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-12 d-flex justify-content-end gap-2 mt-8">
+                    <a href="<?= esc($baseUrl) ?>" class="btn btn-outline-neutral-300 radius-8 px-16 py-9 d-inline-flex align-items-center gap-2" title="Reset Filter">
+                        <iconify-icon icon="solar:restart-outline" class="text-lg"></iconify-icon>
+                        <span>Reset</span>
                     </a>
+                    <button type="submit" class="btn btn-primary-600 radius-8 px-20 py-9 d-inline-flex align-items-center gap-2">
+                        <iconify-icon icon="solar:filter-outline" class="text-lg"></iconify-icon>
+                        <span>Terapkan Filter</span>
+                    </button>
                 </div>
             </div>
         </form>
@@ -121,24 +174,49 @@ $exportUrl     = $filterQuery !== '' ? ($exportBaseUrl . '?' . $filterQuery) : $
 </div>
 
 <!-- Datatable -->
+<?php
+$currentSort = $filters['sort'] ?? 'created_at';
+$currentDir  = strtolower($filters['dir'] ?? 'desc');
+$buildSortLink = function (string $colKey, string $label, string $alignClass = '') use ($filters, $currentSort, $currentDir, $baseUrl) {
+    $isActive    = ($currentSort === $colKey);
+    $nextDir     = ($isActive && $currentDir === 'asc') ? 'desc' : 'asc';
+    $params      = array_merge($filters, ['sort' => $colKey, 'dir' => $nextDir, 'page_audit' => 1]);
+    if (isset($params['q']) && isset($params['keyword'])) {
+        unset($params['keyword']);
+    }
+    $url         = $baseUrl . '?' . http_build_query(array_filter($params, static fn($v) => $v !== null && $v !== ''));
+    $colorClass  = $isActive ? 'text-primary-600 fw-bold' : 'text-secondary-light hover-text-primary-600';
+    $iconName    = $isActive 
+        ? ($currentDir === 'asc' ? 'solar:sort-from-bottom-to-top-outline' : 'solar:sort-from-top-to-bottom-outline')
+        : 'solar:sort-vertical-outline';
+    $title       = 'Urutkan ' . $label . ' (' . ($isActive ? ($currentDir === 'asc' ? 'Z-A / Terbaru' : 'A-Z / Terlama') : 'Klik untuk mengurutkan') . ')';
+
+    return '<a href="' . esc($url) . '" class="' . $colorClass . ' d-inline-flex align-items-center gap-1 ' . $alignClass . '" title="' . esc($title) . '">'
+        . '<span>' . esc($label) . '</span>'
+        . '<iconify-icon icon="' . $iconName . '" class="' . ($isActive ? 'text-sm' : 'text-xs') . '"></iconify-icon>'
+        . '</a>';
+};
+?>
 <div class="card radius-12 border">
     <div class="card-body p-24">
         <?php if (empty($items)): ?>
             <?= view('dashboard/components/empty_state', [
                 'icon'        => 'solar:history-outline',
                 'title'       => 'Belum Ada Log Audit',
-                'message'     => 'Tidak ada catatan aktivitas sistem yang ditemukan untuk periode atau filter ini.',
+                'message'     => 'Tidak ada catatan aktivitas sistem yang ditemukan untuk periode atau kriteria filter ini.',
+                'actionUrl'   => $baseUrl,
+                'actionLabel' => 'Reset Filter',
             ]) ?>
         <?php else: ?>
             <div class="table-responsive scroll-sm">
-                <table class="table bordered-table sm-table mb-0 align-middle begawi-table" data-table-name="audit-trail-log" data-page-length="25">
+                <table class="table bordered-table sm-table mb-0 align-middle server-side-table dt-server-side" data-server-side="true" data-table-name="audit-trail-log" data-page-length="<?= (int) ($filters['per_page'] ?? 25) ?>">
                     <thead>
                         <tr>
-                            <th>Waktu (WIB)</th>
-                            <th>Pelaksana / Aktor</th>
-                            <th>Tindakan (Action)</th>
-                            <th>Resource</th>
-                            <th>Hasil</th>
+                            <th><?= $buildSortLink('created_at', 'Waktu (WIB)') ?></th>
+                            <th><?= $buildSortLink('actor', 'Pelaksana / Aktor') ?></th>
+                            <th><?= $buildSortLink('action', 'Tindakan (Action)') ?></th>
+                            <th><?= $buildSortLink('resource_type', 'Resource') ?></th>
+                            <th><?= $buildSortLink('result', 'Hasil') ?></th>
                             <th class="text-center no-sort no-export action-col">Aksi</th>
                         </tr>
                     </thead>
@@ -188,7 +266,14 @@ $exportUrl     = $filterQuery !== '' ? ($exportBaseUrl . '?' . $filterQuery) : $
             </div>
 
             <?php if (isset($pager)): ?>
-                <?= $pager->links('audit', 'default_full') ?>
+                <div class="card-footer border-top bg-transparent pt-16 pb-0 px-0 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div class="text-secondary-light text-sm">
+                        Menampilkan <?= number_format(min($total, ($page - 1) * $perPage + 1)) ?> - <?= number_format(min($total, $page * $perPage)) ?> dari <?= number_format($total) ?> jejak log
+                    </div>
+                    <div>
+                        <?= $pager->links('audit', 'default_full') ?>
+                    </div>
+                </div>
             <?php endif; ?>
         <?php endif; ?>
     </div>

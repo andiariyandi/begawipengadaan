@@ -211,7 +211,7 @@ $bulanIndo = [
                         </div>
                         <div class="gateway-kpi-info">
                             <div class="gateway-kpi-num"><?= number_format((int) ($stats['total_regulations'] ?? 0)) ?></div>
-                            <div class="gateway-kpi-label">Regulasi Terdata</div>
+                            <div class="gateway-kpi-label">Regulasi PBJ Terbit</div>
                         </div>
                     </div>
                 </div>
@@ -268,121 +268,188 @@ $bulanIndo = [
         </div>
 
         <div class="row g-3 g-md-4">
-            <!-- Pilar 1: Arena Belajar -->
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="pillar-card" style="--pillar-accent: #0c5aa6; --pillar-bg: #eff6ff;">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="pillar-icon-box">
-                            <iconify-icon icon="solar:square-academic-cap-2-bold"></iconify-icon>
+            <?php
+            $pilarList = array_values(array_filter($featureHighlights ?? [], fn($h) => ($h['section_key'] ?? '') === 'pilar_begawi'));
+            $bgMap = [
+                '#0c5aa6' => '#eff6ff',
+                '#10b981' => '#ecfdf5',
+                '#f59e0b' => '#fffbeb',
+                '#8b5cf6' => '#f5f3ff',
+                '#7e22ce' => '#f5f3ff',
+                '#0284c7' => '#f0f9ff',
+                '#6366f1' => '#eef2ff',
+            ];
+            ?>
+            <?php if (! empty($pilarList)): ?>
+                <?php
+                $totalPillars = count($pilarList);
+                foreach ($pilarList as $pIdx => $h):
+                    $colClass = ($totalPillars === 5)
+                        ? (($pIdx < 3) ? 'col-12 col-md-6 col-lg-4' : 'col-12 col-md-6 col-lg-6')
+                        : (($totalPillars === 4) ? 'col-12 col-md-6 col-lg-3' : 'col-12 col-md-6 col-lg-4');
+                    $accent = ! empty($h['color_hex']) ? $h['color_hex'] : '#0c5aa6';
+                    $bg = $bgMap[strtolower($accent)] ?? '#f8fafc';
+                    $icon = ! empty($h['icon_class']) ? $h['icon_class'] : 'solar:layers-bold';
+                    $badge = ! empty($h['badge_text']) ? $h['badge_text'] : (! empty($h['subtitle']) ? $h['subtitle'] : 'Pilar ' . sprintf('%02d', $pIdx + 1));
+                    $url = ! empty($h['link_url']) ? (str_starts_with($h['link_url'], 'http') ? $h['link_url'] : site_url($h['link_url'])) : site_url('arena-belajar');
+                    $actionLabel = ! empty($h['subtitle']) ? $h['subtitle'] : 'Eksplorasi Layanan';
+                    $searchContext = strtolower(($h['title'] ?? '') . ' ' . ($h['link_url'] ?? ''));
+                ?>
+                    <div class="<?= esc($colClass) ?>">
+                        <div class="pillar-card" style="--pillar-accent: <?= esc($accent) ?>; --pillar-bg: <?= esc($bg) ?>;">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="pillar-icon-box">
+                                    <iconify-icon icon="<?= esc($icon) ?>"></iconify-icon>
+                                </div>
+                                <span class="badge-soft-primary px-3 py-1 radius-999 text-xs fw-bold" style="background: <?= esc($bg) ?> !important; color: <?= esc($accent) ?> !important; border-color: <?= esc($accent) ?>33 !important;"><?= esc($badge) ?></span>
+                            </div>
+                            <h3 class="pillar-title"><?= esc($h['title']) ?></h3>
+                            <p class="pillar-desc"><?= esc($h['description']) ?></p>
+                            <div class="pillar-stat-row">
+                                <?php if (str_contains($searchContext, 'belajar') || str_contains($searchContext, 'course') || str_contains($searchContext, 'diklat')): ?>
+                                    <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_courses'] ?? 0) ?></strong> Kursus</span>
+                                    <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_programs'] ?? 0) ?></strong> Program</span>
+                                <?php elseif (str_contains($searchContext, 'rampai') || str_contains($searchContext, 'bunga') || str_contains($searchContext, 'dokumen')): ?>
+                                    <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_knowledge'] ?? 0) ?></strong> Artikel &amp; Template</span>
+                                    <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_knowledge_categories'] ?? 0) ?></strong> Topik</span>
+                                <?php elseif (str_contains($searchContext, 'regulasi') || str_contains($searchContext, 'hukum')): ?>
+                                    <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_regulations'] ?? 0) ?></strong> Regulasi</span>
+                                    <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_regulation_categories'] ?? 0) ?></strong> Kategori</span>
+                                <?php elseif (str_contains($searchContext, 'konsultasi') || str_contains($searchContext, 'faq') || str_contains($searchContext, 'kontak') || str_contains($searchContext, 'klinik')): ?>
+                                    <span class="pillar-stat-chip"><strong><?= count($faqs ?? []) ?></strong> FAQ Aktif</span>
+                                    <span class="pillar-stat-chip"><strong>24/7</strong> Helpdesk</span>
+                                <?php elseif (str_contains($searchContext, 'sertifikat') || str_contains($searchContext, 'verifikasi')): ?>
+                                    <span class="pillar-stat-chip"><strong>QR Code</strong> Validasi</span>
+                                    <span class="pillar-stat-chip"><strong>SSL</strong> Aman Terenkripsi</span>
+                                <?php else: ?>
+                                    <span class="pillar-stat-chip"><strong><?= esc($h['code'] ?? sprintf('%02d', $pIdx + 1)) ?></strong> Standar</span>
+                                    <span class="pillar-stat-chip"><strong>Terverifikasi</strong></span>
+                                <?php endif; ?>
+                            </div>
+                            <a href="<?= esc($url) ?>" class="pillar-link mt-auto">
+                                <span><?= esc($actionLabel) ?></span>
+                                <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                            </a>
                         </div>
-                        <span class="badge-soft-primary px-3 py-1 radius-999 text-xs fw-bold">E-Learning &amp; Sertifikasi</span>
                     </div>
-                    <h3 class="pillar-title">Arena Belajar</h3>
-                    <p class="pillar-desc">Pusat pelatihan mandiri berbasis e-learning, program sertifikasi PBJ, modul berjenjang, dan kelas interaktif bersama instruktur terakreditasi LKPP.</p>
-                    <div class="pillar-stat-row">
-                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_courses'] ?? 0) ?></strong> Kursus</span>
-                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_programs'] ?? 0) ?></strong> Program</span>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <!-- Pilar 1: Arena Belajar Fallback -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="pillar-card" style="--pillar-accent: #0c5aa6; --pillar-bg: #eff6ff;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="pillar-icon-box">
+                                <iconify-icon icon="solar:square-academic-cap-2-bold"></iconify-icon>
+                            </div>
+                            <span class="badge-soft-primary px-3 py-1 radius-999 text-xs fw-bold">E-Learning &amp; Sertifikasi</span>
+                        </div>
+                        <h3 class="pillar-title">Arena Belajar</h3>
+                        <p class="pillar-desc">Pusat pelatihan mandiri berbasis e-learning, program sertifikasi PBJ, modul berjenjang, dan kelas interaktif bersama instruktur terakreditasi LKPP.</p>
+                        <div class="pillar-stat-row">
+                            <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_courses'] ?? 0) ?></strong> Kursus</span>
+                            <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_programs'] ?? 0) ?></strong> Program</span>
+                        </div>
+                        <a href="<?= site_url('arena-belajar') ?>" class="pillar-link mt-auto">
+                            <span>Eksplorasi Pembelajaran</span>
+                            <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                        </a>
                     </div>
-                    <a href="<?= site_url('arena-belajar') ?>" class="pillar-link mt-auto">
-                        <span>Eksplorasi Pembelajaran</span>
-                        <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
-                    </a>
                 </div>
-            </div>
 
-            <!-- Pilar 2: Bunga Rampai -->
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="pillar-card" style="--pillar-accent: #10b981; --pillar-bg: #ecfdf5;">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="pillar-icon-box">
-                            <iconify-icon icon="solar:book-bookmark-bold"></iconify-icon>
+                <!-- Pilar 2: Bunga Rampai Fallback -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="pillar-card" style="--pillar-accent: #10b981; --pillar-bg: #ecfdf5;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="pillar-icon-box">
+                                <iconify-icon icon="solar:book-bookmark-bold"></iconify-icon>
+                            </div>
+                            <span class="badge-soft-success px-3 py-1 radius-999 text-xs fw-bold">Dokumen &amp; Studi Kasus</span>
                         </div>
-                        <span class="badge-soft-success px-3 py-1 radius-999 text-xs fw-bold">Dokumen &amp; Studi Kasus</span>
+                        <h3 class="pillar-title">Bunga Rampai PBJ</h3>
+                        <p class="pillar-desc">Ensiklopedia literasi praktis: artikel wawasan, template dokumen kerja (KAK, HPS, Kontrak), studi kasus penanganan sanggah, dan galeri multimedia.</p>
+                        <div class="pillar-stat-row">
+                            <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_knowledge'] ?? 0) ?></strong> Artikel &amp; Template</span>
+                            <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_knowledge_categories'] ?? 0) ?></strong> Topik</span>
+                        </div>
+                        <a href="<?= site_url('bunga-rampai') ?>" class="pillar-link mt-auto">
+                            <span>Buka Bunga Rampai</span>
+                            <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                        </a>
                     </div>
-                    <h3 class="pillar-title">Bunga Rampai PBJ</h3>
-                    <p class="pillar-desc">Ensiklopedia literasi praktis: artikel wawasan, template dokumen kerja (KAK, HPS, Kontrak), studi kasus penanganan sanggah, dan galeri multimedia.</p>
-                    <div class="pillar-stat-row">
-                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_knowledge'] ?? 0) ?></strong> Artikel &amp; Template</span>
-                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_knowledge_categories'] ?? 0) ?></strong> Topik</span>
-                    </div>
-                    <a href="<?= site_url('bunga-rampai') ?>" class="pillar-link mt-auto">
-                        <span>Buka Bunga Rampai</span>
-                        <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
-                    </a>
                 </div>
-            </div>
 
-            <!-- Pilar 3: Regulasi PBJ -->
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="pillar-card" style="--pillar-accent: #f59e0b; --pillar-bg: #fffbeb;">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="pillar-icon-box">
-                            <iconify-icon icon="solar:scale-bold"></iconify-icon>
+                <!-- Pilar 3: Regulasi PBJ Fallback -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="pillar-card" style="--pillar-accent: #f59e0b; --pillar-bg: #fffbeb;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="pillar-icon-box">
+                                <iconify-icon icon="solar:scale-bold"></iconify-icon>
+                            </div>
+                            <span class="badge-soft-warning px-3 py-1 radius-999 text-xs fw-bold">Produk Hukum Resmi</span>
                         </div>
-                        <span class="badge-soft-warning px-3 py-1 radius-999 text-xs fw-bold">Produk Hukum Resmi</span>
+                        <h3 class="pillar-title">Regulasi &amp; Payung Hukum</h3>
+                        <p class="pillar-desc">Koleksi terstruktur peraturan perundang-undangan (Perpres, PerLKPP, Perda Lampung, Surat Edaran), riwayat naskah versi, dan silsilah relasi aturan hukum.</p>
+                        <div class="pillar-stat-row">
+                            <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_regulations'] ?? 0) ?></strong> Regulasi</span>
+                            <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_regulation_categories'] ?? 0) ?></strong> Kategori</span>
+                        </div>
+                        <a href="<?= site_url('regulasi') ?>" class="pillar-link mt-auto">
+                            <span>Pusat Regulasi PBJ</span>
+                            <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                        </a>
                     </div>
-                    <h3 class="pillar-title">Regulasi &amp; Payung Hukum</h3>
-                    <p class="pillar-desc">Koleksi terstruktur peraturan perundang-undangan (Perpres, PerLKPP, Perda Lampung, Surat Edaran), riwayat naskah versi, dan silsilah relasi aturan hukum.</p>
-                    <div class="pillar-stat-row">
-                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_regulations'] ?? 0) ?></strong> Regulasi</span>
-                        <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_regulation_categories'] ?? 0) ?></strong> Kategori</span>
-                    </div>
-                    <a href="<?= site_url('regulasi') ?>" class="pillar-link mt-auto">
-                        <span>Pusat Regulasi PBJ</span>
-                        <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
-                    </a>
                 </div>
-            </div>
 
-            <!-- Pilar 4: Klinik Konsultasi & FAQ -->
-            <div class="col-12 col-md-6 col-lg-6">
-                <div class="pillar-card" style="--pillar-accent: #8b5cf6; --pillar-bg: #f5f3ff;">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="pillar-icon-box">
-                            <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
+                <!-- Pilar 4: Klinik Konsultasi & FAQ Fallback -->
+                <div class="col-12 col-md-6 col-lg-6">
+                    <div class="pillar-card" style="--pillar-accent: #8b5cf6; --pillar-bg: #f5f3ff;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="pillar-icon-box">
+                                <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
+                            </div>
+                            <span class="badge-soft-primary px-3 py-1 radius-999 text-xs fw-bold" style="background: #f3e8ff !important; color: #7e22ce !important; border-color: #e9d5ff !important;">Helpdesk &amp; Mitigasi</span>
                         </div>
-                        <span class="badge-soft-primary px-3 py-1 radius-999 text-xs fw-bold" style="background: #f3e8ff !important; color: #7e22ce !important; border-color: #e9d5ff !important;">Helpdesk &amp; Mitigasi</span>
+                        <h3 class="pillar-title">Klinik Konsultasi &amp; Tanya Jawab</h3>
+                        <p class="pillar-desc">Bimbingan teknis terarah dan tanya jawab spesifik mengenai persoalan regulasi, kendala pemilihan penyedia, penyesuaian harga, serta tata cara mitigasi risiko audit kepengadaan.</p>
+                        <div class="pillar-stat-row">
+                            <span class="pillar-stat-chip"><strong><?= count($faqs) ?></strong> FAQ Aktif</span>
+                            <span class="pillar-stat-chip"><strong>24/7</strong> Helpdesk</span>
+                        </div>
+                        <a href="<?= site_url('bunga-rampai/faq') ?>" class="pillar-link mt-auto">
+                            <span>Lihat FAQ &amp; Bimbingan</span>
+                            <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                        </a>
                     </div>
-                    <h3 class="pillar-title">Klinik Konsultasi &amp; Tanya Jawab</h3>
-                    <p class="pillar-desc">Bimbingan teknis terarah dan tanya jawab spesifik mengenai persoalan regulasi, kendala pemilihan penyedia, penyesuaian harga, serta tata cara mitigasi risiko audit kepengadaan.</p>
-                    <div class="pillar-stat-row">
-                        <span class="pillar-stat-chip"><strong><?= count($faqs) ?></strong> FAQ Aktif</span>
-                        <span class="pillar-stat-chip"><strong>24/7</strong> Helpdesk</span>
-                    </div>
-                    <a href="<?= site_url('bunga-rampai/faq') ?>" class="pillar-link mt-auto">
-                        <span>Lihat FAQ &amp; Bimbingan</span>
-                        <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
-                    </a>
                 </div>
-            </div>
 
-            <!-- Pilar 5: Verifikasi Sertifikat Digital -->
-            <div class="col-12 col-md-6 col-lg-6">
-                <div class="pillar-card" style="--pillar-accent: #0284c7; --pillar-bg: #f0f9ff;">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="pillar-icon-box">
-                            <iconify-icon icon="solar:diploma-verified-bold"></iconify-icon>
+                <!-- Pilar 5: Verifikasi Sertifikat Digital Fallback -->
+                <div class="col-12 col-md-6 col-lg-6">
+                    <div class="pillar-card" style="--pillar-accent: #0284c7; --pillar-bg: #f0f9ff;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="pillar-icon-box">
+                                <iconify-icon icon="solar:diploma-verified-bold"></iconify-icon>
+                            </div>
+                            <span class="badge-soft-info px-3 py-1 radius-999 text-xs fw-bold">Validasi QR Code</span>
                         </div>
-                        <span class="badge-soft-info px-3 py-1 radius-999 text-xs fw-bold">Validasi QR Code</span>
+                        <h3 class="pillar-title">Verifikasi Sertifikat Digital</h3>
+                        <p class="pillar-desc">Validasi keabsahan sertifikat pelatihan, bukti tanda lulus, dan kompetensi yang diterbitkan resmi oleh Biro Pengadaan Barang dan Jasa Provinsi Lampung.</p>
+                        <div class="pillar-stat-row">
+                            <span class="pillar-stat-chip"><strong>QR Code</strong> Validasi</span>
+                            <span class="pillar-stat-chip"><strong>SSL</strong> Aman Terenkripsi</span>
+                        </div>
+                        <a href="<?= site_url('verifikasi-sertifikat') ?>" class="pillar-link mt-auto">
+                            <span>Cek Keabsahan Sertifikat</span>
+                            <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                        </a>
                     </div>
-                    <h3 class="pillar-title">Verifikasi Sertifikat Digital</h3>
-                    <p class="pillar-desc">Validasi keabsahan sertifikat pelatihan, bukti tanda lulus, dan kompetensi yang diterbitkan resmi oleh Biro Pengadaan Barang dan Jasa Provinsi Lampung.</p>
-                    <div class="pillar-stat-row">
-                        <span class="pillar-stat-chip"><strong>QR Code</strong> Validasi</span>
-                        <span class="pillar-stat-chip"><strong>SSL</strong> Aman Terenkripsi</span>
-                    </div>
-                    <a href="<?= site_url('verifikasi-sertifikat') ?>" class="pillar-link mt-auto">
-                        <span>Cek Keabsahan Sertifikat</span>
-                        <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
-                    </a>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
 </section>
 
 <!-- =========================================================
-     4. ARENA BELAJAR: KURSUS & KELAS TERPILIH
+     4. ARENA BELAJAR: 3 KELAS TERBARU
      ========================================================= -->
 <section class="section-spacious bg-light">
     <div class="container">
@@ -392,11 +459,11 @@ $bulanIndo = [
                     <iconify-icon icon="solar:square-academic-cap-2-bold"></iconify-icon>
                     <span>Arena Belajar PBJ</span>
                 </div>
-                <h2 class="section-title-main mb-1">Materi &amp; Kursus Terpopuler</h2>
-                <p class="section-title-desc mb-0">Tingkatkan kompetensi Anda melalui kurikulum berjenjang terstandar LKPP dan instruktur ahli.</p>
+                <h2 class="section-title-main mb-1">Kelas PBJ Terbaru</h2>
+                <p class="section-title-desc mb-0">Tingkatkan kompetensi aparatur melalui kelas pembelajaran terkini dengan silabus berstandar LKPP dan instruktur ahli.</p>
             </div>
-            <a href="<?= site_url('arena-belajar/course') ?>" class="btn btn-outline-primary px-20 py-10 radius-8 fw-semibold d-inline-flex align-items-center gap-2">
-                <span>Lihat Seluruh Kursus</span>
+            <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-outline-primary px-20 py-10 radius-8 fw-semibold d-inline-flex align-items-center gap-2">
+                <span>Lihat Seluruh Kelas</span>
                 <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
             </a>
         </div>
@@ -406,24 +473,26 @@ $bulanIndo = [
                 <div class="col-12 text-center py-5">
                     <div class="p-4 rounded-4 bg-white border d-inline-block text-center shadow-xs" style="max-width: 480px;">
                         <iconify-icon icon="solar:mortarboard-broken" class="text-secondary-light" style="font-size: 48px;"></iconify-icon>
-                        <h5 class="fw-bold text-dark mt-2 mb-1">Belum Ada Kursus Terbit</h5>
+                        <h5 class="fw-bold text-dark mt-2 mb-1">Belum Ada Kelas Terbit</h5>
                         <p class="text-muted small mb-3">Materi pembelajaran dan silabus pelatihan saat ini sedang dipersiapkan oleh instruktur.</p>
-                        <a href="<?= site_url('arena-belajar') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3">Buka Arena Belajar</a>
+                        <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3">Buka Katalog Kelas</a>
                     </div>
                 </div>
             <?php else: ?>
                 <?php $ci = 0;
                 foreach ($courses as $c): ?>
                     <?php
-                    $lvl = strtolower((string) ($c['level'] ?? 'basic'));
+                    $lvl = strtolower((string) ($c['course_level'] ?? $c['level'] ?? 'basic'));
                     $lvlText = match ($lvl) {
-                        'basic', 'pemula' => 'Pemula',
+                        'basic', 'pemula', 'dasar' => 'Tingkat Dasar',
                         'intermediate', 'menengah' => 'Menengah',
-                        'advanced', 'lanjutan' => 'Lanjutan',
-                        default => 'Semua Tingkat'
+                        'advanced', 'lanjutan'     => 'Lanjutan',
+                        default                    => 'Semua Tingkat'
                     };
-                    $durationJp = 4;
-                    if (! empty($c['duration_minutes'])) {
+                    $durationJp = 24;
+                    if (! empty($c['course_duration_minutes'])) {
+                        $durationJp = max(1, learning_jp_count((int) $c['course_duration_minutes']));
+                    } elseif (! empty($c['duration_minutes'])) {
                         $durationJp = max(1, learning_jp_count((int) $c['duration_minutes']));
                     } elseif (! empty($c['duration_hours'])) {
                         $durationJp = (int) $c['duration_hours'];
@@ -432,36 +501,49 @@ $bulanIndo = [
                     $thumbImg = ! empty($c['cover_asset_path'])
                         ? base_url('file/' . (int) ($c['cover_file_id'] ?? 0))
                         : (! empty($c['cover_url']) ? $c['cover_url'] : base_url('assets/main/images/resources/courses-1-1.jpg'));
+                    $classUrl = ! empty($c['code'])
+                        ? site_url('arena-belajar/kelas/' . esc($c['code']))
+                        : site_url('arena-belajar/course/' . esc($c['slug'] ?? ''));
+                    $method = strtolower((string) ($c['learning_method'] ?? 'online'));
+                    $methodText = match ($method) {
+                        'offline', 'luring' => 'Tatap Muka',
+                        'hybrid'            => 'Hybrid',
+                        default             => 'E-Learning',
+                    };
+                    $cleanDesc = ! empty($c['description']) ? strip_tags(preg_replace('/<!--BATCH_STAGES:.*?:BATCH_STAGES-->/s', '', (string) $c['description'])) : '';
                     ?>
                     <div class="col-12 col-md-6 col-lg-4">
                         <div class="course-card-modern">
                             <div class="course-thumb-wrap">
-                                <img src="<?= esc($thumbImg) ?>" alt="<?= esc($c['title']) ?>" onerror="this.src='<?= base_url('assets/main/images/resources/courses-1-1.jpg') ?>'">
+                                <img src="<?= esc($thumbImg) ?>" alt="<?= esc($c['name'] ?? $c['title']) ?>" onerror="this.src='<?= base_url('assets/main/images/resources/courses-1-1.jpg') ?>'">
                                 <?php if ($ci === 0): ?>
-                                    <span class="course-popular-ribbon"><iconify-icon icon="solar:star-bold"></iconify-icon> Populer</span>
+                                    <span class="course-popular-ribbon"><iconify-icon icon="solar:star-bold"></iconify-icon> Terbaru</span>
                                 <?php endif; ?>
                                 <span class="course-level-badge"><?= esc($lvlText) ?></span>
                                 <span class="course-duration-badge">
                                     <iconify-icon icon="solar:clock-circle-linear"></iconify-icon>
                                     <?= $durationJp ?> JP
                                 </span>
-                                <a href="<?= site_url('arena-belajar/course/' . esc($c['slug'])) ?>" class="course-overlay-cta">
+                                <a href="<?= $classUrl ?>" class="course-overlay-cta">
                                     <iconify-icon icon="solar:play-circle-bold"></iconify-icon>
-                                    <span>Lihat Detail</span>
+                                    <span>Lihat Detail Kelas</span>
                                 </a>
                             </div>
                             <div class="course-body-modern">
-                                <span class="course-program-tag"><?= esc($c['program_title'] ?? 'Arena Belajar') ?></span>
+                                <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                                    <span class="course-program-tag mb-0"><?= esc($c['course_title'] ?? $c['program_title'] ?? 'Arena Belajar') ?></span>
+                                    <span class="badge-soft-info px-2 py-0 text-2xs fw-bold radius-4"><?= esc($methodText) ?></span>
+                                </div>
                                 <h3 class="course-title-modern">
-                                    <a href="<?= site_url('arena-belajar/course/' . esc($c['slug'])) ?>"><?= esc($c['title']) ?></a>
+                                    <a href="<?= $classUrl ?>"><?= esc($c['name'] ?? $c['title']) ?></a>
                                 </h3>
-                                <p class="course-summary-snippet"><?= esc(! empty($c['summary']) ? $c['summary'] : 'Materi pembelajaran terstruktur berbasis silabus standar kompetensi LKPP.') ?></p>
+                                <p class="course-summary-snippet"><?= esc(! empty($c['summary']) ? $c['summary'] : (! empty($cleanDesc) ? character_limiter($cleanDesc, 110) : 'Materi pembelajaran terstruktur berbasis silabus standar kompetensi LKPP.')) ?></p>
                                 <div class="course-meta-row">
                                     <span class="text-xs text-muted d-flex align-items-center gap-1">
                                         <iconify-icon icon="solar:users-group-rounded-linear"></iconify-icon>
-                                        <?= $enrolled > 0 ? $enrolled . ' Peserta' : 'Modul Mandiri' ?>
+                                        <?= $enrolled > 0 ? $enrolled . ' Peserta Terdaftar' : 'Pendaftaran Dibuka' ?>
                                     </span>
-                                    <a href="<?= site_url('arena-belajar/course/' . esc($c['slug'])) ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Buka Materi</a>
+                                    <a href="<?= $classUrl ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Buka Kelas</a>
                                 </div>
                             </div>
                         </div>
@@ -550,7 +632,7 @@ $bulanIndo = [
 </section>
 
 <!-- =========================================================
-     6. PUSAT REGULASI PBJ TERBARU & UNGGULAN
+     6. BANK NASKAH HUKUM PBJ: 3 REGULASI TERBARU (BERLAKU)
      ========================================================= -->
 <section class="section-spacious bg-light">
     <div class="container">
@@ -561,7 +643,7 @@ $bulanIndo = [
                     <span>Bank Naskah Hukum PBJ</span>
                 </div>
                 <h2 class="section-title-main mb-1">Regulasi &amp; Produk Hukum Terbaru</h2>
-                <p class="section-title-desc mb-0">Arsip resmi Peraturan Presiden, Peraturan LKPP, dan Peraturan Daerah Provinsi Lampung dengan status hukum terverifikasi.</p>
+                <p class="section-title-desc mb-0">Arsip resmi Peraturan Presiden, Peraturan LKPP, dan Peraturan Daerah Provinsi Lampung berdasarkan tanggal berlaku hukum terverifikasi.</p>
             </div>
             <a href="<?= site_url('regulasi') ?>" class="btn btn-outline-primary px-20 py-10 radius-8 fw-semibold d-inline-flex align-items-center gap-2">
                 <span>Buka Pusat Regulasi</span>
@@ -599,7 +681,12 @@ $bulanIndo = [
                                     </span>
                                 <?php endif; ?>
 
-                                <?php if (! empty($r['document_year'])): ?>
+                                <?php if (! empty($r['effective_date']) && $r['effective_date'] !== '0000-00-00 00:00:00'): ?>
+                                    <span class="badge-soft-primary px-2 py-1 radius-6 text-2xs fw-bold" title="Tanggal Berlaku Regulasi">
+                                        <iconify-icon icon="solar:calendar-date-bold" class="me-1"></iconify-icon>
+                                        Berlaku: <?= date('d M Y', strtotime($r['effective_date'])) ?>
+                                    </span>
+                                <?php elseif (! empty($r['document_year'])): ?>
                                     <span class="badge-soft-secondary px-2 py-1 radius-6 text-2xs fw-bold">
                                         Tahun <?= esc($r['document_year']) ?>
                                     </span>
@@ -651,36 +738,36 @@ $bulanIndo = [
                 <span>Bunga Rampai Pengetahuan</span>
             </div>
             <h2 class="section-title-main">Pusat Literasi, Template Dokumen &amp; Studi Kasus</h2>
-            <p class="section-title-desc mx-auto">Akses instan ribuan referensi praktis, format template terstandar, dan pembahasan solusi kasus pengadaan nyata.</p>
+            <p class="section-title-desc mx-auto">Akses instan referensi praktis, format template terstandar, dan pembahasan solusi kasus pengadaan nyata.</p>
         </div>
 
         <!-- Tab Controls -->
-        <div class="knowledge-tab-nav" role="tablist">
-            <button class="knowledge-tab-btn active" id="tab-art-btn" data-bs-toggle="pill" data-bs-target="#tab-articles" type="button" role="tab">
+        <div class="knowledge-tab-nav nav" role="tablist">
+            <button class="knowledge-tab-btn active" id="tab-art-btn" data-bs-toggle="pill" data-bs-target="#tab-articles" type="button" role="tab" aria-selected="true">
                 <iconify-icon icon="solar:document-text-bold"></iconify-icon>
                 <span>Artikel PBJ</span>
-                <span class="tab-counter"><?= count($articles) ?></span>
+                <span class="tab-counter"><?= (int) ($knowledgeCounts['articles'] ?? count($articles)) ?></span>
             </button>
-            <button class="knowledge-tab-btn" id="tab-tpl-btn" data-bs-toggle="pill" data-bs-target="#tab-templates" type="button" role="tab">
+            <button class="knowledge-tab-btn" id="tab-tpl-btn" data-bs-toggle="pill" data-bs-target="#tab-templates" type="button" role="tab" aria-selected="false">
                 <iconify-icon icon="solar:file-download-bold"></iconify-icon>
                 <span>Template Dokumen</span>
-                <span class="tab-counter"><?= count($templates) ?></span>
+                <span class="tab-counter"><?= (int) ($knowledgeCounts['templates'] ?? count($templates)) ?></span>
             </button>
-            <button class="knowledge-tab-btn" id="tab-cs-btn" data-bs-toggle="pill" data-bs-target="#tab-cases" type="button" role="tab">
+            <button class="knowledge-tab-btn" id="tab-cs-btn" data-bs-toggle="pill" data-bs-target="#tab-cases" type="button" role="tab" aria-selected="false">
                 <iconify-icon icon="solar:shield-warning-bold"></iconify-icon>
                 <span>Studi Kasus</span>
-                <span class="tab-counter"><?= count($caseStudies) ?></span>
+                <span class="tab-counter"><?= (int) ($knowledgeCounts['caseStudies'] ?? count($caseStudies)) ?></span>
             </button>
-            <button class="knowledge-tab-btn" id="tab-faq-btn" data-bs-toggle="pill" data-bs-target="#tab-faqs" type="button" role="tab">
+            <button class="knowledge-tab-btn" id="tab-faq-btn" data-bs-toggle="pill" data-bs-target="#tab-faqs" type="button" role="tab" aria-selected="false">
                 <iconify-icon icon="solar:question-circle-bold"></iconify-icon>
                 <span>Tanya Jawab (FAQ)</span>
-                <span class="tab-counter"><?= count($faqs) ?></span>
+                <span class="tab-counter"><?= (int) ($knowledgeCounts['faqs'] ?? count($faqs)) ?></span>
             </button>
         </div>
 
         <!-- Tab Panes -->
         <div class="tab-content">
-            <!-- Pane 1: Artikel -->
+            <!-- Pane 1: Artikel (3 Terbaru) -->
             <div class="tab-pane fade show active" id="tab-articles" role="tabpanel">
                 <div class="row g-3 g-md-4">
                     <?php if (empty($articles)): ?>
@@ -690,7 +777,7 @@ $bulanIndo = [
                         </div>
                     <?php else: ?>
                         <?php foreach ($articles as $art): ?>
-                            <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="col-12 col-md-6 col-lg-4">
                                 <div class="article-card-modern">
                                     <div class="article-thumb-modern">
                                         <img src="<?= ! empty($art['cover_path']) ? base_url('file/' . (int) ($art['cover_file_id'] ?? 0)) : base_url('assets/main/images/blog/blog-1-1.jpg') ?>" alt="<?= esc($art['title']) ?>" onerror="this.src='<?= base_url('assets/main/images/blog/blog-1-1.jpg') ?>'">
@@ -722,7 +809,7 @@ $bulanIndo = [
                 </div>
             </div>
 
-            <!-- Pane 2: Template Dokumen -->
+            <!-- Pane 2: Template Dokumen (3 Terbaru) -->
             <div class="tab-pane fade" id="tab-templates" role="tabpanel">
                 <div class="row g-3 g-md-3">
                     <?php if (empty($templates)): ?>
@@ -740,8 +827,8 @@ $bulanIndo = [
                                 || str_contains(strtolower($tpl['title']), 'kertas kerja')
                                 || str_contains(strtolower($tpl['title']), 'hps');
                             ?>
-                            <div class="col-12 col-md-6">
-                                <div class="template-item-card">
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <div class="template-item-card h-100">
                                     <div class="template-file-icon <?= $isExcel ? 'excel' : '' ?>">
                                         <iconify-icon icon="<?= $isExcel ? 'solar:file-spreadsheet-bold' : 'solar:document-bold' ?>"></iconify-icon>
                                     </div>
@@ -751,8 +838,8 @@ $bulanIndo = [
                                                 <?= $isExcel ? 'Spreadsheet (XLSX)' : 'Dokumen (DOCX)' ?>
                                             </span>
                                         </div>
-                                        <h5 class="text-sm fw-bold mb-1"><?= esc($tpl['title']) ?></h5>
-                                        <span class="text-xs text-muted"><?= esc($tpl['summary'] ?? 'Template Dokumen Kerja SPSE') ?></span>
+                                        <h5 class="text-sm fw-bold mb-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"><?= esc($tpl['title']) ?></h5>
+                                        <span class="text-xs text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"><?= esc($tpl['summary'] ?? 'Template Dokumen Kerja SPSE') ?></span>
                                     </div>
                                     <div class="d-flex flex-column gap-1">
                                         <a href="<?= site_url('bunga-rampai/template-dokumen/' . esc($tpl['slug']) . '/unduh') ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6">Unduh</a>
@@ -768,7 +855,7 @@ $bulanIndo = [
                 </div>
             </div>
 
-            <!-- Pane 3: Studi Kasus -->
+            <!-- Pane 3: Studi Kasus (3 Terbaru) -->
             <div class="tab-pane fade" id="tab-cases" role="tabpanel">
                 <div class="row g-3 g-md-4">
                     <?php if (empty($caseStudies)): ?>
@@ -781,16 +868,16 @@ $bulanIndo = [
                         </div>
                     <?php else: ?>
                         <?php foreach ($caseStudies as $cs): ?>
-                            <div class="col-12 col-md-6">
-                                <div class="card p-24 radius-16 border bg-light h-100">
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <div class="card p-20 radius-16 border bg-light h-100 d-flex flex-column">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
                                         <span class="badge-soft-info px-2 py-1 text-xs fw-bold">
                                             <?= esc($cs['procurement_stage'] ?? 'Mitigasi Risiko PBJ') ?>
                                         </span>
                                         <span class="badge-soft-secondary px-2 py-1 text-2xs fw-bold">Studi Kasus</span>
                                     </div>
-                                    <h5 class="text-base fw-bold mb-2"><?= esc($cs['title']) ?></h5>
-                                    <p class="text-sm text-slate-600 mb-3"><?= esc($cs['summary'] ?? '') ?></p>
+                                    <h5 class="text-base fw-bold mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;"><?= esc($cs['title']) ?></h5>
+                                    <p class="text-sm text-slate-600 mb-3" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5;"><?= esc($cs['summary'] ?? '') ?></p>
                                     <a href="<?= site_url('bunga-rampai/studi-kasus/' . esc($cs['slug'])) ?>" class="text-primary text-sm fw-bold text-decoration-none d-flex align-items-center gap-1 mt-auto">
                                         <span>Pelajari Solusi Kasus</span>
                                         <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
@@ -805,7 +892,7 @@ $bulanIndo = [
                 </div>
             </div>
 
-            <!-- Pane 4: FAQ -->
+            <!-- Pane 4: FAQ (3 Terbaru) -->
             <div class="tab-pane fade" id="tab-faqs" role="tabpanel">
                 <div class="row g-3">
                     <?php if (empty($faqs)): ?>
@@ -859,75 +946,134 @@ $bulanIndo = [
                 <h2 class="section-title-main mb-1">Event, Webinar &amp; Bimtek Mendatang</h2>
                 <p class="section-title-desc mb-0">Ikuti kegiatan peningkatan kapasitas pengadaan bersama pakar LKPP dan praktisi senior.</p>
             </div>
-            <a href="<?= site_url('event') ?>" class="btn btn-outline-primary px-20 py-10 radius-8 fw-semibold d-inline-flex align-items-center gap-2">
-                <span>Lihat Seluruh Event</span>
-                <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
-            </a>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <div class="nav nav-pills event-sub-filter radius-8 p-1 bg-white border shadow-xs" role="tablist">
+                    <button class="nav-link active px-3 py-1 text-xs fw-semibold radius-6" id="event-near-tab" data-bs-toggle="pill" data-bs-target="#events-near" type="button" role="tab" aria-selected="true">
+                        <iconify-icon icon="solar:alarm-play-bold" class="me-1"></iconify-icon>
+                        Terdekat &amp; Berlangsung (3)
+                    </button>
+                    <button class="nav-link px-3 py-1 text-xs fw-semibold radius-6" id="event-far-tab" data-bs-toggle="pill" data-bs-target="#events-far" type="button" role="tab" aria-selected="false">
+                        <iconify-icon icon="solar:calendar-mark-bold" class="me-1"></iconify-icon>
+                        Jadwal Baru &amp; Terjauh (3)
+                    </button>
+                </div>
+                <a href="<?= site_url('event') ?>" class="btn btn-outline-primary px-3 py-10 radius-8 fw-semibold d-inline-flex align-items-center gap-2 text-xs">
+                    <span>Semua Event</span>
+                    <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                </a>
+            </div>
         </div>
 
-        <div class="row g-3 g-md-4">
-            <?php if (empty($upcomingEvents)): ?>
-                <div class="col-12 text-center py-5">
-                    <div class="p-4 rounded-4 bg-white border d-inline-block text-center shadow-xs" style="max-width: 480px;">
-                        <iconify-icon icon="solar:calendar-broken" class="text-secondary-light" style="font-size: 48px;"></iconify-icon>
-                        <h5 class="fw-bold text-dark mt-2 mb-1">Belum Ada Agenda Mendatang</h5>
-                        <p class="text-muted small mb-3">Jadwal webinar, bimbingan teknis, dan pelatihan pengadaan akan segera diumumkan.</p>
-                        <a href="<?= site_url('event') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3">Buka Halaman Event</a>
+        <?php
+        $renderEventCard = function ($evt, $bulanIndo) {
+            $eventTime = ! empty($evt['start_at']) && $evt['start_at'] !== '0000-00-00 00:00:00' ? strtotime($evt['start_at']) : time();
+            $endTime   = ! empty($evt['end_at']) && $evt['end_at'] !== '0000-00-00 00:00:00' ? strtotime($evt['end_at']) : $eventTime;
+            $dayNum    = date('d', $eventTime);
+            $monthNum  = (int) date('n', $eventTime);
+            $monthText = $bulanIndo[$monthNum] ?? date('M', $eventTime);
+            $mode      = strtolower((string) ($evt['mode'] ?? 'online'));
+            $modeBadge = match ($mode) {
+                'online'  => ['class' => 'badge-soft-success', 'label' => 'Online • Zoom'],
+                'offline' => ['class' => 'badge-soft-primary', 'label' => 'Tatap Muka • Luring'],
+                'hybrid'  => ['class' => 'badge-soft-warning', 'label' => 'Hybrid • Luring & Daring'],
+                default   => ['class' => 'badge-soft-secondary', 'label' => ucfirst($mode)]
+            };
+            $typeLabel = ucfirst((string) ($evt['type'] ?? 'Webinar'));
+
+            // Day counter relative to today
+            $nowTs    = time();
+            $todayMid = strtotime(date('Y-m-d 00:00:00'));
+            $eventMid = strtotime(date('Y-m-d 00:00:00', $eventTime));
+            $diffDays = (int) round(($eventMid - $todayMid) / 86400);
+
+            if ($nowTs >= $eventTime && $nowTs <= $endTime) {
+                $counterBadge = '<span class="badge-soft-danger px-2 py-0 text-2xs fw-bold d-inline-flex align-items-center"><span class="badge-pulse-dot me-1" style="width: 6px; height: 6px; border-radius: 50%; background: #dc2626; display: inline-block;"></span> Sedang Berlangsung</span>';
+            } elseif ($diffDays <= 0) {
+                $counterBadge = '<span class="badge-soft-warning px-2 py-0 text-2xs fw-bold d-inline-flex align-items-center"><iconify-icon icon="solar:clock-circle-bold" class="me-1"></iconify-icon> Hari Ini</span>';
+            } elseif ($diffDays === 1) {
+                $counterBadge = '<span class="badge-soft-info px-2 py-0 text-2xs fw-bold d-inline-flex align-items-center"><iconify-icon icon="solar:alarm-bold" class="me-1"></iconify-icon> Besok (H-1)</span>';
+            } else {
+                $counterBadge = '<span class="badge-soft-primary px-2 py-0 text-2xs fw-bold d-inline-flex align-items-center"><iconify-icon icon="solar:hourglass-line-bold" class="me-1"></iconify-icon> ' . $diffDays . ' Hari Lagi</span>';
+            }
+            ?>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="event-card-modern">
+                    <div class="event-date-badge">
+                        <span class="event-date-day"><?= $dayNum ?></span>
+                        <span class="event-date-month"><?= $monthText ?></span>
                     </div>
-                </div>
-            <?php else: ?>
-                <?php foreach ($upcomingEvents as $evt): ?>
-                    <?php
-                    $eventTime = ! empty($evt['start_at']) && $evt['start_at'] !== '0000-00-00 00:00:00' ? strtotime($evt['start_at']) : time();
-                    $dayNum    = date('d', $eventTime);
-                    $monthNum  = (int) date('n', $eventTime);
-                    $monthText = $bulanIndo[$monthNum] ?? date('M', $eventTime);
-                    $mode      = strtolower((string) ($evt['mode'] ?? 'online'));
-                    $modeBadge = match ($mode) {
-                        'online' => ['class' => 'badge-soft-success', 'label' => 'Online • Zoom'],
-                        'offline' => ['class' => 'badge-soft-primary', 'label' => 'Tatap Muka • Luring'],
-                        'hybrid' => ['class' => 'badge-soft-warning', 'label' => 'Hybrid • Luring & Daring'],
-                        default => ['class' => 'badge-soft-secondary', 'label' => ucfirst($mode)]
-                    };
-                    $typeLabel = ucfirst((string) ($evt['type'] ?? 'Webinar'));
-                    ?>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="event-card-modern">
-                            <div class="event-date-badge">
-                                <span class="event-date-day"><?= $dayNum ?></span>
-                                <span class="event-date-month"><?= $monthText ?></span>
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center gap-1 mb-2 flex-wrap">
-                                    <span class="<?= $modeBadge['class'] ?> px-2 py-0 text-2xs fw-bold">
-                                        <?= $modeBadge['label'] ?>
-                                    </span>
-                                    <span class="badge-soft-secondary px-2 py-0 text-2xs fw-bold">
-                                        <?= esc($typeLabel) ?>
-                                    </span>
-                                </div>
-                                <h4 class="text-base fw-bold mb-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;">
-                                    <a href="<?= site_url('event/' . esc($evt['slug'])) ?>" class="text-dark text-decoration-none">
-                                        <?= esc($evt['title']) ?>
-                                    </a>
-                                </h4>
-                                <p class="text-xs text-muted mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5;">
-                                    <?= esc(! empty($evt['summary']) ? $evt['summary'] : ($evt['location'] ?? 'Kegiatan peningkatan kapasitas pengadaan Provinsi Lampung.')) ?>
-                                </p>
-                                <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                                    <span class="text-xs text-muted">
-                                        <?= ! empty($evt['capacity']) ? 'Kuota: ' . (int) $evt['capacity'] : 'Terbuka' ?>
-                                    </span>
-                                    <a href="<?= site_url('event/' . esc($evt['slug'])) ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6 d-inline-flex align-items-center gap-1">
-                                        <span>Detail Acara</span>
-                                        <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
-                                    </a>
-                                </div>
-                            </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-1 mb-2 flex-wrap">
+                            <?= $counterBadge ?>
+                            <span class="<?= $modeBadge['class'] ?> px-2 py-0 text-2xs fw-bold">
+                                <?= $modeBadge['label'] ?>
+                            </span>
+                            <span class="badge-soft-secondary px-2 py-0 text-2xs fw-bold">
+                                <?= esc($typeLabel) ?>
+                            </span>
+                        </div>
+                        <h4 class="text-base fw-bold mb-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;">
+                            <a href="<?= site_url('event/' . esc($evt['slug'])) ?>" class="text-dark text-decoration-none">
+                                <?= esc($evt['title']) ?>
+                            </a>
+                        </h4>
+                        <p class="text-xs text-muted mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5;">
+                            <?= esc(! empty($evt['summary']) ? $evt['summary'] : ($evt['location'] ?? 'Kegiatan peningkatan kapasitas pengadaan Provinsi Lampung.')) ?>
+                        </p>
+                        <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                            <span class="text-xs text-muted">
+                                <?= ! empty($evt['capacity']) ? 'Kuota: ' . (int) $evt['capacity'] : 'Terbuka' ?>
+                            </span>
+                            <a href="<?= site_url('event/' . esc($evt['slug'])) ?>" class="btn btn-sm btn-primary px-3 py-1 radius-6 d-inline-flex align-items-center gap-1">
+                                <span>Detail Acara</span>
+                                <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                            </a>
                         </div>
                     </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                </div>
+            </div>
+        <?php }; ?>
+
+        <div class="tab-content">
+            <!-- Pane 1: Terdekat Hari Ini & Sedang Berlangsung (3 Event) -->
+            <div class="tab-pane fade show active" id="events-near" role="tabpanel">
+                <div class="row g-3 g-md-4">
+                    <?php if (empty($upcomingEventsNear)): ?>
+                        <div class="col-12 text-center py-5">
+                            <div class="p-4 rounded-4 bg-white border d-inline-block text-center shadow-xs" style="max-width: 480px;">
+                                <iconify-icon icon="solar:calendar-broken" class="text-secondary-light" style="font-size: 48px;"></iconify-icon>
+                                <h5 class="fw-bold text-dark mt-2 mb-1">Belum Ada Agenda Mendatang Terdekat</h5>
+                                <p class="text-muted small mb-3">Jadwal webinar, bimbingan teknis, dan pelatihan pengadaan akan segera diumumkan.</p>
+                                <a href="<?= site_url('event') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3">Buka Halaman Event</a>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($upcomingEventsNear as $evt) {
+                            $renderEventCard($evt, $bulanIndo);
+                        } ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Pane 2: Jadwal Baru & Terjauh (3 Event) -->
+            <div class="tab-pane fade" id="events-far" role="tabpanel">
+                <div class="row g-3 g-md-4">
+                    <?php if (empty($upcomingEventsFar)): ?>
+                        <div class="col-12 text-center py-5">
+                            <div class="p-4 rounded-4 bg-white border d-inline-block text-center shadow-xs" style="max-width: 480px;">
+                                <iconify-icon icon="solar:calendar-broken" class="text-secondary-light" style="font-size: 48px;"></iconify-icon>
+                                <h5 class="fw-bold text-dark mt-2 mb-1">Belum Ada Agenda Terjadwal Jauh</h5>
+                                <p class="text-muted small mb-3">Jadwal pengadaan periode mendatang akan segera diperbarui.</p>
+                                <a href="<?= site_url('event') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3">Buka Halaman Event</a>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($upcomingEventsFar as $evt) {
+                            $renderEventCard($evt, $bulanIndo);
+                        } ?>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -1392,16 +1538,28 @@ $bulanIndo = [
                     <iconify-icon icon="solar:city-bold"></iconify-icon>
                     <span>Tentang Penyelenggara</span>
                 </div>
-                <h2 class="section-title-main">Biro Pengadaan Barang &amp; Jasa Sekretariat Daerah Provinsi Lampung</h2>
+                <h2 class="section-title-main"><?= esc(setting('organization.agency_name', 'Biro Pengadaan Barang & Jasa Sekretariat Daerah Provinsi Lampung')) ?></h2>
                 <p class="text-slate-600 mb-3" style="line-height: 1.7;">
-                    Sebagai Unit Kerja Pengadaan Barang/Jasa (UKPBJ) Pemerintah Provinsi Lampung, kami berkomitmen mewujudkan pengadaan yang <strong>kredibel, transparan, akuntabel, dan bebas gratifikasi</strong> berlandaskan budaya kerja PATIK (Profesional, Akuntabel, Transparan, Integritas, Kredibel).
+                    <?= esc(setting('organization.description', 'Sebagai Unit Kerja Pengadaan Barang/Jasa (UKPBJ) Pemerintah Provinsi Lampung, kami berkomitmen mewujudkan pengadaan yang kredibel, transparan, akuntabel, dan bebas gratifikasi berlandaskan budaya kerja PATIK (Profesional, Akuntabel, Transparan, Integritas, Kredibel).')) ?>
                 </p>
+                <?php
+                $patikChips = array_values(array_filter($featureHighlights ?? [], fn($h) => ($h['section_key'] ?? '') === 'budaya_patik'));
+                ?>
                 <div class="d-flex flex-wrap gap-2 mb-4">
-                    <span class="patik-chip"><iconify-icon icon="solar:star-bold" class="text-primary"></iconify-icon><strong>P</strong> &middot; Profesional</span>
-                    <span class="patik-chip"><iconify-icon icon="solar:shield-check-bold" class="text-info"></iconify-icon><strong>A</strong> &middot; Akuntabel</span>
-                    <span class="patik-chip"><iconify-icon icon="solar:eye-bold" class="text-success"></iconify-icon><strong>T</strong> &middot; Transparan</span>
-                    <span class="patik-chip"><iconify-icon icon="solar:lock-keyhole-bold" class="text-warning"></iconify-icon><strong>I</strong> &middot; Integritas</span>
-                    <span class="patik-chip"><iconify-icon icon="solar:medal-ribbon-star-bold" class="text-danger"></iconify-icon><strong>K</strong> &middot; Kredibel</span>
+                    <?php if (! empty($patikChips)): ?>
+                        <?php foreach ($patikChips as $pch): ?>
+                            <span class="patik-chip">
+                                <iconify-icon icon="<?= esc(! empty($pch['icon_class']) ? $pch['icon_class'] : 'solar:star-bold') ?>" style="color: <?= esc(! empty($pch['color_hex']) ? $pch['color_hex'] : '#0c5aa6') ?>"></iconify-icon>
+                                <strong><?= esc(! empty($pch['code']) ? $pch['code'] : mb_substr($pch['title'], 0, 1)) ?></strong> &middot; <?= esc($pch['title']) ?>
+                            </span>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <span class="patik-chip"><iconify-icon icon="solar:star-bold" class="text-primary"></iconify-icon><strong>P</strong> &middot; Profesional</span>
+                        <span class="patik-chip"><iconify-icon icon="solar:shield-check-bold" class="text-info"></iconify-icon><strong>A</strong> &middot; Akuntabel</span>
+                        <span class="patik-chip"><iconify-icon icon="solar:eye-bold" class="text-success"></iconify-icon><strong>T</strong> &middot; Transparan</span>
+                        <span class="patik-chip"><iconify-icon icon="solar:lock-keyhole-bold" class="text-warning"></iconify-icon><strong>I</strong> &middot; Integritas</span>
+                        <span class="patik-chip"><iconify-icon icon="solar:medal-ribbon-star-bold" class="text-danger"></iconify-icon><strong>K</strong> &middot; Kredibel</span>
+                    <?php endif; ?>
                 </div>
                 <div class="row g-3">
                     <div class="col-12 col-sm-6">
@@ -1758,6 +1916,36 @@ $bulanIndo = [
                 });
             }
         }
+
+        // Bunga Rampai Tab Switcher (Robust & Bulletproof)
+        $('.knowledge-tab-btn').on('click', function(e) {
+            e.preventDefault();
+            const targetSelector = $(this).attr('data-bs-target');
+            if (!targetSelector) return;
+
+            $('.knowledge-tab-btn').removeClass('active').attr('aria-selected', 'false');
+            $(this).addClass('active').attr('aria-selected', 'true');
+
+            $('.tab-content > .tab-pane').filter(function() {
+                const pid = $(this).attr('id') || '';
+                return pid.startsWith('tab-');
+            }).removeClass('show active');
+
+            $(targetSelector).addClass('show active');
+        });
+
+        // Event & Agenda Sub-Filter Switcher
+        $('.event-sub-filter button[data-bs-toggle="pill"]').on('click', function(e) {
+            e.preventDefault();
+            const targetSelector = $(this).attr('data-bs-target');
+            if (!targetSelector) return;
+
+            $('.event-sub-filter .nav-link').removeClass('active').attr('aria-selected', 'false');
+            $(this).addClass('active').attr('aria-selected', 'true');
+
+            $('#events-near, #events-far').removeClass('show active');
+            $(targetSelector).addClass('show active');
+        });
     });
 </script>
 <?= $this->endSection() ?>

@@ -116,41 +116,56 @@ class NotificationService
 
     /**
      * Ambil daftar notifikasi milik pengguna tertentu.
+     *
+     * @param int $userId
+     * @param int $limit
+     * @param bool $onlyUnread Jika true, hanya ambil notifikasi yang belum dibaca (misal untuk lonceng notifikasi bar)
      */
-    public function getUserNotifications(int $userId, int $limit = 30): array
+    public function getUserNotifications(int $userId, int $limit = 30, bool $onlyUnread = false): array
     {
-        return $this->db->table('notifications')
-            ->where('user_id', $userId)
-            ->orderBy('created_at', 'DESC')
+        $builder = $this->db->table('notifications')
+            ->where('user_id', $userId);
+
+        if ($onlyUnread) {
+            $builder->where('read_at IS NULL', null, false);
+        }
+
+        return $builder->orderBy('created_at', 'DESC')
+            ->orderBy('id', 'DESC')
             ->limit($limit)
             ->get()->getResultArray();
     }
 
     /**
      * Ambil notifikasi sistem terbaru secara global.
+     *
+     * @param int $limit
+     * @param bool $onlyUnread Jika true, hanya ambil notifikasi yang belum dibaca (misal untuk lonceng notifikasi bar)
      */
-    public function getRecentNotifications(int $limit = 5): array
+    public function getRecentNotifications(int $limit = 5, bool $onlyUnread = false): array
     {
-        return $this->db->table('notifications')
+        $builder = $this->db->table('notifications')
             ->select('notifications.*, users.name as user_name, users.email as user_email')
-            ->join('users', 'users.id = notifications.user_id', 'left')
-            ->orderBy('notifications.created_at', 'DESC')
+            ->join('users', 'users.id = notifications.user_id', 'left');
+
+        if ($onlyUnread) {
+            $builder->where('notifications.read_at IS NULL', null, false);
+        }
+
+        return $builder->orderBy('notifications.created_at', 'DESC')
+            ->orderBy('notifications.id', 'DESC')
             ->limit($limit)
             ->get()->getResultArray();
     }
 
     /**
-     * Ambil notifikasi terpaginasi untuk panel dashboard administrator dengan filter dinamis.
+     * Helper privat untuk menerapkan multi-facet filter secara konsisten pada builder notifikasi.
      */
-    public function getAdminNotifications(array $filters = [], int $perPage = 15, int $page = 1): array
+    protected function applyNotificationFilters(\CodeIgniter\Database\BaseBuilder $builder, array $filters): \CodeIgniter\Database\BaseBuilder
     {
-        $builder = $this->db->table('notifications')
-            ->select('notifications.*, users.name as user_name, users.email as user_email, users.username as user_username, users.profile_type as user_profile_type')
-            ->join('users', 'users.id = notifications.user_id', 'left');
-
         // Filter: pencarian teks (judul, pesan, penerima)
         if (!empty($filters['q'])) {
-            $q = trim($filters['q']);
+            $q = trim((string) $filters['q']);
             $builder->groupStart()
                 ->like('notifications.title', $q)
                 ->orLike('notifications.body', $q)
@@ -184,12 +199,63 @@ class NotificationService
             $builder->where('users.profile_type', $filters['profile_type']);
         }
 
-        $totalBuilder = clone $builder;
-        $total = $totalBuilder->countAllResults();
+        // Filter: Dari Tanggal (from)
+        if (!empty($filters['from'])) {
+            $builder->where('notifications.created_at >=', $filters['from'] . ' 00:00:00');
+        }
+
+        // Filter: Sampai Tanggal (to)
+        if (!empty($filters['to'])) {
+            $builder->where('notifications.created_at <=', $filters['to'] . ' 23:59:59');
+        }
+
+        return $builder;
+    }
+
+    /**
+     * Ambil notifikasi terpaginasi untuk panel dashboard administrator dengan filter dinamis dan sorting global server-side.
+     */
+    public function getAdminNotifications(array $filters = [], int $perPage = 15, int $page = 1): array
+    {
+        // 1. Count query terisolasi (mencegah reset builder clause)
+        $countBuilder = $this->db->table('notifications')
+            ->join('users', 'users.id = notifications.user_id', 'left');
+        $this->applyNotificationFilters($countBuilder, $filters);
+        $total = $countBuilder->countAllResults();
+
+        // 2. Data query terisolasi
+        $builder = $this->db->table('notifications')
+            ->select('notifications.*, users.name as user_name, users.email as user_email, users.username as user_username, users.profile_type as user_profile_type')
+            ->join('users', 'users.id = notifications.user_id', 'left');
+        $this->applyNotificationFilters($builder, $filters);
+
+        // Sorting mapping
+        $sort = (string) ($filters['sort'] ?? 'created_at');
+        $dir  = strtolower((string) ($filters['dir'] ?? 'desc')) === 'asc' ? 'ASC' : 'DESC';
+
+        $allowedSorts = [
+            'created_at' => 'notifications.created_at',
+            'recipient'  => 'COALESCE(NULLIF(users.name, ""), users.username, "Pengguna")',
+            'title'      => 'notifications.title',
+            'type'       => 'notifications.type',
+            'channel'    => 'notifications.channel',
+            'status'     => '(CASE WHEN notifications.read_at IS NOT NULL THEN 1 ELSE 0 END)',
+        ];
+
+        if ($sort === 'recipient') {
+            $builder->orderBy('COALESCE(NULLIF(users.name, ""), users.username, "Pengguna")', $dir, false);
+        } elseif ($sort === 'status') {
+            $builder->orderBy('(CASE WHEN notifications.read_at IS NOT NULL THEN 1 ELSE 0 END)', $dir, false);
+        } else {
+            $orderCol = $allowedSorts[$sort] ?? 'notifications.created_at';
+            $builder->orderBy($orderCol, $dir);
+        }
+
+        // Selalu sertakan tie-breaker deterministik ID DESC agar urutan data stabil dan konsisten
+        $builder->orderBy('notifications.id', $dir);
 
         $offset = max(0, ($page - 1) * $perPage);
-        $items = $builder->orderBy('notifications.created_at', 'DESC')
-            ->limit($perPage, $offset)
+        $items = $builder->limit($perPage, $offset)
             ->get()->getResultArray();
 
         return [

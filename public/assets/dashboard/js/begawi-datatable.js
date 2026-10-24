@@ -116,6 +116,16 @@
       return; // Already initialized
     }
 
+    // Skip client-side DataTables initialization for tables that use backend server-side pagination,
+    // sorting, and filtering (prevents double pagination, broken search on next page, and sorting override).
+    if ($table.data('server-side') === true ||
+        $table.data('server-side') === 'true' ||
+        $table.attr('data-server-side') !== undefined ||
+        $table.hasClass('dt-server-side') ||
+        $table.hasClass('server-side-table')) {
+      return;
+    }
+
     // If table is directly wrapped in .table-responsive, unwrap it so DataTables 2 layout controls
     // (search box, length dropdown, pagination) are not trapped inside the table horizontal scroll area
     if ($table.parent().hasClass('table-responsive')) {
@@ -281,7 +291,7 @@
 
   // Auto-initialize all tables with class .begawi-table on DOM ready
   $(document).ready(function () {
-    $('.begawi-table').each(function () {
+    $('.begawi-table').not('[data-server-side="true"]').not('.server-side-table').not('.dt-server-side').each(function () {
       initTable(this);
     });
   });

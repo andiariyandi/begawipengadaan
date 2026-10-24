@@ -117,7 +117,199 @@ class UserManagementService
             $userId,
         );
 
+        // Sinkronisasi Data Profil Khusus & Pembersihan Profil Lama (Zero Residual Cross-Profile Data)
+        $this->syncUserProfileData((int) $userId, $account['profile_type'], $data);
+
         return (int) $userId;
+    }
+
+    /**
+     * Menyimpan data profil spesifik (ASN, Provider, Academic, Public) dan
+     * menghapus sisa data profil lama saat tipe profil berubah.
+     */
+    public function syncUserProfileData(int $userId, string $targetProfileType, array $data): void
+    {
+        $db = db_connect();
+        $targetProfileType = strtolower(trim($targetProfileType));
+        $profileTables = [
+            'asn'      => 'asn_profiles',
+            'provider' => 'provider_profiles',
+            'academic' => 'academic_profiles',
+            'public'   => 'public_profiles',
+        ];
+
+        if (! isset($profileTables[$targetProfileType])) {
+            return;
+        }
+
+        $now = date('Y-m-d H:i:s');
+
+        // 1. Hapus data profil lama dari tabel tipe profil lainnya
+        foreach ($profileTables as $type => $tableName) {
+            if ($type !== $targetProfileType) {
+                $db->table($tableName)->where('user_id', $userId)->delete();
+            }
+        }
+
+        // 2. Simpan atau perbarui data profil pada tabel target
+        $targetTable = $profileTables[$targetProfileType];
+        $existingSpecific = $db->table($targetTable)->where('user_id', $userId)->get()->getRowArray();
+        $specificData = [];
+
+        if ($targetProfileType === 'asn') {
+            $orgUnitId = ! empty($data['organization_unit_id']) ? (int) $data['organization_unit_id'] : null;
+            $unitName  = trim((string) ($data['unit_name'] ?? ''));
+            if ($orgUnitId && empty($unitName)) {
+                $ou = $db->table('organization_units')->select('name')->where('id', $orgUnitId)->get()->getRowArray();
+                if ($ou) {
+                    $unitName = $ou['name'];
+                }
+            }
+
+            $originType = (string) ($data['origin_type'] ?? 'pemprov_lampung');
+            $allowedOrigins = ['pemprov_lampung', 'kementerian_lembaga', 'pemerintah_daerah_lain', 'pemerintah_desa', 'bumn_bumd', 'lainnya'];
+            if (! in_array($originType, $allowedOrigins, true)) {
+                $originType = 'pemprov_lampung';
+            }
+
+            $specificData = [
+                'employee_identifier'  => trim((string) ($data['employee_identifier'] ?? $data['nip'] ?? '')),
+                'organization_unit_id' => $orgUnitId,
+                'unit_name'            => $unitName ?: null,
+                'position_name'        => trim((string) ($data['position_name'] ?? '')) ?: null,
+                'rank_grade'           => trim((string) ($data['rank_grade'] ?? '')) ?: null,
+                'employment_status'    => trim((string) ($data['employment_status'] ?? 'pns')) ?: 'pns',
+                'origin_type'          => $originType,
+                'institution_name'     => trim((string) ($data['institution_name'] ?? 'Pemerintah Provinsi Lampung')) ?: 'Pemerintah Provinsi Lampung',
+                'official_email'       => trim((string) ($data['official_email'] ?? '')) ?: null,
+            ];
+        } elseif ($targetProfileType === 'provider') {
+            $defaultCompanyName = trim((string) ($data['name'] ?? 'Perusahaan Penyedia'));
+            $specificData = [
+                'business_name'        => trim((string) ($data['business_name'] ?? $data['company_name'] ?? $defaultCompanyName)) ?: $defaultCompanyName,
+                'business_form'        => trim((string) ($data['business_form'] ?? 'PT')) ?: 'PT',
+                'business_field'       => trim((string) ($data['business_field'] ?? '')) ?: null,
+                'business_identifier'  => trim((string) ($data['business_identifier'] ?? $data['nib'] ?? '')) ?: null,
+                'registrant_position'  => trim((string) ($data['registrant_position'] ?? 'Direktur')) ?: 'Direktur',
+                'responsible_person'   => trim((string) ($data['responsible_person'] ?? $data['name'] ?? 'Penanggung Jawab')) ?: 'Penanggung Jawab',
+                'business_email'       => trim((string) ($data['business_email'] ?? $data['email'] ?? '')) ?: null,
+                'business_address'     => trim((string) ($data['business_address'] ?? '')) ?: null,
+            ];
+        } elseif ($targetProfileType === 'academic') {
+            $expertise = $data['expertise'] ?? null;
+            if (is_array($expertise)) {
+                $expertise = json_encode(array_values($expertise), JSON_UNESCAPED_UNICODE);
+            } elseif (is_string($expertise) && trim($expertise) !== '' && ! str_starts_with(trim($expertise), '[')) {
+                $expertise = json_encode([trim($expertise)], JSON_UNESCAPED_UNICODE);
+            }
+
+            $specificData = [
+                'institution_name'        => trim((string) ($data['institution_name'] ?? 'Perguruan Tinggi')) ?: 'Perguruan Tinggi',
+                'institution_type'        => trim((string) ($data['institution_type'] ?? 'Perguruan Tinggi Negeri')) ?: 'Perguruan Tinggi Negeri',
+                'role_name'               => trim((string) ($data['role_name'] ?? 'Dosen')) ?: 'Dosen',
+                'expertise'               => $expertise ?: null,
+                'institution_email'       => trim((string) ($data['institution_email'] ?? '')) ?: null,
+                'professional_identifier' => trim((string) ($data['professional_identifier'] ?? '')) ?: null,
+                'portfolio_url'           => trim((string) ($data['portfolio_url'] ?? '')) ?: null,
+            ];
+        } elseif ($targetProfileType === 'public') {
+            $interestAreas = $data['interest_areas'] ?? null;
+            if (is_array($interestAreas)) {
+                $interestAreas = json_encode(array_values($interestAreas), JSON_UNESCAPED_UNICODE);
+            } elseif (is_string($interestAreas) && trim($interestAreas) !== '' && ! str_starts_with(trim($interestAreas), '[')) {
+                $interestAreas = json_encode([trim($interestAreas)], JSON_UNESCAPED_UNICODE);
+            }
+
+            $usagePurpose = $data['usage_purpose'] ?? null;
+            if (is_array($usagePurpose)) {
+                $usagePurpose = json_encode(array_values($usagePurpose), JSON_UNESCAPED_UNICODE);
+            } elseif (is_string($usagePurpose) && trim($usagePurpose) !== '' && ! str_starts_with(trim($usagePurpose), '[')) {
+                $usagePurpose = json_encode([trim($usagePurpose)], JSON_UNESCAPED_UNICODE);
+            }
+
+            $specificData = [
+                'national_identifier' => trim((string) ($data['national_identifier'] ?? $data['nik'] ?? '')) ?: null,
+                'occupation_status'   => trim((string) ($data['occupation_status'] ?? 'Masyarakat Umum')) ?: 'Masyarakat Umum',
+                'organization_name'   => trim((string) ($data['organization_name'] ?? '')) ?: null,
+                'interest_areas'      => $interestAreas ?: null,
+                'usage_purpose'       => $usagePurpose ?: null,
+            ];
+        }
+
+        if (! empty($specificData)) {
+            $specificData['updated_at'] = $now;
+            if ($existingSpecific) {
+                $db->table($targetTable)->where('user_id', $userId)->update($specificData);
+            } else {
+                $specificData['user_id']    = $userId;
+                $specificData['created_at'] = $now;
+                $db->table($targetTable)->insert($specificData);
+            }
+        }
+
+        // 3. Sinkronisasi data dasar user_profiles (Alamat & Wilayah)
+        $existingUp = $db->table('user_profiles')->where('user_id', $userId)->get()->getRowArray();
+
+        $hasProv = array_key_exists('province_code', $data) || array_key_exists('province', $data);
+        $hasReg  = array_key_exists('regency_code', $data) || array_key_exists('regency', $data);
+        $hasDist = array_key_exists('district_code', $data) || array_key_exists('district', $data);
+        $hasVill = array_key_exists('village_code', $data) || array_key_exists('village', $data);
+        $hasAddr = array_key_exists('address_line', $data) || array_key_exists('address', $data);
+
+        $provInput = trim((string) ($data['province_code'] ?? $data['province'] ?? ''));
+        $regInput  = trim((string) ($data['regency_code'] ?? $data['regency'] ?? ''));
+        $distInput = trim((string) ($data['district_code'] ?? $data['district'] ?? ''));
+        $villInput = trim((string) ($data['village_code'] ?? $data['village'] ?? ''));
+        $addrInput = trim((string) ($data['address_line'] ?? $data['address'] ?? ''));
+
+        $provinceCode = $hasProv ? ($provInput !== '' ? $provInput : '18') : ($existingUp['province_code'] ?? '18');
+
+        // Regency
+        if ($hasReg && $regInput !== '') {
+            $regencyCode = $regInput;
+        } elseif ($existingUp && ! empty($existingUp['regency_code']) && str_starts_with((string) $existingUp['regency_code'], $provinceCode . '.')) {
+            $regencyCode = (string) $existingUp['regency_code'];
+        } else {
+            $regencyCode = $provinceCode === '18' ? '18.71' : null;
+        }
+
+        // District
+        if ($hasDist && $distInput !== '') {
+            $districtCode = $distInput;
+        } elseif ($existingUp && ! empty($existingUp['district_code']) && $regencyCode && str_starts_with((string) $existingUp['district_code'], $regencyCode . '.')) {
+            $districtCode = (string) $existingUp['district_code'];
+        } else {
+            $districtCode = ($regencyCode === '18.71') ? '18.71.01' : null;
+        }
+
+        // Village
+        if ($hasVill) {
+            $villageCode = ($villInput !== '' && $districtCode && str_starts_with($villInput, $districtCode . '.')) ? $villInput : null;
+        } elseif ($existingUp && ! empty($existingUp['village_code']) && $districtCode && str_starts_with((string) $existingUp['village_code'], $districtCode . '.')) {
+            $villageCode = (string) $existingUp['village_code'];
+        } else {
+            $villageCode = null;
+        }
+
+        $addressLine = $hasAddr ? ($addrInput !== '' ? $addrInput : 'Alamat belum diatur') : ($existingUp['address_line'] ?? 'Alamat belum diatur');
+
+        $upData = [
+            'address_line'              => $addressLine ?: 'Alamat belum diatur',
+            'province_code'             => $provinceCode ?: '18',
+            'regency_code'              => $regencyCode ?: '18.71',
+            'district_code'             => $districtCode ?: '18.71.01',
+            'village_code'              => $villageCode ?: null,
+            'profile_completion_status' => 'complete',
+            'updated_at'                => $now,
+        ];
+
+        if ($existingUp) {
+            $db->table('user_profiles')->where('user_id', $userId)->update($upData);
+        } else {
+            $upData['user_id']    = $userId;
+            $upData['created_at'] = $now;
+            $db->table('user_profiles')->insert($upData);
+        }
     }
 
     public function assignRole(int $userId, int $roleId, ?int $actorId = null, bool $replaceExisting = false): void

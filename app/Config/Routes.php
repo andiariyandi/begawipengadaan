@@ -87,10 +87,10 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
 $routes->post('bookmark/toggle', 'BookmarkController::toggle', ['as' => 'public.bookmark.toggle']);
 
 // Public QR verification route. Token tidak boleh mengandung slash.
-// {token} adalah token klar hasil QR Code — di-hash (sha256) lalu di-lookup.
+// {token} adalah token klar hasil QR Code â€” di-hash (sha256) lalu di-lookup.
 $routes->get('verify/certificate/(:segment)', 'Landing\\CertificateVerificationController::detail/$1', ['as' => 'public.certificate.verify.qr']);
 
-// Auth boundary is unified on App\Controllers\Dashboard\Auth — see dashboard group below.
+// Auth boundary is unified on App\Controllers\Dashboard\Auth â€” see dashboard group below.
 // Legacy App\Controllers\Auth namespace is no longer mounted.
 
 $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static function ($routes) {
@@ -122,7 +122,7 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->post('/', 'BookmarkController::remove', ['as' => 'workspace.bookmarks.remove']);
     });
 
-    // Workspace profile — migrated from /profil/* (route-contract.md §6.3).
+    // Workspace profile â€” migrated from /profil/* (route-contract.md Â§6.3).
     $routes->group('profil', static function ($routes) {
         $routes->get('/',                  'ProfileController::index',           ['as' => 'workspace.profile.index']);
         $routes->get('akun',               'ProfileController::account',         ['as' => 'workspace.profile.account']);
@@ -276,7 +276,7 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
     });
 });
 
-// /profil/* routes were migrated to /workspace/profil/* (route-contract.md §6.3).
+// /profil/* routes were migrated to /workspace/profil/* (route-contract.md Â§6.3).
 // See Workspace group below.
 
 $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static function ($routes) {
@@ -292,7 +292,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     $routes->get('status-akun', '\App\Controllers\Dashboard\Auth\AccountStatusController::show', ['as' => 'dashboard.auth.account-status']);
 
     // NOTE: dashboard/verifikasi/{token} (email verification) is intentionally
-    // removed. CLAUDE.md §9 forbids email-token gate; account activation goes
+    // removed. CLAUDE.md Â§9 forbids email-token gate; account activation goes
     // through admin/operator profile_verifications approval.
     $routes->get('keluar', '\App\Controllers\Dashboard\Auth\LoginController::logoutPreview', ['as' => 'dashboard.auth.logout.preview']);
     $routes->post('keluar', '\App\Controllers\Dashboard\Auth\LoginController::logout', ['as' => 'dashboard.auth.logout']);
@@ -327,10 +327,6 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     });
 
     $routes->get('/', 'DashboardController::index', ['as' => 'dashboard.home']);
-    $routes->get('kpi-internal', 'DashboardController::internalKpi', ['as' => 'dashboard.summary.kpi']);
-    $routes->get('antrean-persetujuan', 'DashboardController::approvalQueue', ['as' => 'dashboard.summary.approval-queue']);
-    $routes->get('aktivitas-terbaru', 'DashboardController::recentActivity', ['as' => 'dashboard.summary.recent-activity']);
-    $routes->get('indikator-sistem', 'DashboardController::systemIndicators', ['as' => 'dashboard.summary.system-indicators']);
 
     // Direct approval shortcuts / compatibility
     $routes->get('approvals', 'ApprovalController::index');
@@ -860,6 +856,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     });
 
     $routes->group('landing', ['namespace' => 'App\Controllers\Admin\Landing'], static function ($routes) {
+        $routes->get('/', static fn() => redirect()->to(site_url('dashboard/landing/slider')), ['as' => 'dashboard.landing.index']);
         $routes->addRedirect('carousel', 'dashboard/landing/sorotan-carousel');
         // Pusat Manajemen Carousel & Sorotan Terpusat (Arena, Bunga Rampai, Regulasi, Berita, Event)
         $routes->get('sorotan-carousel', 'SpotlightHubController::index', ['as' => 'dashboard.landing.spotlight_hub']);
@@ -867,6 +864,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('sorotan-carousel/update-order', 'SpotlightHubController::updateOrder', ['as' => 'dashboard.landing.spotlight_hub.order']);
         $routes->post('sorotan-carousel/pengaturan', 'SpotlightHubController::saveSettings', ['as' => 'dashboard.landing.spotlight_hub.settings']);
         $routes->get('sorotan-carousel/search-available', 'SpotlightHubController::searchAvailable', ['as' => 'dashboard.landing.spotlight_hub.search']);
+        $routes->post('sorotan-carousel/bulk-action', 'SpotlightHubController::bulkAction', ['as' => 'dashboard.landing.spotlight_hub.bulk']);
 
         // Slider & Hero
         $routes->get('slider', 'SliderController::index', ['as' => 'dashboard.landing.sliders']);
@@ -874,6 +872,10 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('slider/simpan', 'SliderController::store', ['as' => 'dashboard.landing.sliders.store']);
         $routes->get('slider/ubah/(:segment)', 'SliderController::edit/$1', ['as' => 'dashboard.landing.sliders.edit']);
         $routes->post('slider/ubah/(:segment)', 'SliderController::update/$1', ['as' => 'dashboard.landing.sliders.update']);
+        $routes->get('slider/edit/(:segment)', 'SliderController::edit/$1', ['as' => 'dashboard.landing.sliders.edit_alias']);
+        $routes->post('slider/edit/(:segment)', 'SliderController::update/$1', ['as' => 'dashboard.landing.sliders.update_alias']);
+        $routes->match(['get', 'post'], 'slider/duplikat/(:segment)', 'SliderController::duplicate/$1', ['as' => 'dashboard.landing.sliders.duplicate']);
+        $routes->post('slider/update-order', 'SliderController::updateOrder', ['as' => 'dashboard.landing.sliders.order']);
         $routes->match(['get', 'post'], 'slider/hapus/(:segment)', 'SliderController::delete/$1', ['as' => 'dashboard.landing.sliders.delete']);
         $routes->match(['get', 'post'], 'slider/toggle/(:segment)', 'SliderController::toggle/$1', ['as' => 'dashboard.landing.sliders.toggle']);
 
@@ -884,12 +886,17 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('pengumuman/simpan', 'AnnouncementController::store', ['as' => 'dashboard.landing.announcements.store']);
         $routes->get('pengumuman/ubah/(:segment)', 'AnnouncementController::edit/$1', ['as' => 'dashboard.landing.announcements.edit']);
         $routes->post('pengumuman/ubah/(:segment)', 'AnnouncementController::update/$1', ['as' => 'dashboard.landing.announcements.update']);
+        $routes->get('pengumuman/edit/(:segment)', 'AnnouncementController::edit/$1', ['as' => 'dashboard.landing.announcements.edit_alias']);
+        $routes->post('pengumuman/edit/(:segment)', 'AnnouncementController::update/$1', ['as' => 'dashboard.landing.announcements.update_alias']);
+        $routes->match(['get', 'post'], 'pengumuman/duplikat/(:segment)', 'AnnouncementController::duplicate/$1', ['as' => 'dashboard.landing.announcements.duplicate']);
+        $routes->post('pengumuman/update-order', 'AnnouncementController::updateOrder', ['as' => 'dashboard.landing.announcements.order']);
         $routes->match(['get', 'post'], 'pengumuman/hapus/(:segment)', 'AnnouncementController::delete/$1', ['as' => 'dashboard.landing.announcements.delete']);
         $routes->match(['get', 'post'], 'pengumuman/toggle/(:segment)', 'AnnouncementController::toggle/$1', ['as' => 'dashboard.landing.announcements.toggle']);
 
         // Profil Lembaga, Visi Misi, Filosofi
         $routes->get('profil-lembaga', 'InstitutionProfileController::index', ['as' => 'dashboard.landing.profile']);
         $routes->post('profil-lembaga', 'InstitutionProfileController::save', ['as' => 'dashboard.landing.profile.save']);
+        $routes->match(['get', 'post'], 'profil-lembaga/reset', 'InstitutionProfileController::resetDefault', ['as' => 'dashboard.landing.profile.reset']);
 
         // Pilar, Budaya, Hierarki, Roadmap
         $routes->get('pilar-hierarki', 'HighlightFeatureController::index', ['as' => 'dashboard.landing.highlights']);
@@ -897,6 +904,11 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('pilar-hierarki/simpan', 'HighlightFeatureController::store', ['as' => 'dashboard.landing.highlights.store']);
         $routes->get('pilar-hierarki/ubah/(:segment)', 'HighlightFeatureController::edit/$1', ['as' => 'dashboard.landing.highlights.edit']);
         $routes->post('pilar-hierarki/ubah/(:segment)', 'HighlightFeatureController::update/$1', ['as' => 'dashboard.landing.highlights.update']);
+        $routes->get('pilar-hierarki/edit/(:segment)', 'HighlightFeatureController::edit/$1', ['as' => 'dashboard.landing.highlights.edit_alias']);
+        $routes->post('pilar-hierarki/edit/(:segment)', 'HighlightFeatureController::update/$1', ['as' => 'dashboard.landing.highlights.update_alias']);
+        $routes->match(['get', 'post'], 'pilar-hierarki/duplikat/(:segment)', 'HighlightFeatureController::duplicate/$1', ['as' => 'dashboard.landing.highlights.duplicate']);
+        $routes->post('pilar-hierarki/update-order', 'HighlightFeatureController::updateOrder', ['as' => 'dashboard.landing.highlights.order']);
+        $routes->match(['get', 'post'], 'pilar-hierarki/muat-rekomendasi/(:segment)', 'HighlightFeatureController::seedRecommendations/$1', ['as' => 'dashboard.landing.highlights.recommendations']);
         $routes->match(['get', 'post'], 'pilar-hierarki/hapus/(:segment)', 'HighlightFeatureController::delete/$1', ['as' => 'dashboard.landing.highlights.delete']);
         $routes->match(['get', 'post'], 'pilar-hierarki/toggle/(:segment)', 'HighlightFeatureController::toggle/$1', ['as' => 'dashboard.landing.highlights.toggle']);
 
@@ -906,6 +918,11 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('portal-eksternal/simpan', 'ExternalPortalController::store', ['as' => 'dashboard.landing.portals.store']);
         $routes->get('portal-eksternal/ubah/(:segment)', 'ExternalPortalController::edit/$1', ['as' => 'dashboard.landing.portals.edit']);
         $routes->post('portal-eksternal/ubah/(:segment)', 'ExternalPortalController::update/$1', ['as' => 'dashboard.landing.portals.update']);
+        $routes->get('portal-eksternal/edit/(:segment)', 'ExternalPortalController::edit/$1', ['as' => 'dashboard.landing.portals.edit_alias']);
+        $routes->post('portal-eksternal/edit/(:segment)', 'ExternalPortalController::update/$1', ['as' => 'dashboard.landing.portals.update_alias']);
+        $routes->match(['get', 'post'], 'portal-eksternal/duplikat/(:segment)', 'ExternalPortalController::duplicate/$1', ['as' => 'dashboard.landing.portals.duplicate']);
+        $routes->post('portal-eksternal/update-order', 'ExternalPortalController::updateOrder', ['as' => 'dashboard.landing.portals.order']);
+        $routes->match(['get', 'post'], 'portal-eksternal/muat-rekomendasi', 'ExternalPortalController::seedRecommendations', ['as' => 'dashboard.landing.portals.recommendations']);
         $routes->match(['get', 'post'], 'portal-eksternal/hapus/(:segment)', 'ExternalPortalController::delete/$1', ['as' => 'dashboard.landing.portals.delete']);
         $routes->match(['get', 'post'], 'portal-eksternal/toggle/(:segment)', 'ExternalPortalController::toggle/$1', ['as' => 'dashboard.landing.portals.toggle']);
 
@@ -914,7 +931,12 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('testimoni/tambah', 'TestimonialController::create', ['as' => 'dashboard.landing.testimonials.create']);
         $routes->post('testimoni/simpan', 'TestimonialController::store', ['as' => 'dashboard.landing.testimonials.store']);
         $routes->get('testimoni/ubah/(:segment)', 'TestimonialController::edit/$1', ['as' => 'dashboard.landing.testimonials.edit']);
+        $routes->get('testimoni/edit/(:segment)', 'TestimonialController::edit/$1');
         $routes->post('testimoni/ubah/(:segment)', 'TestimonialController::update/$1', ['as' => 'dashboard.landing.testimonials.update']);
+        $routes->post('testimoni/edit/(:segment)', 'TestimonialController::update/$1');
+        $routes->match(['get', 'post'], 'testimoni/duplikat/(:segment)', 'TestimonialController::duplicate/$1', ['as' => 'dashboard.landing.testimonials.duplicate']);
+        $routes->post('testimoni/update-order', 'TestimonialController::updateOrder', ['as' => 'dashboard.landing.testimonials.update-order']);
+        $routes->match(['get', 'post'], 'testimoni/muat-rekomendasi', 'TestimonialController::seedRecommendations', ['as' => 'dashboard.landing.testimonials.recommendations']);
         $routes->match(['get', 'post'], 'testimoni/hapus/(:segment)', 'TestimonialController::delete/$1', ['as' => 'dashboard.landing.testimonials.delete']);
         $routes->match(['get', 'post'], 'testimoni/toggle/(:segment)', 'TestimonialController::toggle/$1', ['as' => 'dashboard.landing.testimonials.toggle']);
 
@@ -923,23 +945,22 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('tim/tambah', 'TeamMemberController::create', ['as' => 'dashboard.landing.team.create']);
         $routes->post('tim/simpan', 'TeamMemberController::store', ['as' => 'dashboard.landing.team.store']);
         $routes->get('tim/ubah/(:segment)', 'TeamMemberController::edit/$1', ['as' => 'dashboard.landing.team.edit']);
+        $routes->get('tim/edit/(:segment)', 'TeamMemberController::edit/$1');
         $routes->post('tim/ubah/(:segment)', 'TeamMemberController::update/$1', ['as' => 'dashboard.landing.team.update']);
+        $routes->post('tim/edit/(:segment)', 'TeamMemberController::update/$1');
+        $routes->match(['get', 'post'], 'tim/duplikat/(:segment)', 'TeamMemberController::duplicate/$1', ['as' => 'dashboard.landing.team.duplicate']);
+        $routes->post('tim/update-order', 'TeamMemberController::updateOrder', ['as' => 'dashboard.landing.team.update-order']);
+        $routes->match(['get', 'post'], 'tim/muat-rekomendasi', 'TeamMemberController::seedRecommendations', ['as' => 'dashboard.landing.team.recommendations']);
         $routes->match(['get', 'post'], 'tim/hapus/(:segment)', 'TeamMemberController::delete/$1', ['as' => 'dashboard.landing.team.delete']);
         $routes->match(['get', 'post'], 'tim/toggle/(:segment)', 'TeamMemberController::toggle/$1', ['as' => 'dashboard.landing.team.toggle']);
 
-        // Banner Halaman Publik
-        $routes->get('banner-halaman', 'PageBannerController::index', ['as' => 'dashboard.landing.banners']);
-        $routes->get('banner-halaman/ubah/(:segment)', 'PageBannerController::edit/$1', ['as' => 'dashboard.landing.banners.edit']);
-        $routes->post('banner-halaman/ubah/(:segment)', 'PageBannerController::update/$1', ['as' => 'dashboard.landing.banners.update']);
+        // Banner Halaman dialihkan ke Sorotan & Carousel terpusat
+        $routes->addRedirect('banner-halaman', 'dashboard/landing/sorotan-carousel');
+        $routes->addRedirect('banner-halaman/(:any)', 'dashboard/landing/sorotan-carousel');
 
-        // Kategori Layanan
-        $routes->get('kategori-layanan', 'ServiceCategoryController::index', ['as' => 'dashboard.landing.categories']);
-        $routes->get('kategori-layanan/tambah', 'ServiceCategoryController::create', ['as' => 'dashboard.landing.categories.create']);
-        $routes->post('kategori-layanan/simpan', 'ServiceCategoryController::store', ['as' => 'dashboard.landing.categories.store']);
-        $routes->get('kategori-layanan/ubah/(:segment)', 'ServiceCategoryController::edit/$1', ['as' => 'dashboard.landing.categories.edit']);
-        $routes->post('kategori-layanan/ubah/(:segment)', 'ServiceCategoryController::update/$1', ['as' => 'dashboard.landing.categories.update']);
-        $routes->match(['get', 'post'], 'kategori-layanan/hapus/(:segment)', 'ServiceCategoryController::delete/$1', ['as' => 'dashboard.landing.categories.delete']);
-        $routes->match(['get', 'post'], 'kategori-layanan/toggle/(:segment)', 'ServiceCategoryController::toggle/$1', ['as' => 'dashboard.landing.categories.toggle']);
+        // Kategori Layanan dialihkan ke beranda kelola landing page
+        $routes->addRedirect('kategori-layanan', 'dashboard/landing');
+        $routes->addRedirect('kategori-layanan/(:any)', 'dashboard/landing');
     });
 
     $routes->group('survei-kepuasan', ['namespace' => 'App\Controllers\Admin\Survey'], static function ($routes) {
@@ -962,6 +983,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('audit-trail/export', 'AuditController::exportCsv', ['as' => 'dashboard.system.audit-trail.export']);
         $routes->get('audit-trail/(:segment)', 'AuditController::detail/$1', ['as' => 'dashboard.system.audit-trail.detail']);
         $routes->get('notifikasi', 'NotificationController::index', ['as' => 'dashboard.system.notifications']);
+        $routes->get('notifikasi/export', 'NotificationController::exportCsv', ['as' => 'dashboard.system.notifications.export']);
         $routes->get('notifikasi/(:segment)', 'NotificationController::detail/$1', ['as' => 'dashboard.system.notifications.detail']);
         $routes->post('notifikasi/kirim', 'NotificationController::sendBroadcast', ['as' => 'dashboard.system.notifications.send']);
         $routes->post('notifikasi/(:segment)/baca', 'NotificationController::markAsRead/$1', ['as' => 'dashboard.system.notifications.read']);

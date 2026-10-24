@@ -41,8 +41,8 @@
             </div>
 
             <!-- Spotlight Keyboard Shortcuts Footer -->
-            <div class="p-12 px-16 bg-neutral-50 border-top border-neutral-200 d-flex justify-content-between align-items-center text-secondary-light text-xs">
-                <div class="d-flex align-items-center gap-2">
+            <div class="p-12 px-16 bg-neutral-50 border-top border-neutral-200 d-flex flex-wrap justify-content-between align-items-center text-secondary-light text-xs gap-2">
+                <div class="d-flex flex-wrap align-items-center gap-2">
                     <span><kbd class="badge bg-base border border-neutral-200 text-neutral-600 px-6 py-2 font-monospace">↑</kbd> <kbd class="badge bg-base border border-neutral-200 text-neutral-600 px-6 py-2 font-monospace">↓</kbd> Pilih</span>
                     <span class="text-neutral-400">&middot;</span>
                     <span><kbd class="badge bg-base border border-neutral-200 text-neutral-600 px-6 py-2 font-monospace">↵</kbd> Buka</span>
@@ -86,11 +86,9 @@ document.addEventListener('DOMContentLoaded', function () {
         { title: 'Kunjungi Portal Publik', category: 'Aplikasi', icon: 'solar:globe-bold', url: '<?= site_url('/') ?>', desc: 'Buka halaman depan landing page BegawiPengadaan' },
 
         // Utama
-        { title: 'Ringkasan Dashboard', category: 'Utama', icon: 'solar:home-smile-angle-outline', url: '<?= site_url('dashboard') ?>', desc: 'Beranda utama, KPI platform, dan grafik bulanan' },
-        { title: 'KPI Internal', category: 'Utama', icon: 'solar:chart-2-outline', url: '<?= site_url('dashboard/kpi-internal') ?>', desc: 'Metrik indikator kinerja internal Biro PBJ' },
-        { title: 'Antrean Persetujuan Ringkasan', category: 'Utama', icon: 'solar:clock-circle-outline', url: '<?= site_url('dashboard/antrean-persetujuan') ?>', desc: 'Pemantauan antrean approval berkas dan akun' },
-        { title: 'Aktivitas Terbaru', category: 'Utama', icon: 'solar:history-2-outline', url: '<?= site_url('dashboard/aktivitas-terbaru') ?>', desc: 'Log aktivitas pengguna dan perubahan data terkini' },
-        { title: 'Indikator Sistem', category: 'Utama', icon: 'solar:server-minimalistic-outline', url: '<?= site_url('dashboard/indikator-sistem') ?>', desc: 'Distribusi profil, tipe akun, dan status sistem' },
+        { title: 'Dashboard Utama', category: 'Utama', icon: 'solar:home-smile-angle-outline', url: '<?= site_url('dashboard') ?>', desc: 'Beranda eksekutif, KPI platform, dan analitik 7 pilar Begawi' },
+        { title: 'Antrean Persetujuan', category: 'Utama', icon: 'solar:clock-circle-outline', url: '<?= site_url('dashboard/sistem/approval') ?>', desc: 'Pusat persetujuan registrasi akun dan permohonan berkas' },
+        { title: 'Audit Trail & Aktivitas', category: 'Utama', icon: 'solar:history-2-outline', url: '<?= site_url('dashboard/sistem/audit-trail') ?>', desc: 'Log aktivitas pengguna dan rekaman jejak keamanan sistem' },
 
         // Kelola Landing Page
         { title: 'Pusat Carousel & Sorotan', category: 'Landing Page', icon: 'solar:star-fall-outline', url: '<?= site_url('dashboard/landing/sorotan-carousel') ?>', desc: 'Manajemen konten unggulan slider hero 5 modul' },

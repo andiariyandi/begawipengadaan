@@ -850,7 +850,7 @@ class BungaRampaiController extends BaseController
      */
     private function getCarouselSlides(string $mode = 'all', int $limit = 6): array
     {
-        $limit = max(1, min(12, $limit));
+        $limit = max(1, min(15, $limit));
 
         $formatArticle = function (array $a): array {
             $isCoverImg = false;
@@ -874,21 +874,23 @@ class BungaRampaiController extends BaseController
             };
 
             return [
-                'type'         => $a['type'],
-                'type_label'   => match ($a['type']) {
+                'id'             => (int) $a['id'],
+                'type'           => $a['type'],
+                'type_label'     => match ($a['type']) {
                     'case_study' => 'Studi Kasus',
                     'template'   => 'Template Dokumen',
                     default      => 'Artikel PBJ',
                 },
-                'title'        => $a['title'],
-                'summary'      => $a['summary'] ?? '',
-                'url'          => route_to($fRoute, $a['slug']),
-                'cover_image'  => $coverImg,
-                'author_name'  => $a['author_name'] ?? 'Biro PBJ Lampung',
-                'reading_time' => ! empty($a['reading_time']) ? (int) $a['reading_time'] : 5,
-                'stage'        => $a['procurement_stage'] ?? null,
-                'date'         => ! empty($a['published_at']) ? date('d M Y', strtotime($a['published_at'])) : 'Terbaru',
-                'is_media'     => false,
+                'title'          => $a['title'],
+                'summary'        => $a['summary'] ?? '',
+                'url'            => route_to($fRoute, $a['slug']),
+                'cover_image'    => $coverImg,
+                'author_name'    => $a['author_name'] ?? 'Biro PBJ Lampung',
+                'reading_time'   => ! empty($a['reading_time']) ? (int) $a['reading_time'] : 5,
+                'stage'          => $a['procurement_stage'] ?? null,
+                'date'           => ! empty($a['published_at']) ? date('d M Y', strtotime($a['published_at'])) : 'Terbaru',
+                'is_media'       => false,
+                'carousel_order' => $a['carousel_order'] ?? null,
             ];
         };
 
@@ -901,105 +903,176 @@ class BungaRampaiController extends BaseController
             };
 
             return [
-                'type'         => $m['type'],
-                'type_label'   => $typeLabel,
-                'title'        => $m['title'],
-                'summary'      => $m['caption'] ?? '',
-                'url'          => site_url('bunga-rampai/multimedia'),
-                'cover_image'  => $m['preview_url'] ?? base_url('assets/main/images/event/event-1-1.jpg'),
-                'author_name'  => 'Biro Pengadaan Barang & Jasa',
-                'reading_time' => null,
-                'stage'        => null,
-                'date'         => ! empty($m['published_at']) ? date('d M Y', strtotime($m['published_at'])) : 'Terbaru',
-                'is_media'     => true,
+                'id'             => (int) $m['id'],
+                'type'           => $m['type'],
+                'type_label'     => $typeLabel,
+                'title'          => $m['title'],
+                'summary'        => $m['caption'] ?? '',
+                'url'            => site_url('bunga-rampai/multimedia'),
+                'cover_image'    => $m['preview_url'] ?? base_url('assets/main/images/event/event-1-1.jpg'),
+                'author_name'    => 'Biro Pengadaan Barang & Jasa',
+                'reading_time'   => null,
+                'stage'          => null,
+                'date'           => ! empty($m['published_at']) ? date('d M Y', strtotime($m['published_at'])) : 'Terbaru',
+                'is_media'       => true,
+                'carousel_order' => $m['sort_order'] ?? null,
             ];
         };
 
-        $fetchArticles = function (?string $articleType, int $maxCount): array {
-            $builder = $this->db->table('knowledge_articles ka')
-                ->select('ka.*, u.name AS author_name, fa.path AS cover_path, fa.original_name AS file_original_name')
-                ->join('users u', 'u.id = ka.author_id', 'left')
-                ->join('file_assets fa', 'fa.id = ka.cover_file_id', 'left')
-                ->where('ka.workflow_status', 'published')
-                ->where('ka.visibility', 'public')
-                ->where('ka.deleted_at IS NULL', null, false);
+        // 1. Fetch manual active slider items (carousel_enabled = 1)
+        // Articles/Case Studies/Templates (strictly excluding FAQ)
+        $manualArticlesQuery = $this->db->table('knowledge_articles ka')
+            ->select('ka.*, u.name AS author_name, fa.path AS cover_path, fa.original_name AS file_original_name')
+            ->join('users u', 'u.id = ka.author_id', 'left')
+            ->join('file_assets fa', 'fa.id = ka.cover_file_id', 'left')
+            ->where('ka.workflow_status', 'published')
+            ->where('ka.visibility', 'public')
+            ->where('ka.deleted_at IS NULL', null, false)
+            ->where('ka.carousel_enabled', 1);
 
-            if ($articleType !== null) {
-                $builder->where('ka.type', $articleType);
-            } else {
-                $builder->whereIn('ka.type', ['article', 'case_study', 'template']);
-            }
+        if ($mode === 'article' || $mode === 'case_study' || $mode === 'template') {
+            $manualArticlesQuery->where('ka.type', $mode);
+        } else {
+            $manualArticlesQuery->whereIn('ka.type', ['article', 'case_study', 'template']);
+        }
 
-            return $builder->orderBy('ka.carousel_enabled', 'DESC')
-                ->orderBy('ka.featured', 'DESC')
-                ->orderBy('ka.carousel_order', 'ASC')
-                ->orderBy('ka.published_at', 'DESC')
-                ->limit($maxCount)
-                ->get()->getResultArray();
-        };
+        $manualArticlesRaw = $manualArticlesQuery
+            ->orderBy('CASE WHEN ka.carousel_order IS NULL THEN 9999 ELSE ka.carousel_order END', 'ASC', false)
+            ->orderBy('ka.id', 'DESC')
+            ->get()->getResultArray();
 
-        $fetchMedia = function (int $maxCount): array {
-            $items = $this->db->table('knowledge_media km')
+        $manualArticleSlides = array_map($formatArticle, $manualArticlesRaw);
+
+        // Media
+        $manualMediaSlides = [];
+        if ($mode === 'all' || $mode === 'multimedia') {
+            $mItems = $this->db->table('knowledge_media km')
                 ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type, fa.path AS file_path, ft.original_name AS thumb_original_name, ft.path AS thumb_path')
                 ->join('file_assets fa', 'fa.id = km.file_id AND fa.deleted_at IS NULL', 'left')
                 ->join('file_assets ft', 'ft.id = km.thumbnail_file_id AND ft.deleted_at IS NULL', 'left')
                 ->where('km.workflow_status', 'published')
                 ->where('km.visibility', 'public')
-                ->orderBy('km.carousel_enabled', 'DESC')
-                ->orderBy('km.featured', 'DESC')
-                ->orderBy('km.sort_order', 'ASC')
-                ->orderBy('km.published_at', 'DESC')
-                ->limit($maxCount)
+                ->where('km.carousel_enabled', 1)
+                ->orderBy('CASE WHEN km.sort_order IS NULL THEN 9999 ELSE km.sort_order END', 'ASC', false)
+                ->orderBy('km.id', 'DESC')
                 ->get()->getResultArray();
-
-            $this->enrichMediaItems($items);
-            return $items;
-        };
-
-        if ($mode === 'article' || $mode === 'case_study' || $mode === 'template') {
-            $rows = $fetchArticles($mode, $limit);
-            return array_map($formatArticle, $rows);
+            $this->enrichMediaItems($mItems);
+            $manualMediaSlides = array_map($formatMedia, $mItems);
         }
 
+        // Combine manual slides
         if ($mode === 'multimedia') {
-            $rows = $fetchMedia($limit);
-            return array_map($formatMedia, $rows);
+            $manualSlides = $manualMediaSlides;
+        } elseif ($mode === 'article' || $mode === 'case_study' || $mode === 'template') {
+            $manualSlides = $manualArticleSlides;
+        } else {
+            $tempManual = array_merge($manualArticleSlides, $manualMediaSlides);
+            usort($tempManual, function ($a, $b) {
+                $oa = $a['carousel_order'] !== null ? (int) $a['carousel_order'] : 9999;
+                $ob = $b['carousel_order'] !== null ? (int) $b['carousel_order'] : 9999;
+                if ($oa !== $ob) {
+                    return $oa <=> $ob;
+                }
+                return (int) $b['id'] <=> (int) $a['id'];
+            });
+            $manualSlides = $tempManual;
         }
 
-        // Default 'all': fetch and interleave across all 4 knowledge pillars
-        $articlesRaw  = $fetchArticles('article', $limit);
-        $casesRaw     = $fetchArticles('case_study', $limit);
-        $templatesRaw = $fetchArticles('template', $limit);
-        $mediaRaw     = $fetchMedia($limit);
+        $finalSlides = array_slice($manualSlides, 0, $limit);
 
-        $artSlides  = array_map($formatArticle, $articlesRaw);
-        $caseSlides = array_map($formatArticle, $casesRaw);
-        $tmplSlides = array_map($formatArticle, $templatesRaw);
-        $medSlides  = array_map($formatMedia, $mediaRaw);
+        // 2. Filler: if quota not reached, fill remainder with newest items
+        if (count($finalSlides) < $limit) {
+            $remaining = $limit - count($finalSlides);
+            $usedArticleIds = array_column(array_filter($finalSlides, fn($s) => ! $s['is_media']), 'id');
+            $usedMediaIds   = array_column(array_filter($finalSlides, fn($s) => $s['is_media']), 'id');
 
-        $combined = [];
-        $maxPerGroup = max(count($artSlides), count($medSlides), count($caseSlides), count($tmplSlides));
-        for ($i = 0; $i < $maxPerGroup; $i++) {
-            if (isset($artSlides[$i])) {
-                $combined[] = $artSlides[$i];
-                if (count($combined) >= $limit) break;
-            }
-            if (isset($medSlides[$i])) {
-                $combined[] = $medSlides[$i];
-                if (count($combined) >= $limit) break;
-            }
-            if (isset($caseSlides[$i])) {
-                $combined[] = $caseSlides[$i];
-                if (count($combined) >= $limit) break;
-            }
-            if (isset($tmplSlides[$i])) {
-                $combined[] = $tmplSlides[$i];
-                if (count($combined) >= $limit) break;
+            if ($mode === 'multimedia') {
+                $mBuilder = $this->db->table('knowledge_media km')
+                    ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type, fa.path AS file_path, ft.original_name AS thumb_original_name, ft.path AS thumb_path')
+                    ->join('file_assets fa', 'fa.id = km.file_id AND fa.deleted_at IS NULL', 'left')
+                    ->join('file_assets ft', 'ft.id = km.thumbnail_file_id AND ft.deleted_at IS NULL', 'left')
+                    ->where('km.workflow_status', 'published')
+                    ->where('km.visibility', 'public');
+                if (! empty($usedMediaIds)) {
+                    $mBuilder->whereNotIn('km.id', $usedMediaIds);
+                }
+                $fillerMedia = $mBuilder->orderBy('km.published_at', 'DESC')->orderBy('km.id', 'DESC')->limit($remaining)->get()->getResultArray();
+                $this->enrichMediaItems($fillerMedia);
+                foreach ($fillerMedia as $fm) {
+                    $finalSlides[] = $formatMedia($fm);
+                }
+            } elseif ($mode === 'article' || $mode === 'case_study' || $mode === 'template') {
+                $aBuilder = $this->db->table('knowledge_articles ka')
+                    ->select('ka.*, u.name AS author_name, fa.path AS cover_path, fa.original_name AS file_original_name')
+                    ->join('users u', 'u.id = ka.author_id', 'left')
+                    ->join('file_assets fa', 'fa.id = ka.cover_file_id', 'left')
+                    ->where('ka.workflow_status', 'published')
+                    ->where('ka.visibility', 'public')
+                    ->where('ka.deleted_at IS NULL', null, false)
+                    ->where('ka.type', $mode);
+                if (! empty($usedArticleIds)) {
+                    $aBuilder->whereNotIn('ka.id', $usedArticleIds);
+                }
+                $fillerArticles = $aBuilder->orderBy('ka.published_at', 'DESC')->orderBy('ka.id', 'DESC')->limit($remaining)->get()->getResultArray();
+                foreach ($fillerArticles as $fa) {
+                    $finalSlides[] = $formatArticle($fa);
+                }
+            } else {
+                // mode 'all': interleave newest article, media, case_study, template
+                $fetchFiller = function (string $type) use ($usedArticleIds, $remaining): array {
+                    $b = $this->db->table('knowledge_articles ka')
+                        ->select('ka.*, u.name AS author_name, fa.path AS cover_path, fa.original_name AS file_original_name')
+                        ->join('users u', 'u.id = ka.author_id', 'left')
+                        ->join('file_assets fa', 'fa.id = ka.cover_file_id', 'left')
+                        ->where('ka.workflow_status', 'published')
+                        ->where('ka.visibility', 'public')
+                        ->where('ka.deleted_at IS NULL', null, false)
+                        ->where('ka.type', $type);
+                    if (! empty($usedArticleIds)) {
+                        $b->whereNotIn('ka.id', $usedArticleIds);
+                    }
+                    return $b->orderBy('ka.published_at', 'DESC')->orderBy('ka.id', 'DESC')->limit($remaining)->get()->getResultArray();
+                };
+
+                $artFiller  = array_map($formatArticle, $fetchFiller('article'));
+                $caseFiller = array_map($formatArticle, $fetchFiller('case_study'));
+                $tmplFiller = array_map($formatArticle, $fetchFiller('template'));
+
+                $mBuilder = $this->db->table('knowledge_media km')
+                    ->select('km.*, fa.original_name AS file_original_name, fa.mime_type AS file_mime_type, fa.path AS file_path, ft.original_name AS thumb_original_name, ft.path AS thumb_path')
+                    ->join('file_assets fa', 'fa.id = km.file_id AND fa.deleted_at IS NULL', 'left')
+                    ->join('file_assets ft', 'ft.id = km.thumbnail_file_id AND ft.deleted_at IS NULL', 'left')
+                    ->where('km.workflow_status', 'published')
+                    ->where('km.visibility', 'public');
+                if (! empty($usedMediaIds)) {
+                    $mBuilder->whereNotIn('km.id', $usedMediaIds);
+                }
+                $mediaFillerRaw = $mBuilder->orderBy('km.published_at', 'DESC')->orderBy('km.id', 'DESC')->limit($remaining)->get()->getResultArray();
+                $this->enrichMediaItems($mediaFillerRaw);
+                $mediaFiller = array_map($formatMedia, $mediaFillerRaw);
+
+                $maxF = max(count($artFiller), count($mediaFiller), count($caseFiller), count($tmplFiller));
+                for ($i = 0; $i < $maxF && count($finalSlides) < $limit; $i++) {
+                    if (isset($artFiller[$i]) && count($finalSlides) < $limit) {
+                        $finalSlides[] = $artFiller[$i];
+                    }
+                    if (isset($mediaFiller[$i]) && count($finalSlides) < $limit) {
+                        $finalSlides[] = $mediaFiller[$i];
+                    }
+                    if (isset($caseFiller[$i]) && count($finalSlides) < $limit) {
+                        $finalSlides[] = $caseFiller[$i];
+                    }
+                    if (isset($tmplFiller[$i]) && count($finalSlides) < $limit) {
+                        $finalSlides[] = $tmplFiller[$i];
+                    }
+                }
             }
         }
 
-        return $combined;
+        return $finalSlides;
     }
+
+    
 
     // ------------------------------------------------------------------
     // Render helpers

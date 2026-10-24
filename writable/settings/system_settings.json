@@ -69,11 +69,11 @@
         "post_test_weight_default": "70.00",
         "max_quiz_attempts": "3",
         "spotlight_mode": "all",
-        "spotlight_limit": 6
+        "spotlight_limit": 3
     },
     "knowledge": {
         "spotlight_mode": "all",
-        "spotlight_limit": "6"
+        "spotlight_limit": 3
     },
     "regulation": {
         "spotlight_mode": "all",

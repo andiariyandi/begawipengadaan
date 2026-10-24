@@ -221,7 +221,7 @@ class LandingCmsSeeder extends Seeder
                 'section_key' => 'pilar_begawi',
                 'badge_text'  => 'Pilar 04',
                 'code'        => '04',
-                'title'       => 'Klinik Konsultasi & FAQ',
+                'title'       => 'Klinik Konsultasi & Tanya Jawab',
                 'subtitle'    => 'Bantuan Interaktif',
                 'description' => 'Layanan pendampingan teknis bagi PPK, Pokja Pemilihan, Pejabat Pengadaan, dan Penyedia barang/jasa.',
                 'icon_class'  => 'solar:chat-round-dots-bold',

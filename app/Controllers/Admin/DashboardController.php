@@ -29,13 +29,12 @@ class DashboardController extends BaseController
         $summary = $this->dashboardService->getFullDashboardSummary();
 
         $context = [
-            'title'              => 'Ringkasan Dashboard | BegawiPengadaan',
-            'pageTitle'          => 'Ringkasan',
+            'title'              => 'Dashboard Utama | BegawiPengadaan',
+            'pageTitle'          => 'Dashboard',
             'activeMenu'         => 'summary',
             'activeSubmenu'      => 'dashboard',
             'breadcrumbs'        => [
-                ['label' => 'Dashboard', 'url' => site_url('dashboard')],
-                ['label' => 'Ringkasan'],
+                ['label' => 'Dashboard'],
             ],
             'kpis'               => $summary['kpis'],
             'access'             => $summary['access'],
@@ -44,6 +43,7 @@ class DashboardController extends BaseController
             'regulations'        => $summary['regulations'],
             'communication'      => $summary['communication'],
             'certificate'        => $summary['certificate'],
+            'visitors'           => $summary['visitors'],
             'usersByProfile'     => $summary['access']['usersByProfile'],
             'usersByAccount'     => $summary['access']['usersByAccount'],
             'accountStatusDonut' => $summary['access']['accountStatusDonut'],
@@ -56,57 +56,24 @@ class DashboardController extends BaseController
         return view('dashboard/home/index', $context);
     }
 
-    public function internalKpi(): string
+    public function internalKpi()
     {
-        return view('dashboard/home/summary', $this->buildHomeContext(
-            'KPI Internal | BegawiPengadaan',
-            'KPI Internal',
-            'kpi'
-        ));
+        return redirect()->to(site_url('dashboard'));
     }
 
-    public function approvalQueue(): string
+    public function approvalQueue()
     {
-        $context = $this->buildHomeContext(
-            'Antrean Persetujuan | BegawiPengadaan',
-            'Antrean Persetujuan',
-            'approval-queue'
-        );
-        $certSummary               = $this->dashboardService->getCertificateSummary();
-        $context['variant']        = 'approval-queue';
-        $context['approvalQueue']  = $certSummary['approvalQueue'];
-        $context['approvedToday']  = $this->countApprovalsByDate('approved');
-        $context['rejectedToday']  = $this->countApprovalsByDate('rejected');
-
-        return view('dashboard/home/summary', $context);
+        return redirect()->to(site_url('dashboard'));
     }
 
-    public function recentActivity(): string
+    public function recentActivity()
     {
-        $context = $this->buildHomeContext(
-            'Aktivitas Terbaru | BegawiPengadaan',
-            'Aktivitas Terbaru',
-            'recent-activity'
-        );
-        $context['variant']        = 'recent-activity';
-        $context['recentActivity'] = $this->dashboardService->getAuditSummary(15);
-
-        return view('dashboard/home/summary', $context);
+        return redirect()->to(site_url('dashboard'));
     }
 
-    public function systemIndicators(): string
+    public function systemIndicators()
     {
-        $context = $this->buildHomeContext(
-            'Indikator Sistem | BegawiPengadaan',
-            'Indikator Sistem',
-            'system-indicators'
-        );
-        $accessSummary                   = $this->dashboardService->getAccessSummary();
-        $context['variant']              = 'system-indicators';
-        $context['usersByProfile']       = $accessSummary['usersByProfile'];
-        $context['usersByAccountStatus'] = $accessSummary['usersByAccount'];
-
-        return view('dashboard/home/summary', $context);
+        return redirect()->to(site_url('dashboard'));
     }
 
     // =========================================================================

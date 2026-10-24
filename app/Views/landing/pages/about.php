@@ -171,90 +171,131 @@
         </div>
 
         <div class="row g-4">
-            <!-- Pilar 1 -->
-            <div class="col-lg-4 col-md-6">
-                <div class="abt-pillar-card">
-                    <span class="abt-pillar-num">01</span>
-                    <div class="abt-pillar-icon bg-primary text-white">
-                        <i class="fas fa-graduation-cap"></i>
+            <?php
+            $aboutPillars = array_values(array_filter($featureHighlights ?? [], fn($h) => ($h['section_key'] ?? '') === 'pilar_begawi'));
+            $iconBgMap = [
+                '#0c5aa6' => 'bg-primary text-white',
+                '#10b981' => 'bg-info text-white',
+                '#f59e0b' => 'bg-warning text-dark',
+                '#8b5cf6' => 'text-white',
+                '#7e22ce' => 'text-white',
+                '#0284c7' => 'bg-success text-white',
+                '#6366f1' => 'text-white',
+            ];
+            ?>
+            <?php if (! empty($aboutPillars)): ?>
+                <?php
+                $totP = count($aboutPillars);
+                foreach ($aboutPillars as $pIdx => $h):
+                    $colCls = ($totP === 5)
+                        ? (($pIdx < 3) ? 'col-lg-4 col-md-6' : (($pIdx === 3) ? 'col-lg-6 col-md-6' : 'col-lg-6 col-md-12'))
+                        : (($totP === 4) ? 'col-lg-3 col-md-6' : 'col-lg-4 col-md-6');
+                    $accent = ! empty($h['color_hex']) ? $h['color_hex'] : '#0c5aa6';
+                    $customStyle = in_array(strtolower($accent), ['#8b5cf6', '#7e22ce', '#6366f1']) ? "background: {$accent};" : '';
+                    $bgClass = $iconBgMap[strtolower($accent)] ?? 'bg-primary text-white';
+                    $url = ! empty($h['link_url']) ? (str_starts_with($h['link_url'], 'http') ? $h['link_url'] : site_url($h['link_url'])) : site_url('arena-belajar');
+                    $actLabel = ! empty($h['subtitle']) ? $h['subtitle'] : 'Lihat Layanan';
+                ?>
+                    <div class="<?= esc($colCls) ?>">
+                        <div class="abt-pillar-card">
+                            <span class="abt-pillar-num"><?= esc(! empty($h['code']) ? $h['code'] : sprintf('%02d', $pIdx + 1)) ?></span>
+                            <div class="abt-pillar-icon <?= esc($bgClass) ?>" style="<?= esc($customStyle) ?>">
+                                <iconify-icon icon="<?= esc(! empty($h['icon_class']) ? $h['icon_class'] : 'solar:layers-bold') ?>"></iconify-icon>
+                            </div>
+                            <h4><?= esc($h['title']) ?></h4>
+                            <p><?= esc($h['description']) ?></p>
+                            <a href="<?= esc($url) ?>" class="text-primary fw-bold text-decoration-none small">
+                                <?= esc($actLabel) ?> <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
                     </div>
-                    <h4>Arena Belajar LMS</h4>
-                    <p>
-                        Pusat pelatihan digital dengan kurikulum berjenjang, modul interaktif, tugas mandiri, kuis asesmen, dan sertifikat kelulusan resmi.
-                    </p>
-                    <a href="<?= site_url('arena-belajar') ?>" class="text-primary fw-bold text-decoration-none small">
-                        Lihat Program Pelatihan <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <!-- Pilar 1 Fallback -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="abt-pillar-card">
+                        <span class="abt-pillar-num">01</span>
+                        <div class="abt-pillar-icon bg-primary text-white">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h4>Arena Belajar LMS</h4>
+                        <p>
+                            Pusat pelatihan digital dengan kurikulum berjenjang, modul interaktif, tugas mandiri, kuis asesmen, dan sertifikat kelulusan resmi.
+                        </p>
+                        <a href="<?= site_url('arena-belajar') ?>" class="text-primary fw-bold text-decoration-none small">
+                            Lihat Program Pelatihan <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Pilar 2 -->
-            <div class="col-lg-4 col-md-6">
-                <div class="abt-pillar-card">
-                    <span class="abt-pillar-num">02</span>
-                    <div class="abt-pillar-icon bg-warning text-dark">
-                        <i class="fas fa-book-open"></i>
+                <!-- Pilar 2 Fallback -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="abt-pillar-card">
+                        <span class="abt-pillar-num">02</span>
+                        <div class="abt-pillar-icon bg-warning text-dark">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h4>Bunga Rampai PBJ</h4>
+                        <p>
+                            Knowledge hub terlengkap berisi artikel telaah, studi kasus lapangan, template dokumen kerja, video edukasi, dan tanya jawab (FAQ).
+                        </p>
+                        <a href="<?= site_url('bunga-rampai') ?>" class="text-primary fw-bold text-decoration-none small">
+                            Akses Pusat Pengetahuan <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
                     </div>
-                    <h4>Bunga Rampai PBJ</h4>
-                    <p>
-                        Knowledge hub terlengkap berisi artikel telaah, studi kasus lapangan, template dokumen kerja, video edukasi, dan tanya jawab (FAQ).
-                    </p>
-                    <a href="<?= site_url('bunga-rampai') ?>" class="text-primary fw-bold text-decoration-none small">
-                        Akses Pusat Pengetahuan <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
                 </div>
-            </div>
 
-            <!-- Pilar 3 -->
-            <div class="col-lg-4 col-md-6">
-                <div class="abt-pillar-card">
-                    <span class="abt-pillar-num">03</span>
-                    <div class="abt-pillar-icon bg-info text-white">
-                        <i class="fas fa-balance-scale"></i>
+                <!-- Pilar 3 Fallback -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="abt-pillar-card">
+                        <span class="abt-pillar-num">03</span>
+                        <div class="abt-pillar-icon bg-info text-white">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <h4>Pusat Regulasi PBJ</h4>
+                        <p>
+                            Repositori hukum terstruktur mencakup Perpres, PerLKPP, Perda, Pergub, hingga Standar Dokumen Pemilihan (SDP) dengan fitur riwayat versi.
+                        </p>
+                        <a href="<?= site_url('regulasi') ?>" class="text-primary fw-bold text-decoration-none small">
+                            Cari Regulasi PBJ <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
                     </div>
-                    <h4>Pusat Regulasi PBJ</h4>
-                    <p>
-                        Repositori hukum terstruktur mencakup Perpres, PerLKPP, Perda, Pergub, hingga Standar Dokumen Pemilihan (SDP) dengan fitur riwayat versi.
-                    </p>
-                    <a href="<?= site_url('regulasi') ?>" class="text-primary fw-bold text-decoration-none small">
-                        Cari Regulasi PBJ <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
                 </div>
-            </div>
 
-            <!-- Pilar 4 -->
-            <div class="col-lg-6 col-md-6">
-                <div class="abt-pillar-card">
-                    <span class="abt-pillar-num">04</span>
-                    <div class="abt-pillar-icon bg-success text-white">
-                        <i class="fas fa-certificate"></i>
+                <!-- Pilar 4 Fallback -->
+                <div class="col-lg-6 col-md-6">
+                    <div class="abt-pillar-card">
+                        <span class="abt-pillar-num">04</span>
+                        <div class="abt-pillar-icon bg-success text-white">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                        <h4>Verifikasi Sertifikat Digital</h4>
+                        <p>
+                            Layanan pembuktian keabsahan sertifikat kelulusan berbasis token kriptografi SHA-256 yang aman, terintegrasi QR code, dan anti-pemalsuan.
+                        </p>
+                        <a href="<?= site_url('verifikasi-sertifikat') ?>" class="text-primary fw-bold text-decoration-none small">
+                            Uji Keabsahan Sertifikat <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
                     </div>
-                    <h4>Verifikasi Sertifikat Digital</h4>
-                    <p>
-                        Layanan pembuktian keabsahan sertifikat kelulusan berbasis token kriptografi SHA-256 yang aman, terintegrasi QR code, dan anti-pemalsuan.
-                    </p>
-                    <a href="<?= site_url('verifikasi-sertifikat') ?>" class="text-primary fw-bold text-decoration-none small">
-                        Uji Keabsahan Sertifikat <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
                 </div>
-            </div>
 
-            <!-- Pilar 5 -->
-            <div class="col-lg-6 col-md-12">
-                <div class="abt-pillar-card">
-                    <span class="abt-pillar-num">05</span>
-                    <div class="abt-pillar-icon bg-purple text-white" style="background:#7c3aed;">
-                        <i class="fas fa-chart-line"></i>
+                <!-- Pilar 5 Fallback -->
+                <div class="col-lg-6 col-md-12">
+                    <div class="abt-pillar-card">
+                        <span class="abt-pillar-num">05</span>
+                        <div class="abt-pillar-icon bg-purple text-white" style="background:#7c3aed;">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4>Government Intelligence PBJ</h4>
+                        <p>
+                            Pemantauan analitik pengadaan, statistik kompetensi aparatur pemerintah daerah, dan data strategis pengadaan barang/jasa secara real-time.
+                        </p>
+                        <a href="<?= site_url('statistik') ?>" class="text-primary fw-bold text-decoration-none small">
+                            Lihat Statistik Publik <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
                     </div>
-                    <h4>Government Intelligence PBJ</h4>
-                    <p>
-                        Pemantauan analitik pengadaan, statistik kompetensi aparatur pemerintah daerah, dan data strategis pengadaan barang/jasa secara real-time.
-                    </p>
-                    <a href="<?= site_url('statistik') ?>" class="text-primary fw-bold text-decoration-none small">
-                        Lihat Statistik Publik <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
 </section>
@@ -278,55 +319,79 @@
         </div>
 
         <div class="row g-3">
-            <div class="col-lg-4 col-md-6">
-                <div class="abt-patik-card">
-                    <div class="abt-patik-letter">P</div>
-                    <div>
-                        <h4 class="abt-patik-title">Profesional</h4>
-                        <p class="abt-patik-desc">Bekerja berlandaskan keahlian teknis, standar kompetensi tinggi, dan kepatuhan penuh terhadap SOP pengadaan.</p>
+            <?php
+            $aboutPatik = array_values(array_filter($featureHighlights ?? [], fn($h) => ($h['section_key'] ?? '') === 'budaya_patik'));
+            ?>
+            <?php if (! empty($aboutPatik)): ?>
+                <?php
+                $totPatik = count($aboutPatik);
+                foreach ($aboutPatik as $ptIdx => $pth):
+                    $colPatik = ($totPatik === 5)
+                        ? (($ptIdx < 3) ? 'col-lg-4 col-md-6' : (($ptIdx === 3) ? 'col-lg-6 col-md-6' : 'col-lg-6 col-md-12'))
+                        : 'col-lg-4 col-md-6';
+                    $letter = ! empty($pth['code']) ? $pth['code'] : mb_substr($pth['title'], 0, 1);
+                ?>
+                    <div class="<?= esc($colPatik) ?>">
+                        <div class="abt-patik-card">
+                            <div class="abt-patik-letter"><?= esc($letter) ?></div>
+                            <div>
+                                <h4 class="abt-patik-title"><?= esc($pth['title']) ?></h4>
+                                <p class="abt-patik-desc"><?= esc($pth['description']) ?></p>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-lg-4 col-md-6">
+                    <div class="abt-patik-card">
+                        <div class="abt-patik-letter">P</div>
+                        <div>
+                            <h4 class="abt-patik-title">Profesional</h4>
+                            <p class="abt-patik-desc">Bekerja berlandaskan keahlian teknis, standar kompetensi tinggi, dan kepatuhan penuh terhadap SOP pengadaan.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-4 col-md-6">
-                <div class="abt-patik-card">
-                    <div class="abt-patik-letter">A</div>
-                    <div>
-                        <h4 class="abt-patik-title">Akuntabel</h4>
-                        <p class="abt-patik-desc">Setiap tahapan proses dan keputusan dapat dipertanggungjawabkan secara hukum, etika, dan keterbukaan informasi publik.</p>
+                <div class="col-lg-4 col-md-6">
+                    <div class="abt-patik-card">
+                        <div class="abt-patik-letter">A</div>
+                        <div>
+                            <h4 class="abt-patik-title">Akuntabel</h4>
+                            <p class="abt-patik-desc">Setiap tahapan proses dan keputusan dapat dipertanggungjawabkan secara hukum, etika, dan keterbukaan informasi publik.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-4 col-md-6">
-                <div class="abt-patik-card">
-                    <div class="abt-patik-letter">T</div>
-                    <div>
-                        <h4 class="abt-patik-title">Transparan</h4>
-                        <p class="abt-patik-desc">Memberikan akses informasi yang jelas, terbuka, adil, dan tidak diskriminatif bagi seluruh penyedia dan masyarakat.</p>
+                <div class="col-lg-4 col-md-6">
+                    <div class="abt-patik-card">
+                        <div class="abt-patik-letter">T</div>
+                        <div>
+                            <h4 class="abt-patik-title">Transparan</h4>
+                            <p class="abt-patik-desc">Memberikan akses informasi yang jelas, terbuka, adil, dan tidak diskriminatif bagi seluruh penyedia dan masyarakat.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-6 col-md-6">
-                <div class="abt-patik-card">
-                    <div class="abt-patik-letter">I</div>
-                    <div>
-                        <h4 class="abt-patik-title">Integritas</h4>
-                        <p class="abt-patik-desc">Menolak segala bentuk suap, gratifikasi, dan konflik kepentingan demi menjaga kehormatan pengadaan pemerintah.</p>
+                <div class="col-lg-6 col-md-6">
+                    <div class="abt-patik-card">
+                        <div class="abt-patik-letter">I</div>
+                        <div>
+                            <h4 class="abt-patik-title">Integritas</h4>
+                            <p class="abt-patik-desc">Menolak segala bentuk suap, gratifikasi, dan konflik kepentingan demi menjaga kehormatan pengadaan pemerintah.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-6 col-md-12">
-                <div class="abt-patik-card">
-                    <div class="abt-patik-letter">K</div>
-                    <div>
-                        <h4 class="abt-patik-title">Kolaboratif</h4>
-                        <p class="abt-patik-desc">Membangun sinergi aktif antara perangkat daerah, instansi pembina LKPP, penyedia swasta, akademisi, dan publik.</p>
+                <div class="col-lg-6 col-md-12">
+                    <div class="abt-patik-card">
+                        <div class="abt-patik-letter">K</div>
+                        <div>
+                            <h4 class="abt-patik-title">Kolaboratif</h4>
+                            <p class="abt-patik-desc">Membangun sinergi aktif antara perangkat daerah, instansi pembina LKPP, penyedia swasta, akademisi, dan publik.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
 </section>

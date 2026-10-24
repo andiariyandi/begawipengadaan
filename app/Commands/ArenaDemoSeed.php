@@ -332,6 +332,39 @@ class ArenaDemoSeed extends BaseCommand
             CLI::write("  [UPDATED] Class: {$classData['name']} (ID {$classId}, Code: {$classCode})", "cyan");
         }
 
+        // Additional Class 2: Bimtek Penyusunan HPS & Dokumen Pemilihan
+        $class2Code = 'PBJ-2026-02';
+        $class2Row  = $db->table('learning_classes')->where('code', $class2Code)->get()->getRowArray();
+        $class2Data = [
+            'course_id'           => $courseId,
+            'name'                => 'Bimtek Penyusunan HPS & Dokumen Pemilihan - Batch 2',
+            'code'                => $class2Code,
+            'description'         => "Pelatihan intensif penyusunan Dokumen HPS, Spesifikasi Teknis, dan Rancangan Kontrak Kerja PBJ terakreditasi LKPP.\n\n<!--BATCH_STAGES:{$batchStagesJson}:BATCH_STAGES-->",
+            'learning_method'     => 'online',
+            'location_or_link'    => 'Begawi LMS & Zoom UKPBJ',
+            'target_audience'     => 'PPK, Pokja Pemilihan, dan Pejabat Pengadaan se-Provinsi Lampung',
+            'capacity'            => 80,
+            'passing_grade'       => 75.00,
+            'quiz_weight'         => 20.00,
+            'assignment_weight'   => 20.00,
+            'post_test_weight'    => 60.00,
+            'certificate_enabled' => 1,
+            'start_at'            => date('Y-m-d H:i:s', strtotime('+3 days')),
+            'end_at'              => date('Y-m-d H:i:s', strtotime('+24 days')),
+            'status'              => 'active',
+            'created_at'          => $now,
+            'updated_at'          => $now,
+        ];
+        if (! $class2Row) {
+            $db->table('learning_classes')->insert($class2Data);
+            $class2Id = (int) $db->insertID();
+            CLI::write("  [CREATED] Class 2: {$class2Data['name']} (ID {$class2Id}, Code: {$class2Code})", "green");
+        } else {
+            $class2Id = (int) $class2Row['id'];
+            $db->table('learning_classes')->where('id', $class2Id)->update(array_merge($class2Data, ['updated_at' => $now]));
+            CLI::write("  [UPDATED] Class 2: {$class2Data['name']} (ID {$class2Id}, Code: {$class2Code})", "cyan");
+        }
+
         // Trainer Assignment
         $trainerId = $userIds['trainer.pbj'] ?? null;
         if ($trainerId) {

@@ -36,12 +36,10 @@ class ArenaBelajarController extends BaseController
                 ->get()->getRowArray()['cnt'] ?? 0,
         ];
 
-        // 2. Featured Programs (limit 4)
+        // 2. Featured Programs for Showcase (prioritize featured badge)
         $featuredPrograms = $programModel
             ->where('status', 'published')
             ->where('visibility', 'public')
-            ->orderBy('carousel_enabled', 'DESC')
-            ->orderBy('CASE WHEN carousel_order IS NULL THEN 9999 ELSE carousel_order END', 'ASC', false)
             ->orderBy('featured', 'DESC')
             ->orderBy('id', 'DESC')
             ->findAll(4);
@@ -55,7 +53,7 @@ class ArenaBelajarController extends BaseController
         }
         unset($prog);
 
-        // 3. Featured & Top Courses (for Spotlight & Showcase)
+        // 3. Featured & Top Courses for Showcase (prioritize featured badge)
         $featuredCourses = $courseModel
             ->select('courses.*, programs.title AS program_title, programs.slug AS program_slug')
             ->join('programs', 'programs.id = courses.program_id')
@@ -63,15 +61,13 @@ class ArenaBelajarController extends BaseController
             ->where('courses.visibility', 'public')
             ->where('programs.status', 'published')
             ->where('programs.visibility', 'public')
-            ->orderBy('courses.carousel_enabled', 'DESC')
-            ->orderBy('CASE WHEN courses.carousel_order IS NULL THEN 9999 ELSE courses.carousel_order END', 'ASC', false)
             ->orderBy('courses.featured', 'DESC')
             ->orderBy('courses.id', 'DESC')
             ->findAll(6);
 
         $popularCourses = $featuredCourses;
 
-        // 4. Active & Scheduled Classes Ready to Enroll (prioritize featured classes)
+        // 4. Active & Scheduled Classes Ready to Enroll for Showcase (prioritize featured badge)
         $activeClasses = $classModel
             ->select('learning_classes.*, courses.title AS course_title, courses.slug AS course_slug, courses.cover_url AS course_cover_url, programs.title AS program_title')
             ->join('courses', 'courses.id = learning_classes.course_id')
@@ -81,8 +77,6 @@ class ArenaBelajarController extends BaseController
             ->whereIn('learning_classes.status', ['scheduled', 'active', 'open', 'published', 'ongoing'])
             ->where('courses.status', 'published')
             ->where('courses.visibility', 'public')
-            ->orderBy('learning_classes.carousel_enabled', 'DESC')
-            ->orderBy('CASE WHEN learning_classes.carousel_order IS NULL THEN 9999 ELSE learning_classes.carousel_order END', 'ASC', false)
             ->orderBy('learning_classes.featured', 'DESC')
             ->orderBy('learning_classes.start_at', 'ASC')
             ->findAll(6);
@@ -119,14 +113,16 @@ class ArenaBelajarController extends BaseController
             ->limit(4)
             ->get()->getResultArray();
 
-        $spotlightMode = (string) setting('learning.spotlight_mode', 'all');
-        $spotlightLimit = (int) setting('learning.spotlight_limit', 6);
+        $spotlightMode  = (string) setting('learning.spotlight_mode', 'all');
+        $spotlightLimit = max(3, min(15, (int) setting('learning.spotlight_limit', 6)));
+        $sliderItems    = $this->getCarouselSlides($spotlightMode, $spotlightLimit);
 
         return view('landing/pages/learning', [
             'title'            => 'Arena Belajar | BegawiPengadaan',
             'metaDescription'  => 'Pusat pembelajaran, program terstruktur, course mandiri, kelas aktif, dan pengajar Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.',
             'metaKeywords'     => 'Arena Belajar, pembelajaran PBJ, pelatihan pengadaan, sertifikasi PBJ, BegawiPengadaan',
             'stats'            => $stats,
+            'sliderItems'      => $sliderItems,
             'featuredPrograms' => $featuredPrograms,
             'featuredCourses'  => $featuredCourses,
             'popularCourses'   => $popularCourses,
@@ -135,6 +131,274 @@ class ArenaBelajarController extends BaseController
             'spotlightMode'    => $spotlightMode,
             'spotlightLimit'   => $spotlightLimit,
         ]);
+    }
+
+    /**
+     * Build unified Hero Carousel items for Arena Belajar adhering to Priority Rules:
+     * 1. Manual active sliders (carousel_enabled = 1) prioritized first.
+     * 2. Remaining quota filled with latest items based on mode without duplicate items.
+     */
+    private function getCarouselSlides(string $mode = 'all', int $limit = 6): array
+    {
+        $db = db_connect();
+        $bgSliderCovers = [
+            base_url('assets/main/images/course/course-details-img-1.jpg'),
+            base_url('assets/main/images/course/course-list-img-1.jpg'),
+            base_url('assets/main/images/course/course-list-img-2.jpg'),
+            base_url('assets/main/images/course/course-list-img-3.jpg'),
+        ];
+
+        $formatProgSlide = function (array $fProg, int $idx) use ($bgSliderCovers): array {
+            $cover = ! empty($fProg['cover_url'])
+                ? (str_starts_with($fProg['cover_url'], 'http') ? $fProg['cover_url'] : base_url($fProg['cover_url']))
+                : $bgSliderCovers[$idx % count($bgSliderCovers)];
+            return [
+                'category'       => 'program',
+                'id'             => (int) $fProg['id'],
+                'title'          => $fProg['title'],
+                'url'            => route_to('public.learning.program.detail', $fProg['slug']),
+                'cover_url'      => $cover,
+                'tag_class'      => 'evt-badge-flag--featured',
+                'status_tag'     => '<iconify-icon icon="solar:star-bold" class="align-middle"></iconify-icon> Kurikulum Unggulan',
+                'type_label'     => 'Program Kurikulum',
+                'badge_extra'    => 'Standar LKPP RI',
+                'meta_1'         => '<iconify-icon icon="solar:layers-minimalistic-bold" class="text-warning align-middle"></iconify-icon> ' . (int) ($fProg['course_count'] ?? 0) . ' Course Terpadu',
+                'meta_2'         => '<iconify-icon icon="solar:shield-check-bold" class="text-info align-middle"></iconify-icon> Jalur Kompetensi',
+                'meta_3'         => '<iconify-icon icon="solar:diploma-verified-bold" class="text-success align-middle"></iconify-icon> Terhubung Uji Kompetensi',
+                'action_text'    => 'Eksplorasi Kurikulum',
+                'carousel_order' => $fProg['carousel_order'] ?? null,
+            ];
+        };
+
+        $formatCourseSlide = function (array $fCourse, int $idx) use ($bgSliderCovers): array {
+            $cover = ! empty($fCourse['cover_url'])
+                ? (str_starts_with($fCourse['cover_url'], 'http') ? $fCourse['cover_url'] : base_url($fCourse['cover_url']))
+                : $bgSliderCovers[($idx + 1) % count($bgSliderCovers)];
+            $isFeat = (int) ($fCourse['featured'] ?? 0) === 1;
+            return [
+                'category'       => 'course',
+                'id'             => (int) $fCourse['id'],
+                'title'          => $fCourse['title'],
+                'url'            => route_to('public.learning.course.detail', $fCourse['slug']),
+                'cover_url'      => $cover,
+                'tag_class'      => $isFeat ? 'evt-badge-flag--course' : 'evt-badge-flag--coming',
+                'status_tag'     => '<iconify-icon icon="solar:book-bookmark-bold" class="align-middle"></iconify-icon> ' . ($isFeat ? 'Course Pilihan' : 'Course Mandiri'),
+                'type_label'     => 'Course PBJ',
+                'badge_extra'    => ucfirst($fCourse['level'] ?? 'Dasar') . ' Level',
+                'meta_1'         => '<iconify-icon icon="solar:clock-circle-bold" class="text-warning align-middle"></iconify-icon> ' . format_learning_jp($fCourse['duration_minutes'] ?? null),
+                'meta_2'         => '<iconify-icon icon="solar:folder-with-files-bold" class="text-info align-middle"></iconify-icon> ' . esc($fCourse['program_title'] ?? 'Kurikulum PBJ'),
+                'meta_3'         => '<iconify-icon icon="solar:laptop-minimalistic-bold" class="text-success align-middle"></iconify-icon> Pembelajaran Digital LMS',
+                'action_text'    => 'Pelajari Course Ini',
+                'carousel_order' => $fCourse['carousel_order'] ?? null,
+            ];
+        };
+
+        $formatClassSlide = function (array $aCls, int $idx) use ($bgSliderCovers): array {
+            $effectiveClassCover = ! empty($aCls['cover_url']) ? $aCls['cover_url'] : ($aCls['course_cover_url'] ?? '');
+            $cover = ! empty($effectiveClassCover)
+                ? (str_starts_with($effectiveClassCover, 'http') ? $effectiveClassCover : base_url($effectiveClassCover))
+                : $bgSliderCovers[($idx + 2) % count($bgSliderCovers)];
+            return [
+                'category'       => 'class',
+                'id'             => (int) $aCls['id'],
+                'title'          => $aCls['name'],
+                'url'            => route_to('public.learning.class.detail', $aCls['code']),
+                'cover_url'      => $cover,
+                'tag_class'      => 'evt-badge-flag--open',
+                'status_tag'     => '<span class="dot"></span> ' . ($aCls['status'] === 'active' ? 'Sedang Berjalan' : 'Pendaftaran Dibuka'),
+                'type_label'     => 'Batch Kelas Terbuka',
+                'badge_extra'    => strtoupper($aCls['learning_method'] ?? 'Online') . ' Pelatihan',
+                'meta_1'         => '<iconify-icon icon="solar:calendar-date-bold" class="text-warning align-middle"></iconify-icon> Mulai: ' . (! empty($aCls['start_at']) ? date('d M Y', strtotime($aCls['start_at'])) : 'Segera'),
+                'meta_2'         => '<iconify-icon icon="solar:notebook-bold" class="text-info align-middle"></iconify-icon> ' . esc($aCls['course_title'] ?? 'Course PBJ'),
+                'meta_3'         => '<iconify-icon icon="solar:users-group-rounded-bold" class="text-success align-middle"></iconify-icon> ' . ((int) ($aCls['capacity'] ?? 0) > 0 ? 'Kuota ' . (int) $aCls['capacity'] . ' Peserta' : 'Kuota Fleksibel'),
+                'action_text'    => 'Detail &amp; Daftar Kelas',
+                'carousel_order' => $aCls['carousel_order'] ?? null,
+            ];
+        };
+
+        // 1. Fetch ALL manual active slider items (carousel_enabled = 1)
+        $manualProgRaw = $db->table('programs')
+            ->where('deleted_at', null)
+            ->where('status', 'published')
+            ->where('visibility', 'public')
+            ->where('carousel_enabled', 1)
+            ->orderBy('CASE WHEN carousel_order IS NULL THEN 9999 ELSE carousel_order END', 'ASC', false)
+            ->orderBy('id', 'DESC')
+            ->get()->getResultArray();
+
+        foreach ($manualProgRaw as &$p) {
+            $p['course_count'] = (int) $db->table('courses')->where('program_id', (int) $p['id'])->where('status', 'published')->where('visibility', 'public')->where('deleted_at', null)->countAllResults();
+        }
+        unset($p);
+
+        $manualCourseRaw = $db->table('courses c')
+            ->select('c.*, p.title AS program_title')
+            ->join('programs p', 'p.id = c.program_id', 'left')
+            ->where('c.deleted_at', null)
+            ->where('c.status', 'published')
+            ->where('c.visibility', 'public')
+            ->where('c.carousel_enabled', 1)
+            ->orderBy('CASE WHEN c.carousel_order IS NULL THEN 9999 ELSE c.carousel_order END', 'ASC', false)
+            ->orderBy('c.id', 'DESC')
+            ->get()->getResultArray();
+
+        $manualClassRaw = $db->table('learning_classes lc')
+            ->select('lc.*, c.title AS course_title, c.cover_url AS course_cover_url')
+            ->join('courses c', 'c.id = lc.course_id', 'left')
+            ->where('lc.deleted_at', null)
+            ->whereIn('lc.status', ['scheduled', 'active', 'open', 'published', 'ongoing'])
+            ->where('lc.carousel_enabled', 1)
+            ->orderBy('CASE WHEN lc.carousel_order IS NULL THEN 9999 ELSE lc.carousel_order END', 'ASC', false)
+            ->orderBy('lc.id', 'DESC')
+            ->get()->getResultArray();
+
+        $manualSlides = [];
+        if ($mode === 'program') {
+            foreach ($manualProgRaw as $idx => $p) {
+                $manualSlides[] = $formatProgSlide($p, $idx);
+            }
+        } elseif ($mode === 'course') {
+            foreach ($manualCourseRaw as $idx => $c) {
+                $manualSlides[] = $formatCourseSlide($c, $idx);
+            }
+        } elseif ($mode === 'class') {
+            foreach ($manualClassRaw as $idx => $cl) {
+                $manualSlides[] = $formatClassSlide($cl, $idx);
+            }
+        } else {
+            // mode 'all': combine all manual active items and sort by carousel_order, id DESC
+            $tempManual = [];
+            foreach ($manualProgRaw as $idx => $p) {
+                $tempManual[] = $formatProgSlide($p, $idx);
+            }
+            foreach ($manualCourseRaw as $idx => $c) {
+                $tempManual[] = $formatCourseSlide($c, $idx);
+            }
+            foreach ($manualClassRaw as $idx => $cl) {
+                $tempManual[] = $formatClassSlide($cl, $idx);
+            }
+            usort($tempManual, function ($a, $b) {
+                $oa = $a['carousel_order'] !== null ? (int) $a['carousel_order'] : 9999;
+                $ob = $b['carousel_order'] !== null ? (int) $b['carousel_order'] : 9999;
+                if ($oa !== $ob) {
+                    return $oa <=> $ob;
+                }
+                return (int) $b['id'] <=> (int) $a['id'];
+            });
+            $manualSlides = $tempManual;
+        }
+
+        // Limit manual slides up to $limit
+        $finalSlides = array_slice($manualSlides, 0, $limit);
+
+        // 2. If quota not yet filled, fill remaining with newest items according to mode
+        if (count($finalSlides) < $limit) {
+            $remaining = $limit - count($finalSlides);
+            $usedProgIds   = array_column(array_filter($finalSlides, fn($s) => $s['category'] === 'program'), 'id');
+            $usedCourseIds = array_column(array_filter($finalSlides, fn($s) => $s['category'] === 'course'), 'id');
+            $usedClassIds  = array_column(array_filter($finalSlides, fn($s) => $s['category'] === 'class'), 'id');
+
+            if ($mode === 'program') {
+                $pQuery = $db->table('programs')
+                    ->where('deleted_at', null)
+                    ->where('status', 'published')
+                    ->where('visibility', 'public');
+                if (! empty($usedProgIds)) {
+                    $pQuery->whereNotIn('id', $usedProgIds);
+                }
+                $fillerProg = $pQuery->orderBy('id', 'DESC')->limit($remaining)->get()->getResultArray();
+                foreach ($fillerProg as $idx => $p) {
+                    $p['course_count'] = (int) $db->table('courses')->where('program_id', (int) $p['id'])->where('status', 'published')->where('visibility', 'public')->where('deleted_at', null)->countAllResults();
+                    $finalSlides[] = $formatProgSlide($p, $idx);
+                }
+            } elseif ($mode === 'course') {
+                $cQuery = $db->table('courses c')
+                    ->select('c.*, p.title AS program_title')
+                    ->join('programs p', 'p.id = c.program_id', 'left')
+                    ->where('c.deleted_at', null)
+                    ->where('c.status', 'published')
+                    ->where('c.visibility', 'public');
+                if (! empty($usedCourseIds)) {
+                    $cQuery->whereNotIn('c.id', $usedCourseIds);
+                }
+                $fillerCourses = $cQuery->orderBy('c.id', 'DESC')->limit($remaining)->get()->getResultArray();
+                foreach ($fillerCourses as $idx => $c) {
+                    $finalSlides[] = $formatCourseSlide($c, $idx);
+                }
+            } elseif ($mode === 'class') {
+                $clQuery = $db->table('learning_classes lc')
+                    ->select('lc.*, c.title AS course_title, c.cover_url AS course_cover_url')
+                    ->join('courses c', 'c.id = lc.course_id', 'left')
+                    ->where('lc.deleted_at', null)
+                    ->whereIn('lc.status', ['scheduled', 'active', 'open', 'published', 'ongoing']);
+                if (! empty($usedClassIds)) {
+                    $clQuery->whereNotIn('lc.id', $usedClassIds);
+                }
+                $fillerClasses = $clQuery->orderBy('lc.id', 'DESC')->limit($remaining)->get()->getResultArray();
+                foreach ($fillerClasses as $idx => $cl) {
+                    $finalSlides[] = $formatClassSlide($cl, $idx);
+                }
+            } else {
+                // mode 'all': fetch newest programs, courses, and classes, then interleave
+                $pQuery = $db->table('programs')
+                    ->where('deleted_at', null)
+                    ->where('status', 'published')
+                    ->where('visibility', 'public');
+                if (! empty($usedProgIds)) {
+                    $pQuery->whereNotIn('id', $usedProgIds);
+                }
+                $fillerProgRaw = $pQuery->orderBy('id', 'DESC')->limit($remaining)->get()->getResultArray();
+                $fillerProgSlides = [];
+                foreach ($fillerProgRaw as $idx => $p) {
+                    $p['course_count'] = (int) $db->table('courses')->where('program_id', (int) $p['id'])->where('status', 'published')->where('visibility', 'public')->where('deleted_at', null)->countAllResults();
+                    $fillerProgSlides[] = $formatProgSlide($p, $idx);
+                }
+
+                $cQuery = $db->table('courses c')
+                    ->select('c.*, p.title AS program_title')
+                    ->join('programs p', 'p.id = c.program_id', 'left')
+                    ->where('c.deleted_at', null)
+                    ->where('c.status', 'published')
+                    ->where('c.visibility', 'public');
+                if (! empty($usedCourseIds)) {
+                    $cQuery->whereNotIn('c.id', $usedCourseIds);
+                }
+                $fillerCourseRaw = $cQuery->orderBy('c.id', 'DESC')->limit($remaining)->get()->getResultArray();
+                $fillerCourseSlides = [];
+                foreach ($fillerCourseRaw as $idx => $c) {
+                    $fillerCourseSlides[] = $formatCourseSlide($c, $idx);
+                }
+
+                $clQuery = $db->table('learning_classes lc')
+                    ->select('lc.*, c.title AS course_title, c.cover_url AS course_cover_url')
+                    ->join('courses c', 'c.id = lc.course_id', 'left')
+                    ->where('lc.deleted_at', null)
+                    ->whereIn('lc.status', ['scheduled', 'active', 'open', 'published', 'ongoing']);
+                if (! empty($usedClassIds)) {
+                    $clQuery->whereNotIn('lc.id', $usedClassIds);
+                }
+                $fillerClassRaw = $clQuery->orderBy('lc.id', 'DESC')->limit($remaining)->get()->getResultArray();
+                $fillerClassSlides = [];
+                foreach ($fillerClassRaw as $idx => $cl) {
+                    $fillerClassSlides[] = $formatClassSlide($cl, $idx);
+                }
+
+                $maxF = max(count($fillerProgSlides), count($fillerCourseSlides), count($fillerClassSlides));
+                for ($i = 0; $i < $maxF && count($finalSlides) < $limit; $i++) {
+                    if (isset($fillerProgSlides[$i]) && count($finalSlides) < $limit) {
+                        $finalSlides[] = $fillerProgSlides[$i];
+                    }
+                    if (isset($fillerCourseSlides[$i]) && count($finalSlides) < $limit) {
+                        $finalSlides[] = $fillerCourseSlides[$i];
+                    }
+                    if (isset($fillerClassSlides[$i]) && count($finalSlides) < $limit) {
+                        $finalSlides[] = $fillerClassSlides[$i];
+                    }
+                }
+            }
+        }
+
+        return $finalSlides;
     }
 
     public function programs(): string

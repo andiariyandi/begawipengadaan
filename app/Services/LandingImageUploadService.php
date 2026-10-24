@@ -31,12 +31,13 @@ class LandingImageUploadService
             'image/webp',
             'image/jpg',
             'image/gif',
+            'image/svg+xml',
 
         ];
 
         $mime = $file->getMimeType();
         if (! in_array($mime, $allowedMimes, true)) {
-            session()->setFlashdata('error', 'Format file gambar harus JPG, JPEG, PNG, WEBP, atau GIF.');
+            session()->setFlashdata('error', 'Format file gambar harus JPG, JPEG, PNG, WEBP, GIF, atau SVG.');
             return $currentPath;
         }
 
@@ -89,7 +90,7 @@ class LandingImageUploadService
                         'lifecycle_status' => 'available',
                         'resource_type'    => $resourceType,
                         'resource_id'      => null,
-                        'uploaded_by'      => (int) (session()->get('user_id') ?: 1),
+                        'uploaded_by'      => (! empty(session()->get('user_id')) && $db->table('users')->where('id', (int) session()->get('user_id'))->countAllResults() > 0) ? (int) session()->get('user_id') : null,
                         'available_at'     => $now,
                         'created_at'       => $now,
                         'updated_at'       => $now,

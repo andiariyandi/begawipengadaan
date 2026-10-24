@@ -104,6 +104,7 @@ class DashboardService
     {
         $totalPrograms        = (int) $this->db->table('programs')->countAllResults();
         $totalCourses         = (int) $this->db->table('courses')->countAllResults();
+        $totalModules         = (int) $this->db->table('learning_modules')->countAllResults();
         $activeClasses        = (int) $this->db->table('learning_classes')->whereIn('status', ['published', 'active', 'scheduled', 'ongoing', 'open'])->countAllResults();
         $activeEnrollments    = (int) $this->db->table('enrollments')->where('status', 'active')->countAllResults();
         $completedEnrollments = (int) $this->db->table('enrollments')->where('status', 'completed')->countAllResults();
@@ -118,51 +119,69 @@ class DashboardService
             ->where('enrolled_at >=', $monthStart)
             ->countAllResults();
 
+        $newEventRegistrationsThisMonth = (int) $this->db->table('event_registrations')
+            ->where('created_at >=', $monthStart)
+            ->countAllResults();
+
         $activeClassList = $this->db->table('learning_classes lc')
-            ->select('lc.id, lc.name, lc.code, lc.status, lc.passing_grade, c.title AS course_title')
+            ->select('lc.id, lc.name, lc.code, lc.status, lc.passing_grade, lc.capacity, lc.start_at, lc.end_at, c.title AS course_title, (SELECT COUNT(*) FROM enrollments e WHERE e.class_id = lc.id) AS enrolled_count')
             ->join('courses c', 'c.id = lc.course_id', 'left')
-            ->whereIn('lc.status', ['published', 'active'])
+            ->whereIn('lc.status', ['published', 'active', 'scheduled', 'ongoing', 'open'])
             ->orderBy('lc.created_at', 'DESC')
-            ->limit(5)
+            ->limit(6)
             ->get()
             ->getResultArray();
 
-        // 12 bulan tren registrasi dan enrollment untuk ApexCharts
-        $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        // 12 bulan tren registrasi, enrollment, dan pendaftaran event untuk ApexCharts
+        $monthNames = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'];
+        $categories = [];
         $now = new \DateTimeImmutable('first day of this month');
-        $registration = array_fill(0, 12, 0);
-        $enrollment   = array_fill(0, 12, 0);
+        $registration       = array_fill(0, 12, 0);
+        $enrollment         = array_fill(0, 12, 0);
+        $eventRegistrations = array_fill(0, 12, 0);
 
         for ($i = 11; $i >= 0; $i--) {
-            $mStart = $now->modify("-{$i} months")->format('Y-m-01 00:00:00');
-            $mEnd   = $now->modify("-{$i} months")->modify('+1 month')->format('Y-m-01 00:00:00');
+            $dt     = $now->modify("-{$i} months");
+            $mStart = $dt->format('Y-m-01 00:00:00');
+            $mEnd   = $dt->modify('+1 month')->format('Y-m-01 00:00:00');
+            $idx    = 11 - $i;
 
-            $registration[11 - $i] = (int) $this->db->table('users')
+            $categories[] = $monthNames[(int) $dt->format('n')] . ' ' . $dt->format('y');
+
+            $registration[$idx] = (int) $this->db->table('users')
                 ->where('deleted_at', null)
                 ->where('created_at >=', $mStart)
                 ->where('created_at <', $mEnd)
                 ->countAllResults();
 
-            $enrollment[11 - $i] = (int) $this->db->table('enrollments')
+            $enrollment[$idx] = (int) $this->db->table('enrollments')
                 ->where('enrolled_at >=', $mStart)
                 ->where('enrolled_at <', $mEnd)
+                ->countAllResults();
+
+            $eventRegistrations[$idx] = (int) $this->db->table('event_registrations')
+                ->where('created_at >=', $mStart)
+                ->where('created_at <', $mEnd)
                 ->countAllResults();
         }
 
         return [
-            'totalPrograms'           => $totalPrograms,
-            'totalCourses'            => $totalCourses,
-            'activeClasses'           => $activeClasses,
-            'activeEnrollments'       => $activeEnrollments,
-            'completedEnrollments'    => $completedEnrollments,
-            'totalEnrollments'        => $totalEnrollments,
-            'completionRate'          => $completionRate,
-            'newEnrollmentsThisMonth' => $newEnrollmentsThisMonth,
-            'activeClassList'         => $activeClassList,
-            'enrollmentMonthly'       => [
-                'categories'   => $labels,
-                'registration' => $registration,
-                'enrollment'   => $enrollment,
+            'totalPrograms'                  => $totalPrograms,
+            'totalCourses'                   => $totalCourses,
+            'totalModules'                   => $totalModules,
+            'activeClasses'                  => $activeClasses,
+            'activeEnrollments'              => $activeEnrollments,
+            'completedEnrollments'           => $completedEnrollments,
+            'totalEnrollments'               => $totalEnrollments,
+            'completionRate'                 => $completionRate,
+            'newEnrollmentsThisMonth'        => $newEnrollmentsThisMonth,
+            'newEventRegistrationsThisMonth' => $newEventRegistrationsThisMonth,
+            'activeClassList'                => $activeClassList,
+            'enrollmentMonthly'              => [
+                'categories'        => $categories,
+                'registration'      => $registration,
+                'enrollment'        => $enrollment,
+                'eventRegistration' => $eventRegistrations,
             ],
         ];
     }
@@ -176,14 +195,25 @@ class DashboardService
         $totalFaqs        = (int) $this->db->table('knowledge_articles')->where('type', 'faq')->countAllResults();
         $totalCaseStudies = (int) $this->db->table('knowledge_articles')->where('type', 'case_study')->countAllResults();
         $totalTemplates   = (int) $this->db->table('knowledge_articles')->where('type', 'template')->countAllResults();
+        $totalMedia       = (int) $this->db->table('knowledge_media')->countAllResults();
         $totalCategories  = (int) $this->db->table('knowledge_categories')->countAllResults();
 
         $latestArticles = $this->db->table('knowledge_articles ka')
-            ->select('ka.id, ka.title, ka.slug, ka.type, ka.workflow_status, ka.created_at, u.name AS author_name')
+            ->select('ka.id, ka.title, ka.slug, ka.type, ka.document_category, ka.workflow_status, ka.created_at, u.name AS author_name')
             ->join('users u', 'u.id = ka.author_id', 'left')
             ->where('ka.deleted_at', null)
             ->orderBy('ka.created_at', 'DESC')
-            ->limit(5)
+            ->limit(6)
+            ->get()
+            ->getResultArray();
+
+        $latestTemplates = $this->db->table('knowledge_articles ka')
+            ->select('ka.id, ka.title, ka.slug, ka.type, ka.document_category, ka.workflow_status, ka.created_at, u.name AS author_name')
+            ->join('users u', 'u.id = ka.author_id', 'left')
+            ->where('ka.deleted_at', null)
+            ->where('ka.type', 'template')
+            ->orderBy('ka.created_at', 'DESC')
+            ->limit(4)
             ->get()
             ->getResultArray();
 
@@ -192,8 +222,10 @@ class DashboardService
             'totalFaqs'        => $totalFaqs,
             'totalCaseStudies' => $totalCaseStudies,
             'totalTemplates'   => $totalTemplates,
+            'totalMedia'       => $totalMedia,
             'totalCategories'  => $totalCategories,
             'latestArticles'   => $latestArticles,
+            'latestTemplates'  => $latestTemplates,
         ];
     }
 
@@ -202,24 +234,28 @@ class DashboardService
      */
     public function getRegulationSummary(): array
     {
-        $totalRegulations = (int) $this->db->table('regulations')->countAllResults();
-        $totalCategories  = (int) $this->db->table('regulation_categories')->countAllResults();
-        $totalVersions    = (int) $this->db->table('regulation_versions')->countAllResults();
+        $totalRegulations   = (int) $this->db->table('regulations')->countAllResults();
+        $totalCategories    = (int) $this->db->table('regulation_categories')->countAllResults();
+        $totalVersions      = (int) $this->db->table('regulation_versions')->countAllResults();
+        $activeRegulations  = (int) $this->db->table('regulations')->where('legal_status', 'active')->countAllResults();
+        $revokedRegulations = (int) $this->db->table('regulations')->whereIn('legal_status', ['revoked', 'amended'])->countAllResults();
 
         $latestRegulations = $this->db->table('regulations r')
             ->select('r.id, r.title, r.slug, r.document_number, r.document_year, r.workflow_status, r.legal_status, r.created_at, rc.name AS category_name')
             ->join('regulation_categories rc', 'rc.id = r.category_id', 'left')
             ->where('r.deleted_at', null)
             ->orderBy('r.created_at', 'DESC')
-            ->limit(5)
+            ->limit(6)
             ->get()
             ->getResultArray();
 
         return [
-            'totalRegulations'  => $totalRegulations,
-            'totalCategories'   => $totalCategories,
-            'totalVersions'     => $totalVersions,
-            'latestRegulations' => $latestRegulations,
+            'totalRegulations'   => $totalRegulations,
+            'totalCategories'    => $totalCategories,
+            'totalVersions'      => $totalVersions,
+            'activeRegulations'  => $activeRegulations,
+            'revokedRegulations' => $revokedRegulations,
+            'latestRegulations'  => $latestRegulations,
         ];
     }
 
@@ -228,35 +264,39 @@ class DashboardService
      */
     public function getCommunicationSummary(): array
     {
-        $totalNews       = (int) $this->db->table('news')->countAllResults();
-        $totalNewsCat    = (int) $this->db->table('news_categories')->countAllResults();
-        $totalEvents     = (int) $this->db->table('events')->countAllResults();
-        $totalRegistrasi = (int) $this->db->table('event_registrations')->countAllResults();
+        $totalNews          = (int) $this->db->table('news')->countAllResults();
+        $totalNewsCat       = (int) $this->db->table('news_categories')->countAllResults();
+        $totalEvents        = (int) $this->db->table('events')->countAllResults();
+        $totalRegistrasi    = (int) $this->db->table('event_registrations')->countAllResults();
+        $totalBroadcasts    = (int) $this->db->table('notifications')->where('type', 'broadcast')->countAllResults();
+        $totalNotifications = (int) $this->db->table('notifications')->countAllResults();
 
         $latestNews = $this->db->table('news n')
             ->select('n.id, n.title, n.slug, n.workflow_status, n.created_at, nc.name AS category_name')
             ->join('news_categories nc', 'nc.id = n.category_id', 'left')
             ->where('n.deleted_at', null)
             ->orderBy('n.created_at', 'DESC')
-            ->limit(5)
+            ->limit(6)
             ->get()
             ->getResultArray();
 
         $upcomingEvents = $this->db->table('events e')
-            ->select('e.id, e.title, e.slug, e.type, e.mode, e.status, e.start_at, e.location')
+            ->select('e.id, e.title, e.slug, e.type, e.mode, e.status, e.start_at, e.end_at, e.location, e.capacity, (SELECT COUNT(*) FROM event_registrations er WHERE er.event_id = e.id) AS registered_count')
             ->where('e.deleted_at', null)
             ->orderBy('e.start_at', 'DESC')
-            ->limit(5)
+            ->limit(6)
             ->get()
             ->getResultArray();
 
         return [
-            'totalNews'        => $totalNews,
-            'totalNewsCat'     => $totalNewsCat,
-            'totalEvents'      => $totalEvents,
-            'totalRegistrasi'  => $totalRegistrasi,
-            'latestNews'       => $latestNews,
-            'upcomingEvents'   => $upcomingEvents,
+            'totalNews'          => $totalNews,
+            'totalNewsCat'       => $totalNewsCat,
+            'totalEvents'        => $totalEvents,
+            'totalRegistrasi'    => $totalRegistrasi,
+            'totalBroadcasts'    => $totalBroadcasts,
+            'totalNotifications' => $totalNotifications,
+            'latestNews'         => $latestNews,
+            'upcomingEvents'     => $upcomingEvents,
         ];
     }
 
@@ -298,13 +338,31 @@ class DashboardService
             $approvalQueue[]  = $row;
         }
 
+        $latestCertificates = $this->db->table('certificates c')
+            ->select('c.id, c.certificate_number, c.source_type, c.status, c.issued_at, c.verification_token_hash, u.name AS recipient_name, u.email AS recipient_email')
+            ->join('users u', 'u.id = c.user_id', 'left')
+            ->orderBy('c.issued_at', 'DESC')
+            ->limit(6)
+            ->get()
+            ->getResultArray();
+
         return [
             'issuedCertificates'       => $issuedCertificates,
             'pendingApprovals'         => $pendingApprovals,
             'totalPendingApprovals'    => $totalPendingApprovals,
             'newCertificatesThisMonth' => $newCertificatesThisMonth,
             'approvalQueue'            => $approvalQueue,
+            'latestCertificates'       => $latestCertificates,
         ];
+    }
+
+    /**
+     * Ringkasan Statistik Pengunjung Landingpage
+     */
+    public function getVisitorSummary(): array
+    {
+        $visitorService = new VisitorStatisticService();
+        return $visitorService->getVisitorStats();
     }
 
     /**
@@ -340,23 +398,46 @@ class DashboardService
         $regulations   = $this->getRegulationSummary();
         $communication = $this->getCommunicationSummary();
         $certificate   = $this->getCertificateSummary();
+        $visitors      = $this->getVisitorSummary();
         $recentAudit   = $this->getAuditSummary(6);
 
         $kpis = [
-            'totalUsers'               => $access['totalUsers'],
-            'activeUsers'              => $access['activeUsers'],
-            'pendingUsers'             => $access['pendingUsers'],
-            'activeEnrollments'        => $learning['activeEnrollments'],
-            'completedEnrollments'     => $learning['completedEnrollments'],
-            'issuedCertificates'       => $certificate['issuedCertificates'],
-            'pendingApprovals'         => $certificate['totalPendingApprovals'],
-            'newUsersThisMonth'        => $access['newUsersThisMonth'],
-            'newEnrollmentsThisMonth'  => $learning['newEnrollmentsThisMonth'],
-            'newCertificatesThisMonth' => $certificate['newCertificatesThisMonth'],
-            'usersByProfile'           => $access['usersByProfile'],
-            'usersByAccount'           => $access['usersByAccount'],
-            'accountStatusDonut'       => $access['accountStatusDonut'],
-            'enrollmentMonthly'        => $learning['enrollmentMonthly'],
+            'totalUsers'                     => $access['totalUsers'],
+            'activeUsers'                    => $access['activeUsers'],
+            'pendingUsers'                   => $access['pendingUsers'],
+            'otherUsers'                     => $access['otherUsers'],
+            'pendingVerifications'           => $access['pendingVerifications'],
+            'totalPrograms'                  => $learning['totalPrograms'],
+            'totalCourses'                   => $learning['totalCourses'],
+            'totalModules'                   => $learning['totalModules'],
+            'activeClasses'                  => $learning['activeClasses'],
+            'activeEnrollments'              => $learning['activeEnrollments'],
+            'completedEnrollments'           => $learning['completedEnrollments'],
+            'totalEnrollments'               => $learning['totalEnrollments'],
+            'completionRate'                 => $learning['completionRate'],
+            'totalArticles'                  => $knowledge['totalArticles'],
+            'totalFaqs'                      => $knowledge['totalFaqs'],
+            'totalCaseStudies'               => $knowledge['totalCaseStudies'],
+            'totalTemplates'                 => $knowledge['totalTemplates'],
+            'totalMedia'                     => $knowledge['totalMedia'],
+            'totalRegulations'               => $regulations['totalRegulations'],
+            'activeRegulations'              => $regulations['activeRegulations'],
+            'revokedRegulations'             => $regulations['revokedRegulations'],
+            'totalNews'                      => $communication['totalNews'],
+            'totalEvents'                    => $communication['totalEvents'],
+            'totalRegistrasi'                => $communication['totalRegistrasi'],
+            'totalBroadcasts'                => $communication['totalBroadcasts'],
+            'issuedCertificates'             => $certificate['issuedCertificates'],
+            'pendingApprovals'               => $certificate['totalPendingApprovals'],
+            'newUsersThisMonth'              => $access['newUsersThisMonth'],
+            'newEnrollmentsThisMonth'        => $learning['newEnrollmentsThisMonth'],
+            'newEventRegistrationsThisMonth' => $learning['newEventRegistrationsThisMonth'],
+            'newCertificatesThisMonth'       => $certificate['newCertificatesThisMonth'],
+            'usersByProfile'                 => $access['usersByProfile'],
+            'usersByAccount'                 => $access['usersByAccount'],
+            'accountStatusDonut'             => $access['accountStatusDonut'],
+            'enrollmentMonthly'              => $learning['enrollmentMonthly'],
+            'visitors'                       => $visitors,
         ];
 
         return [
@@ -367,6 +448,7 @@ class DashboardService
             'regulations'   => $regulations,
             'communication' => $communication,
             'certificate'   => $certificate,
+            'visitors'      => $visitors,
             'recentActivity'=> $recentAudit,
             'approvalQueue' => $certificate['approvalQueue'],
         ];

@@ -92,27 +92,30 @@ class HomeController extends BaseController
         } catch (\Throwable) {
         }
 
-        // 2. Featured / Popular Courses (Arena Belajar)
-        $courses = [];
+        // 2. Kelas PBJ Terbaru (Arena Belajar)
+        // Strictly 3 Kelas Terbaru tanpa terikat aturan sorotan-carousel
+        $latestClasses = [];
         try {
-            $courses = $db->table('courses c')
-                ->select('c.*, p.title AS program_title, p.slug AS program_slug, fa.path AS cover_asset_path,
-                         (SELECT COUNT(*) FROM course_enrollments ce WHERE ce.course_id = c.id AND ce.status != "cancelled") AS enrollments_count')
+            $latestClasses = $db->table('learning_classes lc')
+                ->select('lc.*, c.title AS course_title, c.slug AS course_slug, c.level AS course_level,
+                          c.duration_minutes AS course_duration_minutes,
+                          p.title AS program_title, p.slug AS program_slug, fa.path AS cover_asset_path,
+                          (SELECT COUNT(*) FROM enrollments en WHERE en.class_id = lc.id AND en.status != "cancelled") AS enrollments_count')
+                ->join('courses c', 'c.id = lc.course_id', 'left')
                 ->join('programs p', 'p.id = c.program_id', 'left')
-                ->join('file_assets fa', 'fa.id = c.cover_file_id', 'left')
-                ->where('c.status', 'published')
-                ->where('c.visibility', 'public')
-                ->where('c.deleted_at', null)
-                ->where('c.title NOT LIKE', '%bbbb%')
-                ->where('c.title NOT LIKE', '%Fixture%')
-                ->orderBy('c.featured', 'DESC')
-                ->orderBy('c.id', 'DESC')
-                ->limit(6)
+                ->join('file_assets fa', 'fa.id = lc.cover_file_id', 'left')
+                ->where('lc.deleted_at', null)
+                ->where('lc.name NOT LIKE', '%Test%')
+                ->where('lc.name NOT LIKE', '%Fixture%')
+                ->orderBy('lc.id', 'DESC')
+                ->limit(3)
                 ->get()->getResultArray();
         } catch (\Throwable) {
         }
+        $courses = $latestClasses;
 
-        // 3. Featured & Latest Regulations (Regulasi PBJ)
+        // 3. Bank Naskah Hukum PBJ (Regulasi PBJ)
+        // Strictly 3 Regulasi Terbaru berdasarkan tanggal berlaku (effective_date DESC)
         $regulations = [];
         try {
             $regulations = $db->table('regulations r')
@@ -125,15 +128,22 @@ class HomeController extends BaseController
                 ->where('r.deleted_at', null)
                 ->where('r.title NOT LIKE', '%Test%')
                 ->where('r.title NOT LIKE', '%Regulasi A UI%')
-                ->orderBy('r.is_featured', 'DESC')
+                ->orderBy('r.effective_date', 'DESC')
                 ->orderBy('r.document_year', 'DESC')
                 ->orderBy('r.id', 'DESC')
-                ->limit(6)
+                ->limit(3)
                 ->get()->getResultArray();
         } catch (\Throwable) {
         }
 
-        // 4. Bunga Rampai (Multi-Pillar Knowledge Hub)
+        // 4. Bunga Rampai Pengetahuan (Multi-Pillar Knowledge Hub)
+        // Real statistical totals for tab counters & exactly 3 latest items per category
+        $knowledgeCounts = [
+            'articles'    => 0,
+            'templates'   => 0,
+            'caseStudies' => 0,
+            'faqs'        => 0,
+        ];
         $articles = [];
         $templates = [];
         $caseStudies = [];
@@ -141,6 +151,43 @@ class HomeController extends BaseController
         $mediaItems = [];
 
         try {
+            // Real statistical counts across published knowledge assets
+            $knowledgeCounts['articles'] = (int) $db->table('knowledge_articles')
+                ->where('workflow_status', 'published')
+                ->where('visibility', 'public')
+                ->where('deleted_at', null)
+                ->where('type', 'article')
+                ->where('title NOT LIKE', '%bbbnjmnm%')
+                ->where('title NOT LIKE', '%Test Artikel%')
+                ->countAllResults();
+
+            $knowledgeCounts['templates'] = (int) $db->table('knowledge_articles')
+                ->where('workflow_status', 'published')
+                ->where('visibility', 'public')
+                ->where('deleted_at', null)
+                ->where('type', 'template')
+                ->where('title NOT LIKE', '%zfdfdfsdfd%')
+                ->countAllResults();
+
+            $knowledgeCounts['caseStudies'] = (int) $db->table('knowledge_articles')
+                ->where('workflow_status', 'published')
+                ->where('visibility', 'public')
+                ->where('deleted_at', null)
+                ->where('type', 'case_study')
+                ->where('title NOT LIKE', '%xvxxb%')
+                ->where('title NOT LIKE', '%QA AUDIT%')
+                ->countAllResults();
+
+            $knowledgeCounts['faqs'] = (int) $db->table('knowledge_articles')
+                ->where('workflow_status', 'published')
+                ->where('visibility', 'public')
+                ->where('deleted_at', null)
+                ->where('type', 'faq')
+                ->where('title NOT LIKE', '%zccsass%')
+                ->where('title NOT LIKE', '%QA AUDIT%')
+                ->countAllResults();
+
+            // 3 Artikel Terbaru
             $articles = $db->table('knowledge_articles ka')
                 ->select('ka.*, u.name AS author_name, fa.path AS cover_path')
                 ->join('users u', 'u.id = ka.author_id', 'left')
@@ -151,15 +198,12 @@ class HomeController extends BaseController
                 ->where('ka.type', 'article')
                 ->where('ka.title NOT LIKE', '%bbbnjmnm%')
                 ->where('ka.title NOT LIKE', '%Test Artikel%')
-                ->orderBy('ka.featured', 'DESC')
                 ->orderBy('ka.published_at', 'DESC')
                 ->orderBy('ka.id', 'DESC')
-                ->limit(4)
+                ->limit(3)
                 ->get()->getResultArray();
-        } catch (\Throwable) {
-        }
 
-        try {
+            // 3 Template Dokumen Terbaru
             $templates = $db->table('knowledge_articles ka')
                 ->select('ka.*, fa.path AS cover_path, fa.mime_type')
                 ->join('file_assets fa', 'fa.id = ka.cover_file_id', 'left')
@@ -168,14 +212,12 @@ class HomeController extends BaseController
                 ->where('ka.deleted_at', null)
                 ->where('ka.type', 'template')
                 ->where('ka.title NOT LIKE', '%zfdfdfsdfd%')
-                ->orderBy('ka.download_count', 'DESC')
+                ->orderBy('ka.published_at', 'DESC')
                 ->orderBy('ka.id', 'DESC')
-                ->limit(4)
+                ->limit(3)
                 ->get()->getResultArray();
-        } catch (\Throwable) {
-        }
 
-        try {
+            // 3 Studi Kasus Terbaru
             $caseStudies = $db->table('knowledge_articles ka')
                 ->select('ka.*, u.name AS author_name')
                 ->join('users u', 'u.id = ka.author_id', 'left')
@@ -185,13 +227,12 @@ class HomeController extends BaseController
                 ->where('ka.type', 'case_study')
                 ->where('ka.title NOT LIKE', '%xvxxb%')
                 ->where('ka.title NOT LIKE', '%QA AUDIT%')
+                ->orderBy('ka.published_at', 'DESC')
                 ->orderBy('ka.id', 'DESC')
-                ->limit(4)
+                ->limit(3)
                 ->get()->getResultArray();
-        } catch (\Throwable) {
-        }
 
-        try {
+            // 3 FAQ Terbaru
             $faqs = $db->table('knowledge_articles ka')
                 ->where('ka.workflow_status', 'published')
                 ->where('ka.visibility', 'public')
@@ -200,12 +241,9 @@ class HomeController extends BaseController
                 ->where('ka.title NOT LIKE', '%zccsass%')
                 ->where('ka.title NOT LIKE', '%QA AUDIT%')
                 ->orderBy('ka.id', 'ASC')
-                ->limit(5)
+                ->limit(3)
                 ->get()->getResultArray();
-        } catch (\Throwable) {
-        }
 
-        try {
             $mediaItems = $db->table('knowledge_media km')
                 ->select('km.*, fa.path AS file_path, fa.mime_type, ft.path AS thumb_path')
                 ->join('file_assets fa', 'fa.id = km.file_id', 'left')
@@ -231,24 +269,48 @@ class HomeController extends BaseController
         }
 
         // 6. Upcoming Events / Bimtek
-        $upcomingEvents = [];
+        // 3 Event Terdekat Hari Ini / Sedang Berlangsung & 3 Event Terjauh Mendatang
+        $upcomingEventsNear = [];
+        $upcomingEventsFar  = [];
+        $nowDatetime        = date('Y-m-d H:i:s');
+        $todayDate          = date('Y-m-d');
+
         try {
-            $upcomingEvents = $db->table('events e')
+            // Set 1: 3 Event Terdekat / Sedang Berlangsung dari Hari Ini
+            $upcomingEventsNear = $db->table('events e')
                 ->select('e.*, fa.path AS cover_path, COALESCE(u.name, u.username, "Biro PBJ Setda Lampung") AS creator_name')
                 ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
                 ->join('users u', 'u.id = e.created_by', 'left')
                 ->where('e.deleted_at', null)
                 ->where('e.visibility', 'public')
-                ->whereIn('e.status', ['open_registration', 'scheduled', 'ongoing'])
-                ->where('e.start_at >', '2026-01-01')
+                ->whereIn('e.status', ['open_registration', 'scheduled', 'ongoing', 'coming_soon'])
+                ->where('e.end_at >=', $nowDatetime)
                 ->where('e.title NOT LIKE', '%QA AUDIT%')
                 ->where('e.title NOT LIKE', '%Simulasi pengujian%')
                 ->where('e.title NOT LIKE', '%Pengujian serti%')
+                ->orderBy('CASE WHEN e.start_at <= "' . $nowDatetime . '" AND e.end_at >= "' . $nowDatetime . '" THEN 0 ELSE 1 END', 'ASC', false)
                 ->orderBy('e.start_at', 'ASC')
+                ->limit(3)
+                ->get()->getResultArray();
+
+            // Set 2: 3 Event Terbaru Berdasarkan Tanggal yang Akan Datang Paling Jauh (start_at DESC)
+            $upcomingEventsFar = $db->table('events e')
+                ->select('e.*, fa.path AS cover_path, COALESCE(u.name, u.username, "Biro PBJ Setda Lampung") AS creator_name')
+                ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
+                ->join('users u', 'u.id = e.created_by', 'left')
+                ->where('e.deleted_at', null)
+                ->where('e.visibility', 'public')
+                ->whereIn('e.status', ['open_registration', 'scheduled', 'ongoing', 'coming_soon'])
+                ->where('e.start_at >=', $todayDate . ' 00:00:00')
+                ->where('e.title NOT LIKE', '%QA AUDIT%')
+                ->where('e.title NOT LIKE', '%Simulasi pengujian%')
+                ->where('e.title NOT LIKE', '%Pengujian serti%')
+                ->orderBy('e.start_at', 'DESC')
                 ->limit(3)
                 ->get()->getResultArray();
         } catch (\Throwable) {
         }
+        $upcomingEvents = $upcomingEventsNear;
 
         // 7. Visitor Statistics Tracking (Non-unique page views)
         $visitorStats = [];
@@ -320,16 +382,20 @@ class HomeController extends BaseController
             'pageTitle'         => 'BegawiPengadaan | Transformasi Digital Bimbingan Edukasi & Gerakan Akselerasi Wawasan PBJ',
             'metaDescription'   => 'Platform resmi terintegrasi Pembelajaran Pengadaan (Arena Belajar), Repositori Pengetahuan (Bunga Rampai), dan Pusat Regulasi Pengadaan Barang/Jasa Pemerintah Provinsi Lampung.',
             'metaKeywords'      => 'BegawiPengadaan, PBJ Lampung, Biro PBJ Setda Lampung, Arena Belajar, Bunga Rampai, Regulasi PBJ, Pengadaan Barang Jasa Pemerintah, LKPP, Transformasi Digital Bimbingan Edukasi & Gerakan Akselerasi Wawasan PBJ',
-            'stats'             => $stats,
-            'courses'           => $courses,
-            'regulations'       => $regulations,
-            'articles'          => $articles,
-            'templates'         => $templates,
-            'caseStudies'       => $caseStudies,
-            'faqs'              => $faqs,
-            'mediaItems'        => $mediaItems,
-            'stages'            => $stages,
-            'upcomingEvents'    => $upcomingEvents,
+            'stats'              => $stats,
+            'courses'            => $courses,
+            'latestClasses'      => $latestClasses,
+            'regulations'        => $regulations,
+            'articles'           => $articles,
+            'templates'          => $templates,
+            'caseStudies'        => $caseStudies,
+            'faqs'               => $faqs,
+            'knowledgeCounts'    => $knowledgeCounts,
+            'mediaItems'         => $mediaItems,
+            'stages'             => $stages,
+            'upcomingEvents'     => $upcomingEvents,
+            'upcomingEventsNear' => $upcomingEventsNear,
+            'upcomingEventsFar'  => $upcomingEventsFar,
             'visitorStats'      => $visitorStats,
             'sliders'           => $sliders,
             'announcements'     => $announcements,

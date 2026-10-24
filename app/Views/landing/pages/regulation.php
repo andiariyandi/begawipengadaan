@@ -365,6 +365,11 @@ $renderArenaRegulationCard = function (array $reg, int $idx = 0) {
             <div class="arena-card__thumb">
                 <img src="<?= esc($coverImg) ?>" alt="<?= esc($reg['document_number'] ?? 'Regulasi PBJ') ?>" loading="lazy" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/blog/blog-2-1.jpg') ?>';">
                 <div class="arena-card__badge-row">
+                    <?php if (! empty($reg['is_featured'])): ?>
+                        <span class="reg-thumb-badge" style="background: #f59e0b; color: #1e293b; font-weight: 700;">
+                            <i class="fas fa-star me-1"></i> Unggulan
+                        </span>
+                    <?php endif; ?>
                     <span class="reg-thumb-badge <?= esc($statusPill['class']) ?>">
                         <i class="fas <?= esc($statusPill['icon']) ?>"></i> <?= esc($statusPill['text']) ?>
                     </span>

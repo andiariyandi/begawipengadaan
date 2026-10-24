@@ -57,8 +57,8 @@ if (empty($announcements)) {
                         $imgSrc = str_starts_with($item['image_url'] ?? '', 'http') ? $item['image_url'] : base_url($item['image_url'] ?? 'assets/main/images/event/event-details-top-img-1.jpg');
                         $actionUrl = $item['cta_url'] ?? $item['action_url'] ?? '/';
                         $actionHref = str_starts_with($actionUrl, 'http') ? $actionUrl : site_url($actionUrl);
-                        $badge = !empty($item['badge_text']) ? $item['badge_text'] : (!empty($item['badge_category']) ? $item['badge_category'] : 'PENGUMUMAN');
-                        $content = $item['message'] ?? $item['content'] ?? '';
+                        $badge = !empty($item['badge_label']) ? $item['badge_label'] : (!empty($item['badge_text']) ? $item['badge_text'] : (!empty($item['badge_category']) ? $item['badge_category'] : 'PENGUMUMAN'));
+                        $content = !empty($item['description']) ? $item['description'] : ($item['message'] ?? $item['content'] ?? '');
                         $actionText = !empty($item['cta_label']) ? $item['cta_label'] : (!empty($item['action_text']) ? $item['action_text'] : 'Lihat Detail');
                         ?>
                         <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">

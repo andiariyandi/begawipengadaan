@@ -198,12 +198,6 @@ class AuthenticationFilter implements FilterInterface
                 'perms'   => ['notification.view', 'notification.send'],
                 'label'   => 'Pusat Notifikasi',
             ],
-            // 19. Indikator Sistem
-            [
-                'pattern' => '#^dashboard/indikator-sistem#',
-                'perms'   => ['dashboard.indicators.view', 'dashboard.view'],
-                'label'   => 'Indikator Sistem',
-            ],
         ];
 
         foreach ($zoneMap as $zone) {

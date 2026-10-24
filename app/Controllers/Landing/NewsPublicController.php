@@ -124,6 +124,7 @@ class NewsPublicController extends BaseController
                 'date_formatted' => ! empty($row['published_at']) ? date('d M Y', strtotime($row['published_at'])) : date('d M Y'),
                 'view_count'    => (int) ($row['view_count'] ?? 0),
                 'read_time'     => $readTime,
+                'is_featured'   => (int) ($row['is_featured'] ?? 0),
                 'cover_url'     => ! empty($row['cover_file_id']) ? site_url('file/' . (int) $row['cover_file_id']) : (! empty($row['cover_path']) ? (str_starts_with($row['cover_path'], 'http') ? $row['cover_path'] : base_url($row['cover_path'])) : null),
             ];
         }, $rawItems);
@@ -137,30 +138,60 @@ class NewsPublicController extends BaseController
         } elseif ($spotlightLimit > 15) {
             $spotlightLimit = 15;
         }
-
         if ($currentPage === 1 && empty($keyword) && empty($categorySlug)) {
-            $hBuilder = $this->db->table('news n')
-                ->select('n.id, n.title, n.slug, n.summary, n.content, n.published_at, n.view_count, n.reading_time, n.cover_file_id, n.carousel_enabled, n.carousel_order, n.is_featured, nc.name AS category_name, nc.slug AS category_slug, fa.path AS cover_path')
+            $selectCols = 'n.id, n.title, n.slug, n.summary, n.content, n.published_at, n.view_count, n.reading_time, n.cover_file_id, n.carousel_enabled, n.carousel_order, n.is_featured, nc.name AS category_name, nc.slug AS category_slug, fa.path AS cover_path';
+
+            // 1. Priority 1: Manual active slider news (carousel_enabled = 1)
+            $manualBuilder = $this->db->table('news n')
+                ->select($selectCols)
                 ->join('news_categories nc', 'nc.id = n.category_id', 'left')
                 ->join('file_assets fa', 'fa.id = n.cover_file_id', 'left')
                 ->where('n.deleted_at', null)
-                ->where('n.workflow_status', 'published');
+                ->where('n.workflow_status', 'published')
+                ->where('n.carousel_enabled', 1);
 
-            if ($spotlightMode === 'featured') {
-                $hBuilder->where('n.is_featured', 1);
-            } elseif ($spotlightMode !== 'all' && ! empty($spotlightMode)) {
-                $hBuilder->where('nc.slug', $spotlightMode);
+            if ($spotlightMode !== 'all' && ! empty($spotlightMode) && $spotlightMode !== 'featured') {
+                $manualBuilder->where('nc.slug', $spotlightMode);
             }
 
-            $rawHeadlines = $hBuilder
-                ->orderBy('n.carousel_enabled', 'DESC')
+            $manualHeadlines = $manualBuilder
                 ->orderBy('CASE WHEN n.carousel_order IS NULL THEN 9999 ELSE n.carousel_order END', 'ASC', false)
-                ->orderBy('n.is_featured', 'DESC')
-                ->orderBy('n.published_at', 'DESC')
+                ->orderBy('n.id', 'DESC')
                 ->limit($spotlightLimit)
                 ->get()->getResultArray();
 
-            // If no articles match the spotlight filter, fallback to latest published items
+            $rawHeadlines = $manualHeadlines;
+
+            // 2. Priority 2: Fill remaining quota with newest published news
+            if (count($rawHeadlines) < $spotlightLimit) {
+                $remaining = $spotlightLimit - count($rawHeadlines);
+                $usedIds   = array_column($rawHeadlines, 'id');
+
+                $fillerBuilder = $this->db->table('news n')
+                    ->select($selectCols)
+                    ->join('news_categories nc', 'nc.id = n.category_id', 'left')
+                    ->join('file_assets fa', 'fa.id = n.cover_file_id', 'left')
+                    ->where('n.deleted_at', null)
+                    ->where('n.workflow_status', 'published');
+
+                if (! empty($usedIds)) {
+                    $fillerBuilder->whereNotIn('n.id', $usedIds);
+                }
+
+                if ($spotlightMode !== 'all' && ! empty($spotlightMode) && $spotlightMode !== 'featured') {
+                    $fillerBuilder->where('nc.slug', $spotlightMode);
+                }
+
+                $fillerHeadlines = $fillerBuilder
+                    ->orderBy('n.published_at', 'DESC')
+                    ->orderBy('n.id', 'DESC')
+                    ->limit($remaining)
+                    ->get()->getResultArray();
+
+                $rawHeadlines = array_merge($rawHeadlines, $fillerHeadlines);
+            }
+
+            // Fallback to all published news if specific filter returned empty
             if (empty($rawHeadlines) && ! empty($rawItems)) {
                 $rawHeadlines = array_slice($rawItems, 0, min($spotlightLimit, count($rawItems)));
             }

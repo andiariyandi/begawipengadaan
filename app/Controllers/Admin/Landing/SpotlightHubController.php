@@ -189,7 +189,7 @@ class SpotlightHubController extends BaseController
             'event'             => 'Event & Agenda',
         ];
         $label = $featureLabels[$feature] ?? ucfirst($feature);
-        $actionName = ($col === 'carousel_enabled' || $col === 'featured') ? 'Status sorotan hero' : 'Status unggulan';
+        $actionName = ($col === 'carousel_enabled') ? 'Status Slider Hero' : 'Status Sorotan Unggulan';
         $stateText = $newVal ? 'diaktifkan' : 'dinonaktifkan';
 
         if ($this->request->isAJAX()) {
@@ -211,10 +211,10 @@ class SpotlightHubController extends BaseController
      */
     public function updateOrder()
     {
-        $feature = trim((string) ($this->request->getPost('feature') ?: $this->request->getVar('feature') ?: ($_POST['feature'] ?? '')));
-        $id      = (int) ($this->request->getPost('id') ?: $this->request->getVar('id') ?: ($_POST['id'] ?? 0));
+        $feature  = trim((string) ($this->request->getPost('feature') ?: $this->request->getVar('feature') ?: ($_POST['feature'] ?? '')));
+        $id       = (int) ($this->request->getPost('id') ?: $this->request->getVar('id') ?: ($_POST['id'] ?? 0));
         $rawOrder = $this->request->getPost('order') ?? $this->request->getVar('order') ?? ($_POST['order'] ?? null);
-        $order   = ($rawOrder !== null && $rawOrder !== '') ? (int) $rawOrder : null;
+        $order    = ($rawOrder !== null && $rawOrder !== '') ? (int) $rawOrder : null;
 
         $target = $this->resolveFeatureTable($feature, 'carousel_order');
         if ($target === null || $id <= 0) {
@@ -232,6 +232,17 @@ class SpotlightHubController extends BaseController
         }
 
         $this->db->table($table)->where('id', $id)->update($updateData);
+
+        $rawActorId = (int) (session()->get('user_id') ?: 0);
+        $actorId    = $rawActorId > 0 ? $rawActorId : null;
+        $this->auditService->log(
+            $actorId,
+            'spotlight.reorder',
+            $table,
+            $col,
+            $id,
+            ['feature' => $feature, 'order' => $order]
+        );
 
         if ($this->request->isAJAX()) {
             return $this->response->setJSON([
@@ -253,6 +264,12 @@ class SpotlightHubController extends BaseController
         $validGroups = ['learning', 'knowledge', 'regulation', 'news', 'event'];
 
         if (! in_array($group, $validGroups, true)) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Kategori pengaturan tidak valid.',
+                ])->setStatusCode(400);
+            }
             return redirect()->back()->with('error', 'Kategori pengaturan tidak valid.');
         }
 
@@ -279,7 +296,94 @@ class SpotlightHubController extends BaseController
             );
         }
 
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success'  => true,
+                'message'  => 'Konfigurasi mode sorotan ' . ucfirst($group) . ' berhasil disimpan.',
+                'group'    => $group,
+                'settings' => $saveData,
+            ]);
+        }
+
         return redirect()->back()->with('message', 'Konfigurasi mode sorotan ' . ucfirst($group) . ' berhasil disimpan.');
+    }
+
+    /**
+     * AJAX & POST Bulk Action (disable all, reset orders)
+     */
+    public function bulkAction()
+    {
+        $group  = trim((string) ($this->request->getPost('feature_group') ?: $this->request->getVar('feature_group') ?: ''));
+        $action = trim((string) ($this->request->getPost('action') ?: $this->request->getVar('action') ?: ''));
+
+        $targets = match ($group) {
+            'arena'       => [
+                ['table' => 'programs', 'carousel' => 'carousel_enabled', 'order' => 'carousel_order'],
+                ['table' => 'courses', 'carousel' => 'carousel_enabled', 'order' => 'carousel_order'],
+                ['table' => 'learning_classes', 'carousel' => 'carousel_enabled', 'order' => 'carousel_order'],
+            ],
+            'knowledge'   => [
+                ['table' => 'knowledge_articles', 'carousel' => 'carousel_enabled', 'order' => 'carousel_order'],
+                ['table' => 'knowledge_media', 'carousel' => 'carousel_enabled', 'order' => 'sort_order'],
+            ],
+            'regulation'  => [
+                ['table' => 'regulations', 'carousel' => 'carousel_enabled', 'order' => 'carousel_order'],
+            ],
+            'news'        => [
+                ['table' => 'news', 'carousel' => 'carousel_enabled', 'order' => 'carousel_order'],
+            ],
+            'event'       => [
+                ['table' => 'events', 'carousel' => 'carousel_enabled', 'order' => 'carousel_order'],
+            ],
+            default       => null,
+        };
+
+        if ($targets === null || ! in_array($action, ['disable_all_carousel', 'reset_order'], true)) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Parameter aksi masal tidak valid.'])->setStatusCode(400);
+            }
+            return redirect()->back()->with('error', 'Parameter aksi masal tidak valid.');
+        }
+
+        foreach ($targets as $t) {
+            $table = $t['table'];
+            if ($action === 'disable_all_carousel') {
+                $col = $t['carousel'];
+                $update = [$col => 0];
+                if ($this->db->fieldExists('updated_at', $table)) {
+                    $update['updated_at'] = date('Y-m-d H:i:s');
+                }
+                $this->db->table($table)->update($update);
+            } elseif ($action === 'reset_order') {
+                $col = $t['order'];
+                $update = [$col => null];
+                if ($this->db->fieldExists('updated_at', $table)) {
+                    $update['updated_at'] = date('Y-m-d H:i:s');
+                }
+                $this->db->table($table)->update($update);
+            }
+        }
+
+        $rawActorId = (int) (session()->get('user_id') ?: 0);
+        $actorId    = $rawActorId > 0 ? $rawActorId : null;
+        $this->auditService->log(
+            $actorId,
+            'spotlight.bulk_action',
+            'spotlight_hub',
+            $group,
+            null,
+            ['group' => $group, 'action' => $action]
+        );
+
+        $msg = $action === 'disable_all_carousel'
+            ? 'Seluruh slide hero untuk modul ini telah dinonaktifkan.'
+            : 'Seluruh nomor urut slide untuk modul ini telah di-reset.';
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON(['success' => true, 'message' => $msg]);
+        }
+
+        return redirect()->back()->with('message', $msg);
     }
 
     /**
@@ -290,140 +394,229 @@ class SpotlightHubController extends BaseController
         $feature = trim((string) $this->request->getGet('feature'));
         $q       = trim((string) $this->request->getGet('q'));
 
-        $results = [];
+        $featuresToSearch = match ($feature) {
+            'program'           => ['program'],
+            'course'            => ['course'],
+            'class'             => ['class'],
+            'arena'             => ['program', 'course', 'class'],
+            'knowledge_article' => ['knowledge_article'],
+            'knowledge_media'   => ['knowledge_media'],
+            'knowledge'         => ['knowledge_article', 'knowledge_media'],
+            'regulation'        => ['regulation'],
+            'news'              => ['news'],
+            'event'             => ['event'],
+            default             => ['program', 'course', 'class', 'knowledge_article', 'knowledge_media', 'regulation', 'news', 'event'],
+        };
 
-        switch ($feature) {
-            case 'program':
-                $builder = $this->db->table('programs')
-                    ->where('status', 'published')
-                    ->where('visibility', 'public');
-                if ($q !== '') $builder->like('title', $q);
-                $rows = $builder->limit(10)->get()->getResultArray();
-                foreach ($rows as $r) {
-                    $results[] = [
-                        'id'               => (int) $r['id'],
-                        'title'            => $r['title'],
-                        'subtitle'         => 'Program Pembelajaran',
-                        'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
-                        'is_featured'      => (int) ($r['featured'] ?? 0),
-                        'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, $r['cover_url'] ?? null),
-                    ];
-                }
-                break;
+        $limitPerType = match ($feature) {
+            'arena'     => 20,
+            'knowledge' => 20,
+            default     => count($featuresToSearch) === 1 ? 30 : 10,
+        };
+        $results      = [];
 
-            case 'course':
-                $builder = $this->db->table('courses c')
-                    ->select('c.*, p.title as program_title')
-                    ->join('programs p', 'p.id = c.program_id', 'left')
-                    ->where('c.status', 'published')
-                    ->where('c.visibility', 'public');
-                if ($q !== '') $builder->like('c.title', $q);
-                $rows = $builder->limit(10)->get()->getResultArray();
-                foreach ($rows as $r) {
-                    $results[] = [
-                        'id'               => (int) $r['id'],
-                        'title'            => $r['title'],
-                        'subtitle'         => $r['program_title'] ?: 'Course Mandiri',
-                        'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
-                        'is_featured'      => (int) ($r['featured'] ?? 0),
-                        'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, $r['cover_url'] ?? null),
-                    ];
-                }
-                break;
+        foreach ($featuresToSearch as $f) {
+            switch ($f) {
+                case 'program':
+                    $builder = $this->db->table('programs')
+                        ->where('deleted_at', null)
+                        ->where('status', 'published')
+                        ->where('visibility', 'public')
+                        ->orderBy('id', 'DESC');
+                    if ($q !== '') $builder->like('title', $q);
+                    $rows = $builder->limit($limitPerType)->get()->getResultArray();
+                    foreach ($rows as $r) {
+                        $results[] = [
+                            'id'               => (int) $r['id'],
+                            'feature'          => 'program',
+                            'feature_group'    => 'arena',
+                            'type_label'       => 'Program Pembelajaran',
+                            'title'            => $r['title'],
+                            'subtitle'         => $r['slug'] ?? 'Program',
+                            'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
+                            'is_featured'      => (int) ($r['featured'] ?? 0),
+                            'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, $r['cover_url'] ?? null),
+                        ];
+                    }
+                    break;
 
-            case 'class':
-                $builder = $this->db->table('learning_classes lc')
-                    ->select('lc.*, c.title as course_title')
-                    ->join('courses c', 'c.id = lc.course_id', 'left')
-                    ->whereIn('lc.status', ['scheduled', 'active']);
-                if ($q !== '') $builder->like('lc.name', $q);
-                $rows = $builder->limit(10)->get()->getResultArray();
-                foreach ($rows as $r) {
-                    $results[] = [
-                        'id'               => (int) $r['id'],
-                        'title'            => $r['name'],
-                        'subtitle'         => 'Kode: ' . $r['code'] . ' &middot; ' . ($r['course_title'] ?? ''),
-                        'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
-                        'is_featured'      => (int) ($r['featured'] ?? 0),
-                        'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, $r['cover_url'] ?? null),
-                    ];
-                }
-                break;
+                case 'course':
+                    $builder = $this->db->table('courses c')
+                        ->select('c.*, p.title as program_title')
+                        ->join('programs p', 'p.id = c.program_id', 'left')
+                        ->where('c.deleted_at', null)
+                        ->where('c.status', 'published')
+                        ->where('c.visibility', 'public')
+                        ->orderBy('c.id', 'DESC');
+                    if ($q !== '') $builder->like('c.title', $q);
+                    $rows = $builder->limit($limitPerType)->get()->getResultArray();
+                    foreach ($rows as $r) {
+                        $results[] = [
+                            'id'               => (int) $r['id'],
+                            'feature'          => 'course',
+                            'feature_group'    => 'arena',
+                            'type_label'       => 'Course Mandiri',
+                            'title'            => $r['title'],
+                            'subtitle'         => $r['program_title'] ?: 'Course Mandiri',
+                            'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
+                            'is_featured'      => (int) ($r['featured'] ?? 0),
+                            'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, $r['cover_url'] ?? null),
+                        ];
+                    }
+                    break;
 
-            case 'knowledge_article':
-                $builder = $this->db->table('knowledge_articles')
-                    ->where('workflow_status', 'published')
-                    ->where('visibility', 'public');
-                if ($q !== '') $builder->like('title', $q);
-                $rows = $builder->limit(10)->get()->getResultArray();
-                foreach ($rows as $r) {
-                    $results[] = [
-                        'id'               => (int) $r['id'],
-                        'title'            => $r['title'],
-                        'subtitle'         => strtoupper($r['type'] ?? 'Artikel'),
-                        'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
-                        'is_featured'      => (int) ($r['featured'] ?? 0),
-                        'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, $r['cover_url'] ?? null),
-                    ];
-                }
-                break;
+                case 'class':
+                    $builder = $this->db->table('learning_classes lc')
+                        ->select('lc.*, c.title as course_title')
+                        ->join('courses c', 'c.id = lc.course_id', 'left')
+                        ->where('lc.deleted_at', null)
+                        ->whereIn('lc.status', ['scheduled', 'active', 'open', 'published', 'ongoing'])
+                        ->orderBy('lc.id', 'DESC');
+                    if ($q !== '') $builder->like('lc.name', $q);
+                    $rows = $builder->limit($limitPerType)->get()->getResultArray();
+                    foreach ($rows as $r) {
+                        $results[] = [
+                            'id'               => (int) $r['id'],
+                            'feature'          => 'class',
+                            'feature_group'    => 'arena',
+                            'type_label'       => 'Kelas / Batch',
+                            'title'            => $r['name'],
+                            'subtitle'         => 'Kode: ' . $r['code'] . ' &middot; ' . ($r['course_title'] ?? ''),
+                            'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
+                            'is_featured'      => (int) ($r['featured'] ?? 0),
+                            'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, $r['cover_url'] ?? null),
+                        ];
+                    }
+                    break;
 
-            case 'regulation':
-                $builder = $this->db->table('regulations')
-                    ->where('deleted_at', null)
-                    ->where('workflow_status', 'published');
-                if ($q !== '') $builder->like('title', $q);
-                $rows = $builder->limit(10)->get()->getResultArray();
-                foreach ($rows as $r) {
-                    $results[] = [
-                        'id'               => (int) $r['id'],
-                        'title'            => $r['title'],
-                        'subtitle'         => 'Nomor: ' . ($r['document_number'] ?? '-') . ' Th. ' . ($r['document_year'] ?? '-'),
-                        'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
-                        'is_featured'      => (int) ($r['is_featured'] ?? 0),
-                        'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, null, $r['cover_image_path'] ?? null),
-                    ];
-                }
-                break;
+                case 'knowledge_article':
+                    $builder = $this->db->table('knowledge_articles')
+                        ->where('deleted_at', null)
+                        ->where('workflow_status', 'published')
+                        ->where('visibility', 'public')
+                        ->whereIn('type', ['article', 'case_study', 'template'])
+                        ->orderBy('id', 'DESC');
+                    if ($q !== '') $builder->like('title', $q);
+                    $rows = $builder->limit($limitPerType)->get()->getResultArray();
+                    foreach ($rows as $r) {
+                        $results[] = [
+                            'id'               => (int) $r['id'],
+                            'feature'          => 'knowledge_article',
+                            'feature_group'    => 'knowledge',
+                            'type_label'       => strtoupper($r['type'] ?? 'Artikel'),
+                            'title'            => $r['title'],
+                            'subtitle'         => 'Bunga Rampai &middot; ' . strtoupper($r['type'] ?? 'Artikel'),
+                            'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
+                            'is_featured'      => (int) ($r['featured'] ?? 0),
+                            'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, $r['cover_url'] ?? null),
+                        ];
+                    }
+                    break;
 
-            case 'news':
-                $builder = $this->db->table('news')
-                    ->where('workflow_status', 'published');
-                if ($q !== '') $builder->like('title', $q);
-                $rows = $builder->limit(10)->get()->getResultArray();
-                foreach ($rows as $r) {
-                    $results[] = [
-                        'id'               => (int) $r['id'],
-                        'title'            => $r['title'],
-                        'subtitle'         => 'Warta Berita PBJ',
-                        'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
-                        'is_featured'      => (int) ($r['is_featured'] ?? 0),
-                        'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, null),
-                    ];
-                }
-                break;
+                case 'knowledge_media':
+                    $builder = $this->db->table('knowledge_media km')
+                        ->select('km.*, fa.path as file_path, ft.path as thumb_path')
+                        ->join('file_assets fa', 'fa.id = km.file_id', 'left')
+                        ->join('file_assets ft', 'ft.id = km.thumbnail_file_id', 'left')
+                        ->where('km.workflow_status', 'published')
+                        ->where('km.visibility', 'public')
+                        ->orderBy('km.id', 'DESC');
+                    if ($q !== '') $builder->like('km.title', $q);
+                    $rows = $builder->limit($limitPerType)->get()->getResultArray();
+                    foreach ($rows as $r) {
+                        $coverUrl = null;
+                        if (! empty($r['cover_url'])) {
+                            $coverUrl = $r['cover_url'];
+                        } elseif (! empty($r['thumbnail_file_id'])) {
+                            $coverUrl = site_url('file/' . (int) $r['thumbnail_file_id']);
+                        } elseif (! empty($r['file_id'])) {
+                            $coverUrl = site_url('file/' . (int) $r['file_id']);
+                        }
+                        $results[] = [
+                            'id'               => (int) $r['id'],
+                            'feature'          => 'knowledge_media',
+                            'feature_group'    => 'knowledge',
+                            'type_label'       => 'Multimedia PBJ',
+                            'title'            => $r['title'],
+                            'subtitle'         => strtoupper($r['type'] ?? 'Media') . ' &middot; ' . ($r['location'] ?: 'Lampung'),
+                            'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
+                            'is_featured'      => (int) ($r['featured'] ?? 0),
+                            'cover_url'        => $coverUrl,
+                        ];
+                    }
+                    break;
 
-            case 'event':
-                $builder = $this->db->table('events')
-                    ->where('visibility', 'public')
-                    ->where('deleted_at IS NULL', null, false);
-                if ($q !== '') $builder->like('title', $q);
-                $rows = $builder->limit(10)->get()->getResultArray();
-                foreach ($rows as $r) {
-                    $results[] = [
-                        'id'               => (int) $r['id'],
-                        'title'            => $r['title'],
-                        'subtitle'         => strtoupper($r['type'] ?? 'Event') . ' &middot; ' . strtoupper($r['mode'] ?? 'online'),
-                        'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
-                        'is_featured'      => (int) ($r['is_featured'] ?? 0),
-                        'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, null),
-                    ];
-                }
-                break;
+                case 'regulation':
+                    $builder = $this->db->table('regulations')
+                        ->where('deleted_at', null)
+                        ->where('workflow_status', 'published')
+                        ->orderBy('id', 'DESC');
+                    if ($q !== '') $builder->like('title', $q);
+                    $rows = $builder->limit($limitPerType)->get()->getResultArray();
+                    foreach ($rows as $r) {
+                        $results[] = [
+                            'id'               => (int) $r['id'],
+                            'feature'          => 'regulation',
+                            'feature_group'    => 'regulation',
+                            'type_label'       => 'Regulasi PBJ',
+                            'title'            => $r['title'],
+                            'subtitle'         => 'Nomor: ' . ($r['document_number'] ?? '-') . ' Th. ' . ($r['document_year'] ?? '-'),
+                            'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
+                            'is_featured'      => (int) ($r['is_featured'] ?? 0),
+                            'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, null, $r['cover_image_path'] ?? null),
+                        ];
+                    }
+                    break;
+
+                case 'news':
+                    $builder = $this->db->table('news')
+                        ->where('deleted_at', null)
+                        ->where('workflow_status', 'published')
+                        ->orderBy('id', 'DESC');
+                    if ($q !== '') $builder->like('title', $q);
+                    $rows = $builder->limit($limitPerType)->get()->getResultArray();
+                    foreach ($rows as $r) {
+                        $results[] = [
+                            'id'               => (int) $r['id'],
+                            'feature'          => 'news',
+                            'feature_group'    => 'news',
+                            'type_label'       => 'Warta Berita',
+                            'title'            => $r['title'],
+                            'subtitle'         => 'Warta Berita PBJ',
+                            'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
+                            'is_featured'      => (int) ($r['is_featured'] ?? 0),
+                            'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, null),
+                        ];
+                    }
+                    break;
+
+                case 'event':
+                    $builder = $this->db->table('events')
+                        ->where('visibility', 'public')
+                        ->where('deleted_at IS NULL', null, false)
+                        ->orderBy('id', 'DESC');
+                    if ($q !== '') $builder->like('title', $q);
+                    $rows = $builder->limit($limitPerType)->get()->getResultArray();
+                    foreach ($rows as $r) {
+                        $results[] = [
+                            'id'               => (int) $r['id'],
+                            'feature'          => 'event',
+                            'feature_group'    => 'event',
+                            'type_label'       => 'Event & Agenda',
+                            'title'            => $r['title'],
+                            'subtitle'         => strtoupper($r['type'] ?? 'Event') . ' &middot; ' . strtoupper($r['mode'] ?? 'online'),
+                            'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
+                            'is_featured'      => (int) ($r['is_featured'] ?? 0),
+                            'cover_url'        => $this->resolveCover($r['cover_file_id'] ?? null, null),
+                        ];
+                    }
+                    break;
+            }
         }
 
         return $this->response->setJSON([
             'success' => true,
+            'count'   => count($results),
             'results' => $results,
         ]);
     }
@@ -438,6 +631,11 @@ class SpotlightHubController extends BaseController
             ->where('deleted_at', null)
             ->where('status', 'published')
             ->where('visibility', 'public');
+
+        $builder->groupStart()
+            ->where('carousel_enabled', 1)
+            ->orWhere('featured', 1)
+            ->groupEnd();
 
         if ($q !== '') {
             $builder->groupStart()->like('title', $q)->orLike('summary', $q)->groupEnd();
@@ -479,6 +677,11 @@ class SpotlightHubController extends BaseController
             ->where('c.status', 'published')
             ->where('c.visibility', 'public');
 
+        $builder->groupStart()
+            ->where('c.carousel_enabled', 1)
+            ->orWhere('c.featured', 1)
+            ->groupEnd();
+
         if ($q !== '') {
             $builder->groupStart()->like('c.title', $q)->orLike('c.summary', $q)->groupEnd();
         }
@@ -516,7 +719,12 @@ class SpotlightHubController extends BaseController
             ->select('lc.*, c.title as course_title')
             ->join('courses c', 'c.id = lc.course_id', 'left')
             ->where('lc.deleted_at', null)
-            ->whereIn('lc.status', ['scheduled', 'active']);
+            ->whereIn('lc.status', ['scheduled', 'active', 'open', 'published', 'ongoing']);
+
+        $builder->groupStart()
+            ->where('lc.carousel_enabled', 1)
+            ->orWhere('lc.featured', 1)
+            ->groupEnd();
 
         if ($q !== '') {
             $builder->groupStart()->like('lc.name', $q)->orLike('lc.code', $q)->groupEnd();
@@ -556,7 +764,13 @@ class SpotlightHubController extends BaseController
             ->join('file_assets fa', 'fa.id = ka.cover_file_id', 'left')
             ->where('ka.deleted_at', null)
             ->where('ka.workflow_status', 'published')
-            ->where('ka.visibility', 'public');
+            ->where('ka.visibility', 'public')
+            ->whereIn('ka.type', ['article', 'case_study', 'template']); // excludes faq
+
+        $builder->groupStart()
+            ->where('ka.carousel_enabled', 1)
+            ->orWhere('ka.featured', 1)
+            ->groupEnd();
 
         if ($q !== '') {
             $builder->groupStart()->like('ka.title', $q)->orLike('ka.summary', $q)->groupEnd();
@@ -618,6 +832,11 @@ class SpotlightHubController extends BaseController
             ->join('file_assets ft', 'ft.id = km.thumbnail_file_id', 'left')
             ->where('km.workflow_status', 'published')
             ->where('km.visibility', 'public');
+
+        $builder->groupStart()
+            ->where('km.carousel_enabled', 1)
+            ->orWhere('km.featured', 1)
+            ->groupEnd();
 
         if ($q !== '') {
             $builder->groupStart()->like('km.title', $q)->orLike('km.caption', $q)->groupEnd();
@@ -681,6 +900,11 @@ class SpotlightHubController extends BaseController
             ->where('r.deleted_at', null)
             ->where('r.workflow_status', 'published');
 
+        $builder->groupStart()
+            ->where('r.carousel_enabled', 1)
+            ->orWhere('r.is_featured', 1)
+            ->groupEnd();
+
         if ($q !== '') {
             $builder->groupStart()
                 ->like('r.title', $q)
@@ -726,6 +950,11 @@ class SpotlightHubController extends BaseController
             ->where('n.deleted_at', null)
             ->where('n.workflow_status', 'published');
 
+        $builder->groupStart()
+            ->where('n.carousel_enabled', 1)
+            ->orWhere('n.is_featured', 1)
+            ->groupEnd();
+
         if ($q !== '') {
             $builder->groupStart()->like('n.title', $q)->orLike('n.summary', $q)->groupEnd();
         }
@@ -764,6 +993,11 @@ class SpotlightHubController extends BaseController
             ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
             ->where('e.deleted_at', null)
             ->where('e.visibility', 'public');
+
+        $builder->groupStart()
+            ->where('e.carousel_enabled', 1)
+            ->orWhere('e.is_featured', 1)
+            ->groupEnd();
 
         if ($q !== '') {
             $builder->groupStart()->like('e.title', $q)->orLike('e.summary', $q)->groupEnd();

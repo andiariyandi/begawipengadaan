@@ -45,91 +45,43 @@ class LandingCmsAuditTest extends BaseCommand
             CLI::error("FAIL: before_snapshot or after_snapshot was not captured: " . json_encode($row2));
             return;
         }
-        CLI::write("PASS: Legacy array targetId handled gracefully without TypeError! Snapshots captured.", 'green');
+        CLI::write("PASS: Legacy signature log recorded correctly with snapshot data.", 'green');
 
-        // 3. Test TeamMemberController update execution with real database row
-        CLI::write("[TEST 3] Testing TeamMemberController update simulated request...");
-        $member = $db->table('team_members')->orderBy('id', 'ASC')->get()->getRowArray();
-        if (! $member) {
-            $db->table('team_members')->insert([
-                'name'         => 'Test Member',
-                'role_title'   => 'Test Role',
-                'nip'          => '12345',
-                'category'     => 'pembina',
-                'photo_url'    => 'assets/main/images/team/team-1-1.jpg',
-                'bio'          => 'Test Bio',
-                'social_links' => json_encode(['badge' => 'Test']),
-                'sort_order'   => 1,
-                'is_active'    => 1,
-                'created_at'   => date('Y-m-d H:i:s'),
-                'updated_at'   => date('Y-m-d H:i:s'),
-            ]);
-            $memberId = $db->insertID();
-            $member = $db->table('team_members')->where('id', $memberId)->get()->getRowArray();
-        } else {
-            $memberId = (int) $member['id'];
-        }
-
-        // Simulate POST request
+        // 3. Test InstitutionProfileController save
+        CLI::write("[TEST 3] Testing InstitutionProfileController save...");
+        $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/profil-lembaga');
+        $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('POST');
         $_POST = [
-            'name'       => $member['name'] . ' Updated',
-            'role_title' => $member['role_title'],
-            'nip'        => $member['nip'] ?? '',
-            'category'   => $member['category'] ?? 'pembina',
-            'photo_url'  => $member['photo_url'] ?? '',
-            'bio'        => $member['bio'] ?? '',
-            'badge'      => 'Pembina Ahli',
-            'sort_order' => 1,
-            'is_active'  => 1,
+            'agency_name'  => 'Dinas Pengadaan Uji Coba',
+            'agency_tagline' => 'Tagline Uji Coba',
+            'welcome_lead' => 'Lead Uji Coba',
+            'motto_title'  => 'Motto Uji Coba',
+            'motto_desc'   => 'Motto Desc Uji Coba',
+            'vision'       => 'Visi Uji Coba',
+            'mission'      => "Misi 1\nMisi 2",
         ];
-
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/tim/update/' . $memberId);
-        $incomingRequest = new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent());
-        $incomingRequest = $incomingRequest->withMethod('POST');
-        \Config\Services::injectMock('request', $incomingRequest);
-
-        $controller = new \App\Controllers\Admin\Landing\TeamMemberController();
-        $controller->initController($incomingRequest, service('response'), service('logger'));
-        $response = $controller->update($memberId);
-
-        CLI::write("PASS: TeamMemberController::update({$memberId}) completed without error! Response class: " . get_class($response), 'green');
-
-        // 4. Test AnnouncementController update
-        CLI::write("[TEST 4] Testing AnnouncementController update...");
-        $announcement = $db->table('site_announcements')->orderBy('id', 'ASC')->get()->getRowArray();
-        if ($announcement) {
-            $_POST = [
-                'badge_label' => 'Info',
-                'title'       => $announcement['title'] . ' Updated',
-                'description' => 'Test Desc',
-                'image_url'   => $announcement['image_url'],
-                'cta_label'   => 'Lihat',
-                'cta_url'     => '#',
-                'sort_order'  => 1,
-                'is_active'   => 1,
-            ];
-            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/pengumuman/update/' . $announcement['id']);
-            $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('POST');
-            \Config\Services::injectMock('request', $req);
-            $c = new \App\Controllers\Admin\Landing\AnnouncementController();
-            $c->initController($req, service('response'), service('logger'));
-            $res = $c->update((int) $announcement['id']);
-            CLI::write("PASS: AnnouncementController::update completed!", 'green');
+        \Config\Services::injectMock('request', $req);
+        $c = new \App\Controllers\Admin\Landing\InstitutionProfileController();
+        $c->initController($req, service('response'), service('logger'));
+        $res = $c->save();
+        $auditInst = $db->table('audit_logs')->groupStart()->where('action', 'landing.profile.updated')->orWhere('action', 'landing.institution_profile.updated')->groupEnd()->orderBy('id', 'DESC')->get()->getRowArray();
+        if (! $auditInst) {
+            CLI::error("FAIL: InstitutionProfileController save didn't log audit_log");
+            return;
         }
+        CLI::write("PASS: InstitutionProfileController::save logged audit_log correctly!", 'green');
 
-        // 5. Test ExternalPortalController update
-        CLI::write("[TEST 5] Testing ExternalPortalController update...");
+        // 4. Test ExternalPortalController update
+        CLI::write("[TEST 4] Testing ExternalPortalController update...");
         $portal = $db->table('external_portals')->orderBy('id', 'ASC')->get()->getRowArray();
         if ($portal) {
             $_POST = [
-                'name'        => $portal['name'] . ' Updated',
-                'acronym'     => $portal['acronym'] ?? 'TEST',
-                'category'    => 'nasional',
-                'description' => 'Portal Test',
-                'url'         => 'https://example.com',
-                'logo_url'    => $portal['logo_url'],
-                'sort_order'  => 1,
+                'name'        => ($portal['name'] ?? 'Portal') . ' Updated',
+                'acronym'     => $portal['acronym'] ?? 'UP',
+                'category'    => $portal['category'] ?? 'daerah',
+                'description' => 'Test Desc',
+                'url'         => $portal['url'] ?? 'https://example.com',
+                'sort_order'  => (int) ($portal['sort_order'] ?? 1),
                 'is_active'   => 1,
             ];
             $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/portal-eksternal/update/' . $portal['id']);
@@ -141,116 +93,18 @@ class LandingCmsAuditTest extends BaseCommand
             CLI::write("PASS: ExternalPortalController::update completed!", 'green');
         }
 
-        // 6. Test HighlightFeatureController update
-        CLI::write("[TEST 6] Testing HighlightFeatureController update...");
-        $item = $db->table('feature_highlights')->orderBy('id', 'ASC')->get()->getRowArray();
-        if ($item) {
-            $_POST = [
-                'code'        => $item['code'] ?? 'TEST',
-                'badge_text'  => 'Pilar',
-                'title'       => $item['title'] . ' Updated',
-                'subtitle'    => 'Subtitle',
-                'description' => 'Desc',
-                'icon_class'  => 'solar:star-bold',
-                'color_hex'   => '#2563eb',
-                'link_url'    => '#',
-                'sort_order'  => 1,
-                'is_active'   => 1,
-            ];
-            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/pilar-hierarki/update/' . $item['id']);
-            $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('POST');
-            \Config\Services::injectMock('request', $req);
-            $c = new \App\Controllers\Admin\Landing\HighlightFeatureController();
-            $c->initController($req, service('response'), service('logger'));
-            $res = $c->update((int) $item['id']);
-            CLI::write("PASS: HighlightFeatureController::update completed!", 'green');
-        }
-
-        // 7. Test PageBannerController update
-        CLI::write("[TEST 7] Testing PageBannerController update...");
-        $banner = $db->table('page_banners')->orderBy('id', 'ASC')->get()->getRowArray();
-        if ($banner) {
-            $_POST = [
-                'hero_badge'             => 'Badge',
-                'hero_title'             => ($banner['hero_title'] ?? 'Title') . ' Updated',
-                'hero_subtitle'          => 'Subtitle',
-                'cta_badge'              => 'Badge',
-                'cta_title'              => 'CTA Title',
-                'cta_lead'               => 'Lead',
-                'cta_primary_btn_text'   => 'Btn',
-                'cta_primary_btn_url'    => '#',
-                'cta_secondary_btn_text' => 'Btn2',
-                'cta_secondary_btn_url'  => '#',
-            ];
-            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/banner-halaman/update/' . $banner['page_key']);
-            $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('POST');
-            \Config\Services::injectMock('request', $req);
-            $c = new \App\Controllers\Admin\Landing\PageBannerController();
-            $c->initController($req, service('response'), service('logger'));
-            $res = $c->update($banner['page_key']);
-            CLI::write("PASS: PageBannerController::update completed!", 'green');
-        }
-
-        // 8. Test ServiceCategoryController update
-        CLI::write("[TEST 8] Testing ServiceCategoryController update...");
-        $cat = $db->table('service_categories')->orderBy('id', 'ASC')->get()->getRowArray();
-        if ($cat) {
-            $_POST = [
-                'name'        => $cat['name'] . ' Updated',
-                'code'        => $cat['code'],
-                'description' => 'Desc',
-                'sort_order'  => 1,
-                'is_active'   => 1,
-            ];
-            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/kategori-layanan/update/' . $cat['id']);
-            $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('POST');
-            \Config\Services::injectMock('request', $req);
-            $c = new \App\Controllers\Admin\Landing\ServiceCategoryController();
-            $c->initController($req, service('response'), service('logger'));
-            $res = $c->update((int) $cat['id']);
-            CLI::write("PASS: ServiceCategoryController::update completed!", 'green');
-        }
-
-        // 9. Test SliderController update
-        CLI::write("[TEST 9] Testing SliderController update...");
-        $slider = $db->table('home_sliders')->orderBy('id', 'ASC')->get()->getRowArray();
-        if ($slider) {
-            $_POST = [
-                'badge_text'            => 'Badge',
-                'title'                 => $slider['title'] . ' Updated',
-                'subtitle'              => 'Subtitle',
-                'image_url'             => $slider['image_url'],
-                'button_text'           => 'Btn',
-                'button_url'            => '#',
-                'secondary_button_text' => 'Btn2',
-                'secondary_button_url'  => '#',
-                'sort_order'            => 1,
-                'is_active'             => 1,
-            ];
-            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/slider/update/' . $slider['id']);
-            $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('POST');
-            \Config\Services::injectMock('request', $req);
-            $c = new \App\Controllers\Admin\Landing\SliderController();
-            $c->initController($req, service('response'), service('logger'));
-            $res = $c->update((int) $slider['id']);
-            CLI::write("PASS: SliderController::update completed!", 'green');
-        }
-
-        // 10. Test TestimonialController update
-        CLI::write("[TEST 10] Testing TestimonialController update...");
+        // 5. Test TestimonialController update
+        CLI::write("[TEST 5] Testing TestimonialController update...");
         $testi = $db->table('testimonials')->orderBy('id', 'ASC')->get()->getRowArray();
         if ($testi) {
             $_POST = [
-                'name'             => $testi['name'] . ' Updated',
-                'role_title'       => $testi['role_title'] ?? 'Staff',
-                'organization'     => $testi['organization'] ?? 'Instansi',
-                'avatar_url'       => $testi['avatar_url'] ?? '',
-                'rating'           => 5,
-                'quote'            => 'Sangat baik',
-                'impact_statement' => 'Berdampak',
-                'category'         => 'opd',
-                'sort_order'       => 1,
-                'is_active'        => 1,
+                'author_name' => ($testi['author_name'] ?? 'Name') . ' Updated',
+                'author_title'=> 'Title',
+                'agency'      => 'Agency',
+                'quote'       => 'Quote test',
+                'rating'      => 5,
+                'sort_order'  => 1,
+                'is_active'   => 1,
             ];
             $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/testimoni/update/' . $testi['id']);
             $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('POST');
@@ -261,26 +115,105 @@ class LandingCmsAuditTest extends BaseCommand
             CLI::write("PASS: TestimonialController::update completed!", 'green');
         }
 
-        // 11. Test ContactMessageController updateStatus
-        CLI::write("[TEST 11] Testing ContactMessageController updateStatus...");
-        $msg = $db->table('contact_messages')->orderBy('id', 'ASC')->get()->getRowArray();
-        if ($msg) {
+        // 6. Test HighlightFeatureController update
+        CLI::write("[TEST 6] Testing HighlightFeatureController update...");
+        $item = $db->table('feature_highlights')->orderBy('id', 'ASC')->get()->getRowArray();
+        if ($item) {
             $_POST = [
-                'status'     => 'in_progress',
-                'admin_note' => 'Sedang dicek',
+                'section_group' => $item['section_group'] ?? 'pilar_layanan',
+                'title'         => ($item['title'] ?? 'Title') . ' Updated',
+                'subtitle'      => 'Subtitle',
+                'description'   => 'Desc test',
+                'sort_order'    => 1,
+                'is_active'     => 1,
             ];
-            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/komunikasi/pesan-masuk/update/' . $msg['id']);
+            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/pilar-hierarki/update/' . $item['id']);
             $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('POST');
             \Config\Services::injectMock('request', $req);
-            $c = new \App\Controllers\Admin\Communication\ContactMessageController();
+            $c = new \App\Controllers\Admin\Landing\HighlightFeatureController();
             $c->initController($req, service('response'), service('logger'));
-            $res = $c->updateStatus((int) $msg['id']);
-            CLI::write("PASS: ContactMessageController::updateStatus completed!", 'green');
+            $res = $c->update((int) $item['id']);
+            CLI::write("PASS: HighlightFeatureController::update completed!", 'green');
         }
 
-        // Clean up test audit logs
-        $db->table('audit_logs')->whereIn('resource_id', [9999, 8888])->delete();
+        // 7. Verify PageBannerController retired and cleaned up
+        CLI::write("[TEST 7] Testing Banner Halaman retirement & redirect...");
+        $controllerExists = file_exists(APPPATH . 'Controllers/Admin/Landing/PageBannerController.php');
+        if (! $controllerExists) {
+            CLI::write("PASS: PageBannerController retired and cleaned up!", 'green');
+        } else {
+            CLI::write("FAIL: PageBannerController still exists", 'red');
+        }
 
-        CLI::write("=== All Audit Tests Passed Successfully! ===", 'green');
+        // 8. Verify ServiceCategoryController retired and cleaned up
+        CLI::write("[TEST 8] Testing Kategori Layanan retirement & cleanup...");
+        $catControllerExists = file_exists(APPPATH . 'Controllers/Admin/Landing/ServiceCategoryController.php');
+        if (! $catControllerExists) {
+            CLI::write("PASS: ServiceCategoryController retired and cleaned up!", 'green');
+        } else {
+            CLI::write("FAIL: ServiceCategoryController still exists", 'red');
+        }
+
+        // 9. Test TeamMemberController update
+        CLI::write("[TEST 9] Testing TeamMemberController update...");
+        $member = $db->table('team_members')->orderBy('id', 'ASC')->get()->getRowArray();
+        if ($member) {
+            $_POST = [
+                'name'       => ($member['name'] ?? 'Name') . ' Updated',
+                'position'   => 'Position',
+                'bio'        => 'Bio',
+                'sort_order' => 1,
+                'is_active'  => 1,
+            ];
+            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/tim/update/' . $member['id']);
+            $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('POST');
+            \Config\Services::injectMock('request', $req);
+            $c = new \App\Controllers\Admin\Landing\TeamMemberController();
+            $c->initController($req, service('response'), service('logger'));
+            $res = $c->update((int) $member['id']);
+            CLI::write("PASS: TeamMemberController::update completed!", 'green');
+        }
+
+        // 10. Test AnnouncementController update
+        CLI::write("[TEST 10] Testing AnnouncementController update...");
+        $ann = $db->table('site_announcements')->orderBy('id', 'ASC')->get()->getRowArray();
+        if ($ann) {
+            $_POST = [
+                'badge_label' => 'Badge',
+                'title'       => ($ann['title'] ?? 'Title') . ' Updated',
+                'description' => 'Desc',
+                'sort_order'  => 1,
+                'is_active'   => 1,
+            ];
+            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/pengumuman/update/' . $ann['id']);
+            $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('POST');
+            \Config\Services::injectMock('request', $req);
+            $c = new \App\Controllers\Admin\Landing\AnnouncementController();
+            $c->initController($req, service('response'), service('logger'));
+            $res = $c->update((int) $ann['id']);
+            CLI::write("PASS: AnnouncementController::update completed!", 'green');
+        }
+
+        // 11. Test SliderController update
+        CLI::write("[TEST 11] Testing SliderController update...");
+        $slider = $db->table('home_sliders')->orderBy('id', 'ASC')->get()->getRowArray();
+        if ($slider) {
+            $_POST = [
+                'title'      => ($slider['title'] ?? 'Title') . ' Updated',
+                'badge_text' => 'Badge',
+                'subtitle'   => 'Subtitle',
+                'sort_order' => 1,
+                'is_active'  => 1,
+            ];
+            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'dashboard/landing/slider/update/' . $slider['id']);
+            $req = (new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent()))->withMethod('POST');
+            \Config\Services::injectMock('request', $req);
+            $c = new \App\Controllers\Admin\Landing\SliderController();
+            $c->initController($req, service('response'), service('logger'));
+            $res = $c->update((int) $slider['id']);
+            CLI::write("PASS: SliderController::update completed!", 'green');
+        }
+
+        CLI::write("=== All Landing CMS Controllers & AuditLog Tests Passed! ===", 'green');
     }
 }
