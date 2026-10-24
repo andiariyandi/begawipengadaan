@@ -158,7 +158,7 @@ class ProfileChangeRequestService
 
             if ($typeTable) {
                 $specificKeys = [
-                    'asn_profiles'      => ['employee_identifier', 'origin_type', 'unit_name', 'position_name', 'rank_grade', 'official_email', 'employment_status', 'institution_name'],
+                    'asn_profiles'      => ['employee_identifier', 'origin_type', 'organization_unit_id', 'unit_name', 'position_name', 'rank_grade', 'official_email', 'employment_status', 'institution_name'],
                     'provider_profiles' => ['business_name', 'business_form', 'business_field', 'business_identifier', 'registrant_position', 'responsible_person', 'business_email', 'business_address'],
                     'academic_profiles' => ['institution_name', 'institution_type', 'role_name', 'expertise', 'institution_email', 'professional_identifier', 'portfolio_url'],
                     'public_profiles'   => ['national_identifier', 'occupation_status', 'organization_name', 'interest_areas', 'usage_purpose'],

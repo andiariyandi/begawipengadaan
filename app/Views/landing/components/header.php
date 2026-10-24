@@ -20,7 +20,6 @@ $roleLabel = match (true) {
     in_array('super_administrator', $roles, true) => 'Super Admin',
     in_array('administrator', $roles, true)       => 'Admin',
     in_array('operator', $roles, true)    => 'Operator',
-    in_array('evaluator', $roles, true)   => 'Evaluator',
     in_array('trainer', $roles, true)     => 'Pengajar',
     default                               => 'Peserta',
 };

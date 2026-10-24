@@ -48,6 +48,7 @@ class ContactMessageModel extends Model
             'priority'      => 'normal', // 'low', 'normal', 'high', 'urgent'
             'assigned_to'   => null,
             'internal_note' => '',
+            'attachments'   => [],
             'threads'       => [],
             'logs'          => [],
         ];
@@ -89,14 +90,18 @@ class ContactMessageModel extends Model
         $now = date('Y-m-d H:i:s');
         $msgId = 'msg_' . time() . '_' . substr(bin2hex(random_bytes(3)), 0, 4);
 
-        $channel    = $threadMessage['channel'] ?? 'portal';
-        $senderType = $threadMessage['sender_type'] ?? 'administrator'; // 'administrator', 'user', 'system'
-        $senderName = $threadMessage['sender_name'] ?? 'Petugas Helpdesk';
-        $senderId   = $threadMessage['sender_id'] ?? $actorUserId;
-        $content    = trim((string) ($threadMessage['message'] ?? ''));
+        $channel     = $threadMessage['channel'] ?? 'portal';
+        $senderType  = $threadMessage['sender_type'] ?? 'administrator'; // 'administrator', 'user', 'system'
+        $senderName  = $threadMessage['sender_name'] ?? 'Petugas Helpdesk';
+        $senderId    = $threadMessage['sender_id'] ?? $actorUserId;
+        $content     = trim((string) ($threadMessage['message'] ?? ''));
+        $attachments = is_array($threadMessage['attachments'] ?? null) ? $threadMessage['attachments'] : [];
 
-        if ($content === '') {
+        if ($content === '' && empty($attachments)) {
             return false;
+        }
+        if ($content === '' && ! empty($attachments)) {
+            $content = '[Melampirkan berkas pendukung]';
         }
 
         // Append to threads
@@ -107,6 +112,7 @@ class ContactMessageModel extends Model
             'sender_id'   => $senderId,
             'channel'     => $channel,
             'message'     => $content,
+            'attachments' => $attachments,
             'created_at'  => $now,
         ];
 
@@ -118,12 +124,17 @@ class ContactMessageModel extends Model
             default    => ($senderType === 'user') ? 'Tanggapan Pemohon' : 'Balasan Helpdesk (Portal)',
         };
 
+        $detailLog = mb_strimwidth($content, 0, 120, '...');
+        if (! empty($attachments)) {
+            $detailLog .= ' (Lampiran: ' . count($attachments) . ' berkas)';
+        }
+
         $notes['logs'][] = [
             'time'       => $now,
             'actor'      => $senderName,
             'actor_role' => $senderType,
             'action'     => $actionTitle,
-            'detail'     => mb_strimwidth($content, 0, 120, '...'),
+            'detail'     => $detailLog,
         ];
 
         $updateData = [
@@ -141,6 +152,27 @@ class ContactMessageModel extends Model
         }
 
         $res = $this->update($ticketId, $updateData);
+
+        // Trigger notification to ticket owner if reply comes from administrator/operator (non-internal)
+        if ($res && in_array($senderType, ['administrator', 'system'], true) && $channel !== 'internal') {
+            $ownerUserId = (int) ($notes['user_id'] ?? 0);
+            if ($ownerUserId > 0 && $ownerUserId !== (int) $senderId) {
+                try {
+                    (new \App\Services\NotificationService())->send(
+                        $ownerUserId,
+                        'ticket_reply',
+                        "Balasan Baru pada Tiket #{$ticket['ticket_number']}",
+                        "{$senderName} membalas tiket konsultasi Anda: \"" . mb_strimwidth($content, 0, 100, '...') . "\"",
+                        [
+                            'ticket_number' => $ticket['ticket_number'],
+                            'sender_name'   => $senderName,
+                            'url'           => site_url('workspace/konsultasi/' . $ticket['ticket_number']),
+                        ]
+                    );
+                } catch (\Throwable) {
+                }
+            }
+        }
 
         // Record audit trail
         try {
@@ -236,6 +268,38 @@ class ContactMessageModel extends Model
         }
 
         $res = $this->update($ticketId, $updateData);
+
+        // Notify ticket owner when ticket status changes
+        if ($res && $statusChanged) {
+            $ownerUserId = (int) ($notes['user_id'] ?? 0);
+            if ($ownerUserId > 0) {
+                $statusLabels = [
+                    'unread'        => 'Belum Dibaca',
+                    'read'          => 'Telah Dibaca',
+                    'in_progress'   => 'Sedang Diproses',
+                    'waiting_user'  => 'Menunggu Tanggapan Anda',
+                    'waiting_admin' => 'Menunggu Tanggapan Petugas',
+                    'replied'       => 'Telah Dijawab',
+                    'closed'        => 'Selesai / Ditutup',
+                ];
+                $newStatusLabel = $statusLabels[$meta['status']] ?? strtoupper((string) $meta['status']);
+                try {
+                    (new \App\Services\NotificationService())->send(
+                        $ownerUserId,
+                        'ticket_status_updated',
+                        "Pembaruan Status Tiket #{$ticket['ticket_number']}",
+                        "Status tiket konsultasi \"{$ticket['subject']}\" kini diperbarui menjadi: {$newStatusLabel}.",
+                        [
+                            'ticket_number' => $ticket['ticket_number'],
+                            'old_status'    => $oldStatus,
+                            'new_status'    => $meta['status'],
+                            'url'           => site_url('workspace/konsultasi/' . $ticket['ticket_number']),
+                        ]
+                    );
+                } catch (\Throwable) {
+                }
+            }
+        }
 
         try {
             $auditService = new \App\Services\AuditService();

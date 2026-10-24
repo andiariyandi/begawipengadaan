@@ -320,7 +320,7 @@ $methodBadge = match ($class['learning_method'] ?? 'online') {
             <div class="tab-pane fade" id="content-pengajar" role="tabpanel">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-20">
                     <div>
-                        <h6 class="text-base fw-semibold mb-1">Pengajar &amp; Evaluator Terassign</h6>
+                        <h6 class="text-base fw-semibold mb-1">Pengajar &amp; Fasilitator Terassign</h6>
                         <p class="text-secondary-light text-xs mb-0">Trainer memfasilitasi materi, menilai tugas, dan memantau perkembangan belajar peserta.</p>
                     </div>
                 </div>
@@ -344,7 +344,6 @@ $methodBadge = match ($class['learning_method'] ?? 'online') {
                             <select id="trainer_role" name="role" class="form-select radius-8">
                                 <option value="primary">Pengampu Utama (Lead)</option>
                                 <option value="co-trainer">Co-Trainer (Pendamping)</option>
-                                <option value="evaluator">Evaluator / Penilai Tugas</option>
                             </select>
                         </div>
                         <div class="col-md-2">

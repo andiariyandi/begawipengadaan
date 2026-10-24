@@ -100,11 +100,11 @@ class GradingController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Nilai harus berada dalam rentang 0.00 hingga 100.00.');
         }
 
-        $evaluatorId = (int) (session()->get('user_id') ?: 1);
+        $graderId = (int) (session()->get('user_id') ?: 1);
 
         try {
-            $evaluatorService = new \App\Services\EvaluatorService();
-            $evaluatorService->gradeSubmission($evaluatorId, $submissionId, $score, $status, $feedback ?: null);
+            $gradingService = new \App\Services\GradingService();
+            $gradingService->gradeSubmission($graderId, $submissionId, $score, $status, $feedback ?: null);
 
             return redirect()->to(site_url('dashboard/pembelajaran/penilaian/' . $submissionId))
                 ->with('success', "Penilaian submisi #{$submissionId} berhasil diperbarui dengan nilai {$score}.");

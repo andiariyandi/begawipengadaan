@@ -49,7 +49,7 @@ class CertificateBatchController extends BaseController
                 'co.title AS course_title',
                 'p.title AS program_title',
                 'COUNT(DISTINCT e.id) AS total_enrolled',
-                'COUNT(DISTINCT CASE WHEN e.status = "completed" OR lp.progress_percent >= 100 THEN e.id END) AS total_eligible',
+                'COUNT(DISTINCT CASE WHEN (e.certificate_eligible_at IS NOT NULL OR (e.status IN ("completed", "passed") AND e.passed_at IS NOT NULL AND e.final_score >= lc.passing_grade)) AND lc.certificate_enabled = 1 THEN e.id END) AS total_eligible',
                 'COUNT(DISTINCT CASE WHEN c.id IS NOT NULL AND c.status = "issued" THEN e.id END) AS total_certified',
             ])
             ->join('courses co',          'co.id = lc.course_id',         'left')
@@ -117,11 +117,16 @@ class CertificateBatchController extends BaseController
             $enrollments = $this->db->table('enrollments e')
                 ->distinct()
                 ->select('e.id, e.user_id')
-                ->join('learning_progress lp', 'lp.enrollment_id = e.id', 'left')
+                ->join('learning_classes lc', 'lc.id = e.class_id')
                 ->where('e.class_id', $classId)
+                ->where('lc.certificate_enabled', 1)
                 ->groupStart()
-                ->where('e.status', 'completed')
-                ->orWhere('lp.progress_percent >=', 100.0)
+                    ->where('e.certificate_eligible_at IS NOT NULL')
+                    ->orGroupStart()
+                        ->whereIn('e.status', ['completed', 'passed'])
+                        ->where('e.passed_at IS NOT NULL')
+                        ->where('e.final_score >= lc.passing_grade', null, false)
+                    ->groupEnd()
                 ->groupEnd()
                 ->get()
                 ->getResultArray();

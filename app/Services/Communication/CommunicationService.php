@@ -327,20 +327,148 @@ class CommunicationService
         return $ok;
     }
 
-    public function updateRegistrationStatus(int $id, string $newStatus, ?int $actorId = null): bool
+    /**
+     * Ubah status registrasi event menggunakan 6 status kanonik
+     * (lihat EventRegistrationStatus). Nilai disimpan sesuai CHECK constraint DB:
+     *  - waitlist  -> status 'waitlisted'
+     *  - confirmed -> status 'registered' (promoted_at dikosongkan, presensi direset)
+     *  - promoted  -> status 'registered' + promoted_at
+     *  - attended  -> status 'registered' + attendances.present
+     *  - no_show   -> jika masih antre: status 'rejected' (ditolak);
+     *                 jika sudah disetujui: attendances.absent
+     *  - cancelled -> status 'cancelled' + cancelled_at
+     */
+    public function updateRegistrationStatus(int $id, string $newStatus, ?int $actorId = null, ?string $reason = null): bool
     {
-        if (! in_array($newStatus, ['registered', 'cancelled', 'promoted', 'attended', 'no_show'], true)) {
+        $key = EventRegistrationStatus::normalizeInput($newStatus);
+        if ($key === null) {
             throw new \InvalidArgumentException('Status registrasi tidak valid.');
         }
-        $now = date('Y-m-d H:i:s');
-        $patch = ['status' => $newStatus, 'updated_at' => $now];
-        if ($newStatus === 'cancelled') $patch['cancelled_at'] = $now;
-        if ($newStatus === 'promoted')  $patch['promoted_at']  = $now;
-        $ok = (bool) $this->registrations->update($id, $patch);
-        if ($ok) {
-            $this->audit->log($actorId, 'event_registration.update', 'event_registrations', 'event_registration', $id, ['status' => $newStatus]);
+
+        $db  = db_connect();
+        $reg = $db->table('event_registrations er')
+            ->select('er.*, e.title AS event_title')
+            ->join('events e', 'e.id = er.event_id', 'left')
+            ->where('er.id', $id)
+            ->get()->getRowArray();
+        if (! $reg) {
+            throw new \RuntimeException('Registrasi event tidak ditemukan.');
         }
-        return $ok;
+
+        $now   = date('Y-m-d H:i:s');
+        $patch = ['updated_at' => $now];
+        $attendanceAction = null; // 'present' | 'absent' | 'reset' | null
+
+        switch ($key) {
+            case EventRegistrationStatus::WAITLIST:
+                $patch += ['status' => 'waitlisted', 'cancelled_at' => null, 'promoted_at' => null];
+                $attendanceAction = 'reset';
+                break;
+            case EventRegistrationStatus::CONFIRMED:
+                $patch += ['status' => 'registered', 'cancelled_at' => null, 'promoted_at' => null];
+                $attendanceAction = 'reset';
+                break;
+            case EventRegistrationStatus::PROMOTED:
+                $patch += ['status' => 'registered', 'cancelled_at' => null, 'promoted_at' => $reg['promoted_at'] ?: $now];
+                $attendanceAction = 'reset';
+                break;
+            case EventRegistrationStatus::ATTENDED:
+                $patch += ['status' => 'registered', 'cancelled_at' => null];
+                $attendanceAction = 'present';
+                break;
+            case EventRegistrationStatus::NO_SHOW:
+                if (EventRegistrationStatus::hasAccess($reg['status'] ?? '')) {
+                    $patch += ['status' => 'registered'];
+                    $attendanceAction = 'absent';
+                } else {
+                    $patch += ['status' => 'rejected'];
+                }
+                break;
+            case EventRegistrationStatus::CANCELLED:
+                $patch += ['status' => 'cancelled', 'cancelled_at' => $now];
+                break;
+        }
+        if ($reason !== null && trim($reason) !== '') {
+            $patch['status_reason'] = trim($reason);
+        }
+
+        $db->transStart();
+        $db->table('event_registrations')->where('id', $id)->update($patch);
+
+        if ($attendanceAction === 'present' || $attendanceAction === 'absent') {
+            $this->writeAttendanceRow($id, $attendanceAction, $actorId, $reason ?: ($attendanceAction === 'present' ? 'Ditandai Hadir oleh petugas' : 'Ditandai Tidak Hadir (No-Show) oleh petugas'));
+        } elseif ($attendanceAction === 'reset') {
+            $db->table('attendances')->where('event_registration_id', $id)->whereIn('status', ['present', 'absent'])->delete();
+        }
+
+        $this->audit->log($actorId, 'event_registration.update', 'event_registrations', 'event_registration', $id, [
+            'from' => EventRegistrationStatus::resolve($reg['status'] ?? null),
+            'to'   => $key,
+        ], $reason);
+        $db->transComplete();
+
+        if (! $db->transStatus()) {
+            return false;
+        }
+
+        $this->notifyRegistrationStatus($reg, $key, $reason);
+        return true;
+    }
+
+    /**
+     * Kirim notifikasi personal kepada pendaftar ketika status berubah.
+     */
+    private function notifyRegistrationStatus(array $reg, string $key, ?string $reason = null): void
+    {
+        $title = (string) ($reg['event_title'] ?? 'Event');
+        [$type, $subject, $body] = match ($key) {
+            EventRegistrationStatus::CONFIRMED => ['event_registration_approved', 'Pendaftaran Event Disetujui', "Pendaftaran Anda pada \"{$title}\" telah disetujui (Terdaftar/Confirmed). Ruang kegiatan kini dapat diakses."],
+            EventRegistrationStatus::PROMOTED  => ['event_registration_promoted', 'Dipromosikan dari Waitlist', "Selamat! Anda dipromosikan dari antrian waitlist pada \"{$title}\". Ruang kegiatan kini dapat diakses."],
+            EventRegistrationStatus::ATTENDED  => ['event_attendance_present', 'Kehadiran Tercatat', "Kehadiran Anda pada \"{$title}\" telah tercatat (Hadir)."],
+            EventRegistrationStatus::NO_SHOW   => ['event_registration_rejected', 'Status Tidak Hadir (No-Show)', "Status Anda pada \"{$title}\" adalah Tidak Hadir (No-Show)." . ($reason ? ' Catatan: ' . $reason : '')],
+            EventRegistrationStatus::CANCELLED => ['event_registration_cancelled', 'Pendaftaran Event Dibatalkan', "Pendaftaran Anda pada \"{$title}\" telah dibatalkan." . ($reason ? ' Catatan: ' . $reason : '')],
+            default                            => ['event_registration_waitlisted', 'Masuk Antrian Waitlist', "Pendaftaran Anda pada \"{$title}\" berada dalam antrian (Waitlist) menunggu persetujuan panitia."],
+        };
+        try {
+            (new \App\Services\NotificationService(db_connect()))->send(
+                (int) $reg['user_id'],
+                $type,
+                $subject,
+                $body,
+                ['event_id' => (int) $reg['event_id'], 'url' => site_url('workspace/peserta/event-saya/' . (int) $reg['event_id'])]
+            );
+        } catch (\Throwable) {
+        }
+    }
+
+    /**
+     * Upsert satu baris attendances (unik per registrasi).
+     */
+    private function writeAttendanceRow(int $registrationId, string $status, ?int $actorId, ?string $notes): int
+    {
+        $db  = db_connect();
+        $now = date('Y-m-d H:i:s');
+        $existing = $db->table('attendances')->where('event_registration_id', $registrationId)->get()->getRowArray();
+        if ($existing) {
+            $db->table('attendances')->where('id', (int) $existing['id'])->update([
+                'status'      => $status,
+                'recorded_by' => $actorId ?: null,
+                'recorded_at' => $now,
+                'notes'       => $notes,
+                'updated_at'  => $now,
+            ]);
+            return (int) $existing['id'];
+        }
+        $db->table('attendances')->insert([
+            'event_registration_id' => $registrationId,
+            'status'                => $status,
+            'recorded_by'           => $actorId ?: null,
+            'recorded_at'           => $now,
+            'notes'                 => $notes,
+            'created_at'            => $now,
+            'updated_at'            => $now,
+        ]);
+        return (int) $db->insertID();
     }
 
     public function recordAttendance(int $registrationId, string $status, ?int $actorId = null, ?string $notes = null): bool
@@ -348,6 +476,16 @@ class CommunicationService
         if (! in_array($status, ['present', 'absent', 'excused'], true)) {
             throw new \InvalidArgumentException('Status kehadiran tidak valid.');
         }
+
+        // Petugas menandai Hadir untuk pendaftar yang masih antre: otomatis disetujui (registered)
+        $reg = $this->registrations->find($registrationId);
+        if ($reg && $status === 'present' && ! EventRegistrationStatus::hasAccess($reg['status'] ?? '')) {
+            if (($reg['status'] ?? '') === 'cancelled') {
+                throw new \RuntimeException('Registrasi yang dibatalkan tidak dapat ditandai hadir.');
+            }
+            $this->registrations->update($registrationId, ['status' => 'registered', 'updated_at' => date('Y-m-d H:i:s')]);
+        }
+
         $now = date('Y-m-d H:i:s');
         $existing = $this->attendance->where('event_registration_id', $registrationId)->first();
         if ($existing) {
@@ -528,15 +666,22 @@ class CommunicationService
             throw new \RuntimeException('Sesi presensi untuk kegiatan ini telah ditutup.');
         }
 
-        // 3. Peserta sudah terdaftar
+        // 3. Peserta sudah terdaftar dan telah disetujui (Approved / Confirmed)
         $reg = $db->table('event_registrations')
             ->where('event_id', (int) $event['id'])
             ->where('user_id', $userId)
-            ->whereIn('status', ['registered', 'confirmed'])
             ->get()->getRowArray();
 
-        if (! $reg) {
-            throw new \RuntimeException('Anda belum terdaftar pada event ini.');
+        if (! $reg || ($reg['status'] ?? '') === 'cancelled') {
+            throw new \RuntimeException('Anda belum terdaftar pada event ini atau pendaftaran telah dibatalkan.');
+        }
+
+        if (in_array((string) ($reg['status'] ?? ''), EventRegistrationStatus::REJECTED_RAW, true)) {
+            throw new \RuntimeException('Pendaftaran Anda pada event ini berstatus Tidak Hadir (No-Show) / ditolak panitia.');
+        }
+
+        if (! EventRegistrationStatus::hasAccess($reg['status'] ?? '')) {
+            throw new \RuntimeException('Pendaftaran Anda masih berstatus Waitlist (Antrian) dan menunggu persetujuan Panitia/Operator.');
         }
 
         $registrationId = (int) $reg['id'];
@@ -609,13 +754,13 @@ class CommunicationService
             ->join('attendances a', 'a.event_registration_id = er.id')
             ->join('users u', 'u.id = er.user_id')
             ->where('er.event_id', $eventId)
-            ->where('er.status', 'registered')
+            ->whereIn('er.status', EventRegistrationStatus::ACCESS_RAW)
             ->where('a.status', 'present')
             ->orderBy('er.id', 'ASC')
             ->get()->getResultArray();
 
         $generated = [];
-        $now = date('Y-m-d H:i:s');
+        $generator = new \App\Services\CertificateGenerator();
 
         foreach ($participants as $p) {
             $regId  = (int) $p['registration_id'];
@@ -631,36 +776,21 @@ class CommunicationService
                 continue;
             }
 
-            $certNumber = 'CERT-EVT-' . date('Ymd') . '-' . sprintf('%04d', $regId);
-            $tokenHash  = hash('sha256', bin2hex(random_bytes(16)) . $regId . $now);
-
-            $db->table('certificates')->insert([
-                'source_type'             => 'event_registration',
-                'source_id'               => $regId,
-                'user_id'                 => $userId,
-                'certificate_number'      => $certNumber,
-                'verification_token_hash' => $tokenHash,
-                'status'                  => 'issued',
-                'issued_at'               => $now,
-                'issued_by'               => $actorId,
-                'created_at'              => $now,
-                'updated_at'              => $now,
-            ]);
-
-            $certId = (int) $db->insertID();
-            $generated[] = [
-                'certificate_id'     => $certId,
-                'certificate_number' => $certNumber,
-                'registration_id'    => $regId,
-                'user_id'            => $userId,
-                'user_name'          => $p['user_name'],
-            ];
-
-            $this->audit->log($actorId, 'certificate.event_batch_issue', 'certificates', 'certificate', $certId, [
-                'event_id'           => $eventId,
-                'registration_id'    => $regId,
-                'certificate_number' => $certNumber,
-            ]);
+            try {
+                $issued = $generator->generateDirect('event_registration', $regId, (int) ($actorId ?: 1));
+                $generated[] = [
+                    'certificate_id'     => $issued['certificate_id'],
+                    'certificate_number' => $issued['certificate_number'],
+                    'registration_id'    => $regId,
+                    'user_id'            => $userId,
+                    'user_name'          => $p['user_name'],
+                ];
+            } catch (\Throwable $e) {
+                log_message('error', 'batchGenerateEventCertificates gagal untuk reg #{id}: {msg}', [
+                    'id'  => $regId,
+                    'msg' => $e->getMessage(),
+                ]);
+            }
         }
 
         return $generated;

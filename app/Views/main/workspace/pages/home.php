@@ -112,7 +112,7 @@ $methodBadge = static function (?string $method): array {
 <div class="participant-workspace-home">
 
     <!-- 1. HERO WELCOME & RESUME LEARNING BANNER (BERITA & EVENT BENCHMARK) -->
-    <div class="ws-hero-card p-3 p-md-4 mb-3 text-white position-relative">
+    <div class="ws-hero-card p-4 p-lg-5 mb-4 text-white position-relative">
         <div class="row align-items-center g-3 g-md-4 position-relative" style="z-index: 2;">
             <div class="col-lg-7">
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
@@ -123,10 +123,10 @@ $methodBadge = static function (?string $method): array {
                         <i class="fas fa-check-circle text-success me-1"></i> Terverifikasi BegawiPengadaan
                     </span>
                 </div>
-                <h1 class="h4 text-white fw-bold mb-1" style="font-family: var(--fistudy-font, 'Outfit', sans-serif); letter-spacing: -0.02em;">
+                <h1 class="h2 text-white fw-bold mb-2" style="font-family: var(--fistudy-font, 'Outfit', sans-serif); letter-spacing: -0.02em;">
                     Halo, <?= esc($userName) ?>! 👋
                 </h1>
-                <p class="text-white-50 mb-0 lh-base" style="max-width: 620px; font-size: 0.82rem;">
+                <p class="text-white-50 mb-0 fs-6 lh-base" style="max-width: 740px;">
                     Pusat aktivitas pembelajaran komprehensif Anda. Pantau kemajuan modul, kerjakan tugas & ujian kompetensi, hadiri agenda workshop, dan raih sertifikat resmi PBJ Pemerintah Provinsi Lampung.
                 </p>
             </div>
@@ -184,17 +184,17 @@ $methodBadge = static function (?string $method): array {
 
     <!-- 2. 4 SUMMARY KPI STAT CARDS -->
     <?php if (!empty($kpiCards)): ?>
-        <div class="row g-2 g-md-3 mb-3">
+        <div class="row g-3 mb-4">
             <?php foreach ($kpiCards as $stat): ?>
                 <div class="col-6 col-lg-3">
                     <div class="card ws-stat-card border-0 shadow-sm p-2 p-md-3 h-100 bg-white">
                         <div class="d-flex align-items-center gap-2 gap-md-3">
-                            <div class="rounded-3 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; background: #eff6ff; color: #082f5c; font-size: 1.1rem;">
+                            <div class="ws-stat-icon" style="background: #eff6ff; color: #082f5c;">
                                 <i class="<?= esc($stat['icon'] ?? 'fas fa-chart-bar') ?>"></i>
                             </div>
                             <div class="min-w-0">
                                 <span class="text-muted small fw-medium d-block text-truncate" style="font-size: 0.72rem;"><?= esc($stat['title']) ?></span>
-                                <div class="h5 fw-bold text-navy mb-0" style="font-size: 1.1rem;"><?= esc($stat['value']) ?></div>
+                                <div class="h4 fw-bold text-navy mb-0"><?= esc($stat['value']) ?></div>
                                 <small class="text-muted d-block text-truncate" style="font-size: 0.68rem;"><?= esc($stat['meta']) ?></small>
                             </div>
                         </div>
@@ -205,7 +205,7 @@ $methodBadge = static function (?string $method): array {
     <?php endif; ?>
 
     <!-- 3. PEMBELAJARAN SEDANG BERJALAN -->
-    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mb-3">
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
             <div>
                 <h2 class="h5 fw-bold text-navy mb-0">
@@ -224,7 +224,7 @@ $methodBadge = static function (?string $method): array {
                     <div class="col-md-6 col-lg-3 ws-paginated-item">
                         <div class="ws-class-card h-100 d-flex flex-column justify-content-between overflow-hidden">
                             <div>
-                                <div class="position-relative" style="height: 125px; overflow: hidden; background: #082f5c;">
+                                <div class="position-relative" style="height: 155px; overflow: hidden; background: #082f5c;">
                                     <img src="<?= $fmtCover($cl) ?>" alt="<?= esc($cl['course_title'] ?? 'Cover') ?>" class="w-100 h-100 object-fit-cover opacity-90" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/resources/course-details-img-1.jpg') ?>';">
                                     <div class="position-absolute top-0 start-0 m-2">
                                         <span class="badge bg-dark bg-opacity-75 text-white fw-bold small rounded-pill px-2 py-1">

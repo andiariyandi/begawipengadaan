@@ -460,8 +460,7 @@ class HomeController extends BaseController
         $pageBanner = null;
         try {
             $pageBanner = $db->table('page_banners')
-                ->where('page_identifier', 'about')
-                ->where('is_active', 1)
+                ->where('page_key', 'about')
                 ->get()->getRowArray();
         } catch (\Throwable) {
         }
@@ -522,8 +521,7 @@ class HomeController extends BaseController
         $pageBanner = null;
         try {
             $pageBanner = $db->table('page_banners')
-                ->where('page_identifier', 'contact')
-                ->where('is_active', 1)
+                ->where('page_key', 'contact')
                 ->get()->getRowArray();
         } catch (\Throwable) {
         }

@@ -9,13 +9,13 @@ use App\Services\AuditService;
 /**
  * Role request review service (Manajemen Akses → Permohonan Role).
  *
- * ASN participants can request trainer or evaluator roles (CLAUDE.md §15).
+ * ASN participants can request trainer or operator roles (CLAUDE.md §15).
  * Approve => insert into user_roles with status='active' atomically.
  * Reject/revision require a note.
  */
 class RoleRequestService
 {
-    public const ALLOWED_SELF_REQUEST_ROLES = ['trainer', 'evaluator'];
+    public const ALLOWED_SELF_REQUEST_ROLES = ['trainer', 'operator'];
 
     public function __construct(
         private readonly RoleRequestModel $requests = new RoleRequestModel(),

@@ -37,6 +37,57 @@ class CompetencyCertificateController extends BaseController
         ]);
     }
 
+    public function create()
+    {
+        $req = $this->request ?? service('request');
+        $db  = db_connect();
+
+        if (strtoupper($req->getMethod()) === 'POST') {
+            $recordId   = (int) $req->getPost('jf_ppbj_record_id');
+            $typeId     = (int) $req->getPost('certificate_type_id');
+            $certNumber = trim((string) $req->getPost('certificate_number'));
+            $issuedAt   = trim((string) $req->getPost('issued_at')) ?: date('Y-m-d');
+            $expiresAt  = trim((string) $req->getPost('expires_at')) ?: date('Y-m-d', strtotime('+3 years'));
+            $status     = trim((string) $req->getPost('status')) ?: 'verified';
+
+            if ($recordId < 1 || $typeId < 1 || $certNumber === '') {
+                return redirect()->back()->withInput()
+                    ->with('error', 'Personel JF PPBJ, jenis sertifikat kompetensi, dan nomor sertifikat wajib diisi.');
+            }
+
+            $now     = date('Y-m-d H:i:s');
+            $actorId = (int) (session()->get('user_id') ?: 13);
+
+            $db->table('competency_certificates')->insert([
+                'jf_ppbj_record_id'   => $recordId,
+                'certificate_type_id' => $typeId,
+                'certificate_number'  => $certNumber,
+                'issued_at'           => date('Y-m-d H:i:s', strtotime($issuedAt)),
+                'expires_at'          => date('Y-m-d H:i:s', strtotime($expiresAt)),
+                'status'              => $status,
+                'verified_by'         => $actorId,
+                'verified_at'         => $now,
+                'created_at'          => $now,
+                'updated_at'          => $now,
+            ]);
+
+            return redirect()->to(site_url('dashboard/intelligence/sertifikat-kompetensi'))
+                ->with('message', 'Sertifikat kompetensi ' . esc($certNumber) . ' berhasil dicatat.');
+        }
+
+        $personnelList = $this->analyticsService->getPersonnelList();
+        $types         = $this->analyticsService->getCertificateTypesList();
+
+        return view('dashboard/intelligence/competency_certificates/form', [
+            'title'         => 'Catat Sertifikat Kompetensi | Dashboard BegawiPengadaan',
+            'pageTitle'     => 'Catat Sertifikat Kompetensi PBJ',
+            'activeMenu'    => 'intelligence',
+            'activeSubmenu' => 'competency-certificates',
+            'personnelList' => $personnelList,
+            'types'         => $types,
+        ]);
+    }
+
     public function detail(string $id)
     {
         $cert = db_connect()->table('competency_certificates cc')

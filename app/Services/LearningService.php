@@ -142,7 +142,7 @@ class LearningService
                 [
                     'class_id'      => (int) $enrollment['class_id'],
                     'enrollment_id' => $enrollmentId,
-                    'url'           => site_url('workspace/peserta/pembelajaran-saya'),
+                    'url'           => site_url('workspace/peserta/kelas-saya'),
                 ]
             );
 
@@ -463,8 +463,10 @@ class LearningService
             log_message('error', 'Quiz forensic audit failed: {message}', ['message' => $e->getMessage()]);
         }
 
-        // Evaluasi kelulusan jika ini post_test atau lesson_quiz
-        $this->evaluateCompletion((int) $context['enrollment']['id']);
+        // Evaluasi kelulusan jika ini post_test atau lesson_quiz (Pre-test tidak mengevaluasi kelulusan)
+        if (($context['quiz']['type'] ?? '') !== 'pre_test') {
+            $this->evaluateCompletion((int) $context['enrollment']['id']);
+        }
 
         return ['score' => $scorePercent, 'attempt_id' => $attemptId];
     }
@@ -479,9 +481,9 @@ class LearningService
             throw new RuntimeException('Enrollment aktif tidak ditemukan untuk kelas ini.');
         }
 
-        $assignment = $this->db->table('assignments')->where(['id' => $assignmentId, 'class_id' => $classId])->get()->getRowArray();
+        $assignment = $this->db->table('assignments')->where(['id' => $assignmentId, 'class_id' => $classId, 'status' => 'published'])->get()->getRowArray();
         if (! $assignment) {
-            throw new RuntimeException('Tugas tidak ditemukan.');
+            throw new RuntimeException('Tugas tidak ditemukan atau belum dipublikasikan.');
         }
 
         $pastCount = $this->db->table('assignment_submissions')
@@ -570,19 +572,15 @@ class LearningService
     }
 
     /**
-     * Evaluasi kelulusan kelas secara ketat dan konsisten:
-     * Syarat Kelulusan Lengkap:
-     *  1. Seluruh materi wajib (lessons.is_required = 1) telah selesai (progress_percent = 100)
-     *  2. Seluruh quiz materi wajib (quizzes.is_required = 1, type = 'lesson_quiz') telah dikerjakan
-     *  3. Seluruh tugas wajib (assignments.is_required = 1) telah dinilai oleh evaluator (status = 'graded')
-     *  4. Post-test wajib telah selesai dikerjakan
-     *  5. Nilai akhir gabungan (quiz + tugas + post_test) >= passing_grade
-     *
-     * Jika seluruh syarat terpenuhi:
-     *  - enrollment.status diubah menjadi 'completed'
-     *  - passed_at dicatat
-     *  - certificate_eligible_at dicatat jika kelas mengaktifkan sertifikat
-     *  - Auto-trigger pengajuan approval sertifikat ke antrean approvals
+     * Evaluasi kelulusan belajar peserta dan penerbitan sertifikat resmi PBJ.
+     * Aturan Standar Kurikulum:
+     *  1. Wajib Pre-Test (jika ada pre-test yang diterbitkan di kelas)
+     *  2. Wajib seluruh Materi Pelajaran tuntas 100%
+     *  3. Wajib seluruh Kuis Modul dikerjakan (tidak boleh bypass)
+     *  4. Opsional Tugas (jika kelas ada tugas, wajib dikumpulkan & dinilai instruktur; jika tidak ada, di-skip)
+     *  5. Wajib Post-Test (bobot Post-Test dikunci di 60%)
+     *  6. Bobot Kuis % dan Bobot Tugas % disetel di kelas (total akumulasi 100%)
+     *  7. Kelulusan berdasarkan passing grade yang ditentukan admin kelas
      */
     public function evaluateCompletion(int $enrollmentId): bool
     {
@@ -597,7 +595,23 @@ class LearningService
             return false;
         }
 
-        // 1. Cek Lessons Wajib (Hanya yang berstatus 'published' di dalam modul 'published')
+        // 1. Cek Pre-Test: Wajib diselesaikan jika ada pre-test yang diterbitkan di kelas
+        $preTest = $this->db->table('quizzes')
+            ->where(['class_id' => $classId, 'type' => 'pre_test', 'status' => 'published'])
+            ->orderBy('id', 'ASC')
+            ->get()->getRowArray();
+
+        if ($preTest) {
+            $preAttemptCount = (int) $this->db->table('quiz_attempts')
+                ->where(['quiz_id' => (int) $preTest['id'], 'enrollment_id' => $enrollmentId])
+                ->whereIn('status', ['graded', 'submitted', 'passed', 'completed'])
+                ->countAllResults();
+            if ($preAttemptCount === 0) {
+                return false; // Pre-test wajib belum dikerjakan
+            }
+        }
+
+        // 2. Cek Lessons Wajib (Hanya yang berstatus 'published' di dalam modul 'published')
         $requiredLessons = $this->db->query(
             'SELECT lessons.id FROM lessons
              JOIN learning_modules ON learning_modules.id = lessons.module_id
@@ -618,31 +632,26 @@ class LearningService
             }
         }
 
-        // 2. Cek Post-Test (Satu-satunya asesmen WAJIB jika diterbitkan di kelas)
-        $postTest = $this->db->table('quizzes')
-            ->where(['class_id' => $classId, 'type' => 'post_test', 'status' => 'published'])
-            ->orderBy('id', 'ASC')
-            ->get()->getRowArray();
-
-        $postScore = null;
-        if ($postTest) {
-            $postAvg = $this->gradedAverage($enrollmentId, [$postTest]);
-            if ($postAvg === null) {
-                return false; // Post-test wajib belum dikerjakan atau belum dinilai
-            }
-            $postScore = $postAvg;
-        }
-
-        // 3. Cek Lesson Quizzes (Bersifat Opsional)
-        // Jika ada quiz yang telah dikerjakan peserta, masukkan ke penilaian rata-rata quiz
-        $publishedQuizzes = $this->db->table('quizzes')
-            ->where(['class_id' => $classId, 'type' => 'lesson_quiz', 'status' => 'published'])
-            ->orderBy('id', 'ASC')
+        // 3. Cek Kuis Modul: Setiap modul bisa ada kuis. Seluruh kuis modul yang diterbitkan di kelas WAJIB dikerjakan!
+        $publishedQuizzes = $this->db->table('quizzes q')
+            ->select('q.*')
+            ->join('lessons l', 'l.id = q.lesson_id', 'left')
+            ->join('learning_modules m', 'm.id = l.module_id', 'left')
+            ->where('q.class_id', $classId)
+            ->where('q.type', 'lesson_quiz')
+            ->where('q.status', 'published')
+            ->groupStart()
+                ->where('q.lesson_id IS NULL', null, false)
+                ->orGroupStart()
+                    ->where('l.status', 'published')
+                    ->where('m.status', 'published')
+                ->groupEnd()
+            ->groupEnd()
+            ->orderBy('q.id', 'ASC')
             ->get()->getResultArray();
 
-        $quizScore = null;
+        $quizScores = [];
         if (! empty($publishedQuizzes)) {
-            $attemptedScores = [];
             foreach ($publishedQuizzes as $q) {
                 $bestAttempt = $this->db->table('quiz_attempts')
                     ->where(['quiz_id' => (int) $q['id'], 'enrollment_id' => $enrollmentId])
@@ -650,99 +659,118 @@ class LearningService
                     ->where('score IS NOT NULL', null, false)
                     ->orderBy('score', 'DESC')
                     ->get()->getRowArray();
-                if ($bestAttempt && $bestAttempt['score'] !== null) {
-                    $attemptedScores[] = (float) $bestAttempt['score'];
+
+                if (! $bestAttempt || $bestAttempt['score'] === null) {
+                    return false; // Ada kuis modul yang belum dikerjakan! Tidak boleh bypass!
                 }
-            }
-            if (! empty($attemptedScores)) {
-                $quizScore = round(array_sum($attemptedScores) / count($attemptedScores), 2);
+                $quizScores[] = (float) $bestAttempt['score'];
             }
         }
+        $avgQuiz = ! empty($quizScores) ? (array_sum($quizScores) / count($quizScores)) : null;
 
-        // 4. Cek Assignments (Bersifat Opsional)
-        // Jika ada tugas yang dikumpulkan dan telah dinilai instruktur, masukkan ke penilaian tugas
-        $publishedAssignments = $this->db->table('assignments')
-            ->where(['class_id' => $classId, 'status' => 'published'])
-            ->orderBy('id', 'ASC')
+        // 4. Cek Tugas (Bersifat Opsional)
+        // Jika ada tugas yang diterbitkan di kelas ini, peserta wajib mengumpulkan dan dinilai instruktur
+        $publishedAssignments = $this->db->table('assignments a')
+            ->select('a.*')
+            ->join('lessons l', 'l.id = a.lesson_id', 'left')
+            ->join('learning_modules m', 'm.id = l.module_id', 'left')
+            ->where('a.class_id', $classId)
+            ->where('a.status', 'published')
+            ->groupStart()
+                ->where('a.lesson_id IS NULL', null, false)
+                ->orGroupStart()
+                    ->where('l.status', 'published')
+                    ->where('m.status', 'published')
+                ->groupEnd()
+            ->groupEnd()
+            ->orderBy('a.id', 'ASC')
             ->get()->getResultArray();
 
-        $assignmentScore = null;
-        if (! empty($publishedAssignments)) {
-            $asgScores = [];
+        $asgScores = [];
+        $hasAssignments = ! empty($publishedAssignments);
+        if ($hasAssignments) {
             foreach ($publishedAssignments as $asg) {
                 $sub = $this->db->table('assignment_submissions')
-                    ->where(['assignment_id' => (int) $asg['id'], 'enrollment_id' => $enrollmentId, 'status' => 'graded'])
+                    ->where(['assignment_id' => (int) $asg['id'], 'enrollment_id' => $enrollmentId])
                     ->where('score IS NOT NULL', null, false)
                     ->orderBy('score', 'DESC')
                     ->get()->getRowArray();
-                if ($sub && $sub['score'] !== null) {
-                    $asgScores[] = (float) $sub['score'];
+
+                // Tugas harus sudah dinilai untuk finalisasi kelulusan
+                if (! $sub || $sub['status'] !== 'graded' || $sub['score'] === null) {
+                    return false; // Tugas belum dikumpulkan atau belum dinilai oleh instruktur
                 }
-            }
-            if (! empty($asgScores)) {
-                $assignmentScore = round(array_sum($asgScores) / count($asgScores), 2);
+                $asgScores[] = (float) $sub['score'];
             }
         }
+        $avgAssignment = ! empty($asgScores) ? (array_sum($asgScores) / count($asgScores)) : null;
 
-        // 5. Cabang Penilaian Dinamis (Berdasarkan ketersediaan komponen asesmen & pengerjaan)
-        $components = [];
+        // 5. Cek Post-Test (WAJIB ADA & DIKERJAKAN)
+        $postTest = $this->db->table('quizzes')
+            ->where(['class_id' => $classId, 'type' => 'post_test', 'status' => 'published'])
+            ->orderBy('id', 'ASC')
+            ->get()->getRowArray();
 
-        if ($postScore !== null) {
-            $rawWeight = (float) ($class['post_test_weight'] ?? 60.00);
-            $components['post_test'] = [
-                'score'  => $postScore,
-                'weight' => $rawWeight > 0 ? $rawWeight : 60.00,
-            ];
+        if (! $postTest) {
+            // Jika kelas belum memiliki post-test yang diterbitkan, tidak boleh lulus otomatis
+            return false;
         }
 
-        if ($quizScore !== null) {
-            $rawWeight = (float) ($class['quiz_weight'] ?? 40.00);
-            $components['quiz'] = [
-                'score'  => $quizScore,
-                'weight' => $rawWeight > 0 ? $rawWeight : 40.00,
-            ];
-        }
+        $bestPostAttempt = $this->db->table('quiz_attempts')
+            ->where(['quiz_id' => (int) $postTest['id'], 'enrollment_id' => $enrollmentId])
+            ->whereIn('status', ['graded', 'submitted', 'passed', 'completed'])
+            ->where('score IS NOT NULL', null, false)
+            ->orderBy('score', 'DESC')
+            ->get()->getRowArray();
 
-        if ($assignmentScore !== null) {
-            $rawWeight = (float) ($class['assignment_weight'] ?? 0.00);
-            $components['assignment'] = [
-                'score'  => $assignmentScore,
-                'weight' => $rawWeight > 0 ? $rawWeight : 20.00,
-            ];
+        if (! $bestPostAttempt || $bestPostAttempt['score'] === null) {
+            return false; // Post-test wajib belum dikerjakan!
         }
+        $postScore = (float) $bestPostAttempt['score'];
 
-        if (empty($components)) {
-            // Cabang: Kelas tanpa komponen asesmen (atau materi kurikulum penuh)
-            $final = 100.00;
+        // 6. Perhitungan Nilai Akhir Terbobot (Standar Kurikulum PBJ)
+        // Bobot Post-Test dikunci di 60%
+        $wPost = 60.00;
+        $hasQuiz = ! empty($publishedQuizzes) && $avgQuiz !== null;
+        $hasAssignment = $hasAssignments && $avgAssignment !== null;
+
+        if ($hasQuiz && $hasAssignment) {
+            $wAsg = (float) ($class['assignment_weight'] ?? 20.00);
+            if ($wAsg <= 0 || $wAsg > 40.00) {
+                $wAsg = 20.00;
+            }
+            $wQuiz = max(0.00, 100.00 - $wPost - $wAsg);
+        } elseif ($hasQuiz && ! $hasAssignment) {
+            $wQuiz = 40.00;
+            $wAsg  = 0.00;
+        } elseif (! $hasQuiz && $hasAssignment) {
+            $wQuiz = 0.00;
+            $wAsg  = 40.00;
         } else {
-            $totalWeight = array_sum(array_column($components, 'weight'));
-            if ($totalWeight <= 0) {
-                $avgScore = array_sum(array_column($components, 'score')) / count($components);
-                $final = round($avgScore, 2);
-            } else {
-                $weightedSum = 0.0;
-                foreach ($components as $comp) {
-                    $weightedSum += ($comp['score'] * ($comp['weight'] / $totalWeight));
-                }
-                $final = round($weightedSum, 2);
-            }
+            $wQuiz = 0.00;
+            $wAsg  = 0.00;
+        }
+
+        // Jika kelas tidak memiliki kuis modul sama sekali dan tidak ada tugas (hanya post-test):
+        if (! $hasQuiz && ! $hasAssignment) {
+            $final = $postScore; // 100% dari post-test
+        } else {
+            $calcQuizPart = ($avgQuiz !== null) ? ($avgQuiz * ($wQuiz / 100.00)) : 0.00;
+            $calcAsgPart  = ($avgAssignment !== null) ? ($avgAssignment * ($wAsg / 100.00)) : 0.00;
+            $calcPostPart = ($postScore * ($wPost / 100.00));
+            $final = round($calcQuizPart + $calcAsgPart + $calcPostPart, 2);
         }
 
         $passingGrade = (float) ($class['passing_grade'] ?? 70.00);
-        $isPassed = $final >= $passingGrade;
+        $isPassed = ($final >= $passingGrade);
         $isCertEligible = $isPassed && (int) ($class['certificate_enabled'] ?? 0) === 1;
 
-        // Cek apakah peserta masih memiliki sisa kesempatan re-attempt pada post-test
-        $hasPostTestAttemptsRemaining = false;
-        if ($postTest && ! $isPassed) {
-            $attemptsUsed = (int) $this->db->table('quiz_attempts')
-                ->where(['quiz_id' => (int) $postTest['id'], 'enrollment_id' => $enrollmentId])
-                ->countAllResults();
-            $attemptLimit = (int) ($postTest['attempt_limit'] ?? 1);
-            if ($attemptsUsed < $attemptLimit) {
-                $hasPostTestAttemptsRemaining = true;
-            }
-        }
+        // Cek apakah peserta masih memiliki sisa kuota re-attempt pada post-test jika belum lulus
+        $attemptsUsed = (int) $this->db->table('quiz_attempts')
+            ->where(['quiz_id' => (int) $postTest['id'], 'enrollment_id' => $enrollmentId])
+            ->countAllResults();
+        $attemptLimit = (int) ($postTest['attempt_limit'] ?? 1);
+        $hasPostTestAttemptsRemaining = (! $isPassed && $attemptsUsed < $attemptLimit);
 
         $now = date('Y-m-d H:i:s');
         // Jika belum lulus tapi masih memiliki kuota re-attempt, pertahankan status 'active' agar tidak terkunci
@@ -750,7 +778,7 @@ class LearningService
 
         $this->db->table('enrollments')->where('id', $enrollmentId)->update([
             'status'                  => $newEnrollmentStatus,
-            'completed_at'            => $isPassed ? ($enrollment['completed_at'] ?: $now) : null,
+            'completed_at'            => $isPassed ? ($enrollment['completed_at'] ?: $now) : (! $hasPostTestAttemptsRemaining ? ($enrollment['completed_at'] ?: $now) : null),
             'final_score'             => $final,
             'passed_at'               => $isPassed ? ($enrollment['passed_at'] ?: $now) : null,
             'certificate_eligible_at' => $isCertEligible ? ($enrollment['certificate_eligible_at'] ?: $now) : null,
@@ -770,7 +798,7 @@ class LearningService
             }
         }
 
-        return true;
+        return $isPassed;
     }
 
     /**
@@ -785,38 +813,72 @@ class LearningService
 
         $classId = (int) $enrollment['class_id'];
 
-        // Lessons
+        // Lessons: hanya berstatus published di modul published
         $totalLessons = (int) $this->db->query(
             'SELECT COUNT(lessons.id) AS cnt FROM lessons
              JOIN learning_modules ON learning_modules.id = lessons.module_id
-             WHERE learning_modules.class_id = ? AND lessons.status = "published"',
+             WHERE learning_modules.class_id = ? 
+               AND lessons.status = "published" 
+               AND learning_modules.status = "published"',
             [$classId]
         )->getRowArray()['cnt'] ?? 0;
 
-        $completedLessons = $this->db->table('learning_progress')
-            ->where(['enrollment_id' => $enrollmentId, 'status' => 'completed'])
-            ->countAllResults();
+        $completedLessons = (int) $this->db->query(
+            'SELECT COUNT(DISTINCT lp.lesson_id) AS cnt FROM learning_progress lp
+             JOIN lessons ON lessons.id = lp.lesson_id
+             JOIN learning_modules ON learning_modules.id = lessons.module_id
+             WHERE lp.enrollment_id = ? 
+               AND lp.status = "completed" 
+               AND lessons.status = "published" 
+               AND learning_modules.status = "published"',
+            [$enrollmentId]
+        )->getRowArray()['cnt'] ?? 0;
 
-        // Quizzes
-        $totalQuizzes = $this->db->table('quizzes')
-            ->where(['class_id' => $classId, 'status' => 'published'])
-            ->countAllResults();
+        // Quizzes: hanya berstatus published (dan jika terikat modul/lesson, modul & lesson harus published)
+        $totalQuizzes = (int) $this->db->query(
+            'SELECT COUNT(q.id) AS cnt FROM quizzes q
+             LEFT JOIN lessons l ON l.id = q.lesson_id
+             LEFT JOIN learning_modules m ON m.id = l.module_id
+             WHERE q.class_id = ? 
+               AND q.status = "published"
+               AND (q.lesson_id IS NULL OR (l.status = "published" AND m.status = "published"))',
+            [$classId]
+        )->getRowArray()['cnt'] ?? 0;
 
-        $completedQuizzes = $this->db->table('quiz_attempts')
-            ->where(['enrollment_id' => $enrollmentId])
-            ->whereIn('status', ['graded', 'submitted', 'passed', 'completed'])
-            ->select('DISTINCT(quiz_id)')
-            ->countAllResults();
+        $completedQuizzes = (int) $this->db->query(
+            'SELECT COUNT(DISTINCT qa.quiz_id) AS cnt FROM quiz_attempts qa
+             JOIN quizzes q ON q.id = qa.quiz_id
+             LEFT JOIN lessons l ON l.id = q.lesson_id
+             LEFT JOIN learning_modules m ON m.id = l.module_id
+             WHERE qa.enrollment_id = ? 
+               AND qa.status IN ("graded", "submitted", "passed", "completed")
+               AND q.status = "published"
+               AND (q.lesson_id IS NULL OR (l.status = "published" AND m.status = "published"))',
+            [$enrollmentId]
+        )->getRowArray()['cnt'] ?? 0;
 
-        // Assignments
-        $totalAssignments = $this->db->table('assignments')
-            ->where(['class_id' => $classId, 'status' => 'published'])
-            ->countAllResults();
+        // Assignments: hanya berstatus published
+        $totalAssignments = (int) $this->db->query(
+            'SELECT COUNT(a.id) AS cnt FROM assignments a
+             LEFT JOIN lessons l ON l.id = a.lesson_id
+             LEFT JOIN learning_modules m ON m.id = l.module_id
+             WHERE a.class_id = ? 
+               AND a.status = "published"
+               AND (a.lesson_id IS NULL OR (l.status = "published" AND m.status = "published"))',
+            [$classId]
+        )->getRowArray()['cnt'] ?? 0;
 
-        $gradedAssignments = $this->db->table('assignment_submissions')
-            ->where(['enrollment_id' => $enrollmentId, 'status' => 'graded'])
-            ->select('DISTINCT(assignment_id)')
-            ->countAllResults();
+        $gradedAssignments = (int) $this->db->query(
+            'SELECT COUNT(DISTINCT asub.assignment_id) AS cnt FROM assignment_submissions asub
+             JOIN assignments a ON a.id = asub.assignment_id
+             LEFT JOIN lessons l ON l.id = a.lesson_id
+             LEFT JOIN learning_modules m ON m.id = l.module_id
+             WHERE asub.enrollment_id = ? 
+               AND asub.status = "graded"
+               AND a.status = "published"
+               AND (a.lesson_id IS NULL OR (l.status = "published" AND m.status = "published"))',
+            [$enrollmentId]
+        )->getRowArray()['cnt'] ?? 0;
 
         $totalItems = $totalLessons + $totalQuizzes + $totalAssignments;
         $completedItems = $completedLessons + $completedQuizzes + $gradedAssignments;
@@ -869,10 +931,12 @@ class LearningService
             ->select('lessons.*, learning_modules.class_id')
             ->join('learning_modules', 'learning_modules.id = lessons.module_id')
             ->where('lessons.id', $lessonId)
+            ->where('lessons.status', 'published')
+            ->where('learning_modules.status', 'published')
             ->get()->getRowArray();
 
         if (! $lesson) {
-            throw new RuntimeException('Lesson tidak ditemukan.');
+            throw new RuntimeException('Lesson tidak ditemukan atau belum dipublikasikan.');
         }
 
         $enrollment = $this->db->table('enrollments')
@@ -888,9 +952,11 @@ class LearningService
 
     protected function quizContext(int $userId, int $quizId): array
     {
-        $quiz = $this->db->table('quizzes')->where('id', $quizId)->get()->getRowArray();
+        $quiz = $this->db->table('quizzes')
+            ->where(['id' => $quizId, 'status' => 'published'])
+            ->get()->getRowArray();
         if (! $quiz) {
-            throw new RuntimeException('Quiz tidak ditemukan.');
+            throw new RuntimeException('Quiz tidak ditemukan atau belum dipublikasikan.');
         }
 
         $enrollment = $this->db->table('enrollments')

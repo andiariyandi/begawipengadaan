@@ -168,18 +168,30 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
         <?php if ($highestScore !== null || ($latest !== null && (string) ($latest['status'] ?? '') === 'graded')): ?>
             <?php
                 $dispScore = $highestScore !== null ? (float) $highestScore : (float) ($latest['score'] ?? 0);
-                $isPass = $dispScore >= $passingGrade;
+                $isPreTest = ($quiz['type'] === 'pre_test');
+                $isPass = $isPreTest ? true : ($dispScore >= 70.0);
             ?>
             <div class="p-3 px-4 rounded-4 border bg-light text-center shadow-xs">
-                <span class="badge <?= $isPass ? 'bg-success' : 'bg-danger' ?> rounded-pill mb-1 px-3 py-1 fw-bold" style="font-size: 10px;">
-                    <i class="bi <?= $isPass ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill' ?> me-1"></i>
-                    <?= $isPass ? 'Lulus Passing Grade' : 'Belum Memenuhi' ?>
-                </span>
-                <span class="d-block text-muted small fw-semibold text-uppercase" style="font-size: 11px;">Nilai Tertinggi (Digunakan)</span>
-                <strong class="display-6 fw-bold <?= $isPass ? 'text-success' : 'text-danger' ?>">
-                    <?= $dispScore ?>
-                </strong>
-                <span class="d-block text-muted" style="font-size: 11px;">Skala 100 &middot; Min. <?= (float) $passingGrade ?></span>
+                <?php if ($isPreTest): ?>
+                    <span class="badge bg-primary text-white rounded-pill mb-1 px-3 py-1 fw-bold" style="font-size: 10px;">
+                        <i class="bi bi-clipboard2-check-fill me-1"></i> Asesmen Diagnostik Awal
+                    </span>
+                    <span class="d-block text-muted small fw-semibold text-uppercase" style="font-size: 11px;">Skor Asesmen Diagnostik</span>
+                    <strong class="display-6 fw-bold text-primary">
+                        <?= $dispScore ?>
+                    </strong>
+                    <span class="d-block text-muted" style="font-size: 11px;">Skala 100 &middot; Tanpa Passing Grade</span>
+                <?php else: ?>
+                    <span class="badge <?= $isPass ? 'bg-success' : 'bg-danger' ?> rounded-pill mb-1 px-3 py-1 fw-bold" style="font-size: 10px;">
+                        <i class="bi <?= $isPass ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill' ?> me-1"></i>
+                        <?= $isPass ? 'Lulus Passing Grade' : 'Belum Memenuhi Passing Grade' ?>
+                    </span>
+                    <span class="d-block text-muted small fw-semibold text-uppercase" style="font-size: 11px;">Nilai Tertinggi (Digunakan)</span>
+                    <strong class="display-6 fw-bold <?= $isPass ? 'text-success' : 'text-danger' ?>">
+                        <?= $dispScore ?>
+                    </strong>
+                    <span class="d-block text-muted" style="font-size: 11px;">Skala 100 &middot; Min. 70.0</span>
+                <?php endif; ?>
                 <?php if (count($allAttempts) > 1 && $latest !== null): ?>
                     <small class="text-muted d-block mt-1" style="font-size: 10px;">
                         Percobaan Terakhir: <strong><?= (float) ($latest['score'] ?? 0) ?></strong>
@@ -201,7 +213,7 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
     <!-- 2. ACTIVE QUIZ ATTEMPT INTERACTIVE ENGINE -->
     <div class="row g-3 g-md-4">
         <!-- LEFT: QUESTION LIST & CARDS -->
-        <div class="col-lg-8 col-xl-8">
+        <div class="col-lg-8 col-xl-9">
             <form id="quizAttemptForm" method="post" action="<?= route_to('workspace.participant.quiz.submit', (int) $attempt['id']) ?>">
                 <?= csrf_field() ?>
 
@@ -335,7 +347,7 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
         </div>
 
         <!-- RIGHT: QUESTION PALETTE & PROGRESS SIDEBAR (STICKY) -->
-        <div class="col-lg-4 col-xl-4">
+        <div class="col-lg-4 col-xl-3">
             <div class="ws-quiz-palette-card p-3 p-md-4">
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                     <h2 class="h6 fw-bold mb-0" style="color: #082f5c;">
@@ -863,7 +875,8 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
     <?php else: ?>
         <!-- ATTEMPTS EXIST: SUMMARY BANNER, ATTEMPT HISTORY & REVIEW SHEET -->
         <?php
-            $isPassingMet = ($highestScore !== null && (float) $highestScore >= $passingGrade);
+            $isPreTest = ($quiz['type'] === 'pre_test');
+            $isPassingMet = $isPreTest ? true : ($highestScore !== null && (float) $highestScore >= 70.0);
             $bestScoreDisplay = $highestScore !== null ? (float) $highestScore : 0.0;
         ?>
 
@@ -872,23 +885,37 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
             <div class="row align-items-center g-3">
                 <div class="col-lg-8">
                     <div class="d-flex align-items-start gap-3">
-                        <div class="rounded-circle p-3 d-flex align-items-center justify-content-center flex-shrink-0 <?= $isPassingMet ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning-emphasis' ?>" style="width: 58px; height: 58px;">
-                            <i class="bi <?= $isPassingMet ? 'bi-patch-check-fill' : 'bi-exclamation-triangle-fill' ?> fs-3"></i>
+                        <div class="rounded-circle p-3 d-flex align-items-center justify-content-center flex-shrink-0 <?= $isPreTest ? 'bg-primary-subtle text-primary' : ($isPassingMet ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning-emphasis') ?>" style="width: 58px; height: 58px;">
+                            <i class="bi <?= $isPreTest ? 'bi-clipboard2-check-fill' : ($isPassingMet ? 'bi-patch-check-fill' : 'bi-exclamation-triangle-fill') ?> fs-3"></i>
                         </div>
                         <div>
                             <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                                 <h2 class="h5 fw-bold mb-0 text-navy">
                                     Status Evaluasi:
-                                    <span class="<?= $isPassingMet ? 'text-success' : 'text-danger' ?>">
-                                        <?= $isPassingMet ? 'Lulus Passing Grade' : 'Belum Memenuhi Passing Grade' ?>
-                                    </span>
+                                    <?php if ($isPreTest): ?>
+                                        <span class="text-primary">Asesmen Diagnostik Selesai</span>
+                                    <?php else: ?>
+                                        <span class="<?= $isPassingMet ? 'text-success' : 'text-danger' ?>">
+                                            <?= $isPassingMet ? 'Lulus Passing Grade' : 'Belum Memenuhi Passing Grade' ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </h2>
-                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 small">
-                                    Min. <?= (float) $passingGrade ?>
-                                </span>
+                                <?php if (! $isPreTest): ?>
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 small">
+                                        Min. 70.0
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-info-subtle text-info-emphasis rounded-pill px-3 py-1 small">
+                                        Pemetaan Awal
+                                    </span>
+                                <?php endif; ?>
                             </div>
                             <p class="text-muted small mb-2">
-                                Nilai resmi yang diambil untuk kelulusan dan penerbitan sertifikat adalah <strong>Nilai Tertinggi</strong> (Best Attempt): <strong class="fs-6 <?= $isPassingMet ? 'text-success' : 'text-danger' ?>"><?= $bestScoreDisplay ?></strong>.
+                                <?php if ($isPreTest): ?>
+                                    Pre-Test berfungsi sebagai pemetaan diagnostik awal kompetensi peserta sebelum mempelajari modul (tidak memiliki batas passing grade). Skor tercatat: <strong class="fs-6 text-primary"><?= $bestScoreDisplay ?></strong>.
+                                <?php else: ?>
+                                    Nilai resmi yang diambil untuk kelulusan dan penerbitan sertifikat adalah <strong>Nilai Tertinggi</strong> (Best Attempt): <strong class="fs-6 <?= $isPassingMet ? 'text-success' : 'text-danger' ?>"><?= $bestScoreDisplay ?></strong>.
+                                <?php endif; ?>
                             </p>
                             <div class="d-flex flex-wrap align-items-center gap-2">
                                 <span class="badge bg-light text-dark border px-3 py-1 rounded-pill small">
@@ -914,7 +941,7 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
                             <form method="post" action="<?= route_to('workspace.participant.quiz.start', (int) $quiz['id']) ?>" class="d-inline">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 w-100 shadow-sm">
-                                    <i class="bi bi-arrow-repeat me-1"></i> Mulai Percobaan ke-<?= $attemptCount + 1 ?> &raquo;
+                                    <i class="bi bi-arrow-repeat me-1"></i> Coba Ulang / Re-Attempt (Ke-<?= $attemptCount + 1 ?>) &raquo;
                                 </button>
                             </form>
                         <?php endif; ?>
@@ -969,7 +996,7 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
                                 $attScore = (float) ($att['score'] ?? 0);
                                 $isThisHighest = ($bestAttempt !== null && (int) $bestAttempt['id'] === $attId);
                                 $isThisActiveReview = ($reviewAttempt !== null && (int) $reviewAttempt['id'] === $attId);
-                                $isPassThis = ($attScore >= $passingGrade);
+                                $isPassThis = $isPreTest ? true : ($attScore >= 70.0);
                             ?>
                             <tr class="<?= $isThisActiveReview ? 'table-primary-subtle' : '' ?>">
                                 <td class="ps-3">
@@ -987,7 +1014,7 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
                                     </small>
                                 </td>
                                 <td class="text-center">
-                                    <span class="fs-5 fw-bold <?= $isPassThis ? 'text-success' : 'text-danger' ?>">
+                                    <span class="fs-5 fw-bold <?= $isPreTest ? 'text-primary' : ($isPassThis ? 'text-success' : 'text-danger') ?>">
                                         <?= $attScore ?>
                                     </span>
                                     <span class="text-muted small">/ 100</span>
@@ -1028,7 +1055,12 @@ $typeBadge = match ((string) ($quiz['type'] ?? 'lesson_quiz')) {
                                 Review Soal Percobaan #<?= (int) ($reviewAttempt['attempt_number'] ?? 1) ?>
                             </h2>
                             <span class="text-muted small">
-                                Skor Percobaan Ini: <strong class="<?= (float) ($reviewAttempt['score'] ?? 0) >= $passingGrade ? 'text-success' : 'text-danger' ?> fs-6"><?= (float) ($reviewAttempt['score'] ?? 0) ?> / 100</strong>
+                                Skor Percobaan Ini:
+                                <?php if ($isPreTest): ?>
+                                    <strong class="text-primary fs-6"><?= (float) ($reviewAttempt['score'] ?? 0) ?> / 100</strong> (Diagnostik Awal)
+                                <?php else: ?>
+                                    <strong class="<?= (float) ($reviewAttempt['score'] ?? 0) >= 70.0 ? 'text-success' : 'text-danger' ?> fs-6"><?= (float) ($reviewAttempt['score'] ?? 0) ?> / 100</strong> (Passing Grade: 70.0)
+                                <?php endif; ?>
                                 &middot; Selesai pada: <?= ! empty($reviewAttempt['submitted_at']) ? esc(date('d M Y H:i', strtotime($reviewAttempt['submitted_at']))) : '-' ?> WIB
                             </span>
                         </div>

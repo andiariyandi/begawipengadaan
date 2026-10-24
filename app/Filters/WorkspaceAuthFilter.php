@@ -8,7 +8,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 /**
  * Gate untuk route group Workspace (workspace, workspace/peserta, workspace/trainer,
- * workspace/evaluator, workspace/operator, workspace/admin).
+ * workspace/operator, workspace/admin).
  *
  * Mengamankan:
  * - session login valid
@@ -97,12 +97,12 @@ class WorkspaceAuthFilter implements FilterInterface
             }
         }
 
-        // 2. /workspace/trainer/*
+        // 2. /workspace/trainer/* (Termasuk Operator yang bertugas sebagai Asisten Trainer pada kelas yang ditugaskan)
         if (str_starts_with($path, 'workspace/trainer')) {
-            $allowed = ['trainer', 'administrator', 'super_administrator'];
+            $allowed = ['trainer', 'operator', 'administrator', 'super_administrator'];
             if (empty(array_intersect($allowed, $effectiveRoles))) {
                 return redirect()->to(site_url('workspace'))
-                    ->with('error', 'Akses ditolak: Anda tidak memiliki wewenang Pengajar / Trainer.');
+                    ->with('error', 'Akses ditolak: Anda tidak memiliki wewenang Pengajar / Asisten Trainer.');
             }
         }
 

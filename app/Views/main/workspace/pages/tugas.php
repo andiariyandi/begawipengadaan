@@ -4,11 +4,19 @@
 <?= view('dashboard/components/flash_message') ?>
 
 <?php
-$activeAssignment = $activeAssignment ?? null;
-$latestSubmission = $latestSubmission ?? null;
-$submittedFile    = $submittedFile ?? null;
-$assignmentsList  = $assignmentsList ?? [];
-$sectionContent   = $sectionContent ?? [];
+$activeAssignment  = $activeAssignment ?? null;
+$latestSubmission  = $latestSubmission ?? null;
+$bestSubmission    = $bestSubmission ?? null;
+$highestScore      = $highestScore ?? null;
+$reviewSubmission  = $reviewSubmission ?? ($bestSubmission ?? $latestSubmission);
+$allSubmissions    = $allSubmissions ?? (! empty($latestSubmission) ? [$latestSubmission] : []);
+$submittedFile     = $submittedFile ?? null;
+$assignmentsList   = $assignmentsList ?? [];
+$sectionContent    = $sectionContent ?? [];
+$passingGrade      = (float) ($passingGrade ?? 70.0);
+$attemptLimit      = (int) ($attemptLimit ?? ($activeAssignment['max_attempts'] ?? 1));
+$attemptCount      = (int) ($attemptCount ?? count($allSubmissions));
+$remainingAttempts = (int) ($remainingAttempts ?? max(0, $attemptLimit - $attemptCount));
 ?>
 
 <!-- 1. HEADER SECTION (FISTUDY DNA) -->
@@ -125,72 +133,250 @@ $sectionContent   = $sectionContent ?? [];
             <?php endif; ?>
         </div>
 
-        <!-- Latest Submission Status Alert (Jika Sudah Pernah Submit) -->
-        <?php if (! empty($latestSubmission)): ?>
+        <!-- Riwayat Submission, Review, dan Status Evaluasi Tugas -->
+        <?php if (! empty($allSubmissions)): ?>
             <?php
-            $subStatus = (string) ($latestSubmission['status'] ?? 'submitted');
-            $statusAlertClass = match ($subStatus) {
-                'graded'            => 'alert-success border-success-subtle bg-success-subtle text-success-emphasis',
-                'revision_required' => 'alert-warning border-warning-subtle bg-warning-subtle text-warning-emphasis',
-                'in_review'         => 'alert-info border-info-subtle bg-info-subtle text-info-emphasis',
-                default             => 'alert-primary border-primary-subtle bg-primary-subtle text-primary-emphasis',
-            };
-            $statusLabel = match ($subStatus) {
-                'graded'            => 'Telah Dinilai Pengajar',
-                'revision_required' => 'Perlu Perbaikan / Revisi',
-                'in_review'         => 'Sedang Dalam Peninjauan',
-                default             => 'Telah Dikumpulkan (Menunggu Penilaian)',
-            };
+                $isPassAsg = ($highestScore !== null && (float) $highestScore >= $passingGrade);
+                $bestScoreDisp = $highestScore !== null ? (float) $highestScore : null;
+                $activeReviewId = (int) ($reviewSubmission['id'] ?? 0);
             ?>
-            <div class="alert <?= $statusAlertClass ?> rounded-4 p-3 mb-3 border">
-                <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
-                    <div>
-                        <span class="badge bg-dark rounded-pill px-3 py-1 mb-2 fw-semibold">Percobaan #<?= (int) ($latestSubmission['attempt_number'] ?? 1) ?></span>
-                        <h5 class="alert-heading fw-bold mb-1">
-                            <i class="bi bi-patch-check-fill me-1"></i> Status: <?= esc($statusLabel) ?>
-                        </h5>
-                        <small class="text-muted d-block">Dikumpulkan pada: <strong><?= esc($latestSubmission['submitted_at'] ?? '-') ?></strong></small>
+
+            <!-- Status Evaluasi & Nilai Tertinggi Card -->
+            <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 mb-4 bg-white border">
+                <div class="row align-items-center g-3">
+                    <div class="col-lg-8">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="rounded-circle p-3 d-flex align-items-center justify-content-center flex-shrink-0 <?= $bestScoreDisp !== null ? ($isPassAsg ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning-emphasis') : 'bg-primary-subtle text-primary' ?>" style="width: 58px; height: 58px;">
+                                <i class="bi <?= $bestScoreDisp !== null ? ($isPassAsg ? 'bi-patch-check-fill' : 'bi-exclamation-triangle-fill') : 'bi-hourglass-split' ?> fs-3"></i>
+                            </div>
+                            <div>
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                    <h2 class="h5 fw-bold mb-0 text-navy">
+                                        Status Evaluasi:
+                                        <?php if ($bestScoreDisp !== null): ?>
+                                            <span class="<?= $isPassAsg ? 'text-success' : 'text-danger' ?>">
+                                                <?= $isPassAsg ? 'Lulus Passing Grade' : 'Belum Memenuhi Passing Grade' ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="text-primary">Menunggu Penilaian Instruktur</span>
+                                        <?php endif; ?>
+                                    </h2>
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 small">
+                                        Min. <?= (float) $passingGrade ?>
+                                    </span>
+                                </div>
+                                <p class="text-muted small mb-2">
+                                    Nilai resmi yang digunakan untuk kelulusan dan rapor pembelajaran adalah <strong>Nilai Tertinggi</strong> (Best Submission):
+                                    <?php if ($bestScoreDisp !== null): ?>
+                                        <strong class="fs-6 <?= $isPassAsg ? 'text-success' : 'text-danger' ?>"><?= $bestScoreDisp ?></strong> / 100.
+                                    <?php else: ?>
+                                        <span class="text-muted fst-italic">Belum dinilai instruktur.</span>
+                                    <?php endif; ?>
+                                </p>
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="badge bg-light text-dark border px-3 py-1 rounded-pill small">
+                                        Percobaan Digunakan: <strong><?= $attemptCount ?></strong> dari <strong><?= $attemptLimit ?>x</strong>
+                                    </span>
+                                    <?php if ($remainingAttempts > 0): ?>
+                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-3 py-1 rounded-pill small fw-semibold">
+                                            <i class="bi bi-arrow-repeat me-1"></i> Sisa Kesempatan: <?= $remainingAttempts ?>x
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1 rounded-pill small">
+                                            Seluruh Kesempatan Telah Digunakan
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <?php if ($latestSubmission['score'] !== null): ?>
-                        <div class="p-2 px-3 rounded-4 bg-white border text-center shadow-xs">
-                            <span class="d-block text-muted small fw-semibold" style="font-size: 11px;">Nilai Tugas</span>
-                            <span class="display-6 fw-bold text-success"><?= (float) $latestSubmission['score'] ?></span>
-                            <span class="text-muted small">/ 100</span>
+                    <?php if ($bestScoreDisp !== null): ?>
+                        <div class="col-lg-4 text-lg-end">
+                            <div class="p-3 rounded-4 bg-light border d-inline-block text-center shadow-xs">
+                                <span class="d-block text-muted small fw-semibold text-uppercase" style="font-size: 11px;">Nilai Tertinggi</span>
+                                <span class="display-6 fw-bold <?= $isPassAsg ? 'text-success' : 'text-danger' ?>"><?= $bestScoreDisp ?></span>
+                                <span class="text-muted small">/ 100</span>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>
+            </div>
 
-                <!-- Instructor Feedback Box -->
-                <?php if (! empty($latestSubmission['feedback'])): ?>
+            <!-- Tabel Riwayat Percobaan & Review Tugas -->
+            <div class="card border-0 rounded-4 shadow-sm mb-4 bg-white overflow-hidden border">
+                <div class="p-3 px-4 bg-light border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <div>
+                        <h3 class="h6 fw-bold mb-0 text-navy">
+                            <i class="bi bi-clock-history me-1 text-primary"></i> Riwayat Pengumpulan & Review Tugas
+                        </h3>
+                        <small class="text-muted">Daftar percobaan pengumpulan dan review feedback dari instruktur untuk setiap attempt.</small>
+                    </div>
+                    <span class="badge bg-primary rounded-pill px-3 py-1 small">
+                        Aturan: Nilai Tertinggi yang Diambil
+                    </span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3" style="width: 140px;">Percobaan</th>
+                                <th>Waktu Pengumpulan</th>
+                                <th class="text-center" style="width: 130px;">Skor</th>
+                                <th class="text-center" style="width: 160px;">Status Nilai</th>
+                                <th style="width: 180px;">Status Pemeriksaan</th>
+                                <th class="text-end pe-3" style="width: 160px;">Aksi Review</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($allSubmissions as $subRow): ?>
+                                <?php
+                                    $subId = (int) $subRow['id'];
+                                    $subScore = $subRow['score'] !== null ? (float) $subRow['score'] : null;
+                                    $isThisHighest = ($bestSubmission !== null && (int) $bestSubmission['id'] === $subId);
+                                    $isThisActiveReview = ($activeReviewId === $subId);
+                                    $isPassSub = ($subScore !== null && $subScore >= $passingGrade);
+                                    $st = (string) ($subRow['status'] ?? 'submitted');
+                                    $stLabel = match ($st) {
+                                        'graded'            => 'Telah Dinilai',
+                                        'revision_required' => 'Perlu Revisi',
+                                        'in_review'         => 'Sedang Diperiksa',
+                                        default             => 'Menunggu Penilaian',
+                                    };
+                                    $stBadge = match ($st) {
+                                        'graded'            => 'bg-success-subtle text-success border-success-subtle',
+                                        'revision_required' => 'bg-warning-subtle text-warning-emphasis border-warning-subtle',
+                                        'in_review'         => 'bg-info-subtle text-info-emphasis border-info-subtle',
+                                        default             => 'bg-secondary-subtle text-secondary border-secondary-subtle',
+                                    };
+                                ?>
+                                <tr class="<?= $isThisActiveReview ? 'table-primary-subtle' : '' ?>">
+                                    <td class="ps-3">
+                                        <strong class="text-navy">Percobaan #<?= (int) ($subRow['attempt_number'] ?? 1) ?></strong>
+                                        <?php if ($isThisActiveReview): ?>
+                                            <span class="badge bg-primary ms-1" style="font-size: 9px;">Sedang Ditinjau</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="d-block text-dark fw-medium">
+                                            <?= ! empty($subRow['submitted_at']) ? esc(date('d M Y, H:i', strtotime($subRow['submitted_at']))) : '-' ?> WIB
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($subScore !== null): ?>
+                                            <span class="fs-5 fw-bold <?= $isPassSub ? 'text-success' : 'text-danger' ?>">
+                                                <?= $subScore ?>
+                                            </span>
+                                            <span class="text-muted small">/ 100</span>
+                                        <?php else: ?>
+                                            <span class="text-muted small fst-italic">Belum Dinilai</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($isThisHighest && $subScore !== null): ?>
+                                            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold shadow-xs">
+                                                <i class="bi bi-trophy-fill me-1"></i> Nilai Tertinggi
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary-subtle text-secondary px-2 py-1 rounded-pill small">
+                                                Arsip Percobaan
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?= $stBadge ?> border px-3 py-1 rounded-pill small">
+                                            <?= esc($stLabel) ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <a href="<?= site_url('workspace/peserta/kelas/' . esc($activeAssignment['class_id']) . '/tugas/kirim?assignment_id=' . esc($activeAssignment['id']) . '&submission_id=' . $subId) ?>#submissionReviewDetail" class="btn btn-sm <?= $isThisActiveReview ? 'btn-primary' : 'btn-outline-primary' ?> rounded-pill px-3 fw-semibold">
+                                            <i class="bi bi-eye me-1"></i> <?= $isThisActiveReview ? 'Sedang Ditinjau' : 'Lihat Review' ?>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detail Lembar Review Pengumpulan Terpilih -->
+            <?php if (! empty($reviewSubmission)): ?>
+                <?php
+                    $revStatus = (string) ($reviewSubmission['status'] ?? 'submitted');
+                    $revStatusAlertClass = match ($revStatus) {
+                        'graded'            => 'alert-success border-success-subtle bg-success-subtle text-success-emphasis',
+                        'revision_required' => 'alert-warning border-warning-subtle bg-warning-subtle text-warning-emphasis',
+                        'in_review'         => 'alert-info border-info-subtle bg-info-subtle text-info-emphasis',
+                        default             => 'alert-primary border-primary-subtle bg-primary-subtle text-primary-emphasis',
+                    };
+                    $revStatusLabel = match ($revStatus) {
+                        'graded'            => 'Telah Dinilai Pengajar',
+                        'revision_required' => 'Perlu Perbaikan / Revisi',
+                        'in_review'         => 'Sedang Dalam Peninjauan',
+                        default             => 'Telah Dikumpulkan (Menunggu Penilaian)',
+                    };
+                    $revFile = $submittedFile ?? ($reviewSubmission['file'] ?? null);
+                ?>
+                <div id="submissionReviewDetail" class="alert <?= $revStatusAlertClass ?> rounded-4 p-3 mb-4 border shadow-xs">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2 pb-2 border-bottom border-secondary border-opacity-10">
+                        <div>
+                            <span class="badge bg-dark rounded-pill px-3 py-1 mb-2 fw-semibold">Review Percobaan #<?= (int) ($reviewSubmission['attempt_number'] ?? 1) ?></span>
+                            <h5 class="alert-heading fw-bold mb-1">
+                                <i class="bi bi-patch-check-fill me-1"></i> Status Pemeriksaan: <?= esc($revStatusLabel) ?>
+                            </h5>
+                            <small class="text-muted d-block">Dikumpulkan pada: <strong><?= esc($reviewSubmission['submitted_at'] ?? '-') ?> WIB</strong></small>
+                        </div>
+
+                        <?php if ($reviewSubmission['score'] !== null): ?>
+                            <div class="p-2 px-3 rounded-4 bg-white border text-center shadow-xs">
+                                <span class="d-block text-muted small fw-semibold" style="font-size: 11px;">Nilai Percobaan Ini</span>
+                                <span class="display-6 fw-bold <?= (float) $reviewSubmission['score'] >= $passingGrade ? 'text-success' : 'text-danger' ?>"><?= (float) $reviewSubmission['score'] ?></span>
+                                <span class="text-muted small">/ 100</span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Uraian Jawaban Peserta -->
                     <div class="mt-3 p-3 bg-white rounded-3 border">
                         <strong class="text-dark small d-block mb-1">
-                            <i class="bi bi-chat-left-quote-fill text-primary me-1"></i> Catatan & Feedback Pengajar:
+                            <i class="bi bi-file-text-fill text-primary me-1"></i> Uraian Jawaban / Ringkasan yang Dikirim:
                         </strong>
-                        <p class="mb-0 text-muted lh-base"><?= nl2br(esc($latestSubmission['feedback'])) ?></p>
+                        <p class="mb-0 text-dark lh-base small"><?= nl2br(esc($reviewSubmission['content'] ?? 'Tidak ada uraian tertulis.')) ?></p>
                     </div>
-                <?php endif; ?>
 
-                <!-- Previously Uploaded File Info -->
-                <?php if (! empty($submittedFile)): ?>
-                    <div class="mt-3 p-3 bg-white rounded-3 border d-flex flex-wrap align-items-center justify-content-between gap-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-paperclip text-primary fs-5"></i>
-                            <div>
-                                <strong class="small d-block text-dark"><?= esc($submittedFile['original_name'] ?? 'Berkas Tugas') ?></strong>
-                                <span class="text-muted" style="font-size: 11px;"><?= round(($submittedFile['size_bytes'] ?? 0) / 1024, 1) ?> KB &middot; <?= esc($submittedFile['mime_type'] ?? 'file') ?></span>
-                            </div>
+                    <!-- Instructor Feedback Box -->
+                    <?php if (! empty($reviewSubmission['feedback'])): ?>
+                        <div class="mt-3 p-3 bg-white rounded-3 border">
+                            <strong class="text-dark small d-block mb-1">
+                                <i class="bi bi-chat-left-quote-fill text-primary me-1"></i> Catatan & Feedback Pengajar:
+                            </strong>
+                            <p class="mb-0 text-muted lh-base"><?= nl2br(esc($reviewSubmission['feedback'])) ?></p>
                         </div>
-                        <a href="<?= base_url('file/' . $submittedFile['id']) ?>?download=1" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                            <i class="bi bi-download me-1"></i> Unduh Berkas yang Dikumpulkan
-                        </a>
-                    </div>
-                <?php endif; ?>
-            </div>
+                    <?php endif; ?>
+
+                    <!-- Uploaded File Info -->
+                    <?php if (! empty($revFile)): ?>
+                        <div class="mt-3 p-3 bg-white rounded-3 border d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-paperclip text-primary fs-5"></i>
+                                <div>
+                                    <strong class="small d-block text-dark"><?= esc($revFile['original_name'] ?? 'Berkas Tugas') ?></strong>
+                                    <span class="text-muted" style="font-size: 11px;"><?= round(($revFile['size_bytes'] ?? 0) / 1024, 1) ?> KB &middot; <?= esc($revFile['mime_type'] ?? 'file') ?></span>
+                                </div>
+                            </div>
+                            <a href="<?= base_url('file/' . $revFile['id']) ?>?download=1" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                <i class="bi bi-download me-1"></i> Unduh Berkas Pengumpulan Ini
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
 
         <?php
-        $canSubmit = empty($latestSubmission) || ($latestSubmission['status'] ?? '') === 'revision_required' || (int) ($latestSubmission['attempt_number'] ?? 0) < (int) ($activeAssignment['max_attempts'] ?? 1);
+        $canSubmit = empty($latestSubmission) || ($latestSubmission['status'] ?? '') === 'revision_required' || $remainingAttempts > 0;
         ?>
 
         <?php if ($canSubmit): ?>

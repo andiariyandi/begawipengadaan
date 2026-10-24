@@ -28,7 +28,7 @@ class CertificateEligibilityController extends BaseController
 
         $builder = $db->table('enrollments e')
             ->select('e.*, u.name AS student_name, u.username, u.email AS student_email,
-                      lc.name AS class_name, lc.code AS class_code, lc.passing_grade,
+                      lc.name AS class_name, lc.code AS class_code, lc.passing_grade, lc.certificate_enabled,
                       cert.id AS certificate_id, cert.certificate_number, cert.status AS cert_status,
                       cert.issued_at AS cert_issued_at, cert.pdf_file_id')
             ->join('users u', 'u.id = e.user_id')
@@ -57,10 +57,14 @@ class CertificateEligibilityController extends BaseController
         $notEligibleCount = 0;
 
         foreach ($allRows as &$row) {
-            $isIssued = ! empty($row['certificate_id']);
-            $isEligible = (! $isIssued) && (
-                in_array($row['status'], ['completed', 'passed'], true) ||
-                ! empty($row['certificate_eligible_at'])
+            $isIssued     = ! empty($row['certificate_id']);
+            $certEnabled  = (int) ($row['certificate_enabled'] ?? 0) === 1;
+            $passingGrade = (float) ($row['passing_grade'] ?? 70.0);
+            $finalScore   = (float) ($row['final_score'] ?? 0);
+
+            $isEligible = (! $isIssued) && $certEnabled && (
+                ! empty($row['certificate_eligible_at']) ||
+                (in_array($row['status'], ['completed', 'passed'], true) && ! empty($row['passed_at']) && $finalScore >= $passingGrade)
             );
 
             if ($isIssued) {
@@ -119,6 +123,30 @@ class CertificateEligibilityController extends BaseController
     public function generate(string $enrollmentId)
     {
         $actorId = (int) session()->get('user_id');
+        $db = db_connect();
+
+        $enr = $db->table('enrollments e')
+            ->select('e.*, lc.passing_grade, lc.certificate_enabled')
+            ->join('learning_classes lc', 'lc.id = e.class_id')
+            ->where('e.id', (int) $enrollmentId)
+            ->get()->getRowArray();
+
+        if (! $enr) {
+            return redirect()->back()->with('error', 'Enrollment tidak ditemukan.');
+        }
+
+        $certEnabled  = (int) ($enr['certificate_enabled'] ?? 0) === 1;
+        $passingGrade = (float) ($enr['passing_grade'] ?? 70.0);
+        $finalScore   = (float) ($enr['final_score'] ?? 0);
+        $isEligible   = $certEnabled && (
+            ! empty($enr['certificate_eligible_at']) ||
+            (in_array($enr['status'], ['completed', 'passed'], true) && ! empty($enr['passed_at']) && $finalScore >= $passingGrade)
+        );
+
+        if (! $isEligible) {
+            return redirect()->back()->with('error', 'Peserta belum memenuhi syarat kelulusan kelas atau sertifikat kelas dinonaktifkan.');
+        }
+
         $generator = new CertificateGenerator();
 
         try {
@@ -139,11 +167,17 @@ class CertificateEligibilityController extends BaseController
         $db = db_connect();
         $builder = $db->table('enrollments e')
             ->select('e.id')
+            ->join('learning_classes lc', 'lc.id = e.class_id')
             ->join('certificates cert', 'cert.source_type = "learning_enrollment" AND cert.source_id = e.id AND cert.status = "issued"', 'left')
             ->where('cert.id IS NULL', null, false)
+            ->where('lc.certificate_enabled', 1)
             ->groupStart()
-            ->whereIn('e.status', ['completed', 'passed'])
-            ->orWhere('e.certificate_eligible_at IS NOT NULL', null, false)
+                ->where('e.certificate_eligible_at IS NOT NULL', null, false)
+                ->orGroupStart()
+                    ->whereIn('e.status', ['completed', 'passed'])
+                    ->where('e.passed_at IS NOT NULL')
+                    ->where('e.final_score >= lc.passing_grade', null, false)
+                ->groupEnd()
             ->groupEnd();
 
         if ($classId > 0) {

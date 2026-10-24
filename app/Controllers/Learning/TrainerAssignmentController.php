@@ -62,27 +62,28 @@ class TrainerAssignmentController extends BaseController
         $stats = [
             'total'          => (int) $db->table('class_trainers')->countAllResults(),
             'active'         => (int) $db->table('class_trainers')->where('status', 'active')->countAllResults(),
-            'unique_classes' => (int) $db->table('class_trainers')->where('status', 'active')->select('COUNT(DISTINCT class_id) as cnt')->get()->getRow()->cnt ?? 0,
+            'unique_classes' => (int) ($db->table('class_trainers')->where('status', 'active')->select('COUNT(DISTINCT class_id) as cnt')->get()->getRow()->cnt ?? 0),
             'revoked'        => (int) $db->table('class_trainers')->where('status', 'revoked')->countAllResults(),
         ];
 
         // Classes for dropdown
         $classes = $this->classModel->orderBy('name', 'ASC')->findAll();
 
-        // Trainer candidates (users with role 'trainer' and active status)
+        // Trainer & Operator candidates (users with role 'trainer' or 'operator' and active status)
         $trainers = $db->table('user_roles ur')
-            ->select('u.id, u.name, u.email, u.username')
+            ->select('u.id, u.name, u.email, u.username, GROUP_CONCAT(DISTINCT r.`key` ORDER BY r.`key` SEPARATOR \', \') AS role_keys')
             ->join('roles r', 'r.id = ur.role_id')
             ->join('users u', 'u.id = ur.user_id')
             ->where('ur.status', 'active')
-            ->where('r.`key`', 'trainer')
+            ->whereIn('r.`key`', ['trainer', 'operator'])
             ->where('u.account_status', 'active')
+            ->groupBy('u.id, u.name, u.email, u.username')
             ->orderBy('u.name', 'ASC')
             ->get()->getResultArray();
 
         return view('dashboard/learning/trainers/index', [
-            'title'         => 'Penugasan Trainer | Dashboard BegawiPengadaan',
-            'pageTitle'     => 'Penugasan Trainer (Trainer Assignment)',
+            'title'         => 'Penugasan Trainer & Operator | Dashboard BegawiPengadaan',
+            'pageTitle'     => 'Penugasan Trainer & Operator Kelas',
             'assignments'   => $assignments,
             'stats'         => $stats,
             'classes'       => $classes,
@@ -104,7 +105,7 @@ class TrainerAssignmentController extends BaseController
         $trainerId = (int) $this->request->getPost('trainer_user_id');
 
         if ($classId < 1 || $trainerId < 1) {
-            return redirect()->back()->withInput()->with('error', 'Pilih kelas dan trainer dengan benar.');
+            return redirect()->back()->withInput()->with('error', 'Pilih kelas dan pengajar/operator dengan benar.');
         }
 
         $class = $this->classModel->find($classId);
@@ -113,13 +114,23 @@ class TrainerAssignmentController extends BaseController
         }
 
         $db = db_connect();
-        $isTrainer = $db->table('user_roles ur')
+        $userRoles = $db->table('user_roles ur')
+            ->select('r.`key`')
             ->join('roles r', 'r.id = ur.role_id')
-            ->where(['ur.user_id' => $trainerId, 'ur.status' => 'active', 'r.key' => 'trainer'])
-            ->countAllResults() > 0;
+            ->where(['ur.user_id' => $trainerId, 'ur.status' => 'active'])
+            ->whereIn('r.`key`', ['trainer', 'operator'])
+            ->get()->getResultArray();
 
-        if (! $isTrainer) {
-            return redirect()->back()->with('error', 'Pengguna yang dipilih tidak memiliki role trainer aktif.');
+        $roleKeys = array_column($userRoles, 'key');
+        if ($roleKeys === []) {
+            return redirect()->back()->with('error', 'Pengguna yang dipilih tidak memiliki role Trainer atau Operator aktif.');
+        }
+
+        $requestedRole = (string) ($this->request->getPost('role') ?: '');
+        if ($requestedRole === 'operator' || (! in_array('trainer', $roleKeys, true) && in_array('operator', $roleKeys, true))) {
+            $roleToSave = 'operator';
+        } else {
+            $roleToSave = in_array($requestedRole, ['primary', 'co_trainer', 'guest'], true) ? $requestedRole : 'primary';
         }
 
         $actorId = (int) session()->get('user_id');
@@ -131,14 +142,14 @@ class TrainerAssignmentController extends BaseController
                 'assigned_by' => $actorId > 0 ? $actorId : null,
                 'assigned_at' => date('Y-m-d H:i:s'),
                 'status'      => 'active',
-                'role'        => $this->request->getPost('role') ?: 'primary',
+                'role'        => $roleToSave,
             ]);
         } catch (\Throwable $e) {
-            return redirect()->back()->with('error', 'Gagal menugaskan trainer: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menugaskan: ' . $e->getMessage());
         }
 
         return redirect()->to(site_url('dashboard/pembelajaran/trainer'))
-            ->with('success', 'Trainer berhasil ditugaskan ke kelas.');
+            ->with('success', 'Penugasan ke kelas berhasil disimpan.');
     }
 
     public function revoke(string $classId, string $userId)
@@ -155,6 +166,6 @@ class TrainerAssignmentController extends BaseController
         }
 
         return redirect()->to(site_url('dashboard/pembelajaran/trainer'))
-            ->with('success', 'Penugasan trainer berhasil dicabut.');
+            ->with('success', 'Penugasan berhasil dicabut.');
     }
 }

@@ -17,6 +17,7 @@ $fmt = static fn(int $n): string => number_format($n, 0, ',', '.');
             <option value="2025" <?= ($year == 2025) ? 'selected' : '' ?>>Tahun Anggaran 2025</option>
         </select>
     </form>
+    <form method="post" action="<?= site_url('dashboard/intelligence/gap-kompetensi/snapshot') ?>" class="d-inline"><?= csrf_field() ?><input type="hidden" name="year" value="<?= esc((string) ($year ?? 2026)) ?>"><button type="submit" class="btn btn-primary-600 btn-sm radius-8 px-16 py-8 d-inline-flex align-items-center gap-6"><iconify-icon icon="solar:camera-bold"></iconify-icon> Rekam Snapshot Periode Ini</button></form>
 </div>
 
 <!-- Top Analytics Chart & Summary -->

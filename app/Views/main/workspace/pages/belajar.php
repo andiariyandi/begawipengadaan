@@ -248,7 +248,7 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
 <!-- 2. MAIN LEARNING ROOM LAYOUT: SIDEBAR + CONTENT -->
 <div class="row g-3">
     <!-- LEFT SIDEBAR: POHON ALUR MODUL & KURIKULUM -->
-    <div class="col-lg-4 col-xl-4">
+    <div class="col-lg-4 col-xl-3">
         <div class="learning-sidebar ws-learning-sidebar p-3 sticky-top" style="top: 90px; max-height: calc(100vh - 110px); overflow-y: auto;">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <h2 class="h6 mb-0 fw-bold text-uppercase d-flex align-items-center" style="font-size: 12px; letter-spacing: 0.5px; color: #082f5c;">
@@ -437,7 +437,17 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
             <?php endif; ?>
 
             <!-- Kelulusan & Sertifikat Item -->
-            <div class="p-2 px-3 border rounded-3 <?= in_array($stateCode, ['certificate_issued', 'completed_passed'], true) ? 'bg-success-subtle border-success' : ($stateCode === 'completed_failed' ? 'bg-danger-subtle border-danger' : 'bg-light') ?>">
+            <?php
+            $isOverviewActive = ($activeType === 'overview');
+            $overviewCardClass = in_array($stateCode, ['certificate_issued', 'completed_passed'], true)
+                ? 'bg-success-subtle border-success'
+                : ($stateCode === 'completed_failed' ? 'bg-danger-subtle border-danger' : 'bg-light');
+            if ($isOverviewActive) {
+                $overviewCardClass .= ' border-primary border-2 shadow-xs';
+            }
+            ?>
+            <a href="<?= route_to('workspace.participant.study', (string) ($ctx['id'] ?? 0)) ?>?overview=1" class="text-decoration-none d-block">
+                <div class="p-2 px-3 border rounded-3 <?= $overviewCardClass ?> transition-all">
                 <div class="d-flex align-items-center justify-content-between gap-1">
                     <div class="d-flex align-items-center gap-2 overflow-hidden">
                         <?php if (in_array($stateCode, ['certificate_issued', 'completed_passed'], true)): ?>
@@ -460,13 +470,14 @@ $nextStage = ($currentStageIndex >= 0 && $currentStageIndex + 1 < $totalStages) 
                     <?php else: ?>
                         <span class="badge bg-secondary rounded-pill" style="font-size: 10px;"><i class="bi bi-lock"></i></span>
                     <?php endif; ?>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
     <!-- RIGHT MAIN CONTENT: MATERI AKTIF / VIEWER -->
-    <div class="col-lg-8 col-xl-8">
+    <div class="col-lg-8 col-xl-9">
         <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 bg-white">
             <?php if ($activeType === 'lesson' && ! empty($activeItem)): ?>
                 <!-- HEADER MATERI -->

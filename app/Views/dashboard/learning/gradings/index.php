@@ -58,7 +58,7 @@ $filters = $filters ?? [];
                         <iconify-icon icon="solar:clock-circle-outline" class="text-white text-2xl mb-0"></iconify-icon>
                     </div>
                 </div>
-                <p class="fw-medium text-sm text-primary-light mt-12 mb-0">Antrean review evaluator</p>
+                <p class="fw-medium text-sm text-primary-light mt-12 mb-0">Antrean review penilaian (Operator / Trainer)</p>
             </div>
         </div>
     </div>

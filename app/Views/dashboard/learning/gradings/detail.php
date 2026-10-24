@@ -101,7 +101,7 @@ $gradingId  = $gradingId ?? ($submission['id'] ?? '-');
         </div>
     </div>
 
-    <!-- Evaluator & Grading Form Sidebar -->
+    <!-- Penilai (Operator / Trainer) & Grading Form Sidebar -->
     <div class="col-xl-4">
         <!-- Form Penilaian Langsung -->
         <div class="card border radius-12 shadow-none mb-24">
@@ -149,7 +149,7 @@ $gradingId  = $gradingId ?? ($submission['id'] ?? '-');
             </div>
             <div class="card-body p-24">
                 <div class="mb-16">
-                    <span class="text-xs text-secondary-light d-block mb-1">Evaluator / Penilai:</span>
+                    <span class="text-xs text-secondary-light d-block mb-1">Penilai (Operator / Trainer):</span>
                     <h6 class="text-sm fw-bold mb-0 text-neutral-900"><?= esc($submission['evaluator_name'] ?? 'Belum Dinilai') ?></h6>
                 </div>
 

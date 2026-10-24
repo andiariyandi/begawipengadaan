@@ -59,10 +59,12 @@ class ProgressMonitoringController extends BaseController
             $enrId = (int) $p['id'];
             $usrId = (int) $p['user_id'];
 
-            // Lessons count
+            // Lessons count (hanya modul & materi published)
             $totalLessons = (int) $db->table('lessons l')
                 ->join('learning_modules lm', 'lm.id = l.module_id')
                 ->where('lm.class_id', $clsId)
+                ->where('lm.status', 'published')
+                ->where('l.status', 'published')
                 ->countAllResults();
 
             $completedLessons = (int) $db->table('learning_progress')
@@ -76,11 +78,12 @@ class ProgressMonitoringController extends BaseController
                 ? (int) round(($completedLessons / $totalLessons) * 100)
                 : ($p['status'] === 'completed' || $p['status'] === 'passed' ? 100 : 0);
 
-            // Quizzes metrics
-            $totalQuizzes = (int) $db->table('quizzes')->where('class_id', $clsId)->countAllResults();
+            // Quizzes metrics (hanya published)
+            $totalQuizzes = (int) $db->table('quizzes')->where('class_id', $clsId)->where('status', 'published')->countAllResults();
             $attemptedQuizzes = (int) $db->table('quiz_attempts qa')
                 ->join('quizzes q', 'q.id = qa.quiz_id')
                 ->where('q.class_id', $clsId)
+                ->where('q.status', 'published')
                 ->where('qa.enrollment_id', $enrId)
                 ->where('qa.status', 'graded')
                 ->select('COUNT(DISTINCT qa.quiz_id) as cnt')
@@ -88,8 +91,8 @@ class ProgressMonitoringController extends BaseController
             $p['total_quizzes'] = $totalQuizzes;
             $p['attempted_quizzes'] = $attemptedQuizzes;
 
-            // Assignments metrics
-            $totalAssignments = (int) $db->table('assignments')->where('class_id', $clsId)->countAllResults();
+            // Assignments metrics (hanya published)
+            $totalAssignments = (int) $db->table('assignments')->where('class_id', $clsId)->where('status', 'published')->countAllResults();
             $gradedAssignments = (int) $db->table('assignment_submissions asub')
                 ->where('asub.enrollment_id', $enrId)
                 ->where('asub.status', 'graded')
@@ -156,6 +159,7 @@ class ProgressMonitoringController extends BaseController
         $classId = (int) $enrollment['class_id'];
         $modules = $db->table('learning_modules')
             ->where('class_id', $classId)
+            ->where('status', 'published')
             ->orderBy('sort_order', 'ASC')
             ->get()->getResultArray();
 
@@ -164,6 +168,7 @@ class ProgressMonitoringController extends BaseController
                 ->select('l.*, lp.status AS progress_status, lp.completed_at, lp.progress_percent')
                 ->join('learning_progress lp', 'lp.lesson_id = l.id AND lp.enrollment_id = ' . (int) $enrollmentId, 'left')
                 ->where('l.module_id', $mod['id'])
+                ->where('l.status', 'published')
                 ->orderBy('l.sort_order', 'ASC')
                 ->get()->getResultArray();
             $mod['lessons'] = $lessons;

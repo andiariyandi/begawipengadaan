@@ -79,7 +79,7 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
 
     $routes->group('verifikasi-sertifikat', static function ($routes) {
         $routes->get('/', 'CertificateVerificationController::index', ['as' => 'public.certificate.verify']);
-        $routes->match(['get', 'post'], 'hasil', 'CertificateVerificationController::result', ['as' => 'public.certificate.verify.result']);
+        $routes->match(['GET', 'POST'], 'hasil', 'CertificateVerificationController::result', ['as' => 'public.certificate.verify.result']);
         $routes->get('(:any)', 'CertificateVerificationController::detail/$1', ['as' => 'public.certificate.verify.detail']);
     });
 });
@@ -134,6 +134,7 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('peran-pengadaan',    'ProfileController::procurementRoles',['as' => 'workspace.profile.procurement-roles']);
         $routes->get('pengajuan-role',     'RoleRequestController::index',       ['as' => 'workspace.profile.role-requests']);
         $routes->get('pengajuan-role/baru','RoleRequestController::create',      ['as' => 'workspace.profile.role-requests.create']);
+        $routes->post('pengajuan-role',    'RoleRequestController::store',       ['as' => 'workspace.profile.role-requests.store']);
         $routes->post('ubah',              'ProfileController::update',          ['as' => 'workspace.profile.update']);
         $routes->post('kata-sandi',        'ProfileController::updatePassword',  ['as' => 'workspace.profile.password.update']);
     });
@@ -233,6 +234,9 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->post('submission/(:segment)/review', 'TrainerController::submitReviewSubmission/$1', ['as' => 'workspace.trainer.submission.review.submit']);
         $routes->get('kelas/(:segment)/progres', 'TrainerController::progress/$1', ['as' => 'workspace.trainer.progress']);
         $routes->get('kelas/(:segment)/gradebook/export', 'TrainerController::exportGradebook/$1', ['as' => 'workspace.trainer.class.gradebook.export']);
+        $routes->get('event-saya', 'ParticipantController::myEvents', ['as' => 'workspace.trainer.events']);
+        $routes->get('event-saya/(:segment)', 'ParticipantController::eventDetail/$1', ['as' => 'workspace.trainer.event.detail']);
+        $routes->get('presensi-saya', 'ParticipantController::myAttendance', ['as' => 'workspace.trainer.attendance']);
     });
 
     $routes->group('operator', static function ($routes) {
@@ -256,6 +260,10 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->get('event', 'OperatorController::events', ['as' => 'workspace.operator.events']);
         $routes->get('event/(:segment)/peserta', 'OperatorController::eventParticipants/$1', ['as' => 'workspace.operator.events.participants']);
         $routes->get('event/(:segment)/peserta/cetak', 'OperatorController::printEventRoster/$1', ['as' => 'workspace.operator.events.roster.print']);
+        $routes->post('event/(:segment)/registrasi/bulk', 'OperatorController::bulkEventRegistration/$1', ['as' => 'workspace.operator.events.registration.bulk']);
+        $routes->post('event/registrasi/(:segment)/approve', 'OperatorController::approveEventRegistration/$1', ['as' => 'workspace.operator.events.registration.approve']);
+        $routes->post('event/registrasi/(:segment)/reject', 'OperatorController::rejectEventRegistration/$1', ['as' => 'workspace.operator.events.registration.reject']);
+        $routes->post('event/registrasi/(:segment)/presensi', 'OperatorController::recordEventAttendance/$1', ['as' => 'workspace.operator.events.registration.attendance']);
         $routes->get('kehadiran', 'OperatorController::attendance', ['as' => 'workspace.operator.attendance']);
         $routes->post('kehadiran/(:segment)/update', 'OperatorController::updateAttendance/$1', ['as' => 'workspace.operator.attendance.update']);
         $routes->get('monitoring-pembelajaran', 'OperatorController::learningMonitoring', ['as' => 'workspace.operator.learning-monitoring']);
@@ -333,8 +341,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     $routes->get('approvals', 'ApprovalController::index');
     $routes->get('approvals/history', 'ApprovalController::history');
     $routes->get('approvals/(:segment)', 'ApprovalController::detail/$1');
-    $routes->match(['get', 'post'], 'approvals/(:segment)/approve', 'ApprovalController::approve/$1');
-    $routes->match(['get', 'post'], 'approvals/(:segment)/reject', 'ApprovalController::reject/$1');
+    $routes->match(['GET', 'POST'], 'approvals/(:segment)/approve', 'ApprovalController::approve/$1');
+    $routes->match(['GET', 'POST'], 'approvals/(:segment)/reject', 'ApprovalController::reject/$1');
 
     $routes->group('profile', static function ($routes) {
         $routes->get('/', 'ProfileController::index', ['as' => 'dashboard.profile.index']);
@@ -740,7 +748,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('pesan-masuk/detail/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::detail/$1', ['as' => 'dashboard.communication.inbox.detail']);
         $routes->post('pesan-masuk/reply/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::reply/$1', ['as' => 'dashboard.communication.inbox.reply']);
         $routes->post('pesan-masuk/update-status/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::updateStatus/$1', ['as' => 'dashboard.communication.inbox.update-status']);
-        $routes->match(['get', 'post'], 'pesan-masuk/hapus/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::delete/$1', ['as' => 'dashboard.communication.inbox.delete']);
+        $routes->match(['GET', 'POST'], 'pesan-masuk/hapus/(:segment)', '\App\Controllers\Admin\Communication\ContactMessageController::delete/$1', ['as' => 'dashboard.communication.inbox.delete']);
 
         // WhatsApp Helpdesk Widget
         $routes->addRedirect('helpdesk', 'dashboard/komunikasi/whatsapp-widget');
@@ -748,13 +756,13 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('whatsapp-widget/pengaturan', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::saveSettings', ['as' => 'dashboard.communication.helpdesk.settings']);
         $routes->post('whatsapp-widget/simpan-topic', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::storeTopic', ['as' => 'dashboard.communication.helpdesk.topic.store']);
         $routes->post('whatsapp-widget/ubah-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::updateTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.update']);
-        $routes->match(['get', 'post'], 'whatsapp-widget/hapus-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::deleteTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.delete']);
-        $routes->match(['get', 'post'], 'whatsapp-widget/toggle-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::toggleTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.toggle']);
+        $routes->match(['GET', 'POST'], 'whatsapp-widget/hapus-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::deleteTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.delete']);
+        $routes->match(['GET', 'POST'], 'whatsapp-widget/toggle-topic/(:segment)', '\App\Controllers\Admin\Communication\HelpdeskWidgetController::toggleTopic/$1', ['as' => 'dashboard.communication.helpdesk.topic.toggle']);
 
         // Newsletter
         $routes->get('newsletter', '\App\Controllers\Admin\Communication\NewsletterController::index', ['as' => 'dashboard.communication.newsletter']);
         $routes->get('newsletter/export', '\App\Controllers\Admin\Communication\NewsletterController::exportCsv', ['as' => 'dashboard.communication.newsletter.export']);
-        $routes->match(['get', 'post'], 'newsletter/hapus/(:segment)', '\App\Controllers\Admin\Communication\NewsletterController::delete/$1', ['as' => 'dashboard.communication.newsletter.delete']);
+        $routes->match(['GET', 'POST'], 'newsletter/hapus/(:segment)', '\App\Controllers\Admin\Communication\NewsletterController::delete/$1', ['as' => 'dashboard.communication.newsletter.delete']);
 
         // Pusat Siaran Email (Manual Admin Control)
         $routes->get('email', '\App\Controllers\Admin\Communication\EmailBroadcastController::index', ['as' => 'dashboard.communication.email']);
@@ -822,8 +830,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         // Legacy / Approval Queue compatibility
         $routes->get('approval', '\App\Controllers\Admin\ApprovalController::index', ['as' => 'dashboard.certificates.approvals']);
         $routes->get('approval/(:segment)', '\App\Controllers\Admin\ApprovalController::detail/$1', ['as' => 'dashboard.certificates.approvals.detail']);
-        $routes->match(['get', 'post'], 'approval/(:segment)/terbitkan', '\App\Controllers\Admin\ApprovalController::approve/$1', ['as' => 'dashboard.certificates.approvals.issue']);
-        $routes->match(['get', 'post'], 'approval/(:segment)/tolak', '\App\Controllers\Admin\ApprovalController::reject/$1', ['as' => 'dashboard.certificates.approvals.reject']);
+        $routes->match(['GET', 'POST'], 'approval/(:segment)/terbitkan', '\App\Controllers\Admin\ApprovalController::approve/$1', ['as' => 'dashboard.certificates.approvals.issue']);
+        $routes->match(['GET', 'POST'], 'approval/(:segment)/tolak', '\App\Controllers\Admin\ApprovalController::reject/$1', ['as' => 'dashboard.certificates.approvals.reject']);
 
         // Certificate Operations (detail, edit, revoke, download)
         $routes->get('(:segment)/ubah', 'CertificateController::edit/$1', ['as' => 'dashboard.certificates.edit']);
@@ -837,16 +845,19 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     $routes->group('intelligence', ['namespace' => 'App\Controllers\Intelligence'], static function ($routes) {
         $routes->get('/', 'IntelligenceDashboardController::index', ['as' => 'dashboard.intelligence.home']);
         $routes->get('opd-unit', 'OpdController::index', ['as' => 'dashboard.intelligence.organization-units']);
-        $routes->match(['get', 'post'], 'opd-unit/tambah', 'OpdController::create', ['as' => 'dashboard.intelligence.organization-units.create']);
+        $routes->match(['GET', 'POST'], 'opd-unit/tambah', 'OpdController::create', ['as' => 'dashboard.intelligence.organization-units.create']);
         $routes->get('opd-unit/(:segment)', 'OpdController::detail/$1', ['as' => 'dashboard.intelligence.organization-units.detail']);
         $routes->get('sdm-jf-ppbj', 'JfPpbjController::index', ['as' => 'dashboard.intelligence.personnel']);
+        $routes->match(['GET', 'POST'], 'sdm-jf-ppbj/tambah', 'JfPpbjController::create', ['as' => 'dashboard.intelligence.personnel.create']);
         $routes->get('sdm-jf-ppbj/(:segment)', 'JfPpbjController::detail/$1', ['as' => 'dashboard.intelligence.personnel.detail']);
         $routes->get('riwayat-jf-ppbj', 'JfPpbjController::histories', ['as' => 'dashboard.intelligence.personnel-histories']);
         $routes->get('jenjang-jf-ppbj', 'JfPpbjController::levels', ['as' => 'dashboard.intelligence.personnel-levels']);
         $routes->get('sertifikat-kompetensi', 'CompetencyCertificateController::index', ['as' => 'dashboard.intelligence.competency-certificates']);
+        $routes->match(['GET', 'POST'], 'sertifikat-kompetensi/tambah', 'CompetencyCertificateController::create', ['as' => 'dashboard.intelligence.competency-certificates.create']);
         $routes->get('sertifikat-kompetensi/(:segment)', 'CompetencyCertificateController::detail/$1', ['as' => 'dashboard.intelligence.competency-certificates.detail']);
         $routes->get('jenis-sertifikat-kompetensi', 'CompetencyCertificateController::types', ['as' => 'dashboard.intelligence.competency-certificate-types']);
         $routes->get('gap-kompetensi', 'IntelligenceDashboardController::competencyGap', ['as' => 'dashboard.intelligence.competency-gap']);
+        $routes->post('gap-kompetensi/snapshot', 'IntelligenceDashboardController::generateSnapshot', ['as' => 'dashboard.intelligence.competency-gap.snapshot']);
     });
 
     $routes->group('laporan', static function ($routes) {
@@ -878,10 +889,10 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('slider/ubah/(:segment)', 'SliderController::update/$1', ['as' => 'dashboard.landing.sliders.update']);
         $routes->get('slider/edit/(:segment)', 'SliderController::edit/$1', ['as' => 'dashboard.landing.sliders.edit_alias']);
         $routes->post('slider/edit/(:segment)', 'SliderController::update/$1', ['as' => 'dashboard.landing.sliders.update_alias']);
-        $routes->match(['get', 'post'], 'slider/duplikat/(:segment)', 'SliderController::duplicate/$1', ['as' => 'dashboard.landing.sliders.duplicate']);
+        $routes->match(['GET', 'POST'], 'slider/duplikat/(:segment)', 'SliderController::duplicate/$1', ['as' => 'dashboard.landing.sliders.duplicate']);
         $routes->post('slider/update-order', 'SliderController::updateOrder', ['as' => 'dashboard.landing.sliders.order']);
-        $routes->match(['get', 'post'], 'slider/hapus/(:segment)', 'SliderController::delete/$1', ['as' => 'dashboard.landing.sliders.delete']);
-        $routes->match(['get', 'post'], 'slider/toggle/(:segment)', 'SliderController::toggle/$1', ['as' => 'dashboard.landing.sliders.toggle']);
+        $routes->match(['GET', 'POST'], 'slider/hapus/(:segment)', 'SliderController::delete/$1', ['as' => 'dashboard.landing.sliders.delete']);
+        $routes->match(['GET', 'POST'], 'slider/toggle/(:segment)', 'SliderController::toggle/$1', ['as' => 'dashboard.landing.sliders.toggle']);
 
         // Popup Pengumuman & Promo
         $routes->get('pengumuman', 'AnnouncementController::index', ['as' => 'dashboard.landing.announcements']);
@@ -892,15 +903,15 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('pengumuman/ubah/(:segment)', 'AnnouncementController::update/$1', ['as' => 'dashboard.landing.announcements.update']);
         $routes->get('pengumuman/edit/(:segment)', 'AnnouncementController::edit/$1', ['as' => 'dashboard.landing.announcements.edit_alias']);
         $routes->post('pengumuman/edit/(:segment)', 'AnnouncementController::update/$1', ['as' => 'dashboard.landing.announcements.update_alias']);
-        $routes->match(['get', 'post'], 'pengumuman/duplikat/(:segment)', 'AnnouncementController::duplicate/$1', ['as' => 'dashboard.landing.announcements.duplicate']);
+        $routes->match(['GET', 'POST'], 'pengumuman/duplikat/(:segment)', 'AnnouncementController::duplicate/$1', ['as' => 'dashboard.landing.announcements.duplicate']);
         $routes->post('pengumuman/update-order', 'AnnouncementController::updateOrder', ['as' => 'dashboard.landing.announcements.order']);
-        $routes->match(['get', 'post'], 'pengumuman/hapus/(:segment)', 'AnnouncementController::delete/$1', ['as' => 'dashboard.landing.announcements.delete']);
-        $routes->match(['get', 'post'], 'pengumuman/toggle/(:segment)', 'AnnouncementController::toggle/$1', ['as' => 'dashboard.landing.announcements.toggle']);
+        $routes->match(['GET', 'POST'], 'pengumuman/hapus/(:segment)', 'AnnouncementController::delete/$1', ['as' => 'dashboard.landing.announcements.delete']);
+        $routes->match(['GET', 'POST'], 'pengumuman/toggle/(:segment)', 'AnnouncementController::toggle/$1', ['as' => 'dashboard.landing.announcements.toggle']);
 
         // Profil Lembaga, Visi Misi, Filosofi
         $routes->get('profil-lembaga', 'InstitutionProfileController::index', ['as' => 'dashboard.landing.profile']);
         $routes->post('profil-lembaga', 'InstitutionProfileController::save', ['as' => 'dashboard.landing.profile.save']);
-        $routes->match(['get', 'post'], 'profil-lembaga/reset', 'InstitutionProfileController::resetDefault', ['as' => 'dashboard.landing.profile.reset']);
+        $routes->match(['GET', 'POST'], 'profil-lembaga/reset', 'InstitutionProfileController::resetDefault', ['as' => 'dashboard.landing.profile.reset']);
 
         // Pilar, Budaya, Hierarki, Roadmap
         $routes->get('pilar-hierarki', 'HighlightFeatureController::index', ['as' => 'dashboard.landing.highlights']);
@@ -910,11 +921,11 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('pilar-hierarki/ubah/(:segment)', 'HighlightFeatureController::update/$1', ['as' => 'dashboard.landing.highlights.update']);
         $routes->get('pilar-hierarki/edit/(:segment)', 'HighlightFeatureController::edit/$1', ['as' => 'dashboard.landing.highlights.edit_alias']);
         $routes->post('pilar-hierarki/edit/(:segment)', 'HighlightFeatureController::update/$1', ['as' => 'dashboard.landing.highlights.update_alias']);
-        $routes->match(['get', 'post'], 'pilar-hierarki/duplikat/(:segment)', 'HighlightFeatureController::duplicate/$1', ['as' => 'dashboard.landing.highlights.duplicate']);
+        $routes->match(['GET', 'POST'], 'pilar-hierarki/duplikat/(:segment)', 'HighlightFeatureController::duplicate/$1', ['as' => 'dashboard.landing.highlights.duplicate']);
         $routes->post('pilar-hierarki/update-order', 'HighlightFeatureController::updateOrder', ['as' => 'dashboard.landing.highlights.order']);
-        $routes->match(['get', 'post'], 'pilar-hierarki/muat-rekomendasi/(:segment)', 'HighlightFeatureController::seedRecommendations/$1', ['as' => 'dashboard.landing.highlights.recommendations']);
-        $routes->match(['get', 'post'], 'pilar-hierarki/hapus/(:segment)', 'HighlightFeatureController::delete/$1', ['as' => 'dashboard.landing.highlights.delete']);
-        $routes->match(['get', 'post'], 'pilar-hierarki/toggle/(:segment)', 'HighlightFeatureController::toggle/$1', ['as' => 'dashboard.landing.highlights.toggle']);
+        $routes->match(['GET', 'POST'], 'pilar-hierarki/muat-rekomendasi/(:segment)', 'HighlightFeatureController::seedRecommendations/$1', ['as' => 'dashboard.landing.highlights.recommendations']);
+        $routes->match(['GET', 'POST'], 'pilar-hierarki/hapus/(:segment)', 'HighlightFeatureController::delete/$1', ['as' => 'dashboard.landing.highlights.delete']);
+        $routes->match(['GET', 'POST'], 'pilar-hierarki/toggle/(:segment)', 'HighlightFeatureController::toggle/$1', ['as' => 'dashboard.landing.highlights.toggle']);
 
         // Portal Eksternal
         $routes->get('portal-eksternal', 'ExternalPortalController::index', ['as' => 'dashboard.landing.portals']);
@@ -924,11 +935,11 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('portal-eksternal/ubah/(:segment)', 'ExternalPortalController::update/$1', ['as' => 'dashboard.landing.portals.update']);
         $routes->get('portal-eksternal/edit/(:segment)', 'ExternalPortalController::edit/$1', ['as' => 'dashboard.landing.portals.edit_alias']);
         $routes->post('portal-eksternal/edit/(:segment)', 'ExternalPortalController::update/$1', ['as' => 'dashboard.landing.portals.update_alias']);
-        $routes->match(['get', 'post'], 'portal-eksternal/duplikat/(:segment)', 'ExternalPortalController::duplicate/$1', ['as' => 'dashboard.landing.portals.duplicate']);
+        $routes->match(['GET', 'POST'], 'portal-eksternal/duplikat/(:segment)', 'ExternalPortalController::duplicate/$1', ['as' => 'dashboard.landing.portals.duplicate']);
         $routes->post('portal-eksternal/update-order', 'ExternalPortalController::updateOrder', ['as' => 'dashboard.landing.portals.order']);
-        $routes->match(['get', 'post'], 'portal-eksternal/muat-rekomendasi', 'ExternalPortalController::seedRecommendations', ['as' => 'dashboard.landing.portals.recommendations']);
-        $routes->match(['get', 'post'], 'portal-eksternal/hapus/(:segment)', 'ExternalPortalController::delete/$1', ['as' => 'dashboard.landing.portals.delete']);
-        $routes->match(['get', 'post'], 'portal-eksternal/toggle/(:segment)', 'ExternalPortalController::toggle/$1', ['as' => 'dashboard.landing.portals.toggle']);
+        $routes->match(['GET', 'POST'], 'portal-eksternal/muat-rekomendasi', 'ExternalPortalController::seedRecommendations', ['as' => 'dashboard.landing.portals.recommendations']);
+        $routes->match(['GET', 'POST'], 'portal-eksternal/hapus/(:segment)', 'ExternalPortalController::delete/$1', ['as' => 'dashboard.landing.portals.delete']);
+        $routes->match(['GET', 'POST'], 'portal-eksternal/toggle/(:segment)', 'ExternalPortalController::toggle/$1', ['as' => 'dashboard.landing.portals.toggle']);
 
         // Testimoni Pengguna
         $routes->get('testimoni', 'TestimonialController::index', ['as' => 'dashboard.landing.testimonials']);
@@ -938,11 +949,11 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('testimoni/edit/(:segment)', 'TestimonialController::edit/$1');
         $routes->post('testimoni/ubah/(:segment)', 'TestimonialController::update/$1', ['as' => 'dashboard.landing.testimonials.update']);
         $routes->post('testimoni/edit/(:segment)', 'TestimonialController::update/$1');
-        $routes->match(['get', 'post'], 'testimoni/duplikat/(:segment)', 'TestimonialController::duplicate/$1', ['as' => 'dashboard.landing.testimonials.duplicate']);
+        $routes->match(['GET', 'POST'], 'testimoni/duplikat/(:segment)', 'TestimonialController::duplicate/$1', ['as' => 'dashboard.landing.testimonials.duplicate']);
         $routes->post('testimoni/update-order', 'TestimonialController::updateOrder', ['as' => 'dashboard.landing.testimonials.update-order']);
-        $routes->match(['get', 'post'], 'testimoni/muat-rekomendasi', 'TestimonialController::seedRecommendations', ['as' => 'dashboard.landing.testimonials.recommendations']);
-        $routes->match(['get', 'post'], 'testimoni/hapus/(:segment)', 'TestimonialController::delete/$1', ['as' => 'dashboard.landing.testimonials.delete']);
-        $routes->match(['get', 'post'], 'testimoni/toggle/(:segment)', 'TestimonialController::toggle/$1', ['as' => 'dashboard.landing.testimonials.toggle']);
+        $routes->match(['GET', 'POST'], 'testimoni/muat-rekomendasi', 'TestimonialController::seedRecommendations', ['as' => 'dashboard.landing.testimonials.recommendations']);
+        $routes->match(['GET', 'POST'], 'testimoni/hapus/(:segment)', 'TestimonialController::delete/$1', ['as' => 'dashboard.landing.testimonials.delete']);
+        $routes->match(['GET', 'POST'], 'testimoni/toggle/(:segment)', 'TestimonialController::toggle/$1', ['as' => 'dashboard.landing.testimonials.toggle']);
 
         // Tim Inovator
         $routes->get('tim', 'TeamMemberController::index', ['as' => 'dashboard.landing.team']);
@@ -952,11 +963,11 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('tim/edit/(:segment)', 'TeamMemberController::edit/$1');
         $routes->post('tim/ubah/(:segment)', 'TeamMemberController::update/$1', ['as' => 'dashboard.landing.team.update']);
         $routes->post('tim/edit/(:segment)', 'TeamMemberController::update/$1');
-        $routes->match(['get', 'post'], 'tim/duplikat/(:segment)', 'TeamMemberController::duplicate/$1', ['as' => 'dashboard.landing.team.duplicate']);
+        $routes->match(['GET', 'POST'], 'tim/duplikat/(:segment)', 'TeamMemberController::duplicate/$1', ['as' => 'dashboard.landing.team.duplicate']);
         $routes->post('tim/update-order', 'TeamMemberController::updateOrder', ['as' => 'dashboard.landing.team.update-order']);
-        $routes->match(['get', 'post'], 'tim/muat-rekomendasi', 'TeamMemberController::seedRecommendations', ['as' => 'dashboard.landing.team.recommendations']);
-        $routes->match(['get', 'post'], 'tim/hapus/(:segment)', 'TeamMemberController::delete/$1', ['as' => 'dashboard.landing.team.delete']);
-        $routes->match(['get', 'post'], 'tim/toggle/(:segment)', 'TeamMemberController::toggle/$1', ['as' => 'dashboard.landing.team.toggle']);
+        $routes->match(['GET', 'POST'], 'tim/muat-rekomendasi', 'TeamMemberController::seedRecommendations', ['as' => 'dashboard.landing.team.recommendations']);
+        $routes->match(['GET', 'POST'], 'tim/hapus/(:segment)', 'TeamMemberController::delete/$1', ['as' => 'dashboard.landing.team.delete']);
+        $routes->match(['GET', 'POST'], 'tim/toggle/(:segment)', 'TeamMemberController::toggle/$1', ['as' => 'dashboard.landing.team.toggle']);
 
         // Banner Halaman dialihkan ke Sorotan & Carousel terpusat
         $routes->addRedirect('banner-halaman', 'dashboard/landing/sorotan-carousel');
@@ -971,7 +982,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('/', 'SatisfactionSurveyAdminController::index', ['as' => 'dashboard.survey.index']);
         $routes->get('hasil', 'SatisfactionSurveyAdminController::index');
         $routes->post('update-aspect/(:segment)', 'SatisfactionSurveyAdminController::updateAspect/$1', ['as' => 'dashboard.survey.aspect.update']);
-        $routes->match(['get', 'post'], 'hapus/(:segment)', 'SatisfactionSurveyAdminController::deleteResponse/$1', ['as' => 'dashboard.survey.response.delete']);
+        $routes->match(['GET', 'POST'], 'hapus/(:segment)', 'SatisfactionSurveyAdminController::deleteResponse/$1', ['as' => 'dashboard.survey.response.delete']);
     });
 
     $routes->group('sistem', static function ($routes) {
@@ -979,8 +990,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('approval', 'ApprovalController::index', ['as' => 'dashboard.system.approvals']);
         $routes->get('approval/riwayat', 'ApprovalController::history', ['as' => 'dashboard.system.approvals.history']);
         $routes->post('approval/bulk', 'ApprovalController::bulk', ['as' => 'dashboard.system.approvals.bulk']);
-        $routes->match(['get', 'post'], 'approval/(:segment)/setujui', 'ApprovalController::approve/$1', ['as' => 'dashboard.system.approvals.approve']);
-        $routes->match(['get', 'post'], 'approval/(:segment)/tolak', 'ApprovalController::reject/$1', ['as' => 'dashboard.system.approvals.reject']);
+        $routes->match(['GET', 'POST'], 'approval/(:segment)/setujui', 'ApprovalController::approve/$1', ['as' => 'dashboard.system.approvals.approve']);
+        $routes->match(['GET', 'POST'], 'approval/(:segment)/tolak', 'ApprovalController::reject/$1', ['as' => 'dashboard.system.approvals.reject']);
         $routes->get('approval/(:segment)', 'ApprovalController::detail/$1', ['as' => 'dashboard.system.approvals.detail']);
 
         $routes->get('audit-trail', 'AuditController::index', ['as' => 'dashboard.system.audit-trail']);

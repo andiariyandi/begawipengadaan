@@ -55,7 +55,6 @@ $map = [
     'administrator'         => ['class' => 'bg-primary-50 text-primary-600', 'label' => 'Administrator'],
     'participant'           => ['class' => 'bg-info-focus text-info-main', 'label' => 'Peserta'],
     'trainer'               => ['class' => 'bg-success-focus text-success-main', 'label' => 'Trainer'],
-    'evaluator'             => ['class' => 'bg-warning-focus text-warning-main', 'label' => 'Evaluator'],
     'operator'              => ['class' => 'bg-secondary-focus text-secondary-main', 'label' => 'Operator'],
 ];
 

@@ -1,9 +1,27 @@
 <?= $this->extend('main/workspace/layouts/workspace') ?>
 <?= $this->section('content') ?>
 <?php
-$grouped = $grouped ?? [];
+$grouped      = $grouped ?? [];
+$allGrouped   = $allGrouped ?? $grouped;
+$activeFilter = $activeFilter ?? 'all';
+
 $totalBookmarks = 0;
-foreach ($grouped as $g) { $totalBookmarks += count($g['items'] ?? []); }
+foreach ($allGrouped as $g) {
+    $totalBookmarks += count($g['items'] ?? []);
+}
+
+$filteredBookmarks = 0;
+foreach ($grouped as $g) {
+    $filteredBookmarks += count($g['items'] ?? []);
+}
+
+$tabs = [
+    'all'           => ['label' => 'Semua Konten',   'route' => route_to('workspace.bookmarks.index'),         'icon' => 'fas fa-layer-group'],
+    'learning'      => ['label' => 'Arena Belajar',  'route' => route_to('workspace.bookmarks.learning'),      'icon' => 'fas fa-graduation-cap'],
+    'knowledge'     => ['label' => 'Bunga Rampai',   'route' => route_to('workspace.bookmarks.knowledge'),     'icon' => 'fas fa-book-open'],
+    'regulations'   => ['label' => 'Regulasi PBJ',   'route' => route_to('workspace.bookmarks.regulations'),   'icon' => 'fas fa-balance-scale'],
+    'communication' => ['label' => 'Berita & Event', 'route' => route_to('workspace.bookmarks.communication'), 'icon' => 'fas fa-bullhorn'],
+];
 ?>
 <div class="ws-page-header">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
@@ -20,11 +38,21 @@ foreach ($grouped as $g) { $totalBookmarks += count($g['items'] ?? []); }
     </div>
 </div>
 
-<?php if ($totalBookmarks === 0): ?>
+<!-- Filter Tabs -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <?php foreach ($tabs as $key => $tab): ?>
+        <?php $isActive = ($activeFilter === $key); ?>
+        <a href="<?= esc($tab['route']) ?>" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold <?= $isActive ? 'btn-primary' : 'btn-outline-secondary bg-white' ?>">
+            <i class="<?= esc($tab['icon']) ?> me-1"></i> <?= esc($tab['label']) ?>
+        </a>
+    <?php endforeach; ?>
+</div>
+
+<?php if ($filteredBookmarks === 0): ?>
     <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white text-center">
         <i class="fas fa-bookmark fs-2 text-muted opacity-50 mb-2"></i>
-        <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Bookmark</h2>
-        <p class="text-muted small mb-0">Buka halaman publik mana pun dan klik tombol <strong>Simpan</strong> untuk menambahkannya.</p>
+        <h2 class="h5 fw-bold mb-2" style="color: #082f5c;">Belum Ada Bookmark pada Kategori Ini</h2>
+        <p class="text-muted small mb-0">Buka halaman publik mana pun dan klik tombol <strong>Simpan</strong> untuk menambahkannya ke koleksi pribadi Anda.</p>
     </div>
 <?php else: ?>
     <?php foreach ($grouped as $type => $group): ?>

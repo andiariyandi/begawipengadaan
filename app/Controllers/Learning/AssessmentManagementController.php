@@ -6,7 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\Learning\LearningClassModel;
 use App\Models\Learning\LearningModuleModel;
 use App\Models\Learning\LessonModel;
-use App\Services\EvaluatorService;
+use App\Services\GradingService;
 use App\Services\Learning\QuizQuestionImportService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use RuntimeException;
@@ -665,11 +665,11 @@ class AssessmentManagementController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Nilai harus berada dalam rentang 0.00 hingga 100.00.');
         }
 
-        $evaluatorId = (int) (session()->get('user_id') ?: 1);
+        $graderId = (int) (session()->get('user_id') ?: 1);
 
         try {
-            $evaluatorService = new EvaluatorService();
-            $evaluatorService->gradeSubmission($evaluatorId, $submissionId, $score, $status, $feedback ?: null);
+            $gradingService = new GradingService();
+            $gradingService->gradeSubmission($graderId, $submissionId, $score, $status, $feedback ?: null);
 
             return redirect()->to(site_url('dashboard/pembelajaran/assessment?tab=submissions'))
                 ->with('success', "Penilaian submisi #{$submissionId} berhasil disimpan dengan skor {$score}.");
