@@ -45,6 +45,74 @@ class ConsultationController extends BaseController
         ];
     }
 
+    /**
+     * Handle optional file attachment upload for consultation tickets & chat replies.
+     */
+    private function handleAttachmentUpload(?int $actorId = null): ?array
+    {
+        $file = $this->request->getFile('attachment');
+        if (! $file || ! $file->isValid() || $file->hasMoved()) {
+            return null;
+        }
+
+        $allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'webp', 'zip', 'rar'];
+        $ext = strtolower((string) $file->getClientExtension());
+        if (! in_array($ext, $allowedExt, true)) {
+            throw new \RuntimeException('Format berkas lampiran tidak didukung. Gunakan PDF, Office, Gambar, atau ZIP.');
+        }
+
+        // Max 10 MB
+        if ($file->getSize() > 10 * 1024 * 1024) {
+            throw new \RuntimeException('Ukuran berkas lampiran maksimal 10 MB.');
+        }
+
+        $origName = $file->getClientName();
+        $mimeType = $file->getClientMimeType();
+        $sizeBytes = (int) $file->getSize();
+        $newName = 'tkt_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+
+        $targetDir = FCPATH . 'uploads/consultations';
+        if (! is_dir($targetDir)) {
+            @mkdir($targetDir, 0775, true);
+        }
+
+        $file->move($targetDir, $newName);
+
+        $sizeHuman = $sizeBytes >= 1048576
+            ? number_format($sizeBytes / 1048576, 2) . ' MB'
+            : number_format(max(1, $sizeBytes / 1024), 1) . ' KB';
+
+        $relativePath = 'uploads/consultations/' . $newName;
+        $fileAssetId = null;
+
+        try {
+            if ($this->db->tableExists('file_assets')) {
+                $this->db->table('file_assets')->insert([
+                    'storage_disk'  => 'public',
+                    'file_path'     => $relativePath,
+                    'original_name' => $origName,
+                    'mime_type'     => $mimeType,
+                    'file_size'     => $sizeBytes,
+                    'uploaded_by'   => $actorId ?: null,
+                    'created_at'    => date('Y-m-d H:i:s'),
+                ]);
+                $fileAssetId = (int) $this->db->insertID();
+            }
+        } catch (\Throwable) {
+        }
+
+        return [
+            'file_id'    => $fileAssetId,
+            'name'       => $origName,
+            'path'       => $relativePath,
+            'url'        => base_url($relativePath),
+            'ext'        => strtoupper($ext),
+            'mime'       => $mimeType,
+            'size_bytes' => $sizeBytes,
+            'size_human' => $sizeHuman,
+        ];
+    }
+
     public function index()
     {
         if ($redirect = $this->checkAuth()) {
@@ -116,9 +184,11 @@ class ConsultationController extends BaseController
         $isOwner = strcasecmp($ticket['sender_email'], $email) === 0
             || (isset($notes['user_id']) && (int) $notes['user_id'] === $userId);
 
+        $roles = (array) session()->get('roles');
         $isAdmin = (bool) session()->get('dashboard_access')
-            || in_array('administrator', (array) session()->get('roles'), true)
-            || in_array('super_administrator', (array) session()->get('roles'), true);
+            || in_array('administrator', $roles, true)
+            || in_array('super_administrator', $roles, true)
+            || in_array('operator', $roles, true);
 
         if (! $isOwner && ! $isAdmin) {
             return redirect()->to(route_to('workspace.consultation.index'))
@@ -128,7 +198,7 @@ class ConsultationController extends BaseController
         // Filter out internal notes for public user view
         $publicThreads = [];
         foreach ($notes['threads'] ?? [] as $th) {
-            if (($th['channel'] ?? 'portal') !== 'internal' || $isAdmin) {
+            if (($th['channel'] ?? 'portal') !== 'internal' || ($isAdmin && ! $isOwner)) {
                 $publicThreads[] = $th;
             }
         }
@@ -136,14 +206,14 @@ class ConsultationController extends BaseController
 
         return view('main/workspace/pages/konsultasi_detail', [
             'title'          => 'Tiket #' . $ticket['ticket_number'] . ' | Workspace BegawiPengadaan',
-            'pageTitle'      => 'Percakapan Konsultasi #' . $ticket['ticket_number'],
+            'pageTitle'      => 'Ruang Konsultasi #' . $ticket['ticket_number'],
             'breadcrumbTail' => [
                 ['label' => 'Konsultasi & Tiket', 'url' => route_to('workspace.consultation.index')],
                 ['label' => '#' . $ticket['ticket_number']],
             ],
             'ticket'         => $ticket,
             'notes'          => $notes,
-            'isAdmin'        => $isAdmin,
+            'isAdmin'        => $isAdmin && ! $isOwner,
         ]);
     }
 
@@ -171,35 +241,49 @@ class ConsultationController extends BaseController
         $isOwner = strcasecmp($ticket['sender_email'], $email) === 0
             || (isset($notes['user_id']) && (int) $notes['user_id'] === $userId);
 
-        $isAdmin = (bool) session()->get('dashboard_access')
-            || in_array('administrator', (array) session()->get('roles'), true)
-            || in_array('super_administrator', (array) session()->get('roles'), true);
+        $roles = (array) session()->get('roles');
+        $isAdminRole = (bool) session()->get('dashboard_access')
+            || in_array('administrator', $roles, true)
+            || in_array('super_administrator', $roles, true)
+            || in_array('operator', $roles, true);
 
-        if (! $isOwner && ! $isAdmin) {
+        if (! $isOwner && ! $isAdminRole) {
             return redirect()->to(route_to('workspace.consultation.index'))->with('error', 'Akses ditolak.');
         }
 
+        $actingAsAdmin = $isAdminRole && ! $isOwner;
+
         // Closed ticket response restriction - view only for workspace sender/non-administrator
-        if (! $isAdmin && in_array($ticket['status'], ['closed', ContactMessageModel::STATUS_CLOSED], true)) {
+        if (! $actingAsAdmin && in_array($ticket['status'], ['closed', ContactMessageModel::STATUS_CLOSED], true)) {
             return redirect()->to(route_to('workspace.consultation.detail', $ticket['ticket_number']))
                 ->with('error', 'Tiket konsultasi ini telah ditutup oleh Administrator. Anda hanya dapat melihat riwayat percakapan.');
         }
 
+        try {
+            $uploadedAttachment = $this->handleAttachmentUpload($userId);
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+
         $message = trim((string) $this->request->getPost('reply_message'));
-        if ($message === '' || mb_strlen($message) < 3) {
-            return redirect()->back()->with('error', 'Pesan balasan terlalu pendek (minimal 3 karakter).');
+        if ($message === '' && ! $uploadedAttachment) {
+            return redirect()->back()->with('error', 'Silakan tulis pesan balasan atau lampirkan berkas pendukung.');
+        }
+        if ($message !== '' && mb_strlen($message) < 2 && ! $uploadedAttachment) {
+            return redirect()->back()->with('error', 'Pesan balasan terlalu pendek.');
         }
 
         $senderName = (string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna');
-        $senderType = $isAdmin ? 'administrator' : 'user';
-        $newStatus  = $isAdmin ? ContactMessageModel::STATUS_REPLIED : ContactMessageModel::STATUS_WAITING_ADMIN;
+        $senderType = $actingAsAdmin ? 'administrator' : 'user';
+        $newStatus  = $actingAsAdmin ? ContactMessageModel::STATUS_REPLIED : ContactMessageModel::STATUS_WAITING_ADMIN;
 
         $threadMessage = [
             'sender_type' => $senderType,
             'sender_name' => $senderName,
             'sender_id'   => $userId,
             'channel'     => 'portal',
-            'message'     => $message,
+            'message'     => $message ?: '[Melampirkan berkas pendukung]',
+            'attachments' => $uploadedAttachment ? [$uploadedAttachment] : [],
         ];
 
         $success = $this->messageModel->appendThread((int) $ticket['id'], $threadMessage, $newStatus, $userId);
@@ -209,13 +293,13 @@ class ConsultationController extends BaseController
         }
 
         // Notifikasi ke pool helpdesk (Super Admin, Admin, & Operator) bila balasan dari pemohon
-        if (! $isAdmin) {
+        if (! $actingAsAdmin) {
             try {
                 (new \App\Services\NotificationService())->sendShared(
                     'shared:helpdesk',
                     'ticket_reply',
                     "Tanggapan Baru untuk Tiket #{$ticket['ticket_number']}",
-                    "{$senderName} telah membalas tiket konsultasi: \"" . mb_strimwidth($message, 0, 100, '...') . "\"",
+                    "{$senderName} telah membalas tiket konsultasi: \"" . mb_strimwidth($message ?: 'Melampirkan berkas', 0, 100, '...') . "\"",
                     [
                         'ticket_number' => $ticket['ticket_number'],
                         'sender_name'   => $senderName,
@@ -228,7 +312,7 @@ class ConsultationController extends BaseController
         }
 
         return redirect()->to(route_to('workspace.consultation.detail', $ticket['ticket_number']))
-            ->with('success', 'Balasan pesan Anda berhasil terkirim ke Helpdesk PBJ Lampung.');
+            ->with('success', 'Pesan balasan Anda berhasil dikirim.');
     }
 
     public function create()
@@ -253,21 +337,33 @@ class ConsultationController extends BaseController
         ];
 
         if (! $this->validate($rules)) {
-            return redirect()->back()->withInput()->with('error', 'Mohon lengkapi formulir dengan benar.');
+            return redirect()->back()->withInput()->with('error', 'Mohon lengkapi formulir pengajuan tiket dengan benar.');
         }
 
-        $userId   = (int) session()->get('user_id');
-        $userName = (string) (session()->get('name') ?: session()->get('username'));
+        $userId    = (int) session()->get('user_id');
+        $userName  = (string) (session()->get('name') ?: session()->get('username'));
         $userEmail = (string) session()->get('email');
         $userPhone = (string) (session()->get('phone') ?: $this->request->getPost('phone'));
 
+        try {
+            $uploadedAttachment = $this->handleAttachmentUpload($userId);
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+
         $ticketNumber = 'TKT-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
+
+        $detailLog = 'Dibuat dari Ruang Kerja (Workspace) Pengguna Terverifikasi.';
+        if ($uploadedAttachment) {
+            $detailLog .= ' Disertai lampiran: ' . $uploadedAttachment['name'];
+        }
 
         $initialNotes = [
             'user_id'       => $userId,
             'priority'      => 'normal',
             'assigned_to'   => null,
             'internal_note' => '',
+            'attachments'   => $uploadedAttachment ? [$uploadedAttachment] : [],
             'threads'       => [],
             'logs'          => [
                 [
@@ -275,7 +371,7 @@ class ConsultationController extends BaseController
                     'actor'      => $userName,
                     'actor_role' => 'user',
                     'action'     => 'Tiket Dibuat',
-                    'detail'     => 'Dibuat dari Ruang Kerja (Workspace) Pengguna Terverifikasi.',
+                    'detail'     => $detailLog,
                 ],
             ],
         ];
@@ -325,6 +421,6 @@ class ConsultationController extends BaseController
         }
 
         return redirect()->to(route_to('workspace.consultation.detail', $ticketNumber))
-            ->with('success', "Tiket konsultasi #{$ticketNumber} berhasil dibuat! Petugas Helpdesk akan segera menindaklanjuti dan Anda dapat saling membalas pesan di halaman ini.");
+            ->with('success', "Tiket konsultasi #{$ticketNumber} berhasil dibuat! Petugas Helpdesk akan segera menindaklanjuti di Ruang Konsultasi ini.");
     }
 }

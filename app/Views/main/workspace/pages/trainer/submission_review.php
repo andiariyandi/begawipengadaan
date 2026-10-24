@@ -3,10 +3,11 @@
  * Trainer - Review & Penilaian Submission Tugas
  * FiStudy UI DNA
  */
-$submission = $submission ?? [];
-$files      = $files ?? [];
-$classId    = $classId ?? 0;
-$className  = $className ?? 'Kelas';
+$submission  = $submission ?? [];
+$files       = $files ?? [];
+$allAttempts = $allAttempts ?? [];
+$classId     = $classId ?? 0;
+$className   = $className ?? 'Kelas';
 ?>
 
 <div class="trainer-submission-review-wrapper">
@@ -43,6 +44,22 @@ $className  = $className ?? 'Kelas';
 
             <!-- Jawaban / Dokumen yang Dikumpulkan Peserta -->
             <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+                <?php if (! empty($allAttempts) && count($allAttempts) > 1): ?>
+                    <div class="mb-3 p-2 px-3 bg-light rounded-3 border d-flex flex-wrap align-items-center gap-2">
+                        <span class="small fw-bold text-navy me-1"><i class="fas fa-history text-primary me-1"></i>Riwayat Percobaan Peserta:</span>
+                        <?php foreach ($allAttempts as $attRow): ?>
+                            <?php
+                                $isCurrent = (int) $attRow['id'] === (int) $submission['id'];
+                                $attSc = $attRow['score'] !== null ? (float) $attRow['score'] : null;
+                            ?>
+                            <a href="<?= route_to('workspace.trainer.submission.review', (string) $attRow['id']) ?>" class="btn btn-sm <?= $isCurrent ? 'btn-primary' : 'btn-outline-secondary' ?> rounded-pill py-0 px-2" style="font-size: 11px;">
+                                #<?= (int) $attRow['attempt_number'] ?>: <?= $attSc !== null ? $attSc : 'Belum Dinilai' ?>
+                                <?= $isCurrent ? '(Sedang Dilihat)' : '' ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h2 class="h5 fw-bold text-navy mb-0"><i class="fas fa-file-alt text-primary me-2"></i>Jawaban Peserta</h2>
                     <span class="badge bg-light text-muted border rounded-pill px-2 py-1 small">

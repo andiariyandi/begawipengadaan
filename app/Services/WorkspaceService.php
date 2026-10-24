@@ -8,7 +8,6 @@ class WorkspaceService
         return match($role) {
             'operator' => 'operator',
             'trainer' => 'trainer',
-            'evaluator' => 'evaluator',
             'peserta' => 'peserta',
             default => 'dashboard',
         };

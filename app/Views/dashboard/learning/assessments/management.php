@@ -474,7 +474,7 @@ $filters        = $filters ?? [];
                             <th>Isi / Berkas Jawaban</th>
                             <th class="text-center">Nilai</th>
                             <th class="text-center">Status</th>
-                            <th>Evaluator</th>
+                            <th>Penilai</th>
                             <th class="text-center" style="width: 150px;">Aksi</th>
                         </tr>
                     </thead>
@@ -936,7 +936,7 @@ $filters        = $filters ?? [];
                     </div>
 
                     <div class="mb-0">
-                        <label class="form-label fw-semibold text-sm mb-6" for="grade_feedback">Umpan Balik / Catatan Evaluator</label>
+                        <label class="form-label fw-semibold text-sm mb-6" for="grade_feedback">Umpan Balik / Catatan Penilai</label>
                         <textarea id="grade_feedback" name="feedback" class="form-control radius-8" rows="3" placeholder="Tuliskan apresiasi, koreksi analisis, atau arahan revisi bagi peserta..."></textarea>
                     </div>
                 </div>

@@ -1081,6 +1081,7 @@ class ArenaBelajarController extends BaseController
             $mod['quiz_count'] = (int) $db->table('quizzes')
                 ->join('lessons', 'lessons.id = quizzes.lesson_id')
                 ->where('lessons.module_id', (int) $mod['id'])
+                ->where('quizzes.status', 'published')
                 ->countAllResults();
         }
         unset($mod);

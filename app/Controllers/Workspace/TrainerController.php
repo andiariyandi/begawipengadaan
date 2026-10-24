@@ -50,7 +50,7 @@ class TrainerController extends BaseController
             ->orderBy('lc.start_at', 'DESC')
             ->get()->getResultArray();
 
-        if ($assignedClasses === [] && $this->isPrivilegedOperator()) {
+        if ($assignedClasses === [] && $this->isUnrestrictedAdmin()) {
             $assignedClasses = $db->table('learning_classes lc')
                 ->select('lc.id AS class_id, lc.created_at AS assigned_at, "primary" AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.learning_method, lc.location_or_link, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path, courses.level AS course_level')
                 ->join('courses', 'courses.id = lc.course_id')
@@ -223,7 +223,7 @@ class TrainerController extends BaseController
             ->orderBy('lc.start_at', 'DESC')
             ->get()->getResultArray();
 
-        if ($items === [] && $this->isPrivilegedOperator()) {
+        if ($items === [] && $this->isUnrestrictedAdmin()) {
             $items = $db->table('learning_classes lc')
                 ->select('lc.id AS class_id, lc.created_at AS assigned_at, lc.status AS ct_status, "primary" AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, lc.learning_method, lc.location_or_link, lc.cover_url AS class_cover_url, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.summary AS course_summary, courses.level AS course_level, courses.cover_url AS course_cover_url, fa.path AS cover_path, programs.title AS program_title')
                 ->join('courses', 'courses.id = lc.course_id')
@@ -506,30 +506,79 @@ class TrainerController extends BaseController
             ->get()->getRowArray();
 
         $passingGrade = (float) ($class['passing_grade'] ?? 70.0);
-        $wQuiz        = (float) ($class['quiz_weight'] ?? 40.0);
-        $wAsg         = (float) ($class['assignment_weight'] ?? 0.0);
-        $wPost        = (float) ($class['post_test_weight'] ?? 60.0);
-        $totalWeight  = $wQuiz + $wAsg + $wPost;
-        if ($totalWeight <= 0) {
-            $totalWeight = 100.0;
+        $wPost        = 60.0;
+
+        $quizzes = $db->table('quizzes q')
+            ->select('q.*')
+            ->join('lessons l', 'l.id = q.lesson_id', 'left')
+            ->join('learning_modules m', 'm.id = l.module_id', 'left')
+            ->where('q.class_id', $classIdInt)
+            ->where('q.status', 'published')
+            ->groupStart()
+                ->where('q.lesson_id IS NULL', null, false)
+                ->orGroupStart()
+                    ->where('l.status', 'published')
+                    ->where('m.status', 'published')
+                ->groupEnd()
+            ->groupEnd()
+            ->orderBy('q.type', 'ASC')
+            ->orderBy('q.id', 'ASC')
+            ->get()->getResultArray();
+
+        $assignments = $db->table('assignments a')
+            ->select('a.*')
+            ->join('lessons l', 'l.id = a.lesson_id', 'left')
+            ->join('learning_modules m', 'm.id = l.module_id', 'left')
+            ->where('a.class_id', $classIdInt)
+            ->where('a.status', 'published')
+            ->groupStart()
+                ->where('a.lesson_id IS NULL', null, false)
+                ->orGroupStart()
+                    ->where('l.status', 'published')
+                    ->where('m.status', 'published')
+                ->groupEnd()
+            ->groupEnd()
+            ->orderBy('a.id', 'ASC')
+            ->get()->getResultArray();
+
+        $hasFormativeQuiz = false;
+        foreach ($quizzes as $qItem) {
+            if (($qItem['type'] ?? '') === 'lesson_quiz') {
+                $hasFormativeQuiz = true;
+                break;
+            }
         }
+        $hasAsg = ! empty($assignments);
 
-        $quizzes = $db->table('quizzes')
+        if ($hasFormativeQuiz && $hasAsg) {
+            $wAsg = (float) ($class['assignment_weight'] ?? 20.0);
+            if ($wAsg <= 0 || $wAsg > 40.0) {
+                $wAsg = 20.0;
+            }
+            $wQuiz = max(0.0, 100.0 - $wPost - $wAsg);
+        } elseif ($hasFormativeQuiz && ! $hasAsg) {
+            $wQuiz = 40.0;
+            $wAsg = 0.0;
+        } elseif (! $hasFormativeQuiz && $hasAsg) {
+            $wQuiz = 0.0;
+            $wAsg = 40.0;
+        } else {
+            $wQuiz = 0.0;
+            $wAsg = 0.0;
+        }
+        $totalWeight  = 100.0;
+
+        $modules = $db->table('learning_modules')
             ->where('class_id', $classIdInt)
-            ->orderBy('type', 'ASC')
-            ->orderBy('id', 'ASC')
+            ->where('status', 'published')
             ->get()->getResultArray();
-
-        $assignments = $db->table('assignments')
-            ->where('class_id', $classIdInt)
-            ->orderBy('id', 'ASC')
-            ->get()->getResultArray();
-
-        $modules = $db->table('learning_modules')->where('class_id', $classIdInt)->get()->getResultArray();
         $modIds = array_map(static fn($m): int => (int) $m['id'], $modules);
         $totalLessons = 0;
         if ($modIds !== []) {
-            $totalLessons = (int) $db->table('lessons')->whereIn('module_id', $modIds)->countAllResults();
+            $totalLessons = (int) $db->table('lessons')
+                ->whereIn('module_id', $modIds)
+                ->where('status', 'published')
+                ->countAllResults();
         }
 
         $participants = $db->table('enrollments e')
@@ -558,12 +607,17 @@ class TrainerController extends BaseController
             $submissions = $db->table('assignment_submissions')
                 ->select('enrollment_id, assignment_id, score, status')
                 ->whereIn('enrollment_id', $enrollmentIds)
+                ->orderBy('score', 'DESC')
                 ->get()->getResultArray();
             foreach ($submissions as $sub) {
-                $asgScores[(int) $sub['enrollment_id']][(int) $sub['assignment_id']] = [
-                    'score'  => $sub['score'] !== null ? (float) $sub['score'] : null,
-                    'status' => $sub['status'],
-                ];
+                $eid = (int) $sub['enrollment_id'];
+                $aid = (int) $sub['assignment_id'];
+                if (! isset($asgScores[$eid][$aid])) {
+                    $asgScores[$eid][$aid] = [
+                        'score'  => $sub['score'] !== null ? (float) $sub['score'] : null,
+                        'status' => $sub['status'],
+                    ];
+                }
             }
         }
 
@@ -650,10 +704,14 @@ class TrainerController extends BaseController
             if ($hasDbScore) {
                 $finalScore = (float) $p['final_score'];
             } else {
-                $termQuiz = ($avgQuizScore ?? 0.0) * ($wQuiz / $totalWeight);
-                $termAsg  = ($avgAsgScore ?? 0.0) * ($wAsg / $totalWeight);
-                $termPost = ($postScore ?? 0.0) * ($wPost / $totalWeight);
-                $finalScore = round($termQuiz + $termAsg + $termPost, 2);
+                if (empty($formativeQuizzes) && ! $hasAsg) {
+                    $finalScore = $postScore ?? 0.0;
+                } else {
+                    $termQuiz = ($avgQuizScore ?? 0.0) * ($wQuiz / 100.0);
+                    $termAsg  = ($avgAsgScore ?? 0.0) * ($wAsg / 100.0);
+                    $termPost = ($postScore ?? 0.0) * ($wPost / 100.0);
+                    $finalScore = round($termQuiz + $termAsg + $termPost, 2);
+                }
             }
 
             // 6. Nilai Huruf & Predikat
@@ -2009,11 +2067,17 @@ class TrainerController extends BaseController
             ->where('sf.submission_id', (int) $submissionId)
             ->get()->getResultArray();
 
+        $allAttempts = $db->table('assignment_submissions')
+            ->where(['assignment_id' => (int) $submission['assignment_id'], 'enrollment_id' => (int) $submission['enrollment_id']])
+            ->orderBy('attempt_number', 'ASC')
+            ->get()->getResultArray();
+
         return $this->render('Review Tugas: ' . $submission['user_name'], 'trainer/submission_review', [
-            'submission' => $submission,
-            'files'      => $files,
-            'classId'    => (int) $submission['class_id'],
-            'className'  => $this->className((int) $submission['class_id']),
+            'submission'  => $submission,
+            'files'       => $files,
+            'allAttempts' => $allAttempts,
+            'classId'     => (int) $submission['class_id'],
+            'className'   => $this->className((int) $submission['class_id']),
         ], 'trainer', $this->trainerBreadcrumb((int) $submission['class_id'], 'Review Tugas'));
     }
 
@@ -2089,14 +2153,18 @@ class TrainerController extends BaseController
                 ->with('error', 'Peserta tidak ditemukan pada kelas ini.');
         }
 
-        $now = date('Y-m-d H:i:s');
-        $db->table('enrollments')->where('id', (int) $enrollmentId)->update([
-            'status'       => 'active',
-            'activated_at' => $now,
-            'cancelled_at' => null,
-            'withdrawn_at' => null,
-            'updated_at'   => $now,
-        ]);
+        try {
+            $this->learning->activateEnrollment((int) $enrollmentId);
+        } catch (\Throwable $e) {
+            $now = date('Y-m-d H:i:s');
+            $db->table('enrollments')->where('id', (int) $enrollmentId)->update([
+                'status'       => 'active',
+                'activated_at' => $enrollment['activated_at'] ?? $now,
+                'cancelled_at' => null,
+                'withdrawn_at' => null,
+                'updated_at'   => $now,
+            ]);
+        }
 
         $name = $enrollment['user_name'] ?? 'Peserta';
         return redirect()->to(route_to('workspace.trainer.class.detail', $classId) . '?tab=peserta')
@@ -2367,7 +2435,7 @@ class TrainerController extends BaseController
     private function getTrainerClasses(int $userId): array
     {
         $classes = db_connect()->table('class_trainers ct')
-            ->select('lc.id, lc.name, lc.code, lc.status, lc.learning_method, lc.location_or_link, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path')
+            ->select('lc.id, lc.name, lc.code, lc.status, lc.learning_method, lc.location_or_link, ct.role AS assigned_role, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->join('courses', 'courses.id = lc.course_id')
             ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
@@ -2376,9 +2444,9 @@ class TrainerController extends BaseController
             ->orderBy('lc.name', 'ASC')
             ->get()->getResultArray();
 
-        if ($classes === [] && $this->isPrivilegedOperator()) {
+        if ($classes === [] && $this->isUnrestrictedAdmin()) {
             $classes = db_connect()->table('learning_classes lc')
-                ->select('lc.id, lc.name, lc.code, lc.status, lc.learning_method, lc.location_or_link, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path')
+                ->select('lc.id, lc.name, lc.code, lc.status, lc.learning_method, lc.location_or_link, "admin" AS assigned_role, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path')
                 ->join('courses', 'courses.id = lc.course_id')
                 ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
                 ->orderBy('lc.name', 'ASC')
@@ -2561,10 +2629,16 @@ class TrainerController extends BaseController
         return array_intersect(['operator', 'administrator', 'super_administrator'], $roles) !== [];
     }
 
+    private function isUnrestrictedAdmin(): bool
+    {
+        $roles = (array) session()->get('roles');
+        return array_intersect(['administrator', 'super_administrator'], $roles) !== [];
+    }
+
     private function assertTrainerOf(int $userId, int $classId): void
     {
-        if ($this->isPrivilegedOperator()) {
-            return; // Operator/Admin memiliki hak setara/override untuk mengelola seluruh kelas
+        if ($this->isUnrestrictedAdmin()) {
+            return; // Hanya Admin / Super Admin yang memiliki akses lintas seluruh kelas
         }
         $row = (new ClassTrainerModel())
             ->where('class_id', $classId)
@@ -2572,8 +2646,11 @@ class TrainerController extends BaseController
             ->where('status', 'active')
             ->first();
         if (! $row) {
-            redirect()->to(route_to('workspace.trainer.classes'))
-                ->with('error', 'Anda tidak ditugaskan pada kelas tersebut.')
+            $targetRoute = in_array('operator', (array) session()->get('roles'), true)
+                ? route_to('workspace.operator.class-trainers')
+                : route_to('workspace.trainer.classes');
+            redirect()->to($targetRoute)
+                ->with('error', 'Akses ditolak: Anda hanya dapat mengakses dan mengelola kelas yang telah ditugaskan (assigned) kepada Anda.')
                 ->send();
             exit;
         }

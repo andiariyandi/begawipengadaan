@@ -100,8 +100,8 @@ class CertificateEligibilityService
      */
     public function scanLearningEligible(?int $requestedBy = null): array
     {
-        // Path 1: enrollment.status = completed
-        $byEnrollmentStatus = $this->db->table('enrollments e')
+        // Hanya seleksi enrollment yang benar-benar memenuhi syarat kelulusan dan kelasnya mengaktifkan sertifikat
+        $rows = $this->db->table('enrollments e')
             ->distinct()
             ->select([
                 'e.id   AS enrollment_id',
@@ -117,35 +117,20 @@ class CertificateEligibilityService
             ->join('learning_classes lc', 'lc.id = e.class_id',  'left')
             ->join('courses c',           'c.id = lc.course_id',  'left')
             ->join('users u',             'u.id = e.user_id',     'left')
-            ->where('e.status', 'completed')
-            ->get()
-            ->getResultArray();
-
-        // Path 2: ada learning_progress yang 100% completed
-        $byLearningProgress = $this->db->table('learning_progress lp')
-            ->distinct()
-            ->select([
-                'e.id   AS enrollment_id',
-                'e.user_id',
-                'e.class_id',
-                'e.status AS enrollment_status',
-                'e.completed_at',
-                'u.name  AS user_name',
-                'u.email AS user_email',
-                'lc.name AS class_name',
-                'c.title AS course_title',
-            ])
-            ->join('enrollments e',       'e.id = lp.enrollment_id',           'left')
-            ->join('learning_classes lc', 'lc.id = e.class_id',                'left')
-            ->join('courses c',           'c.id = lc.course_id',               'left')
-            ->join('users u',             'u.id = e.user_id',                  'left')
-            ->where('lp.status', 'completed')
-            ->where('lp.progress_percent', 100.00)
+            ->where('lc.certificate_enabled', 1)
+            ->groupStart()
+                ->where('e.certificate_eligible_at IS NOT NULL')
+                ->orGroupStart()
+                    ->whereIn('e.status', ['completed', 'passed'])
+                    ->where('e.passed_at IS NOT NULL')
+                    ->where('e.final_score >= lc.passing_grade', null, false)
+                ->groupEnd()
+            ->groupEnd()
             ->get()
             ->getResultArray();
 
         $byId = [];
-        foreach (array_merge($byEnrollmentStatus, $byLearningProgress) as $r) {
+        foreach ($rows as $r) {
             $byId[(int) $r['enrollment_id']] = $r;
         }
         $rows = array_values($byId);
@@ -222,7 +207,8 @@ class CertificateEligibilityService
     public function isLearningEnrollmentEligible(int $enrollmentId): bool
     {
         $row = $this->db->table('enrollments e')
-            ->select('e.status, e.completed_at')
+            ->select('e.status, e.final_score, e.passed_at, e.certificate_eligible_at, lc.passing_grade, lc.certificate_enabled')
+            ->join('learning_classes lc', 'lc.id = e.class_id', 'left')
             ->where('e.id', $enrollmentId)
             ->get()
             ->getRowArray();
@@ -230,19 +216,25 @@ class CertificateEligibilityService
         if (! $row) {
             return false;
         }
-        if ($row['status'] === 'completed') {
+
+        // Kelas wajib mengaktifkan penerbitan sertifikat
+        if ((int) ($row['certificate_enabled'] ?? 0) !== 1) {
+            return false;
+        }
+
+        // Eligible jika sudah di-flag langsung oleh evaluasi kelulusan
+        if (! empty($row['certificate_eligible_at'])) {
             return true;
         }
 
-        // Path 2: ada learning_progress yang completed + 100%
-        $prog = $this->db->table('learning_progress')
-            ->where('enrollment_id', $enrollmentId)
-            ->where('status', 'completed')
-            ->where('progress_percent', 100.00)
-            ->get()
-            ->getRowArray();
+        // Atau status completed/passed dengan passed_at dan nilai akhir mencapai passing grade
+        $passingGrade = (float) ($row['passing_grade'] ?? 70.0);
+        $finalScore   = (float) ($row['final_score'] ?? 0);
+        $isPassed     = in_array($row['status'], ['completed', 'passed'], true)
+            && ! empty($row['passed_at'])
+            && ($finalScore >= $passingGrade);
 
-        return (bool) $prog;
+        return $isPassed;
     }
 
     // ===============================================================
@@ -385,13 +377,15 @@ class CertificateEligibilityService
             $validActorId = $firstUser ? (int) $firstUser['id'] : null;
         }
 
+        $taggedNotes = "[source:{$sourceType}] " . $notes;
+
         $data = [
             'resource_type'    => 'certificate',
             'resource_id'      => $sourceId,
             'requested_action' => self::APPROVAL_ACTION,
             'status'           => 'pending',
             'requested_by'     => $validActorId,
-            'notes'            => $notes,
+            'notes'            => $taggedNotes,
             'created_at'       => $now,
             'updated_at'       => $now,
         ];

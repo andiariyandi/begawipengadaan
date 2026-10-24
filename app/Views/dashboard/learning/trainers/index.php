@@ -11,12 +11,12 @@ $trainers    = $trainers ?? [];
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
-        <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Penugasan Trainer') ?></h6>
-        <p class="text-secondary-light mb-0">Kelola dan pantau penugasan trainer (pengajar) ke setiap kelas pembelajaran aktif.</p>
+        <h6 class="fw-semibold mb-1"><?= esc($pageTitle ?? 'Penugasan Trainer & Operator') ?></h6>
+        <p class="text-secondary-light mb-0">Kelola dan pantau penugasan trainer (pengajar) maupun operator pengelola (asisten trainer) ke setiap kelas pembelajaran aktif.</p>
     </div>
     <button type="button" class="btn btn-primary-600 radius-8 px-20 py-11 d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#assignTrainerModal">
         <iconify-icon icon="solar:user-plus-rounded-outline" class="text-xl"></iconify-icon>
-        <span>Tugaskan Trainer</span>
+        <span>Tugaskan Trainer / Operator</span>
     </button>
 </div>
 
@@ -50,7 +50,7 @@ $trainers    = $trainers ?? [];
                         <iconify-icon icon="solar:check-circle-outline" class="text-white text-2xl mb-0"></iconify-icon>
                     </div>
                 </div>
-                <p class="fw-medium text-sm text-primary-light mt-12 mb-0">Trainer aktif mengajar</p>
+                <p class="fw-medium text-sm text-primary-light mt-12 mb-0">Trainer/Operator aktif</p>
             </div>
         </div>
     </div>
@@ -59,14 +59,14 @@ $trainers    = $trainers ?? [];
             <div class="card-body p-20">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                     <div>
-                        <p class="fw-medium text-primary-light mb-1">Kelas Terisi Trainer</p>
+                        <p class="fw-medium text-primary-light mb-1">Kelas Terisi</p>
                         <h6 class="mb-0 text-info-main"><?= number_format($stats['unique_classes'] ?? 0) ?></h6>
                     </div>
                     <div class="w-50-px h-50-px bg-info rounded-circle d-flex justify-content-center align-items-center">
                         <iconify-icon icon="solar:users-group-rounded-outline" class="text-white text-2xl mb-0"></iconify-icon>
                     </div>
                 </div>
-                <p class="fw-medium text-sm text-primary-light mt-12 mb-0">Kelas dengan trainer aktif</p>
+                <p class="fw-medium text-sm text-primary-light mt-12 mb-0">Kelas dengan pengajar aktif</p>
             </div>
         </div>
     </div>
@@ -94,7 +94,7 @@ $trainers    = $trainers ?? [];
         <form action="<?= site_url('dashboard/pembelajaran/trainer') ?>" method="get" class="row gy-3 gx-3 align-items-center">
             <div class="col-md-4">
                 <div class="position-relative">
-                    <input type="text" name="keyword" class="form-control radius-8 ps-40" placeholder="Cari nama trainer / kelas..." value="<?= esc($filters['keyword'] ?? '') ?>">
+                    <input type="text" name="keyword" class="form-control radius-8 ps-40" placeholder="Cari nama trainer / operator / kelas..." value="<?= esc($filters['keyword'] ?? '') ?>">
                     <iconify-icon icon="solar:magnifer-outline" class="position-absolute top-50 start-0 translate-middle-y ms-16 text-secondary-light"></iconify-icon>
                 </div>
             </div>
@@ -128,7 +128,7 @@ $trainers    = $trainers ?? [];
             <table class="table bordered-table mb-0">
                 <thead>
                     <tr>
-                        <th>Trainer</th>
+                        <th>Trainer / Operator</th>
                         <th>Peran</th>
                         <th>Kelas & Batch</th>
                         <th>Course Induk</th>
@@ -144,7 +144,7 @@ $trainers    = $trainers ?? [];
                             <td colspan="8" class="text-center text-secondary-light py-32">
                                 <?= view('dashboard/components/empty_state', [
                                     'title'   => 'Belum Ada Penugasan Trainer',
-                                    'message' => 'Silakan klik tombol "Tugaskan Trainer" di atas untuk menghubungkan trainer dengan kelas pembelajaran.',
+                                    'message' => 'Silakan klik tombol "Tugaskan Trainer / Operator" di atas untuk menghubungkan pengajar dengan kelas pembelajaran.',
                                     'icon'    => 'solar:user-speak-outline',
                                 ]) ?>
                             </td>
@@ -153,6 +153,7 @@ $trainers    = $trainers ?? [];
                         <?php foreach ($assignments as $row): ?>
                             <?php
                             $tRole = match ($row['role'] ?? 'primary') {
+                                'operator'   => ['label' => 'Operator Pengelola (Asisten)', 'badge' => 'bg-warning-50 text-warning-600 border border-warning-200'],
                                 'co_trainer' => ['label' => 'Co-Trainer', 'badge' => 'bg-info-50 text-info-600 border border-info-200'],
                                 'guest'      => ['label' => 'Narasumber Tamu', 'badge' => 'bg-neutral-100 text-neutral-800 border'],
                                 default      => ['label' => 'Instruktur Utama', 'badge' => 'bg-primary-50 text-primary-600 border border-primary-200'],
@@ -194,7 +195,7 @@ $trainers    = $trainers ?? [];
                                 </td>
                                 <td class="text-center">
                                     <?php if ($row['status'] === 'active'): ?>
-                                        <form action="<?= site_url('dashboard/pembelajaran/trainer/' . $row['class_id'] . '/' . $row['user_id'] . '/cabut') ?>" method="post" onsubmit="return confirm('Apakah Anda yakin ingin mencabut penugasan trainer ini dari kelas?');" class="d-inline">
+                                        <form action="<?= site_url('dashboard/pembelajaran/trainer/' . $row['class_id'] . '/' . $row['user_id'] . '/cabut') ?>" method="post" onsubmit="return confirm('Apakah Anda yakin ingin mencabut penugasan ini dari kelas?');" class="d-inline">
                                             <?= csrf_field() ?>
                                             <button type="submit" class="btn btn-sm btn-outline-danger radius-4 px-12 py-6 d-inline-flex align-items-center gap-1" title="Cabut Penugasan">
                                                 <iconify-icon icon="solar:close-circle-outline"></iconify-icon>
@@ -206,6 +207,7 @@ $trainers    = $trainers ?? [];
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="class_id" value="<?= esc($row['class_id']) ?>">
                                             <input type="hidden" name="trainer_user_id" value="<?= esc($row['user_id']) ?>">
+                                            <input type="hidden" name="role" value="<?= esc($row['role'] ?? 'primary') ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-success radius-4 px-12 py-6 d-inline-flex align-items-center gap-1" title="Tugaskan Kembali">
                                                 <iconify-icon icon="solar:check-circle-outline"></iconify-icon>
                                                 <span>Tugaskan Lagi</span>
@@ -233,7 +235,7 @@ $trainers    = $trainers ?? [];
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content radius-16">
             <div class="modal-header border-bottom py-16 px-24">
-                <h6 class="modal-title fw-semibold text-lg" id="assignTrainerModalLabel">Tugaskan Trainer ke Kelas</h6>
+                <h6 class="modal-title fw-semibold text-lg" id="assignTrainerModalLabel">Tugaskan Trainer / Operator ke Kelas</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="<?= site_url('dashboard/pembelajaran/trainer/assign') ?>" method="post">
@@ -251,16 +253,16 @@ $trainers    = $trainers ?? [];
                         </select>
                     </div>
                     <div class="mb-20">
-                        <label class="form-label fw-semibold text-sm mb-8" for="modal_trainer_id">Pilih Trainer / Pengajar <span class="text-danger-main">*</span></label>
+                        <label class="form-label fw-semibold text-sm mb-8" for="modal_trainer_id">Pilih Trainer / Operator Pengelola <span class="text-danger-main">*</span></label>
                         <select id="modal_trainer_id" name="trainer_user_id" class="form-select radius-8" required>
-                            <option value="">-- Pilih Trainer --</option>
+                            <option value="">-- Pilih Trainer / Operator --</option>
                             <?php foreach ($trainers as $trn): ?>
                                 <option value="<?= esc($trn['id']) ?>">
-                                    <?= esc($trn['name']) ?> (<?= esc($trn['email']) ?>)
+                                    <?= esc($trn['name']) ?> (<?= esc($trn['email']) ?>) [<?= esc(strtoupper($trn['role_keys'] ?? 'trainer')) ?>]
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <small class="text-secondary-light mt-4 d-block">Hanya user aktif dengan role trainer yang ditampilkan.</small>
+                        <small class="text-secondary-light mt-4 d-block">Menampilkan user aktif dengan role Trainer atau Operator.</small>
                     </div>
                     <div class="mb-20">
                         <label class="form-label fw-semibold text-sm mb-8" for="modal_role">Peran Penugasan</label>
@@ -268,6 +270,7 @@ $trainers    = $trainers ?? [];
                             <option value="primary">Instruktur Utama (Lead Facilitator)</option>
                             <option value="co_trainer">Asisten Instruktur / Co-Trainer</option>
                             <option value="guest">Narasumber Tamu (Guest Speaker)</option>
+                            <option value="operator">Operator Pengelola Kelas (Asisten Trainer)</option>
                         </select>
                     </div>
                 </div>

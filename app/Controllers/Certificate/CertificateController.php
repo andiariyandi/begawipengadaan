@@ -20,7 +20,7 @@ use RuntimeException;
  *
  *     Baris certificates hanya dibuat oleh CertificateGenerator dari
  *     approval yang sudah berstatus 'approved'
- *     (lihat CertificateApprovalController::issue()).
+ *     (lihat ApprovalController::issue()).
  *
  *   - certificate_number: atomik via CertificateSequenceModel
  *     (SERT/{YEAR}/{NNNNN}). TIDAK pernah MAX()+UPDATE.

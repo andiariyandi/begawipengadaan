@@ -3,6 +3,9 @@ $now = time();
 $startAt = ! empty($ev['start_at']) ? strtotime($ev['start_at']) : $now;
 $endAt = ! empty($ev['end_at']) ? strtotime($ev['end_at']) : $now;
 
+$regStatus = strtolower((string) ($ev['registration_status'] ?? 'registered'));
+$isApproved = $ev['is_approved'] ?? in_array($regStatus, ['registered', 'confirmed', 'attended', 'present', 'completed', 'promoted'], true);
+
 // Execution status badge
 if ($ev['is_finished'] ?? ($endAt < $now)) {
     $execBadgeClass = 'bg-secondary-subtle text-secondary';
@@ -24,7 +27,7 @@ if (! empty($ev['has_attended'])) {
     $attBadgeClass = 'bg-success text-white';
     $attBadgeLabel = 'Telah Hadir';
     $attBadgeIcon = 'fas fa-check-circle';
-} elseif (! empty($ev['is_presensi_active'])) {
+} elseif ($isApproved && ! empty($ev['is_presensi_active'])) {
     $attBadgeClass = 'bg-success-subtle text-success border border-success';
     $attBadgeLabel = 'Presensi Aktif';
     $attBadgeIcon = 'fas fa-door-open';
@@ -59,12 +62,26 @@ $detailUrl = route_to('workspace.participant.event.detail', (string) $ev['event_
             <div>
                 <!-- Status Badges Header -->
                 <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
-                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                        <span class="badge <?= $execBadgeClass ?> px-3 py-1 rounded-pill small fw-semibold">
+                    <div class="d-flex flex-wrap gap-1 align-items-center">
+                        <?php if ($isApproved): ?>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small fw-semibold">
+                                <i class="fas fa-check-circle me-1"></i> Disetujui (Approved)
+                            </span>
+                        <?php elseif ($regStatus === 'cancelled'): ?>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-pill small fw-semibold">
+                                <i class="fas fa-times-circle me-1"></i> Ditolak / Dibatalkan
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 rounded-pill small fw-semibold">
+                                <i class="fas fa-hourglass-half me-1"></i> Menunggu Persetujuan
+                            </span>
+                        <?php endif; ?>
+
+                        <span class="badge <?= $execBadgeClass ?> px-2 py-1 rounded-pill small fw-semibold">
                             <i class="fas fa-circle me-1 small"></i> <?= esc($execBadgeLabel) ?>
                         </span>
                         <?php if ($attBadgeLabel !== null): ?>
-                            <span class="badge <?= $attBadgeClass ?> px-3 py-1 rounded-pill small fw-semibold">
+                            <span class="badge <?= $attBadgeClass ?> px-2 py-1 rounded-pill small fw-semibold">
                                 <i class="<?= $attBadgeIcon ?> me-1"></i> <?= esc($attBadgeLabel) ?>
                             </span>
                         <?php endif; ?>
@@ -118,13 +135,17 @@ $detailUrl = route_to('workspace.participant.event.detail', (string) $ev['event_
                     <i class="far fa-clock me-1"></i> Daftar: <?= esc(date('d/m/Y', strtotime($ev['registered_at']))) ?>
                 </small>
                 <div class="d-flex flex-wrap gap-2">
-                    <?php if (! empty($ev['is_presensi_active']) && empty($ev['has_attended'])): ?>
+                    <?php if ($isApproved && ! empty($ev['is_presensi_active']) && empty($ev['has_attended'])): ?>
                         <a href="<?= $detailUrl ?>#presensi" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold">
                             <i class="fas fa-qrcode me-1"></i> Presensi Sekarang
                         </a>
                     <?php endif; ?>
-                    <a href="<?= $detailUrl ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                        Lihat Detail
+                    <a href="<?= $detailUrl ?>" class="btn <?= $isApproved ? 'btn-primary' : 'btn-outline-secondary' ?> btn-sm rounded-pill px-3 fw-semibold">
+                        <?php if ($isApproved): ?>
+                            <i class="fas fa-door-open me-1"></i> Masuk Ruang Event
+                        <?php else: ?>
+                            <i class="fas fa-clock me-1"></i> Cek Status Approval
+                        <?php endif; ?>
                     </a>
                 </div>
             </div>

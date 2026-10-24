@@ -75,7 +75,7 @@ class AuthorizationService
             return true;
         }
 
-        $internalRoles = ['super_administrator', 'administrator', 'operator', 'trainer', 'evaluator'];
+        $internalRoles = ['super_administrator', 'administrator', 'operator', 'trainer'];
         if (array_intersect($roles, $internalRoles) !== []) {
             return true;
         }

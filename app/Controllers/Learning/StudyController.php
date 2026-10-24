@@ -38,13 +38,19 @@ class StudyController extends BaseController
             $enrollmentId = (int) $p['id'];
             $totalLessons = (int) $db->table('lessons l')
                 ->join('learning_modules lm', 'lm.id = l.module_id')
-                ->join('learning_classes lc', 'lc.course_id = lm.course_id')
+                ->join('learning_classes lc', 'lc.id = lm.class_id')
                 ->where('lc.id', $p['class_id'])
+                ->where('l.status', 'published')
+                ->where('lm.status', 'published')
                 ->countAllResults();
 
-            $completedLessons = (int) $db->table('learning_progress')
-                ->where('enrollment_id', $enrollmentId)
-                ->where('status', 'completed')
+            $completedLessons = (int) $db->table('learning_progress lp')
+                ->join('lessons l', 'l.id = lp.lesson_id')
+                ->join('learning_modules lm', 'lm.id = l.module_id')
+                ->where('lp.enrollment_id', $enrollmentId)
+                ->where('lp.status', 'completed')
+                ->where('l.status', 'published')
+                ->where('lm.status', 'published')
                 ->countAllResults();
 
             $p['total_lessons'] = $totalLessons;

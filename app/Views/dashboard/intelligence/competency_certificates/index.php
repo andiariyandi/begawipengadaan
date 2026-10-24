@@ -8,6 +8,7 @@
         <p class="text-secondary-light mb-0">Direktori sertifikasi keahlian pengadaan barang/jasa resmi yang diakui secara nasional.</p>
     </div>
     <div class="d-flex flex-wrap gap-12">
+        <a href="<?= site_url('dashboard/intelligence/sertifikat-kompetensi/tambah') ?>" class="btn btn-primary-600 radius-8 px-16 py-9 d-inline-flex align-items-center gap-6"><iconify-icon icon="solar:add-circle-bold"></iconify-icon> Catat Sertifikat</a>
         <a href="<?= site_url('dashboard/intelligence/jenis-sertifikat-kompetensi') ?>" class="btn btn-outline-primary-600 radius-8 px-16 py-9">
             Standar Jenis Sertifikat
         </a>

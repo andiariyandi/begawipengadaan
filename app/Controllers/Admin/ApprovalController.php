@@ -90,7 +90,7 @@ class ApprovalController extends BaseController
         }
 
         // Resolusi konteks resource dinamis
-        $resourceContext = $this->resolveResourceContext($approval['resource_type'] ?? '', (int) ($approval['resource_id'] ?? 0));
+        $resourceContext = $this->resolveResourceContext($approval['resource_type'] ?? '', (int) ($approval['resource_id'] ?? 0), $approval);
 
         $createdTs  = ! empty($approval['created_at']) ? strtotime($approval['created_at']) : time();
         $reviewedTs = ! empty($approval['reviewed_at']) ? strtotime($approval['reviewed_at']) : null;
@@ -408,77 +408,109 @@ class ApprovalController extends BaseController
      *
      * @return array<string, mixed>
      */
-    private function resolveResourceContext(string $resourceType, int $resourceId): array
+    private function resolveResourceContext(string $resourceType, int $resourceId, ?array $approval = null): array
     {
         $db = db_connect();
 
         if ($resourceType === 'certificate') {
-            // Coba periksa tabel enrollments (pembelajaran)
-            $enrollment = $db->table('enrollments e')
-                ->select([
-                    'e.id',
-                    'e.final_score',
-                    'e.completed_at',
-                    'e.passed_at',
-                    'lc.name AS class_name',
-                    'c.title AS course_title',
-                    'u.name AS student_name',
-                    'u.email AS student_email',
-                ])
-                ->join('learning_classes lc', 'lc.id = e.class_id', 'left')
-                ->join('courses c', 'c.id = lc.course_id', 'left')
-                ->join('users u', 'u.id = e.user_id', 'left')
-                ->where('e.id', $resourceId)
-                ->get()
-                ->getRowArray();
-
-            if ($enrollment) {
-                return [
-                    'category'    => 'Pembelajaran Arena Belajar',
-                    'title'       => $enrollment['course_title'] ?? 'Kursus PBJ',
-                    'subtitle'    => $enrollment['class_name'] ?? 'Kelas Pembelajaran',
-                    'participant' => $enrollment['student_name'] ?? '-',
-                    'score'       => ! empty($enrollment['final_score']) ? number_format((float) $enrollment['final_score'], 1) : '—',
-                    'completed'   => ! empty($enrollment['passed_at']) ? date('d F Y', strtotime($enrollment['passed_at'])) : '-',
-                    'details'     => [
-                        'Nama Kursus'      => $enrollment['course_title'] ?? '-',
-                        'Kelas Pelatihan'  => $enrollment['class_name'] ?? '-',
-                        'Nilai Akhir'      => ($enrollment['final_score'] ?? '-') . ' / 100',
-                        'Status Kelulusan' => 'Memenuhi Syarat (Eligible)',
-                    ],
-                ];
+            $preferEvent = false;
+            if ($approval !== null) {
+                $notes = (string) ($approval['notes'] ?? '');
+                if (str_contains($notes, '[source:event_registration]') || str_contains($notes, 'event') || str_contains($notes, 'Event')) {
+                    $preferEvent = true;
+                }
             }
 
-            // Coba periksa tabel event_registrations
-            $eventReg = $db->table('event_registrations er')
-                ->select([
-                    'er.id',
-                    'er.status',
-                    'ev.title AS event_title',
-                    'ev.start_date',
-                    'ev.location',
-                    'u.name AS participant_name',
-                ])
-                ->join('events ev', 'ev.id = er.event_id', 'left')
-                ->join('users u', 'u.id = er.user_id', 'left')
-                ->where('er.id', $resourceId)
-                ->get()
-                ->getRowArray();
+            $lookupLearning = static function () use ($db, $resourceId) {
+                $enrollment = $db->table('enrollments e')
+                    ->select([
+                        'e.id',
+                        'e.final_score',
+                        'e.completed_at',
+                        'e.passed_at',
+                        'lc.name AS class_name',
+                        'c.title AS course_title',
+                        'u.name AS student_name',
+                        'u.email AS student_email',
+                    ])
+                    ->join('learning_classes lc', 'lc.id = e.class_id', 'left')
+                    ->join('courses c', 'c.id = lc.course_id', 'left')
+                    ->join('users u', 'u.id = e.user_id', 'left')
+                    ->where('e.id', $resourceId)
+                    ->get()
+                    ->getRowArray();
 
-            if ($eventReg) {
-                return [
-                    'category'    => 'Agenda / Event PBJ',
-                    'title'       => $eventReg['event_title'] ?? 'Agenda PBJ',
-                    'subtitle'    => $eventReg['location'] ?? 'Daring / Luring',
-                    'participant' => $eventReg['participant_name'] ?? '-',
-                    'score'       => 'Hadir',
-                    'completed'   => ! empty($eventReg['start_date']) ? date('d F Y', strtotime($eventReg['start_date'])) : '-',
-                    'details'     => [
-                        'Judul Event'       => $eventReg['event_title'] ?? '-',
-                        'Lokasi/Media'      => $eventReg['location'] ?? '-',
-                        'Status Kehadiran'  => 'Tervalidasi Hadir',
-                    ],
-                ];
+                if ($enrollment) {
+                    return [
+                        'category'    => 'Pembelajaran Arena Belajar',
+                        'title'       => $enrollment['course_title'] ?? 'Kursus PBJ',
+                        'subtitle'    => $enrollment['class_name'] ?? 'Kelas Pembelajaran',
+                        'participant' => $enrollment['student_name'] ?? '-',
+                        'score'       => ! empty($enrollment['final_score']) ? number_format((float) $enrollment['final_score'], 1) : '—',
+                        'completed'   => ! empty($enrollment['passed_at']) ? date('d F Y', strtotime($enrollment['passed_at'])) : '-',
+                        'details'     => [
+                            'Nama Kursus'      => $enrollment['course_title'] ?? '-',
+                            'Kelas Pelatihan'  => $enrollment['class_name'] ?? '-',
+                            'Nilai Akhir'      => ($enrollment['final_score'] ?? '-') . ' / 100',
+                            'Status Kelulusan' => 'Memenuhi Syarat (Eligible)',
+                        ],
+                    ];
+                }
+                return null;
+            };
+
+            $lookupEvent = static function () use ($db, $resourceId) {
+                $eventReg = $db->table('event_registrations er')
+                    ->select([
+                        'er.id',
+                        'er.status',
+                        'ev.title AS event_title',
+                        'ev.start_date',
+                        'ev.location',
+                        'u.name AS participant_name',
+                    ])
+                    ->join('events ev', 'ev.id = er.event_id', 'left')
+                    ->join('users u', 'u.id = er.user_id', 'left')
+                    ->where('er.id', $resourceId)
+                    ->get()
+                    ->getRowArray();
+
+                if ($eventReg) {
+                    return [
+                        'category'    => 'Agenda / Event PBJ',
+                        'title'       => $eventReg['event_title'] ?? 'Agenda PBJ',
+                        'subtitle'    => $eventReg['location'] ?? 'Daring / Luring',
+                        'participant' => $eventReg['participant_name'] ?? '-',
+                        'score'       => 'Hadir',
+                        'completed'   => ! empty($eventReg['start_date']) ? date('d F Y', strtotime($eventReg['start_date'])) : '-',
+                        'details'     => [
+                            'Judul Event'       => $eventReg['event_title'] ?? '-',
+                            'Lokasi/Media'      => $eventReg['location'] ?? '-',
+                            'Status Kehadiran'  => 'Tervalidasi Hadir',
+                        ],
+                    ];
+                }
+                return null;
+            };
+
+            if ($preferEvent) {
+                $res = $lookupEvent();
+                if ($res) {
+                    return $res;
+                }
+                $res = $lookupLearning();
+                if ($res) {
+                    return $res;
+                }
+            } else {
+                $res = $lookupLearning();
+                if ($res) {
+                    return $res;
+                }
+                $res = $lookupEvent();
+                if ($res) {
+                    return $res;
+                }
             }
         }
 

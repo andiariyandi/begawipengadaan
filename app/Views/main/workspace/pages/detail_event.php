@@ -6,11 +6,26 @@ $now = time();
 $materials = $materials ?? [];
 $assessmentConfig = $assessmentConfig ?? [];
 $registration = $registration ?? [];
+$regStatusRaw = strtolower((string) ($registration['status'] ?? 'registered'));
+if (! isset($isRegistrationApproved)) {
+    $isRegistrationApproved = in_array($regStatusRaw, ['registered', 'confirmed', 'attended', 'present', 'completed', 'promoted'], true);
+} else {
+    $isRegistrationApproved = (bool) $isRegistrationApproved;
+}
+
 $preTest = $assessmentConfig['pre_test'] ?? [];
 $postTest = $assessmentConfig['post_test'] ?? [];
 $preTestAttempt = $preTestAttempt ?? null;
 $postTestAttempt = $postTestAttempt ?? null;
 $selfPacedProgress = $selfPacedProgress ?? [];
+
+$hasMaterials = ! empty($materials);
+$hasPreTest = (! empty($preTest['enabled']) && ! empty($preTest['questions']));
+$hasPostTest = (! empty($postTest['enabled']) && ! empty($postTest['questions']));
+$preAttempted = (! empty($preTestAttempt));
+$prePassed = ($preAttempted && ! empty($preTestAttempt['is_passed']));
+$postAttempted = (! empty($postTestAttempt));
+$postPassed = ($postAttempted && ! empty($postTestAttempt['is_passed']));
 
 $startTs = ! empty($event['start_at']) ? strtotime($event['start_at']) : $now;
 $endTs = ! empty($event['end_at']) ? strtotime($event['end_at']) : $now;
@@ -40,6 +55,10 @@ if ($hasAttended) {
     $presensiBadgeClass = 'bg-success text-white';
     $presensiBadgeText = 'Kehadiran Terverifikasi';
     $presensiIcon = 'fas fa-check-double';
+} elseif (! $isRegistrationApproved) {
+    $presensiBadgeClass = 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+    $presensiBadgeText = 'Menunggu Approval Panitia';
+    $presensiIcon = 'fas fa-hourglass-half';
 } elseif ($isPresensiActive) {
     $presensiBadgeClass = 'bg-success-subtle text-success border border-success';
     $presensiBadgeText = 'Presensi Aktif';
@@ -68,6 +87,17 @@ if ($hasAttended) {
             <span class="badge <?= $presensiBadgeClass ?> px-3 py-1 rounded-pill small fw-semibold">
                 <i class="<?= $presensiIcon ?> me-1"></i> <?= esc($presensiBadgeText) ?>
             </span>
+            <?php if ($hasMaterials): ?>
+                <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-1 rounded-pill small fw-semibold">
+                    <i class="fas fa-folder-open me-1"></i> <?= count($materials) ?> Materi
+                </span>
+            <?php endif; ?>
+            <?php if ($hasPreTest || $hasPostTest): ?>
+                <span class="badge bg-purple-subtle text-primary border px-3 py-1 rounded-pill small fw-semibold">
+                    <i class="fas fa-graduation-cap me-1"></i>
+                    <?= $hasPreTest && $hasPostTest ? 'Pre-Test & Post-Test' : ($hasPreTest ? 'Pre-Test' : 'Post-Test') ?>
+                </span>
+            <?php endif; ?>
         </div>
         <div class="d-flex flex-wrap gap-2">
             <a href="<?= route_to('workspace.participant.events') ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
@@ -119,19 +149,53 @@ if ($hasAttended) {
         </div>
         <div class="col-sm-6 col-lg-3">
             <div class="d-flex align-items-center gap-2">
-                <div class="rounded-circle d-flex align-items-center justify-content-center bg-light text-success" style="width: 32px; height: 32px;">
-                    <i class="fas fa-user-check"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center bg-light <?= $isRegistrationApproved ? 'text-success' : 'text-warning' ?>" style="width: 32px; height: 32px;">
+                    <i class="fas <?= $isRegistrationApproved ? 'fa-user-check' : 'fa-user-clock' ?>"></i>
                 </div>
                 <div>
-                    <span class="d-block text-muted">Status Terdaftar</span>
-                    <strong class="text-dark">Aktif (<?= esc(ucfirst($registration['status'] ?? 'registered')) ?>)</strong>
+                    <span class="d-block text-muted">Status Pendaftaran</span>
+                    <?php if ($isRegistrationApproved): ?>
+                        <strong class="text-success">Disetujui / Approved</strong>
+                    <?php elseif ($regStatusRaw === 'cancelled'): ?>
+                        <strong class="text-danger">Ditolak / Dibatalkan</strong>
+                    <?php else: ?>
+                        <strong class="text-warning-emphasis">Menunggu Persetujuan</strong>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- SECTION: STATUS KEIKUTSERTAAN (TIMELINE PESERTA) -->
+<!-- BANNER GATE APPROVAL JIKA BELUM DISETUJUI -->
+<?php if (! $isRegistrationApproved): ?>
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-3 bg-warning-subtle border-start border-5 border-warning">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-start gap-3">
+                <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                    <i class="fas fa-user-lock fs-4"></i>
+                </div>
+                <div>
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 small fw-bold mb-1">
+                        Status: <?= $regStatusRaw === 'cancelled' ? 'Pendaftaran Ditolak / Dibatalkan' : 'Menunggu Persetujuan Panitia / Operator (Pending Approval)' ?>
+                    </span>
+                    <h2 class="h5 fw-bold text-navy mb-1">
+                        <?= $regStatusRaw === 'cancelled' ? 'Akses Ruang Kegiatan Tidak Tersedia' : 'Pendaftaran Anda Telah Tercatat dan Sedang Diverifikasi' ?>
+                    </h2>
+                    <p class="text-dark small mb-0">
+                        <?php if ($regStatusRaw === 'cancelled'): ?>
+                            Mohon maaf, pendaftaran Anda pada kegiatan ini telah dibatalkan atau tidak disetujui oleh panitia penyelenggara.
+                        <?php else: ?>
+                            Akses ke <strong>Tautan Ruang Sesi, Presensi Kehadiran, Unduhan Materi, serta Pre-Test/Post-Test</strong> akan terbuka secara otomatis segera setelah pendaftaran Anda berstatus <strong>Disetujui (Approved/Confirmed)</strong> oleh Operator atau Admin Event.
+                        <?php endif; ?>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<!-- SECTION: STATUS KEIKUTSERTAAN (TIMELINE PESERTA / TRAINER) -->
 <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-3 bg-white">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
@@ -144,12 +208,6 @@ if ($hasAttended) {
     </div>
 
     <?php
-    // Timeline steps state definition
-    // Step 1: Daftar Event (always completed)
-    // Step 2: Terdaftar (completed)
-    // Step 3: Menunggu Kehadiran (completed if attended, active if not attended)
-    // Step 4: Hadir (completed if attended, pending otherwise)
-    // Step 5: Sertifikat (completed if cert issued, pending if enabled, disabled if not enabled)
     $hasCert = (! empty($certificate) && ($certificate['status'] ?? '') === 'issued');
     $isCertEnabled = (bool) ($event['certificate_enabled'] ?? false);
     ?>
@@ -175,23 +233,41 @@ if ($hasAttended) {
                 </div>
             </div>
 
-            <!-- Step 2: Terdaftar -->
+            <!-- Step 2: Persetujuan (Approval) -->
             <div class="col-12 col-md">
-                <div class="p-3 rounded-4 h-100 bg-success-subtle border border-success-subtle d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="badge bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 26px; height: 26px;">
-                                <i class="fas fa-check small"></i>
-                            </span>
-                            <small class="text-success fw-bold">Tahap 2</small>
+                <?php if ($isRegistrationApproved): ?>
+                    <div class="p-3 rounded-4 h-100 bg-success-subtle border border-success-subtle d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 26px; height: 26px;">
+                                    <i class="fas fa-check small"></i>
+                                </span>
+                                <small class="text-success fw-bold">Tahap 2</small>
+                            </div>
+                            <h3 class="h6 fw-bold mb-1 text-success-emphasis">Disetujui (Approved)</h3>
+                            <p class="text-muted small mb-0">Kepesertaan sah terkonfirmasi.</p>
                         </div>
-                        <h3 class="h6 fw-bold mb-1 text-success-emphasis">Terdaftar</h3>
-                        <p class="text-muted small mb-0">Peserta sah terkonfirmasi.</p>
+                        <small class="text-success fw-semibold mt-3 d-block">
+                            <i class="fas fa-id-badge me-1"></i> Reg #<?= (int) $registration['id'] ?> Aktif
+                        </small>
                     </div>
-                    <small class="text-success fw-semibold mt-3 d-block">
-                        <i class="fas fa-id-badge me-1"></i> Kuota terisi (ID #<?= (int) $registration['id'] ?>)
-                    </small>
-                </div>
+                <?php else: ?>
+                    <div class="p-3 rounded-4 h-100 bg-warning-subtle border border-warning d-flex flex-column justify-content-between shadow-sm">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-warning text-dark rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 26px; height: 26px;">
+                                    <i class="fas fa-hourglass-half small"></i>
+                                </span>
+                                <small class="text-warning-emphasis fw-bold">Tahap 2 (Aktif)</small>
+                            </div>
+                            <h3 class="h6 fw-bold mb-1 text-navy">Verifikasi Panitia</h3>
+                            <p class="text-muted small mb-0">Menunggu persetujuan Operator/Admin.</p>
+                        </div>
+                        <small class="text-warning-emphasis fw-bold mt-3 d-block">
+                            <i class="fas fa-user-clock me-1"></i> Pending Approval
+                        </small>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <!-- Step 3: Menunggu Kehadiran -->
@@ -205,14 +281,14 @@ if ($hasAttended) {
                                 </span>
                                 <small class="text-success fw-bold">Tahap 3</small>
                             </div>
-                            <h3 class="h6 fw-bold mb-1 text-success-emphasis">Menunggu Kehadiran</h3>
-                            <p class="text-muted small mb-0">Sesi presensi telah dilewati.</p>
+                            <h3 class="h6 fw-bold mb-1 text-success-emphasis">Sesi & Presensi</h3>
+                            <p class="text-muted small mb-0">Sesi presensi telah diikuti.</p>
                         </div>
                         <small class="text-success fw-semibold mt-3 d-block">
                             <i class="fas fa-check me-1"></i> Telah check-in
                         </small>
                     </div>
-                <?php else: ?>
+                <?php elseif ($isRegistrationApproved): ?>
                     <div class="p-3 rounded-4 h-100 bg-primary-subtle border border-primary d-flex flex-column justify-content-between shadow-sm">
                         <div>
                             <div class="d-flex align-items-center justify-content-between mb-2">
@@ -221,14 +297,28 @@ if ($hasAttended) {
                                 </span>
                                 <small class="text-primary fw-bold">Tahap 3 (Aktif)</small>
                             </div>
-                            <h3 class="h6 fw-bold mb-1 text-primary">Menunggu Kehadiran</h3>
+                            <h3 class="h6 fw-bold mb-1 text-primary">Sesi & Presensi</h3>
                             <p class="text-muted small mb-0">
                                 <?= $isPresensiActive ? 'Sesi presensi aktif! Masukkan kode sandi sekarang.' : 'Menunggu panitia membuka kode kehadiran.' ?>
                             </p>
                         </div>
                         <small class="text-primary fw-bold mt-3 d-block">
-                            <i class="fas fa-bullhorn me-1"></i> Sesi berlangsung
+                            <i class="fas fa-bullhorn me-1"></i> Ruang Terbuka
                         </small>
+                    </div>
+                <?php else: ?>
+                    <div class="p-3 rounded-4 h-100 bg-light border d-flex flex-column justify-content-between opacity-75">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-secondary-subtle text-secondary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 26px; height: 26px;">
+                                    <i class="fas fa-lock small"></i>
+                                </span>
+                                <small class="text-muted">Tahap 3</small>
+                            </div>
+                            <h3 class="h6 fw-bold mb-1 text-muted">Sesi & Presensi</h3>
+                            <p class="text-muted small mb-0">Menunggu approval pendaftaran.</p>
+                        </div>
+                        <small class="text-muted mt-3 d-block"><i class="fas fa-lock me-1"></i> Terkunci</small>
                     </div>
                 <?php endif; ?>
             </div>
@@ -329,7 +419,6 @@ if ($hasAttended) {
 <!-- SECTION: PRESENSI KEHADIRAN (CARD KHUSUS) -->
 <div id="presensi" class="mb-3">
     <?php if ($hasAttended): ?>
-        <!-- HASIL PRESENSI: SUDAH HADIR / BERHASIL -->
         <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white position-relative overflow-hidden" style="border-left: 6px solid #28a745 !important;">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-2">
                 <div class="d-flex align-items-center gap-3">
@@ -361,13 +450,12 @@ if ($hasAttended) {
                 <div class="col-sm-4">
                     <small class="text-muted d-block mb-1">Metode Presensi:</small>
                     <span class="badge bg-white text-dark border px-2 py-1 rounded-pill small">
-                        <i class="fas fa-key text-primary me-1"></i> Kode Kehadiran Mandiri
+                        <i class="fas fa-key text-primary me-1"></i> <?= esc($attendance['notes'] ?? 'Presensi Kehadiran Sah') ?>
                     </span>
                 </div>
             </div>
         </div>
     <?php else: ?>
-        <!-- FORM PRESENSI KEHADIRAN (BELUM HADIR) -->
         <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
             <div class="row align-items-center g-3">
                 <div class="col-lg-6">
@@ -381,7 +469,11 @@ if ($hasAttended) {
                         </div>
                     </div>
 
-                    <?php if ($isPresensiActive): ?>
+                    <?php if (! $isRegistrationApproved): ?>
+                        <div class="alert alert-warning border border-warning-subtle rounded-3 py-2 px-3 small text-dark mb-0">
+                            <i class="fas fa-lock me-1"></i> Presensi terkunci karena pendaftaran Anda masih berstatus <strong>Menunggu Persetujuan</strong>.
+                        </div>
+                    <?php elseif ($isPresensiActive): ?>
                         <div class="alert alert-success-subtle border border-success-subtle rounded-3 py-2 px-3 small text-success mb-0">
                             <i class="fas fa-info-circle me-1"></i> Sesi presensi sedang <strong>DIBUKA</strong>. Silakan masukkan kode presensi sekarang.
                         </div>
@@ -397,7 +489,7 @@ if ($hasAttended) {
                 </div>
 
                 <div class="col-lg-6">
-                    <?php if ($isPresensiActive): ?>
+                    <?php if ($isRegistrationApproved && $isPresensiActive): ?>
                         <form action="<?= route_to('workspace.participant.attendance.checkin') ?>" method="post" class="d-flex flex-column flex-sm-row gap-2">
                             <?= csrf_field() ?>
                             <div class="input-group">
@@ -411,14 +503,16 @@ if ($hasAttended) {
                     <?php else: ?>
                         <div class="p-3 bg-light rounded-3 text-center text-muted">
                             <small class="d-block mb-1">
-                                <?php if (! empty($selfPacedProgress['is_self_paced_enabled']) && ! $hasAttended): ?>
-                                    Sesi presensi langsung telah ditutup. Kegiatan ini dibuka dalam <strong>Mode Pembelajaran Mandiri</strong>. Silakan ikuti kegiatan mandiri di bawah untuk memperoleh sertifikat.
+                                <?php if (! $isRegistrationApproved): ?>
+                                    Form presensi akan diaktifkan setelah pendaftaran Anda disetujui (Approved) oleh Operator/Panitia.
+                                <?php elseif (! empty($selfPacedProgress['is_self_paced_enabled']) && ! $hasAttended): ?>
+                                    Sesi presensi langsung telah ditutup. Kegiatan ini dibuka dalam <strong>Mode Pembelajaran Mandiri</strong>.
                                 <?php else: ?>
                                     <?= $isPresensiClosed ? 'Form kehadiran dinonaktifkan karena waktu presensi telah berakhir.' : 'Form kehadiran akan otomatis aktif saat panitia membuka sesi presensi.' ?>
                                 <?php endif; ?>
                             </small>
-                            <span class="badge <?= ! empty($selfPacedProgress['is_self_paced_enabled']) && ! $hasAttended ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' ?> rounded-pill px-3 py-1">
-                                <?= ! empty($selfPacedProgress['is_self_paced_enabled']) && ! $hasAttended ? 'Jalur Mandiri Aktif' : ($isPresensiClosed ? 'Presensi Ditutup' : 'Menunggu Sesi Dibuka') ?>
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">
+                                <?= ! $isRegistrationApproved ? 'Menunggu Persetujuan' : ($isPresensiClosed ? 'Presensi Ditutup' : 'Menunggu Sesi Dibuka') ?>
                             </span>
                         </div>
                     <?php endif; ?>
@@ -428,7 +522,7 @@ if ($hasAttended) {
     <?php endif; ?>
 </div>
 
-<?php if (! empty($selfPacedProgress['is_self_paced_enabled'])): ?>
+<?php if ($isRegistrationApproved && ! empty($selfPacedProgress['is_self_paced_enabled'])): ?>
 <!-- SECTION: PEMBELAJARAN MANDIRI (SELF-PACED LEARNING) -->
 <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-3 bg-white border-start border-4 border-success">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom">
@@ -499,107 +593,9 @@ if ($hasAttended) {
         </div>
     <?php endif; ?>
 
-    <!-- Progress Checklist Card -->
-    <div class="p-3 p-md-4 rounded-4 bg-light border mb-3">
-        <h3 class="h6 fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-            <i class="fas fa-clipboard-check text-success"></i>
-            <span>Tahapan &amp; Syarat E-Sertifikat Mandiri:</span>
-        </h3>
-
-        <div class="row g-3">
-            <!-- 1. Pre-Test -->
-            <div class="col-md-4">
-                <div class="p-3 rounded-3 bg-white border h-100 d-flex flex-column justify-content-between shadow-none">
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge bg-primary-subtle text-primary rounded-pill small">1. Pre-Test</span>
-                            <?php if ($selfPacedProgress['has_completed_pre_test']): ?>
-                                <span class="badge bg-success text-white small"><i class="fas fa-check"></i> Selesai</span>
-                            <?php else: ?>
-                                <span class="badge bg-warning text-dark small"><i class="fas fa-clock"></i> Belum</span>
-                            <?php endif; ?>
-                        </div>
-                        <h4 class="h6 fw-semibold text-dark mb-1">Pre-Test Awal</h4>
-                        <small class="text-muted d-block mb-2">Uji pemahaman dasar sebelum paparan materi.</small>
-                    </div>
-                    <div>
-                        <?php if ($selfPacedProgress['has_completed_pre_test']): ?>
-                            <div class="text-success small fw-bold">
-                                Skor Anda: <?= (int) ($selfPacedProgress['pre_test_attempt']['score'] ?? 0) ?> / 100
-                            </div>
-                        <?php else: ?>
-                            <a href="#sectionAssessments" class="btn btn-outline-primary btn-sm w-100 rounded-2 fw-semibold">
-                                Kerjakan Pre-Test
-                            </a>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Materi & Rekaman -->
-            <div class="col-md-4">
-                <div class="p-3 rounded-3 bg-white border h-100 d-flex flex-column justify-content-between shadow-none">
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge bg-info-subtle text-info rounded-pill small">2. Materi &amp; Rekaman</span>
-                            <span class="badge bg-success text-white small"><i class="fas fa-check"></i> Siap Diakses</span>
-                        </div>
-                        <h4 class="h6 fw-semibold text-dark mb-1">Bahan Tayang Paparan</h4>
-                        <small class="text-muted d-block mb-2">Pelajari <?= count($materials) ?> dokumen materi &amp; rekaman sesi.</small>
-                    </div>
-                    <div>
-                        <a href="#sectionMaterials" class="btn btn-outline-info btn-sm w-100 rounded-2 fw-semibold">
-                            Unduh Dokumen Materi
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. Post-Test -->
-            <div class="col-md-4">
-                <div class="p-3 rounded-3 bg-white border h-100 d-flex flex-column justify-content-between shadow-none">
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge bg-primary-subtle text-primary rounded-pill small">3. Post-Test</span>
-                            <?php if ($selfPacedProgress['has_passed_post_test']): ?>
-                                <span class="badge bg-success text-white small"><i class="fas fa-check"></i> Lulus</span>
-                            <?php elseif (! empty($selfPacedProgress['post_test_attempt'])): ?>
-                                <span class="badge bg-danger text-white small"><i class="fas fa-times"></i> Belum Lulus</span>
-                            <?php else: ?>
-                                <span class="badge bg-warning text-dark small"><i class="fas fa-clock"></i> Belum</span>
-                            <?php endif; ?>
-                        </div>
-                        <h4 class="h6 fw-semibold text-dark mb-1">Post-Test Evaluasi</h4>
-                        <small class="text-muted d-block mb-2">Passing grade minimal: <strong><?= (int) $selfPacedProgress['min_post_test_score'] ?></strong> / 100.</small>
-                    </div>
-                    <div>
-                        <?php if ($selfPacedProgress['has_passed_post_test']): ?>
-                            <div class="text-success small fw-bold">
-                                Skor Anda: <?= (int) ($selfPacedProgress['post_test_attempt']['score'] ?? 0) ?> / 100
-                            </div>
-                        <?php elseif (! empty($selfPacedProgress['post_test_attempt'])): ?>
-                            <div class="d-flex align-items-center justify-content-between gap-1">
-                                <small class="text-danger fw-bold">Skor: <?= (int) $selfPacedProgress['post_test_attempt']['score'] ?></small>
-                                <button type="button" class="btn btn-danger btn-sm rounded-2 fw-semibold px-2 py-1 text-xs" data-bs-toggle="modal" data-bs-target="#modalPostTest">
-                                    Ulangi Post-Test
-                                </button>
-                            </div>
-                        <?php else: ?>
-                            <a href="#sectionAssessments" class="btn btn-outline-primary btn-sm w-100 rounded-2 fw-semibold">
-                                Kerjakan Post-Test
-                            </a>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Certificate Claim / Action Box -->
     <?php if ($selfPacedProgress['has_certificate'] || $hasCert): ?>
-        <?php
-        $issuedCert = $certificate ?? $selfPacedProgress['certificate'] ?? [];
-        ?>
+        <?php $issuedCert = $certificate ?? $selfPacedProgress['certificate'] ?? []; ?>
         <div class="alert alert-success border border-success rounded-4 p-3 mb-0 d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-3">
                 <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
@@ -634,21 +630,6 @@ if ($hasAttended) {
                 </button>
             </div>
         </form>
-    <?php else: ?>
-        <div class="alert alert-secondary border rounded-4 p-3 mb-0 d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="rounded-circle bg-secondary-subtle text-secondary d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                    <i class="fas fa-lock fs-5"></i>
-                </div>
-                <div>
-                    <strong class="d-block text-dark">Klaim E-Sertifikat Masih Terkunci</strong>
-                    <small class="text-muted">Selesaikan butir checklist di atas (Pre-Test dan Post-Test minimal skor <?= (int) $selfPacedProgress['min_post_test_score'] ?>) untuk membuka tombol klaim sertifikat.</small>
-                </div>
-            </div>
-            <button type="button" disabled class="btn btn-secondary rounded-3 px-3 py-2 fw-semibold opacity-75">
-                <i class="fas fa-lock me-1"></i> Syarat Belum Lengkap
-            </button>
-        </div>
     <?php endif; ?>
 </div>
 <?php endif; ?>
@@ -695,7 +676,11 @@ if ($hasAttended) {
                     <i class="fas fa-video text-info me-2"></i> Akses Sesi Kegiatan
                 </h2>
 
-                <?php if (! empty($event['meeting_url'])): ?>
+                <?php if (! $isRegistrationApproved): ?>
+                    <div class="p-3 rounded-3 bg-light border text-muted small">
+                        <i class="fas fa-lock text-warning me-1"></i> Tautan ruang sesi daring / detail akses lokasi akan tampil setelah pendaftaran Anda berstatus <strong>Disetujui (Approved)</strong>.
+                    </div>
+                <?php elseif (! empty($event['meeting_url'])): ?>
                     <p class="text-muted small mb-2">Tautan ruang sesi daring (Zoom / Google Meet) untuk peserta terdaftar:</p>
                     <a href="<?= esc($event['meeting_url']) ?>" target="_blank" class="btn btn-success w-100 rounded-3 py-2 fw-semibold">
                         <i class="fas fa-external-link-alt me-1"></i> Buka Ruang Sesi Daring
@@ -721,7 +706,6 @@ if ($hasAttended) {
 
                     <?php if (! empty($event['certificate_enabled'])): ?>
                         <?php if ($hasCert): ?>
-                            <!-- Sertifikat Tersedia -->
                             <div class="alert alert-success-subtle border border-success-subtle rounded-3 p-3 mb-3">
                                 <span class="badge bg-success text-white rounded-pill px-3 py-1 mb-2">Sertifikat Tersedia</span>
                                 <small class="text-muted d-block mb-1">Nomor Sertifikat:</small>
@@ -731,7 +715,6 @@ if ($hasAttended) {
                                 </small>
                             </div>
                         <?php else: ?>
-                            <!-- Sertifikat Belum Tersedia -->
                             <div class="alert alert-light border rounded-3 p-3 mb-3 text-muted">
                                 <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 mb-2">Belum Tersedia</span>
                                 <small class="d-block mb-0">
@@ -747,7 +730,6 @@ if ($hasAttended) {
                     <?php endif; ?>
                 </div>
 
-                <!-- Action Button Sertifikat -->
                 <?php if ($hasCert): ?>
                     <div class="d-grid gap-2">
                         <a href="<?= route_to('workspace.participant.certificate.download', $certificate['id']) ?>" class="btn btn-primary rounded-3 py-2 fw-semibold">
@@ -763,7 +745,7 @@ if ($hasAttended) {
     </div>
 </div>
 
-<!-- SECTION: MATERI & BAHAN TAYANGAN PRESENTASI -->
+<!-- KOMPONEN PEMBELAJARAN: MATERI & BAHAN TAYANGAN -->
 <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-3 bg-white" id="sectionMaterials">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom">
         <div class="d-flex align-items-center gap-3">
@@ -780,13 +762,13 @@ if ($hasAttended) {
         </span>
     </div>
 
-    <?php if (empty($materials)): ?>
-        <div class="text-center py-4 px-3 bg-light rounded-4 border">
-            <div class="rounded-circle bg-white d-inline-flex align-items-center justify-content-center mb-2 shadow-sm text-muted" style="width: 50px; height: 50px;">
-                <i class="fas fa-file-download fs-4"></i>
-            </div>
-            <h6 class="fw-bold mb-1 text-dark">Belum Ada Materi yang Dibagikan</h6>
-            <p class="text-muted small mb-0">Materi presentasi dan bahan tayang akan disediakan oleh narasumber menjelang atau saat sesi kegiatan berlangsung.</p>
+    <?php if (! $isRegistrationApproved): ?>
+        <div class="alert alert-warning border border-warning-subtle rounded-3 p-3 mb-0 small text-dark">
+            <i class="fas fa-lock me-1"></i> Terdapat <strong><?= count($materials) ?> berkas materi</strong> pada event ini. Unduhan materi akan terbuka otomatis setelah pendaftaran Anda disetujui (Approved).
+        </div>
+    <?php elseif (! $hasMaterials): ?>
+        <div class="p-3 text-center text-muted small bg-light rounded-3">
+            <i class="fas fa-info-circle me-1"></i> Belum ada berkas materi tayangan yang diunggah oleh narasumber atau panitia untuk kegiatan ini.
         </div>
     <?php else: ?>
         <div class="row g-3">
@@ -803,7 +785,7 @@ if ($hasAttended) {
                 };
                 ?>
                 <div class="col-md-6 col-lg-4">
-                    <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-sm hover-shadow transition-all">
+                    <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-sm">
                         <div>
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge <?= $badgeColor ?> border px-2 py-1 rounded-2 text-uppercase fw-bold small">
@@ -844,7 +826,9 @@ if ($hasAttended) {
     <?php endif; ?>
 </div>
 
-<!-- SECTION: PEMBELAJARAN INTERAKTIF: PRE-TEST & POST-TEST (OPSIONAL) -->
+<!-- KOMPONEN PEMBELAJARAN OPSIONAL 2: PRE-TEST & POST-TEST (HANYA DIRENDER JIKA KONFIGURASI EVENT MENGAKTIFKANNYA) -->
+<?php if ($hasPreTest || $hasPostTest): ?>
+<?php $testColClass = ($hasPreTest && $hasPostTest) ? 'col-lg-6' : 'col-12'; ?>
 <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4 bg-white" id="sectionAssessments">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom">
         <div class="d-flex align-items-center gap-3">
@@ -852,198 +836,161 @@ if ($hasAttended) {
                 <i class="fas fa-graduation-cap fs-4"></i>
             </div>
             <div>
-                <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">Aktivitas Interaktif: Pre-Test &amp; Post-Test (Opsional)</h2>
-                <small class="text-muted">Fitur asesmen interaktif ala Arena Belajar untuk mengasah dan mengevaluasi pemahaman</small>
+                <h2 class="h5 fw-bold mb-0" style="color: #082f5c;">
+                    Aktivitas Pembelajaran Event: <?= $hasPreTest && $hasPostTest ? 'Pre-Test &amp; Post-Test' : ($hasPreTest ? 'Pre-Test Sesi' : 'Post-Test Evaluasi') ?>
+                </h2>
+                <small class="text-muted">Asesmen interaktif untuk mengukur dan mengevaluasi pemahaman materi kegiatan</small>
             </div>
         </div>
     </div>
 
-    <!-- Informative Alert -->
-    <div class="alert alert-success-subtle border border-success-subtle rounded-3 p-3 mb-3 d-flex align-items-start gap-2">
-        <i class="fas fa-info-circle text-success fs-5 mt-1"></i>
-        <div class="small text-success-emphasis">
-            <strong>Catatan Pengayaan Pembelajaran:</strong>
-            Aktivitas Pre-Test dan Post-Test ini disediakan oleh pemateri sebagai sarana interaktif untuk mengukur pemahaman materi Anda sebelum dan sesudah sesi.
-            Aktivitas ini bersifat <strong>opsional</strong>. Syarat utama dan mutlak penerbitan E-Sertifikat adalah <strong>Presensi Kehadiran Sah via Kode Presensi</strong>.
+    <?php if (! $isRegistrationApproved): ?>
+        <div class="alert alert-warning border border-warning-subtle rounded-3 p-3 mb-0 small text-dark">
+            <i class="fas fa-lock me-1"></i> Asesmen kegiatan ini akan dapat dikerjakan setelah status pendaftaran Anda <strong>Disetujui (Approved)</strong> oleh Panitia/Operator.
         </div>
-    </div>
-
-    <div class="row g-3">
-        <!-- Pre-Test Card -->
-        <?php
-        $hasPreTest = (! empty($preTest['enabled']) && ! empty($preTest['questions']));
-        $preAttempted = (! empty($preTestAttempt));
-        $prePassed = ($preAttempted && ! empty($preTestAttempt['is_passed']));
-        ?>
-        <div class="col-lg-6">
-            <div class="p-3 p-md-4 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-sm">
-                <div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill small fw-bold">
-                            <i class="fas fa-file-alt me-1"></i> Pre-Test (Awal Sesi)
-                        </span>
-                        <?php if ($hasPreTest): ?>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small">
-                                <?= count($preTest['questions'] ?? []) ?> Butir Soal
-                            </span>
-                        <?php else: ?>
-                            <span class="badge bg-light text-muted border rounded-pill px-2 py-1 small">Tidak Aktif</span>
-                        <?php endif; ?>
-                    </div>
-
-                    <h3 class="h6 fw-bold text-dark mb-1">
-                        <?= esc($preTest['title'] ?? 'Pre-Test Pemahaman Materi') ?>
-                    </h3>
-
-                    <?php if ($hasPreTest): ?>
-                        <p class="text-muted small mb-3">
-                            <?= ! empty($preTest['instructions']) ? esc($preTest['instructions']) : 'Kerjakan pre-test ini untuk mengukur tingkat pemahaman awal Anda terhadap materi kegiatan.' ?>
-                        </p>
-
-                        <div class="row g-2 mb-3 small text-muted">
-                            <div class="col-6">
-                                <i class="far fa-clock me-1 text-primary"></i> Durasi: <strong><?= (int) ($preTest['duration_minutes'] ?? 15) ?> Menit</strong>
+    <?php else: ?>
+        <div class="row g-3">
+            <!-- Pre-Test Card (Only rendered if $hasPreTest) -->
+            <?php if ($hasPreTest): ?>
+                <div class="<?= $testColClass ?>">
+                    <div class="p-3 p-md-4 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-sm">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill small fw-bold">
+                                    <i class="fas fa-file-alt me-1"></i> Pre-Test (Awal Sesi)
+                                </span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small">
+                                    <?= count($preTest['questions'] ?? []) ?> Butir Soal
+                                </span>
                             </div>
-                            <div class="col-6">
-                                <i class="fas fa-bullseye me-1 text-success"></i> Passing Score: <strong><?= (int) ($preTest['passing_score'] ?? 70) ?> / 100</strong>
+
+                            <h3 class="h6 fw-bold text-dark mb-1">
+                                <?= esc($preTest['title'] ?? 'Pre-Test Pemahaman Materi') ?>
+                            </h3>
+
+                            <p class="text-muted small mb-3">
+                                <?= ! empty($preTest['instructions']) ? esc($preTest['instructions']) : 'Kerjakan pre-test ini untuk mengukur tingkat pemahaman awal Anda terhadap materi kegiatan.' ?>
+                            </p>
+
+                            <div class="row g-2 mb-3 small text-muted">
+                                <div class="col-6">
+                                    <i class="far fa-clock me-1 text-primary"></i> Durasi: <strong><?= (int) ($preTest['duration_minutes'] ?? 15) ?> Menit</strong>
+                                </div>
+                                <div class="col-6">
+                                    <i class="fas fa-bullseye me-1 text-success"></i> Passing Score: <strong><?= (int) ($preTest['passing_score'] ?? 70) ?> / 100</strong>
+                                </div>
                             </div>
+
+                            <?php if ($preAttempted): ?>
+                                <div class="p-3 rounded-3 <?= $prePassed ? 'bg-success-subtle border border-success-subtle text-success-emphasis' : 'bg-warning-subtle border border-warning-subtle text-warning-emphasis' ?> mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small fw-bold">Hasil Pengerjaan Anda:</span>
+                                        <span class="badge <?= $prePassed ? 'bg-success text-white' : 'bg-warning text-dark' ?> rounded-pill px-2 py-1 small">
+                                            <?= $prePassed ? 'LULUS' : 'BELUM MEMENUHI' ?>
+                                        </span>
+                                    </div>
+                                    <div class="display-6 fw-bold mb-1"><?= (int) $preTestAttempt['score'] ?> <span class="fs-6 fw-normal">/ 100</span></div>
+                                    <small class="d-block text-muted">
+                                        Benar <?= (int) $preTestAttempt['correct_count'] ?> dari <?= (int) $preTestAttempt['total_questions'] ?> soal &bull; Diserahkan pada <?= esc(date('d M Y, H:i', strtotime($preTestAttempt['submitted_at']))) ?> WIB
+                                    </small>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
-                        <?php if ($preAttempted): ?>
-                            <!-- Result Box -->
-                            <div class="p-3 rounded-3 <?= $prePassed ? 'bg-success-subtle border border-success-subtle text-success-emphasis' : 'bg-warning-subtle border border-warning-subtle text-warning-emphasis' ?> mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="small fw-bold">Hasil Pengerjaan Anda:</span>
-                                    <span class="badge <?= $prePassed ? 'bg-success text-white' : 'bg-warning text-dark' ?> rounded-pill px-2 py-1 small">
-                                        <?= $prePassed ? 'LULUS' : 'BELUM MEMENUHI' ?>
-                                    </span>
+                        <div>
+                            <?php if ($preAttempted): ?>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm flex-grow-1 rounded-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalPreTestReview">
+                                        <i class="fas fa-list-check me-1"></i> Pembahasan Soal
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-3" data-bs-toggle="modal" data-bs-target="#modalTakePreTest" title="Kerjakan Ulang Pre-Test">
+                                        <i class="fas fa-redo me-1"></i> Ulang
+                                    </button>
                                 </div>
-                                <div class="display-6 fw-bold mb-1"><?= (int) $preTestAttempt['score'] ?> <span class="fs-6 fw-normal">/ 100</span></div>
-                                <small class="d-block text-muted">
-                                    Benar <?= (int) $preTestAttempt['correct_count'] ?> dari <?= (int) $preTestAttempt['total_questions'] ?> soal &bull; Diserahkan pada <?= esc(date('d M Y, H:i', strtotime($preTestAttempt['submitted_at']))) ?> WIB
-                                </small>
-                            </div>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <p class="text-muted small mb-3">Pre-test tidak diaktifkan pada agenda ini oleh pemateri / penyelenggara.</p>
-                    <?php endif; ?>
-                </div>
-
-                <div>
-                    <?php if ($hasPreTest): ?>
-                        <?php if ($preAttempted): ?>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-outline-primary btn-sm flex-grow-1 rounded-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalPreTestReview">
-                                    <i class="fas fa-list-check me-1"></i> Pembahasan Soal
+                            <?php else: ?>
+                                <button type="button" class="btn btn-primary w-100 rounded-3 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalTakePreTest">
+                                    <i class="fas fa-play me-1"></i> Mulai Pre-Test Sekarang
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-3" data-bs-toggle="modal" data-bs-target="#modalTakePreTest" title="Kerjakan Ulang Pre-Test">
-                                    <i class="fas fa-redo me-1"></i> Ulang
-                                </button>
-                            </div>
-                        <?php else: ?>
-                            <button type="button" class="btn btn-primary w-100 rounded-3 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalTakePreTest">
-                                <i class="fas fa-play me-1"></i> Mulai Pre-Test Sekarang
-                            </button>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <button type="button" class="btn btn-light w-100 rounded-3 py-2 text-muted" disabled>
-                            Pre-Test Tidak Disediakan
-                        </button>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-
-        <!-- Post-Test Card -->
-        <?php
-        $hasPostTest = (! empty($postTest['enabled']) && ! empty($postTest['questions']));
-        $postAttempted = (! empty($postTestAttempt));
-        $postPassed = ($postAttempted && ! empty($postTestAttempt['is_passed']));
-        ?>
-        <div class="col-lg-6">
-            <div class="p-3 p-md-4 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-sm">
-                <div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-1 rounded-pill small fw-bold">
-                            <i class="fas fa-clipboard-check me-1"></i> Post-Test (Akhir Sesi)
-                        </span>
-                        <?php if ($hasPostTest): ?>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small">
-                                <?= count($postTest['questions'] ?? []) ?> Butir Soal
-                            </span>
-                        <?php else: ?>
-                            <span class="badge bg-light text-muted border rounded-pill px-2 py-1 small">Tidak Aktif</span>
-                        <?php endif; ?>
+                            <?php endif; ?>
+                        </div>
                     </div>
+                </div>
+            <?php endif; ?>
 
-                    <h3 class="h6 fw-bold text-dark mb-1">
-                        <?= esc($postTest['title'] ?? 'Post-Test Evaluasi Sesi') ?>
-                    </h3>
-
-                    <?php if ($hasPostTest): ?>
-                        <p class="text-muted small mb-3">
-                            <?= ! empty($postTest['instructions']) ? esc($postTest['instructions']) : 'Evaluasi pemahaman akhir Anda setelah menyimak seluruh pemaparan materi dari narasumber.' ?>
-                        </p>
-
-                        <div class="row g-2 mb-3 small text-muted">
-                            <div class="col-6">
-                                <i class="far fa-clock me-1 text-info"></i> Durasi: <strong><?= (int) ($postTest['duration_minutes'] ?? 15) ?> Menit</strong>
+            <!-- Post-Test Card (Only rendered if $hasPostTest) -->
+            <?php if ($hasPostTest): ?>
+                <div class="<?= $testColClass ?>">
+                    <div class="p-3 p-md-4 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-sm">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-1 rounded-pill small fw-bold">
+                                    <i class="fas fa-clipboard-check me-1"></i> Post-Test (Akhir Sesi)
+                                </span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small">
+                                    <?= count($postTest['questions'] ?? []) ?> Butir Soal
+                                </span>
                             </div>
-                            <div class="col-6">
-                                <i class="fas fa-bullseye me-1 text-success"></i> Passing Score: <strong><?= (int) ($postTest['passing_score'] ?? 70) ?> / 100</strong>
+
+                            <h3 class="h6 fw-bold text-dark mb-1">
+                                <?= esc($postTest['title'] ?? 'Post-Test Evaluasi Sesi') ?>
+                            </h3>
+
+                            <p class="text-muted small mb-3">
+                                <?= ! empty($postTest['instructions']) ? esc($postTest['instructions']) : 'Evaluasi pemahaman akhir Anda setelah menyimak seluruh pemaparan materi dari narasumber.' ?>
+                            </p>
+
+                            <div class="row g-2 mb-3 small text-muted">
+                                <div class="col-6">
+                                    <i class="far fa-clock me-1 text-info"></i> Durasi: <strong><?= (int) ($postTest['duration_minutes'] ?? 15) ?> Menit</strong>
+                                </div>
+                                <div class="col-6">
+                                    <i class="fas fa-bullseye me-1 text-success"></i> Passing Score: <strong><?= (int) ($postTest['passing_score'] ?? 70) ?> / 100</strong>
+                                </div>
                             </div>
+
+                            <?php if ($postAttempted): ?>
+                                <div class="p-3 rounded-3 <?= $postPassed ? 'bg-success-subtle border border-success-subtle text-success-emphasis' : 'bg-warning-subtle border border-warning-subtle text-warning-emphasis' ?> mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small fw-bold">Hasil Pengerjaan Anda:</span>
+                                        <span class="badge <?= $postPassed ? 'bg-success text-white' : 'bg-warning text-dark' ?> rounded-pill px-2 py-1 small">
+                                            <?= $postPassed ? 'LULUS' : 'BELUM MEMENUHI' ?>
+                                        </span>
+                                    </div>
+                                    <div class="display-6 fw-bold mb-1"><?= (int) $postTestAttempt['score'] ?> <span class="fs-6 fw-normal">/ 100</span></div>
+                                    <small class="d-block text-muted">
+                                        Benar <?= (int) $postTestAttempt['correct_count'] ?> dari <?= (int) $postTestAttempt['total_questions'] ?> soal &bull; Diserahkan pada <?= esc(date('d M Y, H:i', strtotime($postTestAttempt['submitted_at']))) ?> WIB
+                                    </small>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
-                        <?php if ($postAttempted): ?>
-                            <!-- Result Box -->
-                            <div class="p-3 rounded-3 <?= $postPassed ? 'bg-success-subtle border border-success-subtle text-success-emphasis' : 'bg-warning-subtle border border-warning-subtle text-warning-emphasis' ?> mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="small fw-bold">Hasil Pengerjaan Anda:</span>
-                                    <span class="badge <?= $postPassed ? 'bg-success text-white' : 'bg-warning text-dark' ?> rounded-pill px-2 py-1 small">
-                                        <?= $postPassed ? 'LULUS' : 'BELUM MEMENUHI' ?>
-                                    </span>
+                        <div>
+                            <?php if ($postAttempted): ?>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-info btn-sm flex-grow-1 rounded-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalPostTestReview">
+                                        <i class="fas fa-list-check me-1"></i> Pembahasan Soal
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-3" data-bs-toggle="modal" data-bs-target="#modalTakePostTest" title="Kerjakan Ulang Post-Test">
+                                        <i class="fas fa-redo me-1"></i> Ulang
+                                    </button>
                                 </div>
-                                <div class="display-6 fw-bold mb-1"><?= (int) $postTestAttempt['score'] ?> <span class="fs-6 fw-normal">/ 100</span></div>
-                                <small class="d-block text-muted">
-                                    Benar <?= (int) $postTestAttempt['correct_count'] ?> dari <?= (int) $postTestAttempt['total_questions'] ?> soal &bull; Diserahkan pada <?= esc(date('d M Y, H:i', strtotime($postTestAttempt['submitted_at']))) ?> WIB
-                                </small>
-                            </div>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <p class="text-muted small mb-3">Post-test tidak diaktifkan pada agenda ini oleh pemateri / penyelenggara.</p>
-                    <?php endif; ?>
-                </div>
-
-                <div>
-                    <?php if ($hasPostTest): ?>
-                        <?php if ($postAttempted): ?>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-outline-info btn-sm flex-grow-1 rounded-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalPostTestReview">
-                                    <i class="fas fa-list-check me-1"></i> Pembahasan Soal
+                            <?php else: ?>
+                                <button type="button" class="btn btn-info text-white w-100 rounded-3 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalTakePostTest">
+                                    <i class="fas fa-play me-1"></i> Mulai Post-Test Sekarang
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-3" data-bs-toggle="modal" data-bs-target="#modalTakePostTest" title="Kerjakan Ulang Post-Test">
-                                    <i class="fas fa-redo me-1"></i> Ulang
-                                </button>
-                            </div>
-                        <?php else: ?>
-                            <button type="button" class="btn btn-info text-white w-100 rounded-3 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalTakePostTest">
-                                <i class="fas fa-play me-1"></i> Mulai Post-Test Sekarang
-                            </button>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <button type="button" class="btn btn-light w-100 rounded-3 py-2 text-muted" disabled>
-                            Post-Test Tidak Disediakan
-                        </button>
-                    <?php endif; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
-    </div>
+    <?php endif; ?>
 </div>
+<?php endif; ?>
 
 <!-- ================= MODALS TAKE PRE-TEST & POST-TEST ================= -->
 
-<?php if ($hasPreTest): ?>
+<?php if ($isRegistrationApproved && $hasPreTest): ?>
 <!-- Modal Kerjakan Pre-Test -->
 <div class="modal fade" id="modalTakePreTest" tabindex="-1" aria-labelledby="modalTakePreTestLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -1100,7 +1047,7 @@ if ($hasAttended) {
 </div>
 <?php endif; ?>
 
-<?php if ($preAttempted && ! empty($preTestAttempt['review'])): ?>
+<?php if ($isRegistrationApproved && $preAttempted && ! empty($preTestAttempt['review'])): ?>
 <!-- Modal Review Pembahasan Pre-Test -->
 <div class="modal fade" id="modalPreTestReview" tabindex="-1" aria-labelledby="modalPreTestReviewLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -1167,7 +1114,7 @@ if ($hasAttended) {
 </div>
 <?php endif; ?>
 
-<?php if ($hasPostTest): ?>
+<?php if ($isRegistrationApproved && $hasPostTest): ?>
 <!-- Modal Kerjakan Post-Test -->
 <div class="modal fade" id="modalTakePostTest" tabindex="-1" aria-labelledby="modalTakePostTestLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -1224,7 +1171,7 @@ if ($hasAttended) {
 </div>
 <?php endif; ?>
 
-<?php if ($postAttempted && ! empty($postTestAttempt['review'])): ?>
+<?php if ($isRegistrationApproved && $postAttempted && ! empty($postTestAttempt['review'])): ?>
 <!-- Modal Review Pembahasan Post-Test -->
 <div class="modal fade" id="modalPostTestReview" tabindex="-1" aria-labelledby="modalPostTestReviewLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">

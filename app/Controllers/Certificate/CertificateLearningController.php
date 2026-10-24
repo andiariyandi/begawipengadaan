@@ -140,6 +140,8 @@ class CertificateLearningController extends BaseController
                 'e.status AS enrollment_status',
                 'COALESCE(lp.progress_percent, CASE WHEN e.status = "completed" THEN 100.0 ELSE 0.0 END) AS progress_percent',
                 'e.final_score',
+                'e.passed_at',
+                'e.certificate_eligible_at',
                 'e.completed_at',
                 'u.name AS user_name',
                 'u.email AS user_email',
@@ -157,15 +159,23 @@ class CertificateLearningController extends BaseController
             ->getResultArray();
 
         // Calculate eligibility
+        $certEnabled  = (int) ($class['certificate_enabled'] ?? 0) === 1;
+        $passingGrade = (float) ($class['passing_grade'] ?? 70.0);
+
         $eligibleCount = 0;
         foreach ($participants as &$p) {
-            $isCompleted = ($p['enrollment_status'] === 'completed' || (float) ($p['progress_percent'] ?? 0) >= 100.0);
-            $hasCert     = (! empty($p['certificate_id']) && $p['certificate_status'] === 'issued');
+            $finalScore = (float) ($p['final_score'] ?? 0);
+            $isPassed   = ! empty($p['certificate_eligible_at']) || (
+                in_array($p['enrollment_status'], ['completed', 'passed'], true)
+                && ! empty($p['passed_at'])
+                && $finalScore >= $passingGrade
+            );
+            $hasCert    = (! empty($p['certificate_id']) && $p['certificate_status'] === 'issued');
 
             if ($hasCert) {
                 $p['eligibility_status'] = 'certified';
                 $p['eligibility_label']  = 'Sudah Terbit';
-            } elseif ($isCompleted) {
+            } elseif ($certEnabled && $isPassed) {
                 $p['eligibility_status'] = 'eligible';
                 $p['eligibility_label']  = 'Layak';
                 $eligibleCount++;
@@ -204,8 +214,18 @@ class CertificateLearningController extends BaseController
             }
 
             // Validasi kelayakan
-            if ($enrollment['status'] !== 'completed' && (float) ($enrollment['progress_percent'] ?? 0) < 100.0) {
-                throw new RuntimeException('Peserta belum menyelesaikan pembelajaran (progress belum 100% / belum lulus).');
+            $cls = $this->db->table('learning_classes')->where('id', (int) $enrollment['class_id'])->get()->getRowArray();
+            $certEnabled  = (int) ($cls['certificate_enabled'] ?? 0) === 1;
+            $passingGrade = (float) ($cls['passing_grade'] ?? 70.0);
+            $finalScore   = (float) ($enrollment['final_score'] ?? 0);
+            $isPassed     = ! empty($enrollment['certificate_eligible_at']) || (
+                in_array($enrollment['status'], ['completed', 'passed'], true)
+                && ! empty($enrollment['passed_at'])
+                && $finalScore >= $passingGrade
+            );
+
+            if (! $certEnabled || ! $isPassed) {
+                throw new RuntimeException('Peserta belum memenuhi syarat kelulusan kelas atau sertifikat kelas dinonaktifkan.');
             }
 
             $result = $this->generator->generateDirect('learning_enrollment', $enrollmentIdInt, $actorId);
@@ -229,23 +249,25 @@ class CertificateLearningController extends BaseController
         $actorId    = (int) session()->get('user_id');
 
         try {
+            $cls = $this->db->table('learning_classes')->where('id', $classIdInt)->get()->getRowArray();
+            if ((int) ($cls['certificate_enabled'] ?? 0) !== 1) {
+                throw new RuntimeException('Fitur sertifikat pada kelas ini dinonaktifkan.');
+            }
+            $passingGrade = (float) ($cls['passing_grade'] ?? 70.0);
+
             $enrollments = $this->db->table('enrollments e')
                 ->select('e.id, e.user_id')
                 ->where('e.class_id', $classIdInt)
-                ->where('e.status', 'completed')
+                ->groupStart()
+                    ->where('e.certificate_eligible_at IS NOT NULL')
+                    ->orGroupStart()
+                        ->whereIn('e.status', ['completed', 'passed'])
+                        ->where('e.passed_at IS NOT NULL')
+                        ->where('e.final_score >=', $passingGrade)
+                    ->groupEnd()
+                ->groupEnd()
                 ->get()
                 ->getResultArray();
-
-            if (empty($enrollments)) {
-                // Fallback check 100% progress
-                $enrollments = $this->db->table('enrollments e')
-                    ->select('e.id, e.user_id')
-                    ->join('learning_progress lp', 'lp.enrollment_id = e.id', 'left')
-                    ->where('e.class_id', $classIdInt)
-                    ->where('lp.progress_percent >=', 100.0)
-                    ->get()
-                    ->getResultArray();
-            }
 
             if (empty($enrollments)) {
                 return redirect()->back()->with('warning', 'Tidak ada peserta yang memenuhi syarat kelulusan (100% selesai) di kelas ini.');

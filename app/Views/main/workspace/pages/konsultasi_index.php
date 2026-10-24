@@ -7,7 +7,7 @@
             <span class="ws-eyebrow"><i class="fas fa-comments text-primary me-1"></i> Layanan Konsultasi &amp; Helpdesk</span>
             <h1 class="h3 fw-bold mb-1" style="color: #082f5c;">Konsultasi &amp; Tiket Saya</h1>
             <p class="text-muted mb-0" style="font-size: 14.5px;">
-                Pantau status permohonan konsultasi PBJ Anda dan lakukan percakapan dua arah langsung dengan tim Helpdesk PBJ Provinsi Lampung.
+                Pantau progres tiket melalui Roadmap Status dan lakukan percakapan dua arah (Room Chat) beserta lampiran berkas bersama Tim Helpdesk PBJ Provinsi Lampung.
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
@@ -66,7 +66,7 @@
 <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mb-4">
     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-2">
         <h5 class="fw-bold mb-0 text-dark" style="font-size: 16px;">
-            <i class="fas fa-list-alt text-primary me-2"></i>Daftar Percakapan Tiket
+            <i class="fas fa-list-alt text-primary me-2"></i>Daftar Ruang Konsultasi &amp; Tiket
         </h5>
         <span class="text-muted small">Menampilkan <?= count($tickets) ?> tiket</span>
     </div>
@@ -82,15 +82,15 @@
         </div>
     <?php else: ?>
         <div class="table-responsive">
-            <table class="table bordered-table sm-table mb-0 align-middle">
+            <table class="table bordered-table sm-table mb-0 align-middle" data-export-title="Daftar_Tiket_Konsultasi">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 160px;">No. Tiket</th>
+                        <th style="width: 170px;">No. Tiket</th>
                         <th>Subjek &amp; Perihal</th>
                         <th>Kategori</th>
                         <th>Waktu Pengajuan</th>
                         <th>Status</th>
-                        <th style="width: 130px;" class="text-end">Aksi</th>
+                        <th style="width: 145px;" class="text-end">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -116,23 +116,31 @@
                             'closed'        => 'Selesai &amp; Ditutup',
                             default         => ucfirst($t['status']),
                         };
+                        $hasInitialAttachments = ! empty($t['parsed_notes']['attachments']);
                         ?>
                         <tr>
                             <td>
                                 <a href="<?= route_to('workspace.consultation.detail', $t['ticket_number']) ?>" class="fw-bold font-monospace text-primary text-decoration-none small">
                                     <?= esc($t['ticket_number']) ?>
                                 </a>
-                                <?php if (! empty($t['threads_count']) && $t['threads_count'] > 0): ?>
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-2xs d-block mt-1" style="width: fit-content;">
-                                        <i class="fas fa-comment-dots me-1"></i><?= $t['threads_count'] ?> balasan
-                                    </span>
-                                <?php endif; ?>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    <?php if (! empty($t['threads_count']) && $t['threads_count'] > 0): ?>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-2xs">
+                                            <i class="fas fa-comment-dots me-1"></i><?= $t['threads_count'] ?> chat
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php if ($hasInitialAttachments): ?>
+                                        <span class="badge bg-light text-secondary border text-2xs" title="Memiliki Lampiran Berkas">
+                                            <i class="fas fa-paperclip"></i>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                             <td>
                                 <a href="<?= route_to('workspace.consultation.detail', $t['ticket_number']) ?>" class="fw-bold text-dark text-decoration-none d-block small mb-1">
                                     <?= esc($t['subject']) ?>
                                 </a>
-                                <p class="text-muted text-xs mb-0 text-truncate" style="max-width: 320px;">
+                                <p class="text-muted text-xs mb-0 text-truncate" style="max-width: 340px;">
                                     <?= esc($t['message']) ?>
                                 </p>
                             </td>
@@ -152,8 +160,8 @@
                             </td>
                             <td class="text-end">
                                 <a href="<?= route_to('workspace.consultation.detail', $t['ticket_number']) ?>" class="btn btn-sm btn-primary radius-8 px-3 fw-bold d-inline-flex align-items-center gap-1">
-                                    <span>Buka Percakapan</span>
-                                    <i class="fas fa-chevron-right small"></i>
+                                    <i class="fas fa-comments small"></i>
+                                    <span>Room Chat</span>
                                 </a>
                             </td>
                         </tr>
@@ -168,7 +176,7 @@
 <div class="modal fade" id="modalNewTicket" tabindex="-1" aria-labelledby="modalNewTicketLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4 border-0 shadow">
-            <form action="<?= route_to('workspace.consultation.store') ?>" method="post">
+            <form action="<?= route_to('workspace.consultation.store') ?>" method="post" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <div class="modal-header border-bottom p-3 px-4">
                     <div>
@@ -182,7 +190,7 @@
 
                 <div class="modal-body p-4">
                     <div class="alert alert-info py-2 px-3 rounded-3 small mb-3">
-                        <i class="fas fa-info-circle me-1"></i> Anda login sebagai <strong><?= esc(session()->get('name') ?: session()->get('username')) ?></strong> (<?= esc(session()->get('email')) ?>). Tiket ini akan terhubung langsung dengan akun Anda sehingga Anda dapat berdiskusi dua arah secara realtime.
+                        <i class="fas fa-info-circle me-1"></i> Anda login sebagai <strong><?= esc(session()->get('name') ?: session()->get('username')) ?></strong> (<?= esc(session()->get('email')) ?>). Tiket ini otomatis terhubung ke Ruang Chat Konsultasi Anda.
                     </div>
 
                     <div class="row g-3">
@@ -194,11 +202,13 @@
                                     <option value="<?= esc($cat) ?>"><?= esc($cat) ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <div class="ws-form-hint"><i class="fas fa-tag"></i> Pilih topik yang paling sesuai agar diarahkan ke petugas terkait.</div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-dark">No. WhatsApp / Telepon</label>
                             <input type="text" name="phone" class="form-control text-sm radius-8" placeholder="Contoh: 081234567890" value="<?= esc(session()->get('phone') ?? '') ?>">
+                            <div class="ws-form-hint"><i class="fab fa-whatsapp"></i> Opsional untuk koordinasi cepat jika diperlukan.</div>
                         </div>
 
                         <div class="col-12">
@@ -208,8 +218,14 @@
 
                         <div class="col-12">
                             <label class="form-label fw-bold small text-dark">Uraian Pertanyaan / Isi Pesan *</label>
-                            <textarea name="message" class="form-control text-sm radius-8" rows="5" placeholder="Tuliskan secara jelas pokok persoalan atau pertanyaan yang ingin Anda konsultasikan..." required></textarea>
-                            <small class="text-muted">Minimal 10 karakter.</small>
+                            <textarea name="message" class="form-control text-sm radius-8" rows="4" placeholder="Tuliskan secara jelas pokok persoalan atau pertanyaan yang ingin Anda konsultasikan..." required></textarea>
+                            <div class="ws-form-hint"><i class="fas fa-align-left"></i> Minimal 10 karakter.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-dark">Lampiran Dokumen / tangkapan Layar (Opsional)</label>
+                            <input type="file" name="attachment" class="form-control text-sm radius-8" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp,.zip">
+                            <div class="ws-form-hint"><i class="fas fa-paperclip"></i> Mendukung PDF, Word, Excel, Gambar (JPG/PNG), atau ZIP (Maks. 10 MB).</div>
                         </div>
                     </div>
                 </div>
@@ -217,7 +233,7 @@
                 <div class="modal-footer border-top p-3 px-4">
                     <button type="button" class="btn btn-outline-secondary radius-8 px-3" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary radius-8 px-4 fw-bold">
-                        <i class="fas fa-paper-plane me-1"></i> Kirim Permohonan Konsultasi
+                        <i class="fas fa-paper-plane me-1"></i> Buat Tiket &amp; Buka Room Chat
                     </button>
                 </div>
             </form>

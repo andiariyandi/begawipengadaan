@@ -711,7 +711,6 @@ class PermissionCatalogSeeder extends Seeder
         $adminRole      = $db->table('roles')->where('key', 'administrator')->get()->getRowArray();
         $operatorRole   = $db->table('roles')->where('key', 'operator')->get()->getRowArray();
         $trainerRole    = $db->table('roles')->where('key', 'trainer')->get()->getRowArray();
-        $evaluatorRole  = $db->table('roles')->where('key', 'evaluator')->get()->getRowArray();
 
         $adminUser = $db->table('users')->orderBy('id', 'ASC')->get()->getRowArray();
         $grantedBy = ! empty($adminUser['id']) ? (int) $adminUser['id'] : null;
@@ -762,6 +761,8 @@ class PermissionCatalogSeeder extends Seeder
                 'learning.view', 'learning.class.view', 'learning.enrollment.view', 'learning.enrollment.verify', 'enrollment.verify',
                 'communication.view', 'communication.event.view', 'communication.event.manage', 'communication.attendance.manage', 'communication.inbox.manage',
                 'certificate.view', 'certificate.manage', 'certificate.batch.manage',
+                'learning.assessment.view', 'learning.grading.manage', 'assessment.evaluate', 'learning.report.view',
+                'reports.view', 'reports.learning.view',
                 'audit.view', 'notification.view', 'notification.send', 'survey.view',
             ];
             $opIds = [];
@@ -787,22 +788,6 @@ class PermissionCatalogSeeder extends Seeder
                 }
             }
             $grantPermissions((int) $trainerRole['id'], $trIds);
-        }
-
-        // Grant to evaluator
-        if ($evaluatorRole) {
-            $evKeys = [
-                'dashboard.view', 'learning.view', 'learning.class.view', 'learning.assessment.view',
-                'learning.grading.manage', 'assessment.evaluate', 'learning.report.view',
-                'survey.view', 'reports.view', 'reports.learning.view',
-            ];
-            $evIds = [];
-            foreach ($evKeys as $k) {
-                if (isset($permMap[$k])) {
-                    $evIds[] = $permMap[$k];
-                }
-            }
-            $grantPermissions((int) $evaluatorRole['id'], $evIds);
         }
     }
 }

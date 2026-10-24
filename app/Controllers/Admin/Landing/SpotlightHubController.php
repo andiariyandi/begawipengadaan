@@ -707,7 +707,7 @@ class SpotlightHubController extends BaseController
                 'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
                 'is_featured'      => (int) ($r['featured'] ?? 0),
                 'carousel_order'   => $r['carousel_order'] ?? null,
-                'public_url'       => site_url('course/' . ($r['slug'] ?? $r['id'])),
+                'public_url'       => site_url('arena-belajar/course/' . ($r['slug'] ?? $r['id'])),
                 'edit_url'         => site_url('dashboard/pembelajaran/course/' . $r['id'] . '/ubah'),
             ];
         }, $rows);
@@ -751,7 +751,7 @@ class SpotlightHubController extends BaseController
                 'carousel_enabled' => (int) ($r['carousel_enabled'] ?? 0),
                 'is_featured'      => (int) ($r['featured'] ?? 0),
                 'carousel_order'   => $r['carousel_order'] ?? null,
-                'public_url'       => site_url('kelas/' . ($r['code'] ?? $r['id'])),
+                'public_url'       => site_url('arena-belajar/kelas/' . ($r['code'] ?? $r['id'])),
                 'edit_url'         => site_url('dashboard/pembelajaran/kelas/' . $r['id'] . '/ubah'),
             ];
         }, $rows);

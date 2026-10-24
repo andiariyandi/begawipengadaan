@@ -145,7 +145,7 @@ class CertificateGenerator
             throw new RuntimeException('Approval belum berstatus approved.');
         }
 
-        $source     = $this->resolveSource((int) $approval['resource_id']);
+        $source     = $this->resolveSource((int) $approval['resource_id'], $approval);
         $sourceType = (string) $source['source_type'];
         $sourceId   = (int)    $source['source_id'];
         $userId     = (int)    $source['user_id'];
@@ -600,107 +600,139 @@ class CertificateGenerator
      * Cari sumber (enrollment / event_registration) dari approval.resource_id.
      * Returns: source_type, source_id, user_id, title, user_name, dll.
      */
-    private function resolveSource(int $resourceId): array
+    private function resolveSource(int $resourceId, ?array $approval = null): array
     {
-        // Coba cari dari learning enrollments
-        $enrollment = $this->db->table('enrollments e')
-            ->select([
-                'e.id',
-                'e.class_id',
-                'e.user_id',
-                'e.final_score',
-                'e.completed_at',
-                'e.passed_at',
-                'lc.name AS class_name',
-                'co.id AS course_id',
-                'co.title AS course_title',
-                'co.duration_minutes',
-                'p.id AS program_id',
-                'p.title AS program_title',
-            ])
-            ->join('learning_classes lc', 'lc.id = e.class_id', 'left')
-            ->join('courses co',          'co.id = lc.course_id', 'left')
-            ->join('programs p',          'p.id = co.program_id', 'left')
-            ->where('e.id', $resourceId)
-            ->get()
-            ->getRowArray();
-
-        if ($enrollment) {
-            $profile         = $this->lookupUserProfile((int) $enrollment['user_id']);
-            $durationMinutes = (int) ($enrollment['duration_minutes'] ?? 0);
-            $jpVal           = $durationMinutes > 0 ? max(1, (int) ceil($durationMinutes / 60)) : 24;
-            $finalScore      = ! empty($enrollment['final_score']) ? (float) $enrollment['final_score'] : null;
-
-            return array_merge($profile, [
-                'source_type'        => 'learning_enrollment',
-                'source_id'          => (int) $enrollment['id'],
-                'class_id'           => (int) ($enrollment['class_id'] ?? 1),
-                'learning_class_id'  => (int) ($enrollment['class_id'] ?? 1),
-                'course_id'          => (int) ($enrollment['course_id'] ?? 1),
-                'program_id'         => (int) ($enrollment['program_id'] ?? 1),
-                'user_id'            => (int) $enrollment['user_id'],
-                'title'              => (string) ($enrollment['course_title'] ?? 'Sertifikat Pembelajaran'),
-                'subtitle'           => (string) ($enrollment['class_name'] ?? ''),
-                'activity_type'      => 'Arena Belajar PBJ',
-                'tipe_kegiatan'      => 'Arena Belajar',
-                'kode_tipe'          => 'AB',
-                'id_kegiatan'        => (int) ($enrollment['class_id'] ?? 1),
-                'jam_pelajaran'      => $jpVal . ' JP',
-                'jp'                 => $jpVal . ' JP',
-                'final_score'        => $finalScore !== null ? number_format($finalScore, 1, ',', '.') : '—',
-                'predicate'          => 'Lulus',
-            ]);
+        $preferEvent = false;
+        if ($approval !== null) {
+            $notes = (string) ($approval['notes'] ?? '');
+            if (str_contains($notes, '[source:event_registration]') || str_contains($notes, 'event') || str_contains($notes, 'Event')) {
+                $preferEvent = true;
+            }
         }
 
-        // Coba cari dari event registration
-        $registration = $this->db->table('event_registrations er')
-            ->select([
-                'er.id',
-                'er.event_id',
-                'er.user_id',
-                'ev.title AS event_title',
-                'ev.type AS event_type',
-                'ev.start_at AS event_start_at',
-                'ev.end_at AS event_end_at',
-            ])
-            ->join('events ev', 'ev.id = er.event_id', 'left')
-            ->where('er.id', $resourceId)
-            ->get()
-            ->getRowArray();
+        $lookupEvent = function () use ($resourceId) {
+            $registration = $this->db->table('event_registrations er')
+                ->select([
+                    'er.id',
+                    'er.event_id',
+                    'er.user_id',
+                    'ev.title AS event_title',
+                    'ev.type AS event_type',
+                    'ev.start_at AS event_start_at',
+                    'ev.end_at AS event_end_at',
+                ])
+                ->join('events ev', 'ev.id = er.event_id', 'left')
+                ->where('er.id', $resourceId)
+                ->get()
+                ->getRowArray();
 
-        if ($registration) {
-            $profile   = $this->lookupUserProfile((int) $registration['user_id']);
-            $rawType   = strtolower(trim((string) ($registration['event_type'] ?? 'event')));
-            $tipeCode  = self::EVENT_TYPE_CODE_MAP[$rawType] ?? 'EV';
-            $typeLabel = match ($rawType) {
-                'webinar'     => 'Webinar',
-                'bimtek'      => 'Bimbingan Teknis (Bimtek)',
-                'workshop'    => 'Workshop',
-                'sosialisasi' => 'Sosialisasi Regulasi',
-                'seminar'     => 'Seminar',
-                'pelatihan'   => 'Pelatihan PBJ',
-                'rakor'       => 'Rapat Koordinasi (Rakor)',
-                'klinik'      => 'Klinik Pengadaan',
-                default       => 'Event PBJ',
-            };
+            if ($registration) {
+                $profile   = $this->lookupUserProfile((int) $registration['user_id']);
+                $rawType   = strtolower(trim((string) ($registration['event_type'] ?? 'event')));
+                $tipeCode  = self::EVENT_TYPE_CODE_MAP[$rawType] ?? 'EV';
+                $typeLabel = match ($rawType) {
+                    'webinar'     => 'Webinar',
+                    'bimtek'      => 'Bimbingan Teknis (Bimtek)',
+                    'workshop'    => 'Workshop',
+                    'sosialisasi' => 'Sosialisasi Regulasi',
+                    'seminar'     => 'Seminar',
+                    'pelatihan'   => 'Pelatihan PBJ',
+                    'rakor'       => 'Rapat Koordinasi (Rakor)',
+                    'klinik'      => 'Klinik Pengadaan',
+                    default       => 'Event PBJ',
+                };
 
-            return array_merge($profile, [
-                'source_type'       => 'event_registration',
-                'source_id'         => (int) $registration['id'],
-                'event_id'          => (int) ($registration['event_id'] ?? 1),
-                'user_id'           => (int) $registration['user_id'],
-                'title'             => (string) ($registration['event_title'] ?? 'Event Registration'),
-                'subtitle'          => $typeLabel,
-                'activity_type'     => $typeLabel,
-                'tipe_kegiatan'     => $typeLabel,
-                'kode_tipe'         => $tipeCode,
-                'id_kegiatan'       => (int) ($registration['event_id'] ?? 1),
-                'jam_pelajaran'     => '4 JP',
-                'jp'                => '4 JP',
-                'duration_minutes'  => 0,
-                'final_score'       => '—',
-                'predicate'         => 'Hadir Aktif',
-            ]);
+                return array_merge($profile, [
+                    'source_type'       => 'event_registration',
+                    'source_id'         => (int) $registration['id'],
+                    'event_id'          => (int) ($registration['event_id'] ?? 1),
+                    'user_id'           => (int) $registration['user_id'],
+                    'title'             => (string) ($registration['event_title'] ?? 'Event Registration'),
+                    'subtitle'          => $typeLabel,
+                    'activity_type'     => $typeLabel,
+                    'tipe_kegiatan'     => $typeLabel,
+                    'kode_tipe'         => $tipeCode,
+                    'id_kegiatan'       => (int) ($registration['event_id'] ?? 1),
+                    'jam_pelajaran'     => '4 JP',
+                    'jp'                => '4 JP',
+                    'duration_minutes'  => 0,
+                    'final_score'       => '—',
+                    'predicate'         => 'Hadir Aktif',
+                ]);
+            }
+            return null;
+        };
+
+        $lookupLearning = function () use ($resourceId) {
+            $enrollment = $this->db->table('enrollments e')
+                ->select([
+                    'e.id',
+                    'e.class_id',
+                    'e.user_id',
+                    'e.final_score',
+                    'e.completed_at',
+                    'e.passed_at',
+                    'lc.name AS class_name',
+                    'co.id AS course_id',
+                    'co.title AS course_title',
+                    'co.duration_minutes',
+                    'p.id AS program_id',
+                    'p.title AS program_title',
+                ])
+                ->join('learning_classes lc', 'lc.id = e.class_id', 'left')
+                ->join('courses co',          'co.id = lc.course_id', 'left')
+                ->join('programs p',          'p.id = co.program_id', 'left')
+                ->where('e.id', $resourceId)
+                ->get()
+                ->getRowArray();
+
+            if ($enrollment) {
+                $profile         = $this->lookupUserProfile((int) $enrollment['user_id']);
+                $durationMinutes = (int) ($enrollment['duration_minutes'] ?? 0);
+                $jpVal           = $durationMinutes > 0 ? max(1, (int) ceil($durationMinutes / 60)) : 24;
+                $finalScore      = ! empty($enrollment['final_score']) ? (float) $enrollment['final_score'] : null;
+
+                return array_merge($profile, [
+                    'source_type'        => 'learning_enrollment',
+                    'source_id'          => (int) $enrollment['id'],
+                    'class_id'           => (int) ($enrollment['class_id'] ?? 1),
+                    'learning_class_id'  => (int) ($enrollment['class_id'] ?? 1),
+                    'course_id'          => (int) ($enrollment['course_id'] ?? 1),
+                    'program_id'         => (int) ($enrollment['program_id'] ?? 1),
+                    'user_id'            => (int) $enrollment['user_id'],
+                    'title'              => (string) ($enrollment['course_title'] ?? 'Sertifikat Pembelajaran'),
+                    'subtitle'           => (string) ($enrollment['class_name'] ?? ''),
+                    'activity_type'      => 'Arena Belajar PBJ',
+                    'tipe_kegiatan'      => 'Arena Belajar',
+                    'kode_tipe'          => 'AB',
+                    'id_kegiatan'        => (int) ($enrollment['class_id'] ?? 1),
+                    'jam_pelajaran'      => $jpVal . ' JP',
+                    'jp'                 => $jpVal . ' JP',
+                    'final_score'        => $finalScore !== null ? number_format($finalScore, 1, ',', '.') : '—',
+                    'predicate'          => 'Lulus',
+                ]);
+            }
+            return null;
+        };
+
+        if ($preferEvent) {
+            $res = $lookupEvent();
+            if ($res) {
+                return $res;
+            }
+            $res = $lookupLearning();
+            if ($res) {
+                return $res;
+            }
+        } else {
+            $res = $lookupLearning();
+            if ($res) {
+                return $res;
+            }
+            $res = $lookupEvent();
+            if ($res) {
+                return $res;
+            }
         }
 
         throw new RuntimeException('Sumber sertifikat (enrollment / event_registration) tidak ditemukan.');
@@ -787,5 +819,83 @@ class CertificateGenerator
         }
 
         return (int) $this->db->insertID();
+    }
+
+    /**
+     * Regenerasi PDF (dan perbaiki nomor sertifikat legacy CERT-EVT-* bila perlu)
+     * untuk sertifikat yang sudah ada di tabel certificates namun pdf_file_id masih NULL
+     * atau file fisik tidak ditemukan.
+     */
+    public function regeneratePdfForCertificate(int $certificateId, int $actorId = 1, bool $normalizeLegacyNumber = true): array
+    {
+        $cert = $this->db->table('certificates')->where('id', $certificateId)->get()->getRowArray();
+        if (! $cert) {
+            throw new RuntimeException('Sertifikat tidak ditemukan.');
+        }
+
+        $sourceType = (string) $cert['source_type'];
+        $sourceId   = (int) $cert['source_id'];
+        $userId     = (int) $cert['user_id'];
+        $source     = $this->resolveSourceDirect($sourceType, $sourceId);
+
+        $explicitTemplateId = ! empty($cert['template_id']) ? (int) $cert['template_id'] : null;
+        $template = $this->templateModel->resolveTemplate($sourceType, $source, $explicitTemplateId);
+        if (! $template) {
+            throw new RuntimeException('Template sertifikat belum tersedia atau belum diaktifkan.');
+        }
+
+        $certNumber = (string) $cert['certificate_number'];
+        $now = date('Y-m-d H:i:s');
+        $year = ! empty($cert['issued_at']) ? (int) date('Y', strtotime((string) $cert['issued_at'])) : (int) date('Y');
+
+        if ($normalizeLegacyNumber && str_starts_with($certNumber, 'CERT-')) {
+            $seq = $this->sequenceModel->nextForYear($year);
+            $certNumber = self::formatCertificateNumber($seq, $sourceType, $source, $year);
+        }
+
+        $tokenHash = (string) ($cert['verification_token_hash'] ?: hash('sha256', bin2hex(random_bytes(32))));
+        $issuerName = 'BegawiPengadaan — Pemerintah Provinsi Lampung';
+        $issuedAt = (string) ($cert['issued_at'] ?: $now);
+
+        $certificateData = array_merge($source, [
+            'certificate_id'     => $certificateId,
+            'participant_name'   => (string) ($source['user_name'] ?? 'Peserta'),
+            'certificate_number' => $certNumber,
+            'certificate_title'  => (string) ($source['title'] ?? 'Sertifikat'),
+            'source_label'       => (string) ($source['title'] ?? '—'),
+            'issued_at'          => $issuedAt,
+            'issuer_name'        => $issuerName,
+            'verification_url'   => $this->qrGenerator->buildVerifyUrl($tokenHash),
+            'source_type'        => $sourceType,
+            'source_id'          => $sourceId,
+            'user_id'            => $userId,
+            'template_id'        => (int) $template['id'],
+        ]);
+
+        $html = $this->templateRenderer->render($certificateData, $template);
+        $qrDataUri = $this->qrGenerator->generate($tokenHash);
+        $qrImgTag  = '<img alt="QR verifikasi publik" src="' . htmlspecialchars($qrDataUri, ENT_QUOTES, 'UTF-8')
+            . '" style="width:140px;height:140px;border:1px solid #e2e8f0;padding:4px;background:#fff;" />';
+        $html = str_replace(['<!--CERTIFICATE_QR_PLACEHOLDER-->', '__QR_BLOCK__', '{{qr_code}}', '{{qr_block}}'], $qrImgTag, $html);
+
+        $pdfBytes  = $this->pdfGenerator->generate($html, $template);
+        $pdfFileId = $this->persistPdfAsset($certificateId, $certNumber, $pdfBytes, $actorId);
+
+        $this->db->table('certificates')
+            ->where('id', $certificateId)
+            ->update([
+                'template_id'             => (int) $template['id'],
+                'certificate_number'      => $certNumber,
+                'verification_token_hash' => $tokenHash,
+                'pdf_file_id'             => $pdfFileId,
+                'updated_at'              => $now,
+            ]);
+
+        return [
+            'certificate_id'     => $certificateId,
+            'pdf_file_id'        => $pdfFileId,
+            'certificate_number' => $certNumber,
+            'template_id'        => (int) $template['id'],
+        ];
     }
 }

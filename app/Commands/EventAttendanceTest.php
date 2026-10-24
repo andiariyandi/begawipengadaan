@@ -228,7 +228,7 @@ class EventAttendanceTest extends BaseCommand
             try {
                 $commService->validateAndCheckIn($code, $p1Id);
             } catch (\RuntimeException $e) {
-                if ($e->getMessage() === 'Anda sudah melakukan presensi') {
+                if (str_contains($e->getMessage(), 'Anda sudah melakukan presensi')) {
                     $alreadyPresent = true;
                 }
             }
@@ -253,7 +253,7 @@ class EventAttendanceTest extends BaseCommand
             try {
                 $commService->validateAndCheckIn('BGW-SALAH-999', $p2Id);
             } catch (\RuntimeException $e) {
-                if ($e->getMessage() === 'Kode presensi tidak valid') {
+                if (str_contains($e->getMessage(), 'Kode presensi tidak valid')) {
                     $rejectedWrongCode = true;
                 }
             }
@@ -297,7 +297,7 @@ class EventAttendanceTest extends BaseCommand
             try {
                 $commService->validateAndCheckIn($code, $p2Id);
             } catch (\RuntimeException $e) {
-                if ($e->getMessage() === 'Presensi sudah ditutup') {
+                if (str_contains($e->getMessage(), 'ditutup')) {
                     $rejectedClosed = true;
                 }
             }

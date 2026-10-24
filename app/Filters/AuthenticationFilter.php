@@ -53,7 +53,7 @@ class AuthenticationFilter implements FilterInterface
         $authService = new AuthorizationService();
         if (! $authService->hasDashboardAccess()) {
             $roles = (array) session()->get('roles');
-            $workspaceRoles = ['peserta', 'participant', 'trainer', 'evaluator', 'operator'];
+            $workspaceRoles = ['peserta', 'participant', 'trainer', 'operator'];
             if (array_intersect($roles, $workspaceRoles)) {
                 return redirect()->to(site_url('workspace'))
                     ->with('info', 'Anda dialihkan ke Workspace Fistudy sesuai hak akses peran akun Anda.');
