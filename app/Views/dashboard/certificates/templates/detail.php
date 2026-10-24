@@ -157,25 +157,76 @@ if (! is_array($payload)) {
         <!-- Card Pratinjau Desain Background -->
         <?php if (! empty($payload['background_path']) || ! empty($bgAsset)): ?>
             <div class="card mb-24">
-                <div class="card-header border-bottom py-16 px-24">
+                <div class="card-header border-bottom py-16 px-24 d-flex align-items-center justify-content-between">
                     <h6 class="text-lg fw-semibold mb-0">File Desain Background Terpasang</h6>
+                    <?php if (! empty($payload['pdf_placeholders']) && is_array($payload['pdf_placeholders'])): ?>
+                        <span class="badge bg-success-50 text-success-700 border border-success-200 px-10 py-5 radius-6 text-xs fw-bold">
+                            <?= count($payload['pdf_placeholders']) ?> Placeholder PDF Aktif
+                        </span>
+                    <?php endif; ?>
                 </div>
                 <div class="card-body p-24">
                     <?php
                     $bgRel = $payload['background_path'] ?? ($bgAsset['path'] ?? '');
-                    $bgUrl = base_url(ltrim($bgRel, '/'));
+                    $bgUrl = ! empty($t['id'])
+                        ? site_url('dashboard/sertifikat/template/' . (int) $t['id'] . '/background-file')
+                        : base_url(ltrim($bgRel, '/'));
                     $ext   = strtolower(pathinfo($bgRel, PATHINFO_EXTENSION));
                     ?>
                     <div class="p-16 radius-8 bg-neutral-50 border text-center">
                         <?php if (in_array($ext, ['png', 'jpg', 'jpeg', 'webp'], true)): ?>
                             <img src="<?= esc($bgUrl) ?>" alt="Background Template" class="img-fluid radius-8 shadow-sm" style="max-height: 380px;">
                         <?php else: ?>
-                            <div class="py-32 text-secondary-light">
-                                <iconify-icon icon="solar:file-text-bold" class="text-5xl text-danger mb-2"></iconify-icon>
-                                <p class="mb-0 fw-semibold">File Background PDF: <?= esc(basename($bgRel)) ?></p>
+                            <div class="py-24 text-secondary-light">
+                                <iconify-icon icon="solar:file-check-bold" class="text-5xl text-primary-600 mb-2"></iconify-icon>
+                                <p class="mb-1 fw-bold text-neutral-800">Template Vektor PDF: <?= esc(basename($bgRel)) ?></p>
+                                <span class="badge bg-primary-50 text-primary-700 border border-primary-200 px-12 py-6 radius-4 text-xs fw-semibold">
+                                    Teks <code>{{placeholder}}</code> di dalam PDF otomatis diganti dengan data peserta saat cetak
+                                </span>
+                                <div class="mt-12">
+                                    <a href="<?= esc($bgUrl) ?>" target="_blank" class="btn btn-xs btn-outline-primary-600 radius-6 px-12 py-6">
+                                        <iconify-icon icon="solar:eye-linear" class="me-1"></iconify-icon> Lihat File PDF Asli
+                                    </a>
+                                </div>
                             </div>
                         <?php endif; ?>
                     </div>
+
+                    <?php if (! empty($payload['pdf_placeholders']) && is_array($payload['pdf_placeholders'])): ?>
+                        <div class="mt-16">
+                            <p class="text-xs fw-bold text-neutral-700 mb-8">Pemetaan Placeholder di Dalam PDF:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0 text-xs">
+                                    <thead class="bg-neutral-50">
+                                        <tr>
+                                            <th>Tag Placeholder</th>
+                                            <th>Posisi (X%, Y%)</th>
+                                            <th>Gaya Teks / Ukuran</th>
+                                            <th>Perataan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($payload['pdf_placeholders'] as $ph): ?>
+                                            <?php if (! is_array($ph) || empty($ph['tag'])) continue; ?>
+                                            <tr>
+                                                <td><code class="text-primary-600 fw-bold"><?= esc($ph['tag']) ?></code></td>
+                                                <td><?= esc((string) ($ph['x_pct'] ?? 50)) ?>%, <?= esc((string) ($ph['y_pct'] ?? 50)) ?>%</td>
+                                                <td>
+                                                    <?php if (($ph['key'] ?? '') === 'qr_code'): ?>
+                                                        QR <?= esc((string) ($ph['qr_size_px'] ?? 88)) ?> px
+                                                    <?php else: ?>
+                                                        <?= esc((string) ($ph['font_size'] ?? 16)) ?> pt &bull; <?= esc((string) ($ph['font_weight'] ?? 'bold')) ?>
+                                                        <span class="d-inline-block rounded-circle ms-1 align-middle border" style="width:10px;height:10px;background:<?= esc($ph['color'] ?? '#0f172a') ?>;"></span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td class="text-uppercase"><?= esc((string) ($ph['align'] ?? 'center')) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         <?php endif; ?>
