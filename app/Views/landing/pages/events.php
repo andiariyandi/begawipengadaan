@@ -355,6 +355,9 @@ $dashboardTypes = [
 
                                         <div class="berita-card__body">
                                             <div class="berita-card__meta mb-2">
+                                                <?php if (! empty($item['is_featured'])): ?>
+                                                    <span class="badge bg-warning text-dark border border-warning px-2 py-1 text-xs fw-bold"><i class="fas fa-star me-1"></i> Unggulan</span>
+                                                <?php endif; ?>
                                                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 text-xs fw-bold"><?= esc($item['type_label']) ?></span>
                                                 <?php if (! empty($item['certificate_enabled'])): ?>
                                                     <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 text-xs fw-bold"><i class="fas fa-certificate me-1"></i> Sertifikat</span>

@@ -152,6 +152,12 @@ $stats = $stats ?? [
             <?php if (! empty($currentTab)): ?>
                 <input type="hidden" name="tab" value="<?= esc($currentTab) ?>">
             <?php endif; ?>
+            <?php if (! empty($filters['sort'])): ?>
+                <input type="hidden" name="sort" value="<?= esc($filters['sort']) ?>">
+            <?php endif; ?>
+            <?php if (! empty($filters['dir'])): ?>
+                <input type="hidden" name="dir" value="<?= esc($filters['dir']) ?>">
+            <?php endif; ?>
             <div class="row g-12 align-items-end">
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label fw-semibold text-primary-light text-sm mb-8">Pencarian</label>
@@ -250,35 +256,34 @@ $stats = $stats ?? [
         </form>
 
         <!-- Table / Empty State -->
+        <?php
+        $currentSort = $filters['sort'] ?? 'created_at';
+        $currentDir  = strtolower($filters['dir'] ?? 'desc');
+        $buildSortLink = function (string $colKey, string $label, string $alignClass = '') use ($filters, $currentSort, $currentDir) {
+            $isActive    = ($currentSort === $colKey);
+            $nextDir     = ($isActive && $currentDir === 'asc') ? 'desc' : 'asc';
+            $url         = site_url('dashboard/akses/pengguna?' . http_build_query(array_merge($filters, ['sort' => $colKey, 'dir' => $nextDir])));
+            $colorClass  = $isActive ? 'text-primary-600 fw-bold' : 'text-secondary-light hover-text-primary-600';
+            $iconName    = $isActive 
+                ? ($currentDir === 'asc' ? 'solar:sort-from-bottom-to-top-outline' : 'solar:sort-from-top-to-bottom-outline')
+                : 'solar:sort-vertical-outline';
+            $title       = 'Urutkan ' . $label . ' (' . ($isActive ? ($currentDir === 'asc' ? 'Z-A' : 'A-Z') : 'Klik untuk mengurutkan') . ')';
+
+            return '<a href="' . esc($url) . '" class="' . $colorClass . ' d-inline-flex align-items-center gap-1 ' . $alignClass . '" title="' . esc($title) . '">'
+                . '<span>' . esc($label) . '</span>'
+                . '<iconify-icon icon="' . $iconName . '" class="' . ($isActive ? 'text-sm' : 'text-xs') . '"></iconify-icon>'
+                . '</a>';
+        };
+        ?>
         <div class="table-responsive scroll-sm">
-            <table class="table bordered-table sm-table mb-0 begawi-table" data-table-name="manajemen-pengguna" data-page-length="15">
+            <table class="table bordered-table sm-table mb-0 align-middle server-side-table dt-server-side" data-server-side="true" data-table-name="manajemen-pengguna" data-page-length="<?= (int) ($filters['per_page'] ?? 15) ?>">
                 <thead>
                     <tr>
-                        <th>
-                            <a href="<?= site_url('dashboard/akses/pengguna?' . http_build_query(array_merge($filters, ['sort' => 'name', 'dir' => ($filters['sort'] ?? '') === 'name' && ($filters['dir'] ?? '') === 'asc' ? 'desc' : 'asc']))) ?>" class="text-secondary-light d-inline-flex align-items-center gap-1">
-                                <span>Pengguna</span>
-                                <iconify-icon icon="solar:sort-vertical-outline" class="text-xs"></iconify-icon>
-                            </a>
-                        </th>
-                        <th>
-                            <a href="<?= site_url('dashboard/akses/pengguna?' . http_build_query(array_merge($filters, ['sort' => 'profile_type', 'dir' => ($filters['sort'] ?? '') === 'profile_type' && ($filters['dir'] ?? '') === 'asc' ? 'desc' : 'asc']))) ?>" class="text-secondary-light d-inline-flex align-items-center gap-1">
-                                <span>Tipe Profil</span>
-                                <iconify-icon icon="solar:sort-vertical-outline" class="text-xs"></iconify-icon>
-                            </a>
-                        </th>
+                        <th><?= $buildSortLink('name', 'Pengguna') ?></th>
+                        <th><?= $buildSortLink('profile_type', 'Tipe Profil') ?></th>
                         <th>Role Akses</th>
-                        <th>
-                            <a href="<?= site_url('dashboard/akses/pengguna?' . http_build_query(array_merge($filters, ['sort' => 'created_at', 'dir' => ($filters['sort'] ?? '') === 'created_at' && ($filters['dir'] ?? '') === 'asc' ? 'desc' : 'asc']))) ?>" class="text-secondary-light d-inline-flex align-items-center gap-1">
-                                <span>Terdaftar</span>
-                                <iconify-icon icon="solar:sort-vertical-outline" class="text-xs"></iconify-icon>
-                            </a>
-                        </th>
-                        <th class="text-center">
-                            <a href="<?= site_url('dashboard/akses/pengguna?' . http_build_query(array_merge($filters, ['sort' => 'account_status', 'dir' => ($filters['sort'] ?? '') === 'account_status' && ($filters['dir'] ?? '') === 'asc' ? 'desc' : 'asc']))) ?>" class="text-secondary-light d-inline-flex align-items-center gap-1">
-                                <span>Status</span>
-                                <iconify-icon icon="solar:sort-vertical-outline" class="text-xs"></iconify-icon>
-                            </a>
-                        </th>
+                        <th><?= $buildSortLink('created_at', 'Terdaftar') ?></th>
+                        <th class="text-center"><?= $buildSortLink('account_status', 'Status', 'justify-content-center') ?></th>
                         <th class="text-center no-sort no-export action-col">Aksi</th>
                     </tr>
                 </thead>

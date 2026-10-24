@@ -33,6 +33,26 @@ class UserModel extends Model
         'email'    => 'required|valid_email|is_unique[users.email,id,{id}]',
     ];
 
+    protected $beforeDelete = ['cleanupRelations'];
+
+    protected function cleanupRelations(array $data): array
+    {
+        if (empty($data['id'])) {
+            return $data;
+        }
+        $ids = is_array($data['id']) ? $data['id'] : [$data['id']];
+        if (! empty($data['purge'])) {
+            $db = db_connect();
+            $db->table('asn_profiles')->whereIn('user_id', $ids)->delete();
+            $db->table('provider_profiles')->whereIn('user_id', $ids)->delete();
+            $db->table('academic_profiles')->whereIn('user_id', $ids)->delete();
+            $db->table('public_profiles')->whereIn('user_id', $ids)->delete();
+            $db->table('user_profiles')->whereIn('user_id', $ids)->delete();
+            $db->table('user_roles')->whereIn('user_id', $ids)->delete();
+        }
+        return $data;
+    }
+
     public function getRoles(int $userId): array
     {
         return $this->db->table('user_roles')

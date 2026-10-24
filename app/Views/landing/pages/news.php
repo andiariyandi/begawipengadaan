@@ -241,6 +241,11 @@ $headlineList = ! empty($headlineArticles) ? $headlineArticles : (! empty($headl
                                         <span class="berita-card__readtime">
                                             <i class="far fa-clock"></i> <?= esc($item['read_time'] ?? '5') ?> mnt
                                         </span>
+                                        <?php if (! empty($item['is_featured'])): ?>
+                                            <span class="badge position-absolute top-0 start-0 m-2 bg-warning text-dark fw-bold px-2 py-1 shadow-sm radius-4" style="z-index: 2; font-size: 11px;">
+                                                <i class="fas fa-star me-1"></i> Unggulan
+                                            </span>
+                                        <?php endif; ?>
                                         <?= newsTrendingBadge($item, $index) ?>
                                     </a>
                                     <div class="berita-card__body">
@@ -283,9 +288,14 @@ $headlineList = ! empty($headlineArticles) ? $headlineArticles : (! empty($headl
                             $author = $item['author_name'] ?? 'Biro PBJ Setda Lampung';
                         ?>
                             <article class="berita-list__item news-grid-card" style="--cat-accent: <?= $fgColor ?>">
-                                <a href="<?= site_url('berita/' . $item['slug']) ?>" class="berita-list__thumb text-decoration-none">
+                                <a href="<?= site_url('berita/' . $item['slug']) ?>" class="berita-list__thumb text-decoration-none position-relative">
                                     <img src="<?= $thumb ?>" alt="<?= esc($item['title']) ?>" loading="lazy">
                                     <span class="berita-list__cat"><?= esc($item['category_name'] ?? 'Berita') ?></span>
+                                    <?php if (! empty($item['is_featured'])): ?>
+                                        <span class="badge position-absolute top-0 start-0 m-2 bg-warning text-dark fw-bold px-2 py-1 shadow-sm radius-4" style="z-index: 2; font-size: 10px;">
+                                            <i class="fas fa-star me-1"></i> Unggulan
+                                        </span>
+                                    <?php endif; ?>
                                 </a>
                                 <div class="berita-list__body">
                                     <h3 class="berita-list__title">

@@ -85,35 +85,6 @@ if (! empty($carouselSlides)) {
             'action_text' => ! empty($cSlide['is_media']) ? 'Lihat Media PBJ' : 'Baca Selengkapnya',
         ];
     }
-} elseif (! empty($featured)) {
-    foreach (array_slice($featured, 0, 4) as $sIdx => $fItem) {
-        $cover = ! empty($fItem['cover_file_id'])
-            ? site_url('file/' . (int) $fItem['cover_file_id'])
-            : $bgSliderCovers[$sIdx % count($bgSliderCovers)];
-        $fType = $fItem['type'] ?? 'article';
-        $fRoute = match ($fType) {
-            'case_study' => 'public.knowledge.case-study.detail',
-            'template'   => 'public.knowledge.templates.detail',
-            default      => 'public.knowledge.article.detail',
-        };
-        $sliderItems[] = [
-            'title'       => $fItem['title'],
-            'url'         => route_to($fRoute, $fItem['slug']),
-            'cover_url'   => $cover,
-            'tag_class'   => 'evt-badge-flag--featured',
-            'status_tag'  => '<iconify-icon icon="solar:star-bold" class="align-middle"></iconify-icon> Rekomendasi Utama',
-            'type_label'  => match ($fType) {
-                'case_study' => 'Studi Kasus',
-                'template'   => 'Template Dokumen',
-                default      => 'Artikel PBJ',
-            },
-            'badge_extra' => 'Biro PBJ Lampung',
-            'meta_1'      => '<iconify-icon icon="solar:user-circle-bold" class="text-warning align-middle"></iconify-icon> ' . esc($fItem['author_name'] ?? 'Biro PBJ'),
-            'meta_2'      => '<iconify-icon icon="solar:calendar-date-bold" class="text-info align-middle"></iconify-icon> ' . (! empty($fItem['published_at']) ? date('d M Y', strtotime($fItem['published_at'])) : 'Terbaru'),
-            'meta_3'      => '<iconify-icon icon="solar:clock-circle-bold" class="text-success align-middle"></iconify-icon> ' . ((int) ($fItem['reading_time'] ?? 5)) . ' Menit Baca',
-            'action_text' => 'Baca Rekomendasi',
-        ];
-    }
 }
 ?>
 
@@ -306,9 +277,16 @@ if (! empty($carouselSlides)) {
                                                     <small class="text-muted" style="font-size: 10.5px;"><?= ! empty($med['published_at']) ? esc(date('d M Y', strtotime($med['published_at']))) : 'Terbaru' ?></small>
                                                 </div>
                                             </div>
-                                            <span class="badge radius-4 px-2 py-1 small fw-semibold <?= $badgeClass ?>" style="font-size: 10px;">
-                                                <?= $badgeIcon ?>
-                                            </span>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <?php if ((int) ($med['featured'] ?? 0) === 1): ?>
+                                                    <span class="badge bg-warning text-dark px-2 py-1 radius-4 small fw-semibold" style="font-size: 10px;">
+                                                        <i class="fas fa-star me-1"></i> Unggulan
+                                                    </span>
+                                                <?php endif; ?>
+                                                <span class="badge radius-4 px-2 py-1 small fw-semibold <?= $badgeClass ?>" style="font-size: 10px;">
+                                                    <?= $badgeIcon ?>
+                                                </span>
+                                            </div>
                                         </div>
 
                                         <!-- Instagram Carousel Slider Container -->
@@ -558,6 +536,11 @@ if (! empty($carouselSlides)) {
                                         <div class="arena-card__thumb">
                                             <img src="<?= esc($coverImg) ?>" alt="<?= esc($art['title']) ?>" loading="lazy" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/blog/blog-2-2.jpg') ?>';">
                                             <div class="arena-card__badge-row">
+                                                <?php if ((int) ($art['featured'] ?? 0) === 1): ?>
+                                                    <span class="arena-pill-badge bg-warning text-dark">
+                                                        <i class="fas fa-star me-1"></i> Unggulan
+                                                    </span>
+                                                <?php endif; ?>
                                                 <span class="arena-pill-badge bg-primary text-white">
                                                     <i class="fas fa-newspaper me-1"></i> Artikel PBJ
                                                 </span>
@@ -648,9 +631,16 @@ if (! empty($carouselSlides)) {
                                     <article class="arena-card h-100 border-start border-3 border-danger">
                                         <div class="arena-card__body p-3">
                                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                                <span class="badge px-2 py-1 radius-4 small" style="<?= $sevBadge['badge'] ?> font-size: 11px;">
-                                                    <i class="fas <?= $sevBadge['icon'] ?> me-1"></i> <?= esc($sevBadge['label']) ?>
-                                                </span>
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <?php if ((int) ($cs['featured'] ?? 0) === 1): ?>
+                                                        <span class="badge bg-warning text-dark px-2 py-1 radius-4 small fw-semibold" style="font-size: 11px;">
+                                                            <i class="fas fa-star me-1"></i> Unggulan
+                                                        </span>
+                                                    <?php endif; ?>
+                                                    <span class="badge px-2 py-1 radius-4 small" style="<?= $sevBadge['badge'] ?> font-size: 11px;">
+                                                        <i class="fas <?= $sevBadge['icon'] ?> me-1"></i> <?= esc($sevBadge['label']) ?>
+                                                    </span>
+                                                </div>
                                                 <span class="badge border px-2 py-1 radius-4 font-monospace" style="font-size: 11px; background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; font-weight: 600;">
                                                     <?= esc($cs['procurement_stage'] ?: 'Kasus PBJ') ?>
                                                 </span>
@@ -721,9 +711,16 @@ if (! empty($carouselSlides)) {
                                     <article class="arena-card h-100">
                                         <div class="arena-card__body p-3">
                                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                                <span class="badge px-2 py-1 radius-4 font-monospace fw-bold" style="<?= $extBadge['badge'] ?> font-size: 11px;">
-                                                    <i class="fas <?= $extBadge['icon'] ?> me-1"></i> <?= esc($ext) ?>
-                                                </span>
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <?php if ((int) ($tpl['featured'] ?? 0) === 1): ?>
+                                                        <span class="badge bg-warning text-dark px-2 py-1 radius-4 small fw-semibold" style="font-size: 11px;">
+                                                            <i class="fas fa-star me-1"></i> Unggulan
+                                                        </span>
+                                                    <?php endif; ?>
+                                                    <span class="badge px-2 py-1 radius-4 font-monospace fw-bold" style="<?= $extBadge['badge'] ?> font-size: 11px;">
+                                                        <i class="fas <?= $extBadge['icon'] ?> me-1"></i> <?= esc($ext) ?>
+                                                    </span>
+                                                </div>
                                                 <span class="badge border px-2 py-1 radius-4 font-monospace" style="font-size: 11px; background: #f8fafc; color: #0f172a; border-color: #cbd5e1; font-weight: 600;">
                                                     <i class="fas fa-code-branch me-1 text-primary"></i> <?= esc($tpl['document_version'] ?? 'v1.0') ?>
                                                 </span>

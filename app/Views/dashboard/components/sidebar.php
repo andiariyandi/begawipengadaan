@@ -22,9 +22,7 @@ $isSuperAdmin = $auth->isSuperAdmin();
 $isAdmin = $auth->isAdmin();
 
 // Granular RBAC permissions check for sidebar visibility
-$canSummary    = $isAdmin || $auth->can('dashboard.view');
-$canIndicators = $isAdmin || $auth->can('dashboard.indicators.view');
-$canDashboard  = $canSummary || $canIndicators;
+$canDashboard    = $isAdmin || $auth->canAny(['dashboard.view', 'dashboard.indicators.view']);
 $canCategoryMain = $canDashboard;
 
 // Platform Management Modules
@@ -115,27 +113,11 @@ $adminUnreadNotifCount = $sbUserId > 0
                 <li class="sidebar-menu-group-title">UTAMA</li>
 
                 <?php if ($canDashboard): ?>
-                    <li class="dropdown <?= $openClass('summary') ?>">
-                        <a href="javascript:void(0)">
+                    <li class="<?= in_array($currentMenu, ['summary', 'dashboard', 'home'], true) ? 'active-page' : '' ?>">
+                        <a class="<?= in_array($currentMenu, ['summary', 'dashboard', 'home'], true) ? 'active-page' : '' ?>" href="<?= site_url('dashboard') ?>">
                             <iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon>
                             <span>Dashboard</span>
                         </a>
-                        <ul class="sidebar-submenu">
-                            <?php if ($canSummary): ?>
-                                <li>
-                                    <a class="<?= $activeClass('summary', ['dashboard', 'summary', '']) ?>" href="<?= site_url('dashboard') ?>">
-                                        <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Ringkasan
-                                    </a>
-                                </li>
-                            <?php endif; ?>
-                            <?php if ($canIndicators): ?>
-                                <li>
-                                    <a class="<?= $activeClass('summary', ['system-indicators', 'indicators', 'kpi', 'kpi-internal', 'recent-activity', 'aktivitas-terbaru']) ?>" href="<?= site_url('dashboard/indikator-sistem') ?>">
-                                        <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Indikator Sistem
-                                    </a>
-                                </li>
-                            <?php endif; ?>
-                        </ul>
                     </li>
                 <?php endif; ?>
             <?php endif; ?>
@@ -148,33 +130,11 @@ $adminUnreadNotifCount = $sbUserId > 0
 
                 <!-- 2. Kelola Landing Page -->
                 <?php if ($canLanding): ?>
-                    <li class="dropdown <?= $openClass('landing') ?>">
-                        <a href="javascript:void(0)">
+                    <li class="<?= $currentMenu === 'landing' ? 'active-page' : '' ?>">
+                        <a class="<?= $currentMenu === 'landing' ? 'active-page' : '' ?>" href="<?= site_url('dashboard/landing') ?>">
                             <iconify-icon icon="solar:monitor-smartphone-outline" class="menu-icon"></iconify-icon>
                             <span>Kelola Landing Page</span>
                         </a>
-                        <ul class="sidebar-submenu">
-                            <li>
-                                <a class="<?= $activeClass('landing', ['slider', 'spotlight-center', 'pengumuman', 'banner-halaman', 'carousel', 'sorotan-carousel']) ?>" href="<?= site_url('dashboard/landing/slider') ?>">
-                                    <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Hero &amp; Promosi
-                                </a>
-                            </li>
-                            <li>
-                                <a class="<?= $activeClass('landing', ['profil-lembaga', 'profile', 'pilar-hierarki', 'highlight']) ?>" href="<?= site_url('dashboard/landing/profil-lembaga') ?>">
-                                    <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Profil Lembaga &amp; PATIK
-                                </a>
-                            </li>
-                            <li>
-                                <a class="<?= $activeClass('landing', ['portal-eksternal', 'portal', 'kategori-layanan', 'category']) ?>" href="<?= site_url('dashboard/landing/portal-eksternal') ?>">
-                                    <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Portal Eksternal &amp; Layanan
-                                </a>
-                            </li>
-                            <li>
-                                <a class="<?= $activeClass('landing', ['tim', 'team', 'testimoni', 'testimonial']) ?>" href="<?= site_url('dashboard/landing/tim') ?>">
-                                    <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Tim Inovator &amp; Testimoni
-                                </a>
-                            </li>
-                        </ul>
                     </li>
                 <?php endif; ?>
 

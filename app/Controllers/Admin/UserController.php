@@ -32,8 +32,7 @@ class UserController extends BaseController
             ->join('user_profiles up', 'up.user_id = u.id', 'left')
             ->join('asn_profiles asn', 'asn.user_id = u.id', 'left')
             ->join('organization_units ou', 'ou.id = up.province_code OR ou.id = up.regency_code', 'left', false)
-            ->groupBy('u.id, asn.id, ou.id')
-            ->orderBy('u.created_at', 'DESC');
+            ->groupBy('u.id, asn.id, ou.id');
 
         // Filters
         $tab = trim((string) $this->request->getGet('tab'));
@@ -89,6 +88,9 @@ class UserController extends BaseController
         ];
         $orderCol = $allowedSorts[$sort] ?? 'u.created_at';
         $builder->orderBy($orderCol, $dir);
+        if ($orderCol !== 'u.id') {
+            $builder->orderBy('u.id', 'DESC');
+        }
 
         // Count without GROUP BY breaking count
         $countBuilder = $db->table('users u');
@@ -425,22 +427,36 @@ class UserController extends BaseController
 
     public function create()
     {
+        $db = db_connect();
         $isSuperAdmin = (new \App\Services\Identity\AuthorizationService())->isSuperAdmin();
         $roles = (new \App\Services\Admin\RoleManagementService())->listRoles();
         if (! $isSuperAdmin) {
             $roles = array_values(array_filter($roles, static fn($r) => ! in_array($r['key'] ?? '', ['super_administrator', 'administrator'], true)));
         }
         $categories = (new \App\Services\Admin\OrganizationService())->listTree();
+
+        $organizationUnits = $db->table('organization_units')
+            ->select('id, name, code')
+            ->orderBy('name', 'ASC')
+            ->get()->getResultArray();
+
         return view('dashboard/users/form', [
-            'title'         => 'Tambah Pengguna | Dashboard BegawiPengadaan',
-            'pageTitle'     => 'Tambah Pengguna',
-            'formMode'      => 'create',
-            'activeMenu'    => 'access',
-            'activeSubmenu' => 'users',
-            'item'          => null,
-            'roles'         => $roles,
-            'categories'    => $categories,
-            'isSuperAdmin'  => $isSuperAdmin,
+            'title'             => 'Tambah Pengguna | Dashboard BegawiPengadaan',
+            'pageTitle'         => 'Tambah Pengguna',
+            'formMode'          => 'create',
+            'activeMenu'        => 'access',
+            'activeSubmenu'     => 'users',
+            'item'              => null,
+            'roles'             => $roles,
+            'categories'        => $categories,
+            'organizationUnits' => $organizationUnits,
+            'isSuperAdmin'      => $isSuperAdmin,
+            'asnProfile'        => [],
+            'providerProfile'   => [],
+            'academicProfile'   => [],
+            'publicProfile'     => [],
+            'userProfile'       => [],
+            'provinces'         => (new \App\Models\WilayahModel())->provinces(),
         ]);
     }
 
@@ -483,6 +499,7 @@ class UserController extends BaseController
 
     public function edit(string $id)
     {
+        $db = db_connect();
         $uid = ctype_digit($id) ? (int) $id : 0;
         $user = (new \App\Models\UserModel())->find($uid);
         if (! $user) {
@@ -499,17 +516,37 @@ class UserController extends BaseController
             $roles = array_values(array_filter($roles, static fn($r) => ! in_array($r['key'] ?? '', ['super_administrator', 'administrator'], true)));
         }
         $categories = (new \App\Services\Admin\OrganizationService())->listTree();
+
+        // Ambil data profil khusus pengguna
+        $asnProfile      = $db->table('asn_profiles')->where('user_id', $uid)->get()->getRowArray() ?: [];
+        $providerProfile = $db->table('provider_profiles')->where('user_id', $uid)->get()->getRowArray() ?: [];
+        $academicProfile = $db->table('academic_profiles')->where('user_id', $uid)->get()->getRowArray() ?: [];
+        $publicProfile   = $db->table('public_profiles')->where('user_id', $uid)->get()->getRowArray() ?: [];
+        $userProfile     = $db->table('user_profiles')->where('user_id', $uid)->get()->getRowArray() ?: [];
+
+        $organizationUnits = $db->table('organization_units')
+            ->select('id, name, code')
+            ->orderBy('name', 'ASC')
+            ->get()->getResultArray();
+
         return view('dashboard/users/form', [
-            'title'         => 'Ubah Pengguna | Dashboard BegawiPengadaan',
-            'pageTitle'     => 'Ubah Pengguna',
-            'formMode'      => 'edit',
-            'activeMenu'    => 'access',
-            'activeSubmenu' => 'users',
-            'item'          => $user,
-            'userId'        => $uid,
-            'roles'         => $roles,
-            'categories'    => $categories,
-            'isSuperAdmin'  => $isSuperAdmin,
+            'title'             => 'Ubah Pengguna | Dashboard BegawiPengadaan',
+            'pageTitle'         => 'Ubah Pengguna',
+            'formMode'          => 'edit',
+            'activeMenu'        => 'access',
+            'activeSubmenu'     => 'users',
+            'item'              => $user,
+            'userId'            => $uid,
+            'roles'             => $roles,
+            'categories'        => $categories,
+            'organizationUnits' => $organizationUnits,
+            'isSuperAdmin'      => $isSuperAdmin,
+            'asnProfile'        => $asnProfile,
+            'providerProfile'   => $providerProfile,
+            'academicProfile'   => $academicProfile,
+            'publicProfile'     => $publicProfile,
+            'userProfile'       => $userProfile,
+            'provinces'         => (new \App\Models\WilayahModel())->provinces(),
         ]);
     }
 

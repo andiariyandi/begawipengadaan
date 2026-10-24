@@ -33,7 +33,7 @@ $isLoggedIn       = session()->get('isLoggedIn') === true;
 $spotlightMode    = $spotlightMode ?? 'all';
 $spotlightLimit   = (int) ($spotlightLimit ?? 6);
 
-$sliderItems = [];
+$sliderItems      = $sliderItems ?? [];
 $bgSliderCovers = [
     base_url('assets/main/images/course/course-details-img-1.jpg'),
     base_url('assets/main/images/course/course-list-img-1.jpg'),
@@ -41,6 +41,7 @@ $bgSliderCovers = [
     base_url('assets/main/images/course/course-list-img-3.jpg'),
 ];
 
+if (empty($sliderItems)) {
 $progItems = [];
 if (! empty($featuredPrograms)) {
     foreach ($featuredPrograms as $fIdx => $fProg) {
@@ -122,7 +123,7 @@ if ($spotlightMode === 'program') {
     $sliderItems = array_slice($classItems, 0, $spotlightLimit);
 } else {
     // Interleave all three categories up to $spotlightLimit
-    $sliderItems = [];
+    $sliderItems      = $sliderItems ?? [];
     $maxCount = max(count($progItems), count($courseItems), count($classItems));
     for ($i = 0; $i < $maxCount; $i++) {
         if (isset($progItems[$i]) && count($sliderItems) < $spotlightLimit) {
@@ -135,6 +136,7 @@ if ($spotlightMode === 'program') {
             $sliderItems[] = $classItems[$i];
         }
     }
+}
 }
 ?>
 
@@ -295,6 +297,11 @@ if ($spotlightMode === 'program') {
                                         <div class="arena-class-card__thumb">
                                             <img src="<?= $coverImg ?>" alt="<?= esc($class['name']) ?>" loading="lazy">
                                             <div class="arena-card__badge-row">
+                                                <?php if ((int) ($class['featured'] ?? 0) === 1): ?>
+                                                    <span class="arena-pill-badge bg-warning text-dark">
+                                                        <i class="fas fa-star me-1"></i> Unggulan
+                                                    </span>
+                                                <?php endif; ?>
                                                 <span class="arena-pill-badge arena-pill-badge--accent">
                                                     <?= esc(ucfirst($class['status'] ?? 'Aktif')) ?>
                                                 </span>
@@ -414,9 +421,11 @@ if ($spotlightMode === 'program') {
                                             <img src="<?= $coverImg ?>" alt="<?= esc($prog['title']) ?>" class="w-100 h-100" style="object-fit: cover; filter: brightness(0.85); transition: transform 0.4s ease;" loading="lazy">
                                             <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(180deg, rgba(8,47,92,0.15) 0%, rgba(4,24,48,0.85) 100%);"></div>
                                             <div class="arena-card__badge-row">
-                                                <span class="arena-pill-badge arena-pill-badge--accent">
-                                                    <i class="fas fa-star me-1"></i> Unggulan
-                                                </span>
+                                                <?php if ((int) ($prog['featured'] ?? 0) === 1): ?>
+                                                    <span class="arena-pill-badge arena-pill-badge--accent">
+                                                        <i class="fas fa-star me-1"></i> Unggulan
+                                                    </span>
+                                                <?php endif; ?>
                                             </div>
                                             <div class="arena-card-floating-bookmark">
                                                 <?= view('landing/components/bookmark_button', [
@@ -520,6 +529,11 @@ if ($spotlightMode === 'program') {
                                         <div class="arena-card__thumb">
                                             <img src="<?= $coverImg ?>" alt="<?= esc($course['title']) ?>" loading="lazy">
                                             <div class="arena-card__badge-row">
+                                                <?php if ((int) ($course['featured'] ?? 0) === 1): ?>
+                                                    <span class="arena-pill-badge bg-warning text-dark">
+                                                        <i class="fas fa-star me-1"></i> Unggulan
+                                                    </span>
+                                                <?php endif; ?>
                                                 <span class="arena-pill-badge <?= $levelBadge['badge'] ?>">
                                                     <i class="fas <?= $levelBadge['icon'] ?> me-1"></i> <?= esc($levelBadge['label']) ?>
                                                 </span>

@@ -165,6 +165,7 @@ class EventPublicController extends BaseController
                 'certificate_enabled'  => (int) ($row['certificate_enabled'] ?? 0),
                 'registration_open_at' => $row['registration_open_at'],
                 'registration_close_at' => $row['registration_close_at'],
+                'is_featured'          => (int) ($row['is_featured'] ?? 0),
                 'cover_url'            => ! empty($row['cover_file_id']) ? site_url('file/' . (int) $row['cover_file_id']) : (! empty($row['cover_path']) ? (str_starts_with($row['cover_path'], 'http') ? $row['cover_path'] : base_url($row['cover_path'])) : null),
             ];
         }, $rawItems);
@@ -178,33 +179,65 @@ class EventPublicController extends BaseController
         } elseif ($spotlightLimit > 15) {
             $spotlightLimit = 15;
         }
-
         if ($currentPage === 1 && empty($keyword) && empty($type) && empty($mode)) {
-            $sliderBuilder = $this->db->table('events e')
-                ->select('e.*, COALESCE(u.name, u.username, "Biro PBJ Setda Lampung") AS creator_name, fa.path AS cover_path')
+            $selectCols = 'e.*, COALESCE(u.name, u.username, "Biro PBJ Setda Lampung") AS creator_name, fa.path AS cover_path';
+
+            // 1. Priority 1: Manual active slider events (carousel_enabled = 1)
+            $manualBuilder = $this->db->table('events e')
+                ->select($selectCols)
                 ->join('users u', 'u.id = e.created_by', 'left')
                 ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
                 ->where('e.deleted_at', null)
-                ->where('e.visibility', 'public');
+                ->where('e.visibility', 'public')
+                ->where('e.carousel_enabled', 1);
 
-            if ($spotlightMode === 'featured') {
-                $sliderBuilder->where('e.is_featured', 1);
-            } elseif ($spotlightMode === 'upcoming') {
-                $sliderBuilder->where('e.end_at >=', $now);
-            } elseif ($spotlightMode !== 'all' && ! empty($spotlightMode)) {
-                $sliderBuilder->where('e.type', $spotlightMode);
+            if ($spotlightMode === 'upcoming') {
+                $manualBuilder->where('e.end_at >=', $now);
+            } elseif ($spotlightMode !== 'all' && ! empty($spotlightMode) && $spotlightMode !== 'featured') {
+                $manualBuilder->where('e.type', $spotlightMode);
             }
 
-            $sliderRaw = $sliderBuilder
-                ->orderBy('e.carousel_enabled', 'DESC')
+            $manualEvents = $manualBuilder
                 ->orderBy('CASE WHEN e.carousel_order IS NULL THEN 9999 ELSE e.carousel_order END', 'ASC', false)
-                ->orderBy('e.is_featured', 'DESC')
-                ->orderBy('CASE WHEN e.status = "open_registration" THEN 0 WHEN e.status = "coming_soon" THEN 1 ELSE 2 END', 'ASC', false)
-                ->orderBy('e.start_at', 'ASC')
+                ->orderBy('e.id', 'DESC')
                 ->limit($spotlightLimit)
                 ->get()->getResultArray();
 
-            // If no events match specific spotlight filter, fallback to general upcoming / open events
+            $sliderRaw = $manualEvents;
+
+            // 2. Priority 2: Fill remaining quota with newest events according to mode
+            if (count($sliderRaw) < $spotlightLimit) {
+                $remaining = $spotlightLimit - count($sliderRaw);
+                $usedIds   = array_column($sliderRaw, 'id');
+
+                $fillerBuilder = $this->db->table('events e')
+                    ->select($selectCols)
+                    ->join('users u', 'u.id = e.created_by', 'left')
+                    ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
+                    ->where('e.deleted_at', null)
+                    ->where('e.visibility', 'public');
+
+                if (! empty($usedIds)) {
+                    $fillerBuilder->whereNotIn('e.id', $usedIds);
+                }
+
+                if ($spotlightMode === 'upcoming') {
+                    $fillerBuilder->where('e.end_at >=', $now);
+                } elseif ($spotlightMode !== 'all' && ! empty($spotlightMode) && $spotlightMode !== 'featured') {
+                    $fillerBuilder->where('e.type', $spotlightMode);
+                }
+
+                $fillerEvents = $fillerBuilder
+                    ->orderBy('CASE WHEN e.status = "open_registration" THEN 0 WHEN e.status = "coming_soon" THEN 1 ELSE 2 END', 'ASC', false)
+                    ->orderBy('e.start_at', 'ASC')
+                    ->orderBy('e.id', 'DESC')
+                    ->limit($remaining)
+                    ->get()->getResultArray();
+
+                $sliderRaw = array_merge($sliderRaw, $fillerEvents);
+            }
+
+            // Fallback to all published events if specific filter returned empty
             if (empty($sliderRaw) && ! empty($rawItems)) {
                 $sliderRaw = array_slice($rawItems, 0, min($spotlightLimit, count($rawItems)));
             }
