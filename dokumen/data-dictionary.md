@@ -1367,6 +1367,361 @@ Constraint: `UNIQUE(organization_unit_id, competency_id, period_date)`.
 
 ---
 
+## `wilayah`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `kode` | VARCHAR(13) | NN | — | PK | P | Kode wilayah BPS/Kemendagri |
+| `nama` | VARCHAR(100) | NN | — | IDX | P | Nama provinsi/kabupaten/kecamatan/desa |
+
+---
+
+## `procurement_stages`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier tahapan PBJ |
+| `key` | VARCHAR(64) | NN | — | UK | P | Slug/kode teknis tahapan |
+| `name` | VARCHAR(255) | NN | — | — | P | Nama tahapan pengadaan |
+| `description` | TEXT | N | `NULL` | — | P | Deskripsi tahapan |
+| `sort_order` | INT UNSIGNED | NN | `0` | — | S | Urutan tampilan |
+| `is_active` | TINYINT | NN | `1` | — | S | Status aktif |
+| `created_at` | DATETIME | NN | — | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | NN | — | — | S | Waktu pembaruan |
+
+---
+
+## `regulation_procurement_stages`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier pivot |
+| `regulation_id` | BIGINT UNSIGNED | NN | — | FK | P | ID regulasi |
+| `procurement_stage_id` | BIGINT UNSIGNED | NN | — | FK | P | ID tahapan PBJ |
+| `relevance` | VARCHAR(32) | N | `NULL` | — | P | Derajat relevansi |
+| `created_at` | DATETIME | NN | — | — | S | Waktu pembuatan |
+
+Constraint: `UNIQUE(regulation_id, procurement_stage_id)`.
+
+---
+
+## `regulation_competencies`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier pivot |
+| `regulation_id` | BIGINT UNSIGNED | NN | — | FK | P | ID regulasi |
+| `competency_id` | BIGINT UNSIGNED | NN | — | FK | P | ID kompetensi |
+| `relevance` | VARCHAR(32) | N | `NULL` | — | P | Derajat relevansi |
+| `created_at` | DATETIME | NN | — | — | S | Waktu pembuatan |
+
+Constraint: `UNIQUE(regulation_id, competency_id)`.
+
+---
+
+## `certificate_sequences`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `year` | SMALLINT UNSIGNED | NN | — | PK | S | Tahun penerbitan sertifikat |
+| `last_number` | INT UNSIGNED | NN | `0` | — | S | Counter nomor urut terakhir (atomik) |
+| `created_at` | DATETIME | NN | — | — | S | Waktu inisialisasi |
+| `updated_at` | DATETIME | NN | — | — | S | Waktu pembaruan counter |
+
+---
+
+## `home_sliders`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier slider beranda |
+| `badge_text` | VARCHAR(100) | N | `NULL` | — | P | Teks badge promosi |
+| `title` | VARCHAR(255) | NN | — | — | P | Judul utama slider |
+| `subtitle` | TEXT | N | `NULL` | — | P | Subjudul / deskripsi slider |
+| `image_url` | VARCHAR(255) | N | `NULL` | — | P | Path/URL banner grafis |
+| `button_text` | VARCHAR(100) | N | `NULL` | — | P | Label CTA utama |
+| `button_url` | VARCHAR(255) | N | `NULL` | — | P | URL tautan CTA utama |
+| `secondary_button_text` | VARCHAR(100) | N | `NULL` | — | P | Label CTA sekunder |
+| `secondary_button_url` | VARCHAR(255) | N | `NULL` | — | P | URL tautan CTA sekunder |
+| `sort_order` | INT | NN | `0` | IDX | S | Urutan rotasi tampilan |
+| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif/tampil |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `page_banners`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier banner halaman |
+| `page_key` | VARCHAR(50) | NN | — | UK | P | Kunci halaman publik (`arena-belajar`, dll.) |
+| `hero_badge` | VARCHAR(100) | N | `NULL` | — | P | Badge hero |
+| `hero_title` | VARCHAR(255) | N | `NULL` | — | P | Judul hero |
+| `hero_subtitle` | TEXT | N | `NULL` | — | P | Subjudul hero |
+| `hero_bg_image` | VARCHAR(255) | N | `NULL` | — | P | Background hero |
+| `search_placeholder` | VARCHAR(255) | N | `NULL` | — | P | Placeholder search input |
+| `cta_badge` | VARCHAR(100) | N | `NULL` | — | P | Badge CTA penutup |
+| `cta_title` | VARCHAR(255) | N | `NULL` | — | P | Judul CTA penutup |
+| `cta_lead` | TEXT | N | `NULL` | — | P | Lead paragraf CTA |
+| `cta_primary_btn_text` | VARCHAR(100) | N | `NULL` | — | P | Label tombol CTA |
+| `cta_primary_btn_url` | VARCHAR(255) | N | `NULL` | — | P | URL tombol CTA |
+| `cta_secondary_btn_text`| VARCHAR(100) | N | `NULL` | — | P | Label tombol sekunder |
+| `cta_secondary_btn_url` | VARCHAR(255) | N | `NULL` | — | P | URL tombol sekunder |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `site_announcements`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier popup pengumuman |
+| `title` | VARCHAR(255) | NN | — | — | P | Judul maklumat |
+| `badge_text` | VARCHAR(100) | N | `NULL` | — | P | Kategori pengumuman |
+| `message` | TEXT | NN | — | — | P | Redaksi pengumuman |
+| `image_url` | VARCHAR(255) | N | `NULL` | — | P | Gambar banner promo |
+| `cta_label` | VARCHAR(100) | N | `NULL` | — | P | Label tombol |
+| `cta_url` | VARCHAR(255) | N | `NULL` | — | P | URL tombol aksi |
+| `start_date` | DATE | N | `NULL` | — | S | Tanggal mulai tayang |
+| `end_date` | DATE | N | `NULL` | — | S | Tanggal selesai tayang |
+| `sort_order` | INT | NN | `0` | IDX | S | Urutan prioritas |
+| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `feature_highlights`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier pilar fitur |
+| `section_key` | VARCHAR(50) | NN | — | IDX | P | Kategori seksi (`pilar_budaya`, dll.) |
+| `code` | VARCHAR(50) | N | `NULL` | — | P | Kode huruf (P, A, T, I, K) |
+| `title` | VARCHAR(255) | NN | — | — | P | Judul pilar/fitur |
+| `subtitle` | VARCHAR(255) | N | `NULL` | — | P | Subjudul pilar |
+| `description` | TEXT | N | `NULL` | — | P | Uraian penjelasan |
+| `icon_class` | VARCHAR(100) | N | `NULL` | — | P | Kelas icon FontAwesome/Remix |
+| `badge_text` | VARCHAR(100) | N | `NULL` | — | P | Badge teks pelengkap |
+| `color_hex` | VARCHAR(50) | N | `NULL` | — | P | Kode warna tema |
+| `link_url` | VARCHAR(255) | N | `NULL` | — | P | URL tujuan navigasi |
+| `sort_order` | INT | NN | `0` | IDX | S | Urutan susunan |
+| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `external_portals`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier portal eksternal |
+| `name` | VARCHAR(150) | NN | — | — | P | Nama portal |
+| `acronym` | VARCHAR(50) | N | `NULL` | — | P | Singkatan portal |
+| `url` | VARCHAR(255) | NN | — | — | P | URL tautan eksternal |
+| `logo_url` | VARCHAR(255) | N | `NULL` | — | P | Logo instansi/portal |
+| `description` | TEXT | N | `NULL` | — | P | Deskripsi fungsi portal |
+| `category` | VARCHAR(50) | NN | `'national'` | — | P | Kategori lingkup |
+| `sort_order` | INT | NN | `0` | IDX | S | Urutan tampilan |
+| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `testimonials`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier testimoni |
+| `name` | VARCHAR(150) | NN | — | — | P | Nama pemberi ulasan |
+| `role_title` | VARCHAR(150) | N | `NULL` | — | P | Jabatan reviewer |
+| `organization` | VARCHAR(150) | N | `NULL` | — | P | Instansi reviewer |
+| `avatar_url` | VARCHAR(255) | N | `NULL` | — | P | Foto reviewer |
+| `rating` | TINYINT | NN | `5` | — | P | Bintang penilaian (1-5) |
+| `quote` | TEXT | NN | — | — | P | Isi testimoni |
+| `impact_statement` | VARCHAR(255) | N | `NULL` | — | P | Dampak nyata |
+| `category` | VARCHAR(50) | NN | `'opd'` | — | P | Kategori reviewer |
+| `sort_order` | INT | NN | `0` | IDX | S | Urutan tampilan |
+| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `team_members`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier anggota tim |
+| `name` | VARCHAR(150) | NN | — | — | P | Nama lengkap anggota |
+| `role_title` | VARCHAR(150) | NN | — | — | P | Jabatan penugasan tim |
+| `nip` | VARCHAR(50) | N | `NULL` | — | R | NIP kedinasan (opsional) |
+| `category` | VARCHAR(50) | NN | `'pembina'`| IDX | P | Kategori pembina/pengarah/inovator |
+| `photo_url` | VARCHAR(255) | N | `NULL` | — | P | Foto profil anggota |
+| `bio` | TEXT | N | `NULL` | — | P | Biografi ringkas |
+| `social_links` | JSON | N | `NULL` | — | P | Tautan jejaring sosial |
+| `sort_order` | INT | NN | `0` | IDX | S | Urutan susunan tim |
+| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `service_categories`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier kategori layanan |
+| `name` | VARCHAR(150) | NN | — | — | P | Nama layanan |
+| `code` | VARCHAR(50) | NN | — | UK | P | Kode layanan unik |
+| `description` | TEXT | N | `NULL` | — | P | Deskripsi layanan |
+| `sort_order` | INT | NN | `0` | IDX | S | Urutan layanan |
+| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `site_settings`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier setting |
+| `setting_group` | VARCHAR(50) | NN | `'general'`| IDX | S | Grup pengaturan sistem |
+| `setting_key` | VARCHAR(100) | NN | — | UK | S | Kunci parameter setting |
+| `setting_value` | LONGTEXT | N | `NULL` | — | S | Nilai konfigurasi |
+| `field_type` | VARCHAR(30) | NN | `'text'` | — | S | Tipe kontrol form |
+| `description` | VARCHAR(255) | N | `NULL` | — | S | Keterangan fungsi |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+Constraint: `UNIQUE(setting_group, setting_key)`.
+
+---
+
+## `contact_messages`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier pesan kontak |
+| `ticket_number` | VARCHAR(50) | NN | — | UK | I | Nomor tiket permohonan |
+| `sender_name` | VARCHAR(150) | NN | — | — | R | Nama pengirim pesan |
+| `sender_email` | VARCHAR(150) | NN | — | — | R | Email pengirim pesan |
+| `sender_phone` | VARCHAR(50) | N | `NULL` | — | R | Kontak telepon |
+| `service_category` | VARCHAR(100) | N | `NULL` | — | I | Kategori konsultasi |
+| `subject` | VARCHAR(255) | NN | — | — | I | Judul perihal |
+| `message` | TEXT | NN | — | — | I | Isi pesan pertanyaan |
+| `status` | VARCHAR(50) | NN | `'unread'` | IDX | I | Status (`unread`, `replied`, dll.) |
+| `admin_notes` | TEXT | N | `NULL` | — | I | Catatan petugas helpdesk |
+| `replied_at` | DATETIME | N | `NULL` | — | I | Waktu pengiriman balasan |
+| `created_at` | DATETIME | N | `NULL` | IDX | S | Waktu pengiriman |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `helpdesk_topics`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier topik helpdesk |
+| `topic_title` | VARCHAR(150) | NN | — | — | P | Judul opsi konsultasi |
+| `default_message`| TEXT | NN | — | — | P | Template draf pesan WhatsApp |
+| `icon_class` | VARCHAR(100) | N | `NULL` | — | P | Ikon topik |
+| `sort_order` | INT | NN | `0` | IDX | S | Urutan pilihan |
+| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `newsletter_subscribers`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier pendaftar buletin |
+| `email` | VARCHAR(150) | NN | — | UK | R | Alamat email terdaftar |
+| `status` | VARCHAR(50) | NN | `'subscribed'`| IDX | I | Status langganan |
+| `subscribed_at` | DATETIME | N | `NULL` | IDX | S | Waktu berlangganan |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `visitor_statistics`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier metrik trafik |
+| `feature` | VARCHAR(50) | NN | `'home'` | UK | S | Fitur/halaman terpantau |
+| `visit_date` | DATE | NN | — | UK/IDX | S | Tanggal pencatatan |
+| `hit_count` | INT UNSIGNED | NN | `1` | — | S | Akumulasi jumlah kunjungan |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+Constraint: `UNIQUE(feature, visit_date)`.
+
+---
+
+## `satisfaction_surveys`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier isian survei |
+| `ticket_number` | VARCHAR(32) | NN | — | UK | I | Nomor bukti survei |
+| `rating_overall` | TINYINT | NN | `5` | IDX | I | Nilai kepuasan umum (1-5) |
+| `service_access_rating` | TINYINT | N | `NULL` | — | I | Nilai akses layanan |
+| `service_regulation_rating` | TINYINT | N | `NULL` | — | I | Nilai kemudahan regulasi |
+| `service_learning_rating` | TINYINT | N | `NULL` | — | I | Nilai kualitas belajar |
+| `service_helpdesk_rating` | TINYINT | N | `NULL` | — | I | Nilai keramahan helpdesk |
+| `respondent_role` | VARCHAR(100) | NN | `'Masyarakat Umum'` | IDX | I | Peran/kategori pengisi |
+| `is_anonymous` | TINYINT(1) | NN | `1` | — | I | Opsi anonimitas |
+| `respondent_name` | VARCHAR(150) | N | `NULL` | — | R | Nama pengisi (bila non-anonim) |
+| `respondent_institution` | VARCHAR(150) | N | `NULL` | — | R | Instansi pengisi |
+| `respondent_contact` | VARCHAR(100) | N | `NULL` | — | R | Kontak responden |
+| `feedback` | TEXT | N | `NULL` | — | I | Masukan/saran perbaikan |
+| `recommendation` | VARCHAR(50) | NN | `'Pasti Merekomendasikan'` | — | I | Rekomendasi layanan |
+| `ip_address` | VARCHAR(45) | N | `NULL` | — | S | Telemetri integritas |
+| `user_agent` | VARCHAR(255) | N | `NULL` | — | S | Telemetri browser |
+| `created_at` | DATETIME | N | `NULL` | IDX | S | Waktu pengisian |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `survey_aspects`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier aspek mutu |
+| `aspect_key` | VARCHAR(50) | NN | — | UK | P | Kode aspek mutu |
+| `title` | VARCHAR(150) | NN | — | — | P | Nama aspek mutu |
+| `description` | TEXT | N | `NULL` | — | P | Uraian indikator mutu |
+| `icon_class` | VARCHAR(100) | N | `NULL` | — | P | Ikon aspek |
+| `weight` | DECIMAL(5,2) | NN | `1.00` | — | S | Bobot perhitungan |
+| `sort_order` | INT | NN | `0` | IDX | S | Urutan aspek |
+| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
+| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
+| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+
+---
+
+## `migrations`
+
+| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
+|---|---|---:|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier migration |
+| `version` | VARCHAR(255) | NN | — | — | S | Versi/nama kelas migration CI4 |
+| `class` | VARCHAR(255) | NN | — | — | S | Fully qualified class name |
+| `group` | VARCHAR(255) | NN | — | — | S | Grup database connection |
+| `namespace` | VARCHAR(255) | NN | — | — | S | Namespace migration |
+| `time` | INT | NN | — | — | S | UNIX timestamp eksekusi |
+| `batch` | INT UNSIGNED | NN | — | — | S | Nomor batch migrasi |
+
+---
+
 # Foreign Key Reference
 
 Foreign key utama menggunakan `BIGINT UNSIGNED` dan index pada kolom FK. Aksi delete mengikuti database blueprint: restrict/soft delete/archive untuk histori penting, `SET NULL` pada actor metadata bila audit/riwayat harus dipertahankan, dan hard delete hanya mengikuti retention policy.

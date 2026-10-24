@@ -175,12 +175,16 @@
                                     <div>
                                         <?php if ($targetUrl): ?>
                                             <a href="<?= esc($targetUrl) ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 text-xs fw-semibold">
-                                                <?php if (str_contains($item['type'], 'ticket')): ?>
+                                                <?php if (str_contains($item['type'], 'ticket') || str_contains($item['type'], 'contact')): ?>
                                                     <i class="fas fa-comments me-1"></i> Buka Tiket Konsultasi
                                                 <?php elseif (str_contains($item['type'], 'certificate')): ?>
                                                     <i class="fas fa-award me-1"></i> Akses Sertifikat
+                                                <?php elseif (str_contains($item['type'], 'account') || str_contains($item['type'], 'profile')): ?>
+                                                    <i class="fas fa-id-card me-1"></i> Verifikasi Berkas
                                                 <?php elseif (str_contains($item['type'], 'class') || str_contains($item['type'], 'lesson')): ?>
-                                                    <i class="fas fa-graduation-cap me-1"></i> Masuk Kelas
+                                                    <i class="fas fa-graduation-cap me-1"></i> Akses Kelas
+                                                <?php elseif (str_contains($item['type'], 'event')): ?>
+                                                    <i class="fas fa-calendar-alt me-1"></i> Rincian Event
                                                 <?php else: ?>
                                                     <i class="fas fa-external-link-alt me-1"></i> Lihat Rincian
                                                 <?php endif; ?>

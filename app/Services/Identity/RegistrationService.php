@@ -234,6 +234,32 @@ class RegistrationService
             log_message('warning', '[Register] audit log failed: ' . $e->getMessage());
         }
 
+        // Shared Notification ke Pool Verifikator (Super Admin, Admin, & Operator)
+        try {
+            $profileLabel = match ($profileType) {
+                'asn'      => 'Aparatur Sipil Negara (ASN)',
+                'provider' => 'Penyedia Barang/Jasa',
+                'academic' => 'Akademisi / Lembaga Pendidikan',
+                'public'   => 'Masyarakat Umum / Publik',
+                default    => ucfirst($profileType),
+            };
+
+            (new \App\Services\NotificationService())->sendShared(
+                'shared:admin_operator',
+                'account_registered',
+                'Pendaftaran Akun Baru Menunggu Verifikasi',
+                "Pengguna baru {$data['name']} ({$profileLabel}) telah mendaftar dan berkasnya siap diverifikasi.",
+                [
+                    'user_id'      => (int) $userId,
+                    'name'         => $data['name'],
+                    'profile_type' => $profileType,
+                    'url'          => site_url('workspace/operator/verifikasi-user'),
+                ]
+            );
+        } catch (\Throwable $e) {
+            log_message('warning', '[Register] shared notification failed: ' . $e->getMessage());
+        }
+
         return (int) $userId;
     }
 

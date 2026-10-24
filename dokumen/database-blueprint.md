@@ -87,25 +87,30 @@ Permission key  : dot.notation pada data reference
 
 ---
 
-## Urutan Migration
+## Skema Database dan Urutan Migration
 
-Migration mengikuti urutan berikut agar dependency foreign key jelas:
+Database `db_begawipbj` mencakup **89 tabel relasional** yang sepenuhnya tersinkronisasi pada `schema-fresh-v4-3.sql` dan dikelola melalui 16 migration aktif di `app/Database/Migrations/`:
 
-| Urutan | Migration | Cakupan |
+| Urutan | File Migration | Cakupan & Penambahan Struktur |
 |---:|---|---|
-| 1 | `CreateIdentityAndRbacTables` | User, profile dasar, role, permission, token, role request |
-| 2 | `CreateOrganizationAndProfileVerificationTables` | Organisasi, profil tipe pengguna, peran pengadaan, profile change/verification |
-| 3 | `CreateSharedWorkflowAuditFileTables` | Approval, workflow transition, audit log, file asset, notification, bookmark, export |
-| 4 | `CreateLearningCoreTables` | Program, course, class, module, lesson, enrollment, assignment Trainer/Evaluator |
-| 5 | `CreateLearningAssessmentTables` | Pre-test, quiz, attempt, assignment, submission, grade, feedback, progress |
-| 6 | `CreateKnowledgeAndMediaTables` | Artikel, FAQ, studi kasus, template, media, kategori, tag, relation konten |
-| 7 | `CreateRegulationAndRelationTables` | Regulasi, kategori, versi, legal relation, download log, bookmark |
-| 8 | `CreateCommunicationTables` | Berita, event, registrasi event, attendance |
-| 9 | `CreateCertificateTables` | Template sertifikat, certificate, issuance/revocation/replacement relation |
-| 10 | `CreateGovernmentIntelligenceTables` | OPD/unit, JF PPBJ, kompetensi, sertifikat kompetensi, gap snapshot |
-| 11 | `AddPerformanceIndexesAndConstraints` | Unique, check, full-text/index, constraint lintas tabel yang final |
+| 1 | `2026-10-05-000001_AddProcurementStagesAndPivotTables` | Tabel `procurement_stages`, pivot `regulation_procurement_stages`, dan `regulation_competencies` |
+| 2 | `2026-10-09-000001_AddCertificateSequencesTable` | Tabel sequence penomoran atomik `certificate_sequences` |
+| 3 | `2026-10-10-000001_AddAttendanceCodeToEvents` | Kolom kode presensi dinamis pada `events` |
+| 4 | `2026-10-11-000001_AddLearningEnhancementFields` | Kolom pengayaan visual, cover, spotlight pada `courses` dan `learning_classes` |
+| 5 | `2026-10-12-000001_AddKnowledgeEnhancementFields` | Kolom pengayaan spotlight, status review pada artikel dan media pengetahuan |
+| 6 | `2026-10-12-000002_AddRegulationEnhancementFields` | Kolom spotlight, relasi hierarki pada modul regulasi |
+| 7 | `2026-10-14-000001_AddNewsEnhancementFields` | Kolom slider hero, hit counter, tag pada modul warta berita |
+| 8 | `2026-10-14-000002_CreateVisitorStatisticsTable` | Tabel analitik kunjungan `visitor_statistics` |
+| 9 | `2026-10-18-000001_CreateSatisfactionSurveysTable` | Tabel isian instrumen survei `satisfaction_surveys` dan `survey_aspects` |
+| 10 | `2026-10-19-000001_AddDurationMinutesToQuizzes` | Kolom alokasi durasi pengerjaan kuis pada `quizzes` |
+| 11 | `2026-10-19-000002_CreateLandingCmsTables` | Tabel CMS Landing: `home_sliders`, `page_banners`, `site_announcements`, `feature_highlights`, `external_portals`, `testimonials`, `team_members`, `service_categories`, `site_settings` |
+| 12 | `2026-10-19-000003_AddClassCoverAndSpotlightFields` | Kolom `cover_image`, `is_featured`, `is_carousel`, `carousel_order` pada `learning_classes` |
+| 13 | `2026-10-19-000004_AddKnowledgeMediaSlidesAndSpotlightFields` | Kolom slider hero, carousel order pada media galeri dan artikel |
+| 14 | `2026-10-19-000005_AddRegulationCarouselFields` | Kolom `is_carousel`, `carousel_order` pada `regulations` |
+| 15 | `2026-10-19-000006_AddNewsAndEventCarouselFields` | Kolom `is_carousel`, `carousel_order` pada `news` dan `events` |
+| 16 | `2026-10-19-000007_AddLearningCarouselFields` | Kolom `is_carousel`, `carousel_order` pada `programs` dan `courses` |
 
-Migration tidak boleh mengandalkan seeder dummy untuk membentuk struktur inti database.
+Schema executable mandiri V4.3 berada di root: `schema-fresh-v4-3.sql` dan merefleksikan seluruh 89 tabel lengkap beserta constraint dan index.
 
 ---
 
@@ -1447,6 +1452,445 @@ Constraint:
 ```text
 UNIQUE(organization_unit_id, competency_id, period_date)
 INDEX(period_date)
+```
+
+---
+
+## Master Wilayah dan Pipeline Regulasi & Assessment Tambahan
+
+### `wilayah`
+
+Master kode dan nama hierarki administrasi wilayah Indonesia (Provinsi, Kabupaten/Kota, Kecamatan, Kelurahan/Desa) read-only.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `kode` | Primary key `VARCHAR(13)` (e.g. `18` Prov Lampung, `18.71` Bandar Lampung) |
+| `nama` | Nama wilayah `VARCHAR(100)` |
+
+Constraint/index:
+```text
+PRIMARY KEY (kode)
+INDEX wilayah_name_idx (nama)
+```
+
+### `procurement_stages`
+
+Master tahapan Pengadaan Barang/Jasa (Perencanaan, Persiapan Pengadaan, Persiapan Pemilihan, Pemilihan Penyedia, Pelaksanaan Kontrak, Serah Terima).
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `key` | Unique slug/kode teknis tahapan `VARCHAR(64)` |
+| `name` | Nama tahapan PBJ `VARCHAR(255)` |
+| `description` | Deskripsi ruang lingkup tahapan `TEXT` |
+| `sort_order` | Urutan tampilan `INT UNSIGNED DEFAULT 0` |
+| `is_active` | Status aktif `TINYINT DEFAULT 1` |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY (key)
+```
+
+### `regulation_procurement_stages`
+
+Tabel pivot relasi many-to-many antara regulasi dan tahapan PBJ terkait.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `regulation_id` | FK ke `regulations.id` |
+| `procurement_stage_id` | FK ke `procurement_stages.id` |
+| `relevance` | Derajat relevansi `VARCHAR(32)` |
+| `created_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY rps_unique (regulation_id, procurement_stage_id)
+```
+
+### `regulation_competencies`
+
+Tabel pivot relasi many-to-many antara regulasi dan standar kompetensi pengadaan.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `regulation_id` | FK ke `regulations.id` |
+| `competency_id` | FK ke `competencies.id` |
+| `relevance` | Derajat relevansi `VARCHAR(32)` |
+| `created_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY rc_unique (regulation_id, competency_id)
+```
+
+### `knowledge_article_tags`
+
+Tabel pivot relasi many-to-many antara naskah artikel Bunga Rampai dan tag pengetahuan.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `article_id` | FK ke `knowledge_articles.id` |
+| `tag_id` | FK ke `knowledge_tags.id` |
+
+Constraint/index:
+```text
+PRIMARY KEY (article_id, tag_id)
+INDEX (tag_id)
+```
+
+### `quiz_options`
+
+Pilihan jawaban pertanyaan kuis (A, B, C, D, E) pada assessment pembelajaran.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `question_id` | FK ke `quiz_questions.id` ON DELETE RESTRICT |
+| `option_text` | Redaksi pilihan jawaban `TEXT` |
+| `is_correct` | Penanda kunci jawaban benar `TINYINT(1) DEFAULT 0` |
+| `sort_order` | Urutan abjad opsi `INT UNSIGNED` |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY (question_id, sort_order)
+```
+
+---
+
+## Landing CMS dan Konfigurasi Portal
+
+### `home_sliders`
+
+Banner slider hero utama pada beranda portal publik.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `badge_text` | Label badge promosi `VARCHAR(100)` |
+| `title` | Judul hero slider `VARCHAR(255)` |
+| `subtitle` | Deskripsi/sub-judul hero `TEXT` |
+| `image_url` | URL/path gambar banner `VARCHAR(255)` |
+| `button_text` | Label tombol aksi utama `VARCHAR(100)` |
+| `button_url` | Tautan tombol aksi utama `VARCHAR(255)` |
+| `secondary_button_text` | Label tombol aksi sekunder `VARCHAR(100)` |
+| `secondary_button_url` | Tautan tombol aksi sekunder `VARCHAR(255)` |
+| `sort_order` | Urutan urut rotasi banner `INT DEFAULT 0` |
+| `is_active` | Status tayang `TINYINT(1) DEFAULT 1` |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+INDEX (is_active, sort_order)
+```
+
+### `page_banners`
+
+Konfigurasi hero banner dan CTA spesifik per halaman modul publik.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `page_key` | Identifier halaman `VARCHAR(50)` (e.g. `arena-belajar`, `bunga-rampai`, `regulasi`, `berita`, `event`) |
+| `hero_badge`, `hero_title`, `hero_subtitle` | Metadata hero header |
+| `hero_bg_image`, `search_placeholder` | Aset visual dan placeholder pencarian |
+| `cta_badge`, `cta_title`, `cta_lead` | Blok ajakan aksi penutup |
+| `cta_primary_btn_text`, `cta_primary_btn_url` | Tombol CTA utama |
+| `cta_secondary_btn_text`, `cta_secondary_btn_url` | Tombol CTA sekunder |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY uk_page_banner_key (page_key)
+```
+
+### `site_announcements`
+
+Popup pengumuman penting, maklumat, atau promosi agenda PBJ yang tampil mengambang bagi pengunjung.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `title` | Judul maklumat pengumuman `VARCHAR(255)` |
+| `badge_text` | Badge kategori pengumuman `VARCHAR(100)` |
+| `message` | Isi pesan pengumuman `TEXT` |
+| `image_url` | Banner grafis pendukung `VARCHAR(255)` |
+| `cta_label`, `cta_url` | Tombol tindak lanjut |
+| `start_date`, `end_date` | Masa berlaku tayang otomatis |
+| `sort_order`, `is_active` | Urutan dan toggle aktif |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+INDEX (is_active, sort_order)
+```
+
+### `feature_highlights`
+
+Item pilar budaya kerja PATIK, hierarki kelembagaan PBJ, dan roadmap pengadaan pada beranda.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `section_key` | Kategori seksi `VARCHAR(50)` (`pilar_budaya`, `hierarki`, `roadmap`) |
+| `code` | Kode unik item `VARCHAR(50)` (e.g. `P`, `A`, `T`, `I`, `K`) |
+| `title`, `subtitle`, `description` | Teks penjelasan pilar/hierarki |
+| `icon_class`, `badge_text`, `color_hex` | Atribut styling dan ikon FontAwesome/Remix |
+| `link_url`, `sort_order`, `is_active` | Tautan navigasi dan urutan |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+INDEX (section_key, is_active, sort_order)
+```
+
+### `external_portals`
+
+Tautan resmi portal eksternal pengadaan nasional dan daerah (INAPROC, SPSE, SiRUP, Bela Pengadaan, dll.).
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `name` | Nama portal eksternal `VARCHAR(150)` |
+| `acronym` | Singkatan/akronim portal `VARCHAR(50)` |
+| `url` | URL tujuan eksternal `VARCHAR(255)` |
+| `logo_url` | Logo portal `VARCHAR(255)` |
+| `description` | Deskripsi fungsi portal `TEXT` |
+| `category` | Kategori lingkup `VARCHAR(50)` (`national`, `regional`, `internal`) |
+| `sort_order`, `is_active` | Urutan dan toggle aktif |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+INDEX (is_active, sort_order)
+```
+
+### `testimonials`
+
+Ulasan dan testimoni stakeholder pengadaan (OPD, Pokja, Penyedia, Akademisi).
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `name` | Nama pemberi testimoni `VARCHAR(150)` |
+| `role_title` | Jabatan pemberi testimoni `VARCHAR(150)` |
+| `organization` | Instansi/OPD asal `VARCHAR(150)` |
+| `avatar_url` | Foto profil testimoni `VARCHAR(255)` |
+| `rating` | Bintang kepuasan 1-5 `TINYINT DEFAULT 5` |
+| `quote` | Redaksi ulasan `TEXT` |
+| `impact_statement` | Manfaat nyata yang dirasakan `VARCHAR(255)` |
+| `category` | Kategori reviewer `VARCHAR(50)` (`opd`, `penyedia`, `jf_ppbj`) |
+| `sort_order`, `is_active` | Urutan dan toggle aktif |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+INDEX (is_active, sort_order)
+```
+
+### `team_members`
+
+Daftar susunan tim pembina, pengarah, dan inovator platform BegawiPengadaan.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `name` | Nama lengkap anggota tim `VARCHAR(150)` |
+| `role_title` | Jabatan dalam tim `VARCHAR(150)` |
+| `nip` | NIP kedinasan `VARCHAR(50)` |
+| `category` | Klasifikasi `VARCHAR(50)` (`pembina`, `pengarah`, `pelaksana`, `inovator`) |
+| `photo_url`, `bio`, `social_links` | Foto, biografi, dan tautan jejaring JSON |
+| `sort_order`, `is_active` | Urutan dan status aktif |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+INDEX (category, is_active, sort_order)
+```
+
+### `service_categories`
+
+Kategori layanan terintegrasi landing page.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `name`, `code` | Nama layanan `VARCHAR(150)` dan kode unik `VARCHAR(50)` |
+| `description` | Deskripsi layanan `TEXT` |
+| `sort_order`, `is_active` | Urutan dan toggle aktif |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY uk_service_cat_code (code)
+INDEX (is_active, sort_order)
+```
+
+### `site_settings`
+
+Penyimpanan konfigurasi global key-value platform sistem (general, organization, learning, regulation, news, event, integration, maintenance).
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `setting_group` | Grup pengaturan `VARCHAR(50) DEFAULT 'general'` |
+| `setting_key` | Kunci konfigurasi `VARCHAR(100)` |
+| `setting_value` | Nilai konfigurasi `LONGTEXT` |
+| `field_type` | Tipe data input UI `VARCHAR(30) DEFAULT 'text'` |
+| `description` | Keterangan fungsi parameter `VARCHAR(255)` |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY uk_group_key (setting_group, setting_key)
+INDEX (setting_group)
+```
+
+---
+
+## Interaksi Publik, Helpdesk, dan Survei
+
+### `contact_messages`
+
+Pesan konsultasi dan pertanyaan publik yang dikirim melalui form `/kontak`.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `ticket_number` | Nomor tiket unik konsultasi `VARCHAR(50)` |
+| `sender_name`, `sender_email`, `sender_phone` | Data pemohon konsultasi |
+| `service_category` | Kategori layanan konsultasi `VARCHAR(100)` |
+| `subject`, `message` | Perihal dan isi pesan `TEXT` |
+| `status` | Status tindak lanjut (`unread`, `in_progress`, `replied`, `archived`) |
+| `admin_notes`, `replied_at` | Catatan internal dan waktu respon admin |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY uk_contact_ticket (ticket_number)
+INDEX (status, created_at)
+```
+
+### `helpdesk_topics`
+
+Topik konsultasi terpandu untuk WhatsApp Floating Helpdesk Widget.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `topic_title` | Judul topik konsultasi `VARCHAR(150)` |
+| `default_message` | Draf pesan otomatis konsultasi WhatsApp `TEXT` |
+| `icon_class`, `sort_order`, `is_active` | Ikon visual, urutan, status aktif |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+INDEX (is_active, sort_order)
+```
+
+### `newsletter_subscribers`
+
+Pendaftar langganan buletin warta pengadaan PBJ.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `email` | Alamat email terdaftar unik `VARCHAR(150)` |
+| `status` | Status langganan (`subscribed`, `unsubscribed`) |
+| `subscribed_at`, `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY uk_newsletter_email (email)
+INDEX (status, subscribed_at)
+```
+
+### `visitor_statistics`
+
+Pencatatan metrik volume kunjungan agregat per fitur/modul per hari untuk visualisasi tren trafik.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `feature` | Nama modul `VARCHAR(50) DEFAULT 'home'` |
+| `visit_date` | Tanggal pencatatan `DATE` |
+| `hit_count` | Akumulasi jumlah hit `INT UNSIGNED DEFAULT 1` |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY feature_visit_date (feature, visit_date)
+INDEX (visit_date)
+INDEX (feature)
+```
+
+### `satisfaction_surveys`
+
+Hasil pengisian instrumen Indeks Kepuasan Masyarakat (IKM) terhadap layanan platform BegawiPengadaan.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `ticket_number` | Nomor unik respons survei `VARCHAR(32)` |
+| `rating_overall` | Nilai kepuasan umum 1-5 `TINYINT DEFAULT 5` |
+| `service_access_rating` | Penilaian kemudahan akses akun |
+| `service_regulation_rating` | Penilaian kemudahan pencarian regulasi |
+| `service_learning_rating` | Penilaian kualitas materi belajar |
+| `service_helpdesk_rating` | Penilaian keramahan respon konsultasi |
+| `respondent_role` | Peran responden (ASN, Penyedia, Umum) |
+| `is_anonymous` | Opsi anonimitas responden `TINYINT(1) DEFAULT 1` |
+| `respondent_name`, `respondent_institution`, `respondent_contact` | Data responden bila tidak anonim |
+| `feedback`, `recommendation` | Saran perbaikan dan rekomendasi |
+| `ip_address`, `user_agent` | Data telemetri verifikasi integritas respon |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY (ticket_number)
+INDEX (rating_overall)
+INDEX (respondent_role)
+INDEX (created_at)
+```
+
+### `survey_aspects`
+
+Master indikator mutu yang dinilai pada survei kepuasan.
+
+| Kolom utama | Keterangan |
+|---|---|
+| `id` | Primary key `BIGINT UNSIGNED AUTO_INCREMENT` |
+| `aspect_key` | Kode aspek unik `VARCHAR(50)` |
+| `title`, `description` | Nama dan keterangan indikator |
+| `icon_class`, `weight` | Ikon dan bobot penilaian |
+| `sort_order`, `is_active` | Urutan dan toggle aktif |
+| `created_at`, `updated_at` | Timestamp |
+
+Constraint/index:
+```text
+PRIMARY KEY (id)
+UNIQUE KEY uk_survey_aspect_key (aspect_key)
+INDEX (is_active, sort_order)
 ```
 
 ---

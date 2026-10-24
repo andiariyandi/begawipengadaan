@@ -849,10 +849,10 @@ begawipbj/
 │   ├── registration-policy.md                    # Kebijakan registrasi multi-step & verifikasi profil
 │   ├── regulation-policy.md                      # Kebijakan tata kelola regulasi PBJ
 │   ├── route-contract.md                         # Kontrak route, controller, method, filter & route name
-│   ├── schema-fresh-v4-1.sql                     # Schema fresh SQL V4.1 (74 tabel, 100% sinkron database)
 │   ├── ui-boundary.md                            # Batasan antarmuka (Landing vs Workspace vs Dashboard)
 │   └── workflow-contract.md                      # Kontrak state machine dan transisi workflow
 │
+├── schema-fresh-v4-3.sql                         # Schema fresh SQL V4.3 (89 tabel, 100% sinkron database, 16 migrations)
 ├── .env.example
 ├── .gitignore
 ├── LICENSE
@@ -1003,6 +1003,7 @@ Gunakan selalu lokasi target berikut:
 app/Controllers/Dashboard/Auth/
 app/Controllers/Dashboard/
 app/Views/dashboard/auth/
+app/Views/dashboard/auth/layouts/auth.php
 app/Views/dashboard/layouts/auth.php
 app/Views/main/workspace/
 public/assets/main/

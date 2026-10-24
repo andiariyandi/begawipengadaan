@@ -41,7 +41,7 @@ View auth
 app/Views/dashboard/auth/
 
 Layout auth
-app/Views/dashboard/layouts/auth.php
+app/Views/dashboard/auth/layouts/auth.php
 
 Asset auth
 public/assets/dashboard/
@@ -221,101 +221,121 @@ Permission adalah hak granular yang menentukan apakah actor dapat melakukan aksi
 {domain}.{resource}.{action}
 ```
 
-Contoh:
+Terdapat 90 permission kanonis yang terdistribusi ke dalam 12 domain sistem (selaras dengan `database/permissions_catalog.json`):
 
-```text
-dashboard.view
-user.view
-user.create
-user.update
-profile.verify
-role.view
-role.create
-role.update
-role.request.review
-permission.view
-permission.create
-permission.update
-permission.assign
-approval.view
-approval.decide
-audit.view
-organization.view
-organization.create
-organization.update
-report.view
-report.statistics.view
-setting.view
-setting.application.update
-setting.notification.update
-setting.storage.update
-setting.security.update
-system.health.view
+#### 1. Domain Dashboard (`dashboard`)
+- `dashboard.view`: Melihat Ringkasan Dashboard Utama
+- `dashboard.indicators.view`: Melihat Indikator Sistem & KPI Internal
 
-learning.program.view
-learning.program.create
-learning.program.update
-learning.course.view
-learning.course.create
-learning.course.update
-learning.class.view
-learning.class.create
-learning.class.update
-learning.module.view
-learning.lesson.view
-learning.lesson.manage
-learning.enrollment.view
-learning.enrollment.manage
-learning.quiz.manage
-learning.assignment.manage
-learning.assignment.grade
-learning.grade.view
-learning.report.view
-learning.study
+#### 2. Domain Kelola Landing Page (`landing`)
+- `landing.view`: Melihat Modul Landing Page CMS
+- `landing.slider.manage`: Mengelola Slider Hero & Promosi
+- `landing.profile.manage`: Mengelola Profil Lembaga & Pilar PATIK
+- `landing.portal.manage`: Mengelola Tautan Portal Eksternal
+- `landing.team.manage`: Mengelola Tim Inovator & Testimoni
+- `landing.announcement.manage`: Mengelola Pengumuman & Banner CMS
 
-knowledge.article.view
-knowledge.article.create
-knowledge.article.update
-knowledge.faq.view
-knowledge.media.view
-knowledge.category.view
-knowledge.publish.review
+#### 3. Domain Akses & Pengguna (`access`)
+- `access.manage`: Manajemen Akses & Otorisasi Pengguna
+- `access.user.view`: Melihat Data Pengguna Platform
+- `access.user.manage`: Mengelola Akun Pengguna Platform
+- `access.verification.view`: Melihat Antrean Verifikasi Profil
+- `access.verification.approve`: Memproses Verifikasi & Perubahan Profil
+- `access.role.view`: Melihat Daftar Peran (Role) & Matriks
+- `access.role.manage`: Mengelola Peran (Role) & Hak Akses
+- `access.organization.view`: Melihat Unit Organisasi PBJ
+- `access.organization.manage`: Mengelola Unit Organisasi PBJ
+- `access.procurementrole.manage`: Mengelola Peran & Penugasan Pengadaan
+- `user.manage`: Kelola Akun Pengguna (Alias)
+- `user.verify`: Verifikasi Profil Akun (Alias)
+- `role.manage`: Kelola Konfigurasi Peran (Alias)
 
-regulation.view
-regulation.create
-regulation.update
-regulation.version.view
-regulation.relation.view
-regulation.publish.review
+#### 4. Domain Pembelajaran LMS (`learning`)
+- `learning.view`: Melihat Arena Pembelajaran PBJ
+- `learning.program.manage`: Mengelola Program Pembelajaran PBJ
+- `learning.course.manage`: Mengelola Kursus & Silabus
+- `learning.class.view`: Melihat Kelas Pembelajaran PBJ
+- `learning.class.create`: Membuat Kelas Pembelajaran Baru
+- `learning.class.update`: Memperbarui Informasi Kelas Pembelajaran
+- `learning.class.delete`: Menghapus Kelas Pembelajaran
+- `learning.curriculum.manage`: Mengelola Kurikulum & Modul Belajar
+- `learning.assessment.view`: Melihat Kuis & Assessment Pembelajaran
+- `learning.assessment.manage`: Mengelola Kuis & Bank Soal
+- `learning.enrollment.view`: Melihat Pendaftaran Peserta Kelas
+- `learning.enrollment.verify`: Memverifikasi Pendaftaran Peserta
+- `learning.grading.manage`: Menilai Tugas & Evaluasi Peserta
+- `learning.certificate.manage`: Monitoring Kelayakan Sertifikat Pembelajaran
+- `learning.report.view`: Melihat Laporan Statistik Pembelajaran
+- `lms.manage`: Manajemen Sistem Pembelajaran (LMS Alias)
+- `enrollment.verify`: Verifikasi Pendaftaran Kelas (Alias)
+- `assessment.evaluate`: Evaluasi Penilaian Peserta (Alias)
 
-news.view
-news.create
-news.update
-event.view
-event.create
-event.update
-event.registration.view
-event.attendance.view
-event.attendance.manage
+#### 5. Domain Bunga Rampai KMS (`bunga`)
+- `bunga.view`: Melihat Direktori Bunga Rampai PBJ
+- `bunga.article.manage`: Mengelola Naskah & Artikel PBJ
+- `bunga.faq.manage`: Mengelola Tanya Jawab (FAQ) PBJ
+- `bunga.casestudy.manage`: Mengelola Studi Kasus PBJ
+- `bunga.template.manage`: Mengelola Template Dokumen PBJ
+- `bunga.media.manage`: Mengelola Pustaka Media & Galeri PBJ
+- `bunga.taxonomy.manage`: Mengelola Kategori & Tag Bunga Rampai
+- `kms.manage`: Manajemen Knowledge Management System (Alias)
 
-certificate.view
-certificate.issue
-certificate.approve
-certificate.template.view
-certificate.template.create
+#### 6. Domain Regulasi PBJ (`regulation`)
+- `regulation.view`: Melihat Direktori Regulasi PBJ
+- `regulation.create`: Menambah Dokumen Regulasi Baru
+- `regulation.edit`: Mengubah Dokumen Regulasi PBJ
+- `regulation.delete`: Menghapus Dokumen Regulasi PBJ
+- `regulation.approve`: Menyetujui & Mempublikasikan Regulasi
+- `regulation.category.manage`: Mengelola Kategori Regulasi PBJ
+- `regulation.stage.manage`: Mengelola Tahapan PBJ & Kompetensi
+- `regulation.manage`: Manajemen Penuh Regulasi PBJ (Alias)
 
-intelligence.view
-intelligence.organization.view
-intelligence.jf_ppbj.view
-intelligence.certificate.view
-intelligence.gap.view
-intelligence.export
+#### 7. Domain Komunikasi & Event (`communication`)
+- `communication.view`: Melihat Modul Komunikasi & Event
+- `communication.news.manage`: Mengelola Warta Berita PBJ
+- `communication.event.view`: Melihat Agenda Event & Bimtek
+- `communication.event.manage`: Mengelola Agenda Event & Bimtek
+- `communication.attendance.manage`: Mengelola Presensi & Kehadiran Event
+- `communication.inbox.manage`: Mengelola Pesan Masuk & Helpdesk
+- `communication.helpdesk.manage`: Mengelola Pengaturan Helpdesk Widget
+- `communication.newsletter.manage`: Mengelola Berlangganan Newsletter
 
-file.upload
-file.preview
-file.download
-export.download
-```
+#### 8. Domain Sertifikat Digital (`certificate`)
+- `certificate.view`: Melihat Master & Riwayat Sertifikat
+- `certificate.manage`: Mengelola Penerbitan Sertifikat
+- `certificate.batch.manage`: Mengelola Penerbitan Batch Sertifikat
+- `certificate.template.manage`: Mengelola Desain Template Sertifikat
+- `certificate.approve`: Menyetujui Penerbitan Sertifikat
+
+#### 9. Domain Government Intelligence (`intelligence`)
+- `intelligence.view`: Melihat Dashboard Intelligence SDM PBJ
+- `intelligence.jfppbj.manage`: Mengelola Data & Riwayat SDM JF PPBJ
+- `intelligence.competency.manage`: Mengelola Data Sertifikat Kompetensi
+- `intelligence.opd.manage`: Mengelola Analisis Pemetaan Unit Kerja/OPD
+
+#### 10. Domain Pusat Laporan (`reports`)
+- `reports.view`: Melihat Pusat Laporan Dashboard
+- `reports.learning.view`: Melihat Laporan Statistik Pembelajaran
+- `reports.event.view`: Melihat Laporan Keikutsertaan Event
+- `reports.certificate.view`: Melihat Laporan Penerbitan Sertifikat
+- `reports.competency.view`: Melihat Laporan Kesenjangan Kompetensi
+- `reports.user.view`: Melihat Laporan Aktivitas Pengguna
+- `reports.export`: Mengekspor Berkas Laporan & Riwayat Ekspor
+
+#### 11. Domain Survei Kepuasan (`survey`)
+- `survey.view`: Melihat Hasil & Statistik Survei Kepuasan
+- `survey.manage`: Mengelola Pertanyaan & Konfigurasi Survei
+
+#### 12. Domain Pengaturan & Sistem (`system`)
+- `system.settings`: Mengelola Pengaturan Sistem & Platform
+- `approval.view`: Melihat Antrean Approval Sistem
+- `approvals.review`: Meninjau Antrean Approval Sistem
+- `approval.decide`: Memutuskan (Setujui/Tolak) Approval
+- `audit.view`: Melihat Jejak Audit Log Aktivitas
+- `audit.export`: Mengekspor Jejak Audit Log
+- `notification.view`: Melihat Pusat Notifikasi Dashboard
+- `notification.send`: Mengirim Notifikasi Broadcast Sistem
+- `system.maintenance`: Mengelola Mode Pemeliharaan Platform
 
 Permission detail dapat diperluas pada seed/reference sesuai kebutuhan domain, tetapi key baru wajib mengikuti pola penamaan ini dan didokumentasikan pada route contract bila dipakai oleh route.
 
@@ -348,14 +368,15 @@ Policy ini harus diterapkan pada service atau policy/resource authorization, buk
 
 ---
 
-## Filter Contract
+## Filter Contract dan Enforcement Arsitektur
 
 Filter yang tersedia dan fungsi minimalnya:
 
 | Filter | Tujuan | Pemakaian utama |
 |---|---|---|
 | `guest` | Menolak user yang sudah login dari halaman guest-only | Login, registrasi, lupa/reset password |
-| `auth` | Memastikan session autentikasi valid | Workspace, Dashboard, file, export, logout |
+| `auth` | `App\Filters\AuthenticationFilter`: Gateway utama pengamanan seluruh rute `/dashboard/*` | Dashboard Back-office dan boundary Auth |
+| `workspace-auth` | `App\Filters\WorkspaceAuthFilter`: Gateway utama pengamanan seluruh rute `/workspace/*` | Workspace (Peserta, Trainer, Evaluator, Operator) |
 | `verifiedEmail` | Memastikan email terverifikasi bila diperlukan | Workspace/Dashboard aktif dan aksi sensitif |
 | `accountStatus` | Memeriksa account status yang diperlukan, terutama `active` | Workspace/Dashboard dan aksi terproteksi |
 | `role` | Memastikan salah satu role yang diizinkan | Participant/Trainer/Evaluator/Operator route spesifik |
@@ -364,6 +385,35 @@ Filter yang tersedia dan fungsi minimalnya:
 | `dashboardAccess` | Memastikan user aktif memiliki dashboard permission | Semua Back-office `/dashboard/...` di luar Auth |
 | `rateLimit` | Membatasi abuse pada endpoint publik/sensitif | Login, registrasi, reset, verifikasi, pencarian, statistik, kontak |
 | `auditContext` | Menetapkan context actor/request untuk audit aksi sensitif | Aksi perubahan state terautentikasi |
+
+### Implementasi Runtime Gateway: `AuthenticationFilter`
+
+Pengamanan pada area `/dashboard/*` ditegakkan secara berlapis oleh `App\Filters\AuthenticationFilter`:
+
+1. **Bypass Publik (Whitelist Auth)**:
+   Endpoint publik autentikasi (`dashboard/masuk`, `dashboard/lupa-kata-sandi`, `dashboard/keluar`, `dashboard/status-akun`, `dashboard/daftar*`, `dashboard/reset-kata-sandi/*`) dibypass tanpa mewajibkan session login.
+2. **Validasi Sesi Aktif**:
+   Memastikan `session()->get('isLoggedIn') === true`. Bila tidak valid, pengunjung dialihkan ke `dashboard/masuk`.
+3. **Verifikasi Real-time Status Akun ke Database**:
+   Memeriksa data aktual `users.account_status = 'active'`. Akun berstatus selain active (`draft`, `pending_verification`, `revision_required`, `suspended`, dll.) otomatis dihancurkan sesinya dan diarahkan ke `dashboard/status-akun`.
+4. **Pemisahan Boundary Dashboard vs Workspace**:
+   Memeriksa `AuthorizationService::hasDashboardAccess()`. Pengguna dengan peran Workspace murni (`peserta`, `trainer`, `evaluator`, `operator`) dialihkan secara mulus ke `/workspace` tanpa akses ke Back-office.
+5. **Super Administrator Full Bypass**:
+   Peran `super_administrator` (`AuthorizationService::isSuperAdmin()`) memperoleh bypass penuh terhadap pemeriksaan zona granular.
+6. **Dynamic Zone-to-Permission Mapping (18 Zona)**:
+   Setiap path URL dipetakan ke himpunan permission domain terkait (Role & Hak Akses, Verifikasi Profil, Permohonan Role, Manajemen Pengguna, Unit Organisasi & Peran Pengadaan, Kelola Landing Page, Arena Belajar, Bunga Rampai, Regulasi PBJ, Komunikasi & Event, Sertifikat, Government Intelligence, Pusat Laporan, Survei Kepuasan, Pengaturan Sistem, Approval Hub, Audit Trail, dan Pusat Notifikasi).
+7. **Isolasi Peran Administrator**:
+   Peran `admin` diizinkan mengelola seluruh zona operasional, namun secara ketat diblokir dari pengelolaan Role & Permission (`dashboard/akses/role`, `dashboard/akses/permission`) kecuali memiliki izin eksplisit `access.role.manage` atau `role.manage`.
+8. **Dynamic Mutation Guard**:
+   Secara otomatis memproteksi metode HTTP bermutasi (`POST`, `PUT`, `PATCH`, `DELETE`) dan pola URL mutasi (`tambah|simpan|edit|update|hapus|delete|toggle|approve|reject|batal|create|store|sync`). Jika pengguna hanya memegang izin read-only (`*.view`), aksi mutasi ditolak dengan HTTP 403 Forbidden.
+
+### Implementasi Runtime Gateway: `WorkspaceAuthFilter`
+
+Pengamanan pada area `/workspace/*` ditegakkan oleh `App\Filters\WorkspaceAuthFilter`:
+1. Memastikan sesi login valid.
+2. Sinkronisasi real-time peran pengguna (`user_roles` dan `roles`) langsung dari database MySQL (fail-closed single source of truth).
+3. Memastikan akun berstatus `active`.
+4. Isolasi sub-grup fungsional (Peserta, Trainer, Operator, Administrator) dengan fail-safe redirect.
 
 ### Urutan filter rekomendasi
 
@@ -625,7 +675,7 @@ Sebelum sebuah bagian Auth/RBAC dinyatakan `Backend Ready`, pastikan:
 
 - [ ] Controller Auth hanya berada di `app/Controllers/Dashboard/Auth/`.
 - [ ] View Auth hanya berada di `app/Views/dashboard/auth/`.
-- [ ] Layout Auth hanya memakai `app/Views/dashboard/layouts/auth.php`.
+- [ ] Layout Auth hanya memakai `app/Views/dashboard/auth/layouts/auth.php`.
 - [ ] Route Auth memakai prefix `/dashboard` dan route name `dashboard.auth.*`.
 - [ ] Password memakai hashing modern dan tidak pernah disimpan/log sebagai plain text.
 - [ ] Token reset/verifikasi bersifat sekali pakai, kedaluwarsa, dan tidak dicatat plain text.

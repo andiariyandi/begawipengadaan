@@ -39,6 +39,53 @@ class NotificationService
     }
 
     /**
+     * Kirim notifikasi berbagi pakai (shared pool) tanpa duplikasi baris database.
+     * Satu baris digunakan bersama oleh seluruh anggota grup wewenang (Super Admin, Admin, Operator, Trainer, dll).
+     * Jika salah satu membaca/mengeksekusi, otomatis status terbaca untuk seluruh anggota pool.
+     *
+     * @param string $channel Contoh: 'shared:admin_operator', 'shared:class:12', 'shared:helpdesk', 'shared:event:3'
+     * @param string $type
+     * @param string $title
+     * @param string|null $body
+     * @param array|null $data
+     * @param int|null $referenceUserId ID user referensi (pemohon / pendaftar / target). Jika null, default ke root user ID 1.
+     * @return int ID notifikasi yang tersimpan
+     */
+    public function sendShared(
+        string $channel,
+        string $type,
+        string $title,
+        ?string $body = null,
+        ?array $data = null,
+        ?int $referenceUserId = null
+    ): int {
+        $now = date('Y-m-d H:i:s');
+        $userId = ($referenceUserId !== null && $referenceUserId > 0) ? $referenceUserId : 0;
+
+        // Pastikan user_id valid terhadap tabel users untuk memenuhi FK constraint
+        if ($userId <= 0) {
+            $firstUser = $this->db->table('users')->select('id')->orderBy('id', 'ASC')->limit(1)->get()->getRowArray();
+            $userId = $firstUser ? (int) $firstUser['id'] : 13;
+        }
+
+        $encodedData = $data ? json_encode($data, JSON_UNESCAPED_UNICODE) : null;
+
+        $this->db->table('notifications')->insert([
+            'user_id'    => $userId,
+            'channel'    => $channel,
+            'type'       => $type,
+            'title'      => $title,
+            'body'       => $body,
+            'data'       => $encodedData,
+            'read_at'    => null,
+            'sent_at'    => $now,
+            'created_at' => $now,
+        ]);
+
+        return (int) $this->db->insertID();
+    }
+
+    /**
      * Broadcast notifikasi ke seluruh pengguna atau berdasarkan profil / segmen tertentu.
      *
      * @param string $type
@@ -115,23 +162,102 @@ class NotificationService
     }
 
     /**
-     * Ambil daftar notifikasi milik pengguna tertentu.
+     * Dapatkan daftar kanal berbagi pakai (shared pool) yang dapat diakses oleh pengguna berdasarkan perannya.
+     */
+    public function getVisibleChannelsForUser(int $userId, ?array $roles = null): array
+    {
+        if ($userId <= 0) {
+            return [];
+        }
+
+        if ($roles === null) {
+            $roles = (array) (session()->get('roles') ?? []);
+            if (empty($roles)) {
+                $rows = $this->db->table('user_roles ur')
+                    ->join('roles r', 'r.id = ur.role_id')
+                    ->where('ur.user_id', $userId)
+                    ->select('r.key')
+                    ->get()->getResultArray();
+                $roles = array_column($rows, 'key');
+            }
+        }
+
+        $isAdmin = in_array('super_administrator', $roles, true)
+            || in_array('administrator', $roles, true)
+            || (bool) session()->get('dashboard_access');
+
+        $isOperator = in_array('operator', $roles, true);
+        $isTrainer  = in_array('trainer', $roles, true);
+
+        $channels = [];
+
+        if ($isAdmin) {
+            // Super Admin & Admin memiliki wewenang memantau seluruh kanal berbagi pakai
+            $channels[] = 'shared:%';
+        } elseif ($isOperator) {
+            // Operator berwenang pada verifikasi user, perubahan profil, helpdesk, serta kelas & event
+            $channels[] = 'shared:admin_operator';
+            $channels[] = 'shared:helpdesk';
+            $channels[] = 'shared:class:%';
+            $channels[] = 'shared:event:%';
+        } elseif ($isTrainer) {
+            // Trainer berwenang pada operasional kelas pembelajaran
+            $channels[] = 'shared:class:%';
+        }
+
+        return $channels;
+    }
+
+    /**
+     * Terapkan cakupan kepemilikan notifikasi (personal + shared pool yang berhak) ke query builder.
+     */
+    public function applyUserScope(\CodeIgniter\Database\BaseBuilder $builder, int $userId, ?array $roles = null): \CodeIgniter\Database\BaseBuilder
+    {
+        $channels = $this->getVisibleChannelsForUser($userId, $roles);
+
+        if (empty($channels)) {
+            // Pengguna reguler/peserta hanya melihat notifikasi personal miliknya
+            $builder->where('notifications.user_id', $userId)
+                ->groupStart()
+                    ->where('notifications.channel NOT LIKE', 'shared:%')
+                    ->orWhere('notifications.channel IS NULL')
+                ->groupEnd();
+        } else {
+            // Pengguna dengan hak akses khusus (Admin, Operator, Trainer) melihat notifikasi personal + pool bersama
+            $builder->groupStart()
+                ->where('notifications.user_id', $userId);
+            foreach ($channels as $chan) {
+                if (str_ends_with($chan, '%')) {
+                    $builder->orLike('notifications.channel', substr($chan, 0, -1), 'after');
+                } else {
+                    $builder->orWhere('notifications.channel', $chan);
+                }
+            }
+            $builder->groupEnd();
+        }
+
+        return $builder;
+    }
+
+    /**
+     * Ambil daftar notifikasi milik pengguna tertentu (termasuk kanal berbagi pakai jika berhak).
      *
      * @param int $userId
      * @param int $limit
      * @param bool $onlyUnread Jika true, hanya ambil notifikasi yang belum dibaca (misal untuk lonceng notifikasi bar)
+     * @param array|null $roles
      */
-    public function getUserNotifications(int $userId, int $limit = 30, bool $onlyUnread = false): array
+    public function getUserNotifications(int $userId, int $limit = 30, bool $onlyUnread = false, ?array $roles = null): array
     {
-        $builder = $this->db->table('notifications')
-            ->where('user_id', $userId);
+        $builder = $this->db->table('notifications');
+        $this->applyUserScope($builder, $userId, $roles);
 
         if ($onlyUnread) {
-            $builder->where('read_at IS NULL', null, false);
+            $builder->where('notifications.read_at IS NULL', null, false);
         }
 
-        return $builder->orderBy('created_at', 'DESC')
-            ->orderBy('id', 'DESC')
+        return $builder->orderBy('notifications.created_at', 'DESC')
+            ->orderBy('notifications.id', 'DESC')
             ->limit($limit)
             ->get()->getResultArray();
     }
@@ -287,18 +413,23 @@ class NotificationService
     }
 
     /**
-     * Hitung jumlah notifikasi yang belum dibaca.
+     * Hitung jumlah notifikasi yang belum dibaca (termasuk kanal berbagi pakai jika berhak).
      */
-    public function unreadCount(int|array $target): int
+    public function unreadCount(int|array $target, ?array $roles = null): int
     {
         if (is_array($target)) {
             return count(array_filter($target, static fn($item) => empty($item['read_at']) && empty($item['is_read'])));
         }
 
-        return $this->db->table('notifications')
-            ->where('user_id', $target)
-            ->where('read_at IS NULL', null, false)
-            ->countAllResults();
+        $userId = (int) $target;
+        if ($userId <= 0) {
+            return 0;
+        }
+
+        $builder = $this->db->table('notifications')->where('notifications.read_at IS NULL', null, false);
+        $this->applyUserScope($builder, $userId, $roles);
+
+        return (int) $builder->countAllResults();
     }
 
     /**
@@ -313,25 +444,39 @@ class NotificationService
 
     /**
      * Tandai satu notifikasi sebagai telah dibaca.
+     * Jika notifikasi bertipe shared, otomatis tercatat ID pembaca pada payload data dan berstatus terbaca untuk semua anggota pool.
      */
     public function markAsRead(int $notificationId, ?int $userId = null): bool
     {
-        $builder = $this->db->table('notifications')->where('id', $notificationId);
-        if ($userId !== null && $userId > 0) {
-            $builder->where('user_id', $userId);
+        $notif = $this->db->table('notifications')->where('id', $notificationId)->get()->getRowArray();
+        if (! $notif) {
+            return false;
         }
 
-        return (bool) $builder->update(['read_at' => date('Y-m-d H:i:s')]);
+        $now = date('Y-m-d H:i:s');
+        $data = ! empty($notif['data']) ? (is_array($notif['data']) ? $notif['data'] : json_decode($notif['data'], true)) : [];
+        $updateData = ['read_at' => $now];
+
+        if ($userId !== null && $userId > 0) {
+            $data['read_by'] = $userId;
+            $data['read_by_name'] = (string) (session()->get('name') ?: session()->get('username') ?: 'Petugas');
+            $data['read_at_timestamp'] = $now;
+            $updateData['data'] = json_encode($data, JSON_UNESCAPED_UNICODE);
+        }
+
+        return (bool) $this->db->table('notifications')
+            ->where('id', $notificationId)
+            ->update($updateData);
     }
 
     /**
-     * Tandai seluruh notifikasi sebagai telah dibaca (milik user atau sistem).
+     * Tandai seluruh notifikasi yang dapat diakses pengguna sebagai telah dibaca.
      */
-    public function markAllAsRead(?int $userId = null): bool
+    public function markAllAsRead(?int $userId = null, ?array $roles = null): bool
     {
-        $builder = $this->db->table('notifications')->where('read_at IS NULL', null, false);
+        $builder = $this->db->table('notifications')->where('notifications.read_at IS NULL', null, false);
         if ($userId !== null && $userId > 0) {
-            $builder->where('user_id', $userId);
+            $this->applyUserScope($builder, $userId, $roles);
         }
 
         return (bool) $builder->update(['read_at' => date('Y-m-d H:i:s')]);
@@ -433,32 +578,35 @@ class NotificationService
     }
 
     /**
-     * Ambil notifikasi pengguna dengan filter kategori / status.
+     * Ambil notifikasi pengguna dengan filter kategori / status (termasuk kanal berbagi pakai jika berhak).
      */
-    public function getUserNotificationsFiltered(int $userId, array $filters = [], int $limit = 30): array
+    public function getUserNotificationsFiltered(int $userId, array $filters = [], int $limit = 30, int $offset = 0, ?array $roles = null): array
     {
-        $builder = $this->db->table('notifications')
-            ->where('user_id', $userId);
+        $builder = $this->db->table('notifications');
+        $this->applyUserScope($builder, $userId, $roles);
 
         if (! empty($filters['status'])) {
             if ($filters['status'] === 'unread') {
-                $builder->where('read_at IS NULL', null, false);
+                $builder->where('notifications.read_at IS NULL', null, false);
             } elseif ($filters['status'] === 'read') {
-                $builder->where('read_at IS NOT NULL', null, false);
+                $builder->where('notifications.read_at IS NOT NULL', null, false);
             }
         }
 
         if (! empty($filters['category'])) {
             match ($filters['category']) {
-                'learning'     => $builder->whereIn('type', ['class_enrolled', 'class_reminder', 'lesson_completed', 'assignment_graded', 'quiz_graded']),
-                'consultation' => $builder->whereIn('type', ['ticket_reply', 'ticket_created', 'ticket_closed']),
-                'certificate'  => $builder->whereIn('type', ['certificate_issued', 'certificate_eligible']),
-                'system'       => $builder->whereIn('type', ['broadcast', 'system', 'system_announcement', 'account_approved', 'account_rejected']),
+                'learning'     => $builder->whereIn('notifications.type', ['class_enrolled', 'class_reminder', 'lesson_completed', 'assignment_graded', 'quiz_graded', 'class_enrollment_requested', 'assignment_submitted', 'class_material_added']),
+                'consultation' => $builder->whereIn('notifications.type', ['ticket_reply', 'ticket_created', 'ticket_closed', 'contact_inquiry_received']),
+                'certificate'  => $builder->whereIn('notifications.type', ['certificate_issued', 'certificate_eligible', 'certificate_revoked']),
+                'system'       => $builder->whereIn('notifications.type', ['broadcast', 'system', 'system_announcement', 'account_approved', 'account_rejected', 'account_registered', 'profile_change_request', 'profile_change_approved', 'profile_change_rejected', 'profile_change_revision', 'trainer_verification_request', 'role_upgrade_request']),
                 default        => null,
             };
         }
 
-        return $builder->orderBy('created_at', 'DESC')->limit($limit)->get()->getResultArray();
+        return $builder->orderBy('notifications.created_at', 'DESC')
+            ->orderBy('notifications.id', 'DESC')
+            ->limit($limit, $offset)
+            ->get()->getResultArray();
     }
 
     /**
@@ -473,11 +621,23 @@ class NotificationService
                 'icon'  => 'solar:chat-round-line-bold',
                 'fa'    => 'fas fa-comments text-info',
             ],
+            'contact_inquiry_received' => [
+                'label' => 'Pesan Masuk Publik',
+                'badge' => 'bg-info-subtle text-info border border-info-subtle',
+                'icon'  => 'solar:letter-bold',
+                'fa'    => 'fas fa-envelope text-info',
+            ],
             'class_enrolled', 'class_reminder', 'lesson_completed' => [
                 'label' => 'Pembelajaran',
                 'badge' => 'bg-primary-subtle text-primary border border-primary-subtle',
                 'icon'  => 'solar:book-bookmark-bold',
                 'fa'    => 'fas fa-graduation-cap text-primary',
+            ],
+            'class_enrollment_requested' => [
+                'label' => 'Permohonan Kelas',
+                'badge' => 'bg-info-subtle text-info border border-info-subtle',
+                'icon'  => 'solar:diploma-bold',
+                'fa'    => 'fas fa-graduation-cap text-info',
             ],
             'assignment_graded', 'assignment_submitted', 'quiz_graded' => [
                 'label' => 'Tugas & Penilaian',
@@ -485,7 +645,7 @@ class NotificationService
                 'icon'  => 'solar:diploma-bold',
                 'fa'    => 'fas fa-tasks text-warning',
             ],
-            'certificate_issued', 'certificate_eligible' => [
+            'certificate_issued', 'certificate_eligible', 'certificate_revoked' => [
                 'label' => 'Penerbitan Sertifikat',
                 'badge' => 'bg-success-subtle text-success border border-success-subtle',
                 'icon'  => 'solar:verified-check-bold',
@@ -503,7 +663,43 @@ class NotificationService
                 'icon'  => 'solar:user-cross-bold',
                 'fa'    => 'fas fa-user-times text-danger',
             ],
-            'event_info', 'event_reminder', 'event_registered' => [
+            'account_registered' => [
+                'label' => 'Pendaftaran Akun Baru',
+                'badge' => 'bg-warning-subtle text-warning-main border border-warning-subtle',
+                'icon'  => 'solar:user-plus-bold',
+                'fa'    => 'fas fa-user-plus text-warning',
+            ],
+            'profile_change_request', 'profile_change_revision' => [
+                'label' => 'Perubahan Profil',
+                'badge' => 'bg-warning-subtle text-warning-main border border-warning-subtle',
+                'icon'  => 'solar:user-id-bold',
+                'fa'    => 'fas fa-id-card text-warning',
+            ],
+            'profile_change_approved' => [
+                'label' => 'Profil Disetujui',
+                'badge' => 'bg-success-subtle text-success border border-success-subtle',
+                'icon'  => 'solar:check-circle-bold',
+                'fa'    => 'fas fa-check-circle text-success',
+            ],
+            'profile_change_rejected' => [
+                'label' => 'Profil Ditolak',
+                'badge' => 'bg-danger-subtle text-danger-main border border-danger-subtle',
+                'icon'  => 'solar:close-circle-bold',
+                'fa'    => 'fas fa-times-circle text-danger',
+            ],
+            'trainer_verification_request' => [
+                'label' => 'Verifikasi Trainer',
+                'badge' => 'bg-info-subtle text-info border border-info-subtle',
+                'icon'  => 'solar:user-speak-bold',
+                'fa'    => 'fas fa-chalkboard-teacher text-info',
+            ],
+            'role_upgrade_request' => [
+                'label' => 'Permohonan Peran',
+                'badge' => 'bg-warning-subtle text-warning-main border border-warning-subtle',
+                'icon'  => 'solar:shield-warning-bold',
+                'fa'    => 'fas fa-user-shield text-warning',
+            ],
+            'event_info', 'event_reminder', 'event_registered', 'event_registration_submitted' => [
                 'label' => 'Event & Agenda',
                 'badge' => 'bg-warning-subtle text-warning-main border border-warning-subtle',
                 'icon'  => 'solar:calendar-bold',

@@ -178,7 +178,7 @@ if ($isLoggedIn && $headerUserId > 0) {
                                                     $nData = !empty($n['data']) ? json_decode($n['data'], true) : [];
                                                     $targetUrl = !empty($nData['url']) ? $nData['url'] : route_to('workspace.notifications');
                                                 ?>
-                                                    <a href="<?= esc($targetUrl) ?>" class="list-group-item list-group-item-action notif-item p-2 px-3 border-bottom <?= $isNUnread ? 'is-unread bg-primary-subtle bg-opacity-10' : '' ?> d-flex gap-2 align-items-start">
+                                                    <a href="<?= esc($targetUrl) ?>" class="list-group-item list-group-item-action notif-item landing-notif-link p-2 px-3 border-bottom <?= $isNUnread ? 'is-unread bg-primary-subtle bg-opacity-10' : '' ?> d-flex gap-2 align-items-start" data-notif-id="<?= (int)$n['id'] ?>">
                                                         <span class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-1" style="width: 30px; height: 30px; background: rgba(8, 47, 92, 0.08);">
                                                             <i class="<?= esc($nMeta['fa']) ?>" style="font-size: 13px;"></i>
                                                         </span>
@@ -256,3 +256,176 @@ if ($isLoggedIn && $headerUserId > 0) {
         </div>
     </nav>
 </header>
+
+<?php if ($isLoggedIn): ?>
+<!-- Real-Time Push Notification Engine (Workspace & Landing) -->
+<div id="bpPushToastContainer" style="position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 12px; max-width: 380px; width: calc(100vw - 48px); pointer-events: none;"></div>
+
+<script>
+(function() {
+    let lastUnreadCount = <?= (int) $userUnreadNotifCount ?>;
+    let lastTopNotifId = <?= !empty($latestNotifs[0]['id']) ? (int) $latestNotifs[0]['id'] : 0 ?>;
+    const originalDocumentTitle = document.title;
+
+    // Harmonized Chime Audio Synthesizer (Zero External Dependencies)
+    function playNotificationChime() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 note
+            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // A5 note
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.35);
+        } catch (e) {}
+    }
+
+    // Floating Push Toast Popup
+    function showPushToast(notif) {
+        const container = document.getElementById('bpPushToastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.style.cssText = "background: #ffffff; border-radius: 14px; box-shadow: 0 10px 30px rgba(8,47,92,0.18), 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #0c5aa6; padding: 14px 16px; pointer-events: auto; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(-20px); opacity: 0; display: flex; gap: 12px; align-items: start; font-family: inherit;";
+
+        const iconClass = notif.fa || 'fas fa-bell text-primary';
+        toast.innerHTML = `
+            <span style="width: 36px; height: 36px; border-radius: 50%; background: rgba(12,90,166,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                <i class="${iconClass}" style="font-size: 15px;"></i>
+            </span>
+            <div style="flex-grow: 1; overflow: hidden; min-width: 0;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 2px;">
+                    <strong style="font-size: 13px; color: #082f5c; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(notif.title)}</strong>
+                    <span style="font-size: 10px; color: #8c98a4; white-space: nowrap;">Baru saja</span>
+                </div>
+                <p style="font-size: 11.5px; color: #556270; margin: 0 0 6px 0; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(notif.body || '')}</p>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span class="badge ${notif.badge || 'bg-primary-subtle text-primary'}" style="font-size: 9px; padding: 2px 6px; border-radius: 12px;">Notifikasi Baru</span>
+                    <span style="font-size: 10.5px; color: #0c5aa6; font-weight: 600;">Lihat <i class="fas fa-chevron-right" style="font-size: 8px;"></i></span>
+                </div>
+            </div>
+        `;
+
+        toast.addEventListener('click', function() {
+            if (notif.id) {
+                markSingleAsRead(notif.id);
+            }
+            if (notif.url) {
+                window.location.href = notif.url;
+            }
+        });
+
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+        });
+
+        setTimeout(() => {
+            toast.style.transform = 'translateY(-20px)';
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 300);
+        }, 6500);
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function markSingleAsRead(notifId) {
+        fetch('<?= site_url('workspace/notifikasi') ?>/' + notifId + '/baca', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: '<?= csrf_token() ?>=' + encodeURIComponent('<?= csrf_hash() ?>')
+        }).catch(() => {});
+    }
+
+    // Real-Time Poller Function
+    window.refreshLandingNotificationBell = function() {
+        fetch('<?= site_url('workspace/notifikasi-api/feed') ?>', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data || !data.success) return;
+
+            const unread = parseInt(data.unread, 10) || 0;
+            const badgeEl = document.querySelector('.main-menu__notif-badge');
+            const notifBtn = document.querySelector('.main-menu__notif-btn');
+
+            if (unread > 0) {
+                if (badgeEl) {
+                    badgeEl.textContent = unread > 99 ? '99+' : unread;
+                    badgeEl.style.display = 'inline-block';
+                } else if (notifBtn) {
+                    const newBadge = document.createElement('span');
+                    newBadge.className = 'main-menu__notif-badge';
+                    newBadge.textContent = unread > 99 ? '99+' : unread;
+                    notifBtn.appendChild(newBadge);
+                }
+            } else if (badgeEl) {
+                badgeEl.style.display = 'none';
+            }
+
+            // Check if there is an incoming new notification
+            if (data.items && data.items.length > 0) {
+                const newest = data.items[0];
+                if (lastTopNotifId > 0 && newest.id > lastTopNotifId) {
+                    playNotificationChime();
+                    showPushToast(newest);
+                }
+                lastTopNotifId = newest.id;
+            }
+
+            // Tab title flashing if document is hidden and has unread
+            if (unread > 0 && document.hidden) {
+                document.title = `(${unread}) Notifikasi Baru | BegawiPengadaan`;
+            } else if (!document.hidden) {
+                document.title = originalDocumentTitle;
+            }
+
+            lastUnreadCount = unread;
+        })
+        .catch(() => {});
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                document.title = originalDocumentTitle;
+                window.refreshLandingNotificationBell();
+            }
+        });
+
+        // Intercept click on notification items in dropdown to mark as read immediately
+        document.addEventListener('click', function(e) {
+            const notifLink = e.target.closest('.landing-notif-link');
+            if (notifLink) {
+                const notifId = notifLink.getAttribute('data-notif-id');
+                if (notifId) {
+                    markSingleAsRead(notifId);
+                }
+            }
+        });
+
+        // Polling interval 30 detik
+        setInterval(window.refreshLandingNotificationBell, 30000);
+    });
+})();
+</script>
+<?php endif; ?>

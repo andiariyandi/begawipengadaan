@@ -6,7 +6,7 @@
 > 1. Namespace Auth telah disatukan secara penuh pada `App\Controllers\Dashboard\Auth\` (`LoginController`, `RegisterController`, `PasswordController`, `AccountStatusController`).
 > 2. Pendaftaran multi-step 4-langkah (Akun, Wilayah, Profil Khusus, Tinjau) kini aktif penuh pada `Dashboard\Auth\RegisterController`.
 > 3. Email-token gate ditiadakan sesuai spesifikasi; verifikasi akun berpindah ke approval back-office (`dashboard.access.profile-verifications`).
-> 4. Database schema `schema-fresh-v4-1.sql` (74 tabel) telah aktif 100% pada database MySQL `db_begawipbj`.
+> 4. Database schema `schema-fresh-v4-3.sql` (89 tabel, 16 migrations) telah aktif 100% pada database MySQL `db_begawipbj`.
 > Dokumen ini diarsipkan sebagai catatan historis keputusan arsitektur migrasi.
 
 ---
