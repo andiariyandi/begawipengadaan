@@ -414,9 +414,20 @@ class RegisterController extends BaseController
                         ->withInput()
                         ->with('error', 'OPD/Perangkat Daerah yang dipilih tidak valid atau sedang tidak aktif.');
                 }
-                $sanitized['organization_unit_id'] = $opd['id'];
+                $sanitized['organization_unit_id'] = (int) $opd['id'];
                 $sanitized['institution_name']      = 'Pemerintah Daerah Provinsi Lampung';
                 $sanitized['external_unit_name']    = $opd['name'];
+            } else {
+                $sanitized['organization_unit_id'] = null;
+                if (empty($sanitized['institution_name'])) {
+                    $sanitized['institution_name'] = match ($origin) {
+                        'kementerian_lembaga'    => 'Kementerian / Lembaga',
+                        'pemerintah_daerah_lain' => 'Pemerintah Daerah Lain',
+                        'pemerintah_desa'        => 'Pemerintah Desa',
+                        'bumn_bumd'              => 'BUMN / BUMD',
+                        default                  => 'Instansi Lainnya',
+                    };
+                }
             }
         }
 

@@ -280,9 +280,30 @@ $selectedRoles = array_map('strval', (array) $selectedRoles);
             const hasExternalOrigin = asnOrigin.value !== '' && !isPemprov;
             const needsRegionalFields = ['pemerintah_daerah_lain', 'pemerintah_desa'].includes(asnOrigin.value);
 
-            if (pemprovFields) pemprovFields.classList.toggle('d-none', !isPemprov);
-            if (luarFields) luarFields.classList.toggle('d-none', !hasExternalOrigin);
-            if (luarRegionFields) luarRegionFields.classList.toggle('d-none', !needsRegionalFields);
+            if (pemprovFields) {
+                pemprovFields.classList.toggle('d-none', !isPemprov);
+                const orgSelect = document.querySelector('#organization-unit-id');
+                if (orgSelect) {
+                    orgSelect.disabled = !isPemprov;
+                    if (!isPemprov) {
+                        orgSelect.value = '';
+                    }
+                }
+            }
+
+            if (luarFields) {
+                luarFields.classList.toggle('d-none', !hasExternalOrigin);
+                luarFields.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.disabled = !hasExternalOrigin;
+                });
+            }
+
+            if (luarRegionFields) {
+                luarRegionFields.classList.toggle('d-none', !needsRegionalFields);
+                luarRegionFields.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.disabled = !needsRegionalFields;
+                });
+            }
         }
 
         function updateProcurementRoles() {

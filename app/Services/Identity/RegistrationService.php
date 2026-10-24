@@ -91,7 +91,7 @@ class RegistrationService
         $mappedProfile = $this->mapProfile($profileType, (array) ($data['profile'] ?? []));
         $this->assertRequiredFields($profileType, $mappedProfile);
 
-        $db->transStart();
+        $db->transBegin();
 
         try {
             $userId = (new UserModel())->insert([
@@ -105,17 +105,11 @@ class RegistrationService
                 'created_at'     => $now,
                 'updated_at'     => $now,
             ], true);
-        } catch (\Throwable $e) {
-            $db->transRollback();
-            throw new \RuntimeException('Gagal membuat akun pengguna: ' . $e->getMessage(), 0, $e);
-        }
 
-        if (! $userId) {
-            $db->transRollback();
-            throw new \RuntimeException('User gagal dibuat (insert returned no id).');
-        }
+            if (! $userId) {
+                throw new \RuntimeException('User gagal dibuat (insert returned no id).');
+            }
 
-        try {
             $ok = $db->table('user_profiles')->insert([
                 'user_id'                  => $userId,
                 'address_line'             => $data['address_line'] ?? '',
@@ -129,29 +123,19 @@ class RegistrationService
             ]);
             if (! $ok) {
                 $err = $db->error();
-                throw new \RuntimeException($err['message'] ?: 'Insert user_profiles returned false');
+                throw new \RuntimeException('Gagal menyimpan user_profiles: ' . ($err['message'] ?: 'Insert returned false'));
             }
-        } catch (\Throwable $e) {
-            $db->transRollback();
-            throw new \RuntimeException('Gagal menyimpan user_profiles: ' . $e->getMessage(), 0, $e);
-        }
 
-        $profileTable = $this->profileTable($profileType);
-        if ($profileTable) {
-            try {
+            $profileTable = $this->profileTable($profileType);
+            if ($profileTable) {
                 $row = $this->buildProfileRow($profileType, $userId, $mappedProfile, $now);
                 $ok = $db->table($profileTable)->insert($row);
                 if (! $ok) {
                     $err = $db->error();
-                    throw new \RuntimeException($err['message'] ?: "Insert {$profileTable} returned false");
+                    throw new \RuntimeException("Gagal menyimpan {$profileTable}: " . ($err['message'] ?: 'Insert returned false'));
                 }
-            } catch (\Throwable $e) {
-                $db->transRollback();
-                throw new \RuntimeException("Gagal menyimpan {$profileTable}: " . $e->getMessage(), 0, $e);
             }
-        }
 
-        try {
             $ok = $db->table('profile_verifications')->insert([
                 'user_id'          => $userId,
                 'verification_type'=> 'profile_registration',
@@ -162,14 +146,9 @@ class RegistrationService
             ]);
             if (! $ok) {
                 $err = $db->error();
-                throw new \RuntimeException($err['message'] ?: 'Insert profile_verifications returned false');
+                throw new \RuntimeException('Gagal menyimpan profile_verifications: ' . ($err['message'] ?: 'Insert returned false'));
             }
-        } catch (\Throwable $e) {
-            $db->transRollback();
-            throw new \RuntimeException('Gagal menyimpan profile_verifications: ' . $e->getMessage(), 0, $e);
-        }
 
-        try {
             $role = $db->table('roles')->where('key', 'peserta')->get()->getRowArray();
             if ($role) {
                 $ok = $db->table('user_roles')->insert([
@@ -183,17 +162,12 @@ class RegistrationService
                 ]);
                 if (! $ok) {
                     $err = $db->error();
-                    throw new \RuntimeException($err['message'] ?: 'Insert user_roles returned false');
+                    throw new \RuntimeException('Gagal menetapkan peran pengguna: ' . ($err['message'] ?: 'Insert returned false'));
                 }
             }
-        } catch (\Throwable $e) {
-            $db->transRollback();
-            throw new \RuntimeException('Gagal menetapkan peran pengguna: ' . $e->getMessage(), 0, $e);
-        }
 
-        // Record requested procurement roles into user_procurement_roles with pending verification
-        if ($profileType === 'asn' && ! empty($data['profile']['procurement_roles'])) {
-            try {
+            // Record requested procurement roles into user_procurement_roles with pending verification
+            if ($profileType === 'asn' && ! empty($data['profile']['procurement_roles'])) {
                 $rawRoles = $data['profile']['procurement_roles'];
                 if (is_string($rawRoles)) {
                     $decoded = json_decode($rawRoles, true);
@@ -224,7 +198,7 @@ class RegistrationService
 
                 $roleIds = array_unique($roleIds);
                 foreach ($roleIds as $rId) {
-                    $db->table('user_procurement_roles')->insert([
+                    $okRole = $db->table('user_procurement_roles')->insert([
                         'user_id'             => $userId,
                         'procurement_role_id' => $rId,
                         'verification_status' => 'pending',
@@ -232,16 +206,22 @@ class RegistrationService
                         'created_at'          => $now,
                         'updated_at'          => $now,
                     ]);
+                    if (! $okRole) {
+                        $err = $db->error();
+                        throw new \RuntimeException('Gagal mencatat penugasan peran pengadaan: ' . ($err['message'] ?: 'Insert returned false'));
+                    }
                 }
-            } catch (\Throwable $e) {
-                $db->transRollback();
-                throw new \RuntimeException('Gagal mencatat penugasan peran pengadaan: ' . $e->getMessage(), 0, $e);
             }
-        }
 
-        $db->transComplete();
-        if (! $db->transStatus()) {
-            throw new \RuntimeException('Transaksi registrasi gagal (transStatus=false).');
+            if ($db->transStatus() === false) {
+                $err = $db->error();
+                throw new \RuntimeException('Transaksi registrasi gagal: ' . ($err['message'] ?: 'transStatus=false'));
+            }
+
+            $db->transCommit();
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            throw $e;
         }
 
         // Audit (post-commit; failures here must not roll back user creation).
@@ -293,7 +273,8 @@ class RegistrationService
             return json_encode(array_values($value), JSON_THROW_ON_ERROR);
         }
         if (is_string($value)) {
-            return trim($value);
+            $trimmed = trim($value);
+            return $trimmed === '' ? null : $trimmed;
         }
         return $value;
     }
@@ -357,23 +338,29 @@ class RegistrationService
         switch ($profileType) {
             case 'asn':
                 $base['origin_type'] = $profile['origin_type'] ?? 'lainnya';
-                if (! empty($profile['organization_unit_id'])) {
-                    $base['organization_unit_id'] = (int) $profile['organization_unit_id'];
-                    $unitRow = db_connect()->table('organization_units')->where('id', (int) $profile['organization_unit_id'])->get()->getRowArray();
+                $opdId = ! empty($profile['organization_unit_id']) ? (int) $profile['organization_unit_id'] : null;
+                if ($opdId && $opdId > 0) {
+                    $unitRow = db_connect()->table('organization_units')->where('id', $opdId)->where('is_active', 1)->get()->getRowArray();
                     if ($unitRow) {
+                        $base['organization_unit_id'] = (int) $unitRow['id'];
                         if (empty($profile['unit_name'])) {
                             $base['unit_name'] = $unitRow['name'];
                         }
                         if (empty($profile['institution_name'])) {
                             $base['institution_name'] = 'Pemerintah Daerah Provinsi Lampung';
                         }
+                    } else {
+                        $base['organization_unit_id'] = null;
                     }
+                } else {
+                    $base['organization_unit_id'] = null;
                 }
-                foreach (['employee_identifier', 'employment_status', 'organization_unit_id',
+                foreach (['employee_identifier', 'employment_status',
                             'institution_name', 'unit_name', 'position_name',
                             'rank_grade', 'official_email'] as $col) {
                     if (array_key_exists($col, $profile) && ! isset($base[$col])) {
-                        $base[$col] = $profile[$col];
+                        $val = $profile[$col];
+                        $base[$col] = ($val === '' || $val === null) ? null : $val;
                     }
                 }
                 return $base;
@@ -383,7 +370,8 @@ class RegistrationService
                             'registrant_position', 'responsible_person',
                             'business_email', 'business_address'] as $col) {
                     if (array_key_exists($col, $profile)) {
-                        $base[$col] = $profile[$col];
+                        $val = $profile[$col];
+                        $base[$col] = ($val === '' || $val === null) ? null : $val;
                     }
                 }
                 return $base;
@@ -392,7 +380,8 @@ class RegistrationService
                 foreach (['institution_name', 'institution_type', 'role_name', 'expertise',
                             'institution_email', 'professional_identifier', 'portfolio_url'] as $col) {
                     if (array_key_exists($col, $profile)) {
-                        $base[$col] = $profile[$col];
+                        $val = $profile[$col];
+                        $base[$col] = ($val === '' || $val === null) ? null : $val;
                     }
                 }
                 return $base;
@@ -401,7 +390,8 @@ class RegistrationService
                 foreach (['national_identifier', 'occupation_status', 'organization_name',
                             'interest_areas', 'usage_purpose'] as $col) {
                     if (array_key_exists($col, $profile)) {
-                        $base[$col] = $profile[$col];
+                        $val = $profile[$col];
+                        $base[$col] = ($val === '' || $val === null) ? null : $val;
                     }
                 }
                 return $base;
