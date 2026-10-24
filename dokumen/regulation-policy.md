@@ -17,7 +17,7 @@ dokumen/file-storage-policy.md
 dokumen/database-blueprint.md
 dokumen/database-erd.md
 dokumen/data-dictionary.md
-dokumen/schema-fresh-v4-1.sql
+schema-fresh-v4-3.sql
 dokumen/registration-policy.md
 dokumen/assessment-and-certification-rules.md
 ```
@@ -125,6 +125,12 @@ Preview/download protected
 | `approvals` | Generic approval bila dibutuhkan domain |
 | `workflow_transitions` | Riwayat state regulasi |
 | `audit_logs` | Audit aksi administratif, file, dan akses yang relevan |
+
+### Integrasi Sorotan (Spotlight Hub) & Slider Hero
+
+Regulasi terintegrasi dengan CMS Terpusat di `/dashboard/landing/sorotan-carousel` (Tab Regulasi PBJ):
+- **Toggle Sorotan (`is_featured`)**: Jika diaktifkan, card regulasi pada katalog publik `/regulasi` menampilkan badge "Unggulan". Toggle ini tidak memaksanya tampil pada Slider Hero.
+- **Toggle Slider (`is_carousel` / `carousel_item`)**: Jika diaktifkan, regulasi masuk ke dalam antrean Slider Hero halaman publik `/regulasi` dengan prioritas utama sebelum sisa kuota hero dilengkapi oleh regulasi terbaru sesuai pengaturan kuota hero.
 
 ---
 

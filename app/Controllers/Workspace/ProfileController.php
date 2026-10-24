@@ -191,13 +191,19 @@ class ProfileController extends BaseController
             $requestId = $service->submit($userId, $changedPayload, $reason);
         }
 
-        // Send notification to Admins and Operators
+        // Send shared notification to Pool Verifikator (Super Admin, Admin, & Operator) tanpa duplikasi
         try {
-            (new \App\Services\NotificationService())->notifyAdmins(
+            (new \App\Services\NotificationService())->sendShared(
+                'shared:admin_operator',
                 'profile_change_request',
                 'Permohonan Perubahan Profil Baru',
                 "Pengguna {$user['name']} telah mengajukan permohonan perubahan profil.",
-                ['request_id' => $requestId, 'url' => site_url('dashboard/akses/permohonan-perubahan-profil/' . $requestId)]
+                [
+                    'request_id' => $requestId,
+                    'user_id'    => $userId,
+                    'url'        => site_url('workspace/operator/permohonan-perubahan-profil/' . $requestId),
+                ],
+                $userId
             );
         } catch (\Throwable) {
         }

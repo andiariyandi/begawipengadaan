@@ -101,6 +101,17 @@ class ProfileVerificationService
             'Selamat, pendaftaran akun Anda telah disetujui oleh Operator/Admin. Anda kini dapat masuk dan mengakses seluruh fitur pembelajaran BegawiPengadaan.'
         );
 
+        // Tandai notifikasi permohonan bersama sebagai terbaca bagi seluruh pool verifikator
+        try {
+            db_connect()->table('notifications')
+                ->where('user_id', $userId)
+                ->where('channel', 'shared:admin_operator')
+                ->where('type', 'account_registered')
+                ->where('read_at IS NULL')
+                ->update(['read_at' => $now]);
+        } catch (\Throwable) {
+        }
+
         return true;
     }
 
@@ -154,6 +165,17 @@ class ProfileVerificationService
             'Pengajuan Verifikasi Akun Ditolak',
             'Mohon maaf, pengajuan verifikasi akun Anda belum disetujui dengan alasan: ' . $reason
         );
+
+        // Tandai notifikasi permohonan bersama sebagai terbaca bagi seluruh pool verifikator
+        try {
+            db_connect()->table('notifications')
+                ->where('user_id', $userId)
+                ->where('channel', 'shared:admin_operator')
+                ->where('type', 'account_registered')
+                ->where('read_at IS NULL')
+                ->update(['read_at' => $now]);
+        } catch (\Throwable) {
+        }
 
         return true;
     }

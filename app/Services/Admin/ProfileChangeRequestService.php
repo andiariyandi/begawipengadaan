@@ -228,6 +228,14 @@ class ProfileChangeRequestService
                 'Permohonan perubahan data profil Anda telah disetujui dan diterapkan secara resmi ke akun Anda.' . ($notes ? " Catatan verifikator: {$notes}" : ''),
                 ['request_id' => $requestId, 'url' => route_to('workspace.profile.index')]
             );
+
+            // Mark shared request notification as read
+            db_connect()->table('notifications')
+                ->where('channel', 'shared:admin_operator')
+                ->where('type', 'profile_change_request')
+                ->like('data', '"request_id":' . $requestId)
+                ->where('read_at IS NULL')
+                ->update(['read_at' => $now]);
         } catch (\Throwable) {
         }
 
@@ -277,6 +285,14 @@ class ProfileChangeRequestService
                 'Permohonan perubahan data profil Anda ditolak. Alasan: ' . $reason . ($notes ? " (Catatan: {$notes})" : ''),
                 ['request_id' => $requestId, 'url' => route_to('workspace.profile.index')]
             );
+
+            // Mark shared request notification as read
+            db_connect()->table('notifications')
+                ->where('channel', 'shared:admin_operator')
+                ->where('type', 'profile_change_request')
+                ->like('data', '"request_id":' . $requestId)
+                ->where('read_at IS NULL')
+                ->update(['read_at' => $now]);
         } catch (\Throwable) {
         }
 
@@ -324,6 +340,14 @@ class ProfileChangeRequestService
                 'Permohonan perubahan data profil Anda memerlukan perbaikan. Catatan revisi: ' . $note,
                 ['request_id' => $requestId, 'url' => route_to('workspace.profile.index')]
             );
+
+            // Mark shared request notification as read
+            db_connect()->table('notifications')
+                ->where('channel', 'shared:admin_operator')
+                ->where('type', 'profile_change_request')
+                ->like('data', '"request_id":' . $requestId)
+                ->where('read_at IS NULL')
+                ->update(['read_at' => $now]);
         } catch (\Throwable) {
         }
 

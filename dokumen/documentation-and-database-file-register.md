@@ -37,7 +37,7 @@ Dokumen ini tidak menggantikan isi dokumen yang diregistrasi. Untuk aturan subst
 | 1 | `README.md` / `dokumen/README.md` | Acuan utama scope, arsitektur, boundary, domain, security, dan arah implementasi |
 | 2 | `dokumen/directory-tree.md` | Struktur target direktori dan file final |
 | 3 | Dokumen Arsitektur (`dokumen/route-contract.md`, `ui-boundary.md`, dll.) | Kontrak implementasi antarmuka, route, auth/RBAC, workflow, dan storage |
-| 4 | Dokumen Database (`dokumen/database-blueprint.md`, `schema-fresh-v4-1.sql`, dll.) | Kontrak struktur database, relasi, kolom, dan schema fresh (74 tabel) |
+| 4 | Dokumen Database (`dokumen/database-blueprint.md`, `schema-fresh-v4-3.sql`, dll.) | Kontrak struktur database, relasi, kolom, dan schema fresh (89 tabel, 16 migrations) |
 | 5 | Dokumen Domain (`dokumen/registration-policy.md`, `regulation-policy.md`, dll.) | Policy bisnis/domain yang detail |
 | 6 | Dokumen Project (`dokumen/documentation-and-database-file-register.md`, `implementation-status.md`) | Register dokumentasi dan status implementasi |
 
@@ -92,13 +92,13 @@ Jika terjadi konflik, perubahan tidak boleh diputuskan hanya dengan memilih satu
 | 8 | `dokumen/database-blueprint.md` | Markdown | Sudah dibuat | Tabel, PK/FK, status, constraint, index, migration order, seeder strategy | Architecture contracts |
 | 9 | `dokumen/database-erd.md` | Markdown | Sudah dibuat | ERD konseptual dan relasional serta kardinalitas | Database blueprint |
 | 10 | `dokumen/data-dictionary.md` | Markdown | Sudah dibuat | Definisi tabel/kolom, tipe, nullability, default, klasifikasi data, validasi | Blueprint, ERD, domain/architecture contracts |
-| 11 | `dokumen/schema-fresh-v4-1.sql` | SQL | Sudah dibuat | Schema fresh executable V4.1 (74 tabel, 1:1 match live database): create table, index, constraint, foreign key | Blueprint, ERD, data dictionary |
+| 11 | `schema-fresh-v4-3.sql` | SQL | Sudah dibuat | Schema fresh executable V4.3 (89 tabel, 1:1 match live database `db_begawipbj`, 16 migrations): create table, index, constraint, foreign key | Blueprint, ERD, data dictionary |
 
 ### Tabel master wilayah
 
 | Artefak | Path | Status | Fungsi |
 |---|---|---|---|
-| Struktur tabel master wilayah | `dokumen/schema-fresh-v4-1.sql` | Sudah dibuat | Membuat tabel `wilayah` tanpa data seed |
+| Struktur tabel master wilayah | `schema-fresh-v4-3.sql` | Sudah dibuat | Membuat tabel `wilayah` tanpa data seed |
 | Data master wilayah resmi | `database/reference/wilayah.sql` | Required external import | Mengisi tabel `wilayah` setelah schema dibuat |
 
 Kontrak `wilayah`:
@@ -114,8 +114,8 @@ CREATE TABLE wilayah (
 
 Aturan:
 
-- `schema-fresh-v4-1.sql` membuat tabel `wilayah`.
-- `schema-fresh-v4-1.sql` tidak mengisi data master wilayah.
+- `schema-fresh-v4-3.sql` membuat tabel `wilayah`.
+- `schema-fresh-v4-3.sql` tidak mengisi data master wilayah.
 - `database/reference/wilayah.sql` diimpor manual setelah schema fresh dijalankan.
 - Aplikasi memperlakukan data `wilayah` sebagai master read-only.
 - `user_profiles.province_code`, `regency_code`, `district_code`, dan `village_code` mengacu ke `wilayah.kode`.
@@ -124,7 +124,7 @@ Aturan:
 
 ```text
 1. Buat database kosong dengan charset utf8mb4.
-2. Jalankan dokumen/schema-fresh-v4-1.sql.
+2. Jalankan schema-fresh-v4-3.sql (membuat 89 tabel lengkap beserta constraint dan index).
 3. Import database/reference/wilayah.sql secara manual.
 4. Jalankan migration/seed sesuai environment ketika implementasi tersedia.
 5. Jalankan database test untuk constraint, FK, index, dan lifecycle kritis.
@@ -169,7 +169,7 @@ Aturan:
 |---:|---|---|---|---|---|
 | 17 | `dokumen/documentation-and-database-file-register.md` | Markdown | Sudah dibuat | Register seluruh dokumentasi kontrak dan artefak database | Semua dokumen/artefak terdaftar |
 | 18 | `dokumen/implementation-status.md` | Markdown | Sudah dibuat | Register status Planned/UI Implemented/Backend Ready/Production Ready per area | README, directory tree, seluruh kontrak implementasi |
-| 19 | `dokumen/auth-migration-plan.md` | Markdown | Archived | Rencana migrasi auth terpadu (Selesai diimplementasikan) | Auth/RBAC, schema-fresh-v4-1.sql |
+| 19 | `dokumen/auth-migration-plan.md` | Markdown | Archived | Rencana migrasi auth terpadu (Selesai diimplementasikan) | Auth/RBAC, schema-fresh-v4-3.sql |
 
 `dokumen/directory-tree.md` adalah satu-satunya dokumen kanonis struktur direktori/file target.
 
@@ -225,7 +225,7 @@ Lokasi kanonis yang digunakan:
 app/Controllers/Dashboard/Auth/
 app/Controllers/Dashboard/
 app/Views/dashboard/auth/
-app/Views/dashboard/layouts/auth.php
+app/Views/dashboard/auth/layouts/auth.php
 app/Views/main/workspace/
 public/assets/main/
 public/assets/dashboard/

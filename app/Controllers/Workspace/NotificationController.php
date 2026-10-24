@@ -23,11 +23,25 @@ class NotificationController extends BaseController
     {
         $userId  = $this->userId();
         $notifId = (int) $id;
+        $roles   = (array) session()->get('roles');
+        $visibleChannels = $this->service->getVisibleChannelsForUser($userId, $roles);
 
-        $notif = db_connect()->table('notifications')
-            ->where('id', $notifId)
-            ->where('user_id', $userId)
-            ->get()->getRowArray();
+        $builder = db_connect()->table('notifications')->where('id', $notifId);
+        if (empty($visibleChannels)) {
+            $builder->where('user_id', $userId);
+        } else {
+            $builder->groupStart()
+                ->where('user_id', $userId);
+            foreach ($visibleChannels as $chan) {
+                if (str_ends_with($chan, '%')) {
+                    $builder->orLike('channel', substr($chan, 0, -1), 'after');
+                } else {
+                    $builder->orWhere('channel', $chan);
+                }
+            }
+            $builder->groupEnd();
+        }
+        $notif = $builder->get()->getRowArray();
 
         if (! $notif) {
             return redirect()->to(site_url('workspace/notifikasi'))
@@ -36,6 +50,11 @@ class NotificationController extends BaseController
 
         $this->service->markAsRead($notifId, $userId);
 
+        $data = !empty($notif['data']) ? (is_array($notif['data']) ? $notif['data'] : json_decode($notif['data'], true)) : [];
+        if (!empty($data['url'])) {
+            return redirect()->to($data['url']);
+        }
+
         return $this->render('Detail Notifikasi', 'Informasi rinci terkait notifikasi #' . esc($id) . '.');
     }
 
@@ -43,17 +62,38 @@ class NotificationController extends BaseController
     {
         $userId  = $this->userId();
         $notifId = (int) $id;
+        $roles   = (array) session()->get('roles');
+        $visibleChannels = $this->service->getVisibleChannelsForUser($userId, $roles);
 
-        $notif = db_connect()->table('notifications')
-            ->where('id', $notifId)
-            ->where('user_id', $userId)
-            ->get()->getRowArray();
+        $builder = db_connect()->table('notifications')->where('id', $notifId);
+        if (empty($visibleChannels)) {
+            $builder->where('user_id', $userId);
+        } else {
+            $builder->groupStart()
+                ->where('user_id', $userId);
+            foreach ($visibleChannels as $chan) {
+                if (str_ends_with($chan, '%')) {
+                    $builder->orLike('channel', substr($chan, 0, -1), 'after');
+                } else {
+                    $builder->orWhere('channel', $chan);
+                }
+            }
+            $builder->groupEnd();
+        }
+        $notif = $builder->get()->getRowArray();
 
         if (! $notif) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Notifikasi tidak ditemukan.']);
+            }
             return redirect()->back()->with('error', 'Notifikasi tidak ditemukan atau tidak dapat diakses.');
         }
 
         $this->service->markAsRead($notifId, $userId);
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON(['success' => true, 'message' => 'Notifikasi telah ditandai dibaca.']);
+        }
 
         return redirect()->back()->with('message', 'Notifikasi telah ditandai dibaca.');
     }
@@ -61,11 +101,58 @@ class NotificationController extends BaseController
     public function markAllAsRead()
     {
         $userId = $this->userId();
+        $roles  = (array) session()->get('roles');
         if ($userId > 0) {
-            $this->service->markAllAsRead($userId);
+            $this->service->markAllAsRead($userId, $roles);
+        }
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON(['success' => true, 'message' => 'Semua notifikasi telah ditandai dibaca.']);
         }
 
         return redirect()->back()->with('message', 'Semua notifikasi telah ditandai dibaca.');
+    }
+
+    public function feed()
+    {
+        $userId = $this->userId();
+        if ($userId <= 0) {
+            return $this->response->setJSON(['success' => false, 'unread' => 0, 'items' => []]);
+        }
+
+        $roles  = (array) session()->get('roles');
+        $items  = $this->service->getUserNotifications($userId, 5, true, $roles);
+        $unread = $this->service->unreadCount($userId, $roles);
+
+        $formattedItems = [];
+        foreach ($items as $item) {
+            $catInfo   = NotificationService::formatCategory($item['type'] ?? 'system');
+            $timeAgo   = NotificationService::timeAgo($item['created_at'] ?? null);
+            $itemData  = !empty($item['data']) ? (is_array($item['data']) ? $item['data'] : json_decode($item['data'], true)) : [];
+            $targetUrl = !empty($itemData['url']) ? $itemData['url'] : route_to('workspace.notifications');
+
+            $formattedItems[] = [
+                'id'         => (int) $item['id'],
+                'title'      => (string) ($item['title'] ?? '-'),
+                'body'       => (string) ($item['body'] ?? ''),
+                'type'       => (string) ($item['type'] ?? 'system'),
+                'channel'    => (string) ($item['channel'] ?? 'database'),
+                'is_read'    => !empty($item['read_at']),
+                'read_at'    => $item['read_at'] ?? null,
+                'created_at' => $item['created_at'] ?? null,
+                'time_ago'   => $timeAgo,
+                'badge'      => $catInfo['badge'] ?? 'bg-primary-subtle text-primary',
+                'fa'         => $catInfo['fa'] ?? 'fas fa-bell text-primary',
+                'icon'       => $catInfo['icon'] ?? 'solar:bell-bing-bold',
+                'url'        => $targetUrl,
+            ];
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'unread'  => (int) $unread,
+            'items'   => $formattedItems,
+        ]);
     }
 
     private function render(string $title, string $description): string
@@ -93,9 +180,12 @@ class NotificationController extends BaseController
                 $filters['status'] = $status;
             }
 
-            $notifications   = $this->service->getUserNotificationsFiltered($userId, $filters, 50);
-            $unread          = $this->service->unreadCount($userId);
-            $totalUserNotifs = (int) db_connect()->table('notifications')->where('user_id', $userId)->countAllResults();
+            $notifications   = $this->service->getUserNotificationsFiltered($userId, $filters, 50, 0, $roles);
+            $unread          = $this->service->unreadCount($userId, $roles);
+
+            $countBuilder = db_connect()->table('notifications');
+            $this->service->applyUserScope($countBuilder, $userId, $roles);
+            $totalUserNotifs = (int) $countBuilder->countAllResults();
         }
 
         $categoryCounts = [
@@ -109,21 +199,29 @@ class NotificationController extends BaseController
 
         if ($userId > 0) {
             $db = db_connect();
-            $categoryCounts['learning'] = (int) $db->table('notifications')
-                ->where('user_id', $userId)
-                ->whereIn('type', ['class_enrolled', 'class_reminder', 'lesson_completed', 'assignment_graded', 'quiz_graded'])
+
+            $bLearn = $db->table('notifications');
+            $this->service->applyUserScope($bLearn, $userId, $roles);
+            $categoryCounts['learning'] = (int) $bLearn
+                ->whereIn('notifications.type', ['class_enrolled', 'class_reminder', 'lesson_completed', 'assignment_graded', 'quiz_graded', 'class_enrollment_requested', 'assignment_submitted', 'class_material_added'])
                 ->countAllResults();
-            $categoryCounts['consultation'] = (int) $db->table('notifications')
-                ->where('user_id', $userId)
-                ->whereIn('type', ['ticket_reply', 'ticket_created', 'ticket_closed'])
+
+            $bConsult = $db->table('notifications');
+            $this->service->applyUserScope($bConsult, $userId, $roles);
+            $categoryCounts['consultation'] = (int) $bConsult
+                ->whereIn('notifications.type', ['ticket_reply', 'ticket_created', 'ticket_closed', 'contact_inquiry_received'])
                 ->countAllResults();
-            $categoryCounts['certificate'] = (int) $db->table('notifications')
-                ->where('user_id', $userId)
-                ->whereIn('type', ['certificate_issued', 'certificate_eligible'])
+
+            $bCert = $db->table('notifications');
+            $this->service->applyUserScope($bCert, $userId, $roles);
+            $categoryCounts['certificate'] = (int) $bCert
+                ->whereIn('notifications.type', ['certificate_issued', 'certificate_eligible', 'certificate_revoked'])
                 ->countAllResults();
-            $categoryCounts['system'] = (int) $db->table('notifications')
-                ->where('user_id', $userId)
-                ->whereIn('type', ['broadcast', 'system', 'system_announcement', 'account_approved', 'account_rejected'])
+
+            $bSys = $db->table('notifications');
+            $this->service->applyUserScope($bSys, $userId, $roles);
+            $categoryCounts['system'] = (int) $bSys
+                ->whereIn('notifications.type', ['broadcast', 'system', 'system_announcement', 'account_approved', 'account_rejected', 'account_registered', 'profile_change_request', 'profile_change_approved', 'profile_change_rejected', 'profile_change_revision', 'trainer_verification_request', 'role_upgrade_request'])
                 ->countAllResults();
         }
 

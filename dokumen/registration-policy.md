@@ -17,7 +17,7 @@ dokumen/file-storage-policy.md
 dokumen/database-blueprint.md
 dokumen/database-erd.md
 dokumen/data-dictionary.md
-dokumen/schema-fresh-v4-1.sql
+schema-fresh-v4-3.sql
 ```
 
 Registrasi menggunakan UI Auth WowDash, controller `App\Controllers\Dashboard\Auth`, dan route di bawah prefix `/dashboard`.
@@ -47,7 +47,7 @@ View
 app/Views/dashboard/auth/
 
 Layout
-app/Views/dashboard/layouts/auth.php
+app/Views/dashboard/auth/layouts/auth.php
 
 Asset
 public/assets/dashboard/
@@ -73,14 +73,14 @@ Route registrasi memakai filter `guest` dan `rateLimit:registration` pada endpoi
 ## Alur Registrasi
 
 ```text
-1. Akun dasar dan pemilihan tipe profil
-2. Wilayah/domisili dan alamat ringkas
-3. Profil spesifik berdasarkan tipe
-4. Tinjau data, persetujuan syarat penggunaan, dan kebijakan privasi
-5. Submit registrasi
-6. Kirim dan verifikasi email
-7. Verifikasi profil oleh Operator/Admin bila diperlukan
-8. Active, revision_required, atau rejected
+1. Langkah 1: Akun dasar dan pemilihan tipe profil (ASN, Penyedia, Akademisi, Masyarakat)
+2. Langkah 2: Wilayah/domisili berjenjang (Provinsi, Kab/Kota, Kecamatan, Desa) dan alamat ringkas
+3. Langkah 3: Profil spesifik sesuai tipe yang dipilih
+4. Langkah 4: Tinjau data, persetujuan syarat penggunaan, dan kebijakan privasi
+5. Submit registrasi → akun dibuat dengan status `pending_verification`
+6. Tampilan konfirmasi berhasil (/dashboard/daftar/berhasil)
+7. Verifikasi dan aktivasi akun oleh Operator/Administrator di /dashboard/akses/pengguna
+8. Akun aktif (`active`) dan pengguna dapat masuk serta mengakses Workspace
 ```
 
 ### State account selama registrasi
@@ -201,10 +201,10 @@ lainnya
 |---|---|---:|---|
 | NIP/NIPPK | `employee_identifier` | Bersyarat | Diisi bila tersedia sesuai policy; restricted |
 | Status kepegawaian | `employment_status` | Bersyarat | PNS/PPPK atau nilai terkendali lain |
-| Asal instansi | `origin_type` | Ya | Salah satu nilai teknis yang diizinkan |
-| OPD/unit master | `organization_unit_id` | Bersyarat | Wajib bila memakai unit master Pemprov Lampung |
-| Nama instansi | `institution_name` | Bersyarat | Wajib bila tidak memakai unit master yang sesuai |
-| Nama unit kerja | `unit_name` | Bersyarat | Wajib bila diperlukan untuk konteks instansi luar |
+| Asal instansi | `origin_type` | Ya | Salah satu nilai teknis yang diizinkan (`pemprov_lampung`, `kementerian_lembaga`, `pemerintah_daerah_lain`, `pemerintah_desa`, `bumn_bumd`, `lainnya`) |
+| OPD/unit master | `organization_unit_id` | Bersyarat | Wajib dan HANYA untuk `origin_type = 'pemprov_lampung'`; STRICTLY NULL untuk instansi luar agar tidak melanggar foreign key |
+| Nama instansi luar | `institution_name` | Bersyarat | Wajib untuk 5 asal instansi luar (`kementerian_lembaga`, `pemerintah_daerah_lain`, `pemerintah_desa`, `bumn_bumd`, `lainnya`) |
+| Nama unit kerja | `unit_name` | Bersyarat | Opsional/diisi bila diperlukan untuk spesifikasi unit pada instansi luar |
 | Jabatan | `position_name` | Bersyarat | Input terkontrol atau validasi maksimum 255 karakter |
 | Pangkat/golongan | `rank_grade` | Tidak | Maksimum 128 karakter |
 | Email kedinasan | `official_email` | Tidak | Email valid bila diisi; restricted |

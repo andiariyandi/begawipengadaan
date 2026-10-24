@@ -100,6 +100,13 @@ Government Intelligence
 ├── JF PPBJ Record dan Level
 ├── Competency, Competency Certificate Type/Record
 └── Competency Gap Snapshot
+
+Landing CMS dan Interaksi Publik
+├── Home Slider, Page Banner, Site Announcement
+├── Feature Highlight, External Portal, Testimonial, Team Member
+├── Contact Message, Helpdesk Topic, Newsletter Subscriber
+├── Site Setting dan Service Category
+└── Visitor Statistic, Satisfaction Survey, Survey Aspect
 ```
 
 ---

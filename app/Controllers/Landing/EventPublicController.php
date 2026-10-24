@@ -621,6 +621,39 @@ class EventPublicController extends BaseController
             return redirect()->back()->with('error', 'Gagal memproses pendaftaran event. Silakan coba kembali.');
         }
 
+        // Kirim notifikasi personal ke peserta & shared ke panitia/operator event
+        try {
+            $userRow = $this->db->table('users')->where('id', $userId)->get()->getRowArray();
+            $userName = $userRow['name'] ?? 'Peserta';
+            $notifService = new \App\Services\NotificationService($this->db);
+
+            $notifService->send(
+                $userId,
+                'event_registered',
+                'Pendaftaran Event Terkonfirmasi',
+                "Selamat! Pendaftaran Anda pada kegiatan '{$event['title']}' telah berhasil.",
+                [
+                    'event_id' => (int) $event['id'],
+                    'url'      => site_url('workspace/peserta/event-saya'),
+                ]
+            );
+
+            $notifService->sendShared(
+                'shared:event:' . $event['id'],
+                'event_registration_submitted',
+                'Pendaftaran Peserta Event Baru',
+                "Peserta {$userName} telah mendaftar pada kegiatan '{$event['title']}'.",
+                [
+                    'event_id'        => (int) $event['id'],
+                    'registration_id' => $newRegId,
+                    'user_id'         => $userId,
+                    'url'             => site_url('workspace/operator/operasional-event'),
+                ],
+                $userId
+            );
+        } catch (\Throwable) {
+        }
+
         if ($isSelfPacedActive && $status === 'registered') {
             return redirect()->to(site_url('workspace/peserta/event-saya/' . $event['slug']))
                 ->with('success', 'Pendaftaran berhasil! Anda kini terdaftar pada Mode Pembelajaran Mandiri. Simak rekaman sesi dan selesaikan kuis untuk klaim E-Sertifikat resmi.');

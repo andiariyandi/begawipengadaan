@@ -28,7 +28,7 @@ Dokumen ini melengkapi `README.md`, `dokumen/directory-tree.md`, dan `dokumen/ro
 | Boundary | Template | Pengguna | Controller root | View root | Layout utama | Asset root |
 |---|---|---|---|---|---|---|
 | Landing dan Public Area | FiStudy | Pengunjung publik dan Public User | `app/Controllers/Landing/` | `app/Views/landing/` | `landing/layouts/public.php` | `public/assets/main/` |
-| Auth terpadu | WowDash | Semua pengguna yang masuk, mendaftar, memverifikasi akun, atau memulihkan akses | `app/Controllers/Dashboard/Auth/` | `app/Views/dashboard/auth/` | `dashboard/layouts/auth.php` | `public/assets/dashboard/` |
+| Auth terpadu | WowDash | Semua pengguna yang masuk, mendaftar, memverifikasi akun, atau memulihkan akses | `app/Controllers/Dashboard/Auth/` | `app/Views/dashboard/auth/` | `dashboard/auth/layouts/auth.php` | `public/assets/dashboard/` |
 | Workspace | FiStudy | Participant, Trainer, Evaluator, Operator | `app/Controllers/Workspace/` dan controller domain berizin | `app/Views/main/workspace/` | `main/layouts/workspace.php` | `public/assets/main/` |
 | Dashboard Back-office | WowDash | Admin/Super Admin atau role dengan dashboard permission | `app/Controllers/Dashboard/` di luar `Auth` | `app/Views/dashboard/` di luar `auth/` | `dashboard/layouts/dashboard.php` | `public/assets/dashboard/` |
 | Error | Minimal/custom | Semua pengguna | HTTP error/exception handler | `app/Views/error/` | Minimal/custom | Asset minimum bila diperlukan |
@@ -122,7 +122,7 @@ View root
 app/Views/dashboard/auth/
 
 Layout utama
-app/Views/dashboard/layouts/auth.php
+app/Views/dashboard/auth/layouts/auth.php
 
 Komponen bersama
 app/Views/dashboard/components/
@@ -548,7 +548,7 @@ Pengganti yang wajib digunakan:
 app/Controllers/Dashboard/Auth/
 app/Controllers/Dashboard/
 app/Views/dashboard/auth/
-app/Views/dashboard/layouts/auth.php
+app/Views/dashboard/auth/layouts/auth.php
 app/Views/main/workspace/
 public/assets/main/
 public/assets/dashboard/

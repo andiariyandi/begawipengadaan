@@ -323,6 +323,8 @@ class DiagnoseRegistration extends BaseCommand
                 CLI::write(" [PASS] {$name} => Created User ID {$userId}", "green");
 
                 // Clean up created test user
+                $db->table('notifications')->where('user_id', $userId)->delete();
+                $db->table('notifications')->where('channel', 'shared:admin_operator')->like('data', '"user_id":' . $userId)->delete();
                 $db->table('user_procurement_roles')->where('user_id', $userId)->delete();
                 $db->table('user_roles')->where('user_id', $userId)->delete();
                 $db->table('profile_verifications')->where('user_id', $userId)->delete();

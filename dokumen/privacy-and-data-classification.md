@@ -17,7 +17,7 @@ dokumen/file-storage-policy.md
 dokumen/database-blueprint.md
 dokumen/database-erd.md
 dokumen/data-dictionary.md
-dokumen/schema-fresh-v4-1.sql
+schema-fresh-v4-3.sql
 dokumen/registration-policy.md
 dokumen/assessment-and-certification-rules.md
 dokumen/regulation-policy.md

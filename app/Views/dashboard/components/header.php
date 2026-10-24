@@ -307,6 +307,27 @@ window.refreshNotificationBell = function () {
                     </div>
                 `;
             } else {
+                if (window.__lastAdminTopNotifId > 0 && data.items[0].id > window.__lastAdminTopNotifId) {
+                    try {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        if (AudioCtx) {
+                            const ctx = new AudioCtx();
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+                            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start();
+                            osc.stop(ctx.currentTime + 0.35);
+                        }
+                    } catch (e) {}
+                }
+                window.__lastAdminTopNotifId = data.items[0].id;
+
                 let html = '';
                 data.items.forEach(item => {
                     const bgClass = item.is_read ? 'bg-neutral-50/50' : 'bg-primary-50/40';

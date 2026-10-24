@@ -108,6 +108,7 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->post('detail/(:segment)/balas', 'ConsultationController::reply/$1', ['as' => 'workspace.consultation.reply']);
     });
     $routes->get('notifikasi', 'NotificationController::index', ['as' => 'workspace.notifications']);
+    $routes->get('notifikasi-api/feed', 'NotificationController::feed', ['as' => 'workspace.notifications.feed']);
     $routes->get('notifikasi/(:segment)', 'NotificationController::detail/$1', ['as' => 'workspace.notifications.detail']);
     $routes->post('notifikasi/(:segment)/baca', 'NotificationController::markAsRead/$1', ['as' => 'workspace.notifications.read']);
     $routes->post('notifikasi/baca-semua', 'NotificationController::markAllAsRead', ['as' => 'workspace.notifications.read-all']);

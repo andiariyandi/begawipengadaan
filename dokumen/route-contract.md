@@ -186,7 +186,7 @@ Hanya regulasi yang memenuhi `workflow_status = published` dan visibility publik
 
 ## Route Auth Terpadu
 
-Seluruh route ini memakai WowDash pada `app/Views/dashboard/auth/`, layout `app/Views/dashboard/layouts/auth.php`, dan asset `public/assets/dashboard/`.
+Seluruh route ini memakai WowDash pada `app/Views/dashboard/auth/`, layout `app/Views/dashboard/auth/layouts/auth.php`, dan asset `public/assets/dashboard/`.
 
 ### Login dan logout
 
@@ -397,6 +397,75 @@ auth
 | PATCH | `/dashboard/permission/{permissionId}` | `dashboard.permissions.update` | `Dashboard\PermissionController::update` | `permission.update` | Redirect + audit |
 | GET | `/dashboard/role-permission` | `dashboard.rbac.matrix` | `Dashboard\PermissionController::matrix` | `permission.assign` | `dashboard/rbac/role_permission_matrix` |
 | PUT | `/dashboard/role/{roleId}/permission` | `dashboard.rbac.permissions.sync` | `Dashboard\PermissionController::syncRolePermissions` | `permission.assign` | Redirect + audit |
+
+### Kelola Landing Page (CMS Terpadu)
+
+Seluruh konten dinamis pada portal publik dikelola melalui single-menu `/dashboard/landing` dengan controller pada namespace `App\Controllers\Admin\Landing`.
+
+| Method | Path | Route name | Controller | Permission minimum | Keterangan / View |
+|---|---|---|---|---|---|
+| GET | `/dashboard/landing` | `dashboard.landing.index` | Closure redirect | `landing.view` | Redirect ke `/dashboard/landing/slider` |
+| GET | `/dashboard/landing/sorotan-carousel` | `dashboard.landing.spotlight_hub` | `SpotlightHubController::index` | `landing.view` | Pusat Sorotan (Badge Unggulan) & Hero Slider untuk 5 modul |
+| POST | `/dashboard/landing/sorotan-carousel/toggle` | `dashboard.landing.spotlight_hub.toggle` | `SpotlightHubController::toggle` | `landing.slider.manage` | Toggle status Sorotan atau Slider per item |
+| POST | `/dashboard/landing/sorotan-carousel/update-order` | `dashboard.landing.spotlight_hub.order` | `SpotlightHubController::updateOrder` | `landing.slider.manage` | Urutkan prioritas item carousel/slider |
+| POST | `/dashboard/landing/sorotan-carousel/pengaturan` | `dashboard.landing.spotlight_hub.settings` | `SpotlightHubController::saveSettings` | `landing.slider.manage` | Simpan kuota hero dan mode slider per modul |
+| GET | `/dashboard/landing/sorotan-carousel/search-available` | `dashboard.landing.spotlight_hub.search` | `SpotlightHubController::searchAvailable` | `landing.view` | Cari konten yang tersedia untuk ditambahkan ke sorotan |
+| POST | `/dashboard/landing/sorotan-carousel/bulk-action` | `dashboard.landing.spotlight_hub.bulk` | `SpotlightHubController::bulkAction` | `landing.slider.manage` | Aksi massal aktifkan/nonaktifkan sorotan |
+| GET | `/dashboard/landing/slider` | `dashboard.landing.sliders` | `SliderController::index` | `landing.view` | Daftar Banner Slider Beranda Utama |
+| GET | `/dashboard/landing/slider/tambah` | `dashboard.landing.sliders.create` | `SliderController::create` | `landing.slider.manage` | Form tambah slider beranda |
+| POST | `/dashboard/landing/slider/simpan` | `dashboard.landing.sliders.store` | `SliderController::store` | `landing.slider.manage` | Simpan slider baru |
+| GET | `/dashboard/landing/slider/ubah/{id}` | `dashboard.landing.sliders.edit` | `SliderController::edit` | `landing.slider.manage` | Form ubah banner slider |
+| POST | `/dashboard/landing/slider/ubah/{id}` | `dashboard.landing.sliders.update` | `SliderController::update` | `landing.slider.manage` | Simpan pembaruan slider |
+| POST/GET | `/dashboard/landing/slider/duplikat/{id}` | `dashboard.landing.sliders.duplicate` | `SliderController::duplicate` | `landing.slider.manage` | Duplikasi banner slider |
+| POST | `/dashboard/landing/slider/update-order` | `dashboard.landing.sliders.order` | `SliderController::updateOrder` | `landing.slider.manage` | Urutkan posisi slider beranda |
+| POST/GET | `/dashboard/landing/slider/toggle/{id}` | `dashboard.landing.sliders.toggle` | `SliderController::toggle` | `landing.slider.manage` | Toggle aktif/nonaktif banner slider |
+| POST/GET | `/dashboard/landing/slider/hapus/{id}` | `dashboard.landing.sliders.delete` | `SliderController::delete` | `landing.slider.manage` | Hapus banner slider |
+| GET | `/dashboard/landing/pengumuman` | `dashboard.landing.announcements` | `AnnouncementController::index` | `landing.view` | Daftar Popup Pengumuman & Promo |
+| GET | `/dashboard/landing/pengumuman/tambah` | `dashboard.landing.announcements.create` | `AnnouncementController::create` | `landing.announcement.manage` | Form tambah pengumuman |
+| POST | `/dashboard/landing/pengumuman/simpan` | `dashboard.landing.announcements.store` | `AnnouncementController::store` | `landing.announcement.manage` | Simpan pengumuman baru |
+| GET | `/dashboard/landing/pengumuman/ubah/{id}` | `dashboard.landing.announcements.edit` | `AnnouncementController::edit` | `landing.announcement.manage` | Form ubah pengumuman |
+| POST | `/dashboard/landing/pengumuman/ubah/{id}` | `dashboard.landing.announcements.update` | `AnnouncementController::update` | `landing.announcement.manage` | Simpan pembaruan pengumuman |
+| POST/GET | `/dashboard/landing/pengumuman/toggle/{id}` | `dashboard.landing.announcements.toggle` | `AnnouncementController::toggle` | `landing.announcement.manage` | Toggle status aktif popup pengumuman |
+| POST/GET | `/dashboard/landing/pengumuman/hapus/{id}` | `dashboard.landing.announcements.delete` | `AnnouncementController::delete` | `landing.announcement.manage` | Hapus popup pengumuman |
+| POST | `/dashboard/landing/pengumuman/pengaturan` | `dashboard.landing.announcements.settings` | `AnnouncementController::saveSettings` | `landing.announcement.manage` | Konfigurasi global popup pengumuman |
+| GET | `/dashboard/landing/profil-lembaga` | `dashboard.landing.profile` | `InstitutionProfileController::index` | `landing.view` | Form Profil Lembaga, Visi Misi, Filosofi |
+| POST | `/dashboard/landing/profil-lembaga` | `dashboard.landing.profile.save` | `InstitutionProfileController::save` | `landing.profile.manage` | Simpan profil lembaga |
+| POST/GET | `/dashboard/landing/profil-lembaga/reset` | `dashboard.landing.profile.reset` | `InstitutionProfileController::resetDefault` | `landing.profile.manage` | Reset profil ke default sistem |
+| GET | `/dashboard/landing/pilar-hierarki` | `dashboard.landing.highlights` | `HighlightFeatureController::index` | `landing.view` | Kelola Pilar PATIK, Hierarki, Roadmap |
+| GET | `/dashboard/landing/pilar-hierarki/tambah` | `dashboard.landing.highlights.create` | `HighlightFeatureController::create` | `landing.profile.manage` | Form tambah pilar fitur |
+| POST | `/dashboard/landing/pilar-hierarki/simpan` | `dashboard.landing.highlights.store` | `HighlightFeatureController::store` | `landing.profile.manage` | Simpan pilar fitur |
+| GET | `/dashboard/landing/pilar-hierarki/ubah/{id}` | `dashboard.landing.highlights.edit` | `HighlightFeatureController::edit` | `landing.profile.manage` | Form ubah pilar fitur |
+| POST | `/dashboard/landing/pilar-hierarki/ubah/{id}` | `dashboard.landing.highlights.update` | `HighlightFeatureController::update` | `landing.profile.manage` | Simpan pembaruan pilar fitur |
+| POST/GET | `/dashboard/landing/pilar-hierarki/toggle/{id}` | `dashboard.landing.highlights.toggle` | `HighlightFeatureController::toggle` | `landing.profile.manage` | Toggle aktif pilar fitur |
+| POST/GET | `/dashboard/landing/pilar-hierarki/hapus/{id}` | `dashboard.landing.highlights.delete` | `HighlightFeatureController::delete` | `landing.profile.manage` | Hapus pilar fitur |
+| GET | `/dashboard/landing/portal-eksternal` | `dashboard.landing.portals` | `ExternalPortalController::index` | `landing.view` | Kelola Tautan Portal Eksternal PBJ |
+| GET | `/dashboard/landing/portal-eksternal/tambah` | `dashboard.landing.portals.create` | `ExternalPortalController::create` | `landing.portal.manage` | Form tambah portal eksternal |
+| POST | `/dashboard/landing/portal-eksternal/simpan` | `dashboard.landing.portals.store` | `ExternalPortalController::store` | `landing.portal.manage` | Simpan portal eksternal baru |
+| GET | `/dashboard/landing/portal-eksternal/ubah/{id}` | `dashboard.landing.portals.edit` | `ExternalPortalController::edit` | `landing.portal.manage` | Form ubah portal eksternal |
+| POST | `/dashboard/landing/portal-eksternal/ubah/{id}` | `dashboard.landing.portals.update` | `ExternalPortalController::update` | `landing.portal.manage` | Simpan pembaruan portal eksternal |
+| POST/GET | `/dashboard/landing/portal-eksternal/toggle/{id}` | `dashboard.landing.portals.toggle` | `ExternalPortalController::toggle` | `landing.portal.manage` | Toggle status aktif portal |
+| POST/GET | `/dashboard/landing/portal-eksternal/hapus/{id}` | `dashboard.landing.portals.delete` | `ExternalPortalController::delete` | `landing.portal.manage` | Hapus portal eksternal |
+| POST/GET | `/dashboard/landing/portal-eksternal/muat-rekomendasi` | `dashboard.landing.portals.recommendations` | `ExternalPortalController::seedRecommendations` | `landing.portal.manage` | Muat rekomendasi portal eksternal resmi |
+| GET | `/dashboard/landing/testimoni` | `dashboard.landing.testimonials` | `TestimonialController::index` | `landing.view` | Daftar Testimoni Pengguna |
+| GET | `/dashboard/landing/testimoni/tambah` | `dashboard.landing.testimonials.create` | `TestimonialController::create` | `landing.team.manage` | Form tambah testimoni |
+| POST | `/dashboard/landing/testimoni/simpan` | `dashboard.landing.testimonials.store` | `TestimonialController::store` | `landing.team.manage` | Simpan testimoni baru |
+| GET | `/dashboard/landing/testimoni/ubah/{id}` | `dashboard.landing.testimonials.edit` | `TestimonialController::edit` | `landing.team.manage` | Form ubah testimoni |
+| POST | `/dashboard/landing/testimoni/ubah/{id}` | `dashboard.landing.testimonials.update` | `TestimonialController::update` | `landing.team.manage` | Simpan pembaruan testimoni |
+| POST/GET | `/dashboard/landing/testimoni/toggle/{id}` | `dashboard.landing.testimonials.toggle` | `TestimonialController::toggle` | `landing.team.manage` | Toggle aktif testimoni |
+| POST/GET | `/dashboard/landing/testimoni/hapus/{id}` | `dashboard.landing.testimonials.delete` | `TestimonialController::delete` | `landing.team.manage` | Hapus testimoni |
+| POST/GET | `/dashboard/landing/testimoni/muat-rekomendasi` | `dashboard.landing.testimonials.recommendations` | `TestimonialController::seedRecommendations` | `landing.team.manage` | Muat rekomendasi testimoni resmi |
+| GET | `/dashboard/landing/tim` | `dashboard.landing.team` | `TeamMemberController::index` | `landing.view` | Kelola Tim Inovator & Pengembang |
+| GET | `/dashboard/landing/tim/tambah` | `dashboard.landing.team.create` | `TeamMemberController::create` | `landing.team.manage` | Form tambah anggota tim |
+| POST | `/dashboard/landing/tim/simpan` | `dashboard.landing.team.store` | `TeamMemberController::store` | `landing.team.manage` | Simpan anggota tim baru |
+| GET | `/dashboard/landing/tim/ubah/{id}` | `dashboard.landing.team.edit` | `TeamMemberController::edit` | `landing.team.manage` | Form ubah data tim |
+| POST | `/dashboard/landing/tim/ubah/{id}` | `dashboard.landing.team.update` | `TeamMemberController::update` | `landing.team.manage` | Simpan pembaruan tim |
+| POST/GET | `/dashboard/landing/tim/toggle/{id}` | `dashboard.landing.team.toggle` | `TeamMemberController::toggle` | `landing.team.manage` | Toggle status aktif anggota tim |
+| POST/GET | `/dashboard/landing/tim/hapus/{id}` | `dashboard.landing.team.delete` | `TeamMemberController::delete` | `landing.team.manage` | Hapus anggota tim |
+| POST/GET | `/dashboard/landing/tim/muat-rekomendasi` | `dashboard.landing.team.recommendations` | `TeamMemberController::seedRecommendations` | `landing.team.manage` | Muat rekomendasi susunan tim |
+
+*Catatan Redirection Rute Usang:*
+- `/dashboard/landing/banner-halaman` dan `/dashboard/landing/carousel` dialihkan permanen (301/302) ke `/dashboard/landing/sorotan-carousel`.
+- `/dashboard/landing/kategori-layanan` dialihkan permanen ke `/dashboard/landing`.
 
 ### Approval, audit, organisasi, laporan, dan pengaturan
 

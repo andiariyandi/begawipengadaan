@@ -208,14 +208,20 @@ class ConsultationController extends BaseController
             return redirect()->back()->with('error', 'Gagal mengirimkan balasan pesan.');
         }
 
-        // Notifikasi ke administrator bila balasan dari pemohon
+        // Notifikasi ke pool helpdesk (Super Admin, Admin, & Operator) bila balasan dari pemohon
         if (! $isAdmin) {
             try {
-                (new \App\Services\NotificationService())->notifyAdmins(
+                (new \App\Services\NotificationService())->sendShared(
+                    'shared:helpdesk',
                     'ticket_reply',
                     "Tanggapan Baru untuk Tiket #{$ticket['ticket_number']}",
                     "{$senderName} telah membalas tiket konsultasi: \"" . mb_strimwidth($message, 0, 100, '...') . "\"",
-                    ['ticket_number' => $ticket['ticket_number'], 'url' => site_url('dashboard/komunikasi/pesan-masuk/detail/' . $ticket['id'])]
+                    [
+                        'ticket_number' => $ticket['ticket_number'],
+                        'sender_name'   => $senderName,
+                        'url'           => site_url('dashboard/komunikasi/pesan-masuk/detail/' . $ticket['id']),
+                    ],
+                    $userId
                 );
             } catch (\Throwable) {
             }
@@ -298,13 +304,19 @@ class ConsultationController extends BaseController
                 ['ticket_number' => $ticketNumber, 'subject' => (string) $this->request->getPost('subject')]
             );
 
-            // Notifikasi ke administrator helpdesk bahwa tiket baru telah dibuat
+            // Notifikasi bersama ke pool helpdesk bahwa tiket baru telah dibuat
             try {
-                (new \App\Services\NotificationService())->notifyAdmins(
+                (new \App\Services\NotificationService())->sendShared(
+                    'shared:helpdesk',
                     'ticket_created',
                     "Tiket Konsultasi Baru #{$ticketNumber}",
                     "Permohonan baru dari {$userName}: \"" . (string) $this->request->getPost('subject') . "\"",
-                    ['ticket_number' => $ticketNumber, 'url' => site_url('dashboard/komunikasi/pesan-masuk/detail/' . $insertId)]
+                    [
+                        'ticket_number' => $ticketNumber,
+                        'user_id'       => $userId,
+                        'url'           => site_url('dashboard/komunikasi/pesan-masuk/detail/' . $insertId),
+                    ],
+                    $userId
                 );
             } catch (\Throwable) {
             }

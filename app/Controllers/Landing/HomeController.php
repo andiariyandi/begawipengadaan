@@ -635,6 +635,24 @@ class HomeController extends BaseController
                 'subject'      => substr((string) $this->request->getPost('subject'), 0, 150),
             ]);
             $db->transComplete();
+
+            if ($db->transStatus()) {
+                try {
+                    (new \App\Services\NotificationService())->sendShared(
+                        'shared:helpdesk',
+                        'contact_inquiry_received',
+                        "Pesan Masuk Publik Baru #{$ticketNumber}",
+                        "Pesan dari {$senderName}: \"" . mb_strimwidth((string) $this->request->getPost('subject'), 0, 100, '...') . "\"",
+                        [
+                            'ticket_number' => $ticketNumber,
+                            'sender_name'   => $senderName,
+                            'url'           => site_url('dashboard/komunikasi/pesan-masuk'),
+                        ],
+                        $userId ?: 1
+                    );
+                } catch (\Throwable) {
+                }
+            }
         } catch (\Throwable $e) {
             $db->transRollback();
             log_message('error', 'Contact message save error: ' . $e->getMessage());

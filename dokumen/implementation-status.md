@@ -17,7 +17,7 @@ dokumen/file-storage-policy.md
 dokumen/database-blueprint.md
 dokumen/database-erd.md
 dokumen/data-dictionary.md
-dokumen/schema-fresh-v4-1.sql
+schema-fresh-v4-3.sql
 dokumen/registration-policy.md
 dokumen/assessment-and-certification-rules.md
 dokumen/regulation-policy.md
@@ -95,7 +95,7 @@ Status aplikasi BegawiPengadaan telah diperbarui sesuai kondisi riil dan penguji
 | Auth terpadu | `Production Ready` | WowDash login, register multi-step, reset password, dan status akun aktif |
 | Workspace | `Backend Ready` | Layout, navigasi multi-role (Participant, Trainer, Evaluator, Operator), bookmark, notifikasi terintegrasi |
 | Dashboard Back-office | `Production Ready` | WowDash back-office, manajemen akses, berita, event-agenda, presensi kode, batch sertifikat aktif |
-| Database schema fresh | `Production Ready` | `schema-fresh-v4-1.sql` (74 tabel, 100% identik dengan live DB MySQL `db_begawipbj`) |
+| Database schema fresh | `Production Ready` | `schema-fresh-v4-3.sql` (89 tabel, 100% identik dengan live DB MySQL `db_begawipbj`, 16 migrations) |
 | Master wilayah | `Production Ready` | `database/reference/wilayah.sql` terimpor lengkap (91.599 baris provinsi, kabupaten, kecamatan, desa) |
 | Seeders | `Production Ready` | Seeder CLI otentik aktif (`event:seed`, `news:seed`, `knowledge:seed`, `regulation:seed`) |
 | Test suite | `Production Ready` | 15+ automated Spark CLI test suites aktif dengan kelulusan 100% |
@@ -113,7 +113,7 @@ Status aplikasi BegawiPengadaan telah diperbarui sesuai kondisi riil dan penguji
 | Auth/RBAC contract | `Production Ready` | 7 role sistem dan permission matrix terintegrasi di `AuthorizationService` |
 | Workflow contract | `Production Ready` | State machine event lifecycle, kelulusan sertifikat, dan transisi akun teruji |
 | File storage policy | `Production Ready` | File private storage, hash filename, dan proteksi preview/unduh tervalidasi |
-| Database blueprint/ERD/data dictionary | `Production Ready` | 74 tabel di `schema-fresh-v4-1.sql` terverifikasi di live database |
+| Database blueprint/ERD/data dictionary | `Production Ready` | 89 tabel di `schema-fresh-v4-3.sql` terverifikasi di live database |
 | Domain policy | `Production Ready` | Kebijakan registrasi, privasi (masking NIP/NIK), regulasi, dan statistik publik terpenuhi |
 | Documentation register | `Production Ready` | Katalog dokumentasi diselaraskan dengan path `dokumen/` |
 
@@ -126,7 +126,7 @@ Status aplikasi BegawiPengadaan telah diperbarui sesuai kondisi riil dan penguji
 | CodeIgniter 4 bootstrap | `Production Ready` | Environment, `.env`, config, service registration | CI 4.7.4 berjalan stabil, service terdaftar |
 | Config domain | `Production Ready` | Registration, Workflow, FileStorage, Certificate, Notification | Config dimuat dan divalidasi |
 | Database connection | `Production Ready` | Koneksi DB MySQL 8.4, charset utf8mb4 | Koneksi stabil pada `db_begawipbj` |
-| Schema fresh | `Production Ready` | `schema-fresh-v4-1.sql`, 74 tabel | Dijalankan dan aktif pada engine MySQL target |
+| Schema fresh | `Production Ready` | `schema-fresh-v4-3.sql`, 89 tabel | Dijalankan dan aktif pada engine MySQL target |
 | Master wilayah | `Production Ready` | Import `database/reference/wilayah.sql` | 91.599 baris terimpor dan terindeks |
 | Reference seeders | `Production Ready` | Role, permission, organization, kategori | Master data valid di database |
 | Development seeders | `Production Ready` | Dummy data otentik PBJ | `event:seed`, `news:seed`, `knowledge:seed`, `regulation:seed` |

@@ -79,6 +79,27 @@ class LearningService
             throw new RuntimeException('Enrollment ganda tidak diizinkan atau gagal diproses.');
         }
 
+        // Shared notification ke Trainer & Operator pool kelas
+        try {
+            $userRow = $this->db->table('users')->where('id', $userId)->get()->getRowArray();
+            $userName = $userRow['name'] ?? 'Peserta';
+            $className = $class['name'] ?? 'Kelas Pembelajaran';
+            (new NotificationService($this->db))->sendShared(
+                'shared:class:' . $classId,
+                'class_enrollment_requested',
+                'Permohonan Pendaftaran Kelas Baru',
+                "{$userName} telah mengajukan pendaftaran pada '{$className}'.",
+                [
+                    'class_id'      => $classId,
+                    'enrollment_id' => $newId,
+                    'user_id'       => $userId,
+                    'url'           => site_url('workspace/operator/kelas-trainer'),
+                ],
+                $userId
+            );
+        } catch (\Throwable) {
+        }
+
         return $newId;
     }
 
@@ -107,6 +128,31 @@ class LearningService
 
         if (! $this->db->transStatus()) {
             throw new RuntimeException('Enrollment gagal diaktifkan.');
+        }
+
+        // Kirim personal notifikasi ke peserta & tandai notifikasi permohonan bersama sebagai terbaca
+        try {
+            $class = $this->db->table('learning_classes')->where('id', $enrollment['class_id'])->get()->getRowArray();
+            $className = $class['name'] ?? 'Kelas Pembelajaran';
+            (new NotificationService($this->db))->send(
+                (int) $enrollment['user_id'],
+                'class_enrolled',
+                'Pendaftaran Kelas Disetujui',
+                "Selamat! Pendaftaran Anda di '{$className}' telah aktif. Silakan masuk dan mulai pembelajaran.",
+                [
+                    'class_id'      => (int) $enrollment['class_id'],
+                    'enrollment_id' => $enrollmentId,
+                    'url'           => site_url('workspace/peserta/pembelajaran-saya'),
+                ]
+            );
+
+            $this->db->table('notifications')
+                ->where('channel', 'shared:class:' . $enrollment['class_id'])
+                ->where('type', 'class_enrollment_requested')
+                ->where('user_id', (int) $enrollment['user_id'])
+                ->where('read_at IS NULL')
+                ->update(['read_at' => $now]);
+        } catch (\Throwable) {
         }
     }
 
@@ -497,6 +543,27 @@ class LearningService
 
         if (! $this->db->transStatus()) {
             throw new RuntimeException('Pengumpulan tugas gagal disimpan.');
+        }
+
+        // Shared notification ke Trainer & Operator pool kelas
+        try {
+            $userRow = $this->db->table('users')->where('id', $userId)->get()->getRowArray();
+            $userName = $userRow['name'] ?? 'Peserta';
+            (new NotificationService($this->db))->sendShared(
+                'shared:class:' . $classId,
+                'assignment_submitted',
+                'Pengumpulan Tugas Baru',
+                "Peserta {$userName} telah mengumpulkan tugas '{$assignment['title']}'.",
+                [
+                    'class_id'      => $classId,
+                    'assignment_id' => $assignmentId,
+                    'submission_id' => $submissionId,
+                    'user_id'       => $userId,
+                    'url'           => site_url('workspace/operator/evaluasi'),
+                ],
+                $userId
+            );
+        } catch (\Throwable) {
         }
 
         return $submissionId;
