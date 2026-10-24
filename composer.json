@@ -13,7 +13,9 @@
         "php": "^8.2",
         "codeigniter4/framework": "^4.7",
         "dompdf/dompdf": "^3.1",
-        "endroid/qr-code": "^6.0"
+        "endroid/qr-code": "^6.0",
+        "setasign/fpdf": "*",
+        "setasign/fpdi": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9",

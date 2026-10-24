@@ -2,16 +2,15 @@
 
 namespace App\Services;
 
-use CodeIgniter\Database\ConnectionInterface;
-use RuntimeException;
-
 /**
- * CertificateTemplateRenderer — render HTML sertifikat PBJ & overlay template.
+ * CertificateTemplateRenderer — render HTML sertifikat PBJ & penggantian placeholder PDF.
  *
- * Mendukung sertifikat dengan gambar latar belakang (background PNG/JPG)
- * dari Canva / Figma / Photoshop, serta otomatis menimpa placeholder
- * dengan data otentik peserta, instansi, jam pelajaran, penandatangan,
- * dan QR code verifikasi.
+ * Mendukung 3 mode tata letak:
+ * 1. Penggantian Placeholder langsung di dalam PDF (`pdf_placeholders` — otomatis mendeteksi
+ *    koordinat {{placeholder}} di dalam file PDF dan menggantinya dengan data asli peserta
+ *    di posisi yang presisi tanpa perlu koding HTML).
+ * 2. Overlay gambar latar belakang (background PNG/JPG) dari Canva / Figma / Photoshop.
+ * 3. Custom Body HTML / Frame Klasik.
  */
 class CertificateTemplateRenderer
 {
@@ -37,29 +36,49 @@ class CertificateTemplateRenderer
             ? $payload['body_html']
             : null;
 
-        $customCss = isset($payload['css']) && is_string($payload['css']) ? trim($payload['css']) : '';
-        $css       = $this->defaultCss($customCss);
-
-        // Background styling
+        $customCss     = isset($payload['css']) && is_string($payload['css']) ? trim($payload['css']) : '';
         $bgStyle       = $this->resolveBackgroundStyle($template);
         $hasBackground = $this->hasBackground($template);
+        $isPdfBg       = $this->isPdfBackground($template);
+        $layoutMode    = (string) ($payload['layout_mode'] ?? '');
 
         $title = htmlspecialchars((string) ($certificateData['certificate_title'] ?? $certificateData['title'] ?? 'Sertifikat'), ENT_QUOTES, 'UTF-8');
 
-        // Pilih body template: custom HTML, default overlay (jika ada background), atau classic frame
-        if ($bodyHtml !== null) {
-            $body      = $bodyHtml;
-            $headerBar = '';
-        } elseif ($hasBackground) {
-            $body      = $this->overlayBody();
-            $headerBar = '';
-        } else {
-            $body      = $this->defaultBody();
-            $headerBar = '<div class="cert-header"><span class="cert-app">BegawiPengadaan</span><span class="cert-type">' . $title . '</span></div>';
+        // Resolusi placeholder koordinat PDF (dari payload atau auto-detect langsung dari file PDF)
+        $pdfPlaceholders = $this->resolveActivePdfPlaceholders($template, $payload, $isPdfBg, $bodyHtml, $layoutMode);
+
+        $pageWidthMm  = (float) ($payload['page_width_mm'] ?? 297.0);
+        $pageHeightMm = (float) ($payload['page_height_mm'] ?? 210.0);
+        if ($pageWidthMm <= 50) {
+            $pageWidthMm = 297.0;
+        }
+        if ($pageHeightMm <= 50) {
+            $pageHeightMm = 210.0;
         }
 
-        $body    = $this->applyPlaceholders($body);
-        $qrBlock = $this->renderQrBlock($payload, $certificateData);
+        $css = $this->defaultCss($customCss, $pageWidthMm, $pageHeightMm);
+
+        if (! empty($pdfPlaceholders) && $layoutMode !== 'custom_html') {
+            // Mode 1: Penggantian Placeholder Presisi pada PDF / Kanvas Visual
+            $body      = $this->renderPdfPlaceholdersBody($pdfPlaceholders);
+            $headerBar = '';
+            $qrBlock   = '';
+        } elseif ($bodyHtml !== null) {
+            // Mode 2: Custom Body HTML
+            $body      = $this->applyPlaceholders($bodyHtml);
+            $headerBar = '';
+            $qrBlock   = $this->renderQrBlock($payload, $certificateData);
+        } elseif ($hasBackground) {
+            // Mode 3: Default Overlay di atas gambar background
+            $body      = $this->applyPlaceholders($this->overlayBody());
+            $headerBar = '';
+            $qrBlock   = $this->renderQrBlock($payload, $certificateData);
+        } else {
+            // Mode 4: Frame Standar Klasik (tanpa file background)
+            $body      = $this->applyPlaceholders($this->defaultBody());
+            $headerBar = '<div class="cert-header"><span class="cert-app">BegawiPengadaan</span><span class="cert-type">' . $title . '</span></div>';
+            $qrBlock   = $this->renderQrBlock($payload, $certificateData);
+        }
 
         return '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">'
             . '<title>' . $title . '</title>'
@@ -70,6 +89,151 @@ class CertificateTemplateRenderer
             . $body
             . $qrBlock
             . '</body></html>';
+    }
+
+    /**
+     * Resolusi daftar koordinat placeholder PDF:
+     * - Gunakan `payload['pdf_placeholders']` jika sudah disimpan dari form.
+     * - Jika kosong tetapi template memiliki file PDF background, otomatis inspeksi file PDF
+     *   untuk mendeteksi {{placeholder}} yang diketik di dalam PDF.
+     *
+     * @param array<string, mixed> $template
+     * @param array<string, mixed> &$payload
+     * @return array<int, array<string, mixed>>
+     */
+    private function resolveActivePdfPlaceholders(
+        array $template,
+        array &$payload,
+        bool $isPdfBg,
+        ?string $bodyHtml,
+        string $layoutMode
+    ): array {
+        if (! empty($payload['pdf_placeholders']) && is_array($payload['pdf_placeholders'])) {
+            return $payload['pdf_placeholders'];
+        }
+
+        if ($isPdfBg && ($bodyHtml === null || $layoutMode === 'pdf_placeholders')) {
+            $pdfPath = $this->getBackgroundPhysicalPath($template);
+            if ($pdfPath && is_file($pdfPath)) {
+                $service    = new CertificatePdfPlaceholderService();
+                $inspection = $service->inspectPdf($pdfPath);
+                if (! empty($inspection['page_width_mm'])) {
+                    $payload['page_width_mm']  = $inspection['page_width_mm'];
+                    $payload['page_height_mm'] = $inspection['page_height_mm'];
+                }
+                if (! empty($inspection['placeholders'])) {
+                    return $inspection['placeholders'];
+                }
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * Render lapisan elemen placeholder pada koordinat persisnya di atas halaman PDF/kanvas.
+     *
+     * @param array<int, array<string, mixed>> $pdfPlaceholders
+     */
+    public function renderPdfPlaceholdersBody(array $pdfPlaceholders): string
+    {
+        $html  = '<div class="cert-pdf-placeholder-canvas">';
+        $index = 0;
+
+        foreach ($pdfPlaceholders as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+            $index++;
+            $tag = trim((string) ($item['tag'] ?? ''));
+            if ($tag === '') {
+                continue;
+            }
+            if (! str_starts_with($tag, '{{') && $tag !== '__QR_BLOCK__') {
+                $tag = '{{' . trim($tag, '{} ') . '}}';
+            }
+
+            $type       = (string) ($item['type'] ?? ((in_array($tag, ['{{qr_code}}', '{{qr_block}}', '__QR_BLOCK__'], true)) ? 'qr' : 'text'));
+            $xPct       = max(0.0, min(100.0, (float) ($item['x_pct'] ?? 50.0)));
+            $yPct       = max(0.0, min(100.0, (float) ($item['y_pct'] ?? 50.0)));
+            $fontSize   = max(6, min(96, (int) ($item['font_size'] ?? 16)));
+            $fontWeight = (($item['font_weight'] ?? 'normal') === 'bold') ? 'bold' : 'normal';
+            $color      = preg_match('/^#[0-9a-fA-F]{3,6}$/', (string) ($item['color'] ?? '')) ? (string) $item['color'] : '#0f172a';
+            $align      = in_array($item['align'] ?? 'center', ['left', 'center', 'right'], true) ? (string) $item['align'] : 'center';
+            $maskBg     = ! empty($item['mask_bg']);
+            $maskColor  = preg_match('/^#[0-9a-fA-F]{3,6}$/', (string) ($item['mask_color'] ?? '')) ? (string) $item['mask_color'] : '#ffffff';
+            $qrSize     = max(40, min(320, (int) ($item['qr_size'] ?? 110)));
+
+            // Jika opsi masking diaktifkan (menutup teks placeholder asli pada PDF raster/kompleks)
+            if ($maskBg) {
+                $origX = max(0.0, min(100.0, (float) ($item['orig_x_pct'] ?? max(0.0, $xPct - 12.0))));
+                $origY = max(0.0, min(100.0, (float) ($item['orig_y_pct'] ?? $yPct)));
+                $origW = max(2.0, min(100.0, (float) ($item['orig_w_pct'] ?? 24.0)));
+                $origH = max(1.5, min(50.0, (float) ($item['orig_h_pct'] ?? 4.5)));
+
+                $html .= sprintf(
+                    '<div class="cert-ph-mask" style="position:absolute;left:%.2F%%;top:%.2F%%;width:%.2F%%;height:%.2F%%;background-color:%s;z-index:1;"></div>',
+                    $origX,
+                    $origY,
+                    $origW,
+                    $origH,
+                    htmlspecialchars($maskColor, ENT_QUOTES, 'UTF-8')
+                );
+            }
+
+            if ($type === 'qr') {
+                // Untuk QR Code, pusatkan atau posisikan sesuai align
+                $qrLeftStyle = match ($align) {
+                    'center' => sprintf('left:%.2F%%;margin-left:-%dpx;', $xPct, (int) round($qrSize / 2)),
+                    'right'  => sprintf('left:%.2F%%;margin-left:-%dpx;', $xPct, $qrSize),
+                    default  => sprintf('left:%.2F%%;', $xPct),
+                };
+
+                $html .= sprintf(
+                    '<style>.cert-ph-qr-%d img { width:%dpx !important; height:%dpx !important; }</style>'
+                    . '<div class="cert-ph-qr cert-ph-qr-%d" style="position:absolute;%stop:%.2F%%;width:%dpx;height:%dpx;z-index:3;">__QR_BLOCK__</div>',
+                    $index,
+                    $qrSize,
+                    $qrSize,
+                    $index,
+                    $qrLeftStyle,
+                    $yPct,
+                    $qrSize,
+                    $qrSize
+                );
+                continue;
+            }
+
+            // Ganti tag placeholder dengan nilai peserta sesungguhnya
+            $resolvedValue = $this->applyPlaceholders($tag);
+
+            // Hitung kotak perataan presisi yang 100% kompatibel dengan Dompdf maupun browser
+            if ($align === 'center') {
+                $halfSpan = min(max($xPct - 1.0, 15.0), max(99.0 - $xPct, 15.0));
+                $boxLeft  = max(0.0, $xPct - $halfSpan);
+                $boxWidth = min(100.0 - $boxLeft, $halfSpan * 2.0);
+                $posCss   = sprintf('left:%.2F%%;width:%.2F%%;text-align:center;', $boxLeft, $boxWidth);
+            } elseif ($align === 'right') {
+                $boxWidth = max(5.0, $xPct - 1.0);
+                $posCss   = sprintf('left:1.00%%;width:%.2F%%;text-align:right;', $boxWidth);
+            } else {
+                $boxWidth = max(5.0, 99.0 - $xPct);
+                $posCss   = sprintf('left:%.2F%%;width:%.2F%%;text-align:left;', $xPct, $boxWidth);
+            }
+
+            $html .= sprintf(
+                '<div class="cert-ph-text" style="position:absolute;%stop:%.2F%%;font-size:%dpt;font-weight:%s;color:%s;line-height:1.2;z-index:2;">%s</div>',
+                $posCss,
+                $yPct,
+                $fontSize,
+                $fontWeight,
+                htmlspecialchars($color, ENT_QUOTES, 'UTF-8'),
+                $resolvedValue
+            );
+        }
+
+        $html .= '</div>';
+        return $html;
     }
 
     // ===============================================================
@@ -105,13 +269,17 @@ class CertificateTemplateRenderer
         $score       = (string) ($data['final_score'] ?? '—');
         $predikat    = (string) ($data['predicate'] ?? $data['predikat'] ?? 'Lulus');
 
-        // Tanggal
+        // Tanggal (Format Bahasa Indonesia)
         $rawIssued   = $data['issued_at'] ?? 'now';
-        $issuedDate  = date('d F Y', strtotime((string) $rawIssued));
-        $year        = date('Y', strtotime((string) $rawIssued));
+        $issuedDate  = $this->formatTanggalIndo((string) $rawIssued);
+        $year        = date('Y', strtotime((string) $rawIssued) ?: time());
 
-        $startDate   = ! empty($data['event_start_at']) ? date('d F Y', strtotime((string) $data['event_start_at'])) : $issuedDate;
-        $endDate     = ! empty($data['event_end_at']) ? date('d F Y', strtotime((string) $data['event_end_at'])) : $issuedDate;
+        $startDate   = ! empty($data['event_start_at'])
+            ? $this->formatTanggalIndo((string) $data['event_start_at'])
+            : (! empty($data['start_date']) ? (string) $data['start_date'] : $issuedDate);
+        $endDate     = ! empty($data['event_end_at'])
+            ? $this->formatTanggalIndo((string) $data['event_end_at'])
+            : (! empty($data['end_date']) ? (string) $data['end_date'] : $issuedDate);
         $periodDate  = ($startDate === $endDate) ? $startDate : ($startDate . ' s.d. ' . $endDate);
 
         // Penerbit & Pejabat
@@ -196,12 +364,36 @@ class CertificateTemplateRenderer
         return strtr($html, $this->placeholders);
     }
 
+    private function formatTanggalIndo(string $dateStr): string
+    {
+        $ts = strtotime($dateStr);
+        if ($ts === false) {
+            $ts = time();
+        }
+        $bulan = [
+            1  => 'Januari',
+            2  => 'Februari',
+            3  => 'Maret',
+            4  => 'April',
+            5  => 'Mei',
+            6  => 'Juni',
+            7  => 'Juli',
+            8  => 'Agustus',
+            9  => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ];
+        $m = (int) date('n', $ts);
+        return date('d', $ts) . ' ' . ($bulan[$m] ?? date('F', $ts)) . ' ' . date('Y', $ts);
+    }
+
     // ===============================================================
     // Daftar Placeholder & Panduan Desain
     // ===============================================================
 
     /**
-     * Mengembalikan daftar semua placeholder resmi yang dapat disalin di formulir template.
+     * Mengembalikan daftar semua placeholder resmi yang dapat dipakai di PDF maupun form.
      *
      * @return array<string, array<int, array{tag: string, label: string, example: string}>>
      */
@@ -222,6 +414,7 @@ class CertificateTemplateRenderer
             ],
             'Kegiatan Pembelajaran & Event' => [
                 ['tag' => '{{judul_kegiatan}}', 'label' => 'Judul Kursus / Kelas PBJ / Event', 'example' => 'Pengantar Pengadaan Barang/Jasa Pemerintah (Level 1)'],
+                ['tag' => '{{nama_kelas}}', 'label' => 'Nama Kelas / Batch Pembelajaran', 'example' => 'Batch I Tahun Anggaran ' . date('Y')],
                 ['tag' => '{{tipe_kegiatan}}', 'label' => 'Tipe Kegiatan (Arena Belajar, Webinar, Bimtek, Workshop, dll)', 'example' => 'Arena Belajar'],
                 ['tag' => '{{kode_tipe}}', 'label' => 'Kode Singkatan Tipe (AB, EV, WB, BT, WS, SO, SM, PL, RK, KL)', 'example' => 'AB'],
                 ['tag' => '{{id_kegiatan}}', 'label' => 'ID Numerik Kelas / Event', 'example' => '5'],
@@ -237,7 +430,7 @@ class CertificateTemplateRenderer
                 ['tag' => '{{penandatangan_nama}}', 'label' => 'Nama Pejabat Penanda Tangan', 'example' => 'Dr. H. Rahmad Hidayat, S.E., M.Si.'],
                 ['tag' => '{{penandatangan_jabatan}}', 'label' => 'Jabatan Pejabat Penanda Tangan', 'example' => 'Kepala Biro Pengadaan Barang dan Jasa'],
                 ['tag' => '{{penandatangan_nip}}', 'label' => 'NIP Pejabat Penanda Tangan', 'example' => '19750812 199903 1 004'],
-                ['tag' => '{{qr_code}}', 'label' => 'Gambar QR Code Keabsahan Digital', 'example' => '[QR Code 160x160 px]'],
+                ['tag' => '{{qr_code}}', 'label' => 'Gambar QR Code Keabsahan Digital', 'example' => '[QR Code Verifikasi]'],
                 ['tag' => '{{url_verifikasi}}', 'label' => 'Tautan Verifikasi Keabsahan Publik', 'example' => 'https://begawipengadaan.lampungprov.go.id/verifikasi-sertifikat/...'],
             ],
         ];
@@ -248,7 +441,7 @@ class CertificateTemplateRenderer
     // ===============================================================
 
     /**
-     * Layout Overlay Khusus Desain Background (Canva / Figma).
+     * Layout Overlay Khusus Desain Background Gambar (Canva / Figma).
      */
     public function overlayBody(): string
     {
@@ -339,24 +532,35 @@ HTML;
     }
 
     /**
-     * CSS dasar & styling pendukung print A4 Landscape (297 x 210 mm).
+     * CSS dasar & styling pendukung print sesuai dimensi halaman PDF.
      */
-    private function defaultCss(string $customCss = ''): string
+    private function defaultCss(string $customCss = '', float $widthMm = 297.0, float $heightMm = 210.0): string
     {
         return <<<CSS
 <style>
   @page {
-    size: 297mm 210mm;
+    size: {$widthMm}mm {$heightMm}mm;
     margin: 0;
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0;
-    width: 297mm; height: 210mm;
+    width: {$widthMm}mm; height: {$heightMm}mm;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: #0f172a;
     -webkit-print-color-adjust: exact;
     background-color: #ffffff;
+  }
+
+  /* Kanvas Penggantian Placeholder PDF Presisi */
+  .cert-pdf-placeholder-canvas {
+    position: relative;
+    width: {$widthMm}mm;
+    height: {$heightMm}mm;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: transparent !important;
   }
 
   /* Header Bar jika tanpa background */
@@ -404,7 +608,7 @@ HTML;
 
   /* Overlay Layout (untuk background bergambar) */
   .cert-overlay-container {
-    width: 297mm; height: 210mm;
+    width: {$widthMm}mm; height: {$heightMm}mm;
     padding: 30mm 25mm 20mm;
     box-sizing: border-box;
     position: relative;
@@ -459,7 +663,7 @@ CSS;
     // ===============================================================
 
     /**
-     * Memeriksa apakah template memiliki gambar background.
+     * Memeriksa apakah template memiliki gambar/PDF background.
      */
     public function hasBackground(array $template): bool
     {
@@ -473,8 +677,21 @@ CSS;
     }
 
     /**
+     * Memeriksa apakah background template bertipe dokumen PDF.
+     */
+    public function isPdfBackground(array $template): bool
+    {
+        $filePath = $this->getBackgroundPhysicalPath($template);
+        if (! $filePath || ! is_file($filePath)) {
+            return false;
+        }
+
+        return strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) === 'pdf';
+    }
+
+    /**
      * Resolve background image menjadi CSS string teroptimasi (base64 data URI).
-     * Format ini 100% aman untuk Dompdf tanpa bergantung chroot atau path lokal.
+     * Untuk PDF, menghasilkan layer transparan agar tidak menimpa template PDF asli.
      */
     private function resolveBackgroundStyle(array $template): string
     {
@@ -485,8 +702,16 @@ CSS;
 
         $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
         if ($ext === 'pdf') {
-            // PDF tidak bisa langsung jadi CSS background Dompdf tanpa Ghostscript/Imagick.
-            return '';
+            return '<style>
+              html, body {
+                background: transparent !important;
+                background-color: transparent !important;
+              }
+              .cert-overlay-container, .cert-frame-default, .cert-frame-inner, .cert-pdf-placeholder-canvas {
+                background: transparent !important;
+                background-color: transparent !important;
+              }
+            </style>';
         }
 
         $mimeType = match ($ext) {
@@ -510,8 +735,6 @@ CSS;
             background-position: center center;
             background-repeat: no-repeat;
             background-size: 100% 100%;
-            width: 297mm;
-            height: 210mm;
           }
         </style>';
     }
@@ -545,7 +768,7 @@ CSS;
 
         $payload = $this->decodePayload($template['template_payload'] ?? null);
         if (! empty($payload['background_path'])) {
-            $testPath = WRITEPATH . ltrim((string) $payload['background_path'], '/');
+            $testPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, WRITEPATH . ltrim((string) $payload['background_path'], '/\\'));
             if (is_file($testPath)) {
                 return $testPath;
             }

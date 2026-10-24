@@ -225,8 +225,8 @@ class CertificateGenerator
                 . '" style="width:140px;height:140px;border:1px solid #e2e8f0;padding:4px;background:#fff;" />';
             $html = str_replace(['<!--CERTIFICATE_QR_PLACEHOLDER-->', '__QR_BLOCK__', '{{qr_code}}', '{{qr_block}}'], $qrImgTag, $html);
 
-            // PDF render
-            $pdfBytes = $this->pdfGenerator->generate($html);
+            // PDF render (mendukung overlay background PDF & template gambar)
+            $pdfBytes = $this->pdfGenerator->generate($html, $template);
 
             // Persist PDF as file_assets
             $pdfFileId = $this->persistPdfAsset(
@@ -392,8 +392,8 @@ class CertificateGenerator
                 . '" style="width:140px;height:140px;border:1px solid #e2e8f0;padding:4px;background:#fff;" />';
             $html = str_replace(['<!--CERTIFICATE_QR_PLACEHOLDER-->', '__QR_BLOCK__', '{{qr_code}}', '{{qr_block}}'], $qrImgTag, $html);
 
-            // PDF render
-            $pdfBytes = $this->pdfGenerator->generate($html);
+            // PDF render (mendukung overlay background PDF & template gambar)
+            $pdfBytes = $this->pdfGenerator->generate($html, $template);
 
             // Persist PDF as file_assets
             $pdfFileId = $this->persistPdfAsset($certificateId, $certNumber, $pdfBytes, $actorId);

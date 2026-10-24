@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\Certificate\CertificateTemplateModel;
 use App\Services\AuditService;
 use App\Services\CertificatePdfGenerator;
+use App\Services\CertificatePdfPlaceholderService;
 use App\Services\CertificateQrGenerator;
 use App\Services\CertificateTemplateRenderer;
 use CodeIgniter\Database\ConnectionInterface;
@@ -14,8 +15,10 @@ use RuntimeException;
 /**
  * CertificateTemplateController — dashboard CRUD untuk certificate_templates.
  *
- * Mendukung perancangan template sertifikat visual dengan upload file template
- * (PNG / JPG / PDF background) dan penataan placeholder sertifikat PBJ resmi.
+ * Mendukung perancangan template sertifikat dengan:
+ * - Penggantian otomatis {{placeholder}} yang diketik langsung di dalam file PDF
+ * - Editor visual posisi & gaya placeholder di atas kanvas PDF
+ * - Upload file template (PDF / PNG / JPG background)
  *
  * Mengakomodasi:
  * 1. Arena Belajar: Tingkat Program (mengunci course & kelas di bawahnya),
@@ -127,6 +130,17 @@ class CertificateTemplateController extends BaseController
             }
         }
 
+        $mockTemplate = [
+            'id'                 => 0,
+            'name'               => $initialName,
+            'source_type'        => $initialSourceType,
+            'template_payload'   => $initialPayload,
+            'background_file_id' => null,
+            'is_active'          => 1,
+        ];
+
+        $sampleQrUri = (new CertificateQrGenerator())->generate(bin2hex(random_bytes(16)));
+
         return view('dashboard/certificates/templates/form', [
             'title'                 => 'Tambah Template Sertifikat | Dashboard BegawiPengadaan',
             'pageTitle'             => 'Tambah Template Sertifikat',
@@ -134,14 +148,9 @@ class CertificateTemplateController extends BaseController
             'activeMenu'            => 'certificates',
             'activeSubmenu'         => 'templates',
             'availablePlaceholders' => CertificateTemplateRenderer::getAvailablePlaceholders(),
-            'template'              => [
-                'id'                 => 0,
-                'name'               => $initialName,
-                'source_type'        => $initialSourceType,
-                'template_payload'   => $initialPayload,
-                'background_file_id' => null,
-                'is_active'          => 1,
-            ],
+            'sampleValues'          => $this->buildSamplePlaceholderMap($mockTemplate),
+            'sampleQrUri'           => $sampleQrUri,
+            'template'              => $mockTemplate,
             'backgroundAsset'       => null,
             'hierarchyOptions'      => $options,
             'selectedEvent'         => $selectedEvent,
@@ -179,6 +188,19 @@ class CertificateTemplateController extends BaseController
                 $bgAssetId                           = $bgUploadResult['asset_id'];
                 $payload['background_path']          = $bgUploadResult['relative_path'];
                 $payload['background_original_name'] = $bgUploadResult['original_name'];
+
+                // Jika file adalah PDF dan pdf_placeholders belum terisi, deteksi otomatis dari PDF
+                if ($bgUploadResult['extension'] === 'pdf') {
+                    $inspection = (new CertificatePdfPlaceholderService())->inspectPdf($bgUploadResult['full_path']);
+                    if (! empty($inspection['page_width_mm'])) {
+                        $payload['page_width_mm']  = $inspection['page_width_mm'];
+                        $payload['page_height_mm'] = $inspection['page_height_mm'];
+                    }
+                    if (empty($payload['pdf_placeholders']) && ! empty($inspection['placeholders'])) {
+                        $payload['pdf_placeholders'] = $inspection['placeholders'];
+                        $payload['layout_mode']      = 'pdf_placeholders';
+                    }
+                }
             }
 
             $data = [
@@ -205,14 +227,16 @@ class CertificateTemplateController extends BaseController
             }
 
             $this->auditService->log($actorId, 'certificate_template.created', 'certificate', 'certificate_template', $newId, [
-                'name'         => $data['name'],
-                'source_type'  => $data['source_type'],
-                'target_scope' => $payload['target_scope'] ?? 'global',
-                'is_active'    => $data['is_active'],
+                'name'             => $data['name'],
+                'source_type'      => $data['source_type'],
+                'target_scope'     => $payload['target_scope'] ?? 'global',
+                'layout_mode'      => $payload['layout_mode'] ?? 'pdf_placeholders',
+                'placeholder_cnt'  => count($payload['pdf_placeholders'] ?? []),
+                'is_active'        => $data['is_active'],
             ]);
 
             return redirect()->to(site_url('dashboard/sertifikat/template/' . $newId))
-                ->with('success', 'Template sertifikat berhasil dibuat dan tersinkronisasi.');
+                ->with('success', 'Template sertifikat berhasil dibuat dan placeholder PDF telah dikonfigurasi.');
         } catch (RuntimeException $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
@@ -300,6 +324,22 @@ class CertificateTemplateController extends BaseController
         if (! is_array($decoded)) {
             $decoded = $this->defaultPayload();
         }
+
+        // Jika template memiliki file PDF tetapi belum punya daftar pdf_placeholders, deteksi otomatis
+        $renderer = new CertificateTemplateRenderer();
+        if (empty($decoded['pdf_placeholders']) && $renderer->isPdfBackground($template)) {
+            $pdfPath = $renderer->getBackgroundPhysicalPath($template);
+            if ($pdfPath && is_file($pdfPath)) {
+                $inspection = (new CertificatePdfPlaceholderService())->inspectPdf($pdfPath);
+                if (! empty($inspection['placeholders'])) {
+                    $decoded['pdf_placeholders'] = $inspection['placeholders'];
+                    $decoded['page_width_mm']    = $inspection['page_width_mm'];
+                    $decoded['page_height_mm']   = $inspection['page_height_mm'];
+                    $decoded['layout_mode']      = 'pdf_placeholders';
+                }
+            }
+        }
+
         $template['template_payload'] = $decoded;
 
         $backgroundAsset = null;
@@ -314,6 +354,8 @@ class CertificateTemplateController extends BaseController
             $selectedEvent = $this->db->table('events')->where('id', (int) $decoded['event_id'])->get()->getRowArray();
         }
 
+        $sampleQrUri = (new CertificateQrGenerator())->generate(bin2hex(random_bytes(16)));
+
         return view('dashboard/certificates/templates/form', [
             'title'                 => 'Ubah Template | Dashboard BegawiPengadaan',
             'pageTitle'             => 'Ubah Template Sertifikat',
@@ -321,6 +363,8 @@ class CertificateTemplateController extends BaseController
             'activeMenu'            => 'certificates',
             'activeSubmenu'         => 'templates',
             'availablePlaceholders' => CertificateTemplateRenderer::getAvailablePlaceholders(),
+            'sampleValues'          => $this->buildSamplePlaceholderMap($template),
+            'sampleQrUri'           => $sampleQrUri,
             'template'              => $template,
             'backgroundAsset'       => $backgroundAsset,
             'hierarchyOptions'      => $options,
@@ -339,6 +383,11 @@ class CertificateTemplateController extends BaseController
                 throw new RuntimeException('Template tidak ditemukan.');
             }
 
+            $beforePayload = json_decode((string) ($before['template_payload'] ?? ''), true);
+            if (! is_array($beforePayload)) {
+                $beforePayload = [];
+            }
+
             $rules = [
                 'name'        => 'required|string|max_length[255]',
                 'source_type' => 'required|in_list[learning,event]',
@@ -350,6 +399,14 @@ class CertificateTemplateController extends BaseController
 
             $sourceType = (string) $this->request->getPost('source_type');
             $payload    = $this->sanitizePayload((array) $this->request->getPost('payload'));
+
+            // Pertahankan info background lama kecuali dihapus atau diganti
+            if (empty($payload['background_path']) && ! empty($beforePayload['background_path'])) {
+                $payload['background_path'] = $beforePayload['background_path'];
+            }
+            if (empty($payload['background_original_name']) && ! empty($beforePayload['background_original_name'])) {
+                $payload['background_original_name'] = $beforePayload['background_original_name'];
+            }
 
             // Validasi & Proteksi Anti-Tumpang-Tindih & Unik 1:1 Event
             $this->validateScopeAndLock($sourceType, $payload, $templateId);
@@ -363,13 +420,25 @@ class CertificateTemplateController extends BaseController
                 unset($payload['background_path'], $payload['background_original_name']);
             }
 
-            // Jika ada unggahan gambar background baru
+            // Jika ada unggahan file background baru
             $bgFile = $this->request->getFile('background_file');
             if ($bgFile && $bgFile->isValid() && ! $bgFile->hasMoved()) {
                 $bgUploadResult                      = $this->handleBackgroundUpload($bgFile, $actorId, $templateId);
                 $bgAssetId                           = $bgUploadResult['asset_id'];
                 $payload['background_path']          = $bgUploadResult['relative_path'];
                 $payload['background_original_name'] = $bgUploadResult['original_name'];
+
+                if ($bgUploadResult['extension'] === 'pdf') {
+                    $inspection = (new CertificatePdfPlaceholderService())->inspectPdf($bgUploadResult['full_path']);
+                    if (! empty($inspection['page_width_mm'])) {
+                        $payload['page_width_mm']  = $inspection['page_width_mm'];
+                        $payload['page_height_mm'] = $inspection['page_height_mm'];
+                    }
+                    if (empty($payload['pdf_placeholders']) && ! empty($inspection['placeholders'])) {
+                        $payload['pdf_placeholders'] = $inspection['placeholders'];
+                        $payload['layout_mode']      = 'pdf_placeholders';
+                    }
+                }
             }
 
             $data = [
@@ -394,6 +463,184 @@ class CertificateTemplateController extends BaseController
         } catch (RuntimeException $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Endpoint AJAX untuk menginspeksi file PDF yang baru dipilih/diunggah
+     * dan mendeteksi seluruh {{placeholder}} beserta koordinatnya.
+     *
+     * POST /dashboard/sertifikat/template/inspect-pdf
+     */
+    public function inspectPdf()
+    {
+        try {
+            $this->assertManageAccess();
+
+            $file       = $this->request->getFile('background_file');
+            $templateId = (int) $this->request->getPost('template_id');
+            $tempPath   = null;
+            $cleanup    = false;
+
+            if ($file && $file->isValid() && ! $file->hasMoved()) {
+                $ext = strtolower($file->getClientExtension());
+                if ($ext !== 'pdf') {
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'status'  => 'error',
+                        'message' => 'File yang diinspeksi harus berformat PDF.',
+                    ]);
+                }
+                $tempPath = $file->getTempName();
+            } elseif ($templateId > 0) {
+                $tpl = $this->templateModel->find($templateId);
+                if ($tpl) {
+                    $tempPath = (new CertificateTemplateRenderer())->getBackgroundPhysicalPath($tpl);
+                }
+            }
+
+            if (! $tempPath || ! is_file($tempPath)) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'status'  => 'error',
+                    'message' => 'File PDF tidak ditemukan untuk diinspeksi.',
+                ]);
+            }
+
+            $service    = new CertificatePdfPlaceholderService();
+            $inspection = $service->inspectPdf($tempPath);
+
+            if ($cleanup && is_file($tempPath)) {
+                @unlink($tempPath);
+            }
+
+            return $this->response->setJSON([
+                'status'         => 'ok',
+                'page_width_pt'  => $inspection['page_width_pt'],
+                'page_height_pt' => $inspection['page_height_pt'],
+                'page_width_mm'  => $inspection['page_width_mm'],
+                'page_height_mm' => $inspection['page_height_mm'],
+                'orientation'    => $inspection['orientation'],
+                'placeholders'   => $inspection['placeholders'],
+                'count'          => count($inspection['placeholders']),
+            ]);
+        } catch (\Throwable $e) {
+            return $this->response->setStatusCode(500)->setJSON([
+                'status'  => 'error',
+                'message' => 'Gagal menginspeksi PDF: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Endpoint untuk merender pratinjau PDF secara langsung dari halaman tambah/ubah
+     * sebelum atau sesudah disimpan ke database.
+     *
+     * POST /dashboard/sertifikat/template/live-preview-pdf
+     */
+    public function livePreviewPdf()
+    {
+        try {
+            $this->assertManageAccess();
+
+            $sourceType = (string) ($this->request->getPost('source_type') ?: 'learning');
+            $templateId = (int) $this->request->getPost('template_id');
+            $payload    = $this->sanitizePayload((array) $this->request->getPost('payload'));
+
+            $tempPdfPath = null;
+            $cleanupTemp = false;
+
+            $bgFile = $this->request->getFile('background_file');
+            if ($bgFile && $bgFile->isValid() && ! $bgFile->hasMoved()) {
+                $ext      = strtolower($bgFile->getClientExtension());
+                $tempDir  = WRITEPATH . 'uploads/certificates/tmp';
+                if (! is_dir($tempDir)) {
+                    @mkdir($tempDir, 0755, true);
+                }
+                $tmpName     = 'live_preview_' . bin2hex(random_bytes(6)) . '.' . $ext;
+                $bgFile->move($tempDir, $tmpName);
+                $tempPdfPath = $tempDir . DIRECTORY_SEPARATOR . $tmpName;
+                $cleanupTemp = true;
+                $payload['background_path'] = 'uploads/certificates/tmp/' . $tmpName;
+            } elseif ($templateId > 0) {
+                $existing = $this->templateModel->find($templateId);
+                if ($existing) {
+                    $existingPayload = json_decode((string) ($existing['template_payload'] ?? ''), true);
+                    if (is_array($existingPayload) && ! empty($existingPayload['background_path'])) {
+                        $payload['background_path'] = $existingPayload['background_path'];
+                    }
+                    $tempPdfPath = (new CertificateTemplateRenderer())->getBackgroundPhysicalPath($existing);
+                }
+            }
+
+            $mockTemplate = [
+                'id'                 => $templateId ?: 999,
+                'name'               => (string) ($this->request->getPost('name') ?: 'Pratinjau Template Sertifikat'),
+                'source_type'        => $sourceType,
+                'template_payload'   => $payload,
+                'background_file_id' => null,
+                'is_active'          => 1,
+            ];
+
+            $mockData    = $this->buildMockData($mockTemplate);
+            $renderer    = new CertificateTemplateRenderer();
+            $html        = $renderer->render($mockData, $mockTemplate);
+
+            $sampleQrUri = (new CertificateQrGenerator())->generate(bin2hex(random_bytes(32)));
+            $qrImgTag    = '<img alt="QR Sample" src="' . htmlspecialchars($sampleQrUri, ENT_QUOTES, 'UTF-8')
+                . '" style="width:140px;height:140px;border:1px solid #cbd5e1;padding:4px;background:#fff;" />';
+            $html = str_replace(['<!--CERTIFICATE_QR_PLACEHOLDER-->', '__QR_BLOCK__', '{{qr_code}}', '{{qr_block}}'], $qrImgTag, $html);
+
+            $pdfGenerator = new CertificatePdfGenerator();
+            $pdfBytes     = $pdfGenerator->generate($html, $tempPdfPath ?: $mockTemplate);
+
+            if ($cleanupTemp && $tempPdfPath && is_file($tempPdfPath)) {
+                @unlink($tempPdfPath);
+            }
+
+            return $this->response
+                ->setHeader('Content-Type', 'application/pdf')
+                ->setHeader('Content-Disposition', 'inline; filename="live_preview_sertifikat.pdf"')
+                ->setBody($pdfBytes);
+        } catch (\Throwable $e) {
+            return $this->response->setStatusCode(500)->setBody('Gagal membuat pratinjau PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Stream file background template (PDF / PNG / JPG) dari WRITEPATH untuk kanvas editor & detail.
+     *
+     * GET /dashboard/sertifikat/template/{id}/background-file
+     */
+    public function serveBackgroundFile(string $id)
+    {
+        $template = $this->templateModel->find((int) $id);
+        if (! $template) {
+            return $this->response->setStatusCode(404)->setBody('Template tidak ditemukan.');
+        }
+
+        $renderer = new CertificateTemplateRenderer();
+        $filePath = $renderer->getBackgroundPhysicalPath($template);
+        if (! $filePath || ! is_file($filePath)) {
+            return $this->response->setStatusCode(404)->setBody('File background tidak ditemukan.');
+        }
+
+        $ext  = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $mime = match ($ext) {
+            'pdf'         => 'application/pdf',
+            'png'         => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'webp'        => 'image/webp',
+            default       => 'application/octet-stream',
+        };
+
+        $bytes = @file_get_contents($filePath);
+        if ($bytes === false) {
+            return $this->response->setStatusCode(500)->setBody('Gagal membaca file background.');
+        }
+
+        return $this->response
+            ->setHeader('Content-Type', $mime)
+            ->setHeader('Content-Disposition', 'inline; filename="' . basename($filePath) . '"')
+            ->setHeader('Cache-Control', 'private, max-age=3600')
+            ->setBody($bytes);
     }
 
     public function activate(string $id)
@@ -449,8 +696,15 @@ class CertificateTemplateController extends BaseController
             return $this->notFoundResponse('Template tidak ditemukan.');
         }
 
+        $renderer = new CertificateTemplateRenderer();
+
+        // Bila template menggunakan background PDF, arahkan langsung ke pratinjau PDF utuh
+        // agar latar belakang vektor dan penggantian placeholder tampil menyatu secara presisi.
+        if ($renderer->isPdfBackground($template)) {
+            return redirect()->to(site_url('dashboard/sertifikat/template/' . (int) $id . '/preview-pdf'));
+        }
+
         $mockData    = $this->buildMockData($template);
-        $renderer    = new CertificateTemplateRenderer();
         $html        = $renderer->render($mockData, $template);
 
         // Inject sample QR Code
@@ -482,7 +736,7 @@ class CertificateTemplateController extends BaseController
         $html = str_replace(['<!--CERTIFICATE_QR_PLACEHOLDER-->', '__QR_BLOCK__', '{{qr_code}}', '{{qr_block}}'], $qrImgTag, $html);
 
         $pdfGenerator = new CertificatePdfGenerator();
-        $pdfBytes     = $pdfGenerator->generate($html);
+        $pdfBytes     = $pdfGenerator->generate($html, $template);
 
         return $this->response
             ->setHeader('Content-Type', 'application/pdf')
@@ -650,7 +904,6 @@ class CertificateTemplateController extends BaseController
             $progId   = (int) ($class['program_id'] ?? 0);
             $courseId = (int) ($class['course_id'] ?? 0);
 
-            // Cek apakah Program induk atau Course induk sudah diset template
             if ($progId > 0 && isset($lockInfo['locked_programs'][$progId])) {
                 throw new RuntimeException(
                     "Kelas \"{$class['name']}\" terkunci karena Program induknya sudah memiliki template sertifikat aktif. " .
@@ -687,16 +940,16 @@ class CertificateTemplateController extends BaseController
     }
 
     /**
-     * Upload dan simpan asset gambar template ke file_assets.
+     * Upload dan simpan asset gambar/PDF template ke file_assets.
      *
-     * @return array{asset_id: int, relative_path: string, original_name: string}
+     * @return array{asset_id: int, relative_path: string, full_path: string, original_name: string, extension: string}
      */
     private function handleBackgroundUpload($file, int $actorId, int $templateId): array
     {
         $ext     = strtolower($file->getClientExtension());
         $allowed = ['png', 'jpg', 'jpeg', 'pdf'];
         if (! in_array($ext, $allowed, true)) {
-            throw new RuntimeException('Format file tidak didukung. Harap unggah PNG, JPG, atau PDF.');
+            throw new RuntimeException('Format file tidak didukung. Harap unggah PDF, PNG, atau JPG.');
         }
 
         $targetDir = WRITEPATH . 'uploads/certificates/templates';
@@ -734,13 +987,15 @@ class CertificateTemplateController extends BaseController
 
         if (! $inserted) {
             @unlink($fullPath);
-            throw new RuntimeException('Gagal mencatat asset gambar background ke database.');
+            throw new RuntimeException('Gagal mencatat asset template ke database.');
         }
 
         return [
             'asset_id'      => (int) $this->db->insertID(),
             'relative_path' => $relativePath,
+            'full_path'     => $fullPath,
             'original_name' => $file->getClientName(),
+            'extension'     => $ext,
         ];
     }
 
@@ -783,7 +1038,26 @@ class CertificateTemplateController extends BaseController
     }
 
     /**
-     * Sanitize payload JSON.
+     * Peta nilai sampel (tag => nilai) untuk pratinjau interaktif di halaman form.
+     *
+     * @return array<string, string>
+     */
+    private function buildSamplePlaceholderMap(array $template): array
+    {
+        $renderer = new CertificateTemplateRenderer();
+        $payload  = $renderer->decodePayload($template['template_payload'] ?? null);
+        $mockData = $this->buildMockData($template);
+        $rawMap   = $renderer->buildPlaceholderMap($mockData, $template, $payload);
+
+        $cleanMap = [];
+        foreach ($rawMap as $tag => $val) {
+            $cleanMap[$tag] = html_entity_decode($val, ENT_QUOTES, 'UTF-8');
+        }
+        return $cleanMap;
+    }
+
+    /**
+     * Sanitize payload JSON (termasuk konfigurasi pdf_placeholders).
      */
     private function sanitizePayload(array $raw): array
     {
@@ -806,19 +1080,77 @@ class CertificateTemplateController extends BaseController
             ? trim($raw['signer_nip'])
             : '19750812 199903 1 004';
 
+        $layoutMode = isset($raw['layout_mode']) && in_array($raw['layout_mode'], ['pdf_placeholders', 'auto_overlay', 'custom_html'], true)
+            ? (string) $raw['layout_mode']
+            : 'pdf_placeholders';
+
+        // Parse daftar pdf_placeholders (dari JSON string atau array)
+        $rawPlaceholders = [];
+        if (! empty($raw['pdf_placeholders_json']) && is_string($raw['pdf_placeholders_json'])) {
+            $decodedPh = json_decode($raw['pdf_placeholders_json'], true);
+            if (is_array($decodedPh)) {
+                $rawPlaceholders = $decodedPh;
+            }
+        } elseif (! empty($raw['pdf_placeholders']) && is_array($raw['pdf_placeholders'])) {
+            $rawPlaceholders = $raw['pdf_placeholders'];
+        }
+
+        $cleanPlaceholders = [];
+        foreach ($rawPlaceholders as $idx => $ph) {
+            if (! is_array($ph) || empty($ph['tag'])) {
+                continue;
+            }
+            $tag = trim((string) $ph['tag']);
+            if (! str_starts_with($tag, '{{') && $tag !== '__QR_BLOCK__') {
+                $tag = '{{' . trim($tag, '{} ') . '}}';
+            }
+            $key  = trim($tag, '{} ');
+            $type = (in_array($tag, ['{{qr_code}}', '{{qr_block}}', '__QR_BLOCK__'], true) || ($ph['type'] ?? '') === 'qr')
+                ? 'qr'
+                : 'text';
+
+            $cleanPlaceholders[] = [
+                'id'          => (string) ($ph['id'] ?? ('ph_' . ($idx + 1))),
+                'tag'         => $tag,
+                'key'         => $key,
+                'label'       => mb_substr((string) ($ph['label'] ?? $key), 0, 120),
+                'type'        => $type,
+                'x_pct'       => round(max(0.0, min(100.0, (float) ($ph['x_pct'] ?? 50.0))), 2),
+                'y_pct'       => round(max(0.0, min(100.0, (float) ($ph['y_pct'] ?? 50.0))), 2),
+                'orig_x_pct'  => round(max(0.0, min(100.0, (float) ($ph['orig_x_pct'] ?? ($ph['x_pct'] ?? 40.0)))), 2),
+                'orig_y_pct'  => round(max(0.0, min(100.0, (float) ($ph['orig_y_pct'] ?? ($ph['y_pct'] ?? 50.0)))), 2),
+                'orig_w_pct'  => round(max(1.0, min(100.0, (float) ($ph['orig_w_pct'] ?? 20.0))), 2),
+                'orig_h_pct'  => round(max(1.0, min(50.0, (float) ($ph['orig_h_pct'] ?? 4.5))), 2),
+                'font_size'   => max(6, min(96, (int) ($ph['font_size'] ?? 16))),
+                'font_weight' => (($ph['font_weight'] ?? 'normal') === 'bold') ? 'bold' : 'normal',
+                'color'       => preg_match('/^#[0-9a-fA-F]{3,6}$/', (string) ($ph['color'] ?? '')) ? (string) $ph['color'] : '#0f172a',
+                'align'       => in_array($ph['align'] ?? 'center', ['left', 'center', 'right'], true) ? (string) $ph['align'] : 'center',
+                'mask_bg'     => ! empty($ph['mask_bg']),
+                'mask_color'  => preg_match('/^#[0-9a-fA-F]{3,6}$/', (string) ($ph['mask_color'] ?? '')) ? (string) $ph['mask_color'] : '#ffffff',
+                'qr_size'     => max(40, min(320, (int) ($ph['qr_size'] ?? 110))),
+            ];
+        }
+
+        $pageWidthMm  = (float) ($raw['page_width_mm'] ?? 297.0);
+        $pageHeightMm = (float) ($raw['page_height_mm'] ?? 210.0);
+
         $clean = [
-            'body_html'       => mb_substr($bodyHtml, 0, 60000),
-            'css'             => mb_substr($css, 0, 20000),
-            'issuer_name'     => mb_substr($issuer, 0, 255),
-            'signer_name'     => mb_substr($signerName, 0, 255),
-            'signer_position' => mb_substr($signerPos, 0, 255),
-            'signer_nip'      => mb_substr($signerNip, 0, 64),
-            'qr_position'     => $qrPos,
-            'target_scope'    => $raw['target_scope'] ?? 'global',
-            'program_id'      => (int) ($raw['program_id'] ?? 0),
-            'course_id'       => (int) ($raw['course_id'] ?? 0),
-            'class_id'        => (int) ($raw['class_id'] ?? 0),
-            'event_id'        => (int) ($raw['event_id'] ?? 0),
+            'layout_mode'      => $layoutMode,
+            'pdf_placeholders' => $cleanPlaceholders,
+            'page_width_mm'    => $pageWidthMm > 50 ? round($pageWidthMm, 2) : 297.0,
+            'page_height_mm'   => $pageHeightMm > 50 ? round($pageHeightMm, 2) : 210.0,
+            'body_html'        => mb_substr($bodyHtml, 0, 60000),
+            'css'              => mb_substr($css, 0, 20000),
+            'issuer_name'      => mb_substr($issuer, 0, 255),
+            'signer_name'      => mb_substr($signerName, 0, 255),
+            'signer_position'  => mb_substr($signerPos, 0, 255),
+            'signer_nip'       => mb_substr($signerNip, 0, 64),
+            'qr_position'      => $qrPos,
+            'target_scope'     => $raw['target_scope'] ?? 'global',
+            'program_id'       => (int) ($raw['program_id'] ?? 0),
+            'course_id'        => (int) ($raw['course_id'] ?? 0),
+            'class_id'         => (int) ($raw['class_id'] ?? 0),
+            'event_id'         => (int) ($raw['event_id'] ?? 0),
         ];
 
         if (! empty($raw['background_path'])) {
@@ -834,18 +1166,22 @@ class CertificateTemplateController extends BaseController
     private function defaultPayload(): array
     {
         return [
-            'body_html'       => '',
-            'css'             => '',
-            'issuer_name'     => 'Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa',
-            'signer_name'     => 'Dr. H. Rahmad Hidayat, S.E., M.Si.',
-            'signer_position' => 'Kepala Biro Pengadaan Barang dan Jasa',
-            'signer_nip'      => '19750812 199903 1 004',
-            'qr_position'     => 'right',
-            'target_scope'    => 'global',
-            'program_id'      => 0,
-            'course_id'       => 0,
-            'class_id'        => 0,
-            'event_id'        => 0,
+            'layout_mode'      => 'pdf_placeholders',
+            'pdf_placeholders' => [],
+            'page_width_mm'    => 297.0,
+            'page_height_mm'   => 210.0,
+            'body_html'        => '',
+            'css'              => '',
+            'issuer_name'      => 'Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa',
+            'signer_name'      => 'Dr. H. Rahmad Hidayat, S.E., M.Si.',
+            'signer_position'  => 'Kepala Biro Pengadaan Barang dan Jasa',
+            'signer_nip'       => '19750812 199903 1 004',
+            'qr_position'      => 'right',
+            'target_scope'     => 'global',
+            'program_id'       => 0,
+            'course_id'        => 0,
+            'class_id'         => 0,
+            'event_id'         => 0,
         ];
     }
 
