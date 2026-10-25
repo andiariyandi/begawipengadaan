@@ -78,17 +78,19 @@ class EmailService
             ?: 'noreply@begawipbj.lampungprov.go.id'
         );
 
-        $enabled    = (string) (setting('notification.email_enabled', '1')) === '1';
+        $dispatchMode = (string) (setting('email.dispatch_mode') ?: 'manual');
+        $enabled      = (string) (setting('notification.email_enabled', '1')) === '1';
 
         return [
-            'smtp_host'   => $smtpHost,
-            'smtp_port'   => $smtpPort,
-            'smtp_crypto' => $smtpCrypto,
-            'smtp_user'   => $smtpUser,
-            'smtp_pass'   => $smtpPass,
-            'from_name'   => $fromName,
-            'from_email'  => $fromEmail,
-            'enabled'     => $enabled,
+            'smtp_host'     => $smtpHost,
+            'smtp_port'     => $smtpPort,
+            'smtp_crypto'   => $smtpCrypto,
+            'smtp_user'     => $smtpUser,
+            'smtp_pass'     => $smtpPass,
+            'from_name'     => $fromName,
+            'from_email'    => $fromEmail,
+            'dispatch_mode' => $dispatchMode,
+            'enabled'       => $enabled,
         ];
     }
 
@@ -247,6 +249,11 @@ class EmailService
         $email->setSubject($subject);
         $email->setMessage($htmlBody);
 
+        // Auto Plaintext Fallback (AltMessage) to reduce spam score and support text clients
+        $plainText = strip_tags(preg_replace('/<(?:br|p|div|tr|li)[\s\/]*>/i', "\n", $htmlBody));
+        $plainText = preg_replace("/\n{3,}/", "\n\n", trim($plainText));
+        $email->setAltMessage($plainText);
+
         // Attachment support
         if (! empty($options['attachments']) && is_array($options['attachments'])) {
             foreach ($options['attachments'] as $att) {
@@ -318,9 +325,23 @@ class EmailService
      */
     public function sendPasswordReset(string $toEmail, string $userName, string $token): array
     {
-        $resetUrl = site_url('lupa-sandi/reset/' . $token);
+        $resetUrl = site_url('dashboard/reset-kata-sandi/' . $token);
         $html = $this->templateService->renderPasswordReset($userName, $resetUrl, 60);
         $subject = 'Atur Ulang Kata Sandi Akun - BegawiPengadaan Provinsi Lampung';
+
+        return $this->sendDirect($toEmail, $subject, $html, [
+            'priority' => 1, // Highest priority
+        ]);
+    }
+
+    /**
+     * Send account approved notification email directly.
+     */
+    public function sendAccountApproved(string $toEmail, string $userName): array
+    {
+        $loginUrl = site_url('dashboard/masuk');
+        $html = $this->templateService->renderAccountApproved($userName, $loginUrl);
+        $subject = 'Akun Anda Telah Disetujui & Aktif - BegawiPengadaan Provinsi Lampung';
 
         return $this->sendDirect($toEmail, $subject, $html, [
             'priority' => 1, // Highest priority
@@ -334,6 +355,91 @@ class EmailService
     {
         $html = $this->templateService->renderPersonal($recipientName, $subject, $bodyHtml, $options);
         return $this->sendDirect($toEmail, $subject, $html, $options);
+    }
+
+    /**
+     * Queue password reset email for manual dispatch by Admin.
+     * NO AUTOMATED SENDING: Stored in queue with status 'pending'.
+     */
+    public function queuePasswordReset(string $toEmail, string $userName, string $token, int $userId): int
+    {
+        $resetUrl = site_url('dashboard/reset-kata-sandi/' . $token);
+        $html = $this->templateService->renderPasswordReset($userName, $resetUrl, 60);
+        $subject = 'Atur Ulang Kata Sandi Akun - BegawiPengadaan Provinsi Lampung';
+
+        $queueService = new EmailQueueService();
+        return $queueService->enqueue(
+            'password_reset',
+            $toEmail,
+            $userName,
+            $subject,
+            $html,
+            null,
+            $userId,
+            [
+                'action_url'     => $resetUrl,
+                'action_text'    => 'Atur Ulang Kata Sandi',
+                'audience_label' => 'Permintaan Reset Kata Sandi (Manual Approval)',
+            ]
+        );
+    }
+
+    /**
+     * Queue account approved notification for manual dispatch by Admin.
+     * NO AUTOMATED SENDING: Stored in queue with status 'pending'.
+     */
+    public function queueAccountApproved(string $toEmail, string $userName, int $userId): int
+    {
+        $loginUrl = site_url('dashboard/masuk');
+        $html = $this->templateService->renderAccountApproved($userName, $loginUrl);
+        $subject = 'Akun Anda Telah Disetujui & Aktif - BegawiPengadaan Provinsi Lampung';
+
+        $queueService = new EmailQueueService();
+        return $queueService->enqueue(
+            'account_approved',
+            $toEmail,
+            $userName,
+            $subject,
+            $html,
+            null,
+            $userId,
+            [
+                'action_url'     => $loginUrl,
+                'action_text'    => 'Masuk ke Dashboard',
+                'audience_label' => 'Notifikasi Persetujuan Akun (Manual Approval)',
+            ]
+        );
+    }
+
+    /**
+     * Count emails sent via Google Mail in the last 24 hours rolling window.
+     */
+    public function getDailySentCount(): int
+    {
+        $db = \Config\Database::connect();
+        $since = date('Y-m-d H:i:s', time() - 86400);
+        return (int) $db->table('notifications')
+            ->where('channel', 'email')
+            ->where('sent_at >=', $since)
+            ->countAllResults();
+    }
+
+    /**
+     * Get daily quota statistics for Gmail (default 500 email/24h limit).
+     */
+    public function getDailyQuotaInfo(int $limit = 500): array
+    {
+        $sent = $this->getDailySentCount();
+        $remaining = max(0, $limit - $sent);
+        $percent = min(100, round(($sent / $limit) * 100, 1));
+
+        return [
+            'limit'     => $limit,
+            'sent'      => $sent,
+            'remaining' => $remaining,
+            'percent'   => $percent,
+            'is_safe'   => $remaining > 50,
+        ];
     }
 
     /**

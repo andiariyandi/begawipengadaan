@@ -82,15 +82,21 @@
             <div class="card-body p-20">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                     <div>
-                        <p class="fw-medium text-primary-light mb-1">Metode Operasional</p>
-                        <h6 class="mb-0 text-sm fw-bold text-secondary-dark">100% Manual Dashboard</h6>
+                        <p class="fw-medium text-primary-light mb-1">Kuota Harian Gmail (24 Jam)</p>
+                        <h6 class="mb-0 text-xl fw-bold <?= ($quotaInfo['remaining'] ?? 500) < 50 ? 'text-danger-main' : 'text-success-main' ?>">
+                            <?= number_format($quotaInfo['sent'] ?? 0) ?> / <?= number_format($quotaInfo['limit'] ?? 500) ?>
+                        </h6>
                     </div>
                     <div class="w-44-px h-44-px bg-success-subtle text-success-main rounded-circle d-flex justify-content-center align-items-center">
                         <iconify-icon icon="solar:shield-check-bold" class="text-xl"></iconify-icon>
                     </div>
                 </div>
-                <p class="fw-medium text-xs text-secondary-light mt-12 mb-0">
-                    Aman dari pemblokiran & kuota Gmail terjaga
+                <div class="progress h-6-px bg-neutral-200 radius-4 mt-8">
+                    <div class="progress-bar <?= ($quotaInfo['percent'] ?? 0) > 80 ? 'bg-danger-600' : 'bg-success-main' ?>" style="width: <?= min(100, max(2, (float) ($quotaInfo['percent'] ?? 0))) ?>%"></div>
+                </div>
+                <p class="fw-medium text-xs text-secondary-light mt-8 mb-0 d-flex justify-content-between align-items-center">
+                    <span>Sisa: <strong><?= number_format($quotaInfo['remaining'] ?? 500) ?></strong></span>
+                    <span class="badge bg-primary-50 text-primary-600 radius-4 px-6 py-2">100% Manual Admin</span>
                 </p>
             </div>
         </div>

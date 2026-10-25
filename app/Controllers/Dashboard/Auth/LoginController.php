@@ -73,6 +73,19 @@ class LoginController extends BaseController
 
         $postData = (array) ($this->request->getPost() ?: $_POST);
 
+        // Anti-Bot Honeypot trap
+        if (! empty($postData['website_url'])) {
+            return redirect()->back()->withInput()->with('error', 'Permintaan masuk tidak valid.');
+        }
+
+        // Simple Math Captcha verification
+        $userCaptcha = trim((string) ($postData['captcha_answer'] ?? ''));
+        $expectedCaptcha = session()->get('login_captcha_answer');
+        if ($expectedCaptcha !== null && (int) $userCaptcha !== (int) $expectedCaptcha) {
+            return redirect()->back()->withInput()->with('error', 'Jawaban verifikasi keamanan (captcha matematika) belum tepat. Silakan hitung kembali.');
+        }
+        session()->remove('login_captcha_answer');
+
         if (! $this->validateData($postData, $rules, $messages)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
@@ -80,11 +93,14 @@ class LoginController extends BaseController
         $email    = strtolower(trim((string) ($postData['email'] ?? '')));
         $password = (string) ($postData['password'] ?? '');
 
-        // M-13: Rate limit percobaan login (maks 10 percobaan per 60 detik per IP dan email)
+        // Dual-tier throttling: IP global (25/min) and IP+Email (10/min) to prevent password spraying
         $throttler = service('throttler');
         $ip = $this->request->getIPAddress();
+        if ($throttler->check('auth_login_ip_' . md5($ip), 25, 60) === false) {
+            return redirect()->back()->withInput()->with('error', 'Terlalu banyak percobaan masuk dari perangkat Anda. Silakan tunggu 1 menit.');
+        }
         if ($throttler->check('auth_login_' . md5($ip . '_' . $email), 10, 60) === false) {
-            return redirect()->back()->withInput()->with('error', 'Terlalu banyak percobaan masuk. Silakan tunggu 1 menit sebelum mencoba kembali.');
+            return redirect()->back()->withInput()->with('error', 'Terlalu banyak percobaan masuk untuk akun ini. Silakan tunggu 1 menit.');
         }
 
         $result = (new AuthenticationService())->authenticate($email, $password);
@@ -99,6 +115,22 @@ class LoginController extends BaseController
             }
 
             return redirect()->back()->withInput()->with('error', 'Email atau kata sandi salah.');
+        }
+
+        // Process Remember Me
+        if (! empty($postData['remember']) && session_status() === PHP_SESSION_ACTIVE && ! is_cli()) {
+            setcookie(
+                session_name(),
+                session_id(),
+                [
+                    'expires'  => time() + (30 * 86400),
+                    'path'     => '/',
+                    'domain'   => '',
+                    'secure'   => (bool) (config('App')->cookieSecure ?? false),
+                    'httponly' => true,
+                    'samesite' => 'Lax',
+                ]
+            );
         }
 
         $loggedRoles = (array) session()->get('roles');

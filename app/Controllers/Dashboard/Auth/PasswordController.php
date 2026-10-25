@@ -46,6 +46,27 @@ class PasswordController extends BaseController
 
         $postData = (array) ($this->request->getPost() ?: $_POST);
 
+        // Anti-Bot Honeypot trap
+        if (! empty($postData['website_url'])) {
+            return redirect()->back()
+                ->with('message', 'Permintaan pemulihan telah diterima. Jika alamat email terdaftar di sistem, tautan pengaturan ulang kata sandi telah diproses.');
+        }
+
+        // Simple Math Captcha verification
+        $userCaptcha = trim((string) ($postData['captcha_answer'] ?? ''));
+        $expectedCaptcha = session()->get('forgot_captcha_answer');
+        if ($expectedCaptcha !== null && (int) $userCaptcha !== (int) $expectedCaptcha) {
+            return redirect()->back()->withInput()->with('error', 'Jawaban verifikasi keamanan (captcha matematika) belum tepat. Silakan hitung kembali.');
+        }
+        session()->remove('forgot_captcha_answer');
+
+        // Rate limiting (Throttler): max 5 requests per 10 minutes per IP
+        $throttler = service('throttler');
+        $ip = $this->request->getIPAddress();
+        if ($throttler->check('auth_forgot_' . md5($ip), 5, 600) === false) {
+            return redirect()->back()->withInput()->with('error', 'Terlalu banyak permintaan pemulihan kata sandi dari perangkat Anda. Silakan tunggu 10 menit.');
+        }
+
         if (! $this->validateData($postData, $rules, $messages)) {
             return redirect()->back()
                 ->withInput()

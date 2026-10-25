@@ -225,7 +225,7 @@
                         <div class="col-12">
                             <label class="form-label fw-bold small text-dark">Lampiran Dokumen / tangkapan Layar (Opsional)</label>
                             <input type="file" name="attachment" class="form-control text-sm radius-8" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp,.zip">
-                            <div class="ws-form-hint"><i class="fas fa-paperclip"></i> Mendukung PDF, Word, Excel, Gambar (JPG/PNG), atau ZIP (Maks. 10 MB).</div>
+                            <div class="ws-form-hint"><i class="fas fa-paperclip"></i> Mendukung PDF, Word, Excel, Gambar (JPG/PNG), atau ZIP (Maks. 1 MB).</div>
                         </div>
                     </div>
                 </div>

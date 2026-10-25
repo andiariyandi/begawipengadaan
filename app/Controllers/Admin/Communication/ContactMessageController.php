@@ -20,6 +20,78 @@ class ContactMessageController extends BaseController
         $this->db = \Config\Database::connect();
     }
 
+    /**
+     * Handle optional file attachment upload for administrator replies.
+     */
+    private function handleAttachmentUpload(?int $actorId = null): ?array
+    {
+        $file = $this->request->getFile('attachment');
+        if (! $file || ! $file->isValid() || $file->hasMoved()) {
+            return null;
+        }
+
+        $allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'webp', 'zip', 'rar'];
+        $ext = strtolower((string) $file->getClientExtension());
+        if (! in_array($ext, $allowedExt, true)) {
+            throw new \RuntimeException('Format berkas lampiran tidak didukung. Gunakan PDF, Office, Gambar, atau ZIP.');
+        }
+
+        $mimeType = $file->getMimeType();
+        $disallowedMimes = ['application/x-php', 'text/x-php', 'application/x-httpd-php', 'application/x-sh', 'application/x-msdos-program', 'application/x-executable'];
+        if (in_array(strtolower($mimeType), $disallowedMimes, true) || str_contains($mimeType, 'php') || str_contains($mimeType, 'script')) {
+            throw new \RuntimeException('Tipe berkas tidak diizinkan demi alasan keamanan sistem.');
+        }
+
+        if ($file->getSize() > 10 * 1024 * 1024) {
+            throw new \RuntimeException('Ukuran berkas lampiran maksimal 1 MB.');
+        }
+
+        $origName = $file->getClientName();
+        $sizeBytes = (int) $file->getSize();
+        $newName = 'adm_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+
+        $targetDir = FCPATH . 'uploads/consultations';
+        if (! is_dir($targetDir)) {
+            @mkdir($targetDir, 0775, true);
+        }
+
+        $file->move($targetDir, $newName);
+
+        $sizeHuman = $sizeBytes >= 1048576
+            ? number_format($sizeBytes / 1048576, 2) . ' MB'
+            : number_format(max(1, $sizeBytes / 1024), 1) . ' KB';
+
+        $relativePath = 'uploads/consultations/' . $newName;
+        $fileAssetId = null;
+
+        try {
+            if ($this->db->tableExists('file_assets')) {
+                $this->db->table('file_assets')->insert([
+                    'storage_disk'  => 'public',
+                    'file_path'     => $relativePath,
+                    'original_name' => $origName,
+                    'mime_type'     => $mimeType,
+                    'file_size'     => $sizeBytes,
+                    'uploaded_by'   => $actorId ?: null,
+                    'created_at'    => date('Y-m-d H:i:s'),
+                ]);
+                $fileAssetId = (int) $this->db->insertID();
+            }
+        } catch (\Throwable) {
+        }
+
+        return [
+            'file_id'    => $fileAssetId,
+            'name'       => $origName,
+            'path'       => $relativePath,
+            'url'        => base_url($relativePath),
+            'ext'        => strtoupper($ext),
+            'mime'       => $mimeType,
+            'size_bytes' => $sizeBytes,
+            'size_human' => $sizeHuman,
+        ];
+    }
+
     public function index()
     {
         $status   = trim((string) $this->request->getGet('status'));
@@ -63,6 +135,29 @@ class ContactMessageController extends BaseController
         }
         unset($msg);
 
+        $assignedTo = trim((string) $this->request->getGet('assigned_to'));
+        $currentStaffName = (string) (session()->get('name') ?: '');
+
+        // Calculate assigned to me count
+        $allMessagesForCount = $this->messageModel->findAll();
+        $assignedToMeCount   = 0;
+        foreach ($allMessagesForCount as $mRow) {
+            $n = ContactMessageModel::parseAdminNotes($mRow['admin_notes'] ?? null);
+            if (! empty($n['assigned_to']) && ! empty($currentStaffName) && strcasecmp($n['assigned_to'], $currentStaffName) === 0) {
+                $assignedToMeCount++;
+            }
+        }
+
+        if ($assignedTo === 'me' && ! empty($currentStaffName)) {
+            $messages = array_values(array_filter($messages, static function ($m) use ($currentStaffName) {
+                return ! empty($m['assigned_to']) && strcasecmp($m['assigned_to'], $currentStaffName) === 0;
+            }));
+        } elseif ($assignedTo !== '' && $assignedTo !== 'me') {
+            $messages = array_values(array_filter($messages, static function ($m) use ($assignedTo) {
+                return ! empty($m['assigned_to']) && strcasecmp($m['assigned_to'], $assignedTo) === 0;
+            }));
+        }
+
         // Status counters
         $totalCount        = $this->messageModel->countAllResults(false);
         $unreadCount       = $this->messageModel->where('status', 'unread')->countAllResults(false);
@@ -79,6 +174,7 @@ class ContactMessageController extends BaseController
             ->distinct()
             ->get()->getResultArray();
 
+
         return view('dashboard/communication/inbox/index', [
             'title'             => 'Pesan Masuk & Ticketing Helpdesk | Dashboard BegawiPengadaan',
             'pageTitle'         => 'Pesan Masuk (Ticketing Helpdesk)',
@@ -88,6 +184,8 @@ class ContactMessageController extends BaseController
             'currentStatus'     => $status,
             'currentCategory'   => $category,
             'searchQuery'       => $search,
+            'assignedTo'        => $assignedTo,
+            'assignedToMeCount' => $assignedToMeCount,
             'totalCount'        => $totalCount,
             'unreadCount'       => $unreadCount,
             'inProgressCount'   => $inProgressCount,
@@ -132,11 +230,26 @@ class ContactMessageController extends BaseController
             ->get()->getRowArray();
 
         // Get administrator / operator staff list for assignment
-        $staffUsers = $this->db->table('users')
-            ->select('id, name, email, username')
-            ->where('account_status', 'active')
-            ->where('deleted_at IS NULL', null, false)
+        $staffUsers = $this->db->table('users u')
+            ->select('u.id, u.name, u.email, u.username')
+            ->join('user_roles ur', 'ur.user_id = u.id')
+            ->join('roles r', 'r.id = ur.role_id')
+            ->where('u.account_status', 'active')
+            ->where('u.deleted_at IS NULL', null, false)
+            ->groupStart()
+            ->whereIn('r.key', ['super_administrator', 'administrator', 'operator'])
+            ->orLike('r.key', 'admin_', 'after')
+            ->groupEnd()
+            ->groupBy('u.id')
+            ->orderBy('u.name', 'ASC')
             ->get()->getResultArray();
+
+
+
+
+
+
+
 
         return view('dashboard/communication/inbox/detail', [
             'title'         => 'Detail Tiket #' . ($message['ticket_number'] ?? $message['id']) . ' | Dashboard BegawiPengadaan',
@@ -161,7 +274,14 @@ class ContactMessageController extends BaseController
         $channel   = trim((string) $this->request->getPost('channel')) ?: 'portal';
         $newStatus = trim((string) $this->request->getPost('new_status')) ?: ContactMessageModel::STATUS_REPLIED;
 
-        if ($replyText === '') {
+        $uploadedAttachment = null;
+        try {
+            $uploadedAttachment = $this->handleAttachmentUpload((int) (session()->get('user_id') ?: 1));
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+
+        if ($replyText === '' && ! $uploadedAttachment) {
             return redirect()->back()->with('error', 'Isi pesan balasan tidak boleh kosong.');
         }
 
@@ -173,7 +293,8 @@ class ContactMessageController extends BaseController
             'sender_name' => $actorName,
             'sender_id'   => $actorId,
             'channel'     => $channel, // 'portal', 'email', 'whatsapp', 'internal'
-            'message'     => $replyText,
+            'message'     => $replyText ?: '[Melampirkan berkas pendukung]',
+            'attachments' => $uploadedAttachment ? [$uploadedAttachment] : [],
         ];
 
         // If internal note, status doesn't necessarily change to replied unless requested
@@ -266,7 +387,7 @@ class ContactMessageController extends BaseController
                     "Tiket konsultasi Anda telah diselesaikan dan ditutup oleh petugas helpdesk. Terima kasih atas kerja sama Anda.",
                     [
                         'ticket_number' => $message['ticket_number'],
-                        'url'           => site_url('workspace/konsultasi/' . $message['ticket_number']),
+                        'url'           => site_url('workspace/konsultasi/detail/' . $message['ticket_number']),
                     ]
                 );
             } catch (\Throwable $e) {

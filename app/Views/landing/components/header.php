@@ -360,27 +360,28 @@ if ($isLoggedIn && $headerUserId > 0) {
                 }).catch(() => {});
             }
 
-            // Native Desktop & Mobile Browser Notification Dispatcher (Android Chrome, Edge, Firefox, etc.)
+            // Native Desktop & Mobile Browser Notification Dispatcher (Windows 11 Action Center & Android Chrome)
             function triggerNativeBrowserNotification(notif) {
                 if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
                 const origin = window.location.origin || '';
-                const iconUrl = origin + '/assets/dashboard/images/favicon.png';
+                const iconUrl = origin + '/assets/main/images/favicons/android-chrome-192x192.png';
+                const badgeUrl = origin + '/assets/main/images/favicons/favicon-32x32.png';
                 const title = notif.title || 'BegawiPengadaan';
                 const targetUrl = notif.url || (origin + '/workspace/notifikasi');
                 const notifId = notif.id || Date.now();
-                // Unique tag with timestamp ensures Android NotificationManager NEVER suppresses consecutive alerts
-                const uniqueTag = 'bp-notif-' + notifId + '-' + Date.now();
+                const cleanTag = 'bp-notif-' + notifId;
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
                 const options = {
                     body: notif.body || 'Pemberitahuan baru di BegawiPengadaan.',
                     icon: iconUrl,
-                    badge: iconUrl,
-                    tag: uniqueTag,
+                    badge: badgeUrl,
+                    tag: cleanTag,
                     renotify: true,
-                    requireInteraction: false,
+                    requireInteraction: !isMobile, // Pinned on Windows 11 Action Center until user interacts
                     silent: false,
-                    vibrate: [300, 100, 300, 100, 300], // Vital for Android heads-up popup banner & vibration
+                    vibrate: [200, 100, 200], // Clean 2-pulse Android vibration, prevents Chrome spam heuristic
                     timestamp: Date.now(),
                     data: {
                         id: notifId,
@@ -388,39 +389,35 @@ if ($isLoggedIn && $headerUserId > 0) {
                     }
                 };
 
+                let dispatched = false;
+
+                // Priority 1: Service Worker showNotification (Mandatory for Android Chrome)
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistration().then(function(reg) {
                         if (reg && reg.showNotification) {
-                            if (reg.active) {
-                                try {
-                                    reg.active.postMessage({
-                                        type: 'SHOW_NOTIFICATION',
-                                        title: title,
-                                        options: options
-                                    });
-                                } catch (e) {}
-                            }
+                            dispatched = true;
                             return reg.showNotification(title, options);
-                        } else {
+                        } else if (isMobile) {
                             return navigator.serviceWorker.ready.then(function(readyReg) {
-                                if (readyReg.active) {
-                                    try {
-                                        readyReg.active.postMessage({
-                                            type: 'SHOW_NOTIFICATION',
-                                            title: title,
-                                            options: options
-                                        });
-                                    } catch (e) {}
-                                }
+                                dispatched = true;
                                 return readyReg.showNotification(title, options);
                             });
+                        } else {
+                            spawnDesktopNotification(title, options, notif, targetUrl);
                         }
                     }).catch(function(err) {
-                        console.debug('Service Worker showNotification fallback:', err);
-                        spawnDesktopNotification(title, options, notif, targetUrl);
+                        console.debug('Service Worker notification error:', err);
+                        if (!isMobile) spawnDesktopNotification(title, options, notif, targetUrl);
                     });
-                } else {
-                    spawnDesktopNotification(title, options, notif, targetUrl);
+                }
+
+                // Priority 2: Direct Notification Constructor for Windows 11 Desktop (Fast & Reliable)
+                if (!isMobile) {
+                    setTimeout(function() {
+                        if (!dispatched) {
+                            spawnDesktopNotification(title, options, notif, targetUrl);
+                        }
+                    }, 350);
                 }
             }
 

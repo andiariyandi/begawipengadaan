@@ -1,6 +1,12 @@
 <?= $this->extend('dashboard/auth/layouts/auth') ?>
 
 <?= $this->section('content') ?>
+<?php
+$loginNum1 = rand(2, 9);
+$loginNum2 = rand(1, 9);
+session()->set('login_captcha_answer', $loginNum1 + $loginNum2);
+$loginCaptchaQuestion = "{$loginNum1} + {$loginNum2}";
+?>
 <div class="mb-32">
     <a href="<?= site_url('/') ?>" class="mb-24 d-inline-block text-decoration-none">
         <span class="auth-brand-text">BegawiPengadaan</span>
@@ -46,6 +52,11 @@
 <form action="<?= site_url('dashboard/masuk') ?>" method="post">
     <?= csrf_field() ?>
 
+    <!-- Honeypot Anti-Bot Field -->
+    <div style="display:none !important;" aria-hidden="true">
+        <input type="text" name="website_url" tabindex="-1" autocomplete="off" value="">
+    </div>
+
     <div class="mb-20">
         <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="login-email">Alamat Email</label>
         <div class="icon-field">
@@ -90,11 +101,38 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-24">
+    <div class="d-flex justify-content-between align-items-center mb-20">
         <div class="form-check style-check d-flex align-items-center gap-2">
             <input class="form-check-input border border-neutral-300" type="checkbox" value="1" id="remember" name="remember">
             <label class="form-check-label text-sm text-secondary-light" for="remember">Ingat sesi saya</label>
         </div>
+    </div>
+
+    <!-- Simple Math Captcha Anti-Spam -->
+    <div class="p-16 bg-neutral-50 border border-neutral-200 radius-12 mb-24">
+        <div class="d-flex align-items-center justify-content-between mb-8">
+            <label class="form-label fw-semibold text-primary-light text-sm mb-0" for="login-captcha">
+                <iconify-icon icon="solar:shield-check-bold" class="text-primary-600 align-middle me-1"></iconify-icon>
+                Verifikasi Keamanan (Captcha) <span class="text-danger">*</span>
+            </label>
+            <span class="badge bg-primary-50 text-primary-600 border border-primary-200 font-monospace px-2 py-1 fs-6">
+                <?= $loginCaptchaQuestion ?> = ?
+            </span>
+        </div>
+        <div class="icon-field">
+            <span class="icon top-50 translate-middle-y">
+                <iconify-icon icon="solar:calculator-bold" class="text-lg text-secondary-light"></iconify-icon>
+            </span>
+            <input
+                type="number"
+                class="form-control h-52-px bg-white radius-8 ps-48 font-monospace"
+                id="login-captcha"
+                name="captcha_answer"
+                placeholder="Tulis hasil penjumlahan angka di atas..."
+                autocomplete="off"
+                required>
+        </div>
+        <small class="text-secondary-light text-2xs d-block mt-1">Hitung angka penjumlahan di atas untuk memverifikasi Anda bukan bot spam.</small>
     </div>
 
     <button type="submit" class="btn btn-primary text-sm fw-semibold px-12 py-16 w-100 radius-12 d-flex align-items-center justify-content-center gap-2 shadow-sm">

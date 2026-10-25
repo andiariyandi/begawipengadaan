@@ -78,6 +78,15 @@ if (! empty($threads) && $stageIndex < 3) {
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
+            <?php if (! $isClosed): ?>
+                <form action="<?= route_to('workspace.consultation.resolve', $ticket['ticket_number']) ?>" method="post" onsubmit="return confirm('Apakah Anda yakin konsultasi ini telah selesai dan ingin menutup tiket?');" class="d-inline">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-outline-success radius-8 px-3 py-2 text-sm d-inline-flex align-items-center gap-1 fw-semibold">
+                        <i class="fas fa-check-circle text-success me-1"></i>
+                        <span>Tandai Selesai</span>
+                    </button>
+                </form>
+            <?php endif; ?>
             <a href="<?= route_to('workspace.consultation.index') ?>" class="btn btn-outline-secondary radius-8 px-3 py-2 text-sm d-inline-flex align-items-center gap-1">
                 <i class="fas fa-arrow-left me-1"></i>
                 <span>Daftar Tiket</span>
@@ -223,12 +232,17 @@ if (! empty($threads) && $stageIndex < 3) {
                             <i class="fas fa-lock"></i>
                             <span>Tiket Konsultasi Telah Selesai &amp; Ditutup</span>
                         </div>
-                        <p class="text-muted text-xs mb-2">
+                        <p class="text-muted text-xs mb-3">
                             Seluruh percakapan di atas tersimpan sebagai arsip resmi. Jika Anda memiliki pertanyaan baru, silakan buat tiket konsultasi baru.
                         </p>
-                        <a href="<?= route_to('workspace.consultation.index') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3 fw-bold">
-                            <i class="fas fa-plus-circle me-1"></i> Buat Tiket Baru
-                        </a>
+                        <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
+                            <button type="button" class="btn btn-sm btn-warning text-dark radius-8 px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#modalSurveyKepuasan">
+                                <i class="fas fa-star text-dark me-1"></i> Beri Penilaian Layanan (IKM)
+                            </button>
+                            <a href="<?= route_to('workspace.consultation.index') ?>" class="btn btn-sm btn-outline-primary radius-8 px-3 fw-bold">
+                                <i class="fas fa-plus-circle me-1"></i> Buat Tiket Baru
+                            </a>
+                        </div>
                     </div>
                 <?php else: ?>
                     <?php if ($isClosed && $isAdmin): ?>
@@ -473,6 +487,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    <?php if (session()->getFlashdata('show_survey_modal')): ?>
+    const surveyModalEl = document.getElementById('modalSurveyKepuasan');
+    if (surveyModalEl && window.bootstrap) {
+        setTimeout(function () {
+            const sm = bootstrap.Modal.getOrCreateInstance(surveyModalEl);
+            sm.show();
+        }, 500);
+    }
+    <?php endif; ?>
 });
 </script>
 <?= $this->endSection() ?>

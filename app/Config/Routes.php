@@ -90,6 +90,21 @@ $routes->post('bookmark/toggle', 'BookmarkController::toggle', ['as' => 'public.
 // {token} adalah token klar hasil QR Code â€” di-hash (sha256) lalu di-lookup.
 $routes->get('verify/certificate/(:segment)', 'Landing\\CertificateVerificationController::detail/$1', ['as' => 'public.certificate.verify.qr']);
 
+// Friendly Root URL Aliases for Authentication
+$routes->get('masuk', static fn() => redirect()->to(site_url('dashboard/masuk')));
+$routes->get('login', static fn() => redirect()->to(site_url('dashboard/masuk')));
+$routes->get('daftar', static fn() => redirect()->to(site_url('dashboard/daftar')));
+$routes->get('register', static fn() => redirect()->to(site_url('dashboard/daftar')));
+$routes->get('lupa-kata-sandi', static fn() => redirect()->to(site_url('dashboard/lupa-kata-sandi')));
+$routes->get('lupa-password', static fn() => redirect()->to(site_url('dashboard/lupa-kata-sandi')));
+$routes->get('lupa-sandi', static fn() => redirect()->to(site_url('dashboard/lupa-kata-sandi')));
+
+// Backward-compatibility & direct reset links
+$routes->get('lupa-sandi/reset/(:segment)', '\App\Controllers\Dashboard\Auth\PasswordController::resetForm/$1');
+$routes->post('lupa-sandi/reset/(:segment)', '\App\Controllers\Dashboard\Auth\PasswordController::updatePassword/$1');
+$routes->get('reset-kata-sandi/(:segment)', '\App\Controllers\Dashboard\Auth\PasswordController::resetForm/$1');
+$routes->post('reset-kata-sandi/(:segment)', '\App\Controllers\Dashboard\Auth\PasswordController::updatePassword/$1');
+
 // Auth boundary is unified on App\Controllers\Dashboard\Auth â€” see dashboard group below.
 // Legacy App\Controllers\Auth namespace is no longer mounted.
 
@@ -106,6 +121,8 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->post('buat', 'ConsultationController::store', ['as' => 'workspace.consultation.store']);
         $routes->get('detail/(:segment)', 'ConsultationController::detail/$1', ['as' => 'workspace.consultation.detail']);
         $routes->post('detail/(:segment)/balas', 'ConsultationController::reply/$1', ['as' => 'workspace.consultation.reply']);
+        $routes->post('detail/(:segment)/selesai', 'ConsultationController::resolve/$1', ['as' => 'workspace.consultation.resolve']);
+        $routes->get('(:segment)', 'ConsultationController::detail/$1');
     });
     $routes->get('notifikasi', 'NotificationController::index', ['as' => 'workspace.notifications']);
     $routes->get('notifikasi-api/feed', 'NotificationController::feed', ['as' => 'workspace.notifications.feed']);
@@ -982,8 +999,9 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
     $routes->group('survei-kepuasan', ['namespace' => 'App\Controllers\Admin\Survey'], static function ($routes) {
         $routes->get('/', 'SatisfactionSurveyAdminController::index', ['as' => 'dashboard.survey.index']);
         $routes->get('hasil', 'SatisfactionSurveyAdminController::index');
+        $routes->get('export', 'SatisfactionSurveyAdminController::exportCsv', ['as' => 'dashboard.survey.export']);
         $routes->post('update-aspect/(:segment)', 'SatisfactionSurveyAdminController::updateAspect/$1', ['as' => 'dashboard.survey.aspect.update']);
-        $routes->match(['GET', 'POST'], 'hapus/(:segment)', 'SatisfactionSurveyAdminController::deleteResponse/$1', ['as' => 'dashboard.survey.response.delete']);
+        $routes->post('hapus/(:segment)', 'SatisfactionSurveyAdminController::deleteResponse/$1', ['as' => 'dashboard.survey.response.delete']);
     });
 
     $routes->group('sistem', static function ($routes) {

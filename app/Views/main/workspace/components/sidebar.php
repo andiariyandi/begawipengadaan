@@ -135,6 +135,12 @@ $renderLink = static function (string $label, ?string $url, string $icon, bool $
             . '<span class="d-flex align-items-center gap-2"><i class="' . esc($icon) . ' text-muted"></i> ' . esc($label) . '</span>'
             . '<small>Segera</small></span>';
     }
+    if (str_starts_with($url, '#')) {
+        return '<a class="' . $class . ' d-flex align-items-center justify-content-between" href="' . esc($url) . '" data-bs-toggle="modal" data-bs-target="' . esc($url) . '">'
+            . '<span class="d-flex align-items-center gap-2"><i class="' . esc($icon) . '"></i> ' . esc($label) . '</span>'
+            . $badgeHtml
+            . '</a>';
+    }
     return '<a class="' . $class . ' d-flex align-items-center justify-content-between" href="' . esc($url) . '">'
         . '<span class="d-flex align-items-center gap-2"><i class="' . esc($icon) . '"></i> ' . esc($label) . '</span>'
         . $badgeHtml
@@ -264,6 +270,7 @@ $personalGroup = [
     'title' => 'Fitur Personal & Helpdesk',
     'items' => [
         ['Konsultasi & Room Chat', route_to('workspace.consultation.index'), 'fas fa-comments', $wsTicketBadge, 'bg-info'],
+        ['Survei Kepuasan (IKM)', '#modalSurveyKepuasan', 'fas fa-star text-warning', null, 'bg-warning'],
         ['Bookmark Tersimpan', route_to('workspace.bookmarks.index'), 'fas fa-bookmark', null, 'bg-primary'],
         ['Pusat Notifikasi', route_to('workspace.notifications'), 'fas fa-bell', $wsUnreadCount, 'bg-danger'],
         ['Profil & Keamanan', route_to('workspace.profile.index'), 'fas fa-user-shield', null, 'bg-secondary'],

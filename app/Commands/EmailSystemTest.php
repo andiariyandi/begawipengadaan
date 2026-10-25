@@ -159,13 +159,43 @@ class EmailSystemTest extends BaseCommand
         $assert(str_contains($sidebarSource, "site_url('dashboard/komunikasi/email')"), "Menu 'Pusat Siaran Email' terpasang pada sidebar komunikasi dashboard");
 
         // ====================================================================
-        // [6] PASSWORD RESET INTEGRATION
+        // [6] PASSWORD RESET & APPROVAL ZERO AUTOMATED DISPATCH INTEGRATION
         // ====================================================================
-        CLI::write("\n--- [SCENARIO 6] Password Reset Email Integration ---", "cyan");
+        CLI::write("\n--- [SCENARIO 6] Password Reset & Approval Manual Queue Integration ---", "cyan");
 
         $pwSvcSource = (string) file_get_contents(APPPATH . 'Services/Identity/PasswordResetService.php');
         $assert(str_contains($pwSvcSource, "EmailService"), "PasswordResetService mengimpor EmailService");
-        $assert(str_contains($pwSvcSource, "sendPasswordReset"), "PasswordResetService memanggil method sendPasswordReset()");
+        $assert(str_contains($pwSvcSource, "queuePasswordReset"), "PasswordResetService memanggil queuePasswordReset() untuk kontrol manual admin");
+
+        $approvalSvcSource = (string) file_get_contents(APPPATH . 'Services/Admin/ProfileVerificationService.php');
+        $assert(str_contains($approvalSvcSource, "queueAccountApproved"), "ProfileVerificationService memanggil queueAccountApproved() untuk kontrol manual admin");
+
+        // ====================================================================
+        // [7] QUOTA TRACKING & ANTI-SPAM ALTMESSAGE
+        // ====================================================================
+        CLI::write("\n--- [SCENARIO 7] Gmail Daily Quota Tracking & AltMessage Anti-Spam ---", "cyan");
+
+        $quotaInfo = $emailService->getDailyQuotaInfo(500);
+        $assert(isset($quotaInfo['limit']) && $quotaInfo['limit'] === 500, "Limit kuota harian Google Mail diatur 500 email/hari");
+        $assert(isset($quotaInfo['sent']) && $quotaInfo['sent'] >= 0, "Penghitungan email terkirim 24 jam bergulir aktif (Terkirim: {$quotaInfo['sent']})");
+        $assert(isset($quotaInfo['remaining']) && $quotaInfo['remaining'] >= 0, "Sisa kuota aman terhitung dengan benar (Sisa: {$quotaInfo['remaining']})");
+
+        $emailSvcSource = (string) file_get_contents(APPPATH . 'Services/Email/EmailService.php');
+        $assert(str_contains($emailSvcSource, "setAltMessage"), "EmailService::sendDirect otomatis menyetel plaintext setAltMessage() untuk anti-spam score");
+        $assert(str_contains($emailSvcSource, "dispatch_mode"), "EmailService mengelola parameter dispatch_mode manual");
+
+        // ====================================================================
+        // [8] SPARK CLI WORKER COMMAND
+        // ====================================================================
+        CLI::write("\n--- [SCENARIO 8] Spark CLI Email Worker Command ---", "cyan");
+
+        $workerExists = file_exists(APPPATH . 'Commands/EmailWorker.php');
+        $assert($workerExists, "Berkas perintah CLI EmailWorker.php tersedia di app/Commands");
+        if ($workerExists) {
+            $workerSource = (string) file_get_contents(APPPATH . 'Commands/EmailWorker.php');
+            $assert(str_contains($workerSource, "email:worker"), "Nama perintah Spark CLI adalah email:worker");
+            $assert(str_contains($workerSource, "processReadyBatch"), "EmailWorker memanggil processReadyBatch()");
+        }
 
         // ====================================================================
         // SUMMARY

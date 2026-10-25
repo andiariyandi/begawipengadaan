@@ -365,22 +365,23 @@
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
         const origin = window.location.origin || '';
-        const iconUrl = origin + '/assets/dashboard/images/favicon.png';
+        const iconUrl = origin + '/assets/main/images/favicons/android-chrome-192x192.png';
+        const badgeUrl = origin + '/assets/main/images/favicons/favicon-32x32.png';
         const title = item.title || 'BegawiPengadaan Admin';
         const targetUrl = item.url || item.detail_url || (origin + '/dashboard/sistem/notifikasi');
         const notifId = item.id || Date.now();
-        // Unique tag with timestamp so Android NotificationManager NEVER suppresses consecutive alerts
-        const uniqueTag = 'bp-dash-notif-' + notifId + '-' + Date.now();
+        const cleanTag = 'bp-dash-notif-' + notifId;
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         const options = {
             body: item.body || 'Pemberitahuan baru pada sistem.',
             icon: iconUrl,
-            badge: iconUrl,
-            tag: uniqueTag,
+            badge: badgeUrl,
+            tag: cleanTag,
             renotify: true,
-            requireInteraction: false,
+            requireInteraction: !isMobile, // Pinned on Windows 11 Action Center until user interacts
             silent: false,
-            vibrate: [300, 100, 300, 100, 300], // Vital for Android heads-up popup banner & vibration
+            vibrate: [200, 100, 200], // Clean 2-pulse Android vibration, prevents Chrome spam heuristic
             timestamp: Date.now(),
             data: {
                 id: notifId,
@@ -388,39 +389,35 @@
             }
         };
 
+        let dispatched = false;
+
+        // Priority 1: Service Worker showNotification (Mandatory for Android Chrome)
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistration().then(function(reg) {
                 if (reg && reg.showNotification) {
-                    if (reg.active) {
-                        try {
-                            reg.active.postMessage({
-                                type: 'SHOW_NOTIFICATION',
-                                title: title,
-                                options: options
-                            });
-                        } catch (e) {}
-                    }
+                    dispatched = true;
                     return reg.showNotification(title, options);
-                } else {
+                } else if (isMobile) {
                     return navigator.serviceWorker.ready.then(function(readyReg) {
-                        if (readyReg.active) {
-                            try {
-                                readyReg.active.postMessage({
-                                    type: 'SHOW_NOTIFICATION',
-                                    title: title,
-                                    options: options
-                                });
-                            } catch (e) {}
-                        }
+                        dispatched = true;
                         return readyReg.showNotification(title, options);
                     });
+                } else {
+                    spawnAdminDesktopNotification(title, options, item, targetUrl);
                 }
             }).catch(function(err) {
                 console.debug('ServiceWorker admin showNotification fallback:', err);
-                spawnAdminDesktopNotification(title, options, item, targetUrl);
+                if (!isMobile) spawnAdminDesktopNotification(title, options, item, targetUrl);
             });
-        } else {
-            spawnAdminDesktopNotification(title, options, item, targetUrl);
+        }
+
+        // Priority 2: Direct Notification Constructor for Windows 11 Desktop (Fast & Reliable)
+        if (!isMobile) {
+            setTimeout(function() {
+                if (!dispatched) {
+                    spawnAdminDesktopNotification(title, options, item, targetUrl);
+                }
+            }, 350);
         }
     }
 

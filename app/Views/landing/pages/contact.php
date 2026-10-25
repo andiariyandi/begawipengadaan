@@ -189,6 +189,21 @@
                                 </div>
                                 <div class="p-2 bg-light rounded-2 text-dark small mb-3" style="white-space: pre-wrap;"><?= esc($trackedTicket['message']) ?></div>
 
+                                <?php $trackedAtts = $trackedTicket['parsed_notes']['attachments'] ?? []; ?>
+                                <?php if (! empty($trackedAtts)): ?>
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        <?php foreach ($trackedAtts as $tAtt): ?>
+                                            <a href="<?= esc($tAtt['url'] ?? '#') ?>" target="_blank" rel="noopener noreferrer" class="badge bg-light text-primary border text-2xs p-2 d-inline-flex align-items-center gap-1 text-decoration-none">
+                                                <i class="fas fa-paperclip"></i>
+                                                <span><?= esc($tAtt['name'] ?? 'Lampiran') ?></span>
+                                                <?php if (! empty($tAtt['size_human'])): ?>
+                                                    <small class="text-muted">(<?= esc($tAtt['size_human']) ?>)</small>
+                                                <?php endif; ?>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+
                                 <?php if (! empty($trackedTicket['public_threads'])): ?>
                                     <h6 class="fw-bold text-dark small mb-2"><i class="fas fa-comments text-success me-1"></i> Jawaban &amp; Percakapan Helpdesk:</h6>
                                     <div class="d-flex flex-column gap-2 mb-2">
@@ -256,8 +271,9 @@
                         </div>
                     <?php endif; ?>
 
-                    <form action="<?= site_url('kontak') ?>" method="post">
+                    <form action="<?= site_url('kontak') ?>" method="post" enctype="multipart/form-data">
                         <?= csrf_field() ?>
+                        <input type="text" name="website_url" style="display:none !important; position:absolute; left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
 
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -298,6 +314,22 @@
                             <div class="col-12">
                                 <label for="message" class="contact-label">Isi Pesan / Uraian Konsultasi *</label>
                                 <textarea id="message" name="message" class="contact-input" rows="5" placeholder="Tuliskan rincian pertanyaan atau permasalahan yang ingin Anda konsultasikan..." required><?= old('message') ?></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="attachment" class="contact-label">Lampiran Berkas Pendukung (Opsional)</label>
+                                <input type="file" id="attachment" name="attachment" class="contact-input form-control form-control-sm" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp,.zip,.rar">
+                                <small class="text-muted text-xs d-block mt-1">
+                                    <i class="fas fa-paperclip text-primary me-1"></i> Format berkas: PDF, Word, Excel, Gambar (JPG/PNG), atau ZIP (Maksimal 1 MB).
+                                </small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="captcha_answer" class="contact-label">
+                                    Verifikasi Keamanan (Captcha) *: <span class="badge bg-primary text-white ms-1 font-monospace px-2 py-1"><?= esc($captchaQuestion ?? '4 + 5') ?> = ?</span>
+                                </label>
+                                <input type="number" id="captcha_answer" name="captcha_answer" class="contact-input" placeholder="Tulis hasil penjumlahan..." required>
+                                <small class="text-muted text-2xs d-block mt-1">Hitung angka penjumlahan di atas untuk memverifikasi Anda bukan bot spam.</small>
                             </div>
 
                             <div class="col-12 mt-4">

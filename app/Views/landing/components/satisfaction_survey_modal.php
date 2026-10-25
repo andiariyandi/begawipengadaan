@@ -1,3 +1,31 @@
+<?php
+$isUserLoggedIn = session()->get('isLoggedIn') === true;
+$loggedUserName = trim((string) (session()->get('name') ?: session()->get('username') ?: ''));
+$loggedUserEmail = trim((string) (session()->get('email') ?: ''));
+$loggedUserPhone = trim((string) (session()->get('phone') ?: ''));
+$loggedUserAgency = trim((string) (session()->get('agency') ?: ''));
+$loggedUserRoles = (array) session()->get('roles');
+
+$defaultRoleVal = '';
+if ($isUserLoggedIn) {
+    if (in_array('penyedia', $loggedUserRoles, true) || in_array('vendor', $loggedUserRoles, true)) {
+        $defaultRoleVal = 'Penyedia Barang / Jasa (Vendor / Rekanan / UMKM)';
+    } elseif (in_array('super_administrator', $loggedUserRoles, true) || in_array('administrator', $loggedUserRoles, true) || in_array('operator', $loggedUserRoles, true)) {
+        $defaultRoleVal = 'Pokja Pemilihan / Biro Pengadaan UKPBJ';
+    } elseif (in_array('ppk', $loggedUserRoles, true)) {
+        $defaultRoleVal = 'Pejabat Pembuat Komitmen (PPK) / Pejabat Pengadaan';
+    } elseif (in_array('auditor', $loggedUserRoles, true) || in_array('apip', $loggedUserRoles, true)) {
+        $defaultRoleVal = 'Pengawas / APIP / Inspektorat / Auditor';
+    } else {
+        $defaultRoleVal = 'ASN OPD Perangkat Daerah Pemprov Lampung';
+    }
+}
+
+$surveyNum1 = rand(2, 9);
+$surveyNum2 = rand(1, 9);
+session()->set('survey_captcha_answer', $surveyNum1 + $surveyNum2);
+$surveyCaptchaQuestion = "{$surveyNum1} + {$surveyNum2}";
+?>
 <!-- Modal Survei Kepuasan Pengguna (IKM) -->
 <div class="modal fade modal-survey-kepuasan" id="modalSurveyKepuasan" tabindex="-1" aria-labelledby="modalSurveyKepuasanLabel" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
@@ -24,10 +52,23 @@
             <!-- Modal Body -->
             <div class="modal-body survey-modal-body">
                 
+                <!-- Alert Feedback (Error / Validation) -->
+                <div id="surveyAlertError" class="alert alert-danger d-none my-2 py-2 px-3 radius-8" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle me-2 fs-5"></i>
+                        <span id="surveyAlertErrorMessage" class="small">Terjadi kesalahan. Silakan periksa kembali formulir Anda.</span>
+                    </div>
+                </div>
+
                 <!-- STATE 1: BEFORE SUBMIT (FORM STATE) -->
                 <div id="surveyFormBeforeSubmit" class="survey-state survey-state--active">
                     <form id="surveyKepuasanForm" action="<?= site_url('survei-kepuasan') ?>" method="post">
                         <?= csrf_field() ?>
+
+                        <!-- Anti-Spam Honeypot Field (Invisible to real users) -->
+                        <div style="position: absolute; left: -9999px; opacity: 0; pointer-events: none;" aria-hidden="true">
+                            <input type="text" name="website_url" tabindex="-1" autocomplete="off" value="">
+                        </div>
 
                         <!-- 1. Kepuasan Keseluruhan (Rating Cards) -->
                         <div class="survey-step-box">
@@ -165,15 +206,22 @@
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label survey-field-label">Kategori / Peran Pengguna <span class="text-danger">*</span></label>
+                                    <?php
+                                    $roleOptions = [
+                                        'Pejabat Pembuat Komitmen (PPK) / Pejabat Pengadaan',
+                                        'Pokja Pemilihan / Biro Pengadaan UKPBJ',
+                                        'Penyedia Barang / Jasa (Vendor / Rekanan / UMKM)',
+                                        'Pengawas / APIP / Inspektorat / Auditor',
+                                        'ASN OPD Perangkat Daerah Pemprov Lampung',
+                                        'Akademisi / Mahasiswa / Peneliti',
+                                        'Masyarakat Umum / Pengguna Lainnya',
+                                    ];
+                                    ?>
                                     <select class="form-select survey-select ignore" name="respondent_role" id="surveyRespondentRole" required>
-                                        <option value="" selected disabled>-- Pilih Kategori / Peran Anda --</option>
-                                        <option value="Pejabat Pembuat Komitmen (PPK) / Pejabat Pengadaan">Pejabat Pembuat Komitmen (PPK) / Pejabat Pengadaan</option>
-                                        <option value="Pokja Pemilihan / Biro Pengadaan UKPBJ">Pokja Pemilihan / Biro Pengadaan UKPBJ</option>
-                                        <option value="Penyedia Barang / Jasa (Vendor / Rekanan / UMKM)">Penyedia Barang / Jasa (Vendor / Rekanan / UMKM)</option>
-                                        <option value="Pengawas / APIP / Inspektorat / Auditor">Pengawas / APIP / Inspektorat / Auditor</option>
-                                        <option value="ASN OPD Perangkat Daerah Pemprov Lampung">ASN OPD Perangkat Daerah Pemprov Lampung</option>
-                                        <option value="Akademisi / Mahasiswa / Peneliti">Akademisi / Mahasiswa / Peneliti</option>
-                                        <option value="Masyarakat Umum / Pengguna Lainnya">Masyarakat Umum / Pengguna Lainnya</option>
+                                        <option value="" <?= empty($defaultRoleVal) ? 'selected' : '' ?> disabled>-- Pilih Kategori / Peran Anda --</option>
+                                        <?php foreach ($roleOptions as $rOpt): ?>
+                                            <option value="<?= esc($rOpt) ?>" <?= ($defaultRoleVal === $rOpt) ? 'selected' : '' ?>><?= esc($rOpt) ?></option>
+                                        <?php endforeach; ?>
                                     </select>
                                     <div class="invalid-feedback">Silakan pilih kategori / peran Anda terlebih dahulu.</div>
                                 </div>
@@ -181,7 +229,7 @@
                                 <div class="col-12">
                                     <div class="survey-anonymous-toggle">
                                         <div class="form-check form-switch mb-0">
-                                            <input class="form-check-input" type="checkbox" id="surveyIsAnonymous" name="is_anonymous" value="1" checked>
+                                            <input class="form-check-input" type="checkbox" id="surveyIsAnonymous" name="is_anonymous" value="1" <?= $isUserLoggedIn ? '' : 'checked' ?>>
                                             <label class="form-check-label fw-semibold" for="surveyIsAnonymous">
                                                 <i class="fas fa-user-secret text-secondary me-1"></i> Kirim survei secara Anonim (Identitas dirahasiakan)
                                             </label>
@@ -190,19 +238,19 @@
                                 </div>
 
                                 <!-- Field Identitas (Collapsible when not anonymous) -->
-                                <div id="surveyIdentityFields" class="col-12 survey-identity-collapse d-none">
+                                <div id="surveyIdentityFields" class="col-12 survey-identity-collapse <?= $isUserLoggedIn ? '' : 'd-none' ?>">
                                     <div class="row g-3 p-3 rounded-3 bg-light border border-dashed">
                                         <div class="col-md-6">
                                             <label class="form-label survey-field-label">Nama Lengkap</label>
-                                            <input type="text" class="form-control" name="respondent_name" placeholder="Contoh: Budi Prasetyo, S.T.">
+                                            <input type="text" class="form-control" name="respondent_name" value="<?= esc($loggedUserName) ?>" placeholder="Contoh: Budi Prasetyo, S.T.">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label survey-field-label">Instansi / Perusahaan</label>
-                                            <input type="text" class="form-control" name="respondent_institution" placeholder="Contoh: PT Lampung Konstruksi Utama">
+                                            <input type="text" class="form-control" name="respondent_institution" value="<?= esc($loggedUserAgency) ?>" placeholder="Contoh: PT Lampung Konstruksi Utama">
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label survey-field-label">No. WhatsApp / Email (Opsional)</label>
-                                            <input type="text" class="form-control" name="respondent_contact" placeholder="Untuk konfirmasi tindak lanjut konsultasi jika berkenan">
+                                            <input type="text" class="form-control" name="respondent_contact" value="<?= esc($loggedUserEmail ?: $loggedUserPhone) ?>" placeholder="Untuk konfirmasi tindak lanjut konsultasi jika berkenan">
                                         </div>
                                     </div>
                                 </div>
@@ -237,7 +285,7 @@
                                 </div>
                             </div>
 
-                            <div>
+                            <div class="mb-3">
                                 <label class="form-label survey-field-label">Apakah Anda akan merekomendasikan BegawiPengadaan ke rekan kerja?</label>
                                 <div class="survey-recommend-options">
                                     <label class="survey-radio-card">
@@ -252,6 +300,28 @@
                                         <input type="radio" name="recommendation" value="Belum Tentu">
                                         <span class="survey-radio-label"><i class="fas fa-question-circle text-secondary me-1"></i> Belum Tentu</span>
                                     </label>
+                                </div>
+                            </div>
+
+                            <!-- Verifikasi Keamanan Anti-Spam (Simple Math Captcha) -->
+                            <div class="survey-captcha-box p-3 rounded-3 bg-light border border-primary-subtle mt-3">
+                                <div class="row align-items-center g-2">
+                                    <div class="col-md-7">
+                                        <label class="form-label survey-field-label d-flex align-items-center gap-2 mb-1" for="surveyCaptchaAnswer">
+                                            <i class="fas fa-shield-alt text-primary fs-5"></i>
+                                            <span class="fw-bold text-dark">Verifikasi Keamanan (Captcha Matematika) <span class="text-danger">*</span></span>
+                                        </label>
+                                        <small class="text-muted d-block">
+                                            Berapa hasil penjumlahan: <strong class="badge bg-primary text-white font-monospace fs-6 px-2 py-1 ms-1"><?= $surveyCaptchaQuestion ?> = ?</strong>
+                                        </small>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white text-primary border-end-0"><i class="fas fa-calculator"></i></span>
+                                            <input type="number" class="form-control font-monospace border-start-0" name="captcha_answer" id="surveyCaptchaAnswer" placeholder="Ketik hasil angka..." required autocomplete="off">
+                                            <div class="invalid-feedback">Silakan isi jawaban captcha dengan benar.</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -295,8 +365,10 @@
                         <div class="survey-receipt-card">
                             <div class="survey-receipt-header">
                                 <div class="d-flex align-items-center">
-                                    <img src="<?= base_url('assets/main/images/resources/logo-1.png') ?>" alt="BegawiPengadaan" class="survey-receipt-logo">
-                                    <div class="ms-2 text-start">
+                                    <div class="survey-receipt-logo-wrap d-flex align-items-center justify-content-center bg-primary text-white rounded-3 me-2" style="width: 40px; height: 40px; min-width: 40px;">
+                                        <i class="fas fa-award fs-5"></i>
+                                    </div>
+                                    <div class="text-start">
                                         <div class="fw-bold text-dark">Bukti Survei Kepuasan (IKM)</div>
                                         <small class="text-muted">Biro Pengadaan Barang & Jasa Provinsi Lampung</small>
                                     </div>
@@ -482,6 +554,16 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // 5.6 Captcha Input Validation Helper
+    const captchaInput = surveyForm ? surveyForm.querySelector('[name="captcha_answer"]') : null;
+    if (captchaInput) {
+        captchaInput.addEventListener('input', function () {
+            if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+            }
+        });
+    }
+
     // 6. Form Submission (AJAX with Fallback)
     if (surveyForm) {
         surveyForm.addEventListener('submit', function (e) {
@@ -495,10 +577,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            // Client-side validation: Captcha matematika wajib diisi
+            if (captchaInput && !captchaInput.value.trim()) {
+                captchaInput.classList.add('is-invalid');
+                captchaInput.focus();
+                captchaInput.reportValidity();
+                return;
+            }
+
             // UI Feedback: Button Loading
             if (submitBtn) submitBtn.disabled = true;
             if (submitSpinner) submitSpinner.classList.remove('d-none');
             if (submitIcon) submitIcon.classList.add('d-none');
+
+            hideErrorAlert();
 
             const formData = new FormData(surveyForm);
             const actionUrl = surveyForm.getAttribute('action') || window.location.origin + '/survei-kepuasan';
@@ -511,24 +603,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     'Accept': 'application/json'
                 }
             })
-            .then(res => res.json())
-            .then(data => {
+            .then(async res => {
+                let data = null;
+                try {
+                    data = await res.json();
+                } catch (jsonErr) {
+                    data = null;
+                }
+
+                if (!res.ok || !data || !data.success) {
+                    const errorMsg = (data && data.message) ? data.message : ('Gagal mengirim survei (Kode: ' + res.status + '). Silakan periksa kembali isian formulir.');
+                    showErrorAlert(errorMsg);
+                    return;
+                }
+
+                hideErrorAlert();
                 showSuccessState(data);
             })
             .catch(err => {
-                // If offline / fallback, simulate clean instant success
-                const currentRating = parseInt(ratingHidden.value, 10) || 5;
-                const roleSelect = surveyForm.querySelector('[name="respondent_role"]');
-                const selectedRole = roleSelect ? roleSelect.value : 'Penyedia Barang / Jasa';
-                const fakeTicket = 'IKM-' + (new Date()).getFullYear() + ('0' + ((new Date()).getMonth() + 1)).slice(-2) + ('0' + (new Date()).getDate()).slice(-2) + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-                
-                showSuccessState({
-                    success: true,
-                    ticket_number: fakeTicket,
-                    rating_overall: currentRating,
-                    respondent_role: selectedRole,
-                    submitted_at: new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeStyle: 'short' }).format(new Date()) + ' WIB'
-                });
+                showErrorAlert('Gagal terhubung ke server. Pastikan koneksi internet Anda aktif lalu coba kirim kembali.');
             })
             .finally(() => {
                 if (submitBtn) submitBtn.disabled = false;
@@ -536,6 +629,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (submitIcon) submitIcon.classList.remove('d-none');
             });
         });
+    }
+
+    function showErrorAlert(msg) {
+        const alertBox = document.getElementById('surveyAlertError');
+        const alertMsg = document.getElementById('surveyAlertErrorMessage');
+        if (alertBox && alertMsg) {
+            alertMsg.textContent = msg || 'Terjadi kesalahan pada formulir survei.';
+            alertBox.classList.remove('d-none');
+            alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    function hideErrorAlert() {
+        const alertBox = document.getElementById('surveyAlertError');
+        if (alertBox) {
+            alertBox.classList.add('d-none');
+        }
     }
 
     function showSuccessState(data) {
@@ -568,6 +678,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 7. Fill Again / Reset Button
     if (fillAgainBtn) {
         fillAgainBtn.addEventListener('click', function () {
+            hideErrorAlert();
             if (surveyForm) surveyForm.reset();
             // Reset emoji cards to 5
             emojiCards.forEach(c => c.classList.remove('active'));
@@ -576,6 +687,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (ratingHidden) ratingHidden.value = '5';
             if (identityFields) identityFields.classList.add('d-none');
             if (charCounter) charCounter.textContent = '0';
+            if (captchaInput) {
+                captchaInput.value = '';
+                captchaInput.classList.remove('is-invalid');
+            }
 
             if (successAfter) successAfter.classList.add('d-none');
             if (formBefore) {

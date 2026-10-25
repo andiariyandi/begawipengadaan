@@ -372,7 +372,7 @@ Pada 200 peserta dalam 3 kelas -> +/- 400+ query untuk satu render halaman. Vekt
 
 `submission_file`: **tidak ada** allowlist ekstensi, cek MIME, maupun batas ukuran (`isValid()` hanya memeriksa error PHP). Nama file acak dan penyimpanan di `writable/uploads/` (di luar webroot) sehingga risiko RCE rendah, tetapi tetap memungkinkan penyimpanan berkas sembarang plus habisnya resource (php.ini mengizinkan 128 MB).
 
-**Remediasi.** Allowlist `pdf,doc,docx,xls,xlsx,ppt,pptx,zip`; verifikasi MIME server-side via `getMimeType()`; batas 10 MB; pindahkan ke `FileStorageService`.
+**Remediasi.** Allowlist `pdf,doc,docx,xls,xlsx,ppt,pptx,zip`; verifikasi MIME server-side via `getMimeType()`; batas 1 MB; pindahkan ke `FileStorageService`.
 
 ---
 

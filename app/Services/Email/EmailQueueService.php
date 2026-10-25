@@ -413,6 +413,14 @@ class EmailQueueService
      */
     public function processItem(int $id): array
     {
+        $quota = $this->emailService->getDailyQuotaInfo(500);
+        if ($quota['remaining'] <= 0) {
+            return [
+                'success' => false,
+                'message' => 'Batas kuota harian Google Mail (500 email/24 jam) telah tercapai. Pengiriman ditangguhkan demi keamanan akun.',
+            ];
+        }
+
         $item = $this->db->table('notifications')
             ->where('id', $id)
             ->where('channel', 'email')
@@ -476,6 +484,18 @@ class EmailQueueService
      */
     public function processReadyBatch(int $limit = 25): array
     {
+        $quota = $this->emailService->getDailyQuotaInfo(500);
+        if ($quota['remaining'] <= 0) {
+            return [
+                'processed' => 0,
+                'success'   => 0,
+                'failed'    => 0,
+                'errors'    => ['Batas kuota harian Google Mail (500 email/24 jam) telah tercapai. Pengiriman ditangguhkan demi keamanan akun.'],
+                'message'   => 'Batas kuota harian Google Mail tercapai.',
+            ];
+        }
+
+        $limit = min($limit, $quota['remaining']);
         $now = date('Y-m-d H:i:s');
 
         // Fetch up to $limit pending or due items

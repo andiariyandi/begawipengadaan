@@ -111,6 +111,39 @@ class RegisterController extends BaseController
         ],
     ];
 
+    /**
+     * Enkripsi data sensitif (password) selama tersimpan di session wizard.
+     */
+    private function encryptSecret(string $plain): string
+    {
+        if ($plain === '') {
+            return '';
+        }
+        $key = hash('sha256', (string) (config('App')->baseURL ?? 'BegawiPengadaanAuthSalt2026'));
+        $iv = openssl_random_pseudo_bytes(16);
+        $cipher = openssl_encrypt($plain, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+        return base64_encode($iv . $cipher);
+    }
+
+    /**
+     * Dekripsi data sensitif (password) dari session wizard.
+     */
+    private function decryptSecret(string $encrypted): string
+    {
+        if ($encrypted === '') {
+            return '';
+        }
+        $key = hash('sha256', (string) (config('App')->baseURL ?? 'BegawiPengadaanAuthSalt2026'));
+        $data = base64_decode($encrypted, true);
+        if ($data === false || strlen($data) < 17) {
+            return $encrypted;
+        }
+        $iv = substr($data, 0, 16);
+        $cipher = substr($data, 16);
+        $plain = openssl_decrypt($cipher, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+        return $plain !== false ? $plain : $encrypted;
+    }
+
     private function registry(?string $profileType = null): array
     {
         if ($profileType === null) {
@@ -212,9 +245,12 @@ class RegisterController extends BaseController
             'username'     => trim((string) ($data['username'] ?? '')),
             'email'        => trim((string) ($data['email'] ?? '')),
             'phone'        => trim((string) ($data['phone'] ?? '')),
-            'password'     => (string) ($data['password'] ?? ''),
+            'password_enc' => $this->encryptSecret((string) ($data['password'] ?? '')),
             'profile_type' => $profileType,
         ];
+
+        // Pastikan password mentah tidak tersimpan dalam session
+        unset($existing['password']);
 
         foreach ($incoming as $key => $value) {
             $existing[$key] = $value;
@@ -431,6 +467,7 @@ class RegisterController extends BaseController
             }
         }
 
+        // Validasi field wajib sesuai registry profil
         $missing = [];
         foreach ($cfg['required'] as $requiredKey) {
             $value = $sanitized[$requiredKey] ?? null;
@@ -447,6 +484,36 @@ class RegisterController extends BaseController
             return redirect()->to(site_url('dashboard/daftar/profil/' . $cfg['segment']))
                 ->withInput()
                 ->with('errors', ['Field berikut wajib diisi: ' . implode(', ', $missing)]);
+        }
+
+        // Validasi format NIK jika ada input NIK (16 digit angka)
+        if (! empty($sanitized['nik'])) {
+            $nikVal = trim((string) $sanitized['nik']);
+            if (! ctype_digit($nikVal) || strlen($nikVal) !== 16) {
+                return redirect()->to(site_url('dashboard/daftar/profil/' . $cfg['segment']))
+                    ->withInput()
+                    ->with('error', 'Format Nomor Induk Kependudukan (NIK) harus berupa 16 digit angka.');
+            }
+        }
+
+        // Validasi format NIB jika ada input NIB (13 digit angka)
+        if (! empty($sanitized['nib'])) {
+            $nibVal = trim((string) $sanitized['nib']);
+            if (! ctype_digit($nibVal) || strlen($nibVal) !== 13) {
+                return redirect()->to(site_url('dashboard/daftar/profil/' . $cfg['segment']))
+                    ->withInput()
+                    ->with('error', 'Format Nomor Induk Berusaha (NIB) harus berupa 13 digit angka.');
+            }
+        }
+
+        // Validasi format NIP / NIPPK jika ada input (18 s.d. 21 digit angka)
+        if (! empty($sanitized['nip_nippk'])) {
+            $nipVal = trim((string) $sanitized['nip_nippk']);
+            if (! ctype_digit($nipVal) || strlen($nipVal) < 18 || strlen($nipVal) > 21) {
+                return redirect()->to(site_url('dashboard/daftar/profil/' . $cfg['segment']))
+                    ->withInput()
+                    ->with('error', 'Format NIP / NIPPK harus berupa angka dengan panjang 18 sampai 21 digit.');
+            }
         }
 
         session()->set('registration_profile', [
@@ -552,6 +619,31 @@ class RegisterController extends BaseController
                 ->with('error', 'Data pendaftaran tidak lengkap. Silakan ulangi dari langkah pertama.');
         }
 
+        // 1. Anti-spam: Proteksi Honeypot
+        $honeypot = trim((string) $this->request->getPost('website_url'));
+        if ($honeypot !== '') {
+            log_message('warning', '[RegisterBotSpam] Honeypot terisi dari IP: ' . $this->request->getIPAddress());
+            return redirect()->to(site_url('dashboard/masuk'))
+                ->with('error', 'Aktivitas otomatis mencurigakan terdeteksi.');
+        }
+
+        // 2. Anti-spam: Verifikasi Simple Math Captcha
+        $captchaAnswer   = trim((string) $this->request->getPost('register_captcha_answer'));
+        $expectedCaptcha = session('register_captcha_answer');
+        if ($expectedCaptcha === null || (int) $captchaAnswer !== (int) $expectedCaptcha) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Verifikasi keamanan (hasil penjumlahan) tidak tepat. Silakan hitung kembali.');
+        }
+
+        // 3. Anti-spam: Dual-Tier Rate Limiting (5 submit / 5 menit per IP)
+        $throttler = service('throttler');
+        $ipKey     = 'auth_register_' . md5($this->request->getIPAddress());
+        if (! $throttler->check($ipKey, 5, 300)) {
+            return redirect()->back()
+                ->with('error', 'Terlalu banyak percobaan pengiriman pendaftaran. Silakan tunggu beberapa saat.');
+        }
+
         if (! $this->request->getPost('terms') || ! $this->request->getPost('privacy')) {
             return redirect()->back()
                 ->with('error', 'Anda harus menyetujui Syarat Penggunaan dan Kebijakan Privasi.');
@@ -577,12 +669,17 @@ class RegisterController extends BaseController
 
         $profileFields = is_array($profile['fields'] ?? null) ? $profile['fields'] : [];
 
+        // Dekripsi password aman dari session
+        $plainPassword = ! empty($data['password_enc'])
+            ? $this->decryptSecret((string) $data['password_enc'])
+            : (string) ($data['password'] ?? '');
+
         $payload = [
             'name'          => trim((string) ($data['full_name'] ?? '')),
             'username'      => trim((string) ($data['username'] ?? '')),
             'email'         => trim((string) ($data['email'] ?? '')),
             'phone'         => trim((string) ($data['phone'] ?? '')),
-            'password'      => (string) ($data['password'] ?? ''),
+            'password'      => $plainPassword,
             'profile_type'  => $cfg['profile_type'],
             'address_line'  => trim((string) ($address['address'] ?? '')),
             'province_code' => $province,
@@ -594,8 +691,7 @@ class RegisterController extends BaseController
 
         log_message('debug', '[Register payload] profile_type=' . $cfg['profile_type']
             . ' table=' . $cfg['table']
-            . ' profile_keys=' . json_encode(array_keys($profileFields), JSON_UNESCAPED_UNICODE)
-            . ' payload=' . json_encode($payload, JSON_UNESCAPED_UNICODE));
+            . ' profile_keys=' . json_encode(array_keys($profileFields), JSON_UNESCAPED_UNICODE));
 
         try {
             (new RegistrationService())->register($payload);
@@ -603,10 +699,10 @@ class RegisterController extends BaseController
             log_message('error', '[Register] submit failed: ' . $e->getMessage());
 
             return redirect()->back()
-                ->with('error', 'Pendaftaran gagal diproses. Silakan periksa kembali data Anda.');
+                ->with('error', 'Pendaftaran gagal diproses: ' . $e->getMessage());
         }
 
-        session()->remove(['registration_data', 'registration_address', 'registration_profile']);
+        session()->remove(['registration_data', 'registration_address', 'registration_profile', 'register_captcha_answer']);
 
         return redirect()->to(site_url('dashboard/daftar/berhasil'))
             ->with('message', 'Pendaftaran berhasil dikirim. Mohon tunggu proses verifikasi Operator/Admin.');

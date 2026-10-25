@@ -71,7 +71,7 @@ $value = static fn(string $key): string => esc($old[$key] ?? $registrationAddres
     </div>
 
     <div class="mb-24">
-        <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="address">Alamat Ringkas</label>
+        <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="address">Alamat Ringkas <span class="text-danger">*</span></label>
         <textarea class="form-control bg-neutral-50 radius-12" id="address" name="address" rows="3" placeholder="Nama jalan, nomor, RT/RW, lingkungan, atau keterangan domisili"><?= $value('address') ?></textarea>
     </div>
 
