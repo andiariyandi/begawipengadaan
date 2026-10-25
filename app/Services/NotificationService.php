@@ -182,6 +182,12 @@ class NotificationService
             }
         }
 
+        $isAdminFull = in_array('super_administrator', $roles, true)
+            || in_array('administrator', $roles, true);
+
+        $isAdminPembelajaran = in_array('admin_arenabelajar', $roles, true);
+        $isAdminEvent        = in_array('admin_event', $roles, true);
+
         $hasPrefixAdmin = false;
         foreach ($roles as $r) {
             if (str_starts_with((string) $r, 'admin_')) {
@@ -190,31 +196,85 @@ class NotificationService
             }
         }
 
-        $isAdmin = in_array('super_administrator', $roles, true)
-            || in_array('administrator', $roles, true)
-            || $hasPrefixAdmin
-            || (bool) session()->get('dashboard_access');
-
         $isOperator = in_array('operator', $roles, true);
         $isTrainer  = in_array('trainer', $roles, true);
 
         $channels = [];
 
-        if ($isAdmin) {
+        if ($isAdminFull) {
             // Super Admin & Admin memiliki wewenang memantau seluruh kanal berbagi pakai
             $channels[] = 'shared:%';
-        } elseif ($isOperator) {
-            // Operator berwenang pada verifikasi user, perubahan profil, helpdesk, serta kelas & event
-            $channels[] = 'shared:admin_operator';
-            $channels[] = 'shared:helpdesk';
-            $channels[] = 'shared:class:%';
-            $channels[] = 'shared:event:%';
-        } elseif ($isTrainer) {
-            // Trainer berwenang pada operasional kelas pembelajaran
-            $channels[] = 'shared:class:%';
+        } else {
+            if ($isAdminPembelajaran) {
+                // Admin Pembelajaran berwenang memantau seluruh kanal kelas pembelajaran
+                $channels[] = 'shared:class:%';
+            }
+            if ($isAdminEvent) {
+                // Admin Event berwenang memantau seluruh kanal agenda & event
+                $channels[] = 'shared:event:%';
+            }
+            if ($hasPrefixAdmin && ! $isAdminPembelajaran && ! $isAdminEvent) {
+                // Admin modular lainnya memiliki hak kanal dashboard modular
+                $channels[] = 'shared:%';
+            }
+
+            // Cakupan Penugasan untuk Operator (Assigned Classes & Assigned Events Only)
+            if ($isOperator) {
+                try {
+                    $assignedClasses = $this->db->table('class_trainers')
+                        ->select('class_id')
+                        ->where(['user_id' => $userId, 'status' => 'active'])
+                        ->get()->getResultArray();
+                    foreach ($assignedClasses as $ac) {
+                        $channels[] = 'shared:class:' . (int) $ac['class_id'];
+                    }
+
+                    $assignedEvents = $this->db->table('event_registrations')
+                        ->select('event_id')
+                        ->where('user_id', $userId)
+                        ->whereIn('status', ['operator', 'trainer', 'speaker'])
+                        ->get()->getResultArray();
+                    foreach ($assignedEvents as $ae) {
+                        $channels[] = 'shared:event:' . (int) $ae['event_id'];
+                    }
+
+                    $createdEvents = $this->db->table('events')
+                        ->select('id')
+                        ->where('created_by', $userId)
+                        ->where('deleted_at IS NULL')
+                        ->get()->getResultArray();
+                    foreach ($createdEvents as $ce) {
+                        $channels[] = 'shared:event:' . (int) $ce['id'];
+                    }
+                } catch (\Throwable) {
+                }
+            }
+
+            // Cakupan Penugasan untuk Trainer (Assigned Classes & Assigned Events Only)
+            if ($isTrainer && ! $isAdminPembelajaran) {
+                try {
+                    $assignedClasses = $this->db->table('class_trainers')
+                        ->select('class_id')
+                        ->where(['user_id' => $userId, 'status' => 'active'])
+                        ->get()->getResultArray();
+                    foreach ($assignedClasses as $ac) {
+                        $channels[] = 'shared:class:' . (int) $ac['class_id'];
+                    }
+
+                    $assignedEvents = $this->db->table('event_registrations')
+                        ->select('event_id')
+                        ->where('user_id', $userId)
+                        ->whereIn('status', ['trainer', 'speaker'])
+                        ->get()->getResultArray();
+                    foreach ($assignedEvents as $ae) {
+                        $channels[] = 'shared:event:' . (int) $ae['event_id'];
+                    }
+                } catch (\Throwable) {
+                }
+            }
         }
 
-        return $channels;
+        return array_values(array_unique($channels));
     }
 
     /**
@@ -228,8 +288,8 @@ class NotificationService
             // Pengguna reguler/peserta hanya melihat notifikasi personal miliknya
             $builder->where('notifications.user_id', $userId)
                 ->groupStart()
-                    ->where('notifications.channel NOT LIKE', 'shared:%')
-                    ->orWhere('notifications.channel IS NULL')
+                ->where('notifications.channel NOT LIKE', 'shared:%')
+                ->orWhere('notifications.channel IS NULL')
                 ->groupEnd();
         } else {
             // Pengguna dengan hak akses khusus (Admin, Operator, Trainer) melihat notifikasi personal + pool bersama

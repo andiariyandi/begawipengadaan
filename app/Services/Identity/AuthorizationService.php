@@ -60,7 +60,7 @@ class AuthorizationService
 
     /**
      * Memeriksa apakah pengguna memiliki peran dinamis dengan format/prefix admin_{...}
-     * Contoh: admin_regulasi, admin_pembelajaran, admin_berita, admin_sertifikat, dll.
+     * Contoh: admin_regulasi, admin_arenabelajar, admin_berita, admin_sertifikat, dll.
      */
     public function isPrefixAdmin(?array $userRoles = null): bool
     {
@@ -123,6 +123,9 @@ class AuthorizationService
         // Pemetaan domain & alias bahasa Indonesia ke rute dashboard kanonik
         $moduleMappings = [
             'pembelajaran'  => 'dashboard/pembelajaran',
+            'arenabelajar'  => 'dashboard/pembelajaran',
+            'arena_belajar' => 'dashboard/pembelajaran',
+            'belajar'       => 'dashboard/pembelajaran',
             'learning'      => 'dashboard/pembelajaran',
             'lms'           => 'dashboard/pembelajaran',
             'regulasi'      => 'dashboard/regulasi/dokumen',

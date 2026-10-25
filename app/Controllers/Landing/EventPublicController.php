@@ -647,7 +647,7 @@ class EventPublicController extends BaseController
                     'event_id'        => (int) $event['id'],
                     'registration_id' => $newRegId,
                     'user_id'         => $userId,
-                    'url'             => site_url('workspace/operator/operasional-event'),
+                    'url'             => route_to('workspace.operator.events.participants', (string) $event['id']),
                 ],
                 $userId
             );

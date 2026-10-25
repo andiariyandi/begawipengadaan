@@ -515,11 +515,11 @@ class TrainerController extends BaseController
             ->where('q.class_id', $classIdInt)
             ->where('q.status', 'published')
             ->groupStart()
-                ->where('q.lesson_id IS NULL', null, false)
-                ->orGroupStart()
-                    ->where('l.status', 'published')
-                    ->where('m.status', 'published')
-                ->groupEnd()
+            ->where('q.lesson_id IS NULL', null, false)
+            ->orGroupStart()
+            ->where('l.status', 'published')
+            ->where('m.status', 'published')
+            ->groupEnd()
             ->groupEnd()
             ->orderBy('q.type', 'ASC')
             ->orderBy('q.id', 'ASC')
@@ -532,11 +532,11 @@ class TrainerController extends BaseController
             ->where('a.class_id', $classIdInt)
             ->where('a.status', 'published')
             ->groupStart()
-                ->where('a.lesson_id IS NULL', null, false)
-                ->orGroupStart()
-                    ->where('l.status', 'published')
-                    ->where('m.status', 'published')
-                ->groupEnd()
+            ->where('a.lesson_id IS NULL', null, false)
+            ->orGroupStart()
+            ->where('l.status', 'published')
+            ->where('m.status', 'published')
+            ->groupEnd()
             ->groupEnd()
             ->orderBy('a.id', 'ASC')
             ->get()->getResultArray();
@@ -2632,7 +2632,7 @@ class TrainerController extends BaseController
     private function isUnrestrictedAdmin(): bool
     {
         $roles = (array) session()->get('roles');
-        return array_intersect(['administrator', 'super_administrator', 'admin_pembelajaran'], $roles) !== [];
+        return array_intersect(['administrator', 'super_administrator', 'admin_arenabelajar'], $roles) !== [];
     }
 
     private function assertTrainerOf(int $userId, int $classId): void

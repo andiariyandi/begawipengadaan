@@ -69,7 +69,7 @@ class RbacDoubleRoleTest extends BaseCommand
         $trainerRedirect = $simulateLoginRedirect(['trainer']);
         $assert(str_ends_with($trainerRedirect, 'workspace'), "Trainer login direct ke Workspace (/workspace)");
 
-        $pembelajaranRedirect = $simulateLoginRedirect(['admin_pembelajaran']);
+        $pembelajaranRedirect = $simulateLoginRedirect(['admin_arenabelajar']);
         $assert(str_ends_with($pembelajaranRedirect, 'workspace'), "Admin Pembelajaran login direct ke Workspace (/workspace)");
 
         $eventRedirect = $simulateLoginRedirect(['admin_event']);
@@ -88,7 +88,7 @@ class RbacDoubleRoleTest extends BaseCommand
 
         $assert($authService->hasDashboardAccess(null, ['super_administrator']) === true, "Super Administrator berhak mengakses Dashboard");
         $assert($authService->hasDashboardAccess(null, ['administrator']) === true, "Administrator berhak mengakses Dashboard");
-        $assert($authService->hasDashboardAccess(null, ['admin_pembelajaran']) === true, "admin_pembelajaran berhak mengakses Dashboard");
+        $assert($authService->hasDashboardAccess(null, ['admin_arenabelajar']) === true, "admin_arenabelajar berhak mengakses Dashboard");
         $assert($authService->hasDashboardAccess(null, ['admin_event']) === true, "admin_event berhak mengakses Dashboard");
         $assert($authService->hasDashboardAccess(null, ['admin_regulasi']) === true, "admin_regulasi berhak mengakses Dashboard");
         $assert($authService->hasDashboardAccess(null, ['operator']) === false, "Operator DITOLAK dari Dashboard (Steril)");
@@ -100,8 +100,8 @@ class RbacDoubleRoleTest extends BaseCommand
         // -----------------------------------------------------------------
         CLI::write("\n--- [TEST 3] Dynamic Modular Route Mappings ---", "cyan");
 
-        $routePembelajaran = $authService->getFirstAllowedDashboardRoute([], ['admin_pembelajaran']);
-        $assert($routePembelajaran === 'dashboard/pembelajaran', "admin_pembelajaran memetakan ke 'dashboard/pembelajaran' (hasil: {$routePembelajaran})");
+        $routePembelajaran = $authService->getFirstAllowedDashboardRoute([], ['admin_arenabelajar']);
+        $assert($routePembelajaran === 'dashboard/pembelajaran', "admin_arenabelajar memetakan ke 'dashboard/pembelajaran' (hasil: {$routePembelajaran})");
 
         $routeEvent = $authService->getFirstAllowedDashboardRoute([], ['admin_event']);
         $assert($routeEvent === 'dashboard/komunikasi/event-agenda', "admin_event memetakan ke 'dashboard/komunikasi/event-agenda' (hasil: {$routeEvent})");
@@ -151,7 +151,7 @@ class RbacDoubleRoleTest extends BaseCommand
         // Case C: Admin Pembelajaran
         session()->set([
             'user_id'        => 302,
-            'roles'          => ['admin_pembelajaran', 'peserta'],
+            'roles'          => ['admin_arenabelajar', 'peserta'],
             'isLoggedIn'     => true,
             'account_status' => 'active',
             'name'           => 'Admin Arena Belajar',
@@ -240,8 +240,8 @@ class RbacDoubleRoleTest extends BaseCommand
         $assert($hasFullEventMethod->invoke($opController) === false, "Operator murni TIDAK memiliki Full Event Scope (Assigned Only)");
 
         // Admin Pembelajaran has full class scope
-        session()->set(['roles' => ['admin_pembelajaran']]);
-        $assert($hasFullClassMethod->invoke($opController) === true, "admin_pembelajaran MEMILIKI Full Class Scope (Seluruh Kelas)");
+        session()->set(['roles' => ['admin_arenabelajar']]);
+        $assert($hasFullClassMethod->invoke($opController) === true, "admin_arenabelajar MEMILIKI Full Class Scope (Seluruh Kelas)");
 
         // Admin Event has full event scope
         session()->set(['roles' => ['admin_event']]);

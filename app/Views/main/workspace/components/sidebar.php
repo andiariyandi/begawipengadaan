@@ -1,7 +1,7 @@
 <?php
 $currentPath = trim(service('uri')->getPath(), '/');
 $roles = (array) session()->get('roles');
-$hasRole = static fn (string $role): bool => in_array($role, $roles, true);
+$hasRole = static fn(string $role): bool => in_array($role, $roles, true);
 
 // Evaluasi seluruh peran aktif pengguna
 $prefixAdminRoles = [];
@@ -14,7 +14,7 @@ foreach ($roles as $r) {
 
 $isSuperAdmin        = $hasRole('super_administrator');
 $isAdmin             = $isSuperAdmin || $hasRole('administrator');
-$isAdminPembelajaran = in_array('admin_pembelajaran', $prefixAdminRoles, true);
+$isAdminPembelajaran = in_array('admin_arenabelajar', $prefixAdminRoles, true);
 $isAdminEvent        = in_array('admin_event', $prefixAdminRoles, true);
 $isOperator          = $hasRole('operator');
 $isTrainer           = $hasRole('trainer');
@@ -283,11 +283,11 @@ $menuGroups[] = $personalGroup;
 
         <!-- Mobile Toggle Button (Visible only on screens < lg) -->
         <button class="btn btn-outline-primary btn-sm w-100 d-lg-none mt-3 mb-2 rounded-pill d-flex align-items-center justify-content-between px-3"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#wsSidebarMenuCollapse"
-                aria-expanded="false"
-                aria-controls="wsSidebarMenuCollapse">
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#wsSidebarMenuCollapse"
+            aria-expanded="false"
+            aria-controls="wsSidebarMenuCollapse">
             <span class="fw-semibold"><i class="fas fa-bars me-2"></i> Menu Navigasi Workspace</span>
             <?php if ($wsUnreadCount > 0): ?>
                 <span class="badge bg-danger rounded-pill me-2"><?= $wsUnreadCount ?></span>
