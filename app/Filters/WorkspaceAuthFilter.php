@@ -88,18 +88,25 @@ class WorkspaceAuthFilter implements FilterInterface
         $path = trim($uri->getPath(), '/');
         $path = preg_replace('#^index\.php/?#', '', $path) ?? $path;
 
-        // 1. /workspace/operator/*
+        // 1. /workspace/operator/* (Operator, Administrator, Super Administrator, serta peran modular admin_{...})
         if (str_starts_with($path, 'workspace/operator')) {
             $allowed = ['operator', 'administrator', 'super_administrator'];
-            if (empty(array_intersect($allowed, $effectiveRoles))) {
+            $hasPrefixAdmin = false;
+            foreach ($effectiveRoles as $r) {
+                if (str_starts_with(strtolower(trim((string) $r)), 'admin_')) {
+                    $hasPrefixAdmin = true;
+                    break;
+                }
+            }
+            if (empty(array_intersect($allowed, $effectiveRoles)) && ! $hasPrefixAdmin) {
                 return redirect()->to(site_url('workspace'))
-                    ->with('error', 'Akses ditolak: Anda tidak memiliki wewenang Operator.');
+                    ->with('error', 'Akses ditolak: Anda tidak memiliki wewenang Operator / Pengelola.');
             }
         }
 
-        // 2. /workspace/trainer/* (Termasuk Operator yang bertugas sebagai Asisten Trainer pada kelas yang ditugaskan)
+        // 2. /workspace/trainer/* (Pengajar, Asisten Trainer/Operator pada kelas ditugaskan, serta Admin Pembelajaran)
         if (str_starts_with($path, 'workspace/trainer')) {
-            $allowed = ['trainer', 'operator', 'administrator', 'super_administrator'];
+            $allowed = ['trainer', 'operator', 'administrator', 'super_administrator', 'admin_pembelajaran'];
             if (empty(array_intersect($allowed, $effectiveRoles))) {
                 return redirect()->to(site_url('workspace'))
                     ->with('error', 'Akses ditolak: Anda tidak memiliki wewenang Pengajar / Asisten Trainer.');

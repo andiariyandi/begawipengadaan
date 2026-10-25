@@ -57,15 +57,27 @@ class OperatorController extends BaseController
         return ! empty(array_intersect(['administrator', 'super_administrator'], $roles));
     }
 
+    private function hasFullClassScope(): bool
+    {
+        $roles = (array) session()->get('roles');
+        return ! empty(array_intersect(['administrator', 'super_administrator', 'admin_pembelajaran'], $roles));
+    }
+
+    private function hasFullEventScope(): bool
+    {
+        $roles = (array) session()->get('roles');
+        return ! empty(array_intersect(['administrator', 'super_administrator', 'admin_event'], $roles));
+    }
+
     /**
      * Mengembalikan daftar class_id yang ditugaskan kepada Operator.
-     * Mengembalikan null jika pengguna adalah Administrator / Super Administrator (akses penuh semua kelas).
+     * Mengembalikan null jika pengguna adalah Administrator / Super Admin / Admin Pembelajaran (akses penuh semua kelas).
      *
      * @return list<int>|null
      */
     private function getAssignedClassIds(?int $userId = null): ?array
     {
-        if ($this->isUnrestrictedAdmin()) {
+        if ($this->hasFullClassScope()) {
             return null;
         }
 
@@ -86,6 +98,47 @@ class OperatorController extends BaseController
     }
 
     /**
+     * Mengembalikan daftar event_id yang ditugaskan kepada Operator.
+     * Mengembalikan null jika pengguna adalah Administrator / Super Admin / Admin Event (akses penuh semua event).
+     *
+     * @return list<int>|null
+     */
+    private function getAssignedEventIds(?int $userId = null): ?array
+    {
+        if ($this->hasFullEventScope()) {
+            return null;
+        }
+
+        $uid = $userId ?? (int) session()->get('user_id');
+        if ($uid < 1) {
+            return [0];
+        }
+
+        // 1. Events created by this user
+        $createdRows = $this->db->table('events')
+            ->select('id')
+            ->where('created_by', $uid)
+            ->where('deleted_at IS NULL')
+            ->get()->getResultArray();
+        $createdIds = array_column($createdRows, 'id');
+
+        // 2. Events where this user is assigned via event_registrations
+        $assignedRows = $this->db->table('event_registrations')
+            ->select('event_id')
+            ->where('user_id', $uid)
+            ->groupStart()
+                ->whereIn('status', ['operator', 'trainer', 'speaker'])
+                ->orLike('status_reason', 'operator')
+                ->orLike('status_reason', 'assigned')
+            ->groupEnd()
+            ->get()->getResultArray();
+        $assignedIds = array_column($assignedRows, 'event_id');
+
+        $allIds = array_values(array_unique(array_filter(array_map('intval', array_merge($createdIds, $assignedIds)))));
+        return $allIds !== [] ? $allIds : [0];
+    }
+
+    /**
      * Pastikan Operator berhak mengakses / mengelola kelas tertentu.
      */
     private function assertCanManageClass(int $classId): int
@@ -102,8 +155,39 @@ class OperatorController extends BaseController
     }
 
     /**
-     * Pastikan pengguna memiliki hak akses Operator atau Administrator.
-     * Mengikuti prinsip hierarki: administrator/super_administrator mewarisi semua hak operator.
+     * Pastikan Operator berhak mengakses / mengelola event tertentu.
+     */
+    private function assertCanManageEvent(int $eventId): int
+    {
+        $actorId = $this->assertOperatorAccess();
+        $allowedEventIds = $this->getAssignedEventIds($actorId);
+        if ($allowedEventIds !== null && ! in_array($eventId, $allowedEventIds, true)) {
+            redirect()->to(route_to('workspace.operator.events'))
+                ->with('error', 'Akses ditolak: Anda hanya berwenang mengelola event yang telah ditugaskan (assigned) kepada Anda.')
+                ->send();
+            exit;
+        }
+        return $actorId;
+    }
+
+    /**
+     * Pastikan pengguna memiliki hak akses penuh Administrator / Super Administrator.
+     * Digunakan untuk memproteksi antrean approval sistem dan verifikasi profil akun.
+     */
+    private function assertAdminAccess(): int
+    {
+        $actorId = $this->assertOperatorAccess();
+        if (! $this->isUnrestrictedAdmin()) {
+            redirect()->to('/workspace')
+                ->with('error', 'Akses ditolak: Area ini dikhususkan secara penuh untuk Administrator & Super Administrator.')
+                ->send();
+            exit;
+        }
+        return $actorId;
+    }
+
+    /**
+     * Pastikan pengguna memiliki hak akses Operator, Pengelola Pembelajaran/Event, atau Administrator.
      */
     private function assertOperatorAccess(): int
     {
@@ -119,7 +203,7 @@ class OperatorController extends BaseController
         }
 
         $roles = (array) session()->get('roles');
-        $allowed = ['operator', 'administrator', 'super_administrator'];
+        $allowed = ['operator', 'administrator', 'super_administrator', 'admin_pembelajaran', 'admin_event'];
         $hasAccess = false;
         foreach ($allowed as $r) {
             if (in_array($r, $roles, true)) {
@@ -129,7 +213,16 @@ class OperatorController extends BaseController
         }
 
         if (! $hasAccess) {
-            redirect()->to('/workspace')->with('error', 'Akses ditolak. Halaman khusus Operator / Administrator.')->send();
+            foreach ($roles as $r) {
+                if (str_starts_with(strtolower(trim((string) $r)), 'admin_')) {
+                    $hasAccess = true;
+                    break;
+                }
+            }
+        }
+
+        if (! $hasAccess) {
+            redirect()->to('/workspace')->with('error', 'Akses ditolak. Halaman khusus Operator / Pengelola Platform.')->send();
             exit;
         }
 
@@ -266,7 +359,7 @@ class OperatorController extends BaseController
      */
     public function approvals()
     {
-        $this->assertOperatorAccess();
+        $this->assertAdminAccess();
 
         $pending  = $this->db->table('approvals')->where('status', 'pending')->countAllResults();
         $approved = $this->db->table('approvals')->where('status', 'approved')->countAllResults();
@@ -351,7 +444,7 @@ class OperatorController extends BaseController
      */
     public function bulkApproval()
     {
-        $actorId = $this->assertOperatorAccess();
+        $actorId = $this->assertAdminAccess();
         $action  = (string) $this->request->getPost('bulk_action');
         $rawIds  = (array) $this->request->getPost('selected_ids');
         $notes   = trim((string) $this->request->getPost('notes')) ?: ($action === 'approve' ? 'Disetujui massal oleh Operator.' : 'Ditolak massal oleh Operator.');
@@ -452,7 +545,7 @@ class OperatorController extends BaseController
 
     public function approveApproval(string $id)
     {
-        $actorId    = $this->assertOperatorAccess();
+        $actorId    = $this->assertAdminAccess();
         $approvalId = (int) $id;
         $notes      = (string) $this->request->getPost('notes') ?: 'Disetujui oleh Operator.';
 
@@ -515,7 +608,7 @@ class OperatorController extends BaseController
 
     public function rejectApproval(string $id)
     {
-        $actorId    = $this->assertOperatorAccess();
+        $actorId    = $this->assertAdminAccess();
         $approvalId = (int) $id;
         $reason     = trim((string) $this->request->getPost('reason')) ?: 'Pengajuan ditolak oleh Operator.';
 
@@ -569,7 +662,7 @@ class OperatorController extends BaseController
      */
     public function profileVerifications()
     {
-        $this->assertOperatorAccess();
+        $this->assertAdminAccess();
 
         $pending  = $this->db->table('profile_verifications')->where('status', 'pending')->countAllResults();
         $approved = $this->db->table('profile_verifications')->where('status', 'approved')->countAllResults();
@@ -652,7 +745,7 @@ class OperatorController extends BaseController
      */
     public function bulkProfileVerification()
     {
-        $actorId = $this->assertOperatorAccess();
+        $actorId = $this->assertAdminAccess();
         $action  = (string) $this->request->getPost('bulk_action');
         $rawIds  = (array) $this->request->getPost('selected_ids');
         $notes   = trim((string) $this->request->getPost('notes')) ?: ($action === 'approve' ? 'Diverifikasi massal oleh Operator.' : 'Ditolak massal oleh Operator.');
@@ -721,7 +814,7 @@ class OperatorController extends BaseController
 
     public function approveVerification(string $id)
     {
-        $actorId        = $this->assertOperatorAccess();
+        $actorId        = $this->assertAdminAccess();
         $verificationId = (int) $id;
         $notes          = (string) $this->request->getPost('notes');
 
@@ -760,7 +853,7 @@ class OperatorController extends BaseController
 
     public function rejectVerification(string $id)
     {
-        $actorId        = $this->assertOperatorAccess();
+        $actorId        = $this->assertAdminAccess();
         $verificationId = (int) $id;
         $reason         = trim((string) $this->request->getPost('reason')) ?: 'Data profil tidak sesuai.';
         $notes          = (string) $this->request->getPost('notes');
@@ -808,7 +901,7 @@ class OperatorController extends BaseController
      */
     public function profileChangeRequests()
     {
-        $this->assertOperatorAccess();
+        $this->assertAdminAccess();
 
         $pending  = $this->db->table('profile_change_requests')->whereIn('status', ['submitted', 'in_review'])->countAllResults();
         $approved = $this->db->table('profile_change_requests')->where('status', 'approved')->countAllResults();
@@ -880,7 +973,7 @@ class OperatorController extends BaseController
 
     public function profileChangeRequestDetail(string $id)
     {
-        $actorId   = $this->assertOperatorAccess();
+        $actorId   = $this->assertAdminAccess();
         $requestId = ctype_digit($id) ? (int) $id : 0;
 
         $request = $this->db->table('profile_change_requests pcr')
@@ -932,7 +1025,7 @@ class OperatorController extends BaseController
 
     public function approveProfileChangeRequest(string $id)
     {
-        $actorId   = $this->assertOperatorAccess();
+        $actorId   = $this->assertAdminAccess();
         $requestId = ctype_digit($id) ? (int) $id : 0;
         $notes     = (string) $this->request->getPost('notes');
 
@@ -971,7 +1064,7 @@ class OperatorController extends BaseController
 
     public function rejectProfileChangeRequest(string $id)
     {
-        $actorId   = $this->assertOperatorAccess();
+        $actorId   = $this->assertAdminAccess();
         $requestId = ctype_digit($id) ? (int) $id : 0;
         $reason    = trim((string) $this->request->getPost('reason')) ?: 'Permohonan perubahan profil ditolak oleh Operator.';
         $notes     = (string) $this->request->getPost('notes');
@@ -1011,7 +1104,7 @@ class OperatorController extends BaseController
 
     public function revisionProfileChangeRequest(string $id)
     {
-        $actorId   = $this->assertOperatorAccess();
+        $actorId   = $this->assertAdminAccess();
         $requestId = ctype_digit($id) ? (int) $id : 0;
         $note      = trim((string) $this->request->getPost('revision_note'));
 
@@ -1060,7 +1153,7 @@ class OperatorController extends BaseController
     public function classTrainers()
     {
         $actorId          = $this->assertOperatorAccess();
-        $isAdmin          = $this->isUnrestrictedAdmin();
+        $isAdmin          = $this->hasFullClassScope();
         $assignedClassIds = $this->getAssignedClassIds($actorId);
 
         $classBuilder = $this->db->table('learning_classes lc')
@@ -1162,7 +1255,7 @@ class OperatorController extends BaseController
         }
 
         $actorId = $this->assertCanManageClass($classId);
-        $isAdmin = $this->isUnrestrictedAdmin();
+        $isAdmin = $this->hasFullClassScope();
 
         $class = $this->db->table('learning_classes')->where('id', $classId)->get()->getRowArray();
         if (! $class) {
@@ -1351,8 +1444,8 @@ class OperatorController extends BaseController
             ->where('user_id', $userId)
             ->get()->getRowArray();
 
-        if ($targetRow && ($targetRow['role'] ?? '') === 'operator' && ! $this->isUnrestrictedAdmin()) {
-            return redirect()->back()->with('error', 'Hanya Administrator / Super Administrator yang dapat mencabut penugasan Operator pada kelas.');
+        if ($targetRow && ($targetRow['role'] ?? '') === 'operator' && ! $this->hasFullClassScope()) {
+            return redirect()->back()->with('error', 'Hanya Administrator / Admin Pembelajaran yang dapat mencabut penugasan Operator pada kelas.');
         }
 
         $this->db->table('class_trainers')
@@ -1372,16 +1465,26 @@ class OperatorController extends BaseController
      */
     public function events()
     {
-        $this->assertOperatorAccess();
+        $actorId          = $this->assertOperatorAccess();
+        $assignedEventIds = $this->getAssignedEventIds($actorId);
 
-        $published = $this->db->table('events')->whereIn('status', ['open_registration', 'coming_soon', 'published'])->countAllResults();
-        $draft     = $this->db->table('events')->where('status', 'draft')->countAllResults();
-        $ongoing   = $this->db->table('events')->whereIn('status', ['open_registration', 'ongoing'])->countAllResults();
+        $eventBuilder = $this->db->table('events')->where('deleted_at IS NULL');
+        if ($assignedEventIds !== null) {
+            if ($assignedEventIds === []) {
+                $eventBuilder->where('1', '0');
+            } else {
+                $eventBuilder->whereIn('id', $assignedEventIds);
+            }
+        }
 
-        $list = $this->db->table('events')
+        $published = (clone $eventBuilder)->whereIn('status', ['open_registration', 'coming_soon', 'published'])->countAllResults();
+        $draft     = (clone $eventBuilder)->where('status', 'draft')->countAllResults();
+        $ongoing   = (clone $eventBuilder)->whereIn('status', ['open_registration', 'ongoing'])->countAllResults();
+
+        $list = (clone $eventBuilder)
             ->select('id, title, type, mode, status, start_at, capacity')
             ->orderBy('created_at', 'DESC')
-            ->limit(25)
+            ->limit(50)
             ->get()->getResultArray();
 
         $rows = [];
@@ -1432,13 +1535,16 @@ class OperatorController extends BaseController
 
     public function eventParticipants(string $eventId)
     {
-        $this->assertOperatorAccess();
-        $eid = (int) $eventId;
+        $actorId = $this->assertOperatorAccess();
+        $eid     = (int) $eventId;
+        $this->assertCanManageEvent($eid);
 
         $event = $this->db->table('events')->where('id', $eid)->get()->getRowArray();
         if (! $event) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
         }
+
+        $this->assertCanManageEvent($eid);
 
         $participants = $this->db->table('event_registrations er')
             ->select('er.id, er.user_id, er.registered_at, er.status, u.name AS user_name, u.email AS user_email, u.username, a.id AS attendance_id, a.status AS attendance_status, a.recorded_at AS attendance_recorded_at,
@@ -1535,6 +1641,8 @@ class OperatorController extends BaseController
             return redirect()->back()->with('error', 'Pendaftaran event tidak ditemukan.');
         }
 
+        $this->assertCanManageEvent((int) $reg['event_id']);
+
         $now = date('Y-m-d H:i:s');
         $this->db->transStart();
 
@@ -1583,6 +1691,8 @@ class OperatorController extends BaseController
             return redirect()->back()->with('error', 'Pendaftaran event tidak ditemukan.');
         }
 
+        $this->assertCanManageEvent((int) $reg['event_id']);
+
         $now = date('Y-m-d H:i:s');
         $this->db->transStart();
 
@@ -1624,6 +1734,8 @@ class OperatorController extends BaseController
         if (! $event) {
             return redirect()->back()->with('error', 'Event tidak ditemukan.');
         }
+
+        $this->assertCanManageEvent($eid);
 
         $pendingRows = $this->db->table('event_registrations')
             ->where('event_id', $eid)
@@ -1683,6 +1795,8 @@ class OperatorController extends BaseController
         if (! $reg) {
             return redirect()->back()->with('error', 'Data registrasi peserta event tidak ditemukan.');
         }
+
+        $this->assertCanManageEvent((int) $reg['event_id']);
 
         $now = date('Y-m-d H:i:s');
         $this->db->transStart();
@@ -1747,6 +1861,8 @@ class OperatorController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
         }
 
+        $this->assertCanManageEvent($eid);
+
         $participants = $this->db->table('event_registrations er')
             ->select('er.id, er.registered_at, er.status, u.name AS user_name, u.email AS user_email, u.username, a.status AS attendance_status, a.recorded_at,
                       asn.institution_name AS asn_instansi, asn.position_name AS asn_jabatan, asn.employee_identifier AS asn_nip,
@@ -1792,18 +1908,37 @@ class OperatorController extends BaseController
      */
     public function attendance()
     {
-        $this->assertOperatorAccess();
+        $actorId          = $this->assertOperatorAccess();
+        $assignedEventIds = $this->getAssignedEventIds($actorId);
 
-        $recorded      = $this->db->table('attendances')->countAllResults();
-        $registrations = $this->db->table('event_registrations')->countAllResults();
-
-        $list = $this->db->table('attendances a')
-            ->select('a.id, a.status, a.recorded_at, a.notes, ev.title AS event_title, u.name AS user_name, u.email AS user_email')
+        $attBuilder = $this->db->table('attendances a')
             ->join('event_registrations er', 'er.id = a.event_registration_id')
             ->join('events ev', 'ev.id = er.event_id')
-            ->join('users u', 'u.id = er.user_id')
+            ->join('users u', 'u.id = er.user_id');
+
+        if ($assignedEventIds !== null) {
+            if ($assignedEventIds === []) {
+                $attBuilder->where('1', '0');
+            } else {
+                $attBuilder->whereIn('ev.id', $assignedEventIds);
+            }
+        }
+
+        $recorded   = (clone $attBuilder)->countAllResults();
+        $regBuilder = $this->db->table('event_registrations er');
+        if ($assignedEventIds !== null) {
+            if ($assignedEventIds === []) {
+                $regBuilder->where('1', '0');
+            } else {
+                $regBuilder->whereIn('er.event_id', $assignedEventIds);
+            }
+        }
+        $registrations = $regBuilder->countAllResults();
+
+        $list = (clone $attBuilder)
+            ->select('a.id, a.status, a.recorded_at, a.notes, ev.title AS event_title, u.name AS user_name, u.email AS user_email')
             ->orderBy('a.created_at', 'DESC')
-            ->limit(25)
+            ->limit(50)
             ->get()->getResultArray();
 
         $rows = [];
@@ -1880,6 +2015,8 @@ class OperatorController extends BaseController
             return redirect()->back()->with('error', 'Data presensi tidak terhubung ke registrasi event yang sah.');
         }
 
+        $this->assertCanManageEvent((int) $attendance['event_id']);
+
         $now = date('Y-m-d H:i:s');
         $this->db->transStart();
 
@@ -1899,6 +2036,77 @@ class OperatorController extends BaseController
         }
 
         return redirect()->back()->with('message', 'Catatan presensi berhasil diperbarui.');
+    }
+
+    /**
+     * PENUGASAN TRAINER / NARASUMBER KE EVENT
+     * Operator yang ditugaskan ke event berhak menugaskan Trainer/Narasumber ke event tersebut.
+     */
+    public function assignEventTrainer()
+    {
+        $actorId   = $this->assertOperatorAccess();
+        $eventId   = (int) $this->request->getPost('event_id');
+        $trainerId = (int) $this->request->getPost('trainer_id');
+        $roleLabel = trim((string) ($this->request->getPost('role_label') ?: 'Narasumber / Instruktur'));
+
+        if ($eventId < 1 || $trainerId < 1) {
+            return redirect()->back()->with('error', 'Pilih event dan trainer yang valid.');
+        }
+
+        $this->assertCanManageEvent($eventId);
+
+        $event = $this->db->table('events')->where('id', $eventId)->get()->getRowArray();
+        if (! $event) {
+            return redirect()->back()->with('error', 'Event tidak ditemukan.');
+        }
+
+        $trainer = $this->db->table('users u')
+            ->join('user_roles ur', 'ur.user_id = u.id AND ur.status = \'active\'')
+            ->join('roles r', 'r.id = ur.role_id')
+            ->where('u.id', $trainerId)
+            ->where('r.key', 'trainer')
+            ->where('u.account_status', 'active')
+            ->where('u.deleted_at IS NULL')
+            ->select('u.id, u.name, u.email')
+            ->get()->getRowArray();
+
+        if (! $trainer) {
+            return redirect()->back()->with('error', 'Trainer tidak valid atau akun tidak aktif.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $existing = $this->db->table('event_registrations')
+            ->where('event_id', $eventId)
+            ->where('user_id', $trainerId)
+            ->get()->getRowArray();
+
+        if ($existing) {
+            $this->db->table('event_registrations')
+                ->where('id', $existing['id'])
+                ->update([
+                    'status'        => 'registered',
+                    'status_reason' => 'assigned_trainer: ' . $roleLabel,
+                    'updated_at'    => $now,
+                ]);
+        } else {
+            $this->db->table('event_registrations')->insert([
+                'event_id'      => $eventId,
+                'user_id'       => $trainerId,
+                'status'        => 'registered',
+                'status_reason' => 'assigned_trainer: ' . $roleLabel,
+                'registered_at' => $now,
+                'created_at'    => $now,
+                'updated_at'    => $now,
+            ]);
+        }
+
+        $this->logAudit($actorId, 'event.assign_trainer', 'events', $eventId, [
+            'trainer_id'   => $trainerId,
+            'trainer_name' => $trainer['name'],
+            'role_label'   => $roleLabel,
+        ]);
+
+        return redirect()->back()->with('message', "Trainer {$trainer['name']} berhasil ditugaskan sebagai {$roleLabel} pada event ini.");
     }
 
     /**
@@ -2545,7 +2753,7 @@ class OperatorController extends BaseController
      */
     public function activityMonitoring()
     {
-        $this->assertOperatorAccess();
+        $this->assertAdminAccess();
 
         $logs = $this->db->table('audit_logs a')
             ->select('a.*, u.name AS actor_name, u.email AS actor_email')

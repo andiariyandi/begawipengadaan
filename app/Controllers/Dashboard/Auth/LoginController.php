@@ -4,6 +4,7 @@ namespace App\Controllers\Dashboard\Auth;
 
 use App\Controllers\BaseController;
 use App\Services\Identity\AuthenticationService;
+use App\Services\Identity\AuthorizationService;
 
 class LoginController extends BaseController
 {
@@ -11,26 +12,44 @@ class LoginController extends BaseController
     {
         if (session()->get('isLoggedIn')) {
             $loggedRoles = (array) session()->get('roles');
-            $isAdmin     = in_array('super_administrator', $loggedRoles, true)
-                || in_array('administrator', $loggedRoles, true);;
+            $authService = new AuthorizationService();
 
+            // 1. Super Administrator & Administrator penuh
+            $isFullAdmin = in_array('super_administrator', $loggedRoles, true)
+                || in_array('administrator', $loggedRoles, true);
 
+            // 2. Peran dinamis berprefix admin_{...} (e.g. admin_regulasi, admin_pembelajaran, dll)
+            $isPrefixAdmin = $authService->isPrefixAdmin($loggedRoles);
 
-            if ($isAdmin) {
+            // 3. Hak akses dashboard dinamis
+            $hasDashboardAccess = $isFullAdmin || $isPrefixAdmin || $authService->hasDashboardAccess();
+
+            if ($isFullAdmin) {
                 return redirect()->to(site_url('dashboard'));
             }
+
+            if ($isPrefixAdmin || $hasDashboardAccess) {
+                $targetRoute = $authService->getFirstAllowedDashboardRoute();
+                return redirect()->to(site_url($targetRoute));
+            }
+
+            // 4. Trainer (Pengajar)
             if (in_array('trainer', $loggedRoles, true)) {
                 return redirect()->to(route_to('workspace.trainer.home'));
             }
+
+            // 5. Operator (Asisten Kelas / Admin Operasional)
             if (in_array('operator', $loggedRoles, true)) {
                 return redirect()->to(route_to('workspace.operator.home'));
             }
+
+            // 6. Peserta / Default Workspace
             return redirect()->to(route_to('workspace.home'));
         }
 
         return view('dashboard/auth/login', [
-            'title' => 'Masuk | BegawiPengadaan',
-            'pageTitle' => 'Masuk ke Akun Anda',
+            'title'           => 'Masuk | BegawiPengadaan',
+            'pageTitle'       => 'Masuk ke Akun Anda',
             'pageDescription' => 'Silakan masukkan email dan kata sandi untuk mengakses layanan BegawiPengadaan.',
         ]);
     }
@@ -83,21 +102,19 @@ class LoginController extends BaseController
         }
 
         $loggedRoles = (array) session()->get('roles');
-        $isAdmin     = in_array('super_administrator', $loggedRoles, true)
+        $userName    = (string) session()->get('name');
+        $authService = new AuthorizationService();
+
+        // 1. Super Administrator & Administrator penuh (Dasbor Eksekutif Steril)
+        $isFullAdmin = in_array('super_administrator', $loggedRoles, true)
             || in_array('administrator', $loggedRoles, true);
 
-
-        $userName    = (string) session()->get('name');
-
-        if ($isAdmin) {
+        if ($isFullAdmin) {
             return redirect()->to(site_url('dashboard'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
         }
-        if (in_array('trainer', $loggedRoles, true)) {
-            return redirect()->to(route_to('workspace.trainer.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
-        }
-        if (in_array('operator', $loggedRoles, true)) {
-            return redirect()->to(route_to('workspace.operator.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
-        }
+
+        // 2. Seluruh peran lainnya (admin_{...}, operator, trainer, peserta)
+        // Memiliki peran dasar melekat sebagai Peserta dan direct login masuk ke Workspace
         return redirect()->to(route_to('workspace.home'))->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
     }
 

@@ -35,7 +35,8 @@ class AuthenticationFilter implements FilterInterface
         }
 
         $userId = (int) session()->get('user_id');
-        $user = $userId > 0 ? (new UserModel())->find($userId) : null;
+        $userModel = new UserModel();
+        $user = $userId > 0 ? $userModel->find($userId) : null;
         if (! $user || ($user['account_status'] ?? null) !== 'active') {
             $pendingUserId = $userId;
             session()->destroy();
@@ -46,20 +47,36 @@ class AuthenticationFilter implements FilterInterface
             return redirect()->to(site_url('dashboard/status-akun'));
         }
 
-        if (session()->get('account_status') !== 'active') {
-            session()->set('account_status', $user['account_status']);
-        }
+        // Sinkronisasi real-time roles dan permissions dari database (Zero Stale Session)
+        $userRoles = $userModel->getRoles($userId);
+        $roleKeys = array_unique(array_filter(array_column($userRoles, 'key')));
+        $permissions = $userModel->getPermissions($userId);
+
+        session()->set('roles', $roleKeys);
+        session()->set('permissions', $permissions);
+        session()->set('account_status', $user['account_status']);
 
         $authService = new AuthorizationService();
-        if (! $authService->hasDashboardAccess()) {
-            $roles = (array) session()->get('roles');
+        $hasDashboard = $authService->hasDashboardAccess($userId, $roleKeys, $permissions, $user['account_status']);
+
+        if (! $hasDashboard) {
             $workspaceRoles = ['peserta', 'participant', 'trainer', 'operator'];
-            if (array_intersect($roles, $workspaceRoles)) {
+            if (array_intersect($roleKeys, $workspaceRoles)) {
                 return redirect()->to(site_url('workspace'))
                     ->with('info', 'Anda dialihkan ke Workspace Fistudy sesuai hak akses peran akun Anda.');
             }
 
             return service('response')->setStatusCode(403)->setBody(view('errors/html/error_403'));
+        }
+
+        // Smart landing redirect: jika mengakses root dashboard tetapi tidak memiliki izin dashboard.view
+        if ($path === 'dashboard' || $path === '') {
+            if (! $authService->isAdmin() && ! $authService->canAny(['dashboard.view', 'dashboard.indicators.view'])) {
+                $targetRoute = $authService->getFirstAllowedDashboardRoute($permissions, $roleKeys);
+                if ($targetRoute !== 'dashboard' && $targetRoute !== '') {
+                    return redirect()->to(site_url($targetRoute));
+                }
+            }
         }
 
         // Full bypass for Super Administrator

@@ -255,6 +255,25 @@ class ContactMessageController extends BaseController
         $actorId = (int) (session()->get('user_id') ?: 1);
         $this->messageModel->updateTicketMeta((int) $id, $meta, $actorId);
 
+        // Kirim notifikasi jika tiket ditutup/diselesaikan dan pemohon adalah user terdaftar
+        $notes = ContactMessageModel::parseAdminNotes($message['admin_notes'] ?? null);
+        if (in_array($newStatus, ['closed', 'resolved'], true) && ! empty($notes['user_id'])) {
+            try {
+                (new \App\Services\NotificationService())->send(
+                    (int) $notes['user_id'],
+                    'ticket_closed',
+                    "Tiket Konsultasi #{$message['ticket_number']} Selesai",
+                    "Tiket konsultasi Anda telah diselesaikan dan ditutup oleh petugas helpdesk. Terima kasih atas kerja sama Anda.",
+                    [
+                        'ticket_number' => $message['ticket_number'],
+                        'url'           => site_url('workspace/konsultasi/' . $message['ticket_number']),
+                    ]
+                );
+            } catch (\Throwable $e) {
+                log_message('warning', 'Ticket closed notification failed: ' . $e->getMessage());
+            }
+        }
+
         return redirect()->to('dashboard/komunikasi/pesan-masuk/detail/' . $id)
             ->with('success', 'Pengaturan tiket, prioritas, dan status berhasil diperbarui.');
     }

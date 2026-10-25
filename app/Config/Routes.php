@@ -258,6 +258,7 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->post('penugasan-trainer/assign', 'OperatorController::assignTrainer', ['as' => 'workspace.operator.class-trainers.assign']);
         $routes->post('penugasan-trainer/revoke', 'OperatorController::revokeTrainer', ['as' => 'workspace.operator.class-trainers.revoke']);
         $routes->get('event', 'OperatorController::events', ['as' => 'workspace.operator.events']);
+        $routes->post('event/penugasan-trainer', 'OperatorController::assignEventTrainer', ['as' => 'workspace.operator.events.assign-trainer']);
         $routes->get('event/(:segment)/peserta', 'OperatorController::eventParticipants/$1', ['as' => 'workspace.operator.events.participants']);
         $routes->get('event/(:segment)/peserta/cetak', 'OperatorController::printEventRoster/$1', ['as' => 'workspace.operator.events.roster.print']);
         $routes->post('event/(:segment)/registrasi/bulk', 'OperatorController::bulkEventRegistration/$1', ['as' => 'workspace.operator.events.registration.bulk']);

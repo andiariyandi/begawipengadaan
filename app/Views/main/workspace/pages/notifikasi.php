@@ -142,7 +142,7 @@
                     $isUnread = empty($item['read_at']);
                     $catMeta = \App\Services\NotificationService::formatCategory($item['type'] ?? 'system');
                     $timeAgo = \App\Services\NotificationService::timeAgo($item['created_at'] ?? null);
-                    $itemData = !empty($item['data']) ? json_decode($item['data'], true) : [];
+                    $itemData = !empty($item['data']) ? (is_array($item['data']) ? $item['data'] : json_decode($item['data'], true)) : [];
                     $targetUrl = !empty($itemData['url']) ? $itemData['url'] : null;
                     ?>
                     <div class="list-group-item p-3 p-md-4 border-bottom <?= $isUnread ? 'bg-primary-subtle bg-opacity-25' : '' ?>" style="<?= $isUnread ? 'border-left: 4px solid #0c5aa6 !important;' : '' ?>">

@@ -135,7 +135,7 @@ $err          = session()->getFlashdata('error');
                             </div>
                             <div class="d-flex align-items-center justify-content-between text-white small">
                                 <span><i class="fas fa-certificate me-1 text-warning"></i> Sertifikat</span>
-                                <span class="badge bg-success text-white" style="font-size: 10px;">Resmi LKPP</span>
+                                <span class="badge bg-success text-white" style="font-size: 10px;">Kegiatan</span>
                             </div>
                         </div>
                     </div>
@@ -1802,7 +1802,7 @@ $err          = session()->getFlashdata('error');
                             </li>
                             <li class="d-flex justify-content-between">
                                 <span class="text-muted"><i class="fas fa-certificate text-success me-2"></i> Sertifikat</span>
-                                <span class="badge bg-success text-white">Resmi LKPP</span>
+                                <span class="badge bg-success text-white">Kegiatan</span>
                             </li>
                         </ul>
 

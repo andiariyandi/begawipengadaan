@@ -2632,7 +2632,7 @@ class TrainerController extends BaseController
     private function isUnrestrictedAdmin(): bool
     {
         $roles = (array) session()->get('roles');
-        return array_intersect(['administrator', 'super_administrator'], $roles) !== [];
+        return array_intersect(['administrator', 'super_administrator', 'admin_pembelajaran'], $roles) !== [];
     }
 
     private function assertTrainerOf(int $userId, int $classId): void

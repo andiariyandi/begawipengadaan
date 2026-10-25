@@ -261,12 +261,22 @@ class CertificateGenerator
 
             // Notifikasi internal penerbitan sertifikat ke peserta
             try {
+                $isEvent = ($sourceType === 'event_registration');
+                $certTitle = $isEvent ? 'Sertifikat Kegiatan / Agenda Diterbitkan' : 'Sertifikat Pembelajaran Diterbitkan';
+                $activityName = $source['title'] ?? ($isEvent ? 'Kegiatan PBJ' : 'Pembelajaran');
+
                 (new NotificationService($this->db))->send(
                     (int) $source['user_id'],
                     'certificate_issued',
-                    'Sertifikat Pembelajaran Diterbitkan',
-                    "Sertifikat Anda untuk '" . ($source['title'] ?? 'Pembelajaran') . "' dengan nomor {$certNumber} telah berhasil diterbitkan dan siap diunduh.",
-                    ['certificate_id' => $certificateId, 'certificate_number' => $certNumber]
+                    $certTitle,
+                    "Sertifikat Anda untuk '{$activityName}' dengan nomor {$certNumber} telah berhasil diterbitkan dan siap diunduh.",
+                    [
+                        'certificate_id'     => $certificateId,
+                        'certificate_number' => $certNumber,
+                        'source_type'        => $sourceType,
+                        'source_id'          => $sourceId,
+                        'url'                => site_url('workspace/peserta/sertifikat'),
+                    ]
                 );
             } catch (\Throwable $e) {
                 log_message('warning', 'Failed to send certificate notification: ' . $e->getMessage());

@@ -182,8 +182,17 @@ class NotificationService
             }
         }
 
+        $hasPrefixAdmin = false;
+        foreach ($roles as $r) {
+            if (str_starts_with((string) $r, 'admin_')) {
+                $hasPrefixAdmin = true;
+                break;
+            }
+        }
+
         $isAdmin = in_array('super_administrator', $roles, true)
             || in_array('administrator', $roles, true)
+            || $hasPrefixAdmin
             || (bool) session()->get('dashboard_access');
 
         $isOperator = in_array('operator', $roles, true);
@@ -598,7 +607,7 @@ class NotificationService
                 'learning'     => $builder->whereIn('notifications.type', ['class_enrolled', 'class_reminder', 'lesson_completed', 'assignment_graded', 'quiz_graded', 'class_enrollment_requested', 'assignment_submitted', 'class_material_added']),
                 'consultation' => $builder->whereIn('notifications.type', ['ticket_reply', 'ticket_created', 'ticket_closed', 'contact_inquiry_received']),
                 'certificate'  => $builder->whereIn('notifications.type', ['certificate_issued', 'certificate_eligible', 'certificate_revoked']),
-                'system'       => $builder->whereIn('notifications.type', ['broadcast', 'system', 'system_announcement', 'account_approved', 'account_rejected', 'account_registered', 'profile_change_request', 'profile_change_approved', 'profile_change_rejected', 'profile_change_revision', 'trainer_verification_request', 'role_upgrade_request']),
+                'system'       => $builder->whereIn('notifications.type', ['broadcast', 'system', 'system_announcement', 'account_approved', 'account_rejected', 'account_registered', 'profile_change_request', 'profile_change_approved', 'profile_change_rejected', 'profile_change_revision', 'trainer_verification_request', 'role_upgrade_request', 'role_request_submitted', 'role_request_approved', 'role_request_rejected', 'role_request_revision', 'event_attendance_confirmed']),
                 default        => null,
             };
         }
@@ -651,14 +660,32 @@ class NotificationService
                 'icon'  => 'solar:verified-check-bold',
                 'fa'    => 'fas fa-award text-success',
             ],
-            'account_approved', 'profile_verified', 'role_request_approved' => [
+            'role_request_approved' => [
+                'label' => 'Peran Disetujui',
+                'badge' => 'bg-success-subtle text-success border border-success-subtle',
+                'icon'  => 'solar:shield-check-bold',
+                'fa'    => 'fas fa-user-shield text-success',
+            ],
+            'account_approved', 'profile_verified' => [
                 'label' => 'Akun Disetujui',
                 'badge' => 'bg-success-subtle text-success border border-success-subtle',
                 'icon'  => 'solar:user-check-bold',
                 'fa'    => 'fas fa-user-check text-success',
             ],
-            'account_rejected', 'role_request_rejected' => [
-                'label' => 'Akun / Role Ditolak',
+            'role_request_rejected' => [
+                'label' => 'Peran Ditolak',
+                'badge' => 'bg-danger-subtle text-danger-main border border-danger-subtle',
+                'icon'  => 'solar:shield-cross-bold',
+                'fa'    => 'fas fa-user-shield text-danger',
+            ],
+            'role_request_revision' => [
+                'label' => 'Revisi Peran',
+                'badge' => 'bg-warning-subtle text-warning-main border border-warning-subtle',
+                'icon'  => 'solar:shield-warning-bold',
+                'fa'    => 'fas fa-user-edit text-warning',
+            ],
+            'account_rejected' => [
+                'label' => 'Akun Ditolak',
                 'badge' => 'bg-danger-subtle text-danger-main border border-danger-subtle',
                 'icon'  => 'solar:user-cross-bold',
                 'fa'    => 'fas fa-user-times text-danger',
@@ -698,6 +725,18 @@ class NotificationService
                 'badge' => 'bg-warning-subtle text-warning-main border border-warning-subtle',
                 'icon'  => 'solar:shield-warning-bold',
                 'fa'    => 'fas fa-user-shield text-warning',
+            ],
+            'event_registration_approved', 'event_attendance_confirmed' => [
+                'label' => 'Event Terkonfirmasi',
+                'badge' => 'bg-success-subtle text-success border border-success-subtle',
+                'icon'  => 'solar:calendar-mark-bold',
+                'fa'    => 'fas fa-calendar-check text-success',
+            ],
+            'event_registration_rejected' => [
+                'label' => 'Pendaftaran Event Ditolak',
+                'badge' => 'bg-danger-subtle text-danger-main border border-danger-subtle',
+                'icon'  => 'solar:calendar-cross-bold',
+                'fa'    => 'fas fa-calendar-times text-danger',
             ],
             'event_info', 'event_reminder', 'event_registered', 'event_registration_submitted' => [
                 'label' => 'Event & Agenda',

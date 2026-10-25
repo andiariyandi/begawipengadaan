@@ -24,8 +24,16 @@ class DashboardController extends BaseController
         return $this->request ?? service('request');
     }
 
-    public function index(): string
+    public function index()
     {
+        $authService = new \App\Services\Identity\AuthorizationService();
+        if (! $authService->isAdmin() && ! $authService->canAny(['dashboard.view', 'dashboard.indicators.view'])) {
+            $targetRoute = $authService->getFirstAllowedDashboardRoute();
+            if ($targetRoute !== 'dashboard' && $targetRoute !== '') {
+                return redirect()->to(site_url($targetRoute));
+            }
+        }
+
         $summary = $this->dashboardService->getFullDashboardSummary();
 
         $context = [

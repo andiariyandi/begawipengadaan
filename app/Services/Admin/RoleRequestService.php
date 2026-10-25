@@ -5,6 +5,7 @@ namespace App\Services\Admin;
 use App\Models\RoleRequestModel;
 use App\Models\UserRoleModel;
 use App\Services\AuditService;
+use App\Services\NotificationService;
 
 /**
  * Role request review service (Manajemen Akses → Permohonan Role).
@@ -98,6 +99,37 @@ class RoleRequestService
         }
 
         $this->audit->log($actorId, 'role_request.approve', 'role_requests', 'role_request', $requestId);
+
+        $role = $db->table('roles')->where('id', $roleId)->get()->getRowArray();
+        $roleName = $role['name'] ?? 'Peran Baru';
+
+        try {
+            (new NotificationService($db))->send(
+                $userId,
+                'role_request_approved',
+                'Permohonan Peran Disetujui',
+                "Selamat! Permohonan penambahan peran Anda sebagai {$roleName} telah disetujui oleh Administrator." . ($notes ? " Catatan: {$notes}" : ''),
+                [
+                    'role_id'    => $roleId,
+                    'request_id' => $requestId,
+                    'url'        => site_url('workspace/profil/permohonan-role'),
+                ]
+            );
+
+            // Tandai notifikasi bersama pengajuan peran sebagai terbaca bagi seluruh pool verifikator
+            $db->table('notifications')
+                ->where('channel', 'shared:admin_operator')
+                ->where('type', 'role_request_submitted')
+                ->groupStart()
+                    ->where("JSON_UNQUOTE(JSON_EXTRACT(data, '$.request_id')) =", (string) $requestId)
+                    ->orLike('data', '"request_id": ' . $requestId)
+                    ->orLike('data', '"request_id":' . $requestId)
+                ->groupEnd()
+                ->where('read_at IS NULL')
+                ->update(['read_at' => $now]);
+        } catch (\Throwable $e) {
+            log_message('warning', '[RoleRequestService::approve] notification failed: ' . $e->getMessage());
+        }
         return true;
     }
 
@@ -132,6 +164,38 @@ class RoleRequestService
         );
 
         $this->audit->log($actorId, 'role_request.reject', 'role_requests', 'role_request', $requestId);
+
+        $db = db_connect();
+        $role = $db->table('roles')->where('id', (int) $row['requested_role_id'])->get()->getRowArray();
+        $roleName = $role['name'] ?? 'Peran Baru';
+
+        try {
+            (new NotificationService($db))->send(
+                (int) $row['user_id'],
+                'role_request_rejected',
+                'Permohonan Peran Ditolak',
+                "Mohon maaf, permohonan penambahan peran Anda sebagai {$roleName} belum disetujui. Alasan: {$note}",
+                [
+                    'role_id'    => (int) $row['requested_role_id'],
+                    'request_id' => $requestId,
+                    'url'        => site_url('workspace/profil/permohonan-role'),
+                ]
+            );
+
+            // Tandai notifikasi bersama pengajuan peran sebagai terbaca bagi seluruh pool verifikator
+            $db->table('notifications')
+                ->where('channel', 'shared:admin_operator')
+                ->where('type', 'role_request_submitted')
+                ->groupStart()
+                    ->where("JSON_UNQUOTE(JSON_EXTRACT(data, '$.request_id')) =", (string) $requestId)
+                    ->orLike('data', '"request_id": ' . $requestId)
+                    ->orLike('data', '"request_id":' . $requestId)
+                ->groupEnd()
+                ->where('read_at IS NULL')
+                ->update(['read_at' => $now]);
+        } catch (\Throwable $e) {
+            log_message('warning', '[RoleRequestService::reject] notification failed: ' . $e->getMessage());
+        }
         return true;
     }
 
@@ -166,6 +230,26 @@ class RoleRequestService
         );
 
         $this->audit->log($actorId, 'role_request.revision', 'role_requests', 'role_request', $requestId);
+
+        $db = db_connect();
+        $role = $db->table('roles')->where('id', (int) $row['requested_role_id'])->get()->getRowArray();
+        $roleName = $role['name'] ?? 'Peran Baru';
+
+        try {
+            (new NotificationService($db))->send(
+                (int) $row['user_id'],
+                'role_request_revision',
+                'Permohonan Peran Memerlukan Revisi',
+                "Permohonan penambahan peran Anda sebagai {$roleName} memerlukan perbaikan berkas/keterangan. Catatan verifikator: {$note}",
+                [
+                    'role_id'    => (int) $row['requested_role_id'],
+                    'request_id' => $requestId,
+                    'url'        => site_url('workspace/profil/permohonan-role'),
+                ]
+            );
+        } catch (\Throwable $e) {
+            log_message('warning', '[RoleRequestService::requestRevision] notification failed: ' . $e->getMessage());
+        }
         return true;
     }
 }
