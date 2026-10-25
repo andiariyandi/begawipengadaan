@@ -79,7 +79,10 @@
                     <i class="fas fa-bell"></i> <span id="wsBtnActivatePushText">Aktifkan Notifikasi Desktop</span>
                 </button>
                 <button type="button" id="wsBtnTestPush" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1.5" title="Kirim notifikasi uji coba untuk mengetes suara chime dan banner desktop" onclick="window.wsTestPushNotification()">
-                    <i class="fas fa-vial"></i> <span>Uji / Tes Notifikasi</span>
+                    <i class="fas fa-vial"></i> <span>Uji Sekarang</span>
+                </button>
+                <button type="button" id="wsBtnTestBgPush" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1.5" title="Kirim notifikasi dengan jeda 5 detik agar Anda dapat menguji saat aplikasi diminimalkan / di latar belakang / layar HP terkunci" onclick="window.wsTestBackgroundPushNotification()">
+                    <i class="fas fa-stopwatch"></i> <span>Uji Latar Belakang (5s)</span>
                 </button>
             </div>
         </div>
@@ -326,9 +329,9 @@ window.wsActivatePushNotification = function() {
 window.wsTestPushNotification = function(customTitle) {
     if (typeof window.bpTestNotification === 'function') {
         window.bpTestNotification({
-            id: 999999,
+            id: Date.now(),
             title: customTitle || 'Uji Coba Notifikasi BegawiPengadaan',
-            body: 'Selamat! Audio chime harmonik, floating toast, dan notifikasi desktop browser berhasil berjalan.',
+            body: 'Selamat! Audio chime harmonik, floating toast, dan notifikasi native browser berhasil berjalan.',
             fa: 'fas fa-vial text-primary',
             badge: 'bg-primary text-white',
             url: window.location.href
@@ -336,6 +339,38 @@ window.wsTestPushNotification = function(customTitle) {
     } else {
         alert('Notifikasi uji coba terkirim.');
     }
+};
+
+window.wsTestBackgroundPushNotification = function() {
+    const btn = document.getElementById('wsBtnTestBgPush');
+    let secondsLeft = 5;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Minimalkan browser (${secondsLeft}s)...`;
+    }
+
+    if (typeof window.bpShowToast === 'function') {
+        window.bpShowToast({
+            title: 'Hitungan Mundur 5 Detik Dimulai!',
+            body: 'Segera minimalkan browser, pindah ke aplikasi lain (seperti WhatsApp), atau kunci layar Android sekarang untuk menguji notifikasi di latar belakang.',
+            badge: 'bg-warning text-dark',
+            fa: 'fas fa-stopwatch text-warning'
+        });
+    }
+
+    const countdown = setInterval(function() {
+        secondsLeft--;
+        if (secondsLeft > 0) {
+            if (btn) btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Minimalkan browser (${secondsLeft}s)...`;
+        } else {
+            clearInterval(countdown);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fas fa-stopwatch"></i> <span>Uji Latar Belakang (5s)</span>`;
+            }
+            window.wsTestPushNotification('Uji Notifikasi Latar Belakang Berhasil! 🚀');
+        }
+    }, 1000);
 };
 
 document.addEventListener('DOMContentLoaded', function() {
