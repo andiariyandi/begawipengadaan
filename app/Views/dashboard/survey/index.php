@@ -54,7 +54,10 @@
                         <span class="text-2xs text-secondary-light">NRR: <?= number_format((float) ($ikmScale4 ?? 0), 2) ?> / 4.00</span>
                     </div>
                 </div>
-                <div class="mt-12 d-flex justify-content-center gap-2 d-print-none">
+                <div class="mt-12 d-flex justify-content-center gap-2 d-print-none flex-wrap">
+                    <a href="<?= site_url('dashboard/survei-kepuasan/export') ?>" class="btn btn-sm btn-success radius-8 px-14 py-6 text-xs d-inline-flex align-items-center gap-1">
+                        <iconify-icon icon="solar:file-download-bold"></iconify-icon> Unduh CSV Responden
+                    </a>
                     <button type="button" class="btn btn-sm btn-outline-secondary radius-8 px-14 py-6 text-xs d-inline-flex align-items-center gap-1" onclick="window.print()">
                         <iconify-icon icon="solar:printer-outline"></iconify-icon> Cetak Berita Acara IKM
                     </button>
@@ -131,6 +134,75 @@
             <div class="mt-12 text-2xs fw-semibold text-warning-main">
                 Dimensi 3 &amp; 4 (Pelayanan & Dokumen)
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabel Unsur Pelayanan Publik PermenPAN-RB No. 14 Tahun 2017 -->
+<div class="card mb-24 radius-12 border-0 shadow-sm overflow-hidden">
+    <div class="card-header border-bottom py-16 px-24 d-flex align-items-center justify-content-between flex-wrap gap-2 bg-base">
+        <div>
+            <h6 class="text-sm fw-bold mb-1 text-primary-light d-flex align-items-center gap-2">
+                <iconify-icon icon="solar:document-bold" class="text-primary text-xl"></iconify-icon>
+                Rekapitulasi Nilai Unsur Pelayanan (PermenPAN-RB No. 14 / 2017)
+            </h6>
+            <p class="text-secondary-light text-2xs mb-0">Rincian Nilai Rata-rata (NRR), NRR Konversi Skala 1-4, dan NRR Tertimbang per Unsur Pelayanan.</p>
+        </div>
+        <span class="badge bg-primary-50 text-primary-600 px-10 py-4 radius-6 text-2xs fw-bold">
+            Total Bobot: 100%
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table bordered-table mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;" class="text-center">Unsur</th>
+                        <th>Ruang Lingkup Unsur Pelayanan PBJ</th>
+                        <th style="width: 110px;" class="text-center">Bobot Riil</th>
+                        <th style="width: 140px;" class="text-center">NRR (Skala 1-5)</th>
+                        <th style="width: 140px;" class="text-center">NRR (Skala 1-4)</th>
+                        <th style="width: 160px;" class="text-center">NRR Tertimbang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (! empty($panrbElements)): ?>
+                        <?php foreach ($panrbElements as $key => $el): ?>
+                            <tr>
+                                <td class="text-center fw-bold">
+                                    <span class="badge bg-neutral-200 text-neutral-800 font-monospace text-xs px-2 py-1"><?= esc($el['code']) ?></span>
+                                </td>
+                                <td>
+                                    <strong class="text-sm text-primary-light d-block"><?= esc($el['name']) ?></strong>
+                                    <small class="text-secondary-light">Pilar pengujian kepuasan pengguna layanan pengadaan digital</small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info-subtle text-info fw-bold text-xs"><?= number_format($el['weight_pct'] ?? 25, 1) ?>%</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold text-primary-600 font-monospace"><?= number_format((float) ($el['nrr'] ?? 0), 2) ?></span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-semibold text-secondary font-monospace"><?= number_format((float) ($el['nrr_4'] ?? 0), 2) ?></span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-success-subtle text-success-main font-monospace fw-bold text-xs px-2 py-1">
+                                        <?= number_format((float) ($el['nrr_tertimbang'] ?? 0), 3) ?>
+                                    </span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <tr class="bg-neutral-50 fw-bold border-top border-2">
+                            <td colspan="3" class="text-end text-uppercase text-xs text-secondary-light pe-20">Total Nilai IKM &amp; NRR Tertimbang:</td>
+                            <td class="text-center text-primary-600 font-monospace"><?= number_format($avgTotal, 2) ?></td>
+                            <td class="text-center text-secondary font-monospace"><?= number_format((float) ($ikmScale4 ?? 0), 2) ?></td>
+                            <td class="text-center text-success-main font-monospace fs-6">
+                                <?= number_format((float) ($ikmScore ?? 0), 2) ?> <small class="text-2xs fw-normal text-muted">(Mutu <?= esc($mutuKategori) ?>)</small>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -259,7 +331,7 @@
                     <th>Rata-Rata</th>
                     <th>Kritik & Saran</th>
                     <th>Waktu</th>
-                    <th style="width: 60px;" class="text-center no-sort no-export action-col">Aksi</th>
+                    <th style="width: 100px;" class="text-center no-sort no-export action-col">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -271,12 +343,21 @@
                             $l = (int) ($resp['service_helpdesk_rating'] ?? $resp['score_layanan'] ?? $resp['rating_overall'] ?? 5);
                             $m = (int) ($resp['service_learning_rating'] ?? $resp['score_materi'] ?? $resp['rating_overall'] ?? 5);
                             $rAvg = round(($p + $s + $l + $m) / 4, 1);
+                            $isAnon = (int) ($resp['is_anonymous'] ?? 1) === 1;
+                            $respName = $isAnon ? 'Anonim' : ($resp['respondent_name'] ?: 'Anonim');
+                            $respInst = $isAnon ? '-' : ($resp['respondent_institution'] ?? $resp['institution_name'] ?? '-');
+                            $respContact = $isAnon ? '-' : ($resp['respondent_contact'] ?: '-');
                             ?>
                             <tr>
                                 <td class="text-center fw-bold text-secondary"><?= $no++ ?></td>
                                 <td>
-                                    <strong class="text-sm text-primary-light d-block"><?= esc($resp['respondent_name'] ?: 'Anonim') ?></strong>
-                                    <small class="text-secondary-light"><?= esc($resp['respondent_institution'] ?? $resp['institution_name'] ?? '-') ?></small>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <strong class="text-sm text-primary-light d-block"><?= esc($respName) ?></strong>
+                                        <?php if ($isAnon): ?>
+                                            <span class="badge bg-neutral-100 text-neutral-600 text-3xs"><i class="fas fa-user-secret me-1"></i>Anonim</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <small class="text-secondary-light"><?= esc($respInst) ?></small>
                                 </td>
                                 <td>
                                     <span class="badge bg-neutral-200 text-neutral-800 text-2xs"><?= esc($resp['respondent_role'] ?: 'Lainnya') ?></span>
@@ -292,7 +373,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <p class="text-xs text-secondary-light mb-0 text-truncate" style="max-width: 250px;">
+                                    <p class="text-xs text-secondary-light mb-0 text-truncate" style="max-width: 250px;" title="<?= esc($resp['feedback'] ?: 'Tidak ada catatan saran.') ?>">
                                         <?= esc($resp['feedback'] ?: '-') ?>
                                     </p>
                                 </td>
@@ -300,9 +381,122 @@
                                     <small class="text-muted text-2xs"><?= date('d/m/Y H:i', strtotime($resp['created_at'])) ?></small>
                                 </td>
                                 <td class="text-center">
-                                    <a href="<?= site_url('dashboard/survei-kepuasan/hapus/' . $resp['id']) ?>" onclick="return confirm('Hapus tanggapan ini?')" class="btn btn-outline-danger btn-sm radius-8 px-6 py-2" title="Hapus">
-                                        <iconify-icon icon="solar:trash-bin-trash-linear"></iconify-icon>
-                                    </a>
+                                    <div class="d-flex align-items-center justify-content-center gap-1">
+                                        <!-- Tombol Detail -->
+                                        <button type="button" class="btn btn-outline-info btn-sm radius-8 px-6 py-2" data-bs-toggle="modal" data-bs-target="#modalDetailResp<?= $resp['id'] ?>" title="Lihat Rincian Tanggapan">
+                                            <iconify-icon icon="solar:eye-bold"></iconify-icon>
+                                        </button>
+
+                                        <!-- Tombol Hapus (POST dengan CSRF) -->
+                                        <form action="<?= site_url('dashboard/survei-kepuasan/hapus/' . $resp['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data responden tiket <?= esc($resp['ticket_number'] ?: '#' . $resp['id']) ?>? Tindakan ini tidak dapat dibatalkan.');">
+                                            <?= csrf_field() ?>
+                                            <button type="submit" class="btn btn-outline-danger btn-sm radius-8 px-6 py-2" title="Hapus Tanggapan">
+                                                <iconify-icon icon="solar:trash-bin-trash-linear"></iconify-icon>
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- Modal Detail Responden -->
+                                    <div class="modal fade" id="modalDetailResp<?= $resp['id'] ?>" tabindex="-1" aria-labelledby="modalDetailRespLabel<?= $resp['id'] ?>" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg text-start">
+                                            <div class="modal-content radius-16 border-0 shadow-lg">
+                                                <div class="modal-header border-bottom py-16 px-24 bg-base">
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                                            <span class="badge bg-primary-subtle text-primary font-monospace text-xs px-2 py-1">
+                                                                <i class="fas fa-ticket-alt me-1"></i><?= esc($resp['ticket_number'] ?: 'IKM-' . $resp['id']) ?>
+                                                            </span>
+                                                            <span class="badge <?= $isAnon ? 'bg-secondary-subtle text-secondary' : 'bg-success-subtle text-success' ?> text-xs">
+                                                                <?= $isAnon ? 'Responden Anonim' : 'Identitas Terbuka' ?>
+                                                            </span>
+                                                        </div>
+                                                        <h6 class="modal-title fw-bold text-primary-light" id="modalDetailRespLabel<?= $resp['id'] ?>">
+                                                            Rincian Evaluasi Kepuasan Pengguna (IKM)
+                                                        </h6>
+                                                    </div>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                                                </div>
+                                                <div class="modal-body p-24">
+                                                    <!-- Profil Responden -->
+                                                    <div class="card bg-neutral-50 border radius-12 p-16 mb-20">
+                                                        <div class="row g-3">
+                                                            <div class="col-sm-6">
+                                                                <span class="text-2xs text-secondary-light text-uppercase fw-semibold d-block">Nama Lengkap Responden</span>
+                                                                <strong class="text-sm text-primary-light"><?= esc($respName) ?></strong>
+                                                            </div>
+                                                            <div class="col-sm-6">
+                                                                <span class="text-2xs text-secondary-light text-uppercase fw-semibold d-block">Instansi / Perusahaan</span>
+                                                                <span class="text-sm fw-medium text-dark"><?= esc($respInst) ?></span>
+                                                            </div>
+                                                            <div class="col-sm-6">
+                                                                <span class="text-2xs text-secondary-light text-uppercase fw-semibold d-block">Kategori / Peran PBJ</span>
+                                                                <span class="badge bg-primary-50 text-primary-600 text-xs mt-1"><?= esc($resp['respondent_role'] ?: 'Pengguna Layanan') ?></span>
+                                                            </div>
+                                                            <div class="col-sm-6">
+                                                                <span class="text-2xs text-secondary-light text-uppercase fw-semibold d-block">Kontak (WhatsApp / Email)</span>
+                                                                <span class="text-sm text-secondary"><?= esc($respContact) ?></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Skor 4 Pilar -->
+                                                    <h6 class="text-xs fw-bold text-uppercase text-secondary-light mb-12">Penilaian 4 Pilar Layanan PBJ</h6>
+                                                    <div class="row g-2 mb-20">
+                                                        <div class="col-6 col-md-3">
+                                                            <div class="p-12 radius-8 bg-white border text-center">
+                                                                <small class="text-muted text-2xs d-block mb-1">Akses Portal</small>
+                                                                <h5 class="fw-bold text-primary mb-0">★ <?= $s ?> <span class="text-2xs text-muted">/ 5</span></h5>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6 col-md-3">
+                                                            <div class="p-12 radius-8 bg-white border text-center">
+                                                                <small class="text-muted text-2xs d-block mb-1">Regulasi &amp; SDP</small>
+                                                                <h5 class="fw-bold text-warning mb-0">★ <?= $p ?> <span class="text-2xs text-muted">/ 5</span></h5>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6 col-md-3">
+                                                            <div class="p-12 radius-8 bg-white border text-center">
+                                                                <small class="text-muted text-2xs d-block mb-1">Arena Belajar</small>
+                                                                <h5 class="fw-bold text-success mb-0">★ <?= $m ?> <span class="text-2xs text-muted">/ 5</span></h5>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6 col-md-3">
+                                                            <div class="p-12 radius-8 bg-white border text-center">
+                                                                <small class="text-muted text-2xs d-block mb-1">Helpdesk LPSE</small>
+                                                                <h5 class="fw-bold text-info mb-0">★ <?= $l ?> <span class="text-2xs text-muted">/ 5</span></h5>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Feedback Masukan -->
+                                                    <div class="mb-20">
+                                                        <span class="text-2xs text-secondary-light text-uppercase fw-semibold d-block mb-1">Kritik, Masukan &amp; Ulasan Lengkap:</span>
+                                                        <div class="p-16 radius-8 bg-light border text-sm" style="white-space: pre-wrap; line-height: 1.6;">
+                                                            <?= esc($resp['feedback'] ?: 'Tidak ada catatan saran tambahan dari responden.') ?>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Rekomendasi & Metadata -->
+                                                    <div class="row g-2 text-xs text-secondary-light pt-2 border-top">
+                                                        <div class="col-sm-6">
+                                                            <i class="fas fa-thumbs-up text-success me-1"></i> Rekomendasi: <strong><?= esc($resp['recommendation'] ?: 'Pasti Merekomendasikan') ?></strong>
+                                                        </div>
+                                                        <div class="col-sm-6 text-sm-end">
+                                                            <i class="far fa-clock me-1"></i> Waktu: <?= date('d F Y, H:i', strtotime($resp['created_at'])) ?> WIB
+                                                        </div>
+                                                        <div class="col-12 mt-2">
+                                                            <small class="text-muted d-block text-truncate">
+                                                                <i class="fas fa-network-wired me-1"></i> IP: <code><?= esc($resp['ip_address'] ?: '-') ?></code> &middot; User Agent: <span class="text-secondary"><?= esc($resp['user_agent'] ?: '-') ?></span>
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-top py-12 px-24 bg-base">
+                                                    <button type="button" class="btn btn-outline-secondary radius-8 px-20 py-8 text-xs" data-bs-dismiss="modal">Tutup</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

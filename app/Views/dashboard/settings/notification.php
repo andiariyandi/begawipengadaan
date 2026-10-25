@@ -47,6 +47,15 @@
                 </div>
 
                 <div class="col-12">
+                    <div class="alert alert-primary bg-primary-50 border-primary-100 text-primary-900 radius-8 p-16 d-flex align-items-start gap-12 mb-0">
+                        <iconify-icon icon="solar:shield-check-bold" class="text-2xl flex-shrink-0 text-primary-600 mt-2"></iconify-icon>
+                        <div class="text-sm">
+                            <strong>Kebijakan Pengiriman Email Manual (Zero Automated Email):</strong> Notifikasi utama sistem berjalan secara real-time melalui <em>Kanal In-App</em>. Pengiriman email berstatus opsional dan <strong>100% dikendalikan secara manual oleh Administrator</strong> (melalui antrean dan tombol kirim manual) untuk mencegah spam dan melindungi batas kuota 500 email/hari Google Mail.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
                     <h6 class="text-lg mb-4 d-flex align-items-center gap-2">
                         <iconify-icon icon="solar:letter-bold" class="text-primary-600 text-xl"></iconify-icon>
                         Konfigurasi Akun Google Mail (Gmail SMTP)

@@ -836,6 +836,32 @@ class HomeController extends BaseController
             return redirect()->back()->with('error', 'Terlalu banyak pengiriman survei dari perangkat Anda. Silakan tunggu beberapa saat.');
         }
 
+        // 1. Honeypot check for bots
+        $honeypot = trim((string) $this->request->getPost('website_url'));
+        if ($honeypot !== '') {
+            if ($this->request->isAJAX() || $this->request->getHeaderLine('Accept') === 'application/json' || $this->request->getGet('ajax') === '1') {
+                return $this->response->setStatusCode(422)->setJSON([
+                    'success' => false,
+                    'message' => 'Permintaan pengiriman survei tidak valid (indikasi bot).',
+                ]);
+            }
+            return redirect()->back()->with('error', 'Permintaan pengiriman survei tidak valid.');
+        }
+
+        // 2. Simple Math Captcha verification for all respondents
+        $isLoggedIn = session()->get('isLoggedIn') === true;
+        $expectedCaptcha = session()->get('survey_captcha_answer');
+        $userCaptcha = trim((string) $this->request->getPost('captcha_answer'));
+        if ($expectedCaptcha !== null && (int) $userCaptcha !== (int) $expectedCaptcha) {
+            if ($this->request->isAJAX() || $this->request->getHeaderLine('Accept') === 'application/json' || $this->request->getGet('ajax') === '1') {
+                return $this->response->setStatusCode(422)->setJSON([
+                    'success' => false,
+                    'message' => 'Jawaban verifikasi keamanan (captcha matematika) belum tepat. Silakan hitung kembali.',
+                ]);
+            }
+            return redirect()->back()->with('error', 'Jawaban verifikasi keamanan (captcha matematika) belum tepat. Silakan hitung kembali.');
+        }
+
         $rating = (int) $this->request->getPost('rating_overall');
         if ($rating < 1 || $rating > 5) {
             $rating = 5;
@@ -888,17 +914,30 @@ class HomeController extends BaseController
         $db->transStart();
         try {
             $surveyModel->insert($data);
+            $insertedId = (int) $db->insertID();
             $auditService = new \App\Services\AuditService();
-            $auditService->log(null, 'survey.satisfaction_submitted', 'survey', 'satisfaction_surveys', 0, [
+            $actorId = $isLoggedIn ? (int) session()->get('user_id') : null;
+            $auditService->log($actorId, 'survey.satisfaction_submitted', 'survey', 'satisfaction_surveys', $insertedId, [
                 'ticket_number'   => $ticketNumber,
                 'rating_overall'  => $rating,
                 'respondent_role' => $respondentRole,
+                'is_anonymous'    => $isAnonymous ? 1 : 0,
             ]);
             $db->transComplete();
         } catch (\Throwable $e) {
             $db->transRollback();
             log_message('error', 'Satisfaction Survey insert error: ' . $e->getMessage());
+            if ($this->request->isAJAX() || $this->request->getHeaderLine('Accept') === 'application/json' || $this->request->getGet('ajax') === '1') {
+                return $this->response->setStatusCode(500)->setJSON([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan sistem saat menyimpan survei. Silakan coba kembali sesaat lagi.',
+                ]);
+            }
+            return redirect()->back()->with('error', 'Terjadi kesalahan sistem saat menyimpan survei.');
         }
+
+        // Clean captcha on success
+        session()->remove('survey_captcha_answer');
 
         $indonesianMonths = [
             'January' => 'Januari',
@@ -925,7 +964,7 @@ class HomeController extends BaseController
         ];
 
         if ($this->request->isAJAX() || $this->request->getHeaderLine('Accept') === 'application/json' || $this->request->getGet('ajax') === '1') {
-            return $this->response->setJSON([
+            return $this->response->setStatusCode(200)->setJSON([
                 'success'         => true,
                 'ticket_number'   => $ticketNumber,
                 'rating_overall'  => $rating,

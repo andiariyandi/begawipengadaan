@@ -35,6 +35,10 @@ $profileSegment = $profileSegment ?? match($registrationData['profile_type'] ?? 
     'public'   => 'masyarakat',
     default    => 'asn',
 };
+
+$revNum1 = rand(2, 9);
+$revNum2 = rand(1, 9);
+session()->set('register_captcha_answer', $revNum1 + $revNum2);
 ?>
 
 <!-- Flash Alerts -->
@@ -225,6 +229,12 @@ $profileSegment = $profileSegment ?? match($registrationData['profile_type'] ?? 
 <form action="<?= site_url('dashboard/daftar/tinjau') ?>" method="post">
     <?= csrf_field() ?>
 
+    <!-- Honeypot anti-spam -->
+    <div class="d-none" aria-hidden="true">
+        <label for="website_url">Website</label>
+        <input type="text" name="website_url" id="website_url" tabindex="-1" autocomplete="off">
+    </div>
+
     <div class="form-check style-check d-flex align-items-start mb-12">
         <input class="form-check-input border border-neutral-300 mt-4 flex-shrink-0" type="checkbox" value="1" id="terms" name="terms" required>
         <label class="form-check-label text-sm ms-2" for="terms">
@@ -237,6 +247,28 @@ $profileSegment = $profileSegment ?? match($registrationData['profile_type'] ?? 
         <label class="form-check-label text-sm ms-2" for="privacy">
             Saya mengonfirmasi bahwa data yang diisi benar serta menyetujui <a href="<?= site_url('tentang') ?>" class="text-primary-600 fw-semibold" target="_blank">Kebijakan Privasi</a>.
         </label>
+    </div>
+
+    <!-- Simple Math Captcha Anti-Spam -->
+    <div class="border border-neutral-200 radius-12 p-16 mb-20 bg-white shadow-none">
+        <label class="form-label mb-8 text-sm fw-semibold text-primary-light d-flex align-items-center gap-2">
+            <iconify-icon icon="solar:shield-check-bold" class="text-primary-600 text-lg"></iconify-icon>
+            <span>Verifikasi Keamanan Pendaftaran (Anti-Spam) <span class="text-danger">*</span></span>
+        </label>
+        <div class="d-flex align-items-center gap-12">
+            <div class="px-16 py-10 bg-neutral-100 radius-8 fw-bold text-primary-light text-base text-nowrap border border-neutral-200">
+                <?= $revNum1 ?> + <?= $revNum2 ?> = ?
+            </div>
+            <input type="number" 
+                   name="register_captcha_answer" 
+                   class="form-control radius-8 py-10 px-16 text-sm flex-grow-1" 
+                   placeholder="Hasil penjumlahan" 
+                   required 
+                   autocomplete="off">
+        </div>
+        <span class="text-xs text-secondary-light mt-6 d-block">
+            Selesaikan perhitungan matematika di atas untuk memastikan pengiriman pendaftaran dilakukan oleh pemohon resmi (bukan bot).
+        </span>
     </div>
 
     <!-- Security Verification Card -->

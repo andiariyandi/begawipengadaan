@@ -85,6 +85,8 @@
                                         <li><a href="<?= site_url('bunga-rampai') ?>"><span class="icon-plus"></span> Bunga Rampai</a></li>
                                         <li><a href="<?= site_url('regulasi') ?>"><span class="icon-plus"></span> Regulasi PBJ</a></li>
                                         <li><a href="<?= site_url('statistik') ?>"><span class="icon-plus"></span> Statistik</a></li>
+                                        <li><a href="<?= site_url('survei-kepuasan') ?>"><span class="icon-plus"></span> Survei Kepuasan (IKM)</a></li>
+                                        <li><a href="<?= site_url('statistik/survei-kepuasan') ?>"><span class="icon-plus"></span> Hasil IKM Publik</a></li>
                                         <li><a href="<?= site_url('verifikasi-sertifikat') ?>"><span class="icon-plus"></span> Verifikasi Sertifikat</a></li>
                                         <li><a href="<?= site_url('bunga-rampai/faq') ?>"><span class="icon-plus"></span> FAQ</a></li>
                                     </ul>

@@ -531,6 +531,7 @@ class ConsultationController extends BaseController
         }
 
         return redirect()->to(route_to('workspace.consultation.detail', $ticket['ticket_number']))
-            ->with('success', 'Terima kasih! Tiket konsultasi ini telah berhasil ditandai selesai dan ditutup.');
+            ->with('success', 'Terima kasih! Tiket konsultasi ini telah berhasil ditandai selesai dan ditutup. Mohon luangkan waktu 1 menit untuk mengisi survei kepuasan.')
+            ->with('show_survey_modal', true);
     }
 }

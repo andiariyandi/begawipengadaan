@@ -48,6 +48,17 @@ class PasswordResetService
         $userId = (int) $user['id'];
         $plainToken = bin2hex(random_bytes(32));
 
+        // Invalidate any previous unconsumed tokens for this user
+        try {
+            $db = \Config\Database::connect();
+            $db->table('password_resets')
+                ->where('user_id', $userId)
+                ->where('used_at IS NULL')
+                ->update(['used_at' => date('Y-m-d H:i:s')]);
+        } catch (\Throwable $e) {
+            log_message('warning', 'Failed to invalidate previous tokens: ' . $e->getMessage());
+        }
+
         $this->resets->insert([
             'user_id'    => $userId,
             'token_hash' => hash('sha256', $plainToken),
@@ -57,12 +68,28 @@ class PasswordResetService
 
         $this->audit->log($userId, 'password_reset_requested', 'auth', 'users', $userId);
 
-        // Kirim email pemulihan kata sandi resmi via Google Mail
+        // Notifikasi in-app untuk pengguna jika nanti berhasil masuk
+        try {
+            (new \App\Services\NotificationService())->send(
+                $userId,
+                'password_reset_requested',
+                'Permintaan Atur Ulang Kata Sandi',
+                'Permintaan pemulihan kata sandi telah dicatat. Jika ini bukan Anda, segera hubungi Administrator.'
+            );
+        } catch (\Throwable) {
+        }
+
+        // Daftarkan ke antrean email untuk kontrol manual Admin (100% Manual Control, TIDAK ADA OTOMATIS)
         try {
             $emailService = new \App\Services\Email\EmailService();
-            $emailService->sendPasswordReset((string) $user['email'], (string) ($user['name'] ?? 'Pengguna'), $plainToken);
+            $emailService->queuePasswordReset(
+                (string) $user['email'],
+                (string) ($user['name'] ?? 'Pengguna'),
+                $plainToken,
+                (int) $userId
+            );
         } catch (\Throwable $e) {
-            log_message('error', 'Failed to send password reset email: ' . $e->getMessage());
+            log_message('error', 'Failed to queue password reset email: ' . $e->getMessage());
         }
 
         return true;

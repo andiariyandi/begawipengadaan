@@ -70,6 +70,7 @@ class EmailBroadcastController extends BaseController
             ->get()->getResultArray();
 
         $config = $this->emailService->getConfig();
+        $quotaInfo = $this->emailService->getDailyQuotaInfo(500);
 
         // Count pending vs sent
         $totalPending = count(array_filter($queueItems, fn($i) => empty($i['sent_at'])));
@@ -82,6 +83,7 @@ class EmailBroadcastController extends BaseController
             'activeSubmenu' => 'email',
             'activeTab'     => $activeTab,
             'config'        => $config,
+            'quotaInfo'     => $quotaInfo,
             'queueItems'    => $queueItems,
             'logs'          => $logsData['items'],
             'totalLogs'     => $logsData['total'],

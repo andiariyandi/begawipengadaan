@@ -1,6 +1,12 @@
 <?= $this->extend('dashboard/auth/layouts/auth') ?>
 
 <?= $this->section('content') ?>
+<?php
+$forgotNum1 = rand(2, 9);
+$forgotNum2 = rand(1, 9);
+session()->set('forgot_captcha_answer', $forgotNum1 + $forgotNum2);
+$forgotCaptchaQuestion = "{$forgotNum1} + {$forgotNum2}";
+?>
 <div class="mb-32">
     <a href="<?= site_url('/') ?>" class="mb-24 d-inline-block text-decoration-none">
         <span class="auth-brand-text">BegawiPengadaan</span>
@@ -46,6 +52,11 @@
 <form action="<?= site_url('dashboard/lupa-kata-sandi') ?>" method="post">
     <?= csrf_field() ?>
 
+    <!-- Honeypot Anti-Bot Field -->
+    <div style="display:none !important;" aria-hidden="true">
+        <input type="text" name="website_url" tabindex="-1" autocomplete="off" value="">
+    </div>
+
     <div class="mb-20">
         <label class="form-label fw-semibold text-primary-light text-sm mb-8" for="reset-email">Alamat Email Terdaftar</label>
         <div class="icon-field">
@@ -62,6 +73,33 @@
                 autocomplete="email"
                 required>
         </div>
+    </div>
+
+    <!-- Simple Math Captcha Anti-Spam -->
+    <div class="p-16 bg-neutral-50 border border-neutral-200 radius-12 mb-20">
+        <div class="d-flex align-items-center justify-content-between mb-8">
+            <label class="form-label fw-semibold text-primary-light text-sm mb-0" for="forgot-captcha">
+                <iconify-icon icon="solar:shield-check-bold" class="text-primary-600 align-middle me-1"></iconify-icon>
+                Verifikasi Keamanan (Captcha) <span class="text-danger">*</span>
+            </label>
+            <span class="badge bg-primary-50 text-primary-600 border border-primary-200 font-monospace px-2 py-1 fs-6">
+                <?= $forgotCaptchaQuestion ?> = ?
+            </span>
+        </div>
+        <div class="icon-field">
+            <span class="icon top-50 translate-middle-y">
+                <iconify-icon icon="solar:calculator-bold" class="text-lg text-secondary-light"></iconify-icon>
+            </span>
+            <input
+                type="number"
+                class="form-control h-52-px bg-white radius-8 ps-48 font-monospace"
+                id="forgot-captcha"
+                name="captcha_answer"
+                placeholder="Tulis hasil penjumlahan angka di atas..."
+                autocomplete="off"
+                required>
+        </div>
+        <small class="text-secondary-light text-2xs d-block mt-1">Hitung angka penjumlahan di atas untuk memverifikasi Anda bukan bot spam.</small>
     </div>
 
     <div class="p-16 bg-neutral-50 border border-neutral-200 radius-12 mb-24 d-flex align-items-start gap-3">

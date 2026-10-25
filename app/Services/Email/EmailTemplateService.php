@@ -161,6 +161,34 @@ HTML;
     }
 
     /**
+     * Account approved notification email template.
+     */
+    public function renderAccountApproved(string $userName, string $loginUrl): string
+    {
+        $title = 'Akun Anda Telah Disetujui dan Siap Digunakan';
+        $safeName = esc($userName ?: 'Pengguna BegawiPengadaan');
+
+        $content = <<<HTML
+        <p>Yth. <strong>{$safeName}</strong>,</p>
+        <p>Kabar baik! Permohonan pendaftaran akun Anda pada portal <strong>BegawiPengadaan Biro Pengadaan Barang dan Jasa Provinsi Lampung</strong> telah berhasil diverifikasi dan <strong>disetujui</strong> oleh tim Administrator/Operator.</p>
+        <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 12px 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+            <p style="margin: 0; font-size: 13.5px; color: #065f46;">
+                <strong>Status Akun:</strong> <span style="display: inline-block; background-color: #10b981; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11px;">AKTIF</span> &bull; Akun Anda kini memiliki akses penuh ke fitur Ruang Kerja (Workspace), kurikulum Arena Belajar, event pembinaan PBJ, dan layanan helpdesk konsultasi.
+            </p>
+        </div>
+        <p>Silakan masuk ke platform menggunakan alamat email dan kata sandi yang Anda daftarkan dengan mengeklik tombol di bawah ini:</p>
+HTML;
+
+        return $this->wrapLayout($title, $content, [
+            'badge'            => 'Akun Terverifikasi',
+            'badge_color'      => '#d1fae5',
+            'badge_text_color' => '#065f46',
+            'action_url'       => $loginUrl,
+            'action_text'      => 'Masuk ke Akun Saya Sekarang',
+        ]);
+    }
+
+    /**
      * Broadcast mass email template.
      */
     public function renderBroadcast(string $title, string $messageBody, array $options = []): string

@@ -80,9 +80,17 @@ class SatisfactionSurveyModel extends Model
     {
         $dbTotal = (int) $this->countAllResults();
 
+        $benchmarks = [
+            ['range_interval' => '88,31 - 100,00', 'scale_4' => '3,53 - 4,00', 'grade' => 'A', 'label' => 'Sangat Baik', 'class' => 'success'],
+            ['range_interval' => '76,61 - 88,30',  'scale_4' => '3,06 - 3,53', 'grade' => 'B', 'label' => 'Baik',        'class' => 'primary'],
+            ['range_interval' => '65,00 - 76,60',  'scale_4' => '2,60 - 3,06', 'grade' => 'C', 'label' => 'Kurang Baik', 'class' => 'warning'],
+            ['range_interval' => '25,00 - 64,99',  'scale_4' => '1,00 - 2,59', 'grade' => 'D', 'label' => 'Tidak Baik',  'class' => 'danger'],
+        ];
+
         if ($dbTotal === 0) {
             $aspects = [
                 [
+                    'code'        => 'U2',
                     'title'       => 'Kemudahan Akses & Kecepatan Portal',
                     'description' => 'Kecepatan respon situs, kemudahan navigasi katalog, keandalan akses mobile & desktop',
                     'score'       => 0.0,
@@ -91,6 +99,7 @@ class SatisfactionSurveyModel extends Model
                     'color'       => '#0b57d0',
                 ],
                 [
+                    'code'        => 'U1',
                     'title'       => 'Kelengkapan Regulasi & Standar Dokumen (SDP)',
                     'description' => 'Ketersediaan Perpres, PerLKPP, Pergub Lampung, Standar Dokumen Pemilihan terverifikasi',
                     'score'       => 0.0,
@@ -99,6 +108,7 @@ class SatisfactionSurveyModel extends Model
                     'color'       => '#d97706',
                 ],
                 [
+                    'code'        => 'U4',
                     'title'       => 'Kualitas Arena Belajar & Pelatihan PBJ',
                     'description' => 'Kesesuaian kurikulum bimtek, kompetensi instruktur pengadaan, materi pembelajaran interaktif',
                     'score'       => 0.0,
@@ -107,6 +117,7 @@ class SatisfactionSurveyModel extends Model
                     'color'       => '#059669',
                 ],
                 [
+                    'code'        => 'U3',
                     'title'       => 'Responsivitas Helpdesk & Konsultasi LPSE',
                     'description' => 'Kecepatan tanggapan tiket layanan, keramahan petugas konsultasi, keakuratan solusi teknis',
                     'score'       => 0.0,
@@ -124,19 +135,32 @@ class SatisfactionSurveyModel extends Model
                 1 => ['stars' => 1, 'label' => 'Sangat Buruk', 'pct' => 0.0, 'count' => 0],
             ];
 
+            $emptyElements = [
+                'u1' => ['code' => 'U1', 'name' => 'Kesesuaian Persyaratan & Regulasi PBJ', 'weight_pct' => 25.0, 'nrr' => 0.0, 'nrr_4' => 0.0, 'nrr_tertimbang' => 0.0, 'icon' => 'fas fa-gavel', 'color' => '#d97706', 'performance' => '-'],
+                'u2' => ['code' => 'U2', 'name' => 'Kemudahan Akses & Keandalan Sistem Portal', 'weight_pct' => 25.0, 'nrr' => 0.0, 'nrr_4' => 0.0, 'nrr_tertimbang' => 0.0, 'icon' => 'fas fa-desktop', 'color' => '#0b57d0', 'performance' => '-'],
+                'u3' => ['code' => 'U3', 'name' => 'Kecepatan Respon Helpdesk & Konsultasi', 'weight_pct' => 25.0, 'nrr' => 0.0, 'nrr_4' => 0.0, 'nrr_tertimbang' => 0.0, 'icon' => 'fas fa-headset', 'color' => '#0284c7', 'performance' => '-'],
+                'u4' => ['code' => 'U4', 'name' => 'Kualitas Materi, Pembelajaran & Transparansi', 'weight_pct' => 25.0, 'nrr' => 0.0, 'nrr_4' => 0.0, 'nrr_tertimbang' => 0.0, 'icon' => 'fas fa-graduation-cap', 'color' => '#059669', 'performance' => '-'],
+            ];
+
             return [
-                'total_responses'    => 0,
-                'avg_overall'        => 0.0,
-                'score_pct'          => 0.0,
-                'predicate'          => ['grade' => '-', 'label' => 'Belum Ada Penilaian', 'class' => 'secondary'],
-                'recommendation_pct' => 0.0,
-                'aspects'            => $aspects,
-                'stars'              => $stars,
-                'roles'              => [],
-                'quarterly_trends'   => [],
-                'feedbacks'          => [],
-                'evaluated_at'       => date('F Y'),
-                'legal_basis'        => 'PermenPAN-RB No. 14 Tahun 2017 tentang Pedoman Penyusunan Survei Kepuasan Masyarakat Unit Penyelenggara Pelayanan Publik',
+                'total_responses'      => 0,
+                'avg_overall'          => 0.0,
+                'score_pct'            => 0.0,
+                'total_nrr_tertimbang' => 0.0,
+                'ikm_konversi'         => 0.0,
+                'predicate'            => ['grade' => '-', 'label' => 'Belum Ada Penilaian', 'class' => 'secondary'],
+                'mutu_kategori'        => '-',
+                'kinerja_pelayanan'    => 'Belum Ada Penilaian',
+                'recommendation_pct'   => 0.0,
+                'aspects'              => $aspects,
+                'panrb_elements'       => $emptyElements,
+                'benchmarks'           => $benchmarks,
+                'stars'                => $stars,
+                'roles'                => [],
+                'quarterly_trends'     => [],
+                'feedbacks'            => [],
+                'evaluated_at'         => date('F Y'),
+                'legal_basis'          => 'PermenPAN-RB No. 14 Tahun 2017 tentang Pedoman Penyusunan Survei Kepuasan Masyarakat Unit Penyelenggara Pelayanan Publik',
             ];
         }
 
@@ -153,7 +177,114 @@ class SatisfactionSurveyModel extends Model
         $avgLearning   = round((float) ($row['avg_learn'] ?? $avgOverall), 2);
         $avgHelpdesk   = round((float) ($row['avg_help'] ?? $avgOverall), 2);
 
-        $scorePct = round(($avgOverall / 5) * 100, 1);
+        // Ambil pembobotan dari tabel survey_aspects jika tersedia
+        $aspectRows = [];
+        try {
+            $aspectRows = $this->db->table('survey_aspects')->where('is_active', 1)->get()->getResultArray();
+        } catch (\Throwable) {}
+
+        $aspectWeights = [];
+        foreach ($aspectRows as $ar) {
+            $key = $ar['aspect_key'] ?? ($ar['aspect_code'] ?? '');
+            $weight = (float) ($ar['weight'] ?? ($ar['weight_percentage'] ?? 25.0));
+            if ($key !== '') {
+                $aspectWeights[$key] = $weight;
+            }
+        }
+
+        $wPersyaratan = $aspectWeights['kesesuaian_persyaratan'] ?? ($aspectWeights['persyaratan'] ?? 25.0);
+        $wSistem       = $aspectWeights['kemudahan_sistem'] ?? ($aspectWeights['sistem'] ?? 25.0);
+        $wLayanan      = $aspectWeights['kecepatan_layanan'] ?? ($aspectWeights['layanan'] ?? 25.0);
+        $wMateri       = $aspectWeights['kualitas_materi'] ?? ($aspectWeights['materi'] ?? 25.0);
+        $totalWeight   = $wPersyaratan + $wSistem + $wLayanan + $wMateri;
+        if ($totalWeight <= 0) {
+            $totalWeight = 100.0;
+        }
+
+        $wf1 = $wPersyaratan / $totalWeight;
+        $wf2 = $wSistem / $totalWeight;
+        $wf3 = $wLayanan / $totalWeight;
+        $wf4 = $wMateri / $totalWeight;
+
+        // Standarisasi IKM PermenPAN-RB No. 14 Tahun 2017
+        $nrr4_u1 = round(1 + (($avgRegulation - 1) / 4) * 3, 2);
+        $nrr4_u2 = round(1 + (($avgAccess - 1) / 4) * 3, 2);
+        $nrr4_u3 = round(1 + (($avgHelpdesk - 1) / 4) * 3, 2);
+        $nrr4_u4 = round(1 + (($avgLearning - 1) / 4) * 3, 2);
+
+        $nrrTertimbang1 = round($nrr4_u1 * $wf1, 3);
+        $nrrTertimbang2 = round($nrr4_u2 * $wf2, 3);
+        $nrrTertimbang3 = round($nrr4_u3 * $wf3, 3);
+        $nrrTertimbang4 = round($nrr4_u4 * $wf4, 3);
+
+        $totalNrrTertimbang = round($nrrTertimbang1 + $nrrTertimbang2 + $nrrTertimbang3 + $nrrTertimbang4, 3);
+        $ikmKonversi        = round($totalNrrTertimbang * 25, 2);
+        $scorePct           = $ikmKonversi;
+
+        $calcGrade = function (float $score4): string {
+            return match (true) {
+                $score4 >= 3.53 => 'A',
+                $score4 >= 3.06 => 'B',
+                $score4 >= 2.60 => 'C',
+                default         => 'D',
+            };
+        };
+
+        $panrbElements = [
+            'u1' => [
+                'code'           => 'U1',
+                'name'           => 'Kesesuaian Persyaratan & Regulasi PBJ',
+                'description'    => 'Kepatuhan tata laksana pemilihan terhadap Perpres, Standar Dokumen Pemilihan (SDP), dan regulasi LKPP/Pergub.',
+                'weight_pct'     => $wPersyaratan,
+                'weight_fraction'=> round($wf1, 4),
+                'nrr'            => $avgRegulation,
+                'nrr_4'          => $nrr4_u1,
+                'nrr_tertimbang' => $nrrTertimbang1,
+                'performance'    => $calcGrade($nrr4_u1),
+                'icon'           => 'fas fa-gavel',
+                'color'          => '#d97706',
+            ],
+            'u2' => [
+                'code'           => 'U2',
+                'name'           => 'Kemudahan Akses & Keandalan Sistem Portal',
+                'description'    => 'Kecepatan respon situs web, kemudahan navigasi, keandalan server, dan aksesibilitas lintas perangkat.',
+                'weight_pct'     => $wSistem,
+                'weight_fraction'=> round($wf2, 4),
+                'nrr'            => $avgAccess,
+                'nrr_4'          => $nrr4_u2,
+                'nrr_tertimbang' => $nrrTertimbang2,
+                'performance'    => $calcGrade($nrr4_u2),
+                'icon'           => 'fas fa-desktop',
+                'color'          => '#0b57d0',
+            ],
+            'u3' => [
+                'code'           => 'U3',
+                'name'           => 'Kecepatan Respon Helpdesk & Konsultasi',
+                'description'    => 'Kecepatan penanganan tiket bantuan, keramahan petugas helpdesk LPSE, dan keakuratan solusi teknis SPSE.',
+                'weight_pct'     => $wLayanan,
+                'weight_fraction'=> round($wf3, 4),
+                'nrr'            => $avgHelpdesk,
+                'nrr_4'          => $nrr4_u3,
+                'nrr_tertimbang' => $nrrTertimbang3,
+                'performance'    => $calcGrade($nrr4_u3),
+                'icon'           => 'fas fa-headset',
+                'color'          => '#0284c7',
+            ],
+            'u4' => [
+                'code'           => 'U4',
+                'name'           => 'Kualitas Materi, Pembelajaran & Transparansi',
+                'description'    => 'Kualitas modul kurikulum arena belajar, kompetensi sertifikasi pengadaan, dan transparansi informasi publik.',
+                'weight_pct'     => $wMateri,
+                'weight_fraction'=> round($wf4, 4),
+                'nrr'            => $avgLearning,
+                'nrr_4'          => $nrr4_u4,
+                'nrr_tertimbang' => $nrrTertimbang4,
+                'performance'    => $calcGrade($nrr4_u4),
+                'icon'           => 'fas fa-graduation-cap',
+                'color'          => '#059669',
+            ],
+        ];
+
         $predicate = match (true) {
             $scorePct >= 88.31 => ['grade' => 'A', 'label' => 'Sangat Baik', 'class' => 'success'],
             $scorePct >= 76.61 => ['grade' => 'B', 'label' => 'Baik', 'class' => 'primary'],
@@ -163,6 +294,7 @@ class SatisfactionSurveyModel extends Model
 
         $aspects = [
             [
+                'code'        => 'U2',
                 'title'       => 'Kemudahan Akses & Kecepatan Portal',
                 'description' => 'Kecepatan respon situs, kemudahan navigasi katalog, keandalan akses mobile & desktop',
                 'score'       => $avgAccess,
@@ -171,6 +303,7 @@ class SatisfactionSurveyModel extends Model
                 'color'       => '#0b57d0',
             ],
             [
+                'code'        => 'U1',
                 'title'       => 'Kelengkapan Regulasi & Standar Dokumen (SDP)',
                 'description' => 'Ketersediaan Perpres, PerLKPP, Pergub Lampung, Standar Dokumen Pemilihan terverifikasi',
                 'score'       => $avgRegulation,
@@ -179,6 +312,7 @@ class SatisfactionSurveyModel extends Model
                 'color'       => '#d97706',
             ],
             [
+                'code'        => 'U4',
                 'title'       => 'Kualitas Arena Belajar & Pelatihan PBJ',
                 'description' => 'Kesesuaian kurikulum bimtek, kompetensi instruktur pengadaan, materi pembelajaran interaktif',
                 'score'       => $avgLearning,
@@ -187,6 +321,7 @@ class SatisfactionSurveyModel extends Model
                 'color'       => '#059669',
             ],
             [
+                'code'        => 'U3',
                 'title'       => 'Responsivitas Helpdesk & Konsultasi LPSE',
                 'description' => 'Kecepatan tanggapan tiket layanan, keramahan petugas konsultasi, keakuratan solusi teknis',
                 'score'       => $avgHelpdesk,
@@ -235,23 +370,24 @@ class SatisfactionSurveyModel extends Model
         }
 
         // Recommendation rate
-        $recCount = (int) $this->where('recommendation', 'Pasti Merekomendasikan')
+        $recCount = (int) (new self())->where('recommendation', 'Pasti Merekomendasikan')
             ->orWhereIn('rating_overall', [4, 5])
             ->countAllResults();
         $recommendationPct = round(($recCount / $dbTotal) * 100, 1);
 
         // Quarterly Trends from real data
-        $trendRows = $this->select("CONCAT('Triwulan ', QUARTER(created_at), ' ', YEAR(created_at)) AS period, AVG(rating_overall) AS avg_score, COUNT(*) AS responses")
+        $trendRows = (new self())->select("YEAR(created_at) AS yr, QUARTER(created_at) AS qtr, AVG(rating_overall) AS avg_score, COUNT(*) AS responses")
             ->where('created_at IS NOT NULL', null, false)
             ->groupBy('YEAR(created_at), QUARTER(created_at)')
-            ->orderBy('YEAR(created_at)', 'ASC')
-            ->orderBy('QUARTER(created_at)', 'ASC')
+            ->orderBy('yr', 'ASC')
+            ->orderBy('qtr', 'ASC')
             ->findAll();
 
         $quarterlyTrends = [];
         foreach ($trendRows as $tr) {
             $trAvg = round((float) $tr['avg_score'], 2);
-            $trPct = round(($trAvg / 5) * 100, 1);
+            $trScale4 = 1 + (($trAvg - 1) / 4) * 3;
+            $trPct = round($trScale4 * 25, 2);
             $trStatus = match (true) {
                 $trPct >= 88.31 => 'A (Sangat Baik)',
                 $trPct >= 76.61 => 'B (Baik)',
@@ -259,7 +395,7 @@ class SatisfactionSurveyModel extends Model
                 default         => 'D (Tidak Baik)',
             };
             $quarterlyTrends[] = [
-                'period'    => $tr['period'],
+                'period'    => 'Triwulan ' . ($tr['qtr'] ?? '1') . ' ' . ($tr['yr'] ?? date('Y')),
                 'score'     => $trAvg,
                 'pct'       => $trPct,
                 'responses' => (int) $tr['responses'],
@@ -268,7 +404,7 @@ class SatisfactionSurveyModel extends Model
         }
 
         // Feedbacks from real DB only!
-        $recentDb = $this->where('feedback !=', null)
+        $recentDb = (new self())->where('feedback !=', null)
             ->where('feedback !=', '')
             ->orderBy('id', 'DESC')
             ->limit(6)
@@ -288,18 +424,24 @@ class SatisfactionSurveyModel extends Model
         }
 
         return [
-            'total_responses'    => $dbTotal,
-            'avg_overall'        => $avgOverall,
-            'score_pct'          => $scorePct,
-            'predicate'          => $predicate,
-            'recommendation_pct' => $recommendationPct,
-            'aspects'            => $aspects,
-            'stars'              => $stars,
-            'roles'              => $roles,
-            'quarterly_trends'   => $quarterlyTrends,
-            'feedbacks'          => $publicFeedbacks,
-            'evaluated_at'       => date('F Y'),
-            'legal_basis'        => 'PermenPAN-RB No. 14 Tahun 2017 tentang Pedoman Penyusunan Survei Kepuasan Masyarakat Unit Penyelenggara Pelayanan Publik',
+            'total_responses'      => $dbTotal,
+            'avg_overall'          => $avgOverall,
+            'score_pct'            => $scorePct,
+            'total_nrr_tertimbang' => $totalNrrTertimbang,
+            'ikm_konversi'         => $ikmKonversi,
+            'predicate'            => $predicate,
+            'mutu_kategori'        => $predicate['grade'],
+            'kinerja_pelayanan'    => $predicate['label'],
+            'recommendation_pct'   => $recommendationPct,
+            'aspects'              => $aspects,
+            'panrb_elements'       => $panrbElements,
+            'benchmarks'           => $benchmarks,
+            'stars'                => $stars,
+            'roles'                => $roles,
+            'quarterly_trends'     => $quarterlyTrends,
+            'feedbacks'            => $publicFeedbacks,
+            'evaluated_at'         => date('F Y'),
+            'legal_basis'          => 'PermenPAN-RB No. 14 Tahun 2017 tentang Pedoman Penyusunan Survei Kepuasan Masyarakat Unit Penyelenggara Pelayanan Publik',
         ];
     }
 }

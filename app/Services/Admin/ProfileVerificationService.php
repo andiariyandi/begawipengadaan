@@ -101,6 +101,20 @@ class ProfileVerificationService
             'Selamat, pendaftaran akun Anda telah disetujui oleh Operator/Admin. Anda kini dapat masuk dan mengakses seluruh fitur pembelajaran BegawiPengadaan.'
         );
 
+        // Daftarkan ke antrean email untuk kontrol manual Admin (100% Manual Control, TIDAK ADA OTOMATIS)
+        try {
+            $userObj = (new \App\Models\UserModel())->find($userId);
+            if ($userObj && ! empty($userObj['email'])) {
+                (new \App\Services\Email\EmailService())->queueAccountApproved(
+                    (string) $userObj['email'],
+                    (string) ($userObj['name'] ?? $userObj['username'] ?? 'Pengguna'),
+                    (int) $userId
+                );
+            }
+        } catch (\Throwable $e) {
+            log_message('warning', '[ProfileVerificationService] Failed to queue approval email: ' . $e->getMessage());
+        }
+
         // Tandai notifikasi permohonan bersama sebagai terbaca bagi seluruh pool verifikator
         try {
             db_connect()->table('notifications')
