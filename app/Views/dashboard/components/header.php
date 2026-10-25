@@ -1,51 +1,61 @@
 <style>
-/* ========================================================================= */
-/* RESPONSIVE MOBILE VIEW STYLING FOR NAVBAR HEADER                         */
-/* ========================================================================= */
-.w-38-px { width: 38px !important; }
-.h-38-px { height: 38px !important; }
-
-@media (min-width: 576px) {
-    .w-sm-40-px { width: 40px !important; }
-    .h-sm-40-px { height: 40px !important; }
-}
-
-/* Header dropdown adjustments */
-.navbar-header .dropdown-menu.to-top {
-    top: 100% !important;
-    margin-top: 8px !important;
-}
-
-@media (max-width: 575.98px) {
-    .navbar-header {
-        padding: 0.625rem 0.875rem !important;
-        height: auto !important;
-        min-height: 3.75rem !important;
-        overflow-x: clip !important;
+    /* ========================================================================= */
+    /* RESPONSIVE MOBILE VIEW STYLING FOR NAVBAR HEADER                         */
+    /* ========================================================================= */
+    .w-38-px {
+        width: 38px !important;
     }
 
-    /* Full-width responsive notifications dropdown for mobile screens */
-    #headerNotifDropdown .dropdown-menu.dropdown-menu-lg {
-        position: fixed !important;
-        top: 4.125rem !important;
-        left: 0.625rem !important;
-        right: 0.625rem !important;
-        width: auto !important;
-        max-width: calc(100vw - 1.25rem) !important;
-        transform: none !important;
-        margin: 0 !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    .h-38-px {
+        height: 38px !important;
     }
 
-    /* Compact user profile dropdown for mobile screens */
-    .navbar-header .dropdown-menu-sm {
-        position: absolute !important;
-        max-width: calc(100vw - 1.5rem) !important;
-        width: 280px !important;
-        right: 0 !important;
-        left: auto !important;
+    @media (min-width: 576px) {
+        .w-sm-40-px {
+            width: 40px !important;
+        }
+
+        .h-sm-40-px {
+            height: 40px !important;
+        }
     }
-}
+
+    /* Header dropdown adjustments */
+    .navbar-header .dropdown-menu.to-top {
+        top: 100% !important;
+        margin-top: 8px !important;
+    }
+
+    @media (max-width: 575.98px) {
+        .navbar-header {
+            padding: 0.625rem 0.875rem !important;
+            height: auto !important;
+            min-height: 3.75rem !important;
+            overflow-x: clip !important;
+        }
+
+        /* Full-width responsive notifications dropdown for mobile screens */
+        #headerNotifDropdown .dropdown-menu.dropdown-menu-lg {
+            position: fixed !important;
+            top: 4.125rem !important;
+            left: 0.625rem !important;
+            right: 0.625rem !important;
+            width: auto !important;
+            max-width: calc(100vw - 1.25rem) !important;
+            transform: none !important;
+            margin: 0 !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Compact user profile dropdown for mobile screens */
+        .navbar-header .dropdown-menu-sm {
+            position: absolute !important;
+            max-width: calc(100vw - 1.5rem) !important;
+            width: 280px !important;
+            right: 0 !important;
+            left: auto !important;
+        }
+    }
 </style>
 
 <div class="navbar-header">
@@ -59,7 +69,7 @@
                 <button type="button" class="sidebar-mobile-toggle w-38-px h-38-px w-sm-40-px h-sm-40-px bg-neutral-100 rounded-circle d-flex d-xl-none justify-content-center align-items-center border-0 p-0 text-primary-light" aria-label="Buka Menu Sidebar">
                     <iconify-icon icon="heroicons:bars-3-solid" class="icon text-xl"></iconify-icon>
                 </button>
-                
+
                 <!-- Quick Command Palette Trigger (Ctrl + K) - Desktop only (>= lg) -->
                 <div class="navbar-search d-none d-lg-flex align-items-center position-relative cursor-pointer" data-bs-toggle="modal" data-bs-target="#adminSpotlightModal" title="Cari menu, data, atau aksi cepat (Ctrl+K)">
                     <input type="text" placeholder="Cari menu, fitur, atau data..." class="cursor-pointer pe-48" readonly>
@@ -76,7 +86,7 @@
 
         <div class="col-auto">
             <div class="d-flex align-items-center gap-2 gap-sm-3 flex-nowrap">
-                
+
                 <!-- App Switcher Quick Links -->
                 <a href="<?= site_url('workspace') ?>" class="btn btn-sm btn-outline-primary-600 radius-8 px-12 py-6 d-none d-lg-inline-flex align-items-center gap-6 text-xs fw-semibold" title="Buka Ruang Kerja (Workspace)">
                     <iconify-icon icon="solar:laptop-minimalistic-outline" class="text-base"></iconify-icon>
@@ -96,8 +106,8 @@
                 $authService  = new \App\Services\Identity\AuthorizationService();
                 $isSuperAdmin = $authService->isSuperAdmin();
                 $roles        = session()->get('roles') ?? [];
-                $isAdmin      = $isSuperAdmin 
-                    || in_array('super_administrator', $roles, true) 
+                $isAdmin      = $isSuperAdmin
+                    || in_array('super_administrator', $roles, true)
                     || in_array('administrator', $roles, true);
 
                 $headerNotifService = new \App\Services\NotificationService();
@@ -169,16 +179,16 @@
                                     $hTargetUrl = !empty($hData['url']) ? $hData['url'] : site_url('dashboard/sistem/notifikasi/' . $hNotif['id']);
                                     $timeAgo   = \App\Services\NotificationService::timeAgo($hNotif['created_at'] ?? null);
                                 ?>
-                                <a href="<?= esc($hTargetUrl) ?>" class="px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between notif-item-link <?= $isUnread ? 'bg-primary-50/40' : 'bg-neutral-50/50' ?> hover-bg-neutral-100 transition-2" data-notif-id="<?= (int)$hNotif['id'] ?>" data-is-unread="<?= $isUnread ? '1' : '0' ?>">
-                                    <span class="w-40-px h-40-px bg-primary-focus text-primary-600 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0">
-                                        <iconify-icon icon="<?= esc($hIcon) ?>" class="text-xl"></iconify-icon>
-                                    </span>
-                                    <span class="flex-grow-1 overflow-hidden">
-                                        <span class="d-block text-sm fw-semibold text-primary-light text-truncate mb-2"><?= esc($hNotif['title'] ?? 'Notifikasi') ?></span>
-                                        <span class="d-block text-xs text-secondary-light line-clamp-2"><?= esc($hNotif['body'] ?? '') ?></span>
-                                    </span>
-                                    <span class="text-xs text-secondary-light flex-shrink-0 ms-2 text-nowrap"><?= $timeAgo ?></span>
-                                </a>
+                                    <a href="<?= esc($hTargetUrl) ?>" class="px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between notif-item-link <?= $isUnread ? 'bg-primary-50/40' : 'bg-neutral-50/50' ?> hover-bg-neutral-100 transition-2" data-notif-id="<?= (int)$hNotif['id'] ?>" data-is-unread="<?= $isUnread ? '1' : '0' ?>">
+                                        <span class="w-40-px h-40-px bg-primary-focus text-primary-600 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0">
+                                            <iconify-icon icon="<?= esc($hIcon) ?>" class="text-xl"></iconify-icon>
+                                        </span>
+                                        <span class="flex-grow-1 overflow-hidden">
+                                            <span class="d-block text-sm fw-semibold text-primary-light text-truncate mb-2"><?= esc($hNotif['title'] ?? 'Notifikasi') ?></span>
+                                            <span class="d-block text-xs text-secondary-light line-clamp-2"><?= esc($hNotif['body'] ?? '') ?></span>
+                                        </span>
+                                        <span class="text-xs text-secondary-light flex-shrink-0 ms-2 text-nowrap"><?= $timeAgo ?></span>
+                                    </a>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </div>
@@ -228,7 +238,9 @@
                                 </a>
                             </li>
 
-                            <li><hr class="dropdown-divider my-8"></li>
+                            <li>
+                                <hr class="dropdown-divider my-8">
+                            </li>
 
                             <!-- Switch to Workspace & Public Portal -->
                             <li>
@@ -244,7 +256,9 @@
                                 </a>
                             </li>
 
-                            <li><hr class="dropdown-divider my-8"></li>
+                            <li>
+                                <hr class="dropdown-divider my-8">
+                            </li>
 
                             <li>
                                 <a class="dropdown-item text-primary-light px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3" href="<?= site_url('dashboard/sistem/pengaturan') ?>">
@@ -253,7 +267,9 @@
                                 </a>
                             </li>
 
-                            <li><hr class="dropdown-divider my-8"></li>
+                            <li>
+                                <hr class="dropdown-divider my-8">
+                            </li>
 
                             <li>
                                 <a class="dropdown-item text-danger-main px-0 py-8 hover-bg-transparent hover-text-danger d-flex align-items-center gap-3" href="<?= site_url('dashboard/keluar') ?>">
@@ -348,22 +364,59 @@
     function triggerAdminDesktopNotification(item) {
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-        const iconUrl = '<?= base_url('assets/main/images/resources/logo-1.png') ?>';
+        const origin = window.location.origin || '';
+        const iconUrl = origin + '/assets/dashboard/images/favicon.png';
         const title = item.title || 'BegawiPengadaan Admin';
-        const targetUrl = item.url || item.detail_url || '<?= site_url('dashboard/sistem/notifikasi') ?>';
+        const targetUrl = item.url || item.detail_url || (origin + '/dashboard/sistem/notifikasi');
+        const notifId = item.id || Date.now();
+        // Unique tag with timestamp so Android NotificationManager NEVER suppresses consecutive alerts
+        const uniqueTag = 'bp-dash-notif-' + notifId + '-' + Date.now();
+
         const options = {
             body: item.body || 'Pemberitahuan baru pada sistem.',
             icon: iconUrl,
             badge: iconUrl,
-            tag: 'bp-dash-notif-' + (item.id || Date.now()),
+            tag: uniqueTag,
             renotify: true,
-            data: { id: item.id, url: targetUrl }
+            requireInteraction: false,
+            silent: false,
+            vibrate: [300, 100, 300, 100, 300], // Vital for Android heads-up popup banner & vibration
+            timestamp: Date.now(),
+            data: {
+                id: notifId,
+                url: targetUrl
+            }
         };
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then(function(reg) {
-                return reg.showNotification(title, options);
-            }).catch(function() {
+            navigator.serviceWorker.getRegistration().then(function(reg) {
+                if (reg && reg.showNotification) {
+                    if (reg.active) {
+                        try {
+                            reg.active.postMessage({
+                                type: 'SHOW_NOTIFICATION',
+                                title: title,
+                                options: options
+                            });
+                        } catch (e) {}
+                    }
+                    return reg.showNotification(title, options);
+                } else {
+                    return navigator.serviceWorker.ready.then(function(readyReg) {
+                        if (readyReg.active) {
+                            try {
+                                readyReg.active.postMessage({
+                                    type: 'SHOW_NOTIFICATION',
+                                    title: title,
+                                    options: options
+                                });
+                            } catch (e) {}
+                        }
+                        return readyReg.showNotification(title, options);
+                    });
+                }
+            }).catch(function(err) {
+                console.debug('ServiceWorker admin showNotification fallback:', err);
                 spawnAdminDesktopNotification(title, options, item, targetUrl);
             });
         } else {
@@ -381,7 +434,7 @@
                 this.close();
             };
         } catch (e) {
-            console.debug('Dashboard Notification instantiation fallback:', e);
+            console.debug('Dashboard Notification constructor fallback:', e);
         }
     }
 
@@ -433,7 +486,7 @@
             }
             if (perm === 'granted') {
                 window.dashTestNotification({
-                    id: 999999,
+                    id: Date.now(),
                     title: 'Notifikasi Desktop Admin Diaktifkan!',
                     body: 'BegawiPengadaan sekarang dapat mengirimkan pemberitahuan sistem langsung ke desktop Anda.',
                     icon: 'solar:check-circle-bold',
@@ -447,7 +500,7 @@
 
     window.dashTestNotification = function(customData) {
         const sample = customData || {
-            id: 999999,
+            id: Date.now(),
             title: 'Uji Coba Notifikasi Dashboard',
             body: 'Selamat! Audio chime harmonik, in-app floating toast, dan notifikasi desktop dashboard berhasil berjalan.',
             icon: 'solar:tuning-square-2-bold',
@@ -458,89 +511,95 @@
         triggerAdminDesktopNotification(sample);
     };
 
-window.refreshNotificationBell = function () {
-    fetch('<?= site_url('dashboard/sistem/notifikasi-api/feed') ?>', {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (!data || !data.success) return;
-        
-        const count = parseInt(data.unread, 10) || 0;
-        const badge = document.getElementById('headerNotifBadge');
-        const countText = document.getElementById('headerNotifCountText');
-        const btn = document.getElementById('headerNotifBtn');
-        const readAllForm = document.getElementById('headerNotifReadAllForm');
-        const listContainer = document.getElementById('headerNotifList');
+    window.dashTestBackgroundNotification = function(delaySeconds) {
+        delaySeconds = parseInt(delaySeconds, 10) || 5;
+        setTimeout(function() {
+            window.dashTestNotification({
+                id: Date.now(),
+                title: 'Notifikasi Latar Belakang Admin Berhasil! 🚀',
+                body: 'Sistem berhasil memunculkan pemberitahuan saat aplikasi di latar belakang / layar kunci.',
+                icon: 'solar:stopwatch-play-bold',
+                url: '<?= site_url('dashboard/sistem/notifikasi') ?>'
+            });
+        }, delaySeconds * 1000);
+    };
 
-        // Update badge
-        if (badge) {
-            badge.textContent = count > 99 ? '99+' : count;
-            if (count > 0) {
-                badge.classList.remove('d-none');
-                btn?.classList.add('has-indicator');
-            } else {
-                badge.classList.add('d-none');
-                btn?.classList.remove('has-indicator');
-            }
-        }
+    let isDashPollerInitialized = false;
 
-        // Update text counter inside dropdown
-        if (countText) {
-            countText.textContent = count + ' baru';
-        }
+    window.refreshNotificationBell = function() {
+        fetch('<?= site_url('dashboard/sistem/notifikasi-api/feed') ?>', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data || !data.success) return;
 
-        // Update read all button
-        if (readAllForm) {
-            if (count > 0) {
-                readAllForm.classList.remove('d-none');
-            } else {
-                readAllForm.classList.add('d-none');
-            }
-        }
+                const count = parseInt(data.unread, 10) || 0;
+                const badge = document.getElementById('headerNotifBadge');
+                const countText = document.getElementById('headerNotifCountText');
+                const btn = document.getElementById('headerNotifBtn');
+                const readAllForm = document.getElementById('headerNotifReadAllForm');
+                const listContainer = document.getElementById('headerNotifList');
 
-        // Render newest items
-        if (listContainer && Array.isArray(data.items)) {
-            if (data.items.length === 0) {
-                listContainer.innerHTML = `
+                // Update badge
+                if (badge) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    if (count > 0) {
+                        badge.classList.remove('d-none');
+                        btn?.classList.add('has-indicator');
+                    } else {
+                        badge.classList.add('d-none');
+                        btn?.classList.remove('has-indicator');
+                    }
+                }
+
+                // Update text counter inside dropdown
+                if (countText) {
+                    countText.textContent = count + ' baru';
+                }
+
+                // Update read all button
+                if (readAllForm) {
+                    if (count > 0) {
+                        readAllForm.classList.remove('d-none');
+                    } else {
+                        readAllForm.classList.add('d-none');
+                    }
+                }
+
+                // Render newest items
+                if (listContainer && Array.isArray(data.items)) {
+                    if (data.items.length === 0) {
+                        listContainer.innerHTML = `
                     <div class="text-center py-24 px-16 text-secondary-light empty-notif-msg">
                         <iconify-icon icon="solar:bell-off-outline" class="text-3xl text-neutral-400 mb-8 d-block mx-auto"></iconify-icon>
                         <p class="text-sm mb-0">Belum ada notifikasi baru.</p>
                     </div>
                 `;
-            } else {
-                if (window.__lastAdminTopNotifId > 0 && data.items[0].id > window.__lastAdminTopNotifId) {
-                    try {
-                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                        if (AudioCtx) {
-                            const ctx = new AudioCtx();
-                            const osc = ctx.createOscillator();
-                            const gain = ctx.createGain();
-                            osc.type = 'sine';
-                            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-                            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
-                            gain.gain.setValueAtTime(0.15, ctx.currentTime);
-                            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-                            osc.connect(gain);
-                            gain.connect(ctx.destination);
-                            osc.start();
-                            osc.stop(ctx.currentTime + 0.35);
+                    } else {
+                        const newestItem = data.items[0];
+                        const newestItemId = parseInt(newestItem.id, 10) || 0;
+
+                        if (isDashPollerInitialized) {
+                            if (newestItemId > (window.__lastAdminTopNotifId || 0)) {
+                                playAdminChime();
+                                showAdminPushToast(newestItem);
+                                triggerAdminDesktopNotification(newestItem);
+                            }
+                        } else {
+                            isDashPollerInitialized = true;
                         }
-                    } catch (e) {}
+                        window.__lastAdminTopNotifId = Math.max(window.__lastAdminTopNotifId || 0, newestItemId);
 
-                    // Trigger In-App Floating Toast & Native Browser Desktop Notification
-                    showAdminPushToast(data.items[0]);
-                    triggerAdminDesktopNotification(data.items[0]);
-                }
-                window.__lastAdminTopNotifId = data.items[0].id;
-
-                let html = '';
-                data.items.forEach(item => {
-                    const bgClass = item.is_read ? 'bg-neutral-50/50' : 'bg-primary-50/40';
-                    const safeTitle = (item.title || 'Notifikasi').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                    const safeBody = (item.body || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                    const targetUrl = item.url || item.detail_url;
-                    html += `
+                        let html = '';
+                        data.items.forEach(item => {
+                            const bgClass = item.is_read ? 'bg-neutral-50/50' : 'bg-primary-50/40';
+                            const safeTitle = (item.title || 'Notifikasi').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                            const safeBody = (item.body || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                            const targetUrl = item.url || item.detail_url;
+                            html += `
                         <a href="${targetUrl}" class="px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between notif-item-link ${bgClass} hover-bg-neutral-100 transition-2" data-notif-id="${item.id}" data-is-unread="${item.is_read ? '0' : '1'}">
                             <span class="w-40-px h-40-px bg-primary-focus text-primary-600 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0">
                                 <iconify-icon icon="${item.icon || 'solar:bell-bing-outline'}" class="text-xl"></iconify-icon>
@@ -552,79 +611,116 @@ window.refreshNotificationBell = function () {
                             <span class="text-xs text-secondary-light flex-shrink-0 ms-2 text-nowrap">${item.time_ago || '-'}</span>
                         </a>
                     `;
-                });
-                listContainer.innerHTML = html;
-            }
-        }
-    })
-    .catch(err => console.error('Gagal memperbarui notifikasi bell:', err));
-};
-
-document.addEventListener('DOMContentLoaded', function () {
-    // Registrasi Service Worker untuk browser desktop notification
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('<?= base_url('sw.js') ?>', { scope: '/' })
-            .catch(function(err) { console.debug('SW registration skipped:', err); });
-    }
-
-    // Inisialisasi status banner notifikasi dropdown
-    window.updateDashPushBannerUI();
-
-    const dropdownEl = document.getElementById('headerNotifDropdown');
-    if (dropdownEl) {
-        dropdownEl.addEventListener('show.bs.dropdown', function () {
-            window.refreshNotificationBell();
-        });
-    }
-
-    // Tangani klik pada salah satu notifikasi di bar dropdown: auto mark as read
-    document.addEventListener('click', function (e) {
-        const notifLink = e.target.closest('#headerNotifList .notif-item-link');
-        if (notifLink) {
-            const notifId = notifLink.dataset.notifId;
-            if (notifId) {
-                fetch('<?= site_url('dashboard/sistem/notifikasi') ?>/' + notifId + '/baca', {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: '<?= csrf_token() ?>=' + encodeURIComponent('<?= csrf_hash() ?>')
-                }).catch(() => {});
-            }
-        }
-    });
-
-    // Tangani aksi 'Baca Semua' di header dropdown secara instan via AJAX
-    const readAllForm = document.getElementById('headerNotifReadAllForm');
-    if (readAllForm) {
-        readAllForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            fetch(this.action, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: '<?= csrf_token() ?>=' + encodeURIComponent('<?= csrf_hash() ?>')
-            })
-            .then(res => res.json())
-            .then(() => {
-                window.refreshNotificationBell();
-                // Jika sedang di halaman log notifikasi, refresh halaman agar tabel sinkron
-                if (window.location.pathname.includes('/notifikasi')) {
-                    window.location.reload();
+                        });
+                        listContainer.innerHTML = html;
+                    }
                 }
             })
-            .catch(() => {
-                readAllForm.submit();
+            .catch(err => console.error('Gagal memperbarui notifikasi bell:', err));
+    };
+
+    // Background Web Worker Poller for Dashboard
+    function startAdminBackgroundWorkerPoller(callback, intervalMs) {
+        intervalMs = intervalMs || 12000;
+        try {
+            const workerCode = `
+                let timer = null;
+                self.onmessage = function(e) {
+                    if (e.data === 'start') {
+                        if (timer) clearInterval(timer);
+                        timer = setInterval(function() {
+                            self.postMessage('tick');
+                        }, ${intervalMs});
+                    } else if (e.data === 'stop') {
+                        if (timer) clearInterval(timer);
+                        timer = null;
+                    }
+                };
+            `;
+            const blob = new Blob([workerCode], {
+                type: 'application/javascript'
             });
-        });
+            const worker = new Worker(URL.createObjectURL(blob));
+            worker.onmessage = function(e) {
+                if (e.data === 'tick') {
+                    callback();
+                }
+            };
+            worker.postMessage('start');
+            return worker;
+        } catch (e) {
+            return setInterval(callback, intervalMs);
+        }
     }
 
-    // Polling setiap 30 detik untuk memastikan bar notifikasi selalu ter-update terbaru
-    setInterval(function () {
-        window.refreshNotificationBell();
-    }, 30000);
-});
+    document.addEventListener('DOMContentLoaded', function() {
+        // Registrasi Service Worker (Always Same-Origin via current host/IP)
+        if ('serviceWorker' in navigator) {
+            const swPath = (window.location.origin || '') + '/sw.js';
+            navigator.serviceWorker.register(swPath, {
+                    scope: '/'
+                })
+                .catch(function(err) {
+                    console.debug('SW registration skipped:', err);
+                });
+        }
+
+        // Inisialisasi status banner notifikasi dropdown
+        window.updateDashPushBannerUI();
+
+        const dropdownEl = document.getElementById('headerNotifDropdown');
+        if (dropdownEl) {
+            dropdownEl.addEventListener('show.bs.dropdown', function() {
+                window.refreshNotificationBell();
+            });
+        }
+
+        // Tangani klik pada salah satu notifikasi di bar dropdown: auto mark as read
+        document.addEventListener('click', function(e) {
+            const notifLink = e.target.closest('#headerNotifList .notif-item-link');
+            if (notifLink) {
+                const notifId = notifLink.dataset.notifId;
+                if (notifId) {
+                    fetch('<?= site_url('dashboard/sistem/notifikasi') ?>/' + notifId + '/baca', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: '<?= csrf_token() ?>=' + encodeURIComponent('<?= csrf_hash() ?>')
+                    }).catch(() => {});
+                }
+            }
+        });
+
+        // Tangani aksi 'Baca Semua' di header dropdown secara instan via AJAX
+        const readAllForm = document.getElementById('headerNotifReadAllForm');
+        if (readAllForm) {
+            readAllForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: '<?= csrf_token() ?>=' + encodeURIComponent('<?= csrf_hash() ?>')
+                    })
+                    .then(res => res.json())
+                    .then(() => {
+                        window.refreshNotificationBell();
+                        // Jika sedang di halaman log notifikasi, refresh halaman agar tabel sinkron
+                        if (window.location.pathname.includes('/notifikasi')) {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(() => {
+                        readAllForm.submit();
+                    });
+            });
+        }
+
+        // Web Worker background timer: ticks every 12s even when tab is in background/minimized
+        startAdminBackgroundWorkerPoller(window.refreshNotificationBell, 12000);
+    });
 </script>

@@ -12,6 +12,17 @@ self.addEventListener('activate', function(event) {
     event.waitUntil(self.clients.claim());
 });
 
+// Penanganan pesan dari tab/jendela (Foreground / Background Message Dispatcher)
+self.addEventListener('message', function(event) {
+    if (!event.data) return;
+
+    if (event.data.type === 'SHOW_NOTIFICATION') {
+        const title = event.data.title || 'BegawiPengadaan';
+        const options = event.data.options || {};
+        event.waitUntil(self.registration.showNotification(title, options));
+    }
+});
+
 // Penanganan klik pada banner notifikasi native browser / OS
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
@@ -55,10 +66,12 @@ self.addEventListener('push', function(event) {
     const title = payload.title || 'BegawiPengadaan';
     const options = {
         body: payload.body || 'Pemberitahuan baru di BegawiPengadaan.',
-        icon: payload.icon || '/assets/main/images/resources/logo-1.png',
-        badge: payload.badge || '/assets/main/images/resources/logo-1.png',
+        icon: payload.icon || '/assets/dashboard/images/favicon.png',
+        badge: payload.badge || '/assets/dashboard/images/favicon.png',
         tag: payload.tag || ('bp-push-' + Date.now()),
         renotify: true,
+        vibrate: [300, 100, 300, 100, 300],
+        timestamp: Date.now(),
         data: payload
     };
 

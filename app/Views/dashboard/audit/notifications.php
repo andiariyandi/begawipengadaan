@@ -150,7 +150,10 @@ $buildSortLink = function (string $colKey, string $label, string $alignClass = '
                     <iconify-icon icon="solar:bell-bing-bold" class="text-xl"></iconify-icon> <span id="dashBtnActivatePushText">Aktifkan Notifikasi Desktop</span>
                 </button>
                 <button type="button" id="dashBtnTestPush" class="btn btn-outline-primary-600 radius-8 px-16 py-10 d-inline-flex align-items-center gap-2" title="Kirim notifikasi uji coba untuk mengetes suara chime dan banner desktop" onclick="window.dashTestPushNotification()">
-                    <iconify-icon icon="solar:tuning-square-2-outline" class="text-xl"></iconify-icon> <span>Uji / Tes Notifikasi</span>
+                    <iconify-icon icon="solar:tuning-square-2-outline" class="text-xl"></iconify-icon> <span>Uji Sekarang</span>
+                </button>
+                <button type="button" id="dashBtnTestBgPush" class="btn btn-outline-success-600 radius-8 px-16 py-10 d-inline-flex align-items-center gap-2" title="Kirim notifikasi dengan jeda 5 detik untuk menguji saat tab diminimalkan atau di latar belakang" onclick="window.dashTestBackgroundPushNotification()">
+                    <iconify-icon icon="solar:stopwatch-play-outline" class="text-xl"></iconify-icon> <span>Uji Latar Belakang (5s)</span>
                 </button>
             </div>
         </div>
@@ -828,15 +831,46 @@ document.addEventListener('DOMContentLoaded', function () {
     window.dashTestPushNotification = function(customTitle) {
         if (typeof window.dashTestNotification === 'function') {
             window.dashTestNotification({
-                id: 999999,
+                id: Date.now(),
                 title: customTitle || 'Uji Coba Notifikasi Admin BegawiPengadaan',
-                body: 'Selamat! Audio chime harmonik, in-app floating toast, dan notifikasi desktop dashboard berhasil berjalan.',
+                body: 'Selamat! Audio chime harmonik, in-app floating toast, dan notifikasi native browser berhasil berjalan.',
                 icon: 'solar:tuning-square-2-bold',
                 url: window.location.href
             });
         } else {
             alert('Notifikasi uji coba terkirim.');
         }
+    };
+
+    window.dashTestBackgroundPushNotification = function() {
+        const btn = document.getElementById('dashBtnTestBgPush');
+        let secondsLeft = 5;
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<iconify-icon icon="eos-icons:loading" class="text-xl"></iconify-icon> <span>Minimalkan browser (${secondsLeft}s)...</span>`;
+        }
+
+        if (typeof window.showAdminPushToast === 'function') {
+            window.showAdminPushToast({
+                title: 'Hitungan Mundur 5 Detik Dimulai!',
+                body: 'Segera minimalkan browser, pindah ke aplikasi lain, atau kunci layar sekarang untuk menguji notifikasi di latar belakang.',
+                icon: 'solar:stopwatch-play-bold'
+            });
+        }
+
+        const countdown = setInterval(function() {
+            secondsLeft--;
+            if (secondsLeft > 0) {
+                if (btn) btn.innerHTML = `<iconify-icon icon="eos-icons:loading" class="text-xl"></iconify-icon> <span>Minimalkan browser (${secondsLeft}s)...</span>`;
+            } else {
+                clearInterval(countdown);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<iconify-icon icon="solar:stopwatch-play-outline" class="text-xl"></iconify-icon> <span>Uji Latar Belakang (5s)</span>`;
+                }
+                window.dashTestPushNotification('Uji Notifikasi Latar Belakang Admin Berhasil! 🚀');
+            }
+        }, 1000);
     };
 
     window.updateDashboardPushCard();

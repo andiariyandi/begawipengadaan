@@ -262,45 +262,46 @@ if ($isLoggedIn && $headerUserId > 0) {
 </header>
 
 <?php if ($isLoggedIn): ?>
-<!-- Real-Time Push Notification Engine (Workspace & Landing) -->
-<div id="bpPushToastContainer" style="position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 12px; max-width: 380px; width: calc(100vw - 48px); pointer-events: none;"></div>
+    <!-- Real-Time Push Notification Engine (Workspace & Landing) -->
+    <div id="bpPushToastContainer" style="position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 12px; max-width: 380px; width: calc(100vw - 48px); pointer-events: none;"></div>
 
-<script>
-(function() {
-    let lastUnreadCount = <?= (int) $userUnreadNotifCount ?>;
-    let lastTopNotifId = <?= !empty($latestNotifs[0]['id']) ? (int) $latestNotifs[0]['id'] : 0 ?>;
-    const originalDocumentTitle = document.title;
+    <script>
+        (function() {
+            let lastUnreadCount = <?= (int) $userUnreadNotifCount ?>;
+            let lastTopNotifId = <?= !empty($latestNotifs[0]['id']) ? (int) $latestNotifs[0]['id'] : 0 ?>;
+            let isPollerInitialized = <?= !empty($latestNotifs[0]['id']) ? 'true' : 'false' ?>;
+            const originalDocumentTitle = document.title;
 
-    // Harmonized Chime Audio Synthesizer (Zero External Dependencies)
-    function playNotificationChime() {
-        try {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtx) return;
-            const ctx = new AudioCtx();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 note
-            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // A5 note
-            gain.gain.setValueAtTime(0.15, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.35);
-        } catch (e) {}
-    }
+            // Harmonized Chime Audio Synthesizer (Zero External Dependencies)
+            function playNotificationChime() {
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return;
+                    const ctx = new AudioCtx();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 note
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // A5 note
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.35);
+                } catch (e) {}
+            }
 
-    // Floating Push Toast Popup
-    function showPushToast(notif) {
-        const container = document.getElementById('bpPushToastContainer');
-        if (!container) return;
+            // Floating Push Toast Popup
+            function showPushToast(notif) {
+                const container = document.getElementById('bpPushToastContainer');
+                if (!container) return;
 
-        const toast = document.createElement('div');
-        toast.style.cssText = "background: #ffffff; border-radius: 14px; box-shadow: 0 10px 30px rgba(8,47,92,0.18), 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #0c5aa6; padding: 14px 16px; pointer-events: auto; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(-20px); opacity: 0; display: flex; gap: 12px; align-items: start; font-family: inherit;";
+                const toast = document.createElement('div');
+                toast.style.cssText = "background: #ffffff; border-radius: 14px; box-shadow: 0 10px 30px rgba(8,47,92,0.18), 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #0c5aa6; padding: 14px 16px; pointer-events: auto; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(-20px); opacity: 0; display: flex; gap: 12px; align-items: start; font-family: inherit;";
 
-        const iconClass = notif.fa || 'fas fa-bell text-primary';
-        toast.innerHTML = `
+                const iconClass = notif.fa || 'fas fa-bell text-primary';
+                toast.innerHTML = `
             <span style="width: 36px; height: 36px; border-radius: 50%; background: rgba(12,90,166,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
                 <i class="${iconClass}" style="font-size: 15px;"></i>
             </span>
@@ -317,246 +318,344 @@ if ($isLoggedIn && $headerUserId > 0) {
             </div>
         `;
 
-        toast.addEventListener('click', function() {
-            if (notif.id) {
-                markSingleAsRead(notif.id);
+                toast.addEventListener('click', function() {
+                    if (notif.id) {
+                        markSingleAsRead(notif.id);
+                    }
+                    if (notif.url) {
+                        window.location.href = notif.url;
+                    }
+                });
+
+                container.appendChild(toast);
+
+                requestAnimationFrame(() => {
+                    toast.style.transform = 'translateY(0)';
+                    toast.style.opacity = '1';
+                });
+
+                setTimeout(() => {
+                    toast.style.transform = 'translateY(-20px)';
+                    toast.style.opacity = '0';
+                    setTimeout(() => {
+                        if (toast.parentNode) toast.parentNode.removeChild(toast);
+                    }, 300);
+                }, 6500);
             }
-            if (notif.url) {
-                window.location.href = notif.url;
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
             }
-        });
 
-        container.appendChild(toast);
+            function markSingleAsRead(notifId) {
+                fetch('<?= site_url('workspace/notifikasi') ?>/' + notifId + '/baca', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: '<?= csrf_token() ?>=' + encodeURIComponent('<?= csrf_hash() ?>')
+                }).catch(() => {});
+            }
 
-        requestAnimationFrame(() => {
-            toast.style.transform = 'translateY(0)';
-            toast.style.opacity = '1';
-        });
+            // Native Desktop & Mobile Browser Notification Dispatcher (Android Chrome, Edge, Firefox, etc.)
+            function triggerNativeBrowserNotification(notif) {
+                if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-        setTimeout(() => {
-            toast.style.transform = 'translateY(-20px)';
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                if (toast.parentNode) toast.parentNode.removeChild(toast);
-            }, 300);
-        }, 6500);
-    }
+                const origin = window.location.origin || '';
+                const iconUrl = origin + '/assets/dashboard/images/favicon.png';
+                const title = notif.title || 'BegawiPengadaan';
+                const targetUrl = notif.url || (origin + '/workspace/notifikasi');
+                const notifId = notif.id || Date.now();
+                // Unique tag with timestamp ensures Android NotificationManager NEVER suppresses consecutive alerts
+                const uniqueTag = 'bp-notif-' + notifId + '-' + Date.now();
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+                const options = {
+                    body: notif.body || 'Pemberitahuan baru di BegawiPengadaan.',
+                    icon: iconUrl,
+                    badge: iconUrl,
+                    tag: uniqueTag,
+                    renotify: true,
+                    requireInteraction: false,
+                    silent: false,
+                    vibrate: [300, 100, 300, 100, 300], // Vital for Android heads-up popup banner & vibration
+                    timestamp: Date.now(),
+                    data: {
+                        id: notifId,
+                        url: targetUrl
+                    }
+                };
 
-    function markSingleAsRead(notifId) {
-        fetch('<?= site_url('workspace/notifikasi') ?>/' + notifId + '/baca', {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: '<?= csrf_token() ?>=' + encodeURIComponent('<?= csrf_hash() ?>')
-        }).catch(() => {});
-    }
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistration().then(function(reg) {
+                        if (reg && reg.showNotification) {
+                            if (reg.active) {
+                                try {
+                                    reg.active.postMessage({
+                                        type: 'SHOW_NOTIFICATION',
+                                        title: title,
+                                        options: options
+                                    });
+                                } catch (e) {}
+                            }
+                            return reg.showNotification(title, options);
+                        } else {
+                            return navigator.serviceWorker.ready.then(function(readyReg) {
+                                if (readyReg.active) {
+                                    try {
+                                        readyReg.active.postMessage({
+                                            type: 'SHOW_NOTIFICATION',
+                                            title: title,
+                                            options: options
+                                        });
+                                    } catch (e) {}
+                                }
+                                return readyReg.showNotification(title, options);
+                            });
+                        }
+                    }).catch(function(err) {
+                        console.debug('Service Worker showNotification fallback:', err);
+                        spawnDesktopNotification(title, options, notif, targetUrl);
+                    });
+                } else {
+                    spawnDesktopNotification(title, options, notif, targetUrl);
+                }
+            }
 
-    // Native Desktop / Browser Notification Dispatcher (Chrome, Edge, Firefox, etc.)
-    function triggerNativeBrowserNotification(notif) {
-        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            function spawnDesktopNotification(title, options, notif, targetUrl) {
+                try {
+                    const n = new Notification(title, options);
+                    n.onclick = function(e) {
+                        e.preventDefault();
+                        window.focus();
+                        if (notif.id && typeof markSingleAsRead === 'function') markSingleAsRead(notif.id);
+                        if (targetUrl) window.location.href = targetUrl;
+                        this.close();
+                    };
+                } catch (e) {
+                    console.debug('Direct Notification constructor fallback:', e);
+                }
+            }
 
-        const iconUrl = '<?= base_url('assets/main/images/resources/logo-1.png') ?>';
-        const title = notif.title || 'BegawiPengadaan';
-        const targetUrl = notif.url || '<?= route_to('workspace.notifications') ?>';
-        const options = {
-            body: notif.body || 'Pemberitahuan baru di BegawiPengadaan.',
-            icon: iconUrl,
-            badge: iconUrl,
-            tag: 'bp-notif-' + (notif.id || Date.now()),
-            renotify: true,
-            data: { id: notif.id, url: targetUrl }
-        };
+            // Dynamic UI Update for Header Dropdown Banner
+            window.updateBpPushBannerUI = function() {
+                const container = document.getElementById('bpPushBannerContent');
+                if (!container) return;
 
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then(function(reg) {
-                return reg.showNotification(title, options);
-            }).catch(function() {
-                spawnDesktopNotification(title, options, notif, targetUrl);
-            });
-        } else {
-            spawnDesktopNotification(title, options, notif, targetUrl);
-        }
-    }
-
-    function spawnDesktopNotification(title, options, notif, targetUrl) {
-        try {
-            const n = new Notification(title, options);
-            n.onclick = function(e) {
-                e.preventDefault();
-                window.focus();
-                if (notif.id && typeof markSingleAsRead === 'function') markSingleAsRead(notif.id);
-                if (targetUrl) window.location.href = targetUrl;
-                this.close();
-            };
-        } catch (e) {
-            console.debug('Direct Notification instantiation fallback:', e);
-        }
-    }
-
-    // Dynamic UI Update for Header Dropdown Banner
-    window.updateBpPushBannerUI = function() {
-        const container = document.getElementById('bpPushBannerContent');
-        if (!container) return;
-
-        if (!('Notification' in window)) {
-            container.innerHTML = `
+                if (!('Notification' in window)) {
+                    container.innerHTML = `
                 <span class="text-secondary"><i class="fas fa-volume-up text-info me-1"></i> Mode Toast &amp; Suara Aktif</span>
                 <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 rounded-pill" onclick="window.bpTestNotification()">Uji</button>
             `;
-            return;
-        }
+                    return;
+                }
 
-        if (Notification.permission === 'granted') {
-            container.innerHTML = `
+                if (Notification.permission === 'granted') {
+                    container.innerHTML = `
                 <span class="text-success fw-semibold"><i class="fas fa-check-circle text-success me-1"></i> Notifikasi desktop aktif</span>
                 <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 rounded-pill" onclick="window.bpTestNotification()">Uji</button>
             `;
-        } else if (Notification.permission === 'denied') {
-            container.innerHTML = `
+                } else if (Notification.permission === 'denied') {
+                    container.innerHTML = `
                 <span class="text-danger" title="Izin notifikasi diblokir di setelan browser"><i class="fas fa-ban text-danger me-1"></i> Izin diblokir browser</span>
                 <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2 rounded-pill" onclick="window.bpTestNotification()">Uji In-App</button>
             `;
-        } else {
-            // default
-            container.innerHTML = `
+                } else {
+                    // default
+                    container.innerHTML = `
                 <span class="text-primary"><i class="fas fa-bell text-primary me-1"></i> Notifikasi desktop</span>
                 <div class="d-flex gap-1">
                     <button type="button" class="btn btn-primary btn-xs py-0 px-2 rounded-pill shadow-xs" onclick="window.bpRequestPushPermission()">Aktifkan</button>
                     <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2 rounded-pill" onclick="window.bpTestNotification()">Uji</button>
                 </div>
             `;
-        }
-    };
+                }
+            };
 
-    window.bpRequestPushPermission = function() {
-        if (!('Notification' in window)) {
-            alert('Browser ini tidak mendukung Web Notification API native. Sistem notifikasi in-app floating toast & suara tetap aktif.');
-            return;
-        }
+            window.bpRequestPushPermission = function() {
+                if (!('Notification' in window)) {
+                    alert('Browser ini tidak mendukung Web Notification API native. Sistem notifikasi in-app floating toast & suara tetap aktif.');
+                    return;
+                }
 
-        Notification.requestPermission().then(function(perm) {
-            window.updateBpPushBannerUI();
-            if (typeof window.updateWorkspacePushCard === 'function') {
-                window.updateWorkspacePushCard();
-            }
-            if (perm === 'granted') {
-                window.bpTestNotification({
-                    id: 999999,
-                    title: 'Notifikasi Desktop Berhasil Diaktifkan!',
-                    body: 'BegawiPengadaan sekarang dapat mengirimkan pemberitahuan penting langsung ke desktop Anda.',
-                    fa: 'fas fa-check-circle text-success',
-                    badge: 'bg-success text-white',
-                    url: '<?= route_to('workspace.notifications') ?>'
+                Notification.requestPermission().then(function(perm) {
+                    window.updateBpPushBannerUI();
+                    if (typeof window.updateWorkspacePushCard === 'function') {
+                        window.updateWorkspacePushCard();
+                    }
+                    if (perm === 'granted') {
+                        window.bpTestNotification({
+                            id: Date.now(),
+                            title: 'Notifikasi Desktop Berhasil Diaktifkan!',
+                            body: 'BegawiPengadaan sekarang dapat mengirimkan pemberitahuan penting langsung ke layar Anda.',
+                            fa: 'fas fa-check-circle text-success',
+                            badge: 'bg-success text-white',
+                            url: '<?= route_to('workspace.notifications') ?>'
+                        });
+                    }
+                }).catch(function(err) {
+                    console.warn('Gagal meminta izin notifikasi:', err);
                 });
-            }
-        }).catch(function(err) {
-            console.warn('Gagal meminta izin notifikasi:', err);
-        });
-    };
+            };
 
-    window.bpTestNotification = function(customData) {
-        const sample = customData || {
-            id: 999999,
-            title: 'Uji Coba Notifikasi BegawiPengadaan',
-            body: 'Selamat! Audio chime harmonik, in-app floating toast, dan push browser desktop berhasil terhubung.',
-            fa: 'fas fa-bell text-primary',
-            badge: 'bg-primary text-white',
-            url: '<?= route_to('workspace.notifications') ?>'
-        };
-        playNotificationChime();
-        showPushToast(sample);
-        triggerNativeBrowserNotification(sample);
-    };
+            window.bpTestNotification = function(customData) {
+                const sample = customData || {
+                    id: Date.now(),
+                    title: 'Uji Coba Notifikasi BegawiPengadaan',
+                    body: 'Selamat! Audio chime, floating toast, dan notifikasi native browser berhasil terhubung.',
+                    fa: 'fas fa-bell text-primary',
+                    badge: 'bg-primary text-white',
+                    url: '<?= route_to('workspace.notifications') ?>'
+                };
+                playNotificationChime();
+                showPushToast(sample);
+                triggerNativeBrowserNotification(sample);
+            };
 
-    // Real-Time Poller Function
-    window.refreshLandingNotificationBell = function() {
-        fetch('<?= site_url('workspace/notifikasi-api/feed') ?>', {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (!data || !data.success) return;
+            window.bpTestBackgroundNotification = function(delaySeconds) {
+                delaySeconds = parseInt(delaySeconds, 10) || 5;
+                setTimeout(function() {
+                    window.bpTestNotification({
+                        id: Date.now(),
+                        title: 'Notifikasi Latar Belakang Berhasil! 🚀',
+                        body: 'Sistem berhasil memunculkan pemberitahuan saat aplikasi di latar belakang / layar kunci.',
+                        fa: 'fas fa-stopwatch text-success',
+                        badge: 'bg-success text-white',
+                        url: '<?= route_to('workspace.notifications') ?>'
+                    });
+                }, delaySeconds * 1000);
+            };
 
-            const unread = parseInt(data.unread, 10) || 0;
-            const badgeEl = document.querySelector('.main-menu__notif-badge');
-            const notifBtn = document.querySelector('.main-menu__notif-btn');
+            // Real-Time Poller Function
+            window.refreshLandingNotificationBell = function() {
+                fetch('<?= site_url('workspace/notifikasi-api/feed') ?>', {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data || !data.success) return;
 
-            if (unread > 0) {
-                if (badgeEl) {
-                    badgeEl.textContent = unread > 99 ? '99+' : unread;
-                    badgeEl.style.display = 'inline-block';
-                } else if (notifBtn) {
-                    const newBadge = document.createElement('span');
-                    newBadge.className = 'main-menu__notif-badge';
-                    newBadge.textContent = unread > 99 ? '99+' : unread;
-                    notifBtn.appendChild(newBadge);
+                        const unread = parseInt(data.unread, 10) || 0;
+                        const badgeEl = document.querySelector('.main-menu__notif-badge');
+                        const notifBtn = document.querySelector('.main-menu__notif-btn');
+
+                        if (unread > 0) {
+                            if (badgeEl) {
+                                badgeEl.textContent = unread > 99 ? '99+' : unread;
+                                badgeEl.style.display = 'inline-block';
+                            } else if (notifBtn) {
+                                const newBadge = document.createElement('span');
+                                newBadge.className = 'main-menu__notif-badge';
+                                newBadge.textContent = unread > 99 ? '99+' : unread;
+                                notifBtn.appendChild(newBadge);
+                            }
+                        } else if (badgeEl) {
+                            badgeEl.style.display = 'none';
+                        }
+
+                        // Check if there is an incoming new notification
+                        if (data.items && data.items.length > 0) {
+                            const newest = data.items[0];
+                            const newestId = parseInt(newest.id, 10) || 0;
+
+                            if (isPollerInitialized) {
+                                if (newestId > lastTopNotifId || (unread > lastUnreadCount && !newest.is_read)) {
+                                    playNotificationChime();
+                                    showPushToast(newest);
+                                    triggerNativeBrowserNotification(newest);
+                                }
+                            } else {
+                                isPollerInitialized = true;
+                            }
+                            lastTopNotifId = Math.max(lastTopNotifId, newestId);
+                        }
+
+                        // Tab title flashing if document is hidden and has unread
+                        if (unread > 0 && document.hidden) {
+                            document.title = `(${unread}) Notifikasi Baru | BegawiPengadaan`;
+                        } else if (!document.hidden) {
+                            document.title = originalDocumentTitle;
+                        }
+
+                        lastUnreadCount = unread;
+                    })
+                    .catch(() => {});
+            };
+
+            // Background Web Worker Poller: Unthrottled by Chrome when tab is minimized or in background
+            function startBackgroundWorkerPoller(callback, intervalMs) {
+                intervalMs = intervalMs || 12000;
+                try {
+                    const workerCode = `
+                let timer = null;
+                self.onmessage = function(e) {
+                    if (e.data === 'start') {
+                        if (timer) clearInterval(timer);
+                        timer = setInterval(function() {
+                            self.postMessage('tick');
+                        }, ${intervalMs});
+                    } else if (e.data === 'stop') {
+                        if (timer) clearInterval(timer);
+                        timer = null;
+                    }
+                };
+            `;
+                    const blob = new Blob([workerCode], {
+                        type: 'application/javascript'
+                    });
+                    const worker = new Worker(URL.createObjectURL(blob));
+                    worker.onmessage = function(e) {
+                        if (e.data === 'tick') {
+                            callback();
+                        }
+                    };
+                    worker.postMessage('start');
+                    return worker;
+                } catch (e) {
+                    return setInterval(callback, intervalMs);
                 }
-            } else if (badgeEl) {
-                badgeEl.style.display = 'none';
             }
 
-            // Check if there is an incoming new notification
-            if (data.items && data.items.length > 0) {
-                const newest = data.items[0];
-                if (lastTopNotifId > 0 && newest.id > lastTopNotifId) {
-                    playNotificationChime();
-                    showPushToast(newest);
-                    triggerNativeBrowserNotification(newest);
+            document.addEventListener('DOMContentLoaded', function() {
+                // Registrasi Service Worker (Always Same-Origin via current host/IP)
+                if ('serviceWorker' in navigator) {
+                    const swPath = (window.location.origin || '') + '/sw.js';
+                    navigator.serviceWorker.register(swPath, {
+                            scope: '/'
+                        })
+                        .catch(function(err) {
+                            console.debug('SW registration skipped:', err);
+                        });
                 }
-                lastTopNotifId = newest.id;
-            }
 
-            // Tab title flashing if document is hidden and has unread
-            if (unread > 0 && document.hidden) {
-                document.title = `(${unread}) Notifikasi Baru | BegawiPengadaan`;
-            } else if (!document.hidden) {
-                document.title = originalDocumentTitle;
-            }
+                // Inisialisasi status banner notifikasi dropdown
+                window.updateBpPushBannerUI();
 
-            lastUnreadCount = unread;
-        })
-        .catch(() => {});
-    };
+                document.addEventListener('visibilitychange', function() {
+                    if (!document.hidden) {
+                        document.title = originalDocumentTitle;
+                        window.refreshLandingNotificationBell();
+                    }
+                });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Registrasi Service Worker untuk background notification click & offline handling
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('<?= base_url('sw.js') ?>', { scope: '/' })
-                .catch(function(err) { console.debug('SW registration skipped:', err); });
-        }
+                // Intercept click on notification items in dropdown to mark as read immediately
+                document.addEventListener('click', function(e) {
+                    const notifLink = e.target.closest('.landing-notif-link');
+                    if (notifLink) {
+                        const notifId = notifLink.getAttribute('data-notif-id');
+                        if (notifId) {
+                            markSingleAsRead(notifId);
+                        }
+                    }
+                });
 
-        // Inisialisasi status banner notifikasi dropdown
-        window.updateBpPushBannerUI();
-
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-                document.title = originalDocumentTitle;
-                window.refreshLandingNotificationBell();
-            }
-        });
-
-        // Intercept click on notification items in dropdown to mark as read immediately
-        document.addEventListener('click', function(e) {
-            const notifLink = e.target.closest('.landing-notif-link');
-            if (notifLink) {
-                const notifId = notifLink.getAttribute('data-notif-id');
-                if (notifId) {
-                    markSingleAsRead(notifId);
-                }
-            }
-        });
-
-        // Polling interval 30 detik
-        setInterval(window.refreshLandingNotificationBell, 30000);
-    });
-})();
-</script>
+                // Web Worker background timer: ticks every 12s even when tab is in background/minimized
+                startBackgroundWorkerPoller(window.refreshLandingNotificationBell, 12000);
+            });
+        })();
+    </script>
 <?php endif; ?>
