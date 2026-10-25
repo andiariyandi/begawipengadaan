@@ -468,6 +468,30 @@ class LearningService
             $this->evaluateCompletion((int) $context['enrollment']['id']);
         }
 
+        // Kirim notifikasi personal ke peserta terkait hasil pengerjaan kuis/ujian
+        try {
+            $quizTitle = $context['quiz']['title'] ?? 'Kuis Pembelajaran';
+            $quizTypeLabel = match ($context['quiz']['type'] ?? '') {
+                'pre_test'  => 'Pre-Test',
+                'post_test' => 'Post-Test',
+                default     => 'Kuis Modul',
+            };
+            (new NotificationService($this->db))->send(
+                $userId,
+                'quiz_graded',
+                "Hasil {$quizTypeLabel} Tersedia",
+                "Pengerjaan {$quizTypeLabel} '{$quizTitle}' telah selesai dievaluasi dengan skor {$scorePercent}.",
+                [
+                    'quiz_id'    => (int) $context['quiz']['id'],
+                    'attempt_id' => $attemptId,
+                    'score'      => $scorePercent,
+                    'url'        => site_url('workspace/peserta/quiz/' . $context['quiz']['id'] . '?attempt=' . $attemptId),
+                ]
+            );
+        } catch (\Throwable $e) {
+            log_message('warning', 'Quiz notification failed: ' . $e->getMessage());
+        }
+
         return ['score' => $scorePercent, 'attempt_id' => $attemptId];
     }
 
@@ -790,6 +814,29 @@ class LearningService
             try {
                 $eligibilityService = new CertificateEligibilityService($this->db);
                 $eligibilityService->createLearningApproval($enrollmentId, (int) $enrollment['user_id']);
+
+                // Kirim notifikasi personal bahwa peserta memenuhi syarat sertifikat
+                // Cegah duplikasi notifikasi eligible untuk enrollment yang sama
+                $alreadyNotified = $this->db->table('notifications')
+                    ->where('user_id', (int) $enrollment['user_id'])
+                    ->where('type', 'certificate_eligible')
+                    ->like('data', '"enrollment_id":' . $enrollmentId)
+                    ->countAllResults() > 0;
+
+                if (! $alreadyNotified) {
+                    (new NotificationService($this->db))->send(
+                        (int) $enrollment['user_id'],
+                        'certificate_eligible',
+                        'Memenuhi Syarat Kelulusan & Sertifikat',
+                        "Selamat! Anda telah dinyatakan lulus pada kelas '{$class['name']}' dengan nilai akhir {$final}. Penerbitan sertifikat Anda sedang diproses oleh sistem.",
+                        [
+                            'class_id'      => $classId,
+                            'enrollment_id' => $enrollmentId,
+                            'final_score'   => $final,
+                            'url'           => site_url('workspace/peserta/sertifikat'),
+                        ]
+                    );
+                }
             } catch (\Throwable $e) {
                 log_message('warning', 'Auto-trigger certificate approval failed for enrollment {id}: {msg}', [
                     'id'  => $enrollmentId,

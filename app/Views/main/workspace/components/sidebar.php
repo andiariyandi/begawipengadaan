@@ -3,25 +3,42 @@ $currentPath = trim(service('uri')->getPath(), '/');
 $roles = (array) session()->get('roles');
 $hasRole = static fn (string $role): bool => in_array($role, $roles, true);
 
-// Determine primary role priority
-$primaryRole = 'participant';
-if ($hasRole('super_administrator')) {
-    $primaryRole = 'super_administrator';
-} elseif ($hasRole('administrator')) {
-    $primaryRole = 'administrator';
-} elseif ($hasRole('operator')) {
-    $primaryRole = 'operator';
-} elseif ($hasRole('trainer')) {
-    $primaryRole = 'trainer';
+// Evaluasi seluruh peran aktif pengguna
+$prefixAdminRoles = [];
+foreach ($roles as $r) {
+    $rClean = strtolower(trim((string) $r));
+    if (str_starts_with($rClean, 'admin_')) {
+        $prefixAdminRoles[] = $rClean;
+    }
 }
 
-$roleLabel = match ($primaryRole) {
-    'super_administrator' => 'Super Administrator',
-    'administrator'       => 'Administrator',
-    'operator'            => 'Operator & Co-Trainer',
-    'trainer'             => 'Pengajar (Trainer)',
-    default               => 'Peserta (Participant)',
-};
+$isSuperAdmin        = $hasRole('super_administrator');
+$isAdmin             = $isSuperAdmin || $hasRole('administrator');
+$isAdminPembelajaran = in_array('admin_pembelajaran', $prefixAdminRoles, true);
+$isAdminEvent        = in_array('admin_event', $prefixAdminRoles, true);
+$isOperator          = $hasRole('operator');
+$isTrainer           = $hasRole('trainer');
+$hasPrefixAdmin      = ! empty($prefixAdminRoles);
+
+// Label peran informatif untuk header kartu profil
+$roleLabel = 'Peserta (Participant)';
+if ($isSuperAdmin) {
+    $roleLabel = 'Super Administrator';
+} elseif ($isAdmin) {
+    $roleLabel = 'Administrator';
+} elseif ($isAdminPembelajaran) {
+    $roleLabel = 'Admin Pembelajaran (Hybrid)';
+} elseif ($isAdminEvent) {
+    $roleLabel = 'Admin Event (Hybrid)';
+} elseif ($isOperator && $isTrainer) {
+    $roleLabel = 'Operator & Pengajar';
+} elseif ($isOperator) {
+    $roleLabel = 'Operator & Asisten Kelas';
+} elseif ($isTrainer) {
+    $roleLabel = 'Pengajar (Trainer)';
+} elseif ($hasPrefixAdmin) {
+    $roleLabel = ucwords(str_replace(['_', '-'], ' ', $prefixAdminRoles[0])) . ' (Hybrid)';
+}
 
 $displayName = (string) (session()->get('name') ?: session()->get('username') ?: 'Pengguna');
 $initials = strtoupper(mb_substr($displayName, 0, 1, 'UTF-8'));
@@ -30,7 +47,7 @@ $wsUserId = (int) (session()->get('user_id') ?: 0);
 $wsEmail  = (string) (session()->get('email') ?: '');
 $db = db_connect();
 
-// Counter Badges Calculation (Lightweight queries on existing tables)
+// Kalkulasi badge notifikasi dan tiket konsultasi
 $wsUnreadCount = 0;
 $wsTicketBadge = 0;
 $badgeMap = [];
@@ -43,7 +60,6 @@ if ($wsUserId > 0) {
     }
 
     try {
-        // Active consultation reply badge for user
         if ($db->tableExists('contact_messages') && $wsEmail !== '') {
             $wsTicketBadge = (int) $db->table('contact_messages')
                 ->where('sender_email', $wsEmail)
@@ -54,17 +70,21 @@ if ($wsUserId > 0) {
     }
 
     try {
-        if (in_array($primaryRole, ['super_administrator', 'administrator', 'operator'], true)) {
-            $badgeMap['approvals'] = (int) $db->table('approvals')->where('status', 'pending')->countAllResults();
-            $badgeMap['verifications'] = (int) $db->table('profile_verifications')->where('status', 'pending')->countAllResults();
+        // Badges khusus Administrator
+        if ($isAdmin) {
+            $badgeMap['approvals']       = (int) $db->table('approvals')->where('status', 'pending')->countAllResults();
+            $badgeMap['verifications']   = (int) $db->table('profile_verifications')->where('status', 'pending')->countAllResults();
             $badgeMap['profile_changes'] = (int) $db->table('profile_change_requests')->whereIn('status', ['submitted', 'in_review'])->countAllResults();
+        }
 
-            if ($primaryRole === 'operator') {
-                $badgeMap['assigned_classes'] = (int) $db->table('class_trainers')
-                    ->where(['user_id' => $wsUserId, 'status' => 'active'])
-                    ->countAllResults();
-            }
-        } elseif ($primaryRole === 'trainer') {
+        // Badges penugasan kelas Operator / Trainer
+        if ($isOperator || $isAdminPembelajaran) {
+            $badgeMap['assigned_classes'] = (int) $db->table('class_trainers')
+                ->where(['user_id' => $wsUserId, 'status' => 'active'])
+                ->countAllResults();
+        }
+
+        if ($isTrainer) {
             $badgeMap['trainer_classes'] = (int) $db->table('class_trainers')
                 ->where(['user_id' => $wsUserId, 'status' => 'active'])
                 ->countAllResults();
@@ -73,20 +93,21 @@ if ($wsUserId > 0) {
                 ->where('er.user_id', $wsUserId)
                 ->where('e.deleted_at IS NULL')
                 ->countAllResults();
-        } else {
-            $badgeMap['participant_classes'] = (int) $db->table('enrollments')
-                ->where('user_id', $wsUserId)
-                ->whereIn('status', ['pending', 'active', 'completed'])
-                ->countAllResults();
-            $badgeMap['participant_events'] = (int) $db->table('event_registrations er')
-                ->join('events e', 'e.id = er.event_id')
-                ->where('er.user_id', $wsUserId)
-                ->where('e.deleted_at IS NULL')
-                ->countAllResults();
-            $badgeMap['participant_certs'] = (int) $db->table('certificates')
-                ->where(['user_id' => $wsUserId, 'status' => 'issued'])
-                ->countAllResults();
         }
+
+        // Badges aktivitas peserta (melekat untuk semua)
+        $badgeMap['participant_classes'] = (int) $db->table('enrollments')
+            ->where('user_id', $wsUserId)
+            ->whereIn('status', ['pending', 'active', 'completed'])
+            ->countAllResults();
+        $badgeMap['participant_events'] = (int) $db->table('event_registrations er')
+            ->join('events e', 'e.id = er.event_id')
+            ->where('er.user_id', $wsUserId)
+            ->where('e.deleted_at IS NULL')
+            ->countAllResults();
+        $badgeMap['participant_certs'] = (int) $db->table('certificates')
+            ->where(['user_id' => $wsUserId, 'status' => 'issued'])
+            ->countAllResults();
     } catch (\Throwable) {
     }
 }
@@ -120,88 +141,125 @@ $renderLink = static function (string $label, ?string $url, string $icon, bool $
         . '</a>';
 };
 
-// Role-based grouped menu definitions (Streamlined & Organized)
-$menuGroups = match ($primaryRole) {
-    'super_administrator', 'administrator' => [
-        [
-            'title' => 'Komando Eksekutif & RBAC',
-            'items' => [
-                ['Pusat Eksekutif', route_to('workspace.admin.home'), 'fas fa-crown', null, 'bg-primary'],
-                ['Penugasan Kelas (RBAC)', route_to('workspace.operator.class-trainers'), 'fas fa-sitemap', null, 'bg-primary'],
-                ['Monitoring Pembelajaran', route_to('workspace.operator.learning-monitoring'), 'fas fa-chart-line', null, 'bg-primary'],
-                ['Operasional Event & Presensi', route_to('workspace.operator.events'), 'fas fa-calendar-check', null, 'bg-primary'],
-                ['Verifikasi Sertifikat', route_to('workspace.operator.certificates'), 'fas fa-award', null, 'bg-success'],
-                ['Dashboard Utama', site_url('dashboard'), 'fas fa-tachometer-alt', null, 'bg-secondary'],
-            ],
-        ],
-        [
-            'title' => 'Pusat Approval & Verifikasi',
-            'items' => [
-                ['Antrean Approval', route_to('workspace.operator.approvals'), 'fas fa-stamp', $badgeMap['approvals'] ?? 0, 'bg-danger'],
-                ['Verifikasi Akun Baru', route_to('workspace.operator.profile-verifications'), 'fas fa-id-card', $badgeMap['verifications'] ?? 0, 'bg-warning text-dark'],
-                ['Approval Perubahan Profil', route_to('workspace.operator.profile-change-requests'), 'fas fa-user-edit', $badgeMap['profile_changes'] ?? 0, 'bg-warning text-dark'],
-                ['Audit Aktivitas Sistem', route_to('workspace.operator.activity-monitoring'), 'fas fa-history', null, 'bg-secondary'],
-            ],
-        ],
-    ],
-    'operator' => [
-        [
-            'title' => 'Pengelolaan Kelas & Event',
-            'items' => [
-                ['Beranda Operasional', route_to('workspace.operator.home'), 'fas fa-home', null, 'bg-primary'],
-                ['Kelas & Penugasan Trainer', route_to('workspace.operator.class-trainers'), 'fas fa-sitemap', $badgeMap['assigned_classes'] ?? 0, 'bg-primary'],
-                ['Ruang Asisten Trainer', route_to('workspace.trainer.classes'), 'fas fa-chalkboard-teacher', $badgeMap['assigned_classes'] ?? 0, 'bg-info'],
-                ['Monitoring & Evaluasi Kelas', route_to('workspace.operator.learning-monitoring'), 'fas fa-chart-line', null, 'bg-primary'],
-                ['Operasional Event & Presensi', route_to('workspace.operator.events'), 'fas fa-calendar-check', null, 'bg-primary'],
-                ['Verifikasi Sertifikat', route_to('workspace.operator.certificates'), 'fas fa-award', null, 'bg-success'],
-            ],
-        ],
-        [
-            'title' => 'Verifikasi & Approval',
-            'items' => [
-                ['Antrean Approval', route_to('workspace.operator.approvals'), 'fas fa-stamp', $badgeMap['approvals'] ?? 0, 'bg-danger'],
-                ['Verifikasi Akun Baru', route_to('workspace.operator.profile-verifications'), 'fas fa-id-card', $badgeMap['verifications'] ?? 0, 'bg-warning text-dark'],
-                ['Approval Perubahan Profil', route_to('workspace.operator.profile-change-requests'), 'fas fa-user-edit', $badgeMap['profile_changes'] ?? 0, 'bg-warning text-dark'],
-                ['Log Aktivitas Sistem', route_to('workspace.operator.activity-monitoring'), 'fas fa-history', null, 'bg-secondary'],
-            ],
-        ],
-    ],
-    'trainer' => [
-        [
-            'title' => 'Pengajaran & Kelas',
-            'items' => [
-                ['Beranda Pengajar', route_to('workspace.trainer.home'), 'fas fa-home', null, 'bg-primary'],
-                ['Kelas & Kurikulum Saya', route_to('workspace.trainer.classes'), 'fas fa-graduation-cap', $badgeMap['trainer_classes'] ?? 0, 'bg-primary'],
-                ['Bank Materi Kelas', route_to('workspace.trainer.all-materials'), 'fas fa-book-open', null, 'bg-primary'],
-                ['Soal & Assessment', route_to('workspace.trainer.all-quizzes'), 'fas fa-clipboard-check', null, 'bg-primary'],
-                ['Peserta & Progress', route_to('workspace.trainer.all-participants'), 'fas fa-users', null, 'bg-primary'],
-            ],
-        ],
-        [
-            'title' => 'Event & Agenda Pengajar',
-            'items' => [
-                ['Event & Agenda Saya', route_to('workspace.trainer.events'), 'fas fa-calendar-alt', $badgeMap['trainer_events'] ?? 0, 'bg-info'],
-                ['Presensi Kegiatan Saya', route_to('workspace.trainer.attendance'), 'fas fa-user-check', null, 'bg-success'],
-            ],
-        ],
-    ],
-    default => [ // participant
-        [
-            'title' => 'Pembelajaran & Kegiatan',
-            'items' => [
-                ['Beranda Workspace', route_to('workspace.home'), 'fas fa-home', null, 'bg-primary'],
-                ['Pembelajaran & Kelas', route_to('workspace.participant.classes'), 'fas fa-graduation-cap', $badgeMap['participant_classes'] ?? 0, 'bg-primary'],
-                ['Tugas Mandiri', route_to('workspace.participant.all-assignments'), 'fas fa-tasks', null, 'bg-primary'],
-                ['Assessment & Ujian', route_to('workspace.participant.all-assessments'), 'fas fa-clipboard-check', null, 'bg-primary'],
-                ['Event & Agenda Saya', route_to('workspace.participant.events'), 'fas fa-calendar-alt', $badgeMap['participant_events'] ?? 0, 'bg-info'],
-                ['Presensi Kehadiran', route_to('workspace.participant.attendance'), 'fas fa-user-check', null, 'bg-success'],
-                ['Sertifikat Saya', route_to('workspace.participant.certificates'), 'fas fa-award', $badgeMap['participant_certs'] ?? 0, 'bg-success'],
-            ],
-        ],
-    ],
-};
+// =========================================================================
+// STACKED MODULAR SIDEBAR GROUPS
+// =========================================================================
+$menuGroups = [];
 
-// Personal & Helpdesk features group (Available to all roles)
+// 1. BLOK KHUSUS: ADMINISTRATOR & SUPER ADMINISTRATOR
+if ($isAdmin) {
+    $menuGroups[] = [
+        'title' => 'Komando Eksekutif & RBAC',
+        'items' => [
+            ['Pusat Eksekutif', route_to('workspace.admin.home'), 'fas fa-crown', null, 'bg-primary'],
+            ['Penugasan Kelas (RBAC)', route_to('workspace.operator.class-trainers'), 'fas fa-sitemap', null, 'bg-primary'],
+            ['Monitoring Pembelajaran', route_to('workspace.operator.learning-monitoring'), 'fas fa-chart-line', null, 'bg-primary'],
+            ['Operasional Event & Presensi', route_to('workspace.operator.events'), 'fas fa-calendar-check', null, 'bg-primary'],
+            ['Verifikasi Sertifikat', route_to('workspace.operator.certificates'), 'fas fa-award', null, 'bg-success'],
+            ['Dashboard Utama', site_url('dashboard'), 'fas fa-tachometer-alt', null, 'bg-secondary'],
+        ],
+    ];
+    $menuGroups[] = [
+        'title' => 'Pusat Approval & Verifikasi',
+        'items' => [
+            ['Antrean Approval', route_to('workspace.operator.approvals'), 'fas fa-stamp', $badgeMap['approvals'] ?? 0, 'bg-danger'],
+            ['Verifikasi Akun Baru', route_to('workspace.operator.profile-verifications'), 'fas fa-id-card', $badgeMap['verifications'] ?? 0, 'bg-warning text-dark'],
+            ['Approval Perubahan Profil', route_to('workspace.operator.profile-change-requests'), 'fas fa-user-edit', $badgeMap['profile_changes'] ?? 0, 'bg-warning text-dark'],
+            ['Audit Aktivitas Sistem', route_to('workspace.operator.activity-monitoring'), 'fas fa-history', null, 'bg-secondary'],
+        ],
+    ];
+}
+
+// 2. BLOK TAMBAHAN: ADMIN PEMBELAJARAN (HYBRID FULL KELAS)
+if ($isAdminPembelajaran) {
+    $menuGroups[] = [
+        'title' => 'Kelola Arena Belajar (Full Kelas)',
+        'items' => [
+            ['Beranda Operasional', route_to('workspace.operator.home'), 'fas fa-home', null, 'bg-primary'],
+            ['Semua Kelas & Penugasan', route_to('workspace.operator.class-trainers'), 'fas fa-sitemap', null, 'bg-primary'],
+            ['Ruang Asisten & Kurikulum', route_to('workspace.trainer.classes'), 'fas fa-chalkboard-teacher', null, 'bg-info'],
+            ['Monitoring & Evaluasi Nilai', route_to('workspace.operator.learning-monitoring'), 'fas fa-chart-line', null, 'bg-primary'],
+            ['Penerbitan Sertifikat Kelas', route_to('workspace.operator.certificates'), 'fas fa-award', null, 'bg-success'],
+            ['Buka Dashboard Arena Belajar', site_url('dashboard/pembelajaran'), 'fas fa-external-link-alt', null, 'bg-primary'],
+        ],
+    ];
+}
+
+// 3. BLOK TAMBAHAN: ADMIN EVENT (HYBRID FULL EVENT)
+if ($isAdminEvent) {
+    $menuGroups[] = [
+        'title' => 'Kelola Event PBJ (Full Event)',
+        'items' => [
+            ['Semua Agenda Event & Bimtek', route_to('workspace.operator.events'), 'fas fa-calendar-check', null, 'bg-primary'],
+            ['Presensi & Kehadiran Event', route_to('workspace.operator.attendance'), 'fas fa-user-check', null, 'bg-success'],
+            ['Buka Dashboard Event PBJ', site_url('dashboard/komunikasi/event-agenda'), 'fas fa-external-link-alt', null, 'bg-primary'],
+        ],
+    ];
+}
+
+// 4. BLOK TAMBAHAN: ADMIN MODULAR LAINNYA (Prefix admin_{...})
+if ($hasPrefixAdmin && ! $isAdminPembelajaran && ! $isAdminEvent && ! $isAdmin) {
+    $authService = new \App\Services\Identity\AuthorizationService();
+    $targetDashboardRoute = $authService->getFirstAllowedDashboardRoute();
+    $menuGroups[] = [
+        'title' => 'Akses Dashboard Modul',
+        'items' => [
+            ['Buka Dashboard Admin', site_url($targetDashboardRoute), 'fas fa-tachometer-alt', null, 'bg-primary'],
+        ],
+    ];
+}
+
+// 5. BLOK TAMBAHAN: OPERATOR (ASISTEN KELAS & EVENT DITUGASKAN)
+if ($isOperator && ! $isAdminPembelajaran && ! $isAdmin) {
+    $menuGroups[] = [
+        'title' => 'Asisten Operasional (Ditugaskan)',
+        'items' => [
+            ['Beranda Operasional', route_to('workspace.operator.home'), 'fas fa-home', null, 'bg-primary'],
+            ['Kelas & Penugasan Trainer', route_to('workspace.operator.class-trainers'), 'fas fa-sitemap', $badgeMap['assigned_classes'] ?? 0, 'bg-primary'],
+            ['Ruang Asisten Trainer', route_to('workspace.trainer.classes'), 'fas fa-chalkboard-teacher', $badgeMap['assigned_classes'] ?? 0, 'bg-info'],
+            ['Monitoring Kelas Ditugaskan', route_to('workspace.operator.learning-monitoring'), 'fas fa-chart-line', null, 'bg-primary'],
+            ['Verifikasi Peserta & Evaluasi', route_to('workspace.operator.evaluations'), 'fas fa-clipboard-check', null, 'bg-primary'],
+            ['Sertifikat Kelas Ditugaskan', route_to('workspace.operator.certificates'), 'fas fa-award', null, 'bg-success'],
+            ['Event Pendampingan Saya', route_to('workspace.operator.events'), 'fas fa-calendar-check', null, 'bg-primary'],
+            ['Presensi Event Ditugaskan', route_to('workspace.operator.attendance'), 'fas fa-user-check', null, 'bg-success'],
+        ],
+    ];
+}
+
+// 6. BLOK TAMBAHAN: TRAINER (PENGAJAR PADA KELAS & EVENT DITUGASKAN)
+if ($isTrainer && ! $isAdmin) {
+    $menuGroups[] = [
+        'title' => 'Pengajaran & Kelas (Ditugaskan)',
+        'items' => [
+            ['Beranda Pengajar', route_to('workspace.trainer.home'), 'fas fa-home', null, 'bg-primary'],
+            ['Kelas & Kurikulum Saya', route_to('workspace.trainer.classes'), 'fas fa-graduation-cap', $badgeMap['trainer_classes'] ?? 0, 'bg-primary'],
+            ['Bank Materi Kelas', route_to('workspace.trainer.all-materials'), 'fas fa-book-open', null, 'bg-primary'],
+            ['Soal & Assessment', route_to('workspace.trainer.all-quizzes'), 'fas fa-clipboard-check', null, 'bg-primary'],
+            ['Peserta & Progress', route_to('workspace.trainer.all-participants'), 'fas fa-users', null, 'bg-primary'],
+            ['Event Narasumber Saya', route_to('workspace.trainer.events'), 'fas fa-calendar-alt', $badgeMap['trainer_events'] ?? 0, 'bg-info'],
+            ['Presensi Kegiatan Saya', route_to('workspace.trainer.attendance'), 'fas fa-user-check', null, 'bg-success'],
+        ],
+    ];
+}
+
+// 7. BLOK MELEKAT: AKTIVITAS BELAJAR & KEGIATAN PESERTA (BASIC)
+// Melekat untuk seluruh peran non-administrator (Double Role Universal)
+if (! $isAdmin) {
+    $menuGroups[] = [
+        'title' => 'Pembelajaran & Kegiatan (Peserta)',
+        'items' => [
+            ['Beranda Workspace', route_to('workspace.home'), 'fas fa-compass', null, 'bg-primary'],
+            ['Kelas Belajar Saya', route_to('workspace.participant.classes'), 'fas fa-graduation-cap', $badgeMap['participant_classes'] ?? 0, 'bg-primary'],
+            ['Tugas Mandiri', route_to('workspace.participant.all-assignments'), 'fas fa-tasks', null, 'bg-primary'],
+            ['Assessment & Ujian', route_to('workspace.participant.all-assessments'), 'fas fa-clipboard-check', null, 'bg-primary'],
+            ['Event & Agenda Saya', route_to('workspace.participant.events'), 'fas fa-calendar-alt', $badgeMap['participant_events'] ?? 0, 'bg-info'],
+            ['Presensi Kehadiran', route_to('workspace.participant.attendance'), 'fas fa-user-check', null, 'bg-success'],
+            ['Sertifikat Saya', route_to('workspace.participant.certificates'), 'fas fa-award', $badgeMap['participant_certs'] ?? 0, 'bg-success'],
+        ],
+    ];
+}
+
+// 8. BLOK MELEKAT: FITUR PERSONAL & HELPDESK (Tampil untuk Semua Peran)
 $personalGroup = [
     'title' => 'Fitur Personal & Helpdesk',
     'items' => [

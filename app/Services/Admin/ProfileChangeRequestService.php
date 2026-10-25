@@ -233,7 +233,11 @@ class ProfileChangeRequestService
             db_connect()->table('notifications')
                 ->where('channel', 'shared:admin_operator')
                 ->where('type', 'profile_change_request')
-                ->like('data', '"request_id":' . $requestId)
+                ->groupStart()
+                    ->where("JSON_UNQUOTE(JSON_EXTRACT(data, '$.request_id')) =", (string) $requestId)
+                    ->orLike('data', '"request_id": ' . $requestId)
+                    ->orLike('data', '"request_id":' . $requestId)
+                ->groupEnd()
                 ->where('read_at IS NULL')
                 ->update(['read_at' => $now]);
         } catch (\Throwable) {
@@ -290,7 +294,11 @@ class ProfileChangeRequestService
             db_connect()->table('notifications')
                 ->where('channel', 'shared:admin_operator')
                 ->where('type', 'profile_change_request')
-                ->like('data', '"request_id":' . $requestId)
+                ->groupStart()
+                    ->where("JSON_UNQUOTE(JSON_EXTRACT(data, '$.request_id')) =", (string) $requestId)
+                    ->orLike('data', '"request_id": ' . $requestId)
+                    ->orLike('data', '"request_id":' . $requestId)
+                ->groupEnd()
                 ->where('read_at IS NULL')
                 ->update(['read_at' => $now]);
         } catch (\Throwable) {
@@ -345,7 +353,11 @@ class ProfileChangeRequestService
             db_connect()->table('notifications')
                 ->where('channel', 'shared:admin_operator')
                 ->where('type', 'profile_change_request')
-                ->like('data', '"request_id":' . $requestId)
+                ->groupStart()
+                    ->where("JSON_UNQUOTE(JSON_EXTRACT(data, '$.request_id')) =", (string) $requestId)
+                    ->orLike('data', '"request_id": ' . $requestId)
+                    ->orLike('data', '"request_id":' . $requestId)
+                ->groupEnd()
                 ->where('read_at IS NULL')
                 ->update(['read_at' => $now]);
         } catch (\Throwable) {

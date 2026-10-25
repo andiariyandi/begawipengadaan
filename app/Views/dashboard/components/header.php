@@ -111,7 +111,17 @@
                     : ($headerUserId > 0 ? $headerNotifService->unreadCount($headerUserId) : $headerNotifService->unreadCountAll());
 
                 $userName     = (string) (session()->get('name') ?: session()->get('username') ?: 'Administrator');
-                $userRole     = $isSuperAdmin ? 'Super Administrator' : 'Administrator PBJ';
+                $userRole     = 'Administrator PBJ';
+                if ($isSuperAdmin) {
+                    $userRole = 'Super Administrator';
+                } else {
+                    foreach ((array) $roles as $r) {
+                        if (str_starts_with((string) $r, 'admin_')) {
+                            $userRole = ucwords(str_replace(['_', '-'], ' ', (string) $r));
+                            break;
+                        }
+                    }
+                }
                 $userInitials = mb_strtoupper(mb_substr($userName, 0, 2));
                 ?>
 

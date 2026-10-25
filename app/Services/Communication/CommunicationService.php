@@ -732,6 +732,23 @@ class CommunicationService
             throw new \RuntimeException('Gagal menyimpan pencatatan presensi ke database.');
         }
 
+        try {
+            (new \App\Services\NotificationService($db))->send(
+                $userId,
+                'event_attendance_confirmed',
+                'Presensi Event Terkonfirmasi',
+                "Presensi kehadiran Anda pada kegiatan '{$event['title']}' berhasil dicatat dengan status Hadir.",
+                [
+                    'event_id'        => (int) $event['id'],
+                    'registration_id' => $registrationId,
+                    'attendance_id'   => $attendanceId,
+                    'url'             => site_url('workspace/peserta/presensi-saya'),
+                ]
+            );
+        } catch (\Throwable $e) {
+            log_message('warning', 'Event attendance notification failed: ' . $e->getMessage());
+        }
+
         return [
             'event'           => $event,
             'registration'    => $reg,
