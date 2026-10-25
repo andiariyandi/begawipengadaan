@@ -82,7 +82,7 @@ class SharedNotificationTest extends BaseCommand
         $this->assert($rowCount === 1, "Tepat 1 baris tercipta di database (TIDAK ADA DUPLIKASI DATA)");
 
         // =========================================================================
-        // SCENARIO 2: Uji Keterlihatan Bersama (Shared Visibility)
+        // SCENARIO 2: Uji Keterlihatan Bersama & Isolasi Wewenang
         // =========================================================================
         CLI::write("\n--- [SCENARIO 2] Uji Keterlihatan Bersama di Pool ---", "yellow");
 
@@ -97,7 +97,7 @@ class SharedNotificationTest extends BaseCommand
         }
         $this->assert($foundInAdmin, "Admin dapat melihat notifikasi bersama di daftarnya");
 
-        // Operator harus dapat melihat notifikasi shared:admin_operator
+        // Operator murni TIDAK LAGI melihat notifikasi approval/verifikasi akun (Wewenang Steril)
         $operatorNotifs = $service->getUserNotifications($operatorId, 20, false, ['operator']);
         $foundInOperator = false;
         foreach ($operatorNotifs as $on) {
@@ -106,10 +106,9 @@ class SharedNotificationTest extends BaseCommand
                 break;
             }
         }
-        $this->assert($foundInOperator, "Operator dapat melihat notifikasi bersama di daftarnya");
+        $this->assert(! $foundInOperator, "Operator terisolasi dari notifikasi persetujuan akun (Steril Khusus Admin)");
 
-        // Peserta reguler (bukan admin/operator) TIDAK BOLEH melihat notifikasi internal ini
-        // Asumsikan peserta hanya memiliki peran 'peserta'
+        // Peserta reguler (bukan admin) TIDAK BOLEH melihat notifikasi internal ini
         $regularNotifs = $service->getUserNotifications($participantId, 20, false, ['peserta']);
         $foundInRegular = false;
         foreach ($regularNotifs as $rn) {
@@ -125,24 +124,23 @@ class SharedNotificationTest extends BaseCommand
         // =========================================================================
         CLI::write("\n--- [SCENARIO 3] Uji 'Satu Membaca, Terbaca Semua' ---", "yellow");
 
-        // Catat unread count awal untuk admin dan operator
+        // Catat unread count awal untuk admin
         $adminUnreadBefore = $service->unreadCount($adminId, ['administrator']);
-        $operatorUnreadBefore = $service->unreadCount($operatorId, ['operator']);
 
-        // Operator menandai notifikasi shared sebagai telah dibaca
-        $marked = $service->markAsRead($notifId, $operatorId);
-        $this->assert($marked, "Operator berhasil menandai notifikasi bersama sebagai dibaca");
+        // Admin menandai notifikasi shared sebagai telah dibaca
+        $marked = $service->markAsRead($notifId, $adminId);
+        $this->assert($marked, "Admin berhasil menandai notifikasi bersama sebagai dibaca");
 
         // Verifikasi di database: read_at terisi dan read_by tercatat
         $updatedRow = $db->table('notifications')->where('id', $notifId)->get()->getRowArray();
         $this->assert(!empty($updatedRow['read_at']), "Timestamp read_at terisi: {$updatedRow['read_at']}");
 
         $updatedData = !empty($updatedRow['data']) ? json_decode($updatedRow['data'], true) : [];
-        $this->assert(isset($updatedData['read_by']) && (int)$updatedData['read_by'] === $operatorId, "ID pembaca tercatat akurat (read_by: #{$operatorId})");
+        $this->assert(isset($updatedData['read_by']) && (int)$updatedData['read_by'] === $adminId, "ID pembaca tercatat akurat (read_by: #{$adminId})");
 
         // Verifikasi unread count untuk Admin: otomatis berkurang atau tidak lagi unread!
         $adminUnreadAfter = $service->unreadCount($adminId, ['administrator']);
-        $this->assert($adminUnreadAfter <= $adminUnreadBefore, "Unread count Admin otomatis sinkron berkurang setelah dibaca Operator");
+        $this->assert($adminUnreadAfter <= $adminUnreadBefore, "Unread count Admin otomatis sinkron berkurang setelah dibaca");
 
         // Notifikasi tidak lagi muncul di filter onlyUnread
         $adminUnreadList = $service->getUserNotifications($adminId, 20, true, ['administrator']);
@@ -156,19 +154,38 @@ class SharedNotificationTest extends BaseCommand
         $this->assert(!$foundUnread, "Notifikasi otomatis lenyap dari daftar 'Belum Dibaca' milik Admin");
 
         // =========================================================================
-        // SCENARIO 4: Uji Kanal Kelas (shared:class:X) untuk Trainer & Operator
+        // SCENARIO 4: Uji Kanal Kelas (shared:class:X) untuk Penugasan Riil
         // =========================================================================
         CLI::write("\n--- [SCENARIO 4] Uji Kanal Kelas (shared:class:X) ---", "yellow");
+
+        $existingClass = $db->table('learning_classes')->select('id')->orderBy('id', 'ASC')->get()->getRowArray();
+        $testClassId = $existingClass ? (int) $existingClass['id'] : 2;
+
+        // Simulasikan penugasan kelas ke Operator
+        $existingCt = $db->table('class_trainers')->where(['class_id' => $testClassId, 'user_id' => $operatorId])->get()->getRowArray();
+        if (! $existingCt) {
+            $db->table('class_trainers')->insert([
+                'class_id'    => $testClassId,
+                'user_id'     => $operatorId,
+                'role'        => 'operator',
+                'status'      => 'active',
+                'assigned_by' => $adminId,
+                'assigned_at' => date('Y-m-d H:i:s'),
+            ]);
+        } else {
+            $db->table('class_trainers')->where(['class_id' => $testClassId, 'user_id' => $operatorId])->update(['status' => 'active']);
+        }
+
         $classNotifId = $service->sendShared(
-            'shared:class:99',
+            'shared:class:' . $testClassId,
             'class_enrollment_requested',
-            "Permohonan Enrollment Kelas 99 {$token}",
+            "Permohonan Enrollment Kelas {$testClassId} {$token}",
             "Peserta mengajukan pendaftaran kelas.",
-            ['class_id' => 99, 'url' => site_url('workspace/operator/kelas-trainer')]
+            ['class_id' => $testClassId, 'url' => route_to('workspace.operator.enrollments')]
         );
         $this->assert($classNotifId > 0, "Notifikasi enrollment kelas shared berhasil dibuat dengan ID #{$classNotifId}");
 
-        // Operator dapat melihat notifikasi kelas ini
+        // Operator yang DITUGASKAN pada kelas ini DAPAT melihat notifikasi
         $opClassNotifs = $service->getUserNotifications($operatorId, 20, false, ['operator']);
         $foundOpClass = false;
         foreach ($opClassNotifs as $ocn) {
@@ -177,18 +194,23 @@ class SharedNotificationTest extends BaseCommand
                 break;
             }
         }
-        $this->assert($foundOpClass, "Operator dapat melihat notifikasi enrollment kelas");
+        $this->assert($foundOpClass, "Operator yang ditugaskan dapat melihat notifikasi enrollment kelas #{$testClassId}");
 
-        // Trainer dapat melihat notifikasi kelas ini
-        $trClassNotifs = $service->getUserNotifications($operatorId, 20, false, ['trainer']);
-        $foundTrClass = false;
-        foreach ($trClassNotifs as $tcn) {
-            if ((int)$tcn['id'] === $classNotifId) {
-                $foundTrClass = true;
+        // Admin Pembelajaran (Full Scope) DAPAT melihat seluruh kelas
+        $apClassNotifs = $service->getUserNotifications($participantId, 20, false, ['admin_arenabelajar']);
+        $foundApClass = false;
+        foreach ($apClassNotifs as $apn) {
+            if ((int)$apn['id'] === $classNotifId) {
+                $foundApClass = true;
                 break;
             }
         }
-        $this->assert($foundTrClass, "Trainer dapat melihat notifikasi enrollment kelas");
+        $this->assert($foundApClass, "Admin Pembelajaran (Full Scope) dapat memantau notifikasi seluruh kelas");
+
+        // Bersihkan data simulasi class_trainers jika baru dibuat
+        if (! $existingCt) {
+            $db->table('class_trainers')->where(['class_id' => $testClassId, 'user_id' => $operatorId])->delete();
+        }
 
         // =========================================================================
         // SCENARIO 5: Uji Kanal Helpdesk (shared:helpdesk)
@@ -203,7 +225,7 @@ class SharedNotificationTest extends BaseCommand
         );
         $this->assert($helpdeskNotifId > 0, "Notifikasi helpdesk shared berhasil dibuat dengan ID #{$helpdeskNotifId}");
 
-        // Admin & Operator dapat melihat notifikasi helpdesk ini
+        // Admin dapat melihat notifikasi helpdesk ini
         $hdAdmin = $service->getUserNotifications($adminId, 20, false, ['administrator']);
         $foundHd = false;
         foreach ($hdAdmin as $hn) {
@@ -213,6 +235,16 @@ class SharedNotificationTest extends BaseCommand
             }
         }
         $this->assert($foundHd, "Admin melihat tiket helpdesk bersama");
+
+        // =========================================================================
+        // SCENARIO 6: Uji Kesiapan Native Browser Desktop Notification & Service Worker
+        // =========================================================================
+        CLI::write("\n--- [SCENARIO 6] Uji Service Worker & Browser Desktop Push ---", "yellow");
+        $swPath = FCPATH . 'sw.js';
+        $this->assert(file_exists($swPath), "Berkas Service Worker public/sw.js terpasang secara valid");
+        $swContent = file_get_contents($swPath);
+        $this->assert(str_contains($swContent, 'notificationclick'), "Service Worker mengimplementasikan event listener 'notificationclick'");
+        $this->assert(str_contains($swContent, 'clients.openWindow'), "Service Worker mendukung navigasi tab deep-link otomatis saat diklik");
 
         // Clean up test notifications
         $db->table('notifications')->whereIn('id', [$notifId, $classNotifId, $helpdeskNotifId])->delete();

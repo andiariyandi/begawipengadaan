@@ -106,7 +106,7 @@ class WorkspaceAuthFilter implements FilterInterface
 
         // 2. /workspace/trainer/* (Pengajar, Asisten Trainer/Operator pada kelas ditugaskan, serta Admin Pembelajaran)
         if (str_starts_with($path, 'workspace/trainer')) {
-            $allowed = ['trainer', 'operator', 'administrator', 'super_administrator', 'admin_pembelajaran'];
+            $allowed = ['trainer', 'operator', 'administrator', 'super_administrator', 'admin_arenabelajar'];
             if (empty(array_intersect($allowed, $effectiveRoles))) {
                 return redirect()->to(site_url('workspace'))
                     ->with('error', 'Akses ditolak: Anda tidak memiliki wewenang Pengajar / Asisten Trainer.');
@@ -125,7 +125,5 @@ class WorkspaceAuthFilter implements FilterInterface
         return null;
     }
 
-    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
-    {
-    }
+    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null) {}
 }

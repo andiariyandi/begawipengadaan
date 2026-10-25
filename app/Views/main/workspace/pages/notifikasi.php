@@ -51,6 +51,41 @@
     </div>
 </div>
 
+<!-- Native Browser Desktop & Push Notification Control Center Card -->
+<div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden mb-4" id="wsPushNotificationCard">
+    <div class="card-body p-3 p-md-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div class="d-flex align-items-start gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-2xs" style="width: 48px; height: 48px; background: rgba(12, 90, 166, 0.08);">
+                    <i class="fas fa-desktop text-primary fs-5" id="wsPushIcon"></i>
+                </div>
+                <div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <h2 class="h6 fw-bold mb-0" style="color: #082f5c;">Notifikasi Desktop Browser &amp; Service Worker</h2>
+                        <span id="wsPushStatusBadge" class="badge rounded-pill px-2.5 py-1 text-xs bg-secondary">
+                            <i class="fas fa-spinner fa-spin me-1"></i> Memeriksa Status...
+                        </span>
+                    </div>
+                    <p class="text-secondary small mb-0" id="wsPushStatusDesc">
+                        Dapatkan notifikasi seketika saat ada pembaruan kelas, verifikasi berkas, tanggapan tiket helpdesk, atau konfirmasi event langsung di desktop tanpa harus terus membuka tab aplikasi.
+                    </p>
+                    <div id="wsPushInsecureNotice" class="text-muted text-xs mt-1 d-none" style="font-size: 11px;">
+                        <i class="fas fa-info-circle text-info me-1"></i> <span id="wsPushInsecureText">Browser mendeteksi domain lokal HTTP. Mode <strong>In-App Floating Toast &amp; Audio Chime</strong> aktif seketika. Notifikasi native desktop browser akan aktif optimal pada koneksi HTTPS atau <code>http://localhost</code>.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2 flex-shrink-0 align-self-start align-self-md-center">
+                <button type="button" id="wsBtnActivatePush" class="btn btn-primary btn-sm rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1.5" onclick="window.wsActivatePushNotification()">
+                    <i class="fas fa-bell"></i> <span id="wsBtnActivatePushText">Aktifkan Notifikasi Desktop</span>
+                </button>
+                <button type="button" id="wsBtnTestPush" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1.5" title="Kirim notifikasi uji coba untuk mengetes suara chime dan banner desktop" onclick="window.wsTestPushNotification()">
+                    <i class="fas fa-vial"></i> <span>Uji / Tes Notifikasi</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Filter Tabs Navigation -->
 <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden mb-4">
     <div class="card-body p-2 p-md-3">
@@ -210,4 +245,101 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('pageScripts') ?>
+<script>
+window.updateWorkspacePushCard = function() {
+    const badge = document.getElementById('wsPushStatusBadge');
+    const desc = document.getElementById('wsPushStatusDesc');
+    const btnAct = document.getElementById('wsBtnActivatePush');
+    const btnActText = document.getElementById('wsBtnActivatePushText');
+    const notice = document.getElementById('wsPushInsecureNotice');
+    const icon = document.getElementById('wsPushIcon');
+
+    if (!badge) return;
+
+    const isSecure = window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!isSecure && notice) {
+        notice.classList.remove('d-none');
+    }
+
+    if (!('Notification' in window)) {
+        badge.className = 'badge rounded-pill px-2.5 py-1 text-xs bg-info-subtle text-info';
+        badge.innerHTML = '<i class="fas fa-volume-up me-1"></i> Mode In-App Toast &amp; Suara Aktif';
+        if (desc) desc.textContent = 'Browser ini tidak menyediakan Web Notification API native. Fitur notifikasi mengambang (In-App Toast) dan nada suara chime aktif penuh.';
+        if (btnAct) btnAct.style.display = 'none';
+        return;
+    }
+
+    if (Notification.permission === 'granted') {
+        badge.className = 'badge rounded-pill px-2.5 py-1 text-xs bg-success-subtle text-success';
+        badge.innerHTML = '<i class="fas fa-check-circle me-1"></i> 🟢 Aktif (Desktop Banner &amp; Toast)';
+        if (desc) desc.textContent = 'Notifikasi browser dan desktop Windows/Chrome/Edge aktif. Anda akan menerima notifikasi mengambang seketika dan bunyi chime harmonik saat ada aktivitas baru.';
+        if (btnAct) {
+            btnAct.className = 'btn btn-outline-success btn-sm rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1.5';
+            btnAct.disabled = true;
+            if (btnActText) btnActText.textContent = 'Sudah Diaktifkan';
+        }
+        if (icon) {
+            icon.className = 'fas fa-check-circle text-success fs-5';
+        }
+    } else if (Notification.permission === 'denied') {
+        badge.className = 'badge rounded-pill px-2.5 py-1 text-xs bg-danger-subtle text-danger';
+        badge.innerHTML = '<i class="fas fa-ban me-1"></i> 🔴 Izin Diblokir Browser';
+        if (desc) desc.textContent = 'Izin notifikasi diblokir di setelan browser Anda. Klik ikon gembok/setelan situs di sebelah URL browser untuk mengizinkan notifikasi, lalu muat ulang halaman.';
+        if (btnAct) {
+            btnAct.className = 'btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1.5';
+            btnAct.disabled = false;
+            if (btnActText) btnActText.textContent = 'Cara Buka Blokir';
+            btnAct.onclick = function() {
+                alert('Untuk mengizinkan notifikasi:\n1. Klik ikon setelan / gembok di samping URL browser.\n2. Ubah setelan "Notifikasi" menjadi "Izinkan" / "Allow".\n3. Muat ulang halaman ini.');
+            };
+        }
+    } else {
+        // default
+        badge.className = 'badge rounded-pill px-2.5 py-1 text-xs bg-warning-subtle text-warning-emphasis';
+        badge.innerHTML = '<i class="fas fa-bell me-1"></i> 🟡 Belum Diaktifkan';
+        if (desc) desc.textContent = 'Notifikasi desktop belum diizinkan. Klik tombol "Aktifkan Notifikasi" agar browser dapat memunculkan popup notifikasi saat ada informasi baru.';
+        if (btnAct) {
+            btnAct.className = 'btn btn-primary btn-sm rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1.5';
+            btnAct.disabled = false;
+            if (btnActText) btnActText.textContent = 'Aktifkan Notifikasi Desktop';
+            btnAct.onclick = window.wsActivatePushNotification;
+        }
+    }
+};
+
+window.wsActivatePushNotification = function() {
+    if (typeof window.bpRequestPushPermission === 'function') {
+        window.bpRequestPushPermission();
+    } else if ('Notification' in window) {
+        Notification.requestPermission().then(function(perm) {
+            window.updateWorkspacePushCard();
+            if (perm === 'granted') {
+                window.wsTestPushNotification('Notifikasi Desktop Berhasil Diaktifkan!');
+            }
+        });
+    }
+};
+
+window.wsTestPushNotification = function(customTitle) {
+    if (typeof window.bpTestNotification === 'function') {
+        window.bpTestNotification({
+            id: 999999,
+            title: customTitle || 'Uji Coba Notifikasi BegawiPengadaan',
+            body: 'Selamat! Audio chime harmonik, floating toast, dan notifikasi desktop browser berhasil berjalan.',
+            fa: 'fas fa-vial text-primary',
+            badge: 'bg-primary text-white',
+            url: window.location.href
+        });
+    } else {
+        alert('Notifikasi uji coba terkirim.');
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    window.updateWorkspacePushCard();
+});
+</script>
 <?= $this->endSection() ?>

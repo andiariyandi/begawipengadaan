@@ -93,7 +93,7 @@ class LearningService
                     'class_id'      => $classId,
                     'enrollment_id' => $newId,
                     'user_id'       => $userId,
-                    'url'           => site_url('workspace/operator/kelas-trainer'),
+                    'url'           => route_to('workspace.operator.enrollments'),
                 ],
                 $userId
             );
@@ -585,7 +585,7 @@ class LearningService
                     'assignment_id' => $assignmentId,
                     'submission_id' => $submissionId,
                     'user_id'       => $userId,
-                    'url'           => site_url('workspace/operator/evaluasi'),
+                    'url'           => route_to('workspace.operator.submission.review', (string) $submissionId),
                 ],
                 $userId
             );

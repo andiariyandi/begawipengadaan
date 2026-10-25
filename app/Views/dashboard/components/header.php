@@ -149,6 +149,11 @@
                                 </form>
                             </div>
                         </div>
+                        <div id="dashBrowserPushBanner" class="p-2 px-3 bg-neutral-50 border-bottom border-neutral-200 text-xs">
+                            <div class="d-flex align-items-center justify-content-between gap-2" id="dashPushBannerContent">
+                                <span class="text-secondary-light"><iconify-icon icon="eos-icons:loading" class="align-middle me-1"></iconify-icon> Memeriksa status notifikasi...</span>
+                            </div>
+                        </div>
                         <div id="headerNotifList" class="max-h-400-px overflow-y-auto scroll-sm pe-4">
                             <?php if (empty($headerNotifications)): ?>
                                 <div class="text-center py-24 px-16 text-secondary-light empty-notif-msg">
@@ -265,7 +270,194 @@
     </div>
 </div>
 
+<!-- Floating Real-Time Push Toast Container for Dashboard -->
+<div id="dashPushToastContainer" style="position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 12px; max-width: 380px; width: calc(100vw - 48px); pointer-events: none;"></div>
+
 <script>
+    // Audio Synthesizer for Dashboard Notifications
+    function playAdminChime() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.35);
+        } catch (e) {}
+    }
+
+    // Floating Push Toast for Dashboard
+    function showAdminPushToast(notif) {
+        const container = document.getElementById('dashPushToastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.style.cssText = "background: #ffffff; border-radius: 14px; box-shadow: 0 10px 30px rgba(15,23,42,0.18), 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #487fff; padding: 14px 16px; pointer-events: auto; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(-20px); opacity: 0; display: flex; gap: 12px; align-items: start; font-family: inherit;";
+
+        const safeTitle = (notif.title || 'Notifikasi').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const safeBody = (notif.body || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const targetUrl = notif.url || notif.detail_url || '<?= site_url('dashboard/sistem/notifikasi') ?>';
+
+        toast.innerHTML = `
+            <span style="width: 36px; height: 36px; border-radius: 50%; background: rgba(72,127,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                <iconify-icon icon="${notif.icon || 'solar:bell-bing-bold'}" style="font-size: 18px; color: #487fff;"></iconify-icon>
+            </span>
+            <div style="flex-grow: 1; overflow: hidden; min-width: 0;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 2px;">
+                    <strong style="font-size: 13px; color: #1e293b; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</strong>
+                    <span style="font-size: 10px; color: #94a3b8; white-space: nowrap;">Baru saja</span>
+                </div>
+                <p style="font-size: 11.5px; color: #475569; margin: 0 0 6px 0; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${safeBody}</p>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span class="badge bg-primary-50 text-primary-600" style="font-size: 9px; padding: 2px 6px; border-radius: 12px;">Notifikasi Baru</span>
+                    <span style="font-size: 10.5px; color: #487fff; font-weight: 600;">Lihat <iconify-icon icon="solar:alt-arrow-right-linear" style="font-size: 10px; vertical-align: middle;"></iconify-icon></span>
+                </div>
+            </div>
+        `;
+
+        toast.addEventListener('click', function() {
+            if (targetUrl) {
+                window.location.href = targetUrl;
+            }
+        });
+
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+        });
+
+        setTimeout(() => {
+            toast.style.transform = 'translateY(-20px)';
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 300);
+        }, 6500);
+    }
+
+    function triggerAdminDesktopNotification(item) {
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+        const iconUrl = '<?= base_url('assets/main/images/resources/logo-1.png') ?>';
+        const title = item.title || 'BegawiPengadaan Admin';
+        const targetUrl = item.url || item.detail_url || '<?= site_url('dashboard/sistem/notifikasi') ?>';
+        const options = {
+            body: item.body || 'Pemberitahuan baru pada sistem.',
+            icon: iconUrl,
+            badge: iconUrl,
+            tag: 'bp-dash-notif-' + (item.id || Date.now()),
+            renotify: true,
+            data: { id: item.id, url: targetUrl }
+        };
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(function(reg) {
+                return reg.showNotification(title, options);
+            }).catch(function() {
+                spawnAdminDesktopNotification(title, options, item, targetUrl);
+            });
+        } else {
+            spawnAdminDesktopNotification(title, options, item, targetUrl);
+        }
+    }
+
+    function spawnAdminDesktopNotification(title, options, item, targetUrl) {
+        try {
+            const n = new Notification(title, options);
+            n.onclick = function(e) {
+                e.preventDefault();
+                window.focus();
+                if (targetUrl) window.location.href = targetUrl;
+                this.close();
+            };
+        } catch (e) {
+            console.debug('Dashboard Notification instantiation fallback:', e);
+        }
+    }
+
+    // Dynamic UI Update for Dashboard Header Dropdown Banner
+    window.updateDashPushBannerUI = function() {
+        const container = document.getElementById('dashPushBannerContent');
+        if (!container) return;
+
+        if (!('Notification' in window)) {
+            container.innerHTML = `
+                <span class="text-secondary-light"><iconify-icon icon="solar:volume-loud-outline" class="align-middle me-1 text-info"></iconify-icon> Mode In-App Toast &amp; Suara</span>
+                <button type="button" class="btn btn-outline-primary btn-xs py-1 px-8 rounded-pill" onclick="window.dashTestNotification()">Uji</button>
+            `;
+            return;
+        }
+
+        if (Notification.permission === 'granted') {
+            container.innerHTML = `
+                <span class="text-success-main fw-medium"><iconify-icon icon="solar:check-circle-bold" class="align-middle me-1 text-success-main"></iconify-icon> Notifikasi desktop aktif</span>
+                <button type="button" class="btn btn-outline-primary btn-xs py-1 px-8 rounded-pill" onclick="window.dashTestNotification()">Uji</button>
+            `;
+        } else if (Notification.permission === 'denied') {
+            container.innerHTML = `
+                <span class="text-danger-main" title="Izin notifikasi diblokir di setelan browser"><iconify-icon icon="solar:close-circle-bold" class="align-middle me-1 text-danger-main"></iconify-icon> Izin diblokir browser</span>
+                <button type="button" class="btn btn-outline-secondary btn-xs py-1 px-8 rounded-pill" onclick="window.dashTestNotification()">Uji In-App</button>
+            `;
+        } else {
+            // default
+            container.innerHTML = `
+                <span class="text-primary-600"><iconify-icon icon="solar:laptop-outline" class="align-middle me-1"></iconify-icon> Notifikasi desktop</span>
+                <div class="d-flex gap-1">
+                    <button type="button" id="dashBtnEnablePush" class="btn btn-primary btn-xs py-1 px-8 rounded-pill" onclick="window.dashRequestPushPermission()">Aktifkan</button>
+                    <button type="button" class="btn btn-outline-secondary btn-xs py-1 px-8 rounded-pill" onclick="window.dashTestNotification()">Uji</button>
+                </div>
+            `;
+        }
+    };
+
+    window.dashRequestPushPermission = function() {
+        if (!('Notification' in window)) {
+            alert('Browser ini tidak mendukung Web Notification API native. Sistem tetap aktif menggunakan In-App Real-Time Toast & Audio.');
+            return;
+        }
+
+        Notification.requestPermission().then(function(perm) {
+            window.updateDashPushBannerUI();
+            if (typeof window.updateDashboardPushCard === 'function') {
+                window.updateDashboardPushCard();
+            }
+            if (perm === 'granted') {
+                window.dashTestNotification({
+                    id: 999999,
+                    title: 'Notifikasi Desktop Admin Diaktifkan!',
+                    body: 'BegawiPengadaan sekarang dapat mengirimkan pemberitahuan sistem langsung ke desktop Anda.',
+                    icon: 'solar:check-circle-bold',
+                    url: '<?= site_url('dashboard/sistem/notifikasi') ?>'
+                });
+            }
+        }).catch(function(err) {
+            console.warn('Gagal meminta izin notifikasi admin:', err);
+        });
+    };
+
+    window.dashTestNotification = function(customData) {
+        const sample = customData || {
+            id: 999999,
+            title: 'Uji Coba Notifikasi Dashboard',
+            body: 'Selamat! Audio chime harmonik, in-app floating toast, dan notifikasi desktop dashboard berhasil berjalan.',
+            icon: 'solar:tuning-square-2-bold',
+            url: '<?= site_url('dashboard/sistem/notifikasi') ?>'
+        };
+        playAdminChime();
+        showAdminPushToast(sample);
+        triggerAdminDesktopNotification(sample);
+    };
+
 window.refreshNotificationBell = function () {
     fetch('<?= site_url('dashboard/sistem/notifikasi-api/feed') ?>', {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -335,6 +527,10 @@ window.refreshNotificationBell = function () {
                             osc.stop(ctx.currentTime + 0.35);
                         }
                     } catch (e) {}
+
+                    // Trigger In-App Floating Toast & Native Browser Desktop Notification
+                    showAdminPushToast(data.items[0]);
+                    triggerAdminDesktopNotification(data.items[0]);
                 }
                 window.__lastAdminTopNotifId = data.items[0].id;
 
@@ -365,6 +561,15 @@ window.refreshNotificationBell = function () {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Registrasi Service Worker untuk browser desktop notification
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('<?= base_url('sw.js') ?>', { scope: '/' })
+            .catch(function(err) { console.debug('SW registration skipped:', err); });
+    }
+
+    // Inisialisasi status banner notifikasi dropdown
+    window.updateDashPushBannerUI();
+
     const dropdownEl = document.getElementById('headerNotifDropdown');
     if (dropdownEl) {
         dropdownEl.addEventListener('show.bs.dropdown', function () {

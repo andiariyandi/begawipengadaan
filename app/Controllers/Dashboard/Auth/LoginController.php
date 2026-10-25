@@ -18,7 +18,7 @@ class LoginController extends BaseController
             $isFullAdmin = in_array('super_administrator', $loggedRoles, true)
                 || in_array('administrator', $loggedRoles, true);
 
-            // 2. Peran dinamis berprefix admin_{...} (e.g. admin_regulasi, admin_pembelajaran, dll)
+            // 2. Peran dinamis berprefix admin_{...} (e.g. admin_regulasi, admin_arenabelajar, dll)
             $isPrefixAdmin = $authService->isPrefixAdmin($loggedRoles);
 
             // 3. Hak akses dashboard dinamis

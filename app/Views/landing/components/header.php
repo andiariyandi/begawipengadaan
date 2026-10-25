@@ -162,6 +162,11 @@ if ($isLoggedIn && $headerUserId > 0) {
                                             </form>
                                         <?php endif; ?>
                                     </div>
+                                    <div id="bpBrowserPushBanner" class="p-2 px-3 bg-light border-bottom" style="font-size: 11.5px;">
+                                        <div class="d-flex align-items-center justify-content-between gap-2" id="bpPushBannerContent">
+                                            <span class="text-secondary"><i class="fas fa-spinner fa-spin me-1"></i> Memeriksa status notifikasi...</span>
+                                        </div>
+                                    </div>
                                     <div class="notif-dropdown-body" style="max-height: 320px; overflow-y: auto;">
                                         <?php if (empty($latestNotifs)): ?>
                                             <div class="text-center py-4 px-3 text-muted">
@@ -174,7 +179,7 @@ if ($isLoggedIn && $headerUserId > 0) {
                                                     $isNUnread = empty($n['read_at']);
                                                     $nMeta = \App\Services\NotificationService::formatCategory($n['type'] ?? 'system');
                                                     $nTime = \App\Services\NotificationService::timeAgo($n['created_at'] ?? null);
-                                                    $nData = !empty($n['data']) ? json_decode($n['data'], true) : [];
+                                                    $nData = !empty($n['data']) ? (is_array($n['data']) ? $n['data'] : json_decode($n['data'], true)) : [];
                                                     $targetUrl = !empty($nData['url']) ? $nData['url'] : route_to('workspace.notifications');
                                                 ?>
                                                     <a href="<?= esc($targetUrl) ?>" class="list-group-item list-group-item-action notif-item landing-notif-link p-2 px-3 border-bottom <?= $isNUnread ? 'is-unread bg-primary-subtle bg-opacity-10' : '' ?> d-flex gap-2 align-items-start" data-notif-id="<?= (int)$n['id'] ?>">
@@ -354,6 +359,123 @@ if ($isLoggedIn && $headerUserId > 0) {
         }).catch(() => {});
     }
 
+    // Native Desktop / Browser Notification Dispatcher (Chrome, Edge, Firefox, etc.)
+    function triggerNativeBrowserNotification(notif) {
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+        const iconUrl = '<?= base_url('assets/main/images/resources/logo-1.png') ?>';
+        const title = notif.title || 'BegawiPengadaan';
+        const targetUrl = notif.url || '<?= route_to('workspace.notifications') ?>';
+        const options = {
+            body: notif.body || 'Pemberitahuan baru di BegawiPengadaan.',
+            icon: iconUrl,
+            badge: iconUrl,
+            tag: 'bp-notif-' + (notif.id || Date.now()),
+            renotify: true,
+            data: { id: notif.id, url: targetUrl }
+        };
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(function(reg) {
+                return reg.showNotification(title, options);
+            }).catch(function() {
+                spawnDesktopNotification(title, options, notif, targetUrl);
+            });
+        } else {
+            spawnDesktopNotification(title, options, notif, targetUrl);
+        }
+    }
+
+    function spawnDesktopNotification(title, options, notif, targetUrl) {
+        try {
+            const n = new Notification(title, options);
+            n.onclick = function(e) {
+                e.preventDefault();
+                window.focus();
+                if (notif.id && typeof markSingleAsRead === 'function') markSingleAsRead(notif.id);
+                if (targetUrl) window.location.href = targetUrl;
+                this.close();
+            };
+        } catch (e) {
+            console.debug('Direct Notification instantiation fallback:', e);
+        }
+    }
+
+    // Dynamic UI Update for Header Dropdown Banner
+    window.updateBpPushBannerUI = function() {
+        const container = document.getElementById('bpPushBannerContent');
+        if (!container) return;
+
+        if (!('Notification' in window)) {
+            container.innerHTML = `
+                <span class="text-secondary"><i class="fas fa-volume-up text-info me-1"></i> Mode Toast &amp; Suara Aktif</span>
+                <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 rounded-pill" onclick="window.bpTestNotification()">Uji</button>
+            `;
+            return;
+        }
+
+        if (Notification.permission === 'granted') {
+            container.innerHTML = `
+                <span class="text-success fw-semibold"><i class="fas fa-check-circle text-success me-1"></i> Notifikasi desktop aktif</span>
+                <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2 rounded-pill" onclick="window.bpTestNotification()">Uji</button>
+            `;
+        } else if (Notification.permission === 'denied') {
+            container.innerHTML = `
+                <span class="text-danger" title="Izin notifikasi diblokir di setelan browser"><i class="fas fa-ban text-danger me-1"></i> Izin diblokir browser</span>
+                <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2 rounded-pill" onclick="window.bpTestNotification()">Uji In-App</button>
+            `;
+        } else {
+            // default
+            container.innerHTML = `
+                <span class="text-primary"><i class="fas fa-bell text-primary me-1"></i> Notifikasi desktop</span>
+                <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-primary btn-xs py-0 px-2 rounded-pill shadow-xs" onclick="window.bpRequestPushPermission()">Aktifkan</button>
+                    <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2 rounded-pill" onclick="window.bpTestNotification()">Uji</button>
+                </div>
+            `;
+        }
+    };
+
+    window.bpRequestPushPermission = function() {
+        if (!('Notification' in window)) {
+            alert('Browser ini tidak mendukung Web Notification API native. Sistem notifikasi in-app floating toast & suara tetap aktif.');
+            return;
+        }
+
+        Notification.requestPermission().then(function(perm) {
+            window.updateBpPushBannerUI();
+            if (typeof window.updateWorkspacePushCard === 'function') {
+                window.updateWorkspacePushCard();
+            }
+            if (perm === 'granted') {
+                window.bpTestNotification({
+                    id: 999999,
+                    title: 'Notifikasi Desktop Berhasil Diaktifkan!',
+                    body: 'BegawiPengadaan sekarang dapat mengirimkan pemberitahuan penting langsung ke desktop Anda.',
+                    fa: 'fas fa-check-circle text-success',
+                    badge: 'bg-success text-white',
+                    url: '<?= route_to('workspace.notifications') ?>'
+                });
+            }
+        }).catch(function(err) {
+            console.warn('Gagal meminta izin notifikasi:', err);
+        });
+    };
+
+    window.bpTestNotification = function(customData) {
+        const sample = customData || {
+            id: 999999,
+            title: 'Uji Coba Notifikasi BegawiPengadaan',
+            body: 'Selamat! Audio chime harmonik, in-app floating toast, dan push browser desktop berhasil terhubung.',
+            fa: 'fas fa-bell text-primary',
+            badge: 'bg-primary text-white',
+            url: '<?= route_to('workspace.notifications') ?>'
+        };
+        playNotificationChime();
+        showPushToast(sample);
+        triggerNativeBrowserNotification(sample);
+    };
+
     // Real-Time Poller Function
     window.refreshLandingNotificationBell = function() {
         fetch('<?= site_url('workspace/notifikasi-api/feed') ?>', {
@@ -387,6 +509,7 @@ if ($isLoggedIn && $headerUserId > 0) {
                 if (lastTopNotifId > 0 && newest.id > lastTopNotifId) {
                     playNotificationChime();
                     showPushToast(newest);
+                    triggerNativeBrowserNotification(newest);
                 }
                 lastTopNotifId = newest.id;
             }
@@ -404,6 +527,15 @@ if ($isLoggedIn && $headerUserId > 0) {
     };
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Registrasi Service Worker untuk background notification click & offline handling
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('<?= base_url('sw.js') ?>', { scope: '/' })
+                .catch(function(err) { console.debug('SW registration skipped:', err); });
+        }
+
+        // Inisialisasi status banner notifikasi dropdown
+        window.updateBpPushBannerUI();
+
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
                 document.title = originalDocumentTitle;

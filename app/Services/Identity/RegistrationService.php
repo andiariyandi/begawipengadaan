@@ -253,7 +253,7 @@ class RegistrationService
                     'user_id'      => (int) $userId,
                     'name'         => $data['name'],
                     'profile_type' => $profileType,
-                    'url'          => site_url('workspace/operator/verifikasi-user'),
+                    'url'          => route_to('workspace.operator.profile-verifications'),
                 ]
             );
         } catch (\Throwable $e) {

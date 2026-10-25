@@ -52,7 +52,21 @@ class NotificationController extends BaseController
 
         $data = !empty($notif['data']) ? (is_array($notif['data']) ? $notif['data'] : json_decode($notif['data'], true)) : [];
         if (!empty($data['url'])) {
-            return redirect()->to($data['url']);
+            $targetUrl = (string) $data['url'];
+            $authService = new \App\Services\Identity\AuthorizationService();
+            $path = trim(parse_url($targetUrl, PHP_URL_PATH) ?? '', '/');
+
+            // Jika URL mengarah ke dashboard tapi pengguna tidak berhak akses dashboard
+            if (str_starts_with($path, 'dashboard') && ! $authService->hasDashboardAccess()) {
+                if (str_contains($path, 'pesan-masuk') || str_contains($path, 'konsultasi')) {
+                    $targetUrl = route_to('workspace.consultation.index');
+                } else {
+                    return redirect()->to(route_to('workspace.notifications'))
+                        ->with('message', 'Notifikasi #' . $notifId . ' (' . esc($notif['title']) . ') telah ditandai dibaca.');
+                }
+            }
+
+            return redirect()->to($targetUrl);
         }
 
         return $this->render('Detail Notifikasi', 'Informasi rinci terkait notifikasi #' . esc($id) . '.');

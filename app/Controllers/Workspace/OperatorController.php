@@ -60,7 +60,7 @@ class OperatorController extends BaseController
     private function hasFullClassScope(): bool
     {
         $roles = (array) session()->get('roles');
-        return ! empty(array_intersect(['administrator', 'super_administrator', 'admin_pembelajaran'], $roles));
+        return ! empty(array_intersect(['administrator', 'super_administrator', 'admin_arenabelajar'], $roles));
     }
 
     private function hasFullEventScope(): bool
@@ -127,9 +127,9 @@ class OperatorController extends BaseController
             ->select('event_id')
             ->where('user_id', $uid)
             ->groupStart()
-                ->whereIn('status', ['operator', 'trainer', 'speaker'])
-                ->orLike('status_reason', 'operator')
-                ->orLike('status_reason', 'assigned')
+            ->whereIn('status', ['operator', 'trainer', 'speaker'])
+            ->orLike('status_reason', 'operator')
+            ->orLike('status_reason', 'assigned')
             ->groupEnd()
             ->get()->getResultArray();
         $assignedIds = array_column($assignedRows, 'event_id');
@@ -203,7 +203,7 @@ class OperatorController extends BaseController
         }
 
         $roles = (array) session()->get('roles');
-        $allowed = ['operator', 'administrator', 'super_administrator', 'admin_pembelajaran', 'admin_event'];
+        $allowed = ['operator', 'administrator', 'super_administrator', 'admin_arenabelajar', 'admin_event'];
         $hasAccess = false;
         foreach ($allowed as $r) {
             if (in_array($r, $roles, true)) {
@@ -1670,6 +1670,17 @@ class OperatorController extends BaseController
         } catch (\Throwable) {
         }
 
+        // Tandai notifikasi permohonan pendaftaran event bersama sebagai terbaca bagi seluruh pool
+        try {
+            $this->db->table('notifications')
+                ->where('channel', 'shared:event:' . $reg['event_id'])
+                ->where('type', 'event_registration_submitted')
+                ->where('user_id', (int) $reg['user_id'])
+                ->where('read_at IS NULL')
+                ->update(['read_at' => $now]);
+        } catch (\Throwable) {
+        }
+
         $this->db->transComplete();
 
         return redirect()->back()->with('message', 'Pendaftaran peserta pada event berhasil disetujui (Approved).');
@@ -1716,6 +1727,17 @@ class OperatorController extends BaseController
                 'Pendaftaran Anda pada event "' . ($reg['event_title'] ?? '') . '" tidak disetujui. Catatan: ' . $reason,
                 ['event_id' => (int) $reg['event_id'], 'url' => route_to('workspace.participant.events')]
             );
+        } catch (\Throwable) {
+        }
+
+        // Tandai notifikasi permohonan pendaftaran event bersama sebagai terbaca bagi seluruh pool
+        try {
+            $this->db->table('notifications')
+                ->where('channel', 'shared:event:' . $reg['event_id'])
+                ->where('type', 'event_registration_submitted')
+                ->where('user_id', (int) $reg['user_id'])
+                ->where('read_at IS NULL')
+                ->update(['read_at' => $now]);
         } catch (\Throwable) {
         }
 
@@ -1772,6 +1794,20 @@ class OperatorController extends BaseController
                 }
                 $count++;
             }
+        }
+
+        // Tandai seluruh notifikasi pendaftaran event bersama sebagai terbaca bagi seluruh pool
+        try {
+            $userPendingIds = array_column($pendingRows, 'user_id');
+            if (! empty($userPendingIds)) {
+                $this->db->table('notifications')
+                    ->where('channel', 'shared:event:' . $eid)
+                    ->where('type', 'event_registration_submitted')
+                    ->whereIn('user_id', $userPendingIds)
+                    ->where('read_at IS NULL')
+                    ->update(['read_at' => $now]);
+            }
+        } catch (\Throwable) {
         }
 
         $this->logAudit($actorId, 'event_registration.bulk_approve', 'event', $eid, ['approved_count' => $count]);
@@ -1841,6 +1877,32 @@ class OperatorController extends BaseController
             'event_registration_id' => $rid,
             'status'                => $status,
         ], $notes);
+
+        if ($status === 'present') {
+            try {
+                $ev = $this->db->table('events')->select('title')->where('id', (int) $reg['event_id'])->get()->getRowArray();
+                $evTitle = $ev['title'] ?? 'Event PBJ';
+                (new \App\Services\NotificationService($this->db))->send(
+                    (int) $reg['user_id'],
+                    'event_attendance_confirmed',
+                    'Presensi Kehadiran Event Terkonfirmasi',
+                    "Kehadiran Anda pada kegiatan '{$evTitle}' telah diverifikasi dan dicatat hadir oleh Operator/Panitia.",
+                    [
+                        'event_id' => (int) $reg['event_id'],
+                        'url'      => route_to('workspace.participant.attendance'),
+                    ]
+                );
+
+                // Tandai notifikasi permohonan bersama sebagai terbaca jika sebelumnya belum terbaca
+                $this->db->table('notifications')
+                    ->where('channel', 'shared:event:' . $reg['event_id'])
+                    ->where('type', 'event_registration_submitted')
+                    ->where('user_id', (int) $reg['user_id'])
+                    ->where('read_at IS NULL')
+                    ->update(['read_at' => $now]);
+            } catch (\Throwable) {
+            }
+        }
 
         $this->db->transComplete();
 

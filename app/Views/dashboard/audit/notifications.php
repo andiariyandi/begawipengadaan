@@ -122,6 +122,41 @@ $buildSortLink = function (string $colKey, string $label, string $alignClass = '
     </div>
 </div>
 
+<!-- Native Browser Desktop & Push Notification Control Center Card -->
+<div class="card radius-12 mb-24 border shadow-none" id="dashPushNotificationCard">
+    <div class="card-body p-20">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div class="d-flex align-items-start gap-3">
+                <div class="w-48-px h-48-px bg-primary-50 text-primary-600 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0">
+                    <iconify-icon icon="solar:laptop-minimalistic-bold" class="text-2xl" id="dashPushIcon"></iconify-icon>
+                </div>
+                <div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <h6 class="fw-semibold mb-0 text-primary-light">Notifikasi Desktop Browser &amp; Service Worker</h6>
+                        <span id="dashPushStatusBadge" class="badge bg-neutral-200 text-neutral-700 px-8 py-3 radius-4 text-xs fw-semibold">
+                            <iconify-icon icon="eos-icons:loading" class="me-1 align-middle"></iconify-icon> Memeriksa Status...
+                        </span>
+                    </div>
+                    <p class="text-secondary-light text-sm mb-0" id="dashPushStatusDesc">
+                        Dapatkan peringatan seketika saat ada pendaftaran baru, verifikasi berkas peserta, tanggapan tiket konsultasi, atau aktivitas penting sistem langsung di desktop administrator.
+                    </p>
+                    <div id="dashPushInsecureNotice" class="text-xs text-secondary-light mt-1 d-none">
+                        <iconify-icon icon="solar:info-circle-outline" class="text-info align-middle me-1"></iconify-icon> <span id="dashPushInsecureText">Browser mendeteksi domain lokal HTTP. Mode <strong>In-App Floating Toast &amp; Audio Chime</strong> aktif seketika. Notifikasi native desktop browser akan aktif optimal pada koneksi HTTPS atau <code>http://localhost</code>.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2 flex-shrink-0 align-self-start align-self-md-center">
+                <button type="button" id="dashBtnActivatePush" class="btn btn-primary-600 radius-8 px-16 py-10 d-inline-flex align-items-center gap-2" onclick="window.dashActivatePushNotification()">
+                    <iconify-icon icon="solar:bell-bing-bold" class="text-xl"></iconify-icon> <span id="dashBtnActivatePushText">Aktifkan Notifikasi Desktop</span>
+                </button>
+                <button type="button" id="dashBtnTestPush" class="btn btn-outline-primary-600 radius-8 px-16 py-10 d-inline-flex align-items-center gap-2" title="Kirim notifikasi uji coba untuk mengetes suara chime dan banner desktop" onclick="window.dashTestPushNotification()">
+                    <iconify-icon icon="solar:tuning-square-2-outline" class="text-xl"></iconify-icon> <span>Uji / Tes Notifikasi</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Multi-Facet Filter Toolbar -->
 <div class="card radius-12 mb-24 border">
     <div class="card-body p-20">
@@ -713,6 +748,98 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
+    // Dashboard Push Card Initialization & Logic
+    window.updateDashboardPushCard = function() {
+        const badge = document.getElementById('dashPushStatusBadge');
+        const desc = document.getElementById('dashPushStatusDesc');
+        const btnAct = document.getElementById('dashBtnActivatePush');
+        const btnActText = document.getElementById('dashBtnActivatePushText');
+        const notice = document.getElementById('dashPushInsecureNotice');
+        const icon = document.getElementById('dashPushIcon');
+
+        if (!badge) return;
+
+        const isSecure = window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (!isSecure && notice) {
+            notice.classList.remove('d-none');
+        }
+
+        if (!('Notification' in window)) {
+            badge.className = 'badge bg-info-50 text-info-600 px-8 py-3 radius-4 text-xs fw-semibold';
+            badge.innerHTML = '<iconify-icon icon="solar:volume-loud-outline" class="me-1 align-middle"></iconify-icon> Mode In-App Toast &amp; Suara Aktif';
+            if (desc) desc.textContent = 'Browser ini tidak menyediakan Web Notification API native. Fitur notifikasi mengambang (In-App Toast) dan nada suara chime aktif penuh.';
+            if (btnAct) btnAct.style.display = 'none';
+            return;
+        }
+
+        if (Notification.permission === 'granted') {
+            badge.className = 'badge bg-success-50 text-success-600 px-8 py-3 radius-4 text-xs fw-semibold';
+            badge.innerHTML = '<iconify-icon icon="solar:check-circle-bold" class="me-1 align-middle text-success-main"></iconify-icon> 🟢 Aktif (Desktop Banner &amp; Toast)';
+            if (desc) desc.textContent = 'Notifikasi browser dan desktop Windows/Chrome/Edge aktif. Anda akan menerima notifikasi mengambang seketika dan bunyi chime harmonik saat ada aktivitas baru.';
+            if (btnAct) {
+                btnAct.className = 'btn btn-outline-success-600 radius-8 px-16 py-10 d-inline-flex align-items-center gap-2 disabled';
+                btnAct.disabled = true;
+                if (btnActText) btnActText.textContent = 'Sudah Diaktifkan';
+            }
+            if (icon) {
+                icon.className = 'text-2xl text-success-main';
+                icon.setAttribute('icon', 'solar:check-circle-bold');
+            }
+        } else if (Notification.permission === 'denied') {
+            badge.className = 'badge bg-danger-50 text-danger-600 px-8 py-3 radius-4 text-xs fw-semibold';
+            badge.innerHTML = '<iconify-icon icon="solar:close-circle-bold" class="me-1 align-middle text-danger-main"></iconify-icon> 🔴 Izin Diblokir Browser';
+            if (desc) desc.textContent = 'Izin notifikasi diblokir di setelan browser Anda. Klik ikon gembok/setelan situs di sebelah URL browser untuk mengizinkan notifikasi, lalu muat ulang halaman.';
+            if (btnAct) {
+                btnAct.className = 'btn btn-outline-neutral-400 radius-8 px-16 py-10 d-inline-flex align-items-center gap-2';
+                btnAct.disabled = false;
+                if (btnActText) btnActText.textContent = 'Cara Buka Blokir';
+                btnAct.onclick = function() {
+                    alert('Untuk mengizinkan notifikasi:\n1. Klik ikon setelan / gembok di samping URL browser.\n2. Ubah setelan "Notifikasi" menjadi "Izinkan" / "Allow".\n3. Muat ulang halaman ini.');
+                };
+            }
+        } else {
+            // default
+            badge.className = 'badge bg-warning-50 text-warning-600 px-8 py-3 radius-4 text-xs fw-semibold';
+            badge.innerHTML = '<iconify-icon icon="solar:bell-bing-bold" class="me-1 align-middle text-warning-main"></iconify-icon> 🟡 Belum Diaktifkan';
+            if (desc) desc.textContent = 'Notifikasi desktop belum diizinkan. Klik tombol "Aktifkan Notifikasi Desktop" di samping agar browser dapat memunculkan popup pemberitahuan saat ada aktivitas baru.';
+            if (btnAct) {
+                btnAct.className = 'btn btn-primary-600 radius-8 px-16 py-10 d-inline-flex align-items-center gap-2';
+                btnAct.disabled = false;
+                if (btnActText) btnActText.textContent = 'Aktifkan Notifikasi Desktop';
+                btnAct.onclick = window.dashActivatePushNotification;
+            }
+        }
+    };
+
+    window.dashActivatePushNotification = function() {
+        if (typeof window.dashRequestPushPermission === 'function') {
+            window.dashRequestPushPermission();
+        } else if ('Notification' in window) {
+            Notification.requestPermission().then(function(perm) {
+                window.updateDashboardPushCard();
+                if (perm === 'granted') {
+                    window.dashTestPushNotification('Notifikasi Desktop Admin Berhasil Diaktifkan!');
+                }
+            });
+        }
+    };
+
+    window.dashTestPushNotification = function(customTitle) {
+        if (typeof window.dashTestNotification === 'function') {
+            window.dashTestNotification({
+                id: 999999,
+                title: customTitle || 'Uji Coba Notifikasi Admin BegawiPengadaan',
+                body: 'Selamat! Audio chime harmonik, in-app floating toast, dan notifikasi desktop dashboard berhasil berjalan.',
+                icon: 'solar:tuning-square-2-bold',
+                url: window.location.href
+            });
+        } else {
+            alert('Notifikasi uji coba terkirim.');
+        }
+    };
+
+    window.updateDashboardPushCard();
 });
 </script>
 <?= $this->endSection() ?>
