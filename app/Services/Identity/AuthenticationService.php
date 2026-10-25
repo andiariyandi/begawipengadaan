@@ -54,6 +54,8 @@ class AuthenticationService
             'user_id'          => (int) $user['id'],
             'name'             => $user['name'],
             'username'         => $user['username'],
+            'email'            => $user['email'] ?? '',
+            'phone'            => $user['phone'] ?? null,
             'account_status'   => $user['account_status'],
             'roles'            => $roleKeys,
             'permissions'      => $permissions,

@@ -118,6 +118,21 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
                     </div>
 
                     <div class="text-slate-800 leading-relaxed" style="font-size: 14.5px; white-space: pre-wrap;"><?= esc($message['message']) ?></div>
+
+                    <?php $initialAttachments = $notes['attachments'] ?? []; ?>
+                    <?php if (! empty($initialAttachments)): ?>
+                        <div class="d-flex flex-wrap gap-2 mt-12 pt-12 border-top">
+                            <?php foreach ($initialAttachments as $att): ?>
+                                <a href="<?= esc($att['url'] ?? '#') ?>" target="_blank" rel="noopener noreferrer" class="badge bg-light text-primary border text-2xs px-10 py-6 d-inline-flex align-items-center gap-1 text-decoration-none">
+                                    <iconify-icon icon="solar:paperclip-bold"></iconify-icon>
+                                    <span><?= esc($att['name'] ?? 'Lampiran') ?></span>
+                                    <?php if (! empty($att['size_human'])): ?>
+                                        <small class="text-muted">(<?= esc($att['size_human']) ?>)</small>
+                                    <?php endif; ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- 2. Subsequent Conversation Replies -->
@@ -162,6 +177,21 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
                                     </div>
                                 </div>
                                 <div class="text-slate-800 leading-relaxed" style="font-size: 14px; white-space: pre-wrap;"><?= esc($th['message']) ?></div>
+
+                                <?php $thAttachments = is_array($th['attachments'] ?? null) ? $th['attachments'] : []; ?>
+                                <?php if (! empty($thAttachments)): ?>
+                                    <div class="d-flex flex-wrap gap-2 mt-10 pt-8 border-top">
+                                        <?php foreach ($thAttachments as $att): ?>
+                                            <a href="<?= esc($att['url'] ?? '#') ?>" target="_blank" rel="noopener noreferrer" class="badge bg-white text-primary border text-2xs px-8 py-4 d-inline-flex align-items-center gap-1 text-decoration-none">
+                                                <iconify-icon icon="solar:paperclip-bold"></iconify-icon>
+                                                <span><?= esc($att['name'] ?? 'Lampiran') ?></span>
+                                                <?php if (! empty($att['size_human'])): ?>
+                                                    <small class="text-muted">(<?= esc($att['size_human']) ?>)</small>
+                                                <?php endif; ?>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -218,13 +248,22 @@ $mailtoUrl = session()->getFlashdata('mailto_url');
                                     </div>
                                 <?php endif; ?>
 
-                                <form method="post" action="<?= site_url('dashboard/komunikasi/pesan-masuk/reply/' . $message['id']) ?>">
+                                <form method="post" action="<?= site_url('dashboard/komunikasi/pesan-masuk/reply/' . $message['id']) ?>" enctype="multipart/form-data">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="channel" value="portal">
 
                                     <div class="mb-14">
-                                        <label class="form-label text-xs fw-semibold">Pesan Balasan / Solusi Helpdesk *</label>
-                                        <textarea name="reply_message" class="form-control radius-8 text-sm" rows="4" placeholder="Tuliskan jawaban, instruksi, atau klarifikasi untuk pemohon..." required></textarea>
+                                        <label class="form-label text-xs fw-semibold">Pesan Balasan / Solusi Helpdesk</label>
+                                        <textarea name="reply_message" class="form-control radius-8 text-sm" rows="3" placeholder="Tuliskan jawaban, instruksi, atau klarifikasi untuk pemohon..."></textarea>
+                                    </div>
+
+                                    <div class="mb-14 p-12 bg-neutral-50 radius-8 border">
+                                        <label class="form-label text-xs fw-semibold mb-1 d-flex align-items-center gap-1">
+                                            <iconify-icon icon="solar:paperclip-bold" class="text-primary-600"></iconify-icon>
+                                            <span>Lampirkan Dokumen Pendukung (Opsional)</span>
+                                        </label>
+                                        <input type="file" name="attachment" class="form-control form-control-sm radius-8 text-xs bg-white" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp,.zip,.rar">
+                                        <small class="text-muted text-2xs d-block mt-1">Mendukung PDF, Dokumen Office, Gambar, atau ZIP (Maks. 1 MB).</small>
                                     </div>
 
                                     <div class="row g-2 align-items-center">

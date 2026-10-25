@@ -78,6 +78,15 @@ if (! empty($threads) && $stageIndex < 3) {
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
+            <?php if (! $isClosed): ?>
+                <form action="<?= route_to('workspace.consultation.resolve', $ticket['ticket_number']) ?>" method="post" onsubmit="return confirm('Apakah Anda yakin konsultasi ini telah selesai dan ingin menutup tiket?');" class="d-inline">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-outline-success radius-8 px-3 py-2 text-sm d-inline-flex align-items-center gap-1 fw-semibold">
+                        <i class="fas fa-check-circle text-success me-1"></i>
+                        <span>Tandai Selesai</span>
+                    </button>
+                </form>
+            <?php endif; ?>
             <a href="<?= route_to('workspace.consultation.index') ?>" class="btn btn-outline-secondary radius-8 px-3 py-2 text-sm d-inline-flex align-items-center gap-1">
                 <i class="fas fa-arrow-left me-1"></i>
                 <span>Daftar Tiket</span>

@@ -542,6 +542,12 @@ class HomeController extends BaseController
             }
         }
 
+        // Generate Simple Math Captcha
+        $cNum1 = rand(2, 9);
+        $cNum2 = rand(1, 9);
+        session()->set('contact_captcha_answer', $cNum1 + $cNum2);
+        $captchaQuestion = "{$cNum1} + {$cNum2}";
+
         return view('landing/pages/contact', [
             'title'             => 'Hubungi Kami & Helpdesk PBJ | Biro Pengadaan Barang dan Jasa Lampung',
             'metaDescription'   => 'Layanan informasi resmi, konsultasi teknis, dan helpdesk LPSE Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung.',
@@ -554,6 +560,7 @@ class HomeController extends BaseController
             'pageBanner'        => $pageBanner,
             'trackedTicket'     => $trackedTicket,
             'trackCode'         => $trackCode,
+            'captchaQuestion'   => $captchaQuestion,
         ]);
     }
 
@@ -565,6 +572,21 @@ class HomeController extends BaseController
             return redirect()->back()
                 ->withInput()
                 ->with('contact_error', 'Terlalu banyak permintaan pengiriman pesan dari perangkat Anda. Silakan tunggu satu menit sebelum mencoba kembali.');
+        }
+
+        // Honeypot anti-bot validation
+        $honeypot = trim((string) $this->request->getPost('website_url'));
+        if ($honeypot !== '') {
+            return redirect()->to(site_url('kontak#form-pesan'))->with('contact_error', 'Permintaan pengiriman tidak dapat diproses.');
+        }
+
+        // Simple Math Captcha validation
+        $userCaptcha = trim((string) $this->request->getPost('captcha_answer'));
+        $expectedCaptcha = session()->get('contact_captcha_answer');
+        if ($expectedCaptcha !== null && (int) $userCaptcha !== (int) $expectedCaptcha) {
+            return redirect()->back()
+                ->withInput()
+                ->with('contact_error', 'Jawaban verifikasi keamanan (captcha matematika) belum tepat. Silakan hitung kembali.');
         }
 
         $rules = [
@@ -591,11 +613,80 @@ class HomeController extends BaseController
         $userId     = $isLoggedIn ? (int) session()->get('user_id') : null;
         $senderName = substr((string) $this->request->getPost('name'), 0, 150);
 
+        // Optional attachment upload
+        $attachmentData = null;
+        $file = $this->request->getFile('attachment');
+        if ($file && $file->isValid() && ! $file->hasMoved()) {
+            $allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'webp', 'zip', 'rar'];
+            $ext = strtolower((string) $file->getClientExtension());
+            if (! in_array($ext, $allowedExt, true)) {
+                return redirect()->back()->withInput()->with('contact_error', 'Format berkas lampiran tidak didukung. Gunakan PDF, Office, Gambar, atau ZIP.');
+            }
+
+            $mimeType = $file->getMimeType();
+            $disallowedMimes = ['application/x-php', 'text/x-php', 'application/x-httpd-php', 'application/x-sh', 'application/x-msdos-program', 'application/x-executable'];
+            if (in_array(strtolower($mimeType), $disallowedMimes, true) || str_contains($mimeType, 'php') || str_contains($mimeType, 'script')) {
+                return redirect()->back()->withInput()->with('contact_error', 'Tipe berkas tidak diizinkan demi alasan keamanan sistem.');
+            }
+
+            if ($file->getSize() > 10 * 1024 * 1024) {
+                return redirect()->back()->withInput()->with('contact_error', 'Ukuran berkas lampiran maksimal 1 MB.');
+            }
+
+            $origName = $file->getClientName();
+            $sizeBytes = (int) $file->getSize();
+            $newName = 'pub_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $targetDir = FCPATH . 'uploads/consultations';
+            if (! is_dir($targetDir)) {
+                @mkdir($targetDir, 0775, true);
+            }
+            $file->move($targetDir, $newName);
+
+            $sizeHuman = $sizeBytes >= 1048576
+                ? number_format($sizeBytes / 1048576, 2) . ' MB'
+                : number_format(max(1, $sizeBytes / 1024), 1) . ' KB';
+            $relativePath = 'uploads/consultations/' . $newName;
+
+            $fileAssetId = null;
+            try {
+                if ($db->tableExists('file_assets')) {
+                    $db->table('file_assets')->insert([
+                        'storage_disk'  => 'public',
+                        'file_path'     => $relativePath,
+                        'original_name' => $origName,
+                        'mime_type'     => $mimeType,
+                        'file_size'     => $sizeBytes,
+                        'uploaded_by'   => $userId ?: null,
+                        'created_at'    => date('Y-m-d H:i:s'),
+                    ]);
+                    $fileAssetId = (int) $db->insertID();
+                }
+            } catch (\Throwable) {
+            }
+
+            $attachmentData = [
+                'file_id'    => $fileAssetId,
+                'name'       => $origName,
+                'path'       => $relativePath,
+                'url'        => base_url($relativePath),
+                'ext'        => strtoupper($ext),
+                'mime'       => $mimeType,
+                'size_bytes' => $sizeBytes,
+                'size_human' => $sizeHuman,
+            ];
+        }
+
+        $detailLog = 'Tiket konsultasi diajukan melalui portal publik.' . ($isLoggedIn ? ' (Pengguna Terdaftar)' : '');
+        if ($attachmentData) {
+            $detailLog .= ' Disertai lampiran: ' . $attachmentData['name'];
+        }
+
         $initialNotes = [
             'user_id'       => $userId,
             'priority'      => 'normal',
             'assigned_to'   => null,
             'internal_note' => '',
+            'attachments'   => $attachmentData ? [$attachmentData] : [],
             'threads'       => [],
             'logs'          => [
                 [
@@ -603,11 +694,12 @@ class HomeController extends BaseController
                     'actor'      => $senderName,
                     'actor_role' => $isLoggedIn ? 'user' : 'guest',
                     'action'     => 'Tiket Dibuat',
-                    'detail'     => 'Tiket konsultasi diajukan melalui portal publik.' . ($isLoggedIn ? ' (Pengguna Terdaftar)' : ''),
+                    'detail'     => $detailLog,
                 ],
             ],
         ];
 
+        $insertId = 0;
         $db->transStart();
         try {
             $db->table('contact_messages')->insert([
@@ -623,6 +715,7 @@ class HomeController extends BaseController
                 'created_at'       => date('Y-m-d H:i:s'),
                 'updated_at'       => date('Y-m-d H:i:s'),
             ]);
+            $insertId = (int) $db->insertID();
 
             // Catat log audit di dalam transaksi
             $auditService = new \App\Services\AuditService();
@@ -644,7 +737,7 @@ class HomeController extends BaseController
                         [
                             'ticket_number' => $ticketNumber,
                             'sender_name'   => $senderName,
-                            'url'           => site_url('dashboard/komunikasi/pesan-masuk'),
+                            'url'           => site_url('dashboard/komunikasi/pesan-masuk/detail/' . $insertId),
                         ],
                         $userId ?: 1
                     );
@@ -655,6 +748,9 @@ class HomeController extends BaseController
             $db->transRollback();
             log_message('error', 'Contact message save error: ' . $e->getMessage());
         }
+
+        // Refresh captcha for next request
+        session()->remove('contact_captcha_answer');
 
         if ($isLoggedIn) {
             $successMsg = 'Terima kasih! Tiket ' . $ticketNumber . ' berhasil dibuat. Karena Anda telah masuk, Anda dapat melihat riwayat dan saling membalas pesan secara langsung melalui Ruang Kerja (Workspace) Anda.';

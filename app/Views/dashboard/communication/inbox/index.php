@@ -98,8 +98,13 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <ul class="nav nav-pills gap-2 flex-wrap mb-0">
                 <li class="nav-item">
-                    <a class="nav-link radius-8 text-xs fw-semibold <?= empty($currentStatus) ? 'active bg-primary-600 text-white' : 'text-secondary-light' ?>" href="<?= site_url('dashboard/komunikasi/pesan-masuk') ?>">
+                    <a class="nav-link radius-8 text-xs fw-semibold <?= (empty($currentStatus) && empty($assignedTo)) ? 'active bg-primary-600 text-white' : 'text-secondary-light' ?>" href="<?= site_url('dashboard/komunikasi/pesan-masuk') ?>">
                         Semua Tiket
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link radius-8 text-xs fw-semibold <?= ($assignedTo ?? '') === 'me' ? 'active bg-primary-600 text-white' : 'text-secondary-light' ?>" href="<?= site_url('dashboard/komunikasi/pesan-masuk?assigned_to=me') ?>">
+                        <iconify-icon icon="solar:user-check-bold" class="me-1"></iconify-icon> Ditugaskan ke Saya <?= ($assignedToMeCount ?? 0) > 0 ? "({$assignedToMeCount})" : '' ?>
                     </a>
                 </li>
                 <li class="nav-item">

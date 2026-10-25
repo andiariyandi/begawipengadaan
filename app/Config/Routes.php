@@ -106,6 +106,8 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
         $routes->post('buat', 'ConsultationController::store', ['as' => 'workspace.consultation.store']);
         $routes->get('detail/(:segment)', 'ConsultationController::detail/$1', ['as' => 'workspace.consultation.detail']);
         $routes->post('detail/(:segment)/balas', 'ConsultationController::reply/$1', ['as' => 'workspace.consultation.reply']);
+        $routes->post('detail/(:segment)/selesai', 'ConsultationController::resolve/$1', ['as' => 'workspace.consultation.resolve']);
+        $routes->get('(:segment)', 'ConsultationController::detail/$1');
     });
     $routes->get('notifikasi', 'NotificationController::index', ['as' => 'workspace.notifications']);
     $routes->get('notifikasi-api/feed', 'NotificationController::feed', ['as' => 'workspace.notifications.feed']);

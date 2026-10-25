@@ -61,9 +61,15 @@ class ConsultationController extends BaseController
             throw new \RuntimeException('Format berkas lampiran tidak didukung. Gunakan PDF, Office, Gambar, atau ZIP.');
         }
 
-        // Max 10 MB
+        $mimeType = $file->getMimeType();
+        $disallowedMimes = ['application/x-php', 'text/x-php', 'application/x-httpd-php', 'application/x-sh', 'application/x-msdos-program', 'application/x-executable'];
+        if (in_array(strtolower($mimeType), $disallowedMimes, true) || str_contains($mimeType, 'php') || str_contains($mimeType, 'script')) {
+            throw new \RuntimeException('Tipe berkas tidak diizinkan demi alasan keamanan sistem.');
+        }
+
+        // Max 1 MB
         if ($file->getSize() > 10 * 1024 * 1024) {
-            throw new \RuntimeException('Ukuran berkas lampiran maksimal 10 MB.');
+            throw new \RuntimeException('Ukuran berkas lampiran maksimal 1 MB.');
         }
 
         $origName = $file->getClientName();
@@ -121,6 +127,10 @@ class ConsultationController extends BaseController
 
         $email  = (string) session()->get('email');
         $userId = (int) session()->get('user_id');
+        if (empty($email) && $userId > 0) {
+            $u = $this->db->table('users')->select('email')->where('id', $userId)->get()->getRowArray();
+            $email = $u['email'] ?? '';
+        }
 
         $tickets = $this->messageModel->getUserTickets($email, $userId);
 
@@ -165,6 +175,10 @@ class ConsultationController extends BaseController
 
         $email  = (string) session()->get('email');
         $userId = (int) session()->get('user_id');
+        if (empty($email) && $userId > 0) {
+            $u = $this->db->table('users')->select('email')->where('id', $userId)->get()->getRowArray();
+            $email = $u['email'] ?? '';
+        }
 
         $ticket = $this->messageModel->findByTicketNumber($ticketNumber);
         if (! $ticket) {
@@ -181,7 +195,7 @@ class ConsultationController extends BaseController
         $notes = ContactMessageModel::parseAdminNotes($ticket['admin_notes'] ?? null);
 
         // Security check: verify this ticket belongs to the user
-        $isOwner = strcasecmp($ticket['sender_email'], $email) === 0
+        $isOwner = (! empty($email) && ! empty($ticket['sender_email']) && strcasecmp($ticket['sender_email'], $email) === 0)
             || (isset($notes['user_id']) && (int) $notes['user_id'] === $userId);
 
         $roles = (array) session()->get('roles');
@@ -225,6 +239,10 @@ class ConsultationController extends BaseController
 
         $email  = (string) session()->get('email');
         $userId = (int) session()->get('user_id');
+        if (empty($email) && $userId > 0) {
+            $u = $this->db->table('users')->select('email')->where('id', $userId)->get()->getRowArray();
+            $email = $u['email'] ?? '';
+        }
 
         $ticket = $this->messageModel->findByTicketNumber($ticketNumber);
         if (! $ticket) {
@@ -238,7 +256,7 @@ class ConsultationController extends BaseController
         }
 
         $notes = ContactMessageModel::parseAdminNotes($ticket['admin_notes'] ?? null);
-        $isOwner = strcasecmp($ticket['sender_email'], $email) === 0
+        $isOwner = (! empty($email) && ! empty($ticket['sender_email']) && strcasecmp($ticket['sender_email'], $email) === 0)
             || (isset($notes['user_id']) && (int) $notes['user_id'] === $userId);
 
         $roles = (array) session()->get('roles');
@@ -345,6 +363,14 @@ class ConsultationController extends BaseController
         $userEmail = (string) session()->get('email');
         $userPhone = (string) (session()->get('phone') ?: $this->request->getPost('phone'));
 
+        if (empty($userEmail) && $userId > 0) {
+            $u = $this->db->table('users')->select('email, phone')->where('id', $userId)->get()->getRowArray();
+            $userEmail = $u['email'] ?? '';
+            if (empty($userPhone)) {
+                $userPhone = $u['phone'] ?? '';
+            }
+        }
+
         try {
             $uploadedAttachment = $this->handleAttachmentUpload($userId);
         } catch (\RuntimeException $e) {
@@ -422,5 +448,89 @@ class ConsultationController extends BaseController
 
         return redirect()->to(route_to('workspace.consultation.detail', $ticketNumber))
             ->with('success', "Tiket konsultasi #{$ticketNumber} berhasil dibuat! Petugas Helpdesk akan segera menindaklanjuti di Ruang Konsultasi ini.");
+    }
+
+    /**
+     * Mark ticket as closed/resolved by ticket owner or administrator.
+     */
+    public function resolve(string $ticketNumber)
+    {
+        if ($redirect = $this->checkAuth()) {
+            return $redirect;
+        }
+
+        $email  = (string) session()->get('email');
+        $userId = (int) session()->get('user_id');
+        if (empty($email) && $userId > 0) {
+            $u = $this->db->table('users')->select('email')->where('id', $userId)->get()->getRowArray();
+            $email = $u['email'] ?? '';
+        }
+
+        $ticket = $this->messageModel->findByTicketNumber($ticketNumber);
+        if (! $ticket && is_numeric($ticketNumber)) {
+            $ticket = $this->messageModel->find((int) $ticketNumber);
+        }
+
+        if (! $ticket) {
+            return redirect()->to(route_to('workspace.consultation.index'))->with('error', 'Tiket tidak ditemukan.');
+        }
+
+        $notes = ContactMessageModel::parseAdminNotes($ticket['admin_notes'] ?? null);
+        $isOwner = (! empty($email) && ! empty($ticket['sender_email']) && strcasecmp($ticket['sender_email'], $email) === 0)
+            || (isset($notes['user_id']) && (int) $notes['user_id'] === $userId);
+
+        $roles = (array) session()->get('roles');
+        $isAdminRole = (bool) session()->get('dashboard_access')
+            || in_array('administrator', $roles, true)
+            || in_array('super_administrator', $roles, true)
+            || in_array('operator', $roles, true);
+
+        if (! $isOwner && ! $isAdminRole) {
+            return redirect()->to(route_to('workspace.consultation.index'))->with('error', 'Akses ditolak.');
+        }
+
+        if (in_array($ticket['status'], ['closed', ContactMessageModel::STATUS_CLOSED], true)) {
+            return redirect()->to(route_to('workspace.consultation.detail', $ticket['ticket_number']))
+                ->with('info', 'Tiket ini sudah ditutup sebelumnya.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $userName = (string) (session()->get('name') ?: session()->get('username') ?: 'Pemohon');
+
+        $notes['logs'][] = [
+            'time'       => $now,
+            'actor'      => $userName,
+            'actor_role' => $isAdminRole && ! $isOwner ? 'administrator' : 'user',
+            'action'     => 'Tiket Selesai',
+            'detail'     => 'Konsultasi ditandai selesai dan ditutup oleh ' . ($isOwner ? 'pemohon' : 'petugas') . '.',
+        ];
+
+        $updateData = [
+            'status'      => ContactMessageModel::STATUS_CLOSED,
+            'admin_notes' => ContactMessageModel::encodeAdminNotes($notes),
+            'updated_at'  => $now,
+        ];
+
+        $this->messageModel->update((int) $ticket['id'], $updateData);
+
+        if ($isOwner) {
+            try {
+                (new \App\Services\NotificationService())->sendShared(
+                    'shared:helpdesk',
+                    'ticket_resolved_by_user',
+                    "Tiket #{$ticket['ticket_number']} Telah Selesai",
+                    "Pemohon ({$userName}) telah menandai konsultasi \"{$ticket['subject']}\" selesai.",
+                    [
+                        'ticket_number' => $ticket['ticket_number'],
+                        'url'           => site_url('dashboard/komunikasi/pesan-masuk/detail/' . $ticket['id']),
+                    ],
+                    $userId
+                );
+            } catch (\Throwable) {
+            }
+        }
+
+        return redirect()->to(route_to('workspace.consultation.detail', $ticket['ticket_number']))
+            ->with('success', 'Terima kasih! Tiket konsultasi ini telah berhasil ditandai selesai dan ditutup.');
     }
 }

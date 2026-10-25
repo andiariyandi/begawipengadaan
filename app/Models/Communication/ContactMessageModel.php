@@ -166,7 +166,7 @@ class ContactMessageModel extends Model
                         [
                             'ticket_number' => $ticket['ticket_number'],
                             'sender_name'   => $senderName,
-                            'url'           => site_url('workspace/konsultasi/' . $ticket['ticket_number']),
+                            'url'           => site_url('workspace/konsultasi/detail/' . $ticket['ticket_number']),
                         ]
                     );
                 } catch (\Throwable) {
@@ -293,7 +293,7 @@ class ContactMessageModel extends Model
                             'ticket_number' => $ticket['ticket_number'],
                             'old_status'    => $oldStatus,
                             'new_status'    => $meta['status'],
-                            'url'           => site_url('workspace/konsultasi/' . $ticket['ticket_number']),
+                            'url'           => site_url('workspace/konsultasi/detail/' . $ticket['ticket_number']),
                         ]
                     );
                 } catch (\Throwable) {
