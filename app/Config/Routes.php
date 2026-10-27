@@ -1039,6 +1039,12 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('pengaturan-integrasi', 'SettingController::integration', ['as' => 'dashboard.system.settings.integration']);
         $routes->get('pengaturan-keamanan', 'SettingController::security', ['as' => 'dashboard.system.settings.security']);
         $routes->get('maintenance', 'SettingController::maintenance', ['as' => 'dashboard.system.maintenance']);
+        $routes->get('statistik-kunjungan', 'VisitorStatisticAdminController::index', ['as' => 'dashboard.system.visitor_stats']);
+        $routes->post('statistik-kunjungan', 'VisitorStatisticAdminController::update', ['as' => 'dashboard.system.visitor_stats.update']);
+        $routes->post('statistik-kunjungan/reset', 'VisitorStatisticAdminController::resetData', ['as' => 'dashboard.system.visitor_stats.reset']);
+        $routes->post('statistik-kunjungan/reset-today', 'VisitorStatisticAdminController::resetToday', ['as' => 'dashboard.system.visitor_stats.reset_today']);
+        $routes->get('statistik-trafik', 'VisitorStatisticAdminController::index');
+        $routes->get('visitor-stats', 'VisitorStatisticAdminController::index');
         $routes->get('pengaturan/(:segment)', 'SettingController::groupView/$1');
         $routes->post('pengaturan/(:segment)', 'SettingController::save/$1', ['as' => 'dashboard.system.settings.save']);
         $routes->get('settings', 'SettingController::index');

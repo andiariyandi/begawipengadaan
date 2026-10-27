@@ -114,10 +114,14 @@ $activeSetting = $activeSetting ?? 'general';
                     <span>Maintenance</span>
                 </a>
             </li>
+
+            <!-- 13. Statistik Trafik & Kunjungan -->
+            <li class="nav-item">
+                <a class="nav-link radius-8 px-12 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSetting === 'visitor_stats' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/sistem/statistik-kunjungan') ?>">
+                    <iconify-icon icon="solar:chart-2-outline" class="text-base"></iconify-icon>
+                    <span>Statistik Trafik</span>
+                </a>
+            </li>
         </ul>
-        <!-- <div class="d-none d-xxl-block text-2xs text-secondary-light">
-            <iconify-icon icon="solar:info-circle-outline" class="align-middle me-1"></iconify-icon>
-            Konfigurasi Sistem BegawiPengadaan
-        </div> -->
     </div>
 </div>

@@ -31,7 +31,7 @@ class BungaRampaiController extends BaseController
     public function index(): string
     {
         try {
-            (new \App\Services\VisitorStatisticService())->recordHit('bunga_rampai');
+            (new \App\Services\VisitorStatisticService())->recordHit('bunga_rampai', $this->request->getIPAddress());
         } catch (\Throwable) {
         }
 

@@ -436,6 +436,11 @@ $adminUnreadNotifCount = $sbUserId > 0
                         <?php endif; ?>
                         <?php if ($canSettings): ?>
                             <li>
+                                <a class="<?= $activeClass('system', ['visitor-stats', 'statistik-kunjungan', 'statistik-trafik']) ?>" href="<?= site_url('dashboard/sistem/statistik-kunjungan') ?>">
+                                    <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Statistik Kunjungan
+                                </a>
+                            </li>
+                            <li>
                                 <a class="<?= $activeClass('system', ['settings', 'general-settings', 'general', 'security-settings', 'security', 'certificate-settings', 'certificate', 'maintenance', 'pengaturan', 'pengaturan-umum', 'pengaturan-organisasi', 'pengaturan-pembelajaran', 'pengaturan-bunga-rampai', 'pengaturan-regulasi', 'pengaturan-berita', 'pengaturan-event', 'pengaturan-sertifikat', 'pengaturan-notifikasi', 'pengaturan-integrasi', 'pengaturan-keamanan']) ?>" href="<?= site_url('dashboard/sistem/pengaturan') ?>">
                                     <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Pusat Pengaturan
                                 </a>

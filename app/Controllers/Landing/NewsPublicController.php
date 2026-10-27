@@ -27,7 +27,7 @@ class NewsPublicController extends BaseController
     public function index(): string
     {
         try {
-            (new \App\Services\VisitorStatisticService())->recordHit('berita');
+            (new \App\Services\VisitorStatisticService())->recordHit('berita', $this->request->getIPAddress());
         } catch (\Throwable) {
         }
 

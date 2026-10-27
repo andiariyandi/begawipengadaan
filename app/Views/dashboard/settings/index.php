@@ -23,6 +23,7 @@
         ['title' => 'Integrasi', 'description' => 'Konfigurasi API, webhook, dan layanan eksternal.', 'icon' => 'solar:link-outline', 'url' => 'dashboard/sistem/pengaturan-integrasi'],
         ['title' => 'Keamanan', 'description' => 'Kebijakan kata sandi, sesi, akses, dan audit keamanan.', 'icon' => 'solar:shield-check-outline', 'url' => 'dashboard/sistem/pengaturan-keamanan'],
         ['title' => 'Maintenance', 'description' => 'Status layanan, mode perawatan, cache, dan backup.', 'icon' => 'solar:server-square-update-outline', 'url' => 'dashboard/sistem/maintenance'],
+        ['title' => 'Statistik Kunjungan', 'description' => 'Monitoring dan penyesuaian angka trafik portal beranda serta 5 fitur utama berbasis IP client.', 'icon' => 'solar:chart-2-outline', 'url' => 'dashboard/sistem/statistik-kunjungan'],
     ];
     ?>
     <?php foreach ($settingCards as $setting): ?>

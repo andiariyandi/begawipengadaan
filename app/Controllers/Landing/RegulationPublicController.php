@@ -40,7 +40,7 @@ class RegulationPublicController extends BaseController
     public function index()
     {
         try {
-            (new \App\Services\VisitorStatisticService())->recordHit('regulasi');
+            (new \App\Services\VisitorStatisticService())->recordHit('regulasi', $this->request->getIPAddress());
         } catch (\Throwable) {
         }
 
