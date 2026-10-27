@@ -88,14 +88,14 @@
                                         <?php if (!empty($role['is_active'])): ?>
                                             <form action="<?= site_url('dashboard/akses/peran-pengadaan/' . (int) $role['id'] . '/nonaktifkan') ?>" method="post" class="d-inline" onsubmit="return confirm('Nonaktifkan peran ini? Peran tidak akan muncul di form registrasi ASN.');">
                                                 <?= csrf_field() ?>
-                                                <button type="submit" class="btn btn-sm btn-outline-warning-main radius-6 px-8 py-4" title="Nonaktifkan Peran">
+                                                <button type="submit" class="btn btn-sm btn-outline-warning-600 radius-6 px-8 py-4" title="Nonaktifkan Peran">
                                                     <iconify-icon icon="solar:power-bold"></iconify-icon>
                                                 </button>
                                             </form>
                                         <?php else: ?>
                                             <form action="<?= site_url('dashboard/akses/peran-pengadaan/' . (int) $role['id'] . '/aktifkan') ?>" method="post" class="d-inline">
                                                 <?= csrf_field() ?>
-                                                <button type="submit" class="btn btn-sm btn-outline-success-main radius-6 px-8 py-4" title="Aktifkan Peran">
+                                                <button type="submit" class="btn btn-sm btn-outline-success-600 radius-6 px-8 py-4" title="Aktifkan Peran">
                                                     <iconify-icon icon="solar:restart-bold"></iconify-icon>
                                                 </button>
                                             </form>
@@ -151,7 +151,7 @@
                                                         <?php if (!empty($role['is_active'])): ?>
                                                             <form action="<?= site_url('dashboard/akses/peran-pengadaan/' . (int) $role['id'] . '/nonaktifkan') ?>" method="post" class="m-0">
                                                                 <?= csrf_field() ?>
-                                                                <button type="submit" class="btn btn-warning-main radius-8 px-20 py-8 d-inline-flex align-items-center gap-2 text-white shadow-sm">
+                                                                <button type="submit" class="btn btn-warning-600 radius-8 px-20 py-8 d-inline-flex align-items-center gap-2 text-white shadow-sm">
                                                                     <iconify-icon icon="solar:power-bold"></iconify-icon>
                                                                     <span>Nonaktifkan Peran Ini</span>
                                                                 </button>

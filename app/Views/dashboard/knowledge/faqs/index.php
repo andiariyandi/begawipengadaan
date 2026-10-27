@@ -174,7 +174,7 @@ $stats       = $stats ?? ['total' => count($items), 'published' => 0, 'draft' =>
                                         <a href="<?= route_to('dashboard.knowledge.faqs.detail', (string) $faq['id']) ?>" class="btn btn-outline-primary-600 btn-sm radius-6 px-12 py-4 text-xs d-flex align-items-center gap-1">
                                             <iconify-icon icon="solar:eye-outline"></iconify-icon> Detail
                                         </a>
-                                        <a href="<?= route_to('dashboard.knowledge.faqs.edit', (string) $faq['id']) ?>" class="btn btn-outline-warning-main btn-sm radius-6 px-12 py-4 text-xs d-flex align-items-center gap-1">
+                                        <a href="<?= route_to('dashboard.knowledge.faqs.edit', (string) $faq['id']) ?>" class="btn btn-outline-warning-600 btn-sm radius-6 px-12 py-4 text-xs d-flex align-items-center gap-1">
                                             <iconify-icon icon="solar:pen-2-outline"></iconify-icon> Ubah
                                         </a>
                                         <button type="button" class="btn btn-outline-danger-600 btn-sm radius-6 px-12 py-4 text-xs d-flex align-items-center gap-1"

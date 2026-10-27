@@ -80,7 +80,7 @@
                                         <?php else: ?>
                                             <form action="<?= site_url('dashboard/akses/unit-organisasi/' . (int) $unit['id'] . '/aktifkan') ?>" method="post" class="d-inline">
                                                 <?= csrf_field() ?>
-                                                <button type="submit" class="btn btn-sm btn-outline-success-main radius-6 px-8 py-4" title="Aktifkan">
+                                                <button type="submit" class="btn btn-sm btn-outline-success-600 radius-6 px-8 py-4" title="Aktifkan">
                                                     <iconify-icon icon="solar:restart-bold"></iconify-icon>
                                                 </button>
                                             </form>

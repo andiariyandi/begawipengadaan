@@ -1,4 +1,4 @@
-﻿<?= $this->extend('dashboard/layouts/dashboard') ?>
+<?= $this->extend('dashboard/layouts/dashboard') ?>
 
 <?= $this->section('content') ?>
 <?php
@@ -213,19 +213,48 @@ $dateTo         = $dateTo ?? '';
                                     <div class="d-inline-flex align-items-center gap-2">
                                         <button type=button class=w-32-px h-32-px bg-info-50 text-info-600 rounded-circle d-flex align-items-center justify-content-center text-md border-0 hover-scale
                                             title=Live Pratinjau Kredensial
-                                            onclick=previewCertificate(<?= (int) ['id'] ?>)>
+                                            onclick=previewCertificate(<?= (int) ($certificate['id'] ?? 0) ?>)>
                                             <iconify-icon icon=solar:eye-outline></iconify-icon>
                                         </button>
                                         <a href="<?= site_url('dashboard/sertifikat/' . $certificate['id']) ?>" class="w-32-px h-32-px bg-primary-50 text-primary-600 rounded-circle d-flex align-items-center justify-content-center text-md hover-scale" title="Detail Sertifikat">
                                             <iconify-icon icon="solar:eye-outline"></iconify-icon>
                                         </a>
-                                        <a href="<?= site_url('dashboard/sertifikat/' . $certificate['id'] . '/unduh') ?>" class="w-32-px h-32-px bg-success-50 text-success-600 rounded-circle d-flex align-items-center justify-content-center text-md hover-scale" title="Unduh PDF">
+                                        <a href="<?= site_url('dashboard/sertifikat/' . (int) $certificate['id'] . '/unduh') ?>" class="w-32-px h-32-px bg-success-50 text-success-600 rounded-circle d-flex align-items-center justify-content-center text-md hover-scale" title="Unduh PDF">
                                             <iconify-icon icon="solar:download-minimalistic-outline"></iconify-icon>
                                         </a>
+                                        <button type="button" class="w-32-px h-32-px bg-warning-50 text-warning-main rounded-circle d-flex align-items-center justify-content-center text-md border-0 hover-scale"
+                                            title="Hapus Sertifikat &amp; Ajukan Ulang (Regenerate)"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#confirmationActionModal"
+                                            data-action="<?= site_url('dashboard/sertifikat/' . (int) $certificate['id'] . '/hapus-dan-requeue') ?>"
+                                            data-method="POST"
+                                            data-type="warning"
+                                            data-icon="solar:restart-bold"
+                                            data-icon-color="warning"
+                                            data-btn-class="btn-warning-600"
+                                            data-btn-text="Ya, Hapus &amp; Masuk Antrean"
+                                            data-title="Hapus &amp; Ajukan Ulang Sertifikat"
+                                            data-message="Apakah Anda yakin ingin menghapus sertifikat nomor <?= esc($certificate['certificate_number']) ?>? Dokumen sertifikat ini akan dihapus dan peserta akan dimasukkan kembali ke Antrean Approval Pengajuan Terbit Sertifikat untuk diterbitkan ulang (regenerate).">
+                                            <iconify-icon icon="solar:restart-bold"></iconify-icon>
+                                        </button>
                                         <?php if ($certificate['status'] === 'issued'): ?>
-                                            <button type="button" class="w-32-px h-32-px bg-danger-50 text-danger-600 rounded-circle d-flex align-items-center justify-content-center text-md border-0"
+                                            <button type="button" class="w-32-px h-32-px bg-danger-50 text-danger-600 rounded-circle d-flex align-items-center justify-content-center text-md border-0 hover-scale"
                                                 title="Cabut Sertifikat"
-                                                onclick="handleRevoke(<?= (int) $certificate['id'] ?>, '<?= esc($certificate['certificate_number']) ?>')">
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#confirmationActionModal"
+                                                data-action="<?= site_url('dashboard/sertifikat/' . (int) $certificate['id'] . '/cabut') ?>"
+                                                data-method="POST"
+                                                data-type="danger"
+                                                data-icon="solar:danger-triangle-bold"
+                                                data-icon-color="danger"
+                                                data-btn-class="btn-danger-600"
+                                                data-btn-text="Ya, Cabut Sertifikat"
+                                                data-title="Cabut Sertifikat Resmi"
+                                                data-message="Apakah Anda yakin ingin mencabut sertifikat nomor <?= esc($certificate['certificate_number']) ?>? Tindakan pencabutan ini permanen dan mengubah status dokumen menjadi tidak berlaku."
+                                                data-require-input="true"
+                                                data-input-label="Alasan Pencabutan *"
+                                                data-input-name="revocation_reason"
+                                                data-input-placeholder="Tuliskan alasan resmi pencabutan sertifikat...">
                                                 <iconify-icon icon="solar:close-circle-outline"></iconify-icon>
                                             </button>
                                         <?php endif; ?>

@@ -388,7 +388,7 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                                                     </td>
                                                     <td class="text-center">
                                                         <div class="d-inline-flex align-items-center gap-1">
-                                                            <button type="button" class="btn btn-sm btn-outline-warning-main radius-4 px-8 py-4"
+                                                            <button type="button" class="btn btn-sm btn-outline-warning-600 radius-4 px-8 py-4"
                                                                     data-bs-toggle="modal" data-bs-target="#editLessonModal"
                                                                     onclick="populateEditLesson(<?= htmlspecialchars(json_encode($les), ENT_QUOTES, 'UTF-8') ?>)" title="Ubah Lesson">
                                                                 <iconify-icon icon="solar:pen-new-square-outline"></iconify-icon>
@@ -588,7 +588,7 @@ $passingGrade     = (float) ($selectedClass['passing_grade'] ?? 70.0);
                                                 <a href="<?= site_url('dashboard/pembelajaran/assessment?tab=submissions&class_id=' . $selectedClassId) ?>" class="btn btn-sm btn-outline-info radius-4 px-8 py-4" title="Lihat Submisi Peserta">
                                                     <iconify-icon icon="solar:users-group-two-rounded-outline"></iconify-icon>
                                                 </a>
-                                                <button type="button" class="btn btn-sm btn-outline-warning-main radius-4 px-8 py-4"
+                                                <button type="button" class="btn btn-sm btn-outline-warning-600 radius-4 px-8 py-4"
                                                         onclick="populateEditAssignment(<?= htmlspecialchars(json_encode($asgn), ENT_QUOTES, 'UTF-8') ?>)" title="Ubah Tugas">
                                                     <iconify-icon icon="solar:pen-new-square-outline"></iconify-icon>
                                                 </button>

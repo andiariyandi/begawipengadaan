@@ -54,7 +54,7 @@ $isApprove = ($action ?? '') === 'approve';
                         <a href="<?= site_url('dashboard/sistem/approval/' . ($approvalId ?? '')) ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">
                             Batal
                         </a>
-                        <button type="submit" class="btn <?= $isApprove ? 'btn-success-main text-white' : 'btn-danger-600' ?> radius-8 px-24 py-11 d-inline-flex align-items-center gap-8 fw-semibold">
+                        <button type="submit" class="btn <?= $isApprove ? 'btn-success-600 text-white' : 'btn-danger-600' ?> radius-8 px-24 py-11 d-inline-flex align-items-center gap-8 fw-semibold">
                             <iconify-icon icon="<?= $isApprove ? 'solar:check-circle-bold' : 'solar:close-circle-bold' ?>"></iconify-icon>
                             <?= $isApprove ? 'Konfirmasi & Setujui' : 'Konfirmasi & Tolak' ?>
                         </button>

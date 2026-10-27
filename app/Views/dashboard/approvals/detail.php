@@ -176,7 +176,7 @@ $flashErr = session()->getFlashdata('error');
                             <label class="form-label text-sm fw-medium text-primary-light mb-8">Catatan Persetujuan (Opsional)</label>
                             <textarea name="notes" class="form-control radius-8" rows="3" placeholder="Masukkan catatan..."></textarea>
                         </div>
-                        <button type="submit" class="btn btn-success-main text-white w-100 radius-8 py-11 d-inline-flex align-items-center justify-content-center gap-8 fw-semibold" onclick="return confirm('Apakah Anda yakin ingin menyetujui permohonan ini?')">
+                        <button type="submit" class="btn btn-success-600 text-white w-100 radius-8 py-11 d-inline-flex align-items-center justify-content-center gap-8 fw-semibold" data-confirm="Apakah Anda yakin ingin menyetujui permohonan otorisasi ini?" data-type="success" data-title="Konfirmasi Persetujuan Permohonan" data-btn-text="Ya, Setujui Permohonan">
                             <iconify-icon icon="solar:check-circle-bold" class="text-xl"></iconify-icon> Setujui Permohonan
                         </button>
                     </form>
@@ -194,7 +194,7 @@ $flashErr = session()->getFlashdata('error');
                             <label class="form-label text-sm fw-medium text-primary-light mb-8">Alasan Penolakan <span class="text-danger-main">*</span></label>
                             <textarea name="reason" class="form-control radius-8" rows="3" required placeholder="Jelaskan alasan penolakan agar diketahui pemohon..."></textarea>
                         </div>
-                        <button type="submit" class="btn btn-outline-danger-600 w-100 radius-8 py-11 d-inline-flex align-items-center justify-content-center gap-8 fw-semibold" onclick="return confirm('Apakah Anda yakin ingin menolak permohonan ini?')">
+                        <button type="submit" class="btn btn-outline-danger-600 w-100 radius-8 py-11 d-inline-flex align-items-center justify-content-center gap-8 fw-semibold" data-confirm="Apakah Anda yakin ingin menolak permohonan ini? Alasan penolakan akan dicatat dan dikirimkan ke pemohon." data-type="danger" data-title="Konfirmasi Penolakan Permohonan" data-btn-text="Ya, Tolak Permohonan">
                             <iconify-icon icon="solar:close-circle-bold" class="text-xl"></iconify-icon> Tolak Permohonan
                         </button>
                     </form>

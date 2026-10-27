@@ -857,6 +857,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('(:segment)/ubah', 'CertificateController::edit/$1', ['as' => 'dashboard.certificates.edit']);
         $routes->post('(:segment)/ubah', 'CertificateController::update/$1');
         $routes->post('(:segment)/cabut', 'CertificateController::revoke/$1', ['as' => 'dashboard.certificates.revoke']);
+        $routes->post('(:segment)/hapus-dan-requeue', 'CertificateController::deleteAndRequeue/$1', ['as' => 'dashboard.certificates.delete-requeue']);
         $routes->get('(:segment)/unduh', 'CertificateDownloadController::download/$1', ['as' => 'dashboard.certificates.download']);
         $routes->get('(:segment)/preview', 'CertificateController::preview/$1', ['as' => 'dashboard.certificates.preview']);
         $routes->get('(:segment)', 'CertificateController::detail/$1', ['as' => 'dashboard.certificates.detail']);

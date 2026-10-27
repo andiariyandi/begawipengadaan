@@ -140,7 +140,7 @@ class CertificateEligibilityService
             $approvalId = $this->createApprovalIfMissing(
                 self::SOURCE_LEARNING,
                 (int) $row['enrollment_id'],
-                $requestedBy,
+                (int) $row['user_id'], // Pemohon adalah peserta pembelajaran
                 'Peserta telah menyelesaikan pembelajaran (course: '
                     . ($row['course_title'] ?? '—') . ', kelas: '
                     . ($row['class_name'] ?? '—') . ').'
@@ -191,10 +191,11 @@ class CertificateEligibilityService
             throw new RuntimeException('Enrollment belum memenuhi syarat kelayakan sertifikat.');
         }
 
+        $applicantId = ($requestedBy && $requestedBy > 0) ? $requestedBy : (int) ($row['user_id'] ?? 0);
         return $this->createApprovalIfMissing(
             self::SOURCE_LEARNING,
             $enrollmentId,
-            $requestedBy,
+            $applicantId,
             'Peserta telah menyelesaikan pembelajaran (course: '
                 . ($row['course_title'] ?? '—') . ', kelas: '
                 . ($row['class_name'] ?? '—') . ').'
@@ -290,7 +291,7 @@ class CertificateEligibilityService
             $approvalId = $this->createApprovalIfMissing(
                 self::SOURCE_EVENT,
                 (int) $row['registration_id'],
-                $requestedBy,
+                (int) $row['user_id'], // Pemohon adalah peserta event
                 'Peserta hadir pada event "'
                     . ($row['event_title'] ?? '—') . '".'
             );
@@ -364,12 +365,21 @@ class CertificateEligibilityService
         }
 
         $now = date('Y-m-d H:i:s');
-        // Ensure requested_by references an existing user or is null (foreign key safe)
+        // Ensure requested_by references the actual participant
         $validActorId = null;
-        if ($requestedBy) {
+        if ($requestedBy && $requestedBy > 0) {
             $userExists = $this->db->table('users')->where('id', $requestedBy)->countAllResults();
             if ($userExists > 0) {
                 $validActorId = $requestedBy;
+            }
+        }
+        if ($validActorId === null) {
+            if ($sourceType === self::SOURCE_LEARNING) {
+                $enr = $this->db->table('enrollments')->select('user_id')->where('id', $sourceId)->get()->getRowArray();
+                $validActorId = $enr ? (int) $enr['user_id'] : null;
+            } elseif ($sourceType === self::SOURCE_EVENT) {
+                $reg = $this->db->table('event_registrations')->select('user_id')->where('id', $sourceId)->get()->getRowArray();
+                $validActorId = $reg ? (int) $reg['user_id'] : null;
             }
         }
         if ($validActorId === null) {

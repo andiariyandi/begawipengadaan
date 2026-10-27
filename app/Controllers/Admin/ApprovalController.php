@@ -57,13 +57,26 @@ class ApprovalController extends BaseController
                 $priorityStatus = 'approved'; // Warna hijau/soft
             }
 
+            $requesterLabel = $item['requested_by_name'] ?: 'Sistem / Anonim';
+            $requesterEmail = $item['requested_by_email'] ?: '-';
+
+            // Jika resource_type adalah certificate, pastikan nama & email pemohon menampilkan peserta asli
+            if (($item['resource_type'] ?? '') === 'certificate') {
+                $participant = $this->resolveCertificateParticipant((int) ($item['resource_id'] ?? 0), (string) ($item['notes'] ?? ''));
+                if ($participant) {
+                    $requesterLabel = $participant['name'];
+                    $requesterEmail = $participant['email'] ?: '-';
+                }
+            }
+
             $formattedItems[] = array_merge($item, [
-                'type_label'      => $this->resolveTypeLabel($item['resource_type'] ?? '', $item['requested_action'] ?? ''),
-                'requester_label' => $item['requested_by_name'] ?: 'Sistem / Anonim',
-                'priority'        => $priority,
-                'priority_status' => $priorityStatus,
-                'formatted_date'  => $createdTs ? date('d M Y, H:i', $createdTs) : '-',
-                'relative_time'   => $this->formatRelativeTime($createdTs),
+                'type_label'         => $this->resolveTypeLabel($item['resource_type'] ?? '', $item['requested_action'] ?? ''),
+                'requester_label'    => $requesterLabel,
+                'requested_by_email' => $requesterEmail,
+                'priority'           => $priority,
+                'priority_status'    => $priorityStatus,
+                'formatted_date'     => $createdTs ? date('d M Y, H:i', $createdTs) : '-',
+                'relative_time'      => $this->formatRelativeTime($createdTs),
             ]);
         }
 
@@ -87,6 +100,16 @@ class ApprovalController extends BaseController
         if (! $approval) {
             return redirect()->to(site_url('dashboard/sistem/approval'))
                 ->with('error', 'Permohonan persetujuan tidak ditemukan.');
+        }
+
+        // Jika approval jenis certificate, pastikan nama & email pemohon adalah peserta asli
+        if (($approval['resource_type'] ?? '') === 'certificate') {
+            $participant = $this->resolveCertificateParticipant((int) ($approval['resource_id'] ?? 0), (string) ($approval['notes'] ?? ''));
+            if ($participant) {
+                $approval['requested_by_name']  = $participant['name'];
+                $approval['requested_by_email'] = $participant['email'];
+                $approval['requested_by_type']  = $participant['profile_type'] ?? 'public';
+            }
         }
 
         // Resolusi konteks resource dinamis
@@ -385,9 +408,17 @@ class ApprovalController extends BaseController
         foreach ($historyList as $item) {
             $reviewedTs = ! empty($item['reviewed_at']) ? strtotime($item['reviewed_at']) : strtotime($item['updated_at']);
 
+            $applicantName = $item['requested_by_name'] ?: 'Sistem';
+            if (($item['resource_type'] ?? '') === 'certificate') {
+                $participant = $this->resolveCertificateParticipant((int) ($item['resource_id'] ?? 0), (string) ($item['notes'] ?? ''));
+                if ($participant) {
+                    $applicantName = $participant['name'];
+                }
+            }
+
             $formattedHistory[] = array_merge($item, [
                 'type_label'     => $this->resolveTypeLabel($item['resource_type'] ?? '', $item['requested_action'] ?? ''),
-                'applicant'      => $item['requested_by_name'] ?: 'Sistem',
+                'applicant'      => $applicantName,
                 'reviewer'       => $item['reviewed_by_name'] ?: 'Administrator',
                 'formatted_time' => $reviewedTs ? date('d M Y, H:i', $reviewedTs) : '-',
                 'decision_label' => $item['status'] === 'approved' ? 'Disetujui' : 'Ditolak',
@@ -447,10 +478,11 @@ class ApprovalController extends BaseController
                         'subtitle'    => $enrollment['class_name'] ?? 'Kelas Pembelajaran',
                         'participant' => $enrollment['student_name'] ?? '-',
                         'score'       => ! empty($enrollment['final_score']) ? number_format((float) $enrollment['final_score'], 1) : '—',
-                        'completed'   => ! empty($enrollment['passed_at']) ? date('d F Y', strtotime($enrollment['passed_at'])) : '-',
+                        'completed'   => ! empty($enrollment['passed_at']) ? date('d F Y', strtotime($enrollment['passed_at'])) : (! empty($enrollment['completed_at']) ? date('d F Y', strtotime($enrollment['completed_at'])) : '-'),
                         'details'     => [
                             'Nama Kursus'      => $enrollment['course_title'] ?? '-',
                             'Kelas Pelatihan'  => $enrollment['class_name'] ?? '-',
+                            'Peserta'          => ($enrollment['student_name'] ?? '-') . ' (' . ($enrollment['student_email'] ?? '-') . ')',
                             'Nilai Akhir'      => ($enrollment['final_score'] ?? '-') . ' / 100',
                             'Status Kelulusan' => 'Memenuhi Syarat (Eligible)',
                         ],
@@ -465,28 +497,36 @@ class ApprovalController extends BaseController
                         'er.id',
                         'er.status',
                         'ev.title AS event_title',
-                        'ev.start_date',
+                        'ev.start_at',
                         'ev.location',
+                        'ev.mode',
                         'u.name AS participant_name',
+                        'u.email AS participant_email',
+                        'a.status AS attendance_status',
                     ])
                     ->join('events ev', 'ev.id = er.event_id', 'left')
+                    ->join('attendances a', 'a.event_registration_id = er.id', 'left')
                     ->join('users u', 'u.id = er.user_id', 'left')
                     ->where('er.id', $resourceId)
                     ->get()
                     ->getRowArray();
 
                 if ($eventReg) {
+                    $modeLabel = ucfirst($eventReg['mode'] ?? 'Online');
+                    $dateLabel = ! empty($eventReg['start_at']) ? date('d F Y', strtotime($eventReg['start_at'])) : '-';
+                    $attLabel  = ($eventReg['attendance_status'] === 'present') ? 'Tervalidasi Hadir' : 'Menunggu / Belum Presensi';
                     return [
                         'category'    => 'Agenda / Event PBJ',
                         'title'       => $eventReg['event_title'] ?? 'Agenda PBJ',
-                        'subtitle'    => $eventReg['location'] ?? 'Daring / Luring',
+                        'subtitle'    => $eventReg['location'] ?: $modeLabel,
                         'participant' => $eventReg['participant_name'] ?? '-',
-                        'score'       => 'Hadir',
-                        'completed'   => ! empty($eventReg['start_date']) ? date('d F Y', strtotime($eventReg['start_date'])) : '-',
+                        'score'       => ($eventReg['attendance_status'] === 'present') ? 'Hadir' : 'Belum Hadir',
+                        'completed'   => $dateLabel,
                         'details'     => [
                             'Judul Event'       => $eventReg['event_title'] ?? '-',
-                            'Lokasi/Media'      => $eventReg['location'] ?? '-',
-                            'Status Kehadiran'  => 'Tervalidasi Hadir',
+                            'Peserta'           => ($eventReg['participant_name'] ?? '-') . ' (' . ($eventReg['participant_email'] ?? '-') . ')',
+                            'Lokasi / Mode'     => ($eventReg['location'] ?: $modeLabel),
+                            'Status Kehadiran'  => $attLabel,
                         ],
                     ];
                 }
@@ -590,6 +630,52 @@ class ApprovalController extends BaseController
     /**
      * Format waktu relatif (e.g. 5 menit lalu, 2 jam lalu).
      */
+    /**
+     * Resolusi identitas peserta sebenarnya untuk approval jenis certificate.
+     *
+     * @return array{id: int, name: string, email: string, profile_type: string}|null
+     */
+    private function resolveCertificateParticipant(int $resourceId, string $notes): ?array
+    {
+        $db = db_connect();
+        $isEvent = str_contains($notes, '[source:event_registration]') || str_contains($notes, 'event') || str_contains($notes, 'Event');
+
+        if ($isEvent) {
+            $reg = $db->table('event_registrations er')
+                ->select('u.id, u.name, u.email, u.profile_type')
+                ->join('users u', 'u.id = er.user_id', 'inner')
+                ->where('er.id', $resourceId)
+                ->get()->getRowArray();
+            if ($reg) {
+                return $reg;
+            }
+        }
+
+        // Learning lookup
+        $enr = $db->table('enrollments e')
+            ->select('u.id, u.name, u.email, u.profile_type')
+            ->join('users u', 'u.id = e.user_id', 'inner')
+            ->where('e.id', $resourceId)
+            ->get()->getRowArray();
+        if ($enr) {
+            return $enr;
+        }
+
+        // Event fallback jika tadi belum dicoba
+        if (! $isEvent) {
+            $reg = $db->table('event_registrations er')
+                ->select('u.id, u.name, u.email, u.profile_type')
+                ->join('users u', 'u.id = er.user_id', 'inner')
+                ->where('er.id', $resourceId)
+                ->get()->getRowArray();
+            if ($reg) {
+                return $reg;
+            }
+        }
+
+        return null;
+    }
+
     private function formatRelativeTime(int $timestamp): string
     {
         $diff = time() - $timestamp;

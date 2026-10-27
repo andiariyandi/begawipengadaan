@@ -370,6 +370,178 @@ class CertificateController extends BaseController
             ->with('success', 'Sertifikat telah dicabut.');
     }
 
+    /**
+     * Hapus sertifikat dan kembalikan peserta ke antrean approval pengajuan terbit sertifikat (regenerate).
+     */
+    public function deleteAndRequeue(string $id)
+    {
+        $idInt = ctype_digit($id) ? (int) $id : 0;
+        if ($idInt <= 0) {
+            return redirect()->back()->with('error', 'ID sertifikat tidak valid.');
+        }
+
+        $cert = $this->certificateModel->find($idInt);
+        if (! $cert) {
+            return redirect()->back()->with('error', 'Sertifikat tidak ditemukan.');
+        }
+
+        $sourceType = (string) ($cert['source_type'] ?? '');
+        $sourceId   = (int) ($cert['source_id'] ?? 0);
+        $userId     = (int) ($cert['user_id'] ?? 0);
+        $certNum    = (string) ($cert['certificate_number'] ?? '');
+        $actorId    = (int) (session()->get('user_id') ?: 14);
+        $now        = date('Y-m-d H:i:s');
+
+        // Pastikan $userId peserta terselesaikan secara akurat dari source jika belum terisi
+        if ($userId <= 0 && $sourceId > 0) {
+            if ($sourceType === 'learning_enrollment') {
+                $enr = $this->db->table('enrollments')->where('id', $sourceId)->get()->getRowArray();
+                $userId = (int) ($enr['user_id'] ?? 0);
+            } elseif ($sourceType === 'event_registration') {
+                $reg = $this->db->table('event_registrations')->where('id', $sourceId)->get()->getRowArray();
+                $userId = (int) ($reg['user_id'] ?? 0);
+            }
+        }
+
+        // Ambil data profil peserta untuk keperluan audit & label approval
+        $participantUser = $this->db->table('users')->where('id', $userId)->get()->getRowArray();
+        $participantName = $participantUser['name'] ?? ('Peserta #' . $userId);
+
+        $this->db->transStart();
+
+        // 1. Bersihkan file PDF fisik jika tersimpan
+        if (! empty($cert['pdf_path'])) {
+            $fullPath = WRITEPATH . $cert['pdf_path'];
+            if (is_file($fullPath)) {
+                @unlink($fullPath);
+            }
+        }
+        if (! empty($cert['pdf_file_id'])) {
+            $fileAsset = $this->db->table('file_assets')->where('id', (int) $cert['pdf_file_id'])->get()->getRowArray();
+            if ($fileAsset && ! empty($fileAsset['path'])) {
+                $fPath = WRITEPATH . $fileAsset['path'];
+                if (is_file($fPath)) {
+                    @unlink($fPath);
+                }
+            }
+        }
+
+        // 2. Lepaskan referensi replaced_by_certificate_id jika ada sertifikat lain merujuk ke sertifikat ini
+        $this->db->table('certificates')
+            ->where('replaced_by_certificate_id', $idInt)
+            ->update(['replaced_by_certificate_id' => null]);
+
+        // 3. Hapus baris sertifikat
+        $this->db->table('certificates')->where('id', $idInt)->delete();
+
+        // 4. Masukkan kembali peserta ke Antrean Approval Pengajuan Terbit Sertifikat (Regenerate)
+        if ($sourceId > 0) {
+            $existingApproval = $this->db->table('approvals')
+                ->where('resource_type', 'certificate')
+                ->groupStart()
+                    ->where('resource_id', $sourceId)
+                    ->orWhere('resource_id', $idInt)
+                ->groupEnd()
+                ->where('requested_action', 'issue_certificate')
+                ->get()->getRowArray();
+
+            $requeueNote = "[source:{$sourceType}] Diajukan kembali ke antrean approval untuk penerbitan ulang (regenerate) sertifikat #" . $certNum . " (Peserta: " . $participantName . ").";
+
+            if ($existingApproval) {
+                // Reset status approval lama menjadi pending agar langsung muncul di antrean approval dengan data peserta
+                $this->db->table('approvals')
+                    ->where('id', (int) $existingApproval['id'])
+                    ->update([
+                        'resource_type' => 'certificate',
+                        'resource_id'   => $sourceId,
+                        'status'        => 'pending',
+                        'requested_by'  => $userId, // Pastikan pemohon adalah peserta, BUKAN admin!
+                        'reviewed_by'   => null,
+                        'reviewed_at'   => null,
+                        'notes'         => $requeueNote,
+                        'updated_at'    => $now,
+                    ]);
+            } else {
+                // Buat entri approval baru dengan pemohon peserta
+                $this->db->table('approvals')->insert([
+                    'resource_type'    => 'certificate',
+                    'resource_id'      => $sourceId,
+                    'requested_action' => 'issue_certificate',
+                    'requested_by'     => $userId, // Pemohon adalah peserta, BUKAN admin!
+                    'status'           => 'pending',
+                    'notes'            => $requeueNote,
+                    'created_at'       => $now,
+                    'updated_at'       => $now,
+                ]);
+            }
+
+            // Pastikan kelayakan dan status keikutsertaan peserta tetap sah pada tabel sumber
+            if ($sourceType === 'learning_enrollment') {
+                $this->db->table('enrollments')
+                    ->where('id', $sourceId)
+                    ->update([
+                        'certificate_eligible_at' => $now,
+                        'status'                 => 'completed',
+                        'updated_at'             => $now,
+                    ]);
+            } elseif ($sourceType === 'event_registration') {
+                $this->db->table('event_registrations')
+                    ->where('id', $sourceId)
+                    ->update([
+                        'status'     => 'registered',
+                        'updated_at' => $now,
+                    ]);
+
+                // Pastikan status presensi kehadiran peserta tetap valid ('present')
+                $existingAtt = $this->db->table('attendances')
+                    ->where('event_registration_id', $sourceId)
+                    ->get()->getRowArray();
+                if ($existingAtt) {
+                    $this->db->table('attendances')
+                        ->where('id', (int) $existingAtt['id'])
+                        ->update([
+                            'status'     => 'present',
+                            'updated_at' => $now,
+                        ]);
+                } else {
+                    $this->db->table('attendances')->insert([
+                        'event_registration_id' => $sourceId,
+                        'status'                => 'present',
+                        'recorded_at'           => $now,
+                        'created_at'            => $now,
+                        'updated_at'            => $now,
+                    ]);
+                }
+            }
+        }
+
+        // 5. Catat jejak audit
+        $this->auditService->log(
+            $actorId,
+            'certificate.delete_and_requeue',
+            'certificates',
+            'certificate',
+            $idInt,
+            [
+                'certificate_number' => $certNum,
+                'source_type'        => $sourceType,
+                'source_id'          => $sourceId,
+                'participant_id'     => $userId,
+                'participant_name'   => $participantName,
+                'action'             => 'requeue_approval',
+            ]
+        );
+
+        $this->db->transComplete();
+
+        if ($this->db->transStatus() === false) {
+            return redirect()->back()->with('error', 'Gagal memproses penghapusan dan pengembalian antrean sertifikat.');
+        }
+
+        return redirect()->to(site_url('dashboard/sertifikat/riwayat'))
+            ->with('success', 'Sertifikat #' . $certNum . ' untuk peserta ' . $participantName . ' berhasil dihapus. Peserta telah dimasukkan kembali ke Antrean Approval Pengajuan Terbit Sertifikat untuk diterbitkan ulang (regenerate).');
+    }
+
     // =============================================================
     // Helpers
     // =============================================================
