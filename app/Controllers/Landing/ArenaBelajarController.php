@@ -13,7 +13,7 @@ class ArenaBelajarController extends BaseController
     public function index(): string
     {
         try {
-            (new \App\Services\VisitorStatisticService())->recordHit('arena_belajar');
+            (new \App\Services\VisitorStatisticService())->recordHit('arena_belajar', $this->request->getIPAddress());
         } catch (\Throwable) {
         }
 

@@ -1081,7 +1081,7 @@ $bulanIndo = [
 <!-- =========================================================
      9. STATISTIK PENGUNJUNG & PEMANFAATAN PORTAL (COMPACT PORTAL STYLE)
      ========================================================= -->
-<section class="visitor-stats-section">
+<section class="visitor-stats-section" id="visitor-stats">
     <div class="container">
         <!-- Compact Section Header -->
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-1">
@@ -1197,7 +1197,7 @@ $bulanIndo = [
                     <!-- Footer -->
                     <div class="visitor-card-footer">
                         <iconify-icon icon="solar:shield-check-bold" class="text-success text-base flex-shrink-0"></iconify-icon>
-                        <span>Dihitung akumulatif tanpa batasan sesi pengguna (non-unique page views).</span>
+                        <span>Dihitung berbasis keunikan IP Client pengunjung per hari (Unique Daily IP Visits).</span>
                     </div>
                 </div>
             </div>

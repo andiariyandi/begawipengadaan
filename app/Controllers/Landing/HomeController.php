@@ -316,7 +316,7 @@ class HomeController extends BaseController
         $visitorStats = [];
         try {
             $visitorService = new \App\Services\VisitorStatisticService();
-            $visitorService->recordHit('home');
+            $visitorService->recordHit('home', $this->request->getIPAddress());
             $visitorStats = $visitorService->getVisitorStats();
         } catch (\Throwable) {
         }

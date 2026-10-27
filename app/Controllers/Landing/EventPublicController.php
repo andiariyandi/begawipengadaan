@@ -27,7 +27,7 @@ class EventPublicController extends BaseController
     public function index(): string
     {
         try {
-            (new \App\Services\VisitorStatisticService())->recordHit('event');
+            (new \App\Services\VisitorStatisticService())->recordHit('event', $this->request->getIPAddress());
         } catch (\Throwable) {
         }
 
