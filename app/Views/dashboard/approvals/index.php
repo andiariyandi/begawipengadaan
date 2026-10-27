@@ -161,7 +161,7 @@ $flashErr = session()->getFlashdata('error');
                     <span class="text-sm fw-semibold text-primary-600"><span id="selectedCount">0</span> permohonan terpilih</span>
                 </div>
                 <div class="d-flex align-items-center gap-8">
-                    <button type="button" class="btn btn-sm btn-success-main text-white radius-8 px-16 py-6 d-inline-flex align-items-center gap-6" onclick="triggerBulkAction('approve')">
+                    <button type="button" class="btn btn-sm btn-success-600 text-white radius-8 px-16 py-6 d-inline-flex align-items-center gap-6" onclick="triggerBulkAction('approve')">
                         <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Setujui Terpilih
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-danger-600 radius-8 px-16 py-6 d-inline-flex align-items-center gap-6" onclick="triggerBulkAction('reject')">
@@ -262,7 +262,7 @@ $flashErr = session()->getFlashdata('error');
                                                 Tinjau
                                             </a>
                                             <?php if ($app['status'] === 'pending'): ?>
-                                                <button type="button" class="btn btn-sm btn-icon btn-success-main text-white radius-6 w-28-px h-28-px d-inline-flex align-items-center justify-content-center" title="Setujui Cepat" onclick="openQuickApprove(<?= (int) $app['id'] ?>, '<?= esc($app['type_label'], 'js') ?>')">
+                                                <button type="button" class="btn btn-sm btn-icon btn-success-600 text-white radius-6 w-28-px h-28-px d-inline-flex align-items-center justify-content-center" title="Setujui Cepat" onclick="openQuickApprove(<?= (int) $app['id'] ?>, '<?= esc($app['type_label'], 'js') ?>')">
                                                     <iconify-icon icon="solar:check-circle-bold"></iconify-icon>
                                                 </button>
                                                 <button type="button" class="btn btn-sm btn-icon btn-outline-danger-600 radius-6 w-28-px h-28-px d-inline-flex align-items-center justify-content-center" title="Tolak Pengajuan" onclick="openQuickReject(<?= (int) $app['id'] ?>, '<?= esc($app['type_label'], 'js') ?>')">
@@ -304,7 +304,7 @@ $flashErr = session()->getFlashdata('error');
             </div>
             <div class="modal-footer border-top py-16 px-24">
                 <button type="button" class="btn btn-outline-neutral-300 radius-8 px-16 py-8" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" class="btn btn-success-main text-white radius-8 px-20 py-8 d-inline-flex align-items-center gap-6">
+                <button type="submit" class="btn btn-success-600 text-white radius-8 px-20 py-8 d-inline-flex align-items-center gap-6">
                     <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Ya, Setujui
                 </button>
             </div>

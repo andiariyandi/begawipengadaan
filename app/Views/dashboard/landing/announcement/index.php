@@ -427,7 +427,7 @@
 
             </div>
             <div class="modal-footer py-14 px-24 border-top">
-                <button type="button" class="btn btn-secondary-light text-sm px-20 py-10 radius-8" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-outline-neutral-300 text-sm px-20 py-10 radius-8" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>

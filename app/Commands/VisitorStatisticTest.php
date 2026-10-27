@@ -42,8 +42,11 @@ class VisitorStatisticTest extends BaseCommand
         CLI::newLine();
         CLI::write("[TEST 2] Verifikasi Deduplikasi Kunjungan Berbasis IP Client (Unique Daily IP)...", "yellow");
 
-        $testIp1 = '203.0.113.' . rand(10, 99);
-        $testIp2 = '203.0.113.' . rand(100, 200);
+        $testIp1 = '203.0.113.' . rand(1, 120);
+        $testIp2 = '203.0.113.' . rand(121, 250);
+        $db->table('visitor_ip_logs')->whereIn('ip_address', [$testIp1, $testIp2])->delete();
+        cache()->delete('visitor_ip_' . md5($testIp1 . '_arena_belajar_' . date('Y-m-d')));
+        cache()->delete('visitor_ip_' . md5($testIp2 . '_arena_belajar_' . date('Y-m-d')));
 
         // Hit pertama dari IP testIp1 harus tercatat dan menambah counter
         $recorded1 = $service->recordHit('arena_belajar', $testIp1, 'PHPUnit-CLI-Test');

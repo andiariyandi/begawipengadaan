@@ -694,6 +694,18 @@ $currentProfileType = old('profile_type', $user['profile_type'] ?? 'asn');
                 <span>Perubahan profil akan terekam di log audit sistem. Profil lama akan otomatis dibersihkan saat tipe profil diganti.</span>
             </div>
             <div class="d-flex align-items-center gap-12">
+                <?php if ($isEdit && (int) $userId !== 13 && (int) $userId !== 14 && (int) $userId !== (int) session()->get('user_id')): ?>
+                    <button type="button" class="btn btn-outline-danger radius-8 px-20 py-11 d-inline-flex align-items-center gap-2 btn-delete-user"
+                            data-user-id="<?= (int) $userId ?>"
+                            data-user-name="<?= esc($user['name'] ?? $user['username'] ?? 'Pengguna') ?>"
+                            data-user-email="<?= esc($user['email'] ?? '-') ?>"
+                            data-user-profile-type="<?= esc($user['profile_type'] ?? 'asn') ?>"
+                            data-action-url="<?= site_url('dashboard/akses/pengguna/' . (int) $userId . '/hapus') ?>"
+                            data-summary-url="<?= site_url('dashboard/akses/pengguna/' . (int) $userId . '/impact-summary') ?>">
+                        <iconify-icon icon="solar:trash-bin-trash-outline" class="text-lg"></iconify-icon>
+                        <span>Hapus Pengguna</span>
+                    </button>
+                <?php endif; ?>
                 <a href="<?= site_url('dashboard/akses/pengguna') ?>" class="btn btn-outline-neutral-300 radius-8 px-20 py-11">
                     Batal
                 </a>
@@ -835,5 +847,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })();
 });
 </script>
+
+<?= view('dashboard/users/_modal_delete') ?>
 
 <?= $this->endSection() ?>

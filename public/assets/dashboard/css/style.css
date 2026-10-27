@@ -16004,3 +16004,104 @@ html[data-theme="dark"] .badge.bg-info-focus {
 html[data-theme="dark"] .badge.text-info-main {
   color: #70a1ff !important;
 }
+
+/* ==========================================================================
+   Begawi Dashboard Button Compatibility Aliases (Fail-safe for -main & -light)
+   ========================================================================== */
+.btn-success-main {
+  background-color: var(--success-main, #22c55e) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--success-main, #22c55e) !important;
+}
+.btn-success-main:hover {
+  background-color: var(--success-hover, #16a34a) !important;
+  color: #ffffff !important;
+  border-color: var(--success-hover, #16a34a) !important;
+}
+.btn-success-main:active, .btn-success-main:focus {
+  background-color: var(--success-pressed, #15803d) !important;
+  color: #ffffff !important;
+  border-color: var(--success-pressed, #15803d) !important;
+}
+
+.btn-warning-main {
+  background-color: var(--warning-main, #f59e0b) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--warning-main, #f59e0b) !important;
+}
+.btn-warning-main:hover {
+  background-color: var(--warning-hover, #d97706) !important;
+  color: #ffffff !important;
+  border-color: var(--warning-hover, #d97706) !important;
+}
+.btn-warning-main:active, .btn-warning-main:focus {
+  background-color: var(--warning-pressed, #b45309) !important;
+  color: #ffffff !important;
+  border-color: var(--warning-pressed, #b45309) !important;
+}
+
+.btn-danger-main {
+  background-color: var(--danger-main, #ef4444) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--danger-main, #ef4444) !important;
+}
+.btn-danger-main:hover {
+  background-color: var(--danger-hover, #dc2626) !important;
+  color: #ffffff !important;
+  border-color: var(--danger-hover, #dc2626) !important;
+}
+
+.btn-primary-main {
+  background-color: var(--primary-main, #0284c7) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--primary-main, #0284c7) !important;
+}
+.btn-primary-main:hover {
+  background-color: var(--primary-hover, #0369a1) !important;
+  color: #ffffff !important;
+  border-color: var(--primary-hover, #0369a1) !important;
+}
+
+.btn-outline-success-main {
+  background-color: transparent !important;
+  color: var(--success-main, #22c55e) !important;
+  border: 1px solid var(--success-main, #22c55e) !important;
+}
+.btn-outline-success-main:hover {
+  background-color: var(--success-main, #22c55e) !important;
+  color: #ffffff !important;
+  border-color: var(--success-main, #22c55e) !important;
+}
+
+.btn-outline-warning-main {
+  background-color: transparent !important;
+  color: var(--warning-main, #f59e0b) !important;
+  border: 1px solid var(--warning-main, #f59e0b) !important;
+}
+.btn-outline-warning-main:hover {
+  background-color: var(--warning-main, #f59e0b) !important;
+  color: #ffffff !important;
+  border-color: var(--warning-main, #f59e0b) !important;
+}
+
+.btn-outline-danger-main {
+  background-color: transparent !important;
+  color: var(--danger-main, #ef4444) !important;
+  border: 1px solid var(--danger-main, #ef4444) !important;
+}
+.btn-outline-danger-main:hover {
+  background-color: var(--danger-main, #ef4444) !important;
+  color: #ffffff !important;
+  border-color: var(--danger-main, #ef4444) !important;
+}
+
+.btn-secondary-light {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.btn-secondary-light:hover {
+  background-color: #e2e8f0 !important;
+  color: #1e293b !important;
+  border-color: #94a3b8 !important;
+}

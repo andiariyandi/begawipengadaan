@@ -384,6 +384,8 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->post('pengguna/(:segment)/tolak', 'UserController::reject/$1', ['as' => 'dashboard.access.users.reject']);
         $routes->post('pengguna/(:segment)/suspend', 'UserController::suspend/$1', ['as' => 'dashboard.access.users.suspend']);
         $routes->post('pengguna/(:segment)/reset-password', 'UserController::resetPassword/$1', ['as' => 'dashboard.access.users.reset-password']);
+        $routes->post('pengguna/(:segment)/hapus', 'UserController::delete/$1', ['as' => 'dashboard.access.users.delete']);
+        $routes->get('pengguna/(:segment)/impact-summary', 'UserController::impactSummary/$1', ['as' => 'dashboard.access.users.impact-summary']);
         $routes->get('pengguna/(:segment)', 'UserController::detail/$1', ['as' => 'dashboard.access.users.detail']);
         $routes->get('verifikasi-profil', 'UserProfileVerificationController::index', ['as' => 'dashboard.access.profile-verifications']);
         $routes->get('verifikasi-profil/(:segment)', 'UserProfileVerificationController::detail/$1', ['as' => 'dashboard.access.profile-verifications.detail']);
@@ -855,6 +857,7 @@ $routes->group('dashboard', ['namespace' => 'App\Controllers\Admin'], static fun
         $routes->get('(:segment)/ubah', 'CertificateController::edit/$1', ['as' => 'dashboard.certificates.edit']);
         $routes->post('(:segment)/ubah', 'CertificateController::update/$1');
         $routes->post('(:segment)/cabut', 'CertificateController::revoke/$1', ['as' => 'dashboard.certificates.revoke']);
+        $routes->post('(:segment)/hapus-dan-requeue', 'CertificateController::deleteAndRequeue/$1', ['as' => 'dashboard.certificates.delete-requeue']);
         $routes->get('(:segment)/unduh', 'CertificateDownloadController::download/$1', ['as' => 'dashboard.certificates.download']);
         $routes->get('(:segment)/preview', 'CertificateController::preview/$1', ['as' => 'dashboard.certificates.preview']);
         $routes->get('(:segment)', 'CertificateController::detail/$1', ['as' => 'dashboard.certificates.detail']);

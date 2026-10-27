@@ -614,17 +614,43 @@ class UserController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Pengguna tidak ditemukan.');
         }
         $actorId = (int) session()->get('user_id');
-        if ($uid === $actorId) {
-            return redirect()->back()->with('error', 'Tidak dapat menghapus akun sendiri.');
-        }
+        $confirmation = (string) $this->request->getPost('confirmation');
+
         try {
-            (new \App\Models\UserModel())->delete($uid);
-            (new \App\Services\AuditService())->log($actorId, 'user.delete', 'users', 'user', $uid);
-            (new \App\Services\Admin\UserManagementService())->recordTransition('user', $uid, null, 'deleted', 'user.delete', $actorId);
+            $purgeService = new \App\Services\Admin\UserPurgeService();
+            $result = $purgeService->purge($uid, $actorId, $confirmation);
+            return redirect()->to('dashboard/akses/pengguna')->with('success', $result['message']);
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
-        return redirect()->to('dashboard/akses/pengguna')->with('success', 'Pengguna dihapus.');
+    }
+
+    /**
+     * AJAX endpoint: Mengambil ringkasan data pengguna & data terelasi untuk modal konfirmasi hapus.
+     */
+    public function impactSummary(string $id)
+    {
+        $uid = ctype_digit($id) ? (int) $id : 0;
+        if ($uid <= 0) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'status'  => 'error',
+                'message' => 'Pengguna tidak ditemukan.',
+            ]);
+        }
+
+        try {
+            $purgeService = new \App\Services\Admin\UserPurgeService();
+            $summary = $purgeService->getImpactSummary($uid);
+            return $this->response->setJSON([
+                'status' => 'success',
+                'data'   => $summary,
+            ]);
+        } catch (\Throwable $e) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function saveUserAvatar(array &$post): bool

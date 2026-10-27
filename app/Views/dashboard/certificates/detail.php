@@ -28,6 +28,21 @@ $revokedAtFmt = ! empty($c['revoked_at'])
         </div>
     </div>
     <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-outline-warning-600 radius-8 px-16 py-9 d-flex align-items-center gap-2 text-sm"
+            data-bs-toggle="modal"
+            data-bs-target="#confirmationActionModal"
+            data-action="<?= site_url('dashboard/sertifikat/' . (int) $c['id'] . '/hapus-dan-requeue') ?>"
+            data-method="POST"
+            data-type="warning"
+            data-icon="solar:restart-bold"
+            data-icon-color="warning"
+            data-btn-class="btn-warning-600"
+            data-btn-text="Ya, Hapus &amp; Masuk Antrean"
+            data-title="Hapus &amp; Ajukan Ulang Sertifikat"
+            data-message="Apakah Anda yakin ingin menghapus sertifikat nomor <?= esc($c['certificate_number']) ?>? Dokumen sertifikat ini akan dihapus dan peserta akan dimasukkan kembali ke Antrean Approval Pengajuan Terbit Sertifikat untuk diterbitkan ulang (regenerate).">
+            <iconify-icon icon="solar:restart-bold" class="text-lg"></iconify-icon>
+            Hapus &amp; Ajukan Ulang (Regenerate)
+        </button>
         <a href="<?= site_url('dashboard/sertifikat/' . $c['id'] . '/unduh') ?>" class="btn btn-success-600 radius-8 px-16 py-9 d-flex align-items-center gap-2 text-sm text-white">
             <iconify-icon icon="solar:download-minimalistic-outline" class="text-lg"></iconify-icon>
             Unduh PDF
@@ -215,47 +230,72 @@ $revokedAtFmt = ! empty($c['revoked_at'])
             </div>
         </div>
 
+        <!-- Panel Regenerasi & Re-queue Sertifikat -->
+        <div class="card radius-12 border mt-24">
+            <div class="card-body p-24">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div>
+                        <h6 class="fw-semibold mb-2 text-warning-main d-flex align-items-center gap-2">
+                            <iconify-icon icon="solar:restart-bold" class="text-xl"></iconify-icon>
+                            Hapus &amp; Ajukan Ulang Sertifikat (Regenerate)
+                        </h6>
+                        <p class="text-secondary-light text-xs mb-0">
+                            Hapus file PDF dan data nomor sertifikat ini, lalu kembalikan peserta ke antrean approval agar sertifikat dapat diproses ulang dengan format/data terbaru.
+                        </p>
+                    </div>
+                    <button type="button" class="btn btn-warning-600 text-white radius-8 px-16 py-9 text-xs fw-semibold d-inline-flex align-items-center gap-2 shadow-xs"
+                        data-bs-toggle="modal"
+                        data-bs-target="#confirmationActionModal"
+                        data-action="<?= site_url('dashboard/sertifikat/' . (int) $c['id'] . '/hapus-dan-requeue') ?>"
+                        data-method="POST"
+                        data-type="warning"
+                        data-icon="solar:restart-bold"
+                        data-icon-color="warning"
+                        data-btn-class="btn-warning-600"
+                        data-btn-text="Ya, Hapus &amp; Masuk Antrean"
+                        data-title="Hapus &amp; Ajukan Ulang Sertifikat"
+                        data-message="Apakah Anda yakin ingin menghapus sertifikat nomor <?= esc($c['certificate_number']) ?>? Dokumen sertifikat ini akan dihapus dan peserta akan dimasukkan kembali ke Antrean Approval Pengajuan Terbit Sertifikat untuk diterbitkan ulang (regenerate).">
+                        <iconify-icon icon="solar:restart-bold" class="text-md"></iconify-icon>
+                        Hapus &amp; Ajukan Ulang
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <?php if ($isIssued): ?>
             <!-- Revocation Action Panel -->
             <div class="card radius-12 border mt-24">
                 <div class="card-body p-24">
-                    <h6 class="fw-semibold mb-2 text-danger-main d-flex align-items-center gap-2">
-                        <iconify-icon icon="solar:shield-cross-outline"></iconify-icon>
-                        Tindakan Pencabutan Sertifikat
-                    </h6>
-                    <p class="text-secondary-light text-xs mb-16">
-                        Pencabutan sertifikat akan membatalkan status keabsahan dokumen dan menandai verifikasi publik sebagai tidak sah. Tindakan ini memerlukan alasan pencabutan resmi.
-                    </p>
-                    <button type="button" class="btn btn-outline-danger-600 radius-8 px-16 py-9 text-xs fw-semibold d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#revokeModal">
-                        <iconify-icon icon="solar:close-circle-outline" class="text-lg"></iconify-icon>
-                        Cabut Sertifikat Ini
-                    </button>
-                </div>
-            </div>
-
-            <!-- Revoke Modal -->
-            <div class="modal fade" id="revokeModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <form method="post" action="<?= site_url('dashboard/sertifikat/' . $c['id'] . '/cabut') ?>" class="modal-content radius-12 border-0">
-                        <?= csrf_field() ?>
-                        <div class="modal-header border-bottom py-16 px-24">
-                            <h6 class="modal-title fw-semibold text-danger-main">Konfirmasi Pencabutan Sertifikat</h6>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body p-24">
-                            <p class="text-xs text-secondary-light mb-16">
-                                Anda akan mencabut sertifikat nomor <strong><?= esc($c['certificate_number']) ?></strong>.
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div>
+                            <h6 class="fw-semibold mb-2 text-danger-main d-flex align-items-center gap-2">
+                                <iconify-icon icon="solar:shield-cross-outline" class="text-xl"></iconify-icon>
+                                Tindakan Pencabutan Sertifikat
+                            </h6>
+                            <p class="text-secondary-light text-xs mb-0">
+                                Pencabutan sertifikat akan membatalkan status keabsahan dokumen dan menandai verifikasi publik sebagai tidak sah. Tindakan ini permanen.
                             </p>
-                            <div>
-                                <label class="form-label text-sm fw-medium mb-1">Alasan Pencabutan Resmi <span class="text-danger-main">*</span></label>
-                                <textarea name="revocation_reason" class="form-control radius-8 py-10" rows="3" placeholder="Masukkan alasan pencabutan sertifikat..." required minlength="5"></textarea>
-                            </div>
                         </div>
-                        <div class="modal-footer border-top py-12 px-24">
-                            <button type="button" class="btn btn-outline-secondary radius-8 px-16 py-8 text-xs" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-danger-600 radius-8 px-16 py-8 text-xs">Ya, Cabut</button>
-                        </div>
-                    </form>
+                        <button type="button" class="btn btn-outline-danger-600 radius-8 px-16 py-9 text-xs fw-semibold d-inline-flex align-items-center gap-2"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmationActionModal"
+                            data-action="<?= site_url('dashboard/sertifikat/' . (int) $c['id'] . '/cabut') ?>"
+                            data-method="POST"
+                            data-type="danger"
+                            data-icon="solar:shield-cross-bold"
+                            data-icon-color="danger"
+                            data-btn-class="btn-danger-600"
+                            data-btn-text="Ya, Cabut Sertifikat"
+                            data-title="Konfirmasi Pencabutan Sertifikat"
+                            data-message="Anda akan mencabut sertifikat nomor <?= esc($c['certificate_number']) ?>. Tindakan pencabutan ini membatalkan status keabsahan dokumen secara permanen."
+                            data-require-input="true"
+                            data-input-label="Alasan Pencabutan Resmi *"
+                            data-input-name="revocation_reason"
+                            data-input-placeholder="Tuliskan alasan resmi pencabutan sertifikat...">
+                            <iconify-icon icon="solar:close-circle-outline" class="text-lg"></iconify-icon>
+                            Cabut Sertifikat Ini
+                        </button>
+                    </div>
                 </div>
             </div>
         <?php endif; ?>

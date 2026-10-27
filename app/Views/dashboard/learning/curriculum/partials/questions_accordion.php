@@ -62,7 +62,7 @@ $optionLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
                                 </span>
                             <?php endif; ?>
 
-                            <button type="button" class="btn btn-xs btn-outline-warning-main radius-4 px-8 py-4"
+                            <button type="button" class="btn btn-xs btn-outline-warning-600 radius-4 px-8 py-4"
                                     onclick="populateEditQuestion(<?= htmlspecialchars(json_encode($q), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode($opts), ENT_QUOTES, 'UTF-8') ?>, '<?= esc(addslashes($quiz['title'])) ?>')"
                                     title="Ubah Soal">
                                 <iconify-icon icon="solar:pen-new-square-outline"></iconify-icon>

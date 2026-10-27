@@ -334,7 +334,7 @@ $filters        = $filters ?? [];
                                             </button>
 
                                             <!-- Ubah Kuis Modal Trigger -->
-                                            <button type="button" class="btn btn-sm btn-outline-warning-main radius-4 px-8 py-4"
+                                            <button type="button" class="btn btn-sm btn-outline-warning-600 radius-4 px-8 py-4"
                                                     onclick="populateEditQuiz(<?= htmlspecialchars(json_encode($q), ENT_QUOTES, 'UTF-8') ?>)" title="Ubah Pengaturan Kuis">
                                                 <iconify-icon icon="solar:pen-new-square-outline"></iconify-icon>
                                             </button>
@@ -438,7 +438,7 @@ $filters        = $filters ?? [];
                                             </a>
 
                                             <!-- Ubah Tugas -->
-                                            <button type="button" class="btn btn-sm btn-outline-warning-main radius-4 px-8 py-4"
+                                            <button type="button" class="btn btn-sm btn-outline-warning-600 radius-4 px-8 py-4"
                                                     onclick="populateEditAssignment(<?= htmlspecialchars(json_encode($a), ENT_QUOTES, 'UTF-8') ?>)" title="Ubah Pengaturan Tugas">
                                                 <iconify-icon icon="solar:pen-new-square-outline"></iconify-icon>
                                             </button>
