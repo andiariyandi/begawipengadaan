@@ -598,6 +598,9 @@ class CertificateTemplateController extends BaseController
             return $this->response
                 ->setHeader('Content-Type', 'application/pdf')
                 ->setHeader('Content-Disposition', 'inline; filename="live_preview_sertifikat.pdf"')
+                ->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+                ->setHeader('Pragma', 'no-cache')
+                ->setHeader('Expires', '0')
                 ->setBody($pdfBytes);
         } catch (\Throwable $e) {
             return $this->response->setStatusCode(500)->setBody('Gagal membuat pratinjau PDF: ' . $e->getMessage());
@@ -741,6 +744,9 @@ class CertificateTemplateController extends BaseController
         return $this->response
             ->setHeader('Content-Type', 'application/pdf')
             ->setHeader('Content-Disposition', 'inline; filename="preview_template_' . $id . '.pdf"')
+            ->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->setHeader('Pragma', 'no-cache')
+            ->setHeader('Expires', '0')
             ->setBody($pdfBytes);
     }
 
@@ -1010,11 +1016,29 @@ class CertificateTemplateController extends BaseController
         return [
             'certificate_id'     => 999,
             'certificate_number' => $isLearning ? "SERT-00035/AB-5/05/{$year}" : "SERT-00021/WB-1/05/{$year}",
-            'participant_name'   => 'Dr. Ahmad Fauzi, S.T., M.Si.',
-            'nip'                => '19820415 200801 1 007',
+            'participant_name'   => 'Ir. Rizky Yulitanto, S.T., M.M.',
+            'user_name'          => 'Ir. Rizky Yulitanto, S.T., M.M.',
+            'user_email'         => 'lutfi@lampungprov.go.id',
+            'user_phone'         => '081234567890',
+            'identity_label'     => 'NIP',
+            'identity_number'    => '20000315 202321 1 002',
+            'nip'                => '20000315 202321 1 002',
+            'ni_ppk'             => '20000315 202321 1 002',
+            'nib'                => '0220101234567',
+            'nidn'               => '0012058001',
+            'nik'                => '1871010101850001',
+            'institution_label'  => 'Instansi',
             'institution_name'   => 'Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung',
+            'instansi'           => 'Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung',
+            'nama_usaha'         => 'PT Mahakarya Konstruksi Lampung',
+            'perguruan_tinggi'   => 'Universitas Lampung',
             'unit_name'          => 'Bagian Pengelolaan Pengadaan Barang/Jasa',
+            'unit_kerja'         => 'Bagian Pengelolaan Pengadaan Barang/Jasa',
             'position_name'      => 'Pengelola Pengadaan Barang/Jasa Ahli Muda',
+            'jabatan'            => 'Pengelola Pengadaan Barang/Jasa Ahli Muda',
+            'rank_grade'         => 'Pembina / IV.a',
+            'pangkat_golongan'   => 'Pembina / IV.a',
+            'tipe_peserta'       => 'Aparatur Sipil Negara (PNS)',
             'certificate_title'  => $isLearning
                 ? 'Pengantar Pengadaan Barang/Jasa Pemerintah (Tingkat Dasar)'
                 : 'Webinar Nasional Strategi Pengadaan Berkelanjutan & E-Katalog V6',
@@ -1022,15 +1046,27 @@ class CertificateTemplateController extends BaseController
                 ? 'Pengantar Pengadaan Barang/Jasa Pemerintah (Tingkat Dasar)'
                 : 'Webinar Nasional Strategi Pengadaan Berkelanjutan & E-Katalog V6',
             'subtitle'           => 'Batch I Tahun Anggaran ' . $year,
+            'nama_kelas'         => 'Batch I Tahun Anggaran ' . $year,
+            'kode_kelas'         => 'KLS-PBJ-' . $year . '-001',
+            'nama_program'       => 'Program Pengembangan Kompetensi Pengadaan Berkelanjutan',
+            'tingkat_kursus'     => 'Tingkat Dasar (Level 1)',
+            'lokasi_kegiatan'    => $isLearning ? 'Portal LMS BegawiPengadaan' : 'Hotel Novotel Bandar Lampung',
+            'metode_kegiatan'    => $isLearning ? 'Daring' : 'Hybrid',
             'activity_type'      => $isLearning ? 'Arena Belajar PBJ' : 'Webinar PBJ',
             'tipe_kegiatan'      => $isLearning ? 'Arena Belajar' : 'Webinar',
             'kode_tipe'          => $isLearning ? 'AB' : 'WB',
             'id_kegiatan'        => $isLearning ? 5 : 1,
             'jam_pelajaran'      => $isLearning ? '24 JP' : '4 JP',
             'jp'                 => $isLearning ? '24 JP' : '4 JP',
+            'duration_minutes'   => $isLearning ? 1440 : 240,
+            'durasi'             => $isLearning ? '1440 Menit' : '240 Menit',
             'final_score'        => '94.5',
             'predicate'          => 'Sangat Baik',
             'issued_at'          => date('Y-m-d H:i:s'),
+            'city'               => 'Bandar Lampung',
+            'kota_terbit'        => 'Bandar Lampung',
+            'signer_rank'        => 'Pembina Utama Madya (IV/d)',
+            'penandatangan_pangkat' => 'Pembina Utama Madya (IV/d)',
             'event_start_at'     => date('Y-m-d 08:00:00', strtotime('-5 days')),
             'event_end_at'       => date('Y-m-d 16:00:00'),
             'verification_url'   => site_url('verifikasi-sertifikat/' . ($isLearning ? "SERT-00035-AB-5-05-{$year}" : "SERT-00021-WB-1-05-{$year}")),
@@ -1079,6 +1115,10 @@ class CertificateTemplateController extends BaseController
         $signerNip  = isset($raw['signer_nip']) && is_string($raw['signer_nip']) && trim($raw['signer_nip']) !== ''
             ? trim($raw['signer_nip'])
             : '19750812 199903 1 004';
+
+        $tteMode = isset($raw['tte_mode']) && in_array($raw['tte_mode'], ['visual_qr', 'cryptographic_pades'], true)
+            ? (string) $raw['tte_mode']
+            : 'visual_qr';
 
         $layoutMode = isset($raw['layout_mode']) && in_array($raw['layout_mode'], ['pdf_placeholders', 'auto_overlay', 'custom_html'], true)
             ? (string) $raw['layout_mode']
@@ -1145,6 +1185,7 @@ class CertificateTemplateController extends BaseController
             'signer_name'      => mb_substr($signerName, 0, 255),
             'signer_position'  => mb_substr($signerPos, 0, 255),
             'signer_nip'       => mb_substr($signerNip, 0, 64),
+            'tte_mode'         => $tteMode,
             'qr_position'      => $qrPos,
             'target_scope'     => $raw['target_scope'] ?? 'global',
             'program_id'       => (int) ($raw['program_id'] ?? 0),
@@ -1176,6 +1217,7 @@ class CertificateTemplateController extends BaseController
             'signer_name'      => 'Dr. H. Rahmad Hidayat, S.E., M.Si.',
             'signer_position'  => 'Kepala Biro Pengadaan Barang dan Jasa',
             'signer_nip'       => '19750812 199903 1 004',
+            'tte_mode'         => 'visual_qr',
             'qr_position'      => 'right',
             'target_scope'     => 'global',
             'program_id'       => 0,

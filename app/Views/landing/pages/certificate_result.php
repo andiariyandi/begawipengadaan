@@ -93,6 +93,35 @@
                                 </div>
                             </div>
 
+                            <!-- Electronic Signature (TTE) Official Panel -->
+                            <div class="cert-tte-panel my-4 p-3 bg-light rounded-3 border border-primary-subtle">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary text-white px-2 py-1">
+                                            <i class="fas fa-file-signature me-1"></i> TTE RESMI
+                                        </span>
+                                        <span class="fw-bold text-dark small">Tanda Tangan Elektronik Terverifikasi</span>
+                                    </div>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle small">
+                                        <i class="fas fa-check-double me-1"></i> <?= esc($result['tte_status'] ?? 'DITANDATANGANI SECARA ELEKTRONIK & SAH') ?>
+                                    </span>
+                                </div>
+                                <div class="row g-2 pt-2 border-top border-secondary-subtle small">
+                                    <div class="col-md-6">
+                                        <div class="text-muted">Pejabat Penandatangan:</div>
+                                        <div class="fw-bold text-dark"><?= esc($result['tte_signer_name'] ?? 'Dr. H. Rahmad Hidayat, S.E., M.Si.') ?></div>
+                                        <div class="text-secondary"><?= esc($result['tte_signer_position'] ?? 'Kepala Biro Pengadaan Barang dan Jasa') ?></div>
+                                        <div class="text-muted font-monospace">NIP. <?= esc($result['tte_signer_nip'] ?? '19750812 199903 1 004') ?></div>
+                                    </div>
+                                    <div class="col-md-6 text-md-end text-start mt-2 mt-md-0">
+                                        <div class="text-muted">Waktu Pembubuhan TTE:</div>
+                                        <div class="fw-semibold text-dark"><?= esc($result['tte_timestamp'] ?? '—') ?></div>
+                                        <div class="text-muted mt-1">Segel Kriptografis:</div>
+                                        <div class="font-monospace text-primary fw-bold"><?= esc($result['tte_checksum'] ?? '—') ?></div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Issuer & Cryptographic Hash Footer -->
                             <div class="cert-security-footer">
                                 <div class="cert-qr-mock">

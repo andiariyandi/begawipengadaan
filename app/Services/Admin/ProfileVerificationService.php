@@ -118,9 +118,12 @@ class ProfileVerificationService
         // Tandai notifikasi permohonan bersama sebagai terbaca bagi seluruh pool verifikator
         try {
             db_connect()->table('notifications')
-                ->where('user_id', $userId)
                 ->where('channel', 'shared:admin_operator')
                 ->where('type', 'account_registered')
+                ->groupStart()
+                    ->where('user_id', $userId)
+                    ->orLike('data', '"user_id":' . $userId)
+                ->groupEnd()
                 ->where('read_at IS NULL')
                 ->update(['read_at' => $now]);
         } catch (\Throwable) {
@@ -183,9 +186,12 @@ class ProfileVerificationService
         // Tandai notifikasi permohonan bersama sebagai terbaca bagi seluruh pool verifikator
         try {
             db_connect()->table('notifications')
-                ->where('user_id', $userId)
                 ->where('channel', 'shared:admin_operator')
                 ->where('type', 'account_registered')
+                ->groupStart()
+                    ->where('user_id', $userId)
+                    ->orLike('data', '"user_id":' . $userId)
+                ->groupEnd()
                 ->where('read_at IS NULL')
                 ->update(['read_at' => $now]);
         } catch (\Throwable) {

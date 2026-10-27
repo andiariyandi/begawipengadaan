@@ -16,9 +16,11 @@ class CertificateTemplateRenderer
 {
     /** @var array<string, string> */
     private array $placeholders = [];
+    private DigitalSignatureService $signatureService;
 
     public function __construct()
     {
+        $this->signatureService = new DigitalSignatureService();
     }
 
     /**
@@ -191,7 +193,7 @@ class CertificateTemplateRenderer
 
                 $html .= sprintf(
                     '<style>.cert-ph-qr-%d img { width:%dpx !important; height:%dpx !important; }</style>'
-                    . '<div class="cert-ph-qr cert-ph-qr-%d" style="position:absolute;%stop:%.2F%%;width:%dpx;height:%dpx;z-index:3;">__QR_BLOCK__</div>',
+                        . '<div class="cert-ph-qr cert-ph-qr-%d" style="position:absolute;%stop:%.2F%%;width:%dpx;height:%dpx;z-index:3;">__QR_BLOCK__</div>',
                     $index,
                     $qrSize,
                     $qrSize,
@@ -207,22 +209,44 @@ class CertificateTemplateRenderer
             // Ganti tag placeholder dengan nilai peserta sesungguhnya
             $resolvedValue = $this->applyPlaceholders($tag);
 
+            // Khusus TTE & Segel Digital Resmi (Blok HTML tanda tangan naskah dinas)
+            if (in_array($tag, ['{{tanda_tangan}}', '{{stempel_tte}}', '{{segel_digital}}'], true)) {
+                $blockWidth  = ($tag === '{{tanda_tangan}}') ? 260 : 180;
+                $alignMargin = match ($align) {
+                    'center' => sprintf('left:%.2F%%;margin-left:-%dpx;', $xPct, (int) round($blockWidth / 2)),
+                    'right'  => sprintf('left:%.2F%%;margin-left:-%dpx;', $xPct, $blockWidth),
+                    default  => sprintf('left:%.2F%%;', $xPct),
+                };
+                $html .= sprintf(
+                    '<div class="cert-ph-signature" style="position:absolute;%stop:%.2F%%;width:%dpx;z-index:3;">%s</div>',
+                    $alignMargin,
+                    $yPct,
+                    $blockWidth,
+                    $resolvedValue
+                );
+                continue;
+            }
+
             // Hitung kotak perataan presisi yang 100% kompatibel dengan Dompdf maupun browser
             if ($align === 'center') {
-                $halfSpan = min(max($xPct - 1.0, 15.0), max(99.0 - $xPct, 15.0));
-                $boxLeft  = max(0.0, $xPct - $halfSpan);
-                $boxWidth = min(100.0 - $boxLeft, $halfSpan * 2.0);
-                $posCss   = sprintf('left:%.2F%%;width:%.2F%%;text-align:center;', $boxLeft, $boxWidth);
+                if ($xPct >= 40.0 && $xPct <= 60.0) {
+                    $posCss = 'left:0;width:100%;text-align:center;';
+                } else {
+                    $halfSpan = min(max($xPct, 15.0), max(100.0 - $xPct, 15.0));
+                    $boxLeft  = max(0.0, $xPct - $halfSpan);
+                    $boxWidth = $halfSpan * 2.0;
+                    $posCss   = sprintf('left:%.2F%%;width:%.2F%%;text-align:center;', $boxLeft, $boxWidth);
+                }
             } elseif ($align === 'right') {
-                $boxWidth = max(5.0, $xPct - 1.0);
-                $posCss   = sprintf('left:1.00%%;width:%.2F%%;text-align:right;', $boxWidth);
+                $boxWidth = max(5.0, $xPct);
+                $posCss   = sprintf('left:0;width:%.2F%%;text-align:right;', $boxWidth);
             } else {
-                $boxWidth = max(5.0, 99.0 - $xPct);
+                $boxWidth = max(5.0, 100.0 - $xPct);
                 $posCss   = sprintf('left:%.2F%%;width:%.2F%%;text-align:left;', $xPct, $boxWidth);
             }
 
             $html .= sprintf(
-                '<div class="cert-ph-text" style="position:absolute;%stop:%.2F%%;font-size:%dpt;font-weight:%s;color:%s;line-height:1.2;z-index:2;">%s</div>',
+                '<div class="cert-ph-text" style="position:absolute;%stop:%.2F%%;font-size:%dpt;font-weight:%s;color:%s;line-height:1.2;white-space:nowrap;z-index:2;">%s</div>',
                 $posCss,
                 $yPct,
                 $fontSize,
@@ -250,29 +274,65 @@ class CertificateTemplateRenderer
     {
         $certNumber = (string) ($data['certificate_number'] ?? $data['nomor_sertifikat'] ?? '—');
         $name       = (string) ($data['participant_name'] ?? $data['user_name'] ?? 'Peserta Terdaftar');
-        $nip        = (string) ($data['nip'] ?? $data['identity_number'] ?? '—');
-        if (trim($nip) === '') {
-            $nip = '—';
+
+        // Auto-detect Identitas (NIP, NI-PPK, NIB, NIDN, NIK)
+        $idNumber = (string) ($data['identity_number'] ?? $data['nip'] ?? '—');
+        if (trim($idNumber) === '') {
+            $idNumber = '—';
+        }
+        $idLabel = (string) ($data['identity_label'] ?? 'NIP');
+        if (trim($idLabel) === '') {
+            $idLabel = 'NIP';
         }
 
-        $instansi = (string) ($data['institution_name'] ?? $data['instansi'] ?? 'Pemerintah Provinsi Lampung');
-        $unit     = (string) ($data['unit_name'] ?? $instansi);
-        $jabatan  = (string) ($data['position_name'] ?? $data['jabatan'] ?? 'Peserta');
+        // Auto-fallback cerdas: jika template lama memakai {{nip}} dan peserta adalah non-ASN,
+        // nilai {{nip}} otomatis terisi nomor identitas peserta yang bersangkutan (NIB, NIK, atau NIDN)
+        $nip = (string) ($data['nip'] ?? $idNumber);
+        if (trim($nip) === '' || $nip === '—') {
+            $nip = $idNumber;
+        }
 
-        $title       = (string) ($data['certificate_title'] ?? $data['title'] ?? 'Sertifikat Pengadaan');
-        $subtitle    = (string) ($data['subtitle'] ?? $data['class_name'] ?? '');
-        $actType     = (string) ($data['activity_type'] ?? $data['tipe_kegiatan'] ?? 'Arena Belajar PBJ');
-        $kodeTipe    = (string) ($data['kode_tipe'] ?? 'AB');
-        $idKegiatan  = (string) ($data['id_kegiatan'] ?? $data['class_id'] ?? $data['event_id'] ?? '1');
-        $jp          = (string) ($data['jam_pelajaran'] ?? $data['jp'] ?? '—');
-        $durasi      = (string) (! empty($data['duration_minutes']) ? ($data['duration_minutes'] . ' Menit') : $jp);
-        $score       = (string) ($data['final_score'] ?? '—');
-        $predikat    = (string) ($data['predicate'] ?? $data['predikat'] ?? 'Lulus');
+        $nik   = (string) ($data['nik'] ?? ($idLabel === 'NIK' ? $idNumber : '—'));
+        $nib   = (string) ($data['nib'] ?? ($idLabel === 'NIB' ? $idNumber : '—'));
+        $nidn  = (string) ($data['nidn'] ?? (in_array($idLabel, ['NIDN', 'NIM'], true) ? $idNumber : '—'));
+        $niPpk = (string) ($data['ni_ppk'] ?? ($idLabel === 'NI-PPK' ? $idNumber : '—'));
+
+        // Auto-detect Instansi & Organisasi (Instansi Pemerintah, Perusahaan/Badan Usaha, Perguruan Tinggi, Organisasi Umum)
+        $instansiLabel = (string) ($data['institution_label'] ?? 'Instansi');
+        $instansi      = (string) ($data['institution_name'] ?? $data['instansi'] ?? 'Pemerintah Provinsi Lampung');
+        $unit          = (string) ($data['unit_name'] ?? $data['unit_kerja'] ?? $instansi);
+        $jabatan       = (string) ($data['position_name'] ?? $data['jabatan'] ?? 'Peserta');
+        $businessName  = (string) ($data['business_name'] ?? ($instansiLabel === 'Perusahaan / Badan Usaha' ? $instansi : '—'));
+        $campusName    = (string) ($data['campus_name'] ?? ($instansiLabel === 'Perguruan Tinggi' ? $instansi : '—'));
+        $pangkat       = (string) ($data['rank_grade'] ?? $data['pangkat_golongan'] ?? '—');
+        $tipePeserta   = (string) ($data['tipe_peserta'] ?? 'Peserta Pengadaan');
+        $emailPeserta  = (string) ($data['user_email'] ?? '—');
+        $phonePeserta  = (string) ($data['user_phone'] ?? '—');
+
+        // Detail Kegiatan
+        $title          = (string) ($data['certificate_title'] ?? $data['title'] ?? 'Sertifikat Pengadaan');
+        $subtitle       = (string) ($data['subtitle'] ?? $data['class_name'] ?? '');
+        $actType        = (string) ($data['activity_type'] ?? $data['tipe_kegiatan'] ?? 'Arena Belajar PBJ');
+        $kodeTipe       = (string) ($data['kode_tipe'] ?? 'AB');
+        $idKegiatan     = (string) ($data['id_kegiatan'] ?? $data['class_id'] ?? $data['event_id'] ?? '1');
+        $jp             = (string) ($data['jam_pelajaran'] ?? $data['jp'] ?? '—');
+        $durasi         = (string) (! empty($data['duration_minutes']) ? ($data['duration_minutes'] . ' Menit') : $jp);
+        $score          = (string) ($data['final_score'] ?? '—');
+        $predikat       = (string) ($data['predicate'] ?? $data['predikat'] ?? 'Lulus');
+        $lokasiKegiatan = (string) ($data['lokasi_kegiatan'] ?? $data['location'] ?? 'Provinsi Lampung');
+        $metodeKegiatan = self::standardizeMethod((string) ($data['metode_kegiatan'] ?? $data['learning_method'] ?? $data['event_mode'] ?? 'Daring'));
+        $tingkatKursus  = (string) ($data['tingkat_kursus'] ?? $data['course_level'] ?? $data['level'] ?? 'Tingkat Dasar (Level 1)');
+        $kodeKelas      = (string) ($data['kode_kelas'] ?? $data['class_code'] ?? '—');
+        $namaProgram    = (string) ($data['nama_program'] ?? $data['program_title'] ?? $title);
 
         // Tanggal (Format Bahasa Indonesia)
-        $rawIssued   = $data['issued_at'] ?? 'now';
-        $issuedDate  = $this->formatTanggalIndo((string) $rawIssued);
-        $year        = date('Y', strtotime((string) $rawIssued) ?: time());
+        $rawIssued     = $data['issued_at'] ?? 'now';
+        $issuedDate    = $this->formatTanggalIndo((string) $rawIssued);
+        $hariTglTerbit = $this->formatHariTanggalIndo((string) $rawIssued);
+        $bulanTahun    = $this->formatBulanTahunIndo((string) $rawIssued);
+        $year          = date('Y', strtotime((string) $rawIssued) ?: time());
+        $city          = (string) ($payload['issuance_city'] ?? $data['city'] ?? 'Bandar Lampung');
+        $expiresAt     = ! empty($data['expires_at']) ? $this->formatTanggalIndo((string) $data['expires_at']) : 'Berlaku Selamanya';
 
         $startDate   = ! empty($data['event_start_at'])
             ? $this->formatTanggalIndo((string) $data['event_start_at'])
@@ -287,39 +347,85 @@ class CertificateTemplateRenderer
         $signerName  = (string) ($payload['signer_name'] ?? 'Dr. H. Rahmad Hidayat, S.E., M.Si.');
         $signerPos   = (string) ($payload['signer_position'] ?? 'Kepala Biro Pengadaan Barang dan Jasa');
         $signerNip   = (string) ($payload['signer_nip'] ?? '19750812 199903 1 004');
+        $signerRank  = (string) ($payload['signer_rank'] ?? $data['signer_rank'] ?? 'Pembina Utama Madya (IV/d)');
 
         $verifyUrl   = (string) ($data['verification_url'] ?? '');
 
-        return [
-            // 1. Nomor Sertifikat
+        $map = [
+            // 1. Nomor Sertifikat & Identitas Terbit
             '{{nomor_sertifikat}}'      => htmlspecialchars($certNumber, ENT_QUOTES, 'UTF-8'),
             '{{certificate_number}}'    => htmlspecialchars($certNumber, ENT_QUOTES, 'UTF-8'),
+            '{{tanggal_terbit}}'        => $issuedDate,
+            '{{issued_date}}'           => $issuedDate,
+            '{{hari_tanggal_terbit}}'   => $hariTglTerbit,
+            '{{bulan_tahun}}'           => $bulanTahun,
+            '{{tahun}}'                 => $year,
+            '{{year}}'                  => $year,
+            '{{kota_terbit}}'           => htmlspecialchars($city, ENT_QUOTES, 'UTF-8'),
+            '{{tempat_terbit}}'         => htmlspecialchars($city, ENT_QUOTES, 'UTF-8'),
+            '{{masa_berlaku}}'          => htmlspecialchars($expiresAt, ENT_QUOTES, 'UTF-8'),
+            '{{tanggal_kedaluwarsa}}'   => htmlspecialchars($expiresAt, ENT_QUOTES, 'UTF-8'),
 
-            // 2. Data Peserta
+            // 2. Data Peserta (Auto-Detect Multi-Profil: ASN, PPPK, Penyedia, Kampus, Umum)
             '{{nama_peserta}}'          => htmlspecialchars($name, ENT_QUOTES, 'UTF-8'),
             '{{nama_lengkap}}'          => htmlspecialchars($name, ENT_QUOTES, 'UTF-8'),
             '{{participant_name}}'      => htmlspecialchars($name, ENT_QUOTES, 'UTF-8'),
+
+            // Auto-detect Identitas
+            '{{nomor_identitas}}'       => htmlspecialchars($idNumber, ENT_QUOTES, 'UTF-8'),
+            '{{identitas_peserta}}'     => htmlspecialchars($idNumber, ENT_QUOTES, 'UTF-8'),
+            '{{label_identitas}}'       => htmlspecialchars($idLabel, ENT_QUOTES, 'UTF-8'),
             '{{nip}}'                   => htmlspecialchars($nip, ENT_QUOTES, 'UTF-8'),
             '{{nip_peserta}}'           => htmlspecialchars($nip, ENT_QUOTES, 'UTF-8'),
-            '{{identity_number}}'       => htmlspecialchars($nip, ENT_QUOTES, 'UTF-8'),
+            '{{identity_number}}'       => htmlspecialchars($idNumber, ENT_QUOTES, 'UTF-8'),
+            '{{ni_ppk}}'                => htmlspecialchars($niPpk, ENT_QUOTES, 'UTF-8'),
+            '{{nik}}'                   => htmlspecialchars($nik, ENT_QUOTES, 'UTF-8'),
+            '{{nib}}'                   => htmlspecialchars($nib, ENT_QUOTES, 'UTF-8'),
+            '{{nidn}}'                  => htmlspecialchars($nidn, ENT_QUOTES, 'UTF-8'),
+
+            // Auto-detect Instansi & Organisasi
             '{{instansi}}'              => htmlspecialchars($instansi, ENT_QUOTES, 'UTF-8'),
             '{{instansi_peserta}}'      => htmlspecialchars($instansi, ENT_QUOTES, 'UTF-8'),
             '{{institution_name}}'      => htmlspecialchars($instansi, ENT_QUOTES, 'UTF-8'),
+            '{{organisasi}}'            => htmlspecialchars($instansi, ENT_QUOTES, 'UTF-8'),
+            '{{label_instansi}}'        => htmlspecialchars($instansiLabel, ENT_QUOTES, 'UTF-8'),
+            '{{nama_usaha}}'            => htmlspecialchars($businessName, ENT_QUOTES, 'UTF-8'),
+            '{{perusahaan}}'            => htmlspecialchars($businessName, ENT_QUOTES, 'UTF-8'),
+            '{{badan_usaha}}'           => htmlspecialchars($businessName, ENT_QUOTES, 'UTF-8'),
+            '{{perguruan_tinggi}}'      => htmlspecialchars($campusName, ENT_QUOTES, 'UTF-8'),
+            '{{nama_kampus}}'           => htmlspecialchars($campusName, ENT_QUOTES, 'UTF-8'),
+
             '{{unit_kerja}}'            => htmlspecialchars($unit, ENT_QUOTES, 'UTF-8'),
             '{{jabatan}}'               => htmlspecialchars($jabatan, ENT_QUOTES, 'UTF-8'),
             '{{position_name}}'         => htmlspecialchars($jabatan, ENT_QUOTES, 'UTF-8'),
+            '{{pangkat_golongan}}'      => htmlspecialchars($pangkat, ENT_QUOTES, 'UTF-8'),
+            '{{pangkat}}'               => htmlspecialchars($pangkat, ENT_QUOTES, 'UTF-8'),
+            '{{golongan}}'              => htmlspecialchars($pangkat, ENT_QUOTES, 'UTF-8'),
+            '{{tipe_peserta}}'          => htmlspecialchars($tipePeserta, ENT_QUOTES, 'UTF-8'),
+            '{{kategori_peserta}}'      => htmlspecialchars($tipePeserta, ENT_QUOTES, 'UTF-8'),
+            '{{jenis_profil}}'          => htmlspecialchars($tipePeserta, ENT_QUOTES, 'UTF-8'),
+            '{{email_peserta}}'         => htmlspecialchars($emailPeserta, ENT_QUOTES, 'UTF-8'),
+            '{{telepon_peserta}}'       => htmlspecialchars($phonePeserta, ENT_QUOTES, 'UTF-8'),
 
             // 3. Kegiatan
             '{{judul_kegiatan}}'        => htmlspecialchars($title, ENT_QUOTES, 'UTF-8'),
             '{{nama_kegiatan}}'         => htmlspecialchars($title, ENT_QUOTES, 'UTF-8'),
             '{{certificate_title}}'     => htmlspecialchars($title, ENT_QUOTES, 'UTF-8'),
             '{{source_label}}'          => htmlspecialchars($title, ENT_QUOTES, 'UTF-8'),
-            '{{nama_kelas}}'            => htmlspecialchars($subtitle ?: $title, ENT_QUOTES, 'UTF-8'),
             '{{nama_kursus}}'           => htmlspecialchars($title, ENT_QUOTES, 'UTF-8'),
+            '{{nama_kelas}}'            => htmlspecialchars($subtitle ?: $title, ENT_QUOTES, 'UTF-8'),
+            '{{kode_kelas}}'            => htmlspecialchars($kodeKelas, ENT_QUOTES, 'UTF-8'),
+            '{{nama_program}}'          => htmlspecialchars($namaProgram, ENT_QUOTES, 'UTF-8'),
+            '{{tingkat_kursus}}'        => htmlspecialchars($tingkatKursus, ENT_QUOTES, 'UTF-8'),
+            '{{level_kompetensi}}'      => htmlspecialchars($tingkatKursus, ENT_QUOTES, 'UTF-8'),
             '{{tipe_kegiatan}}'         => htmlspecialchars($actType, ENT_QUOTES, 'UTF-8'),
             '{{activity_type}}'         => htmlspecialchars($actType, ENT_QUOTES, 'UTF-8'),
             '{{kode_tipe}}'             => htmlspecialchars($kodeTipe, ENT_QUOTES, 'UTF-8'),
             '{{id_kegiatan}}'           => htmlspecialchars($idKegiatan, ENT_QUOTES, 'UTF-8'),
+            '{{lokasi_kegiatan}}'       => htmlspecialchars($lokasiKegiatan, ENT_QUOTES, 'UTF-8'),
+            '{{tempat_kegiatan}}'       => htmlspecialchars($lokasiKegiatan, ENT_QUOTES, 'UTF-8'),
+            '{{metode_kegiatan}}'       => htmlspecialchars($metodeKegiatan, ENT_QUOTES, 'UTF-8'),
+            '{{moda_kegiatan}}'         => htmlspecialchars($metodeKegiatan, ENT_QUOTES, 'UTF-8'),
 
             // 4. Jam Pelajaran & Nilai
             '{{jam_pelajaran}}'         => htmlspecialchars($jp, ENT_QUOTES, 'UTF-8'),
@@ -336,10 +442,6 @@ class CertificateTemplateRenderer
             '{{tanggal_selesai}}'       => $endDate,
             '{{end_date}}'              => $endDate,
             '{{periode_kegiatan}}'      => $periodDate,
-            '{{tanggal_terbit}}'        => $issuedDate,
-            '{{issued_date}}'           => $issuedDate,
-            '{{tahun}}'                 => $year,
-            '{{year}}'                  => $year,
 
             // 6. Penerbit & Penandatangan
             '{{penerbit}}'              => htmlspecialchars($issuerName, ENT_QUOTES, 'UTF-8'),
@@ -350,6 +452,7 @@ class CertificateTemplateRenderer
             '{{signer_position}}'       => htmlspecialchars($signerPos, ENT_QUOTES, 'UTF-8'),
             '{{penandatangan_nip}}'     => htmlspecialchars($signerNip, ENT_QUOTES, 'UTF-8'),
             '{{signer_nip}}'            => htmlspecialchars($signerNip, ENT_QUOTES, 'UTF-8'),
+            '{{penandatangan_pangkat}}' => htmlspecialchars($signerRank, ENT_QUOTES, 'UTF-8'),
 
             // 7. QR & Verifikasi
             '{{url_verifikasi}}'        => htmlspecialchars($verifyUrl, ENT_QUOTES, 'UTF-8'),
@@ -357,6 +460,11 @@ class CertificateTemplateRenderer
             '{{qr_code}}'               => '<!--CERTIFICATE_QR_PLACEHOLDER-->',
             '{{qr_block}}'              => '<!--CERTIFICATE_QR_PLACEHOLDER-->',
         ];
+
+        // 8. Tanda Tangan Elektronik (TTE) & Segel Kriptografis
+        $tteMap = $this->signatureService->buildSignaturePlaceholders($data, $payload);
+
+        return array_merge($map, $tteMap);
     }
 
     private function applyPlaceholders(string $html): string
@@ -388,6 +496,80 @@ class CertificateTemplateRenderer
         return date('d', $ts) . ' ' . ($bulan[$m] ?? date('F', $ts)) . ' ' . date('Y', $ts);
     }
 
+    private function formatHariTanggalIndo(string $dateStr): string
+    {
+        $ts = strtotime($dateStr);
+        if ($ts === false) {
+            $ts = time();
+        }
+        $hari = [
+            0 => 'Minggu',
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+        ];
+        $h = (int) date('w', $ts);
+        return ($hari[$h] ?? 'Senin') . ', ' . $this->formatTanggalIndo($dateStr);
+    }
+
+    private function formatBulanTahunIndo(string $dateStr): string
+    {
+        $ts = strtotime($dateStr);
+        if ($ts === false) {
+            $ts = time();
+        }
+        $bulan = [
+            1  => 'Januari',
+            2  => 'Februari',
+            3  => 'Maret',
+            4  => 'April',
+            5  => 'Mei',
+            6  => 'Juni',
+            7  => 'Juli',
+            8  => 'Agustus',
+            9  => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ];
+        $m = (int) date('n', $ts);
+        return ($bulan[$m] ?? date('F', $ts)) . ' ' . date('Y', $ts);
+    }
+
+    /**
+     * Standardize learning / event delivery method into strictly: 'Daring', 'Luring', or 'Hybrid'.
+     */
+    public static function standardizeMethod(?string $raw): string
+    {
+        $clean = strtolower(trim((string) $raw));
+        if ($clean === '') {
+            return 'Daring';
+        }
+
+        if (
+            str_contains($clean, 'hybrid')
+            || str_contains($clean, 'blended')
+            || str_contains($clean, 'campuran')
+        ) {
+            return 'Hybrid';
+        }
+
+        if (
+            str_contains($clean, 'luring')
+            || str_contains($clean, 'offline')
+            || str_contains($clean, 'tatap_muka')
+            || str_contains($clean, 'tatap muka')
+            || str_contains($clean, 'klasikal')
+        ) {
+            return 'Luring';
+        }
+
+        return 'Daring';
+    }
+
     // ===============================================================
     // Daftar Placeholder & Panduan Desain
     // ===============================================================
@@ -403,33 +585,63 @@ class CertificateTemplateRenderer
             'Nomor & Identitas Sertifikat' => [
                 ['tag' => '{{nomor_sertifikat}}', 'label' => 'Nomor Sertifikat Resmi (Format: SERT-{num}/{tipe}-{id}/05/{thn})', 'example' => 'SERT-00035/AB-5/05/2026'],
                 ['tag' => '{{tanggal_terbit}}', 'label' => 'Tanggal Penerbitan Resmi', 'example' => date('d F Y')],
-                ['tag' => '{{tahun}}', 'label' => 'Tahun Penerbitan', 'example' => date('Y')],
+                ['tag' => '{{hari_tanggal_terbit}}', 'label' => 'Hari & Tanggal Penerbitan Lengkap', 'example' => 'Senin, ' . date('d F Y')],
+                ['tag' => '{{bulan_tahun}}', 'label' => 'Bulan & Tahun Penerbitan', 'example' => date('F Y')],
+                ['tag' => '{{tahun}}', 'label' => 'Tahun Penerbitan (4 Digit)', 'example' => date('Y')],
+                ['tag' => '{{kota_terbit}}', 'label' => 'Kota Tempat Penerbitan Sertifikat', 'example' => 'Bandar Lampung'],
+                ['tag' => '{{masa_berlaku}}', 'label' => 'Masa Berlaku / Kedaluwarsa Sertifikat', 'example' => 'Berlaku 3 Tahun'],
             ],
-            'Data Peserta / Penerima' => [
-                ['tag' => '{{nama_peserta}}', 'label' => 'Nama Lengkap Peserta (Beserta Gelar)', 'example' => 'Dr. Ahmad Fauzi, S.T., M.Si.'],
-                ['tag' => '{{nip}}', 'label' => 'NIP / Nomor Identitas Pegawai', 'example' => '19820415 200801 1 007'],
-                ['tag' => '{{instansi}}', 'label' => 'Instansi / Organisasi Peserta', 'example' => 'Biro Pengadaan Barang dan Jasa Prov. Lampung'],
-                ['tag' => '{{unit_kerja}}', 'label' => 'Unit Kerja / OPD', 'example' => 'Bagian Pengelolaan Pengadaan'],
-                ['tag' => '{{jabatan}}', 'label' => 'Jabatan Pegawai', 'example' => 'Pengelola Pengadaan Ahli Muda'],
+            'Data Peserta (Auto-Detect Multi-Profil)' => [
+                ['tag' => '{{nama_peserta}}', 'label' => 'Nama Lengkap Peserta (Beserta Gelar)', 'example' => 'Ir. Rizky Yulitanto, S.T., M.M.'],
+                ['tag' => '{{nomor_identitas}}', 'label' => 'Nomor Identitas Auto-Detect (NIP / NI-PPK / NIB / NIDN / NIK)', 'example' => '20000315 202321 1 002'],
+                ['tag' => '{{label_identitas}}', 'label' => 'Label Jenis Identitas Auto-Detect (NIP / NI-PPK / NIB / NIDN / NIK)', 'example' => 'NIP'],
+                ['tag' => '{{nip}}', 'label' => 'NIP / Nomor Identitas Pegawai (Auto-fallback ke NIB/NIDN/NIK bila non-ASN)', 'example' => '20000315 202321 1 002'],
+                ['tag' => '{{ni_ppk}}', 'label' => 'Nomor Induk PPPK (Khusus Pegawai PPPK)', 'example' => '19900315 202321 1 002'],
+                ['tag' => '{{nib}}', 'label' => 'NIB / Nomor Induk Berusaha (Khusus Pelaku Usaha / Penyedia)', 'example' => '0220101234567'],
+                ['tag' => '{{nidn}}', 'label' => 'NIDN / NIM (Khusus Civitas Akademika Perguruan Tinggi)', 'example' => '0012058001'],
+                ['tag' => '{{nik}}', 'label' => 'NIK Kependudukan KTP (Khusus Masyarakat Umum / Praktisi)', 'example' => '1871010101850001'],
+                ['tag' => '{{instansi}}', 'label' => 'Instansi / Nama Perusahaan / Nama Kampus (Auto-Detect)', 'example' => 'Biro Pengadaan Barang dan Jasa Prov. Lampung'],
+                ['tag' => '{{label_instansi}}', 'label' => 'Label Jenis Instansi (Instansi / Perusahaan / Perguruan Tinggi)', 'example' => 'Instansi'],
+                ['tag' => '{{nama_usaha}}', 'label' => 'Nama Perusahaan / Badan Usaha (Khusus Pelaku Usaha / Rekanan PBJ)', 'example' => 'PT Mahakarya Konstruksi Lampung'],
+                ['tag' => '{{perguruan_tinggi}}', 'label' => 'Nama Perguruan Tinggi / Universitas (Khusus Akademisi)', 'example' => 'Universitas Lampung'],
+                ['tag' => '{{unit_kerja}}', 'label' => 'Unit Kerja / OPD / Bidang Usaha / Fakultas', 'example' => 'Bagian Pengelolaan Pengadaan'],
+                ['tag' => '{{jabatan}}', 'label' => 'Jabatan / Profesi / Peran Peserta', 'example' => 'Pengelola Pengadaan Ahli Muda'],
+                ['tag' => '{{pangkat_golongan}}', 'label' => 'Pangkat dan Golongan Ruang Pegawai (Khusus ASN)', 'example' => 'Pembina / IV.a'],
+                ['tag' => '{{tipe_peserta}}', 'label' => 'Kategori Peserta (ASN PNS / PPPK / Penyedia / Akademisi / Umum)', 'example' => 'Aparatur Sipil Negara (PNS)'],
+                ['tag' => '{{email_peserta}}', 'label' => 'Alamat Email Terdaftar Peserta', 'example' => 'ahmad.fauzi@lampungprov.go.id'],
             ],
             'Kegiatan Pembelajaran & Event' => [
-                ['tag' => '{{judul_kegiatan}}', 'label' => 'Judul Kursus / Kelas PBJ / Event', 'example' => 'Pengantar Pengadaan Barang/Jasa Pemerintah (Level 1)'],
+                ['tag' => '{{judul_kegiatan}}', 'label' => 'Judul Kursus / Kelas PBJ / Tema Event', 'example' => 'Pengantar Pengadaan Barang/Jasa Pemerintah (Level 1)'],
                 ['tag' => '{{nama_kelas}}', 'label' => 'Nama Kelas / Batch Pembelajaran', 'example' => 'Batch I Tahun Anggaran ' . date('Y')],
+                ['tag' => '{{nama_program}}', 'label' => 'Nama Program Pembelajaran PBJ', 'example' => 'Program Pengembangan Kompetensi PBJ'],
+                ['tag' => '{{kode_kelas}}', 'label' => 'Kode Rombongan Belajar / Kelas', 'example' => 'KLS-PBJ-2026-001'],
+                ['tag' => '{{tingkat_kursus}}', 'label' => 'Tingkat Kompetensi Kursus (Level 1 / Dasar / Lanjutan)', 'example' => 'Tingkat Dasar (Level 1)'],
                 ['tag' => '{{tipe_kegiatan}}', 'label' => 'Tipe Kegiatan (Arena Belajar, Webinar, Bimtek, Workshop, dll)', 'example' => 'Arena Belajar'],
                 ['tag' => '{{kode_tipe}}', 'label' => 'Kode Singkatan Tipe (AB, EV, WB, BT, WS, SO, SM, PL, RK, KL)', 'example' => 'AB'],
                 ['tag' => '{{id_kegiatan}}', 'label' => 'ID Numerik Kelas / Event', 'example' => '5'],
                 ['tag' => '{{jam_pelajaran}}', 'label' => 'Beban Jam Pelajaran (1 JP = 60 menit)', 'example' => '24 JP'],
+                ['tag' => '{{durasi}}', 'label' => 'Total Durasi Waktu Kegiatan', 'example' => '1440 Menit'],
                 ['tag' => '{{nilai_akhir}}', 'label' => 'Nilai Akhir Evaluasi / Post-Test', 'example' => '94.5'],
                 ['tag' => '{{predikat}}', 'label' => 'Predikat Kelulusan (Sangat Baik / Baik / Cukup / Lulus)', 'example' => 'Sangat Baik'],
                 ['tag' => '{{periode_kegiatan}}', 'label' => 'Rentang Waktu Pelaksanaan Kegiatan', 'example' => '10 Oktober 2026 s.d. 20 Oktober 2026'],
                 ['tag' => '{{tanggal_mulai}}', 'label' => 'Tanggal Mulai Kegiatan', 'example' => '10 Oktober 2026'],
                 ['tag' => '{{tanggal_selesai}}', 'label' => 'Tanggal Selesai Kegiatan', 'example' => '20 Oktober 2026'],
+                ['tag' => '{{lokasi_kegiatan}}', 'label' => 'Tempat / Lokasi Penyelenggaraan Kegiatan', 'example' => 'Hotel Novotel Bandar Lampung'],
+                ['tag' => '{{metode_kegiatan}}', 'label' => 'Metode Pelaksanaan Baku (Daring / Luring / Hybrid)', 'example' => 'Daring'],
+                ['tag' => '{{moda_kegiatan}}',   'label' => 'Alias Metode Pelaksanaan Baku (Daring / Luring / Hybrid)', 'example' => 'Daring'],
             ],
             'Pengesahan & Verifikasi Digital' => [
                 ['tag' => '{{penerbit}}', 'label' => 'Instansi Resmi Penerbit', 'example' => 'Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung'],
                 ['tag' => '{{penandatangan_nama}}', 'label' => 'Nama Pejabat Penanda Tangan', 'example' => 'Dr. H. Rahmad Hidayat, S.E., M.Si.'],
                 ['tag' => '{{penandatangan_jabatan}}', 'label' => 'Jabatan Pejabat Penanda Tangan', 'example' => 'Kepala Biro Pengadaan Barang dan Jasa'],
                 ['tag' => '{{penandatangan_nip}}', 'label' => 'NIP Pejabat Penanda Tangan', 'example' => '19750812 199903 1 004'],
+                ['tag' => '{{penandatangan_pangkat}}', 'label' => 'Pangkat / Golongan Pejabat Penanda Tangan', 'example' => 'Pembina Utama Madya (IV/d)'],
+                ['tag' => '{{tanda_tangan}}', 'label' => 'Stempel Blok Tanda Tangan Elektronik (TTE) Resmi Pejabat', 'example' => '[Blok TTE Resmi Pejabat]'],
+                ['tag' => '{{stempel_tte}}', 'label' => 'Stempel Sertifikat Elektronik (Terotentikasi)', 'example' => '[Sertifikat Elektronik]'],
+                ['tag' => '{{segel_digital}}', 'label' => 'Alias Stempel Sertifikat Elektronik', 'example' => '[Sertifikat Elektronik]'],
+                ['tag' => '{{tanggal_tte}}', 'label' => 'Waktu & Tanggal Pembubuhan TTE Lengkap (WIB)', 'example' => date('d F Y') . ' pukul 10:45 WIB'],
+                ['tag' => '{{integritas_dokumen}}', 'label' => 'Kode Hash Integritas Dokumen (SHA-256 Checksum)', 'example' => 'SHA256: 8F4A12BC90E3'],
+                ['tag' => '{{status_tte}}', 'label' => 'Status Keabsahan TTE Dokumen', 'example' => 'Terverifikasi & Sah Secara Elektronik'],
                 ['tag' => '{{qr_code}}', 'label' => 'Gambar QR Code Keabsahan Digital', 'example' => '[QR Code Verifikasi]'],
                 ['tag' => '{{url_verifikasi}}', 'label' => 'Tautan Verifikasi Keabsahan Publik', 'example' => 'https://begawipengadaan.lampungprov.go.id/verifikasi-sertifikat/...'],
             ],
@@ -561,6 +773,11 @@ HTML;
     padding: 0;
     overflow: hidden;
     background: transparent !important;
+  }
+  .cert-ph-signature {
+    margin: 0;
+    padding: 0;
+    line-height: normal;
   }
 
   /* Header Bar jika tanpa background */

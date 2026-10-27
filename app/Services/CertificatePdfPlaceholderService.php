@@ -35,11 +35,19 @@ class CertificatePdfPlaceholderService
         'participant_name',
         'nomor_sertifikat',
         'certificate_number',
+        'nomor_identitas',
         'judul_kegiatan',
         'nama_kegiatan',
         'certificate_title',
         'penandatangan_nama',
         'signer_name',
+        'nama_usaha',
+        'perusahaan',
+        'perguruan_tinggi',
+        'nama_kampus',
+        'tanda_tangan',
+        'stempel_tte',
+        'segel_digital',
     ];
 
     /**
@@ -1051,7 +1059,8 @@ class CertificatePdfPlaceholderService
                 $origHPct = round((($fontSizePt * 1.35) / $pageHeightPt) * 100.0, 2);
 
                 $trimmedLine  = trim($lineText);
-                $isStandalone = ($trimmedLine === $rawMatch);
+                $cleanTrimmed = trim($lineText, " \t\n\r\0\x0B\"'“”«»?*~`");
+                $isStandalone = ($trimmedLine === $rawMatch || $cleanTrimmed === $rawMatch);
                 $centerXPct   = $origXPct + ($origWPct / 2.0);
                 $nearCenter   = abs($centerXPct - 50.0) <= 10.0;
 

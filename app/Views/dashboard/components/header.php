@@ -111,14 +111,16 @@
                     || in_array('administrator', $roles, true);
 
                 $headerNotifService = new \App\Services\NotificationService();
-                // Di Lonceng Notifikasi Bar: HANYA tampilkan notifikasi yang BELUM dibaca (unread only)
-                $headerNotifications = $isAdmin
-                    ? $headerNotifService->getRecentNotifications(5, true)
-                    : ($headerUserId > 0 ? $headerNotifService->getUserNotifications($headerUserId, 5, true) : $headerNotifService->getRecentNotifications(5, true));
+                // Di Lonceng Notifikasi Bar: HANYA tampilkan notifikasi yang BELUM dibaca (unread only) & terisolasi sesuai user_id/wewenang peran
+                $headerNotifications = $headerUserId > 0
+                    ? $headerNotifService->getUserNotifications($headerUserId, 5, true, (array) $roles)
+                    : [];
 
-                $headerUnreadCount = $isAdmin
-                    ? $headerNotifService->unreadCountAll()
-                    : ($headerUserId > 0 ? $headerNotifService->unreadCount($headerUserId) : $headerNotifService->unreadCountAll());
+                $headerUnreadCount = $headerUserId > 0
+                    ? $headerNotifService->unreadCount($headerUserId, (array) $roles)
+                    : 0;
+
+                $initialTopNotifId = ! empty($headerNotifications[0]['id']) ? (int) $headerNotifications[0]['id'] : 0;
 
                 $userName     = (string) (session()->get('name') ?: session()->get('username') ?: 'Administrator');
                 $userRole     = 'Administrator PBJ';
@@ -361,27 +363,36 @@
         }, 6500);
     }
 
+    window.__dispatchedAdminNotifKeys = window.__dispatchedAdminNotifKeys || new Set();
+
     function triggerAdminDesktopNotification(item) {
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+        const notifId = item.id || Date.now();
+        const notifKey = 'bp-dash-notif-' + notifId;
+
+        // Proteksi anti-duplikasi: satu notifikasi HANYA BOLEH dipicu tepat 1 kali
+        if (window.__dispatchedAdminNotifKeys.has(notifKey)) {
+            return;
+        }
+        window.__dispatchedAdminNotifKeys.add(notifKey);
 
         const origin = window.location.origin || '';
         const iconUrl = origin + '/assets/main/images/favicons/android-chrome-192x192.png';
         const badgeUrl = origin + '/assets/main/images/favicons/favicon-32x32.png';
         const title = item.title || 'BegawiPengadaan Admin';
         const targetUrl = item.url || item.detail_url || (origin + '/dashboard/sistem/notifikasi');
-        const notifId = item.id || Date.now();
-        const cleanTag = 'bp-dash-notif-' + notifId;
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         const options = {
             body: item.body || 'Pemberitahuan baru pada sistem.',
             icon: iconUrl,
             badge: badgeUrl,
-            tag: cleanTag,
+            tag: notifKey,
             renotify: true,
-            requireInteraction: !isMobile, // Pinned on Windows 11 Action Center until user interacts
+            requireInteraction: false, // Tidak mengunci action center Windows 11 agar notifikasi berikutnya tetap lancar muncul
             silent: false,
-            vibrate: [200, 100, 200], // Clean 2-pulse Android vibration, prevents Chrome spam heuristic
+            vibrate: [200, 100, 200],
             timestamp: Date.now(),
             data: {
                 id: notifId,
@@ -389,39 +400,26 @@
             }
         };
 
-        let dispatched = false;
-
-        // Priority 1: Service Worker showNotification (Mandatory for Android Chrome)
+        // Jalur eksekusi tunggal: Cek Service Worker terlebih dahulu, fallback teratur tanpa race condition
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistration().then(function(reg) {
-                if (reg && reg.showNotification) {
-                    dispatched = true;
+            navigator.serviceWorker.ready.then(function(reg) {
+                if (reg && typeof reg.showNotification === 'function') {
                     return reg.showNotification(title, options);
-                } else if (isMobile) {
-                    return navigator.serviceWorker.ready.then(function(readyReg) {
-                        dispatched = true;
-                        return readyReg.showNotification(title, options);
-                    });
-                } else {
-                    spawnAdminDesktopNotification(title, options, item, targetUrl);
                 }
-            }).catch(function(err) {
-                console.debug('ServiceWorker admin showNotification fallback:', err);
-                if (!isMobile) spawnAdminDesktopNotification(title, options, item, targetUrl);
+                if (!isMobile) {
+                    spawnAdminDesktopNotification(title, options, targetUrl);
+                }
+            }).catch(function() {
+                if (!isMobile) {
+                    spawnAdminDesktopNotification(title, options, targetUrl);
+                }
             });
-        }
-
-        // Priority 2: Direct Notification Constructor for Windows 11 Desktop (Fast & Reliable)
-        if (!isMobile) {
-            setTimeout(function() {
-                if (!dispatched) {
-                    spawnAdminDesktopNotification(title, options, item, targetUrl);
-                }
-            }, 350);
+        } else if (!isMobile) {
+            spawnAdminDesktopNotification(title, options, targetUrl);
         }
     }
 
-    function spawnAdminDesktopNotification(title, options, item, targetUrl) {
+    function spawnAdminDesktopNotification(title, options, targetUrl) {
         try {
             const n = new Notification(title, options);
             n.onclick = function(e) {
@@ -521,7 +519,8 @@
         }, delaySeconds * 1000);
     };
 
-    let isDashPollerInitialized = false;
+    let isDashPollerInitialized = <?= $initialTopNotifId > 0 ? 'true' : 'false' ?>;
+    window.__lastAdminTopNotifId = <?= (int) $initialTopNotifId ?>;
 
     window.refreshNotificationBell = function() {
         fetch('<?= site_url('dashboard/sistem/notifikasi-api/feed') ?>', {
@@ -580,7 +579,7 @@
                         const newestItemId = parseInt(newestItem.id, 10) || 0;
 
                         if (isDashPollerInitialized) {
-                            if (newestItemId > (window.__lastAdminTopNotifId || 0)) {
+                            if (newestItemId > (window.__lastAdminTopNotifId || 0) && !newestItem.is_read) {
                                 playAdminChime();
                                 showAdminPushToast(newestItem);
                                 triggerAdminDesktopNotification(newestItem);
@@ -671,6 +670,13 @@
                 window.refreshNotificationBell();
             });
         }
+
+        // Segera refresh feed saat tab kembali aktif/dibuka dari latar belakang
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                window.refreshNotificationBell();
+            }
+        });
 
         // Tangani klik pada salah satu notifikasi di bar dropdown: auto mark as read
         document.addEventListener('click', function(e) {

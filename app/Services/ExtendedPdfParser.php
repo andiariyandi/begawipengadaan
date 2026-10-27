@@ -65,6 +65,14 @@ class ExtendedPdfParser extends PdfParser
         }
     }
 
+    /**
+     * Mendaftarkan objek tidak langsung hasil modifikasi (misal stream yang sudah dibersihkan dari {{placeholder}}).
+     */
+    public function setIndirectObject(int $objectNumber, PdfIndirectObject $object): void
+    {
+        $this->objects[$objectNumber] = $object;
+    }
+
     private function ensureCompressedXrefLoaded(): void
     {
         if ($this->compressedXrefEntries !== null) {

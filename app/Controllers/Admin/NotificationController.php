@@ -379,21 +379,20 @@ class NotificationController extends BaseController
     public function feed()
     {
         $userId = (int) (session()->get('user_id') ?: 0);
-        $authService = new \App\Services\Identity\AuthorizationService();
-        $isSuperAdmin = $authService->isSuperAdmin();
-        $roles = session()->get('roles') ?? [];
-        $isAdmin = $isSuperAdmin 
-            || in_array('super_administrator', $roles, true) 
-            || in_array('administrator', $roles, true);
+        if ($userId <= 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'unread'  => 0,
+                'items'   => [],
+            ]);
+        }
 
-        // Untuk lonceng notifikasi bar: HANYA tampilkan notifikasi yang BELUM dibaca (unread only)
-        $items = $isAdmin
-            ? $this->service->getRecentNotifications(5, true)
-            : ($userId > 0 ? $this->service->getUserNotifications($userId, 5, true) : $this->service->getRecentNotifications(5, true));
+        $roles = (array) (session()->get('roles') ?? []);
 
-        $unread = $isAdmin
-            ? $this->service->unreadCountAll()
-            : ($userId > 0 ? $this->service->unreadCount($userId) : $this->service->unreadCountAll());
+        // Gunakan getUserNotifications dengan user scope (notifikasi personal + shared pool yang berhak)
+        // Hal ini mencegah kebocoran notifikasi pribadi pengguna lain ke dashboard lonceng admin
+        $items  = $this->service->getUserNotifications($userId, 5, true, $roles);
+        $unread = $this->service->unreadCount($userId, $roles);
 
         $formattedItems = [];
         foreach ($items as $item) {

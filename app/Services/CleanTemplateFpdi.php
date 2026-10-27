@@ -48,6 +48,22 @@ class CleanTemplateFpdi extends Fpdi
         $groupXObject = true,
         $importExternalLinks = false
     ) {
+        if ($this->stripPlaceholders) {
+            try {
+                $reader     = $this->getPdfReader($this->currentReaderId);
+                $page       = $reader->getPage($pageNumber);
+                $parser     = $reader->getParser();
+                $resources  = $page->getAttribute('Resources');
+                $fontMaps   = $this->extractFontToUnicodeMaps($resources, $parser);
+                $fontWidths = $this->extractFontGlyphWidths($resources, $parser);
+
+                $service = new CertificatePdfPlaceholderService();
+                $this->cleanFormXObjectsInResources($resources, $parser, $service, $fontMaps, $fontWidths);
+            } catch (\Throwable $e) {
+                log_message('warning', 'CleanTemplateFpdi::importPage pre-clean warning: ' . $e->getMessage());
+            }
+        }
+
         $pageId = parent::importPage($pageNumber, $box, $groupXObject, $importExternalLinks);
 
         if ($this->stripPlaceholders && isset($this->importedPages[$pageId])) {
@@ -109,15 +125,25 @@ class CleanTemplateFpdi extends Fpdi
         $fontNames  = $this->extractFontBaseNames($resources, $parser);
         $fontWidths = $this->extractFontGlyphWidths($resources, $parser);
 
-        $streams = [
+        $pageStream = $page->getContentStream();
+        $streams    = [
             [
-                'content' => $page->getContentStream(),
+                'content' => $pageStream,
                 'ctm'     => [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
             ],
         ];
 
-        // Periksa juga bila ada teks di dalam Form XObject
-        $this->collectFormXObjectStreams($resources, $parser, $streams, $fontMaps, $fontNames, $fontWidths);
+        // Periksa juga bila ada teks di dalam Form XObject secara rekursif dengan pelacakan CTM
+        $this->collectFormXObjectStreams(
+            $pageStream,
+            [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+            $resources,
+            $parser,
+            $streams,
+            $fontMaps,
+            $fontNames,
+            $fontWidths
+        );
 
         return [
             'width_pt'        => $widthPt,
@@ -330,6 +356,8 @@ class CleanTemplateFpdi extends Fpdi
     }
 
     private function collectFormXObjectStreams(
+        string $parentStream,
+        array $parentCtm,
         ?PdfType $resources,
         PdfParser $parser,
         array &$streams,
@@ -338,7 +366,7 @@ class CleanTemplateFpdi extends Fpdi
         array &$fontWidths,
         int $depth = 0
     ): void {
-        if ($resources === null || $depth > 3) {
+        if ($resources === null || $depth > 4) {
             return;
         }
 
@@ -353,7 +381,9 @@ class CleanTemplateFpdi extends Fpdi
                 return;
             }
 
-            foreach ($xobjDict->value as $xRef) {
+            $doCtmMap = $this->parseDoInvocations($parentStream, $parentCtm);
+
+            foreach ($xobjDict->value as $name => $xRef) {
                 $xObj = PdfType::resolve($xRef, $parser);
                 if (! ($xObj instanceof PdfStream)) {
                     continue;
@@ -365,6 +395,17 @@ class CleanTemplateFpdi extends Fpdi
                     continue;
                 }
 
+                $invokedCtm = $doCtmMap[$name] ?? $parentCtm;
+                if (isset($xObj->value->value['Matrix'])) {
+                    $mRes = PdfType::resolve($xObj->value->value['Matrix'], $parser);
+                    if ($mRes instanceof PdfArray) {
+                        $mArr = array_map(static fn ($v) => (float) $v->value, $mRes->value);
+                        if (count($mArr) === 6) {
+                            $invokedCtm = $this->multiplyMatrix($mArr, $invokedCtm);
+                        }
+                    }
+                }
+
                 $subRes = $xObj->value->value['Resources'] ?? null;
                 if ($subRes !== null) {
                     $fontMaps   = array_merge($fontMaps, $this->extractFontToUnicodeMaps($subRes, $parser));
@@ -372,15 +413,96 @@ class CleanTemplateFpdi extends Fpdi
                     $fontWidths = array_merge($fontWidths, $this->extractFontGlyphWidths($subRes, $parser));
                 }
 
-                $streams[] = [
-                    'content' => $xObj->getUnfilteredStream(),
-                    'ctm'     => [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                $unfiltered = $xObj->getUnfilteredStream();
+                $streams[]  = [
+                    'content' => $unfiltered,
+                    'ctm'     => $invokedCtm,
                 ];
 
-                $this->collectFormXObjectStreams($subRes, $parser, $streams, $fontMaps, $fontNames, $fontWidths, $depth + 1);
+                $this->collectFormXObjectStreams(
+                    $unfiltered,
+                    $invokedCtm,
+                    $subRes,
+                    $parser,
+                    $streams,
+                    $fontMaps,
+                    $fontNames,
+                    $fontWidths,
+                    $depth + 1
+                );
             }
         } catch (\Throwable) {
         }
+    }
+
+    /**
+     * Perkalian matriks transformasi affine 2D [a, b, c, d, e, f].
+     *
+     * @param array<int, float> $m1
+     * @param array<int, float> $m2
+     * @return array<int, float>
+     */
+    private function multiplyMatrix(array $m1, array $m2): array
+    {
+        return [
+            $m1[0] * $m2[0] + $m1[1] * $m2[2],
+            $m1[0] * $m2[1] + $m1[1] * $m2[3],
+            $m1[2] * $m2[0] + $m1[3] * $m2[2],
+            $m1[2] * $m2[1] + $m1[3] * $m2[3],
+            $m1[4] * $m2[0] + $m1[5] * $m2[2] + $m2[4],
+            $m1[4] * $m2[1] + $m1[5] * $m2[3] + $m2[5],
+        ];
+    }
+
+    /**
+     * Melacak status grafik (q, Q, cm) dan memetakan CTM aktif saat operator /XName Do dipanggil.
+     *
+     * @param array<int, float> $initialCtm
+     * @return array<string, array<int, float>>
+     */
+    private function parseDoInvocations(string $stream, array $initialCtm): array
+    {
+        $ctm      = $initialCtm;
+        $ctmStack = [];
+        $tokens   = preg_split('/(\s+|(?=[<>()\/\[\]])|(?<=[<>()\/\[\]]))/', $stream, -1, PREG_SPLIT_NO_EMPTY);
+        $operands = [];
+        $doCtmMap = [];
+
+        foreach ($tokens as $token) {
+            $token = trim($token);
+            if ($token === '') {
+                continue;
+            }
+
+            if ($token === 'q') {
+                $ctmStack[] = $ctm;
+                $operands   = [];
+            } elseif ($token === 'Q') {
+                if (! empty($ctmStack)) {
+                    $ctm = array_pop($ctmStack);
+                }
+                $operands = [];
+            } elseif ($token === 'cm') {
+                if (count($operands) >= 6) {
+                    $vals     = array_slice($operands, -6);
+                    $m        = array_map('floatval', $vals);
+                    $ctm      = $this->multiplyMatrix($m, $ctm);
+                }
+                $operands = [];
+            } elseif ($token === 'Do') {
+                if (! empty($operands)) {
+                    $xName           = ltrim((string) end($operands), '/');
+                    $doCtmMap[$xName] = $ctm;
+                }
+                $operands = [];
+            } elseif (in_array($token, ['BT', 'ET', 'm', 'l', 'c', 're', 'f', 'S', 's', 'B', 'b', 'W', 'W*', 'n', 'RG', 'rg', 'gs', 'BMC', 'BDC', 'EMC'], true)) {
+                $operands = [];
+            } else {
+                $operands[] = $token;
+            }
+        }
+
+        return $doCtmMap;
     }
 
     private function cleanFormXObjectsInResources(
@@ -433,10 +555,20 @@ class CleanTemplateFpdi extends Fpdi
                     unset($dict->value['DecodeParms']);
 
                     $newStream = PdfStream::create($dict, $compressed);
+                    $objNum    = ($xRef instanceof \setasign\Fpdi\PdfParser\Type\PdfIndirectObjectReference) ? (int) $xRef->value : 0;
+
                     if ($indObj instanceof PdfIndirectObject) {
                         $indObj->value = $newStream;
+                        if ($objNum === 0) {
+                            $objNum = (int) $indObj->objectNumber;
+                        }
                     } else {
+                        $indObj                = PdfIndirectObject::create($objNum, 0, $newStream);
                         $xobjDict->value[$key] = $newStream;
+                    }
+
+                    if ($objNum > 0 && $parser instanceof ExtendedPdfParser) {
+                        $parser->setIndirectObject($objNum, $indObj);
                     }
                 }
 

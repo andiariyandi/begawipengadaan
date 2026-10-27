@@ -282,6 +282,9 @@ class NotificationService
      */
     public function applyUserScope(\CodeIgniter\Database\BaseBuilder $builder, int $userId, ?array $roles = null): \CodeIgniter\Database\BaseBuilder
     {
+        // 1. Kecualikan seluruh antrean email dari notifikasi in-app
+        $builder->where('notifications.channel !=', 'email');
+
         $channels = $this->getVisibleChannelsForUser($userId, $roles);
 
         if (empty($channels)) {
@@ -292,9 +295,22 @@ class NotificationService
                 ->orWhere('notifications.channel IS NULL')
                 ->groupEnd();
         } else {
-            // Pengguna dengan hak akses khusus (Admin, Operator, Trainer) melihat notifikasi personal + pool bersama
+            // Pengguna dengan hak akses khusus (Admin, Operator, Trainer)
+            // HANYA melihat:
+            // 1) Notifikasi personal miliknya sendiri (user_id = $userId DAN bukan kanal shared)
+            // 2) ATAU notifikasi shared pool yang sah dalam wewenang perannya
+            $builder->groupStart();
+
+            // Notifikasi personal milik user bersangkutan
             $builder->groupStart()
-                ->where('notifications.user_id', $userId);
+                ->where('notifications.user_id', $userId)
+                ->groupStart()
+                ->where('notifications.channel NOT LIKE', 'shared:%')
+                ->orWhere('notifications.channel IS NULL')
+                ->groupEnd()
+                ->groupEnd();
+
+            // Ditambah kanal shared pool yang sah dalam wewenang perannya
             foreach ($channels as $chan) {
                 if (str_ends_with($chan, '%')) {
                     $builder->orLike('notifications.channel', substr($chan, 0, -1), 'after');
@@ -341,7 +357,8 @@ class NotificationService
     {
         $builder = $this->db->table('notifications')
             ->select('notifications.*, users.name as user_name, users.email as user_email')
-            ->join('users', 'users.id = notifications.user_id', 'left');
+            ->join('users', 'users.id = notifications.user_id', 'left')
+            ->where('notifications.channel !=', 'email');
 
         if ($onlyUnread) {
             $builder->where('notifications.read_at IS NULL', null, false);
@@ -507,6 +524,7 @@ class NotificationService
     public function unreadCountAll(): int
     {
         return $this->db->table('notifications')
+            ->where('channel !=', 'email')
             ->where('read_at IS NULL', null, false)
             ->countAllResults();
     }
