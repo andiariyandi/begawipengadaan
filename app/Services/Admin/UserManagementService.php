@@ -172,6 +172,15 @@ class UserManagementService
                 $originType = 'pemprov_lampung';
             }
 
+            $asnInstitution = trim((string) ($data['asn_institution_name'] ?? $data['institution_name'] ?? ''));
+            // Sanitasi: jika ASN bertipe pemprov_lampung tapi terkirim 'Universitas Lampung' akibat tabrakan input profil akademik
+            if ($originType === 'pemprov_lampung' && ($asnInstitution === '' || $asnInstitution === 'Universitas Lampung')) {
+                $asnInstitution = 'Pemerintah Provinsi Lampung';
+            }
+            if ($asnInstitution === '') {
+                $asnInstitution = 'Pemerintah Provinsi Lampung';
+            }
+
             $specificData = [
                 'employee_identifier'  => trim((string) ($data['employee_identifier'] ?? $data['nip'] ?? '')),
                 'organization_unit_id' => $orgUnitId,
@@ -180,7 +189,7 @@ class UserManagementService
                 'rank_grade'           => trim((string) ($data['rank_grade'] ?? '')) ?: null,
                 'employment_status'    => trim((string) ($data['employment_status'] ?? 'pns')) ?: 'pns',
                 'origin_type'          => $originType,
-                'institution_name'     => trim((string) ($data['institution_name'] ?? 'Pemerintah Provinsi Lampung')) ?: 'Pemerintah Provinsi Lampung',
+                'institution_name'     => $asnInstitution,
                 'official_email'       => trim((string) ($data['official_email'] ?? '')) ?: null,
             ];
         } elseif ($targetProfileType === 'provider') {
@@ -204,7 +213,7 @@ class UserManagementService
             }
 
             $specificData = [
-                'institution_name'        => trim((string) ($data['institution_name'] ?? 'Perguruan Tinggi')) ?: 'Perguruan Tinggi',
+                'institution_name'        => trim((string) ($data['academic_institution_name'] ?? $data['institution_name'] ?? 'Perguruan Tinggi')) ?: 'Perguruan Tinggi',
                 'institution_type'        => trim((string) ($data['institution_type'] ?? 'Perguruan Tinggi Negeri')) ?: 'Perguruan Tinggi Negeri',
                 'role_name'               => trim((string) ($data['role_name'] ?? 'Dosen')) ?: 'Dosen',
                 'expertise'               => $expertise ?: null,

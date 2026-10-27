@@ -310,8 +310,8 @@ $currentProfileType = old('profile_type', $user['profile_type'] ?? 'asn');
                         <label class="form-label fw-semibold text-primary-light text-sm mb-8">
                             Nama Lembaga / Instansi Induk
                         </label>
-                        <input name="institution_name" type="text" class="form-control radius-8"
-                               value="<?= esc(old('institution_name', $asnProfile['institution_name'] ?? 'Pemerintah Provinsi Lampung')) ?>"
+                        <input name="asn_institution_name" id="asn_input_institution_name" type="text" class="form-control radius-8"
+                               value="<?= esc(old('asn_institution_name', $asnProfile['institution_name'] ?? 'Pemerintah Provinsi Lampung')) ?>"
                                placeholder="Pemerintah Provinsi Lampung">
                     </div>
 
@@ -464,8 +464,8 @@ $currentProfileType = old('profile_type', $user['profile_type'] ?? 'asn');
                         <label class="form-label fw-semibold text-primary-light text-sm mb-8">
                             Nama Universitas / Institusi Pendidikan
                         </label>
-                        <input name="institution_name" type="text" class="form-control radius-8"
-                               value="<?= esc(old('institution_name', $academicProfile['institution_name'] ?? 'Universitas Lampung')) ?>"
+                        <input name="academic_institution_name" id="academic_input_institution_name" type="text" class="form-control radius-8"
+                               value="<?= esc(old('academic_institution_name', $academicProfile['institution_name'] ?? '')) ?>"
                                placeholder="Universitas Lampung / Itera...">
                     </div>
 
@@ -741,11 +741,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const selected = type || 'asn';
         for (const [key, section] of Object.entries(sections)) {
             if (section) {
-                if (key === selected) {
+                const isActive = (key === selected);
+                if (isActive) {
                     section.classList.remove('d-none');
                 } else {
                     section.classList.add('d-none');
                 }
+                // Nonaktifkan form control pada section yang disembunyikan
+                // agar nilainya tidak terkirim dan tidak menimpa data profile type lain!
+                const controls = section.querySelectorAll('input, select, textarea');
+                controls.forEach(ctrl => {
+                    ctrl.disabled = !isActive;
+                });
             }
         }
         if (badgeEl) {
