@@ -95,12 +95,25 @@
                             </td>
                             <td>
                                 <?php if ($hasBg): ?>
-                                    <span class="badge bg-success-50 text-success-600 px-8 py-4 radius-4 text-xs fw-semibold d-inline-flex align-items-center gap-1">
+                                    <span class="badge bg-success-50 text-success-600 px-8 py-3 radius-4 text-xs fw-semibold d-inline-flex align-items-center gap-1 mb-1">
                                         <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Desain Terpasang
                                     </span>
                                 <?php else: ?>
-                                    <span class="badge bg-neutral-100 text-neutral-600 px-8 py-4 radius-4 text-xs fw-medium">
-                                        Standar (Tanpa Background)
+                                    <span class="badge bg-neutral-100 text-neutral-600 px-8 py-3 radius-4 text-xs fw-medium d-block mb-1">
+                                        Standar (Polos)
+                                    </span>
+                                <?php endif; ?>
+                                <?php
+                                $payloadRow = json_decode((string) ($row['template_payload'] ?? ''), true) ?: [];
+                                $tteModeRow = $payloadRow['tte_mode'] ?? 'visual_qr';
+                                ?>
+                                <?php if ($tteModeRow === 'cryptographic_pades'): ?>
+                                    <span class="badge bg-primary-50 text-primary-700 px-8 py-3 radius-4 text-2xs fw-bold d-inline-flex align-items-center gap-1" title="TTE Kriptografis PDF (PAdES / PKCS#7 Anti-Tamper)">
+                                        <iconify-icon icon="solar:shield-check-bold"></iconify-icon> TTE PAdES
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-neutral-100 text-neutral-600 px-8 py-3 radius-4 text-2xs fw-medium d-inline-flex align-items-center gap-1" title="TTE Visual & QR Kriptografis">
+                                        <iconify-icon icon="solar:qr-code-bold"></iconify-icon> TTE Visual
                                     </span>
                                 <?php endif; ?>
                             </td>

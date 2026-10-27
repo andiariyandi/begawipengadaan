@@ -94,6 +94,37 @@ class CertificateGenerator
         return sprintf('SERT-%s/%s-%d/05/%d', $seqFormatted, $tipeCode, $targetId, $year);
     }
 
+    /**
+     * Standardize learning / event delivery method into strictly: 'Daring', 'Luring', or 'Hybrid'.
+     */
+    public static function standardizeMethod(?string $raw): string
+    {
+        $clean = strtolower(trim((string) $raw));
+        if ($clean === '') {
+            return 'Daring';
+        }
+
+        if (
+            str_contains($clean, 'hybrid')
+            || str_contains($clean, 'blended')
+            || str_contains($clean, 'campuran')
+        ) {
+            return 'Hybrid';
+        }
+
+        if (
+            str_contains($clean, 'luring')
+            || str_contains($clean, 'offline')
+            || str_contains($clean, 'tatap_muka')
+            || str_contains($clean, 'tatap muka')
+            || str_contains($clean, 'klasikal')
+        ) {
+            return 'Luring';
+        }
+
+        return 'Daring';
+    }
+
     private ConnectionInterface $db;
     private CertificateModel $certificateModel;
     private CertificateSequenceModel $sequenceModel;
@@ -405,6 +436,12 @@ class CertificateGenerator
             // PDF render (mendukung overlay background PDF & template gambar)
             $pdfBytes = $this->pdfGenerator->generate($html, $template);
 
+            // Opsi 2: Jika template mengonfigurasi TTE Kriptografis PDF (PAdES / PKCS#7)
+            $tplPayload = $this->templateRenderer->decodePayload($template['template_payload'] ?? null);
+            if (($tplPayload['tte_mode'] ?? 'visual_qr') === 'cryptographic_pades') {
+                $pdfBytes = (new DigitalSignatureService())->signPdfCryptographic($pdfBytes, $certificateData);
+            }
+
             // Persist PDF as file_assets
             $pdfFileId = $this->persistPdfAsset($certificateId, $certNumber, $pdfBytes, $actorId);
 
@@ -476,8 +513,12 @@ class CertificateGenerator
                     'e.passed_at',
                     'e.enrolled_at',
                     'lc.name AS class_name',
+                    'lc.code AS class_code',
+                    'lc.learning_method',
+                    'lc.location_or_link',
                     'lc.course_id',
                     'co.title AS course_title',
+                    'co.level AS course_level',
                     'co.duration_minutes',
                     'p.id AS program_id',
                     'p.title AS program_title',
@@ -520,8 +561,18 @@ class CertificateGenerator
                 'title'              => (string) ($enrollment['course_title'] ?? 'Sertifikat Arena Belajar PBJ'),
                 'subtitle'           => (string) ($enrollment['class_name'] ?? ''),
                 'program_title'      => (string) ($enrollment['program_title'] ?? ''),
+                'nama_program'       => (string) ($enrollment['program_title'] ?? ''),
                 'course_title'       => (string) ($enrollment['course_title'] ?? ''),
                 'class_name'         => (string) ($enrollment['class_name'] ?? ''),
+                'kode_kelas'         => (string) ($enrollment['class_code'] ?? '—'),
+                'class_code'         => (string) ($enrollment['class_code'] ?? '—'),
+                'tingkat_kursus'     => (string) ($enrollment['course_level'] ?? 'Tingkat Dasar'),
+                'course_level'       => (string) ($enrollment['course_level'] ?? 'Tingkat Dasar'),
+                'level'              => (string) ($enrollment['course_level'] ?? 'Tingkat Dasar'),
+                'lokasi_kegiatan'    => (string) ($enrollment['location_or_link'] ?: 'Portal Belajar PBJ BegawiPengadaan'),
+                'location'           => (string) ($enrollment['location_or_link'] ?: 'Portal Belajar PBJ BegawiPengadaan'),
+                'metode_kegiatan'    => self::standardizeMethod($enrollment['learning_method'] ?? null),
+                'learning_method'    => self::standardizeMethod($enrollment['learning_method'] ?? null),
                 'activity_type'      => 'Arena Belajar PBJ',
                 'tipe_kegiatan'      => 'Arena Belajar',
                 'kode_tipe'          => 'AB',
@@ -546,6 +597,7 @@ class CertificateGenerator
                     'ev.title AS event_title',
                     'ev.type AS event_type',
                     'ev.mode AS event_mode',
+                    'ev.location AS event_location',
                     'ev.start_at AS event_start_at',
                     'ev.end_at AS event_end_at',
                     'a.status AS attendance_status',
@@ -575,6 +627,10 @@ class CertificateGenerator
                 default       => 'Event / Agenda PBJ',
             };
 
+            $modeLabel = self::standardizeMethod($registration['event_mode'] ?? null);
+
+            $location = (string) ($registration['event_location'] ?: ($registration['event_mode'] === 'online' ? 'Online Video Conference' : 'Provinsi Lampung'));
+
             return array_merge($profile, [
                 'source_type'       => 'event_registration',
                 'source_id'         => (int) $registration['id'],
@@ -588,6 +644,10 @@ class CertificateGenerator
                 'tipe_kegiatan'     => $typeLabel,
                 'kode_tipe'         => $tipeCode,
                 'id_kegiatan'       => (int) ($registration['event_id'] ?? 1),
+                'lokasi_kegiatan'   => $location,
+                'location'          => $location,
+                'metode_kegiatan'   => $modeLabel,
+                'event_mode'        => $modeLabel,
                 'event_start_at'    => $registration['event_start_at'] ?? null,
                 'event_end_at'      => $registration['event_end_at'] ?? null,
                 'attendance_status' => $registration['attendance_status'] ?? null,
@@ -628,6 +688,8 @@ class CertificateGenerator
                     'er.user_id',
                     'ev.title AS event_title',
                     'ev.type AS event_type',
+                    'ev.mode AS event_mode',
+                    'ev.location AS event_location',
                     'ev.start_at AS event_start_at',
                     'ev.end_at AS event_end_at',
                 ])
@@ -652,6 +714,10 @@ class CertificateGenerator
                     default       => 'Event PBJ',
                 };
 
+                $modeLabel = self::standardizeMethod($registration['event_mode'] ?? null);
+
+                $location = (string) ($registration['event_location'] ?: ($registration['event_mode'] === 'online' ? 'Online Video Conference' : 'Provinsi Lampung'));
+
                 return array_merge($profile, [
                     'source_type'       => 'event_registration',
                     'source_id'         => (int) $registration['id'],
@@ -663,6 +729,12 @@ class CertificateGenerator
                     'tipe_kegiatan'     => $typeLabel,
                     'kode_tipe'         => $tipeCode,
                     'id_kegiatan'       => (int) ($registration['event_id'] ?? 1),
+                    'lokasi_kegiatan'   => $location,
+                    'location'          => $location,
+                    'metode_kegiatan'   => $modeLabel,
+                    'event_mode'        => $modeLabel,
+                    'event_start_at'    => $registration['event_start_at'] ?? null,
+                    'event_end_at'      => $registration['event_end_at'] ?? null,
                     'jam_pelajaran'     => '4 JP',
                     'jp'                => '4 JP',
                     'duration_minutes'  => 0,
@@ -683,8 +755,12 @@ class CertificateGenerator
                     'e.completed_at',
                     'e.passed_at',
                     'lc.name AS class_name',
+                    'lc.code AS class_code',
+                    'lc.learning_method',
+                    'lc.location_or_link',
                     'co.id AS course_id',
                     'co.title AS course_title',
+                    'co.level AS course_level',
                     'co.duration_minutes',
                     'p.id AS program_id',
                     'p.title AS program_title',
@@ -712,12 +788,26 @@ class CertificateGenerator
                     'user_id'            => (int) $enrollment['user_id'],
                     'title'              => (string) ($enrollment['course_title'] ?? 'Sertifikat Pembelajaran'),
                     'subtitle'           => (string) ($enrollment['class_name'] ?? ''),
+                    'program_title'      => (string) ($enrollment['program_title'] ?? ''),
+                    'nama_program'       => (string) ($enrollment['program_title'] ?? ''),
+                    'course_title'       => (string) ($enrollment['course_title'] ?? ''),
+                    'class_name'         => (string) ($enrollment['class_name'] ?? ''),
+                    'kode_kelas'         => (string) ($enrollment['class_code'] ?? '—'),
+                    'class_code'         => (string) ($enrollment['class_code'] ?? '—'),
+                    'tingkat_kursus'     => (string) ($enrollment['course_level'] ?? 'Tingkat Dasar'),
+                    'course_level'       => (string) ($enrollment['course_level'] ?? 'Tingkat Dasar'),
+                    'level'              => (string) ($enrollment['course_level'] ?? 'Tingkat Dasar'),
+                    'lokasi_kegiatan'    => (string) ($enrollment['location_or_link'] ?: 'Portal Belajar PBJ BegawiPengadaan'),
+                    'location'           => (string) ($enrollment['location_or_link'] ?: 'Portal Belajar PBJ BegawiPengadaan'),
+                    'metode_kegiatan'    => self::standardizeMethod($enrollment['learning_method'] ?? null),
+                    'learning_method'    => self::standardizeMethod($enrollment['learning_method'] ?? null),
                     'activity_type'      => 'Arena Belajar PBJ',
                     'tipe_kegiatan'      => 'Arena Belajar',
                     'kode_tipe'          => 'AB',
                     'id_kegiatan'        => (int) ($enrollment['class_id'] ?? 1),
                     'jam_pelajaran'      => $jpVal . ' JP',
                     'jp'                 => $jpVal . ' JP',
+                    'duration_minutes'   => $durationMinutes,
                     'final_score'        => $finalScore !== null ? number_format($finalScore, 1, ',', '.') : '—',
                     'predicate'          => 'Lulus',
                 ]);
@@ -749,24 +839,218 @@ class CertificateGenerator
     }
 
     /**
-     * Look up profil pengguna (ASN profile / User) untuk kelengkapan identitas sertifikat.
+     * Look up profil pengguna dengan deteksi otomatis multi-profil:
+     * ASN (PNS & PPPK), Pelaku Usaha / Penyedia, Akademisi / Kampus, dan Masyarakat Umum / Praktisi PBJ.
      *
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     private function lookupUserProfile(int $userId): array
     {
         $user = $this->db->table('users')->where('id', $userId)->get()->getRowArray() ?: [];
-        $asn  = $this->db->table('asn_profiles')->where('user_id', $userId)->get()->getRowArray() ?: [];
+        $profileType = strtolower(trim((string) ($user['profile_type'] ?? '')));
 
+        $name  = (string) ($user['name'] ?? ('Peserta #' . $userId));
+        $email = (string) ($user['email'] ?? '');
+        $phone = (string) ($user['phone'] ?? '');
+
+        // 1. Cek ASN Profile (PNS & PPPK)
+        $asn = null;
+        if ($profileType === 'asn' || $profileType === '') {
+            $asn = $this->db->table('asn_profiles')->where('user_id', $userId)->get()->getRowArray();
+        }
+
+        if (! empty($asn)) {
+            $empStatus = strtolower(trim((string) ($asn['employment_status'] ?? 'pns')));
+            $isPppk    = in_array($empStatus, ['pppk', 'p3k'], true);
+            $idLabel   = $isPppk ? 'NI-PPK' : 'NIP';
+            $idNumber  = (string) ($asn['employee_identifier'] ?? '');
+            // Penanganan instansi cerdas untuk ASN Pemprov Lampung maupun Luar Daerah (Kementerian/Lembaga/Pemda Lain)
+            $originType = (string) ($asn['origin_type'] ?? 'pemprov_lampung');
+            $fallbackInstansi = match ($originType) {
+                'kementerian_lembaga'    => 'Kementerian / Lembaga RI',
+                'pemerintah_daerah_lain' => 'Pemerintah Daerah Luar Provinsi',
+                'pemerintah_desa'        => 'Pemerintah Desa',
+                'bumn_bumd'              => 'BUMN / BUMD',
+                default                  => 'Pemerintah Provinsi Lampung',
+            };
+            $instansi  = trim((string) ($asn['institution_name'] ?? '')) ?: $fallbackInstansi;
+            $unit      = trim((string) ($asn['unit_name'] ?? '')) ?: $instansi;
+            $jabatan   = (string) ($asn['position_name'] ?: ($isPppk ? 'PPPK' : 'Pegawai Negeri Sipil'));
+            $rankGrade = (string) ($asn['rank_grade'] ?? '');
+            $tipeLabel = $isPppk ? 'Pegawai Pemerintah dengan Perjanjian Kerja (PPPK)' : 'Aparatur Sipil Negara (PNS)';
+
+            return [
+                'user_name'         => $name,
+                'user_email'        => $email,
+                'user_phone'        => $phone,
+                'profile_type'      => 'asn',
+                'tipe_peserta'      => $tipeLabel,
+                'identity_label'    => $idLabel,
+                'identity_number'   => $idNumber,
+                'nip'               => $idNumber,
+                'ni_ppk'            => $isPppk ? $idNumber : '',
+                'nik'               => '',
+                'nib'               => '',
+                'nidn'              => '',
+                'institution_label' => 'Instansi',
+                'institution_name'  => $instansi,
+                'instansi'          => $instansi,
+                'unit_name'         => $unit,
+                'unit_kerja'        => $unit,
+                'position_name'     => $jabatan,
+                'jabatan'           => $jabatan,
+                'rank_grade'        => $rankGrade,
+                'pangkat_golongan'  => $rankGrade,
+                'business_name'     => '',
+                'campus_name'       => '',
+            ];
+        }
+
+        // 2. Cek Provider Profile (Pelaku Usaha / Badan Usaha / Rekanan PBJ)
+        $provider = null;
+        if ($profileType === 'provider' || $profileType === '') {
+            $provider = $this->db->table('provider_profiles')->where('user_id', $userId)->get()->getRowArray();
+        }
+
+        if (! empty($provider)) {
+            $idNumber = (string) ($provider['business_identifier'] ?? '');
+            $company  = (string) ($provider['business_name'] ?: 'Badan Usaha / Penyedia');
+            $bForm    = trim((string) ($provider['business_form'] ?? ''));
+            $bField   = trim((string) ($provider['business_field'] ?? ''));
+            $unit     = trim($bForm . ' ' . $bField) ?: $company;
+            $jabatan  = (string) ($provider['registrant_position'] ?: ($provider['responsible_person'] ? 'Penanggung Jawab' : 'Pelaku Usaha'));
+
+            return [
+                'user_name'         => $name,
+                'user_email'        => $email,
+                'user_phone'        => $phone,
+                'profile_type'      => 'provider',
+                'tipe_peserta'      => 'Pelaku Usaha / Penyedia Pengadaan',
+                'identity_label'    => 'NIB',
+                'identity_number'   => $idNumber,
+                'nip'               => $idNumber, // Auto-fallback cerdas bila template lama memakai {{nip}}
+                'ni_ppk'            => '',
+                'nik'               => '',
+                'nib'               => $idNumber,
+                'nidn'              => '',
+                'institution_label' => 'Perusahaan / Badan Usaha',
+                'institution_name'  => $company,
+                'instansi'          => $company,
+                'unit_name'         => $unit,
+                'unit_kerja'        => $unit,
+                'position_name'     => $jabatan,
+                'jabatan'           => $jabatan,
+                'rank_grade'        => '',
+                'pangkat_golongan'  => '',
+                'business_name'     => $company,
+                'campus_name'       => '',
+            ];
+        }
+
+        // 3. Cek Academic Profile (Perguruan Tinggi / Dosen / Mahasiswa)
+        $academic = null;
+        if ($profileType === 'academic' || $profileType === '') {
+            $academic = $this->db->table('academic_profiles')->where('user_id', $userId)->get()->getRowArray();
+        }
+
+        if (! empty($academic)) {
+            $idNumber = (string) ($academic['professional_identifier'] ?? '');
+            $role     = (string) ($academic['role_name'] ?: 'Akademisi');
+            $isMhs    = str_contains(strtolower($role), 'mahasiswa');
+            $idLabel  = $isMhs ? 'NIM' : 'NIDN';
+            $campus   = (string) ($academic['institution_name'] ?: 'Perguruan Tinggi');
+            $unit     = (string) ($academic['institution_type'] ?: 'Fakultas / Program Studi');
+
+            return [
+                'user_name'         => $name,
+                'user_email'        => $email,
+                'user_phone'        => $phone,
+                'profile_type'      => 'academic',
+                'tipe_peserta'      => 'Akademisi / Civitas Perguruan Tinggi',
+                'identity_label'    => $idLabel,
+                'identity_number'   => $idNumber,
+                'nip'               => $idNumber, // Auto-fallback cerdas bila template lama memakai {{nip}}
+                'ni_ppk'            => '',
+                'nik'               => '',
+                'nib'               => '',
+                'nidn'              => $idNumber,
+                'institution_label' => 'Perguruan Tinggi',
+                'institution_name'  => $campus,
+                'instansi'          => $campus,
+                'unit_name'         => $unit,
+                'unit_kerja'        => $unit,
+                'position_name'     => $role,
+                'jabatan'           => $role,
+                'rank_grade'        => '',
+                'pangkat_golongan'  => '',
+                'business_name'     => '',
+                'campus_name'       => $campus,
+            ];
+        }
+
+        // 4. Cek Public Profile (Masyarakat Umum / Praktisi PBJ)
+        $public = null;
+        if ($profileType === 'public' || $profileType === '') {
+            $public = $this->db->table('public_profiles')->where('user_id', $userId)->get()->getRowArray();
+        }
+
+        if (! empty($public)) {
+            $idNumber = (string) ($public['national_identifier'] ?? '');
+            $org      = (string) ($public['organization_name'] ?: 'Masyarakat Umum / Praktisi PBJ');
+            $occup    = (string) ($public['occupation_status'] ?: 'Praktisi Pengadaan');
+
+            return [
+                'user_name'         => $name,
+                'user_email'        => $email,
+                'user_phone'        => $phone,
+                'profile_type'      => 'public',
+                'tipe_peserta'      => 'Masyarakat Umum / Praktisi PBJ',
+                'identity_label'    => 'NIK',
+                'identity_number'   => $idNumber,
+                'nip'               => $idNumber, // Auto-fallback cerdas bila template lama memakai {{nip}}
+                'ni_ppk'            => '',
+                'nik'               => $idNumber,
+                'nib'               => '',
+                'nidn'              => '',
+                'institution_label' => 'Instansi / Organisasi',
+                'institution_name'  => $org,
+                'instansi'          => $org,
+                'unit_name'         => $org,
+                'unit_kerja'        => $org,
+                'position_name'     => $occup,
+                'jabatan'           => $occup,
+                'rank_grade'        => '',
+                'pangkat_golongan'  => '',
+                'business_name'     => '',
+                'campus_name'       => '',
+            ];
+        }
+
+        // 5. Fallback Default bila belum memiliki catatan profil spesifik
         return [
-            'user_name'        => (string) ($user['name'] ?? ('Peserta #' . $userId)),
-            'user_email'       => (string) ($user['email'] ?? ''),
-            'user_phone'       => (string) ($user['phone'] ?? ''),
-            'nip'              => (string) ($asn['employee_identifier'] ?? ''),
-            'institution_name' => (string) ($asn['institution_name'] ?? 'Pemerintah Provinsi Lampung'),
-            'unit_name'        => (string) ($asn['unit_name'] ?? ''),
-            'position_name'    => (string) ($asn['position_name'] ?? ''),
-            'rank_grade'       => (string) ($asn['rank_grade'] ?? ''),
+            'user_name'         => $name,
+            'user_email'        => $email,
+            'user_phone'        => $phone,
+            'profile_type'      => 'public',
+            'tipe_peserta'      => 'Peserta Pengadaan',
+            'identity_label'    => 'No. Identitas',
+            'identity_number'   => '—',
+            'nip'               => '—',
+            'ni_ppk'            => '',
+            'nik'               => '',
+            'nib'               => '',
+            'nidn'              => '',
+            'institution_label' => 'Instansi / Organisasi',
+            'institution_name'  => 'Pemerintah Provinsi Lampung',
+            'instansi'          => 'Pemerintah Provinsi Lampung',
+            'unit_name'         => 'Pemerintah Provinsi Lampung',
+            'unit_kerja'        => 'Pemerintah Provinsi Lampung',
+            'position_name'     => 'Peserta',
+            'jabatan'           => 'Peserta',
+            'rank_grade'        => '',
+            'pangkat_golongan'  => '',
+            'business_name'     => '',
+            'campus_name'       => '',
         ];
     }
 

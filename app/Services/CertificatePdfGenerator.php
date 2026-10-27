@@ -59,6 +59,13 @@ class CertificatePdfGenerator
         $dompdf->setPaper('A4', 'landscape');
         $dompdf->render();
 
+        // Injeksi Metadata TTE & Keamanan Dokumen setelah render (sesuai spesifikasi Dompdf canvas)
+        $dompdf->addInfo('Title', 'Sertifikat Kelulusan Resmi PBJ — BegawiPengadaan');
+        $dompdf->addInfo('Author', 'Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa');
+        $dompdf->addInfo('Subject', 'Dokumen Sertifikat Digital Ber-Tanda Tangan Elektronik');
+        $dompdf->addInfo('Keywords', 'TTE, BegawiPengadaan, Sertifikat Digital, PBJ, Pemprov Lampung');
+        $dompdf->addInfo('Creator', 'BegawiPengadaan Electronic Signature System');
+
         $output = $dompdf->output();
         if (! is_string($output) || $output === '') {
             throw new RuntimeException('PDF generator tidak menghasilkan output.');
@@ -126,6 +133,13 @@ class CertificatePdfGenerator
             $fpdi->setSourceFile(StreamReader::createByString($overlayPdfBytes));
             $overlayTplId = $fpdi->importPage(1);
             $fpdi->useTemplate($overlayTplId, 0, 0, $widthMm, $heightMm);
+
+            // Injeksi Metadata TTE & Keamanan Dokumen ke FPDI
+            $fpdi->SetTitle('Sertifikat Kelulusan Resmi PBJ — BegawiPengadaan');
+            $fpdi->SetAuthor('Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa');
+            $fpdi->SetSubject('Dokumen Sertifikat Digital Ber-Tanda Tangan Elektronik');
+            $fpdi->SetKeywords('TTE, BegawiPengadaan, Sertifikat Digital, PBJ, Pemprov Lampung');
+            $fpdi->SetCreator('BegawiPengadaan Electronic Signature System');
 
             $finalPdf = $fpdi->Output('S');
             if (! is_string($finalPdf) || ! str_starts_with($finalPdf, '%PDF-')) {

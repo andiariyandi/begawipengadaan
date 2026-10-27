@@ -25,7 +25,7 @@ if (! is_array($payload)) {
            class="btn btn-outline-primary-600 radius-8 px-16 py-11 d-flex align-items-center gap-1">
             <iconify-icon icon="solar:eye-bold"></iconify-icon> Pratinjau HTML
         </a>
-        <a href="<?= site_url('dashboard/sertifikat/template/' . (int)($t['id'] ?? 0) . '/preview-pdf') ?>" target="_blank"
+        <a href="<?= site_url('dashboard/sertifikat/template/' . (int)($t['id'] ?? 0) . '/preview-pdf?t=' . time()) ?>" target="_blank"
            class="btn btn-outline-danger-600 radius-8 px-16 py-11 d-flex align-items-center gap-1">
             <iconify-icon icon="solar:file-download-bold"></iconify-icon> Unduh Sampel PDF
         </a>
@@ -83,6 +83,19 @@ if (! is_array($payload)) {
                         <p class="mb-0 text-sm fw-medium">
                             <?= ! empty($t['updated_at']) ? esc(date('d M Y H:i', strtotime($t['updated_at']))) : '—' ?>
                         </p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-secondary-light text-xs mb-4">Mode Tanda Tangan Elektronik (TTE)</p>
+                        <?php $tteMode = $payload['tte_mode'] ?? 'visual_qr'; ?>
+                        <?php if ($tteMode === 'cryptographic_pades'): ?>
+                            <span class="badge bg-primary-100 text-primary-700 px-10 py-5 radius-4 text-xs fw-bold d-inline-flex align-items-center gap-1">
+                                <iconify-icon icon="solar:shield-check-bold"></iconify-icon> Opsi 2: TTE Kriptografis (PAdES)
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-success-50 text-success-600 px-10 py-5 radius-4 text-xs fw-bold d-inline-flex align-items-center gap-1">
+                                <iconify-icon icon="solar:qr-code-bold"></iconify-icon> Opsi 1: TTE Visual &amp; QR
+                            </span>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -258,7 +271,7 @@ if (! is_array($payload)) {
                         <iconify-icon icon="solar:eye-bold" class="text-base"></iconify-icon>
                         Buka Pratinjau HTML
                     </a>
-                    <a href="<?= site_url('dashboard/sertifikat/template/' . (int)($t['id'] ?? 0) . '/preview-pdf') ?>" target="_blank"
+                    <a href="<?= site_url('dashboard/sertifikat/template/' . (int)($t['id'] ?? 0) . '/preview-pdf?t=' . time()) ?>" target="_blank"
                        class="btn btn-outline-danger-600 radius-8 py-10 text-sm fw-semibold d-flex align-items-center justify-content-center gap-2">
                         <iconify-icon icon="solar:file-download-bold" class="text-base"></iconify-icon>
                         Unduh File PDF Cetak

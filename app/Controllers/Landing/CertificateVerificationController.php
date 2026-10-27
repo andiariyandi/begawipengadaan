@@ -372,29 +372,45 @@ class CertificateVerificationController extends BaseController
         $tokenHash = (string) ($row['verification_token_hash'] ?? '');
         $securityCode = $tokenHash !== '' ? strtoupper(substr($tokenHash, 0, 16)) : 'SEC-' . strtoupper(substr(md5((string) ($row['id'] ?? '')), 0, 12));
 
+        $sigService   = new \App\Services\DigitalSignatureService();
+        $tteTimestamp = $sigService->formatTteTimestamp($row['issued_at'] ?? null);
+        $tteChecksum  = $sigService->computeDocumentChecksum(
+            (string) ($row['certificate_number'] ?? ''),
+            $tokenHash,
+            (string) ($row['issued_at'] ?? '')
+        );
+
         return [
-            'id'                 => (int) ($row['id'] ?? 0),
-            'certificate_number' => $row['certificate_number'] ?? '—',
-            'user_name'          => ! empty($row['user_name']) ? $row['user_name'] : 'Peserta PBJ Terverifikasi',
-            'title'              => $row['title'] ?? 'Pelatihan Kompetensi Pengadaan Barang/Jasa',
-            'source_type'        => $row['source_type'] ?? '',
-            'source_label'       => $sourceLabel[$row['source_type'] ?? ''] ?? 'Kegiatan PBJ Resmi',
-            'status'             => $status,
-            'status_label'       => $statusLabel[$status] ?? 'Tidak Diketahui',
-            'status_badge'       => $statusBadgeClass[$status] ?? 'badge-secondary',
-            'is_valid'           => $status === 'issued',
-            'is_revoked'         => $status === 'revoked',
-            'is_expired'         => $status === 'expired',
-            'issued_at_human'    => ! empty($row['issued_at'])
+            'id'                  => (int) ($row['id'] ?? 0),
+            'certificate_number'  => $row['certificate_number'] ?? '—',
+            'user_name'           => ! empty($row['user_name']) ? $row['user_name'] : 'Peserta PBJ Terverifikasi',
+            'title'               => $row['title'] ?? 'Pelatihan Kompetensi Pengadaan Barang/Jasa',
+            'source_type'         => $row['source_type'] ?? '',
+            'source_label'        => $sourceLabel[$row['source_type'] ?? ''] ?? 'Kegiatan PBJ Resmi',
+            'status'              => $status,
+            'status_label'        => $statusLabel[$status] ?? 'Tidak Diketahui',
+            'status_badge'        => $statusBadgeClass[$status] ?? 'badge-secondary',
+            'is_valid'            => $status === 'issued',
+            'is_revoked'          => $status === 'revoked',
+            'is_expired'          => $status === 'expired',
+            'issued_at_human'     => ! empty($row['issued_at'])
                 ? date('d F Y', strtotime((string) $row['issued_at']))
                 : '—',
-            'expires_at_human'   => ! empty($row['expires_at'])
+            'expires_at_human'    => ! empty($row['expires_at'])
                 ? date('d F Y', strtotime((string) $row['expires_at']))
                 : 'Berlaku Seumur Hidup',
-            'security_code'      => $securityCode,
-            'masked_hash'        => $tokenHash !== '' ? substr($tokenHash, 0, 8) . '...' . substr($tokenHash, -8) : 'SHA256-AUTHENTIC',
-            'issuer'             => 'Kepala Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung',
-            'verify_url'         => site_url('verifikasi-sertifikat/' . rawurlencode($row['certificate_number'] ?? '')),
+            'security_code'       => $securityCode,
+            'masked_hash'         => $tokenHash !== '' ? substr($tokenHash, 0, 8) . '...' . substr($tokenHash, -8) : 'SHA256-AUTHENTIC',
+            'issuer'              => 'Kepala Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung',
+            'verify_url'          => site_url('verifikasi-sertifikat/' . rawurlencode($row['certificate_number'] ?? '')),
+            'tte_signer_name'     => \App\Services\DigitalSignatureService::DEFAULT_SIGNER_NAME,
+            'tte_signer_position' => \App\Services\DigitalSignatureService::DEFAULT_SIGNER_POS,
+            'tte_signer_nip'      => \App\Services\DigitalSignatureService::DEFAULT_SIGNER_NIP,
+            'tte_signer_rank'     => \App\Services\DigitalSignatureService::DEFAULT_SIGNER_RANK,
+            'tte_timestamp'       => $tteTimestamp,
+            'tte_checksum'        => 'SHA256:' . strtoupper(substr($tteChecksum, 0, 16)),
+            'tte_checksum_full'   => $tteChecksum,
+            'tte_status'          => $status === 'issued' ? 'DITANDATANGANI SECARA ELEKTRONIK & SAH' : 'TIDAK AKTIF',
         ];
     }
 

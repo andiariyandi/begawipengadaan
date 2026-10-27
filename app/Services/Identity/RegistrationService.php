@@ -254,7 +254,8 @@ class RegistrationService
                     'name'         => $data['name'],
                     'profile_type' => $profileType,
                     'url'          => route_to('workspace.operator.profile-verifications'),
-                ]
+                ],
+                (int) $userId
             );
         } catch (\Throwable $e) {
             log_message('warning', '[Register] shared notification failed: ' . $e->getMessage());

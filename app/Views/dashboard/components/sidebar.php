@@ -87,8 +87,8 @@ $canCategorySystem = $canSystemModule;
 $sbUserId = (int) (session()->get('user_id') ?: 0);
 $sbNotifService = new \App\Services\NotificationService();
 $adminUnreadNotifCount = $sbUserId > 0
-    ? $sbNotifService->unreadCount($sbUserId)
-    : $sbNotifService->unreadCountAll();
+    ? $sbNotifService->unreadCount($sbUserId, (array) session()->get('roles'))
+    : 0;
 ?>
 
 <aside class="sidebar">

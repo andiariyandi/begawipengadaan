@@ -409,9 +409,146 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                                    placeholder="19750812 199903 1 004"
                                    value="<?= esc(old('payload.signer_nip', $payload['signer_nip'] ?? '19750812 199903 1 004')) ?>">
                         </div>
+
+                        <!-- Pilihan Mode TTE Sertifikat (Opsi 1 vs Opsi 2) -->
+                        <div class="col-12 pt-12 border-top border-neutral-200">
+                            <label class="form-label fw-semibold text-primary-light text-sm mb-8 d-flex align-items-center gap-2">
+                                <iconify-icon icon="solar:shield-check-bold" class="text-primary-600 text-lg"></iconify-icon>
+                                Pilihan Mode Tanda Tangan Elektronik (TTE) Sertifikat <span class="text-danger">*</span>
+                            </label>
+                            <?php $currentTteMode = old('payload.tte_mode', $payload['tte_mode'] ?? 'visual_qr'); ?>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="border radius-8 p-16 d-block cursor-pointer transition-2 h-100 <?= $currentTteMode === 'visual_qr' ? 'border-primary-600 bg-primary-50' : 'border-neutral-200 bg-white' ?>">
+                                        <div class="d-flex align-items-start gap-2 mb-6">
+                                            <input class="form-check-input mt-1" type="radio" name="payload[tte_mode]" id="tteModeVisual" value="visual_qr" <?= $currentTteMode === 'visual_qr' ? 'checked' : '' ?>>
+                                            <div>
+                                                <span class="fw-bold text-neutral-800 d-block">Opsi 1: TTE Visual &amp; Segel Digital QR</span>
+                                                <span class="badge bg-success-50 text-success-600 text-xs px-8 py-2 radius-4 mt-1">100% Mandiri &bull; Ringan</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-secondary-light mb-0 ps-24">
+                                            Menampilkan stempel resmi TTE naskah dinas + QR Code verifikasi token acak 256-bit. Validasi keabsahan dokumen dilakukan via portal verifikasi publik resmi.
+                                        </p>
+                                    </label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="border radius-8 p-16 d-block cursor-pointer transition-2 h-100 <?= $currentTteMode === 'cryptographic_pades' ? 'border-primary-600 bg-primary-50' : 'border-neutral-200 bg-white' ?>">
+                                        <div class="d-flex align-items-start gap-2 mb-6">
+                                            <input class="form-check-input mt-1" type="radio" name="payload[tte_mode]" id="tteModePades" value="cryptographic_pades" <?= $currentTteMode === 'cryptographic_pades' ? 'checked' : '' ?>>
+                                            <div>
+                                                <span class="fw-bold text-neutral-800 d-block">Opsi 2: TTE Kriptografis PDF (PAdES / PKCS#7)</span>
+                                                <span class="badge bg-primary-50 text-primary-600 text-xs px-8 py-2 radius-4 mt-1">Anti-Tamper &bull; X.509 Signed</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-secondary-light mb-0 ps-24">
+                                            File PDF ditandatangani secara kriptografis (PAdES / PKCS#7). Terdeteksi pada Signature Panel Adobe Acrobat Reader dengan proteksi anti-manipulasi konten secara mandiri.
+                                        </p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <style>
+            /* Kanvas Pratinjau & Penataan Placeholder PDF Interaktif */
+            #pdfStageOuter {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                transition: box-shadow 0.2s ease;
+                background-color: #ffffff;
+            }
+            #pdfStageOuter.is-dragging {
+                cursor: grabbing !important;
+            }
+            .pdf-ph-marker {
+                position: absolute;
+                cursor: grab;
+                user-select: none;
+                box-sizing: border-box;
+                transition: border 0.12s ease, background-color 0.12s ease, box-shadow 0.12s ease;
+            }
+            .pdf-ph-marker:active {
+                cursor: grabbing;
+            }
+
+            /* Mode Pratinjau Data Asli: Teks alami bersih seperti sertifikat tercetak */
+            .stage-mode-sample .pdf-ph-marker {
+                border: 1px solid transparent;
+                border-radius: 3px;
+                background: transparent;
+            }
+            .stage-mode-sample .pdf-ph-marker:hover {
+                border: 1px dashed #0284c7 !important;
+                background-color: rgba(2, 132, 199, 0.08) !important;
+                z-index: 20 !important;
+            }
+            .stage-mode-sample .pdf-ph-marker.is-selected {
+                border: 1.5px solid #2563eb !important;
+                background-color: rgba(37, 99, 235, 0.12) !important;
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
+                z-index: 30 !important;
+            }
+
+            /* Mode Tampilkan Tag: Badge chip berwarna rapi & jelas */
+            .stage-mode-tags .pdf-ph-marker {
+                border-radius: 6px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+                z-index: 10;
+            }
+            .stage-mode-tags .pdf-ph-marker:hover {
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+                z-index: 20 !important;
+            }
+            .stage-mode-tags .pdf-ph-marker.is-selected {
+                box-shadow: 0 0 0 3px #f59e0b, 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+                z-index: 30 !important;
+            }
+
+            .ph-tag-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 3px 8px;
+                font-size: 11px;
+                font-weight: 600;
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                color: #ffffff;
+                border-radius: 4px;
+                white-space: nowrap;
+                pointer-events: none;
+                line-height: 1.3;
+            }
+            .ph-tag-chip.chip-text {
+                background-color: #0f172a;
+            }
+            .ph-tag-chip.chip-qr {
+                background-color: #059669;
+            }
+            .ph-tag-chip.chip-tte {
+                background-color: #7c3aed;
+            }
+
+            /* Tooltip koordinat penunjuk saat placeholder dipilih */
+            .ph-coord-tooltip {
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                margin-bottom: 4px;
+                padding: 2px 6px;
+                background-color: #1e293b;
+                color: #ffffff;
+                font-size: 9px;
+                font-family: monospace;
+                border-radius: 3px;
+                white-space: nowrap;
+                pointer-events: none;
+                z-index: 40;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+            </style>
 
             <!-- Card 4: Kanvas Visual & Pengaturan Placeholder di Dalam PDF -->
             <div class="card mb-24">
@@ -530,6 +667,12 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                             <div class="col-6 col-sm-2" id="inspColorGroup">
                                 <label class="form-label text-xs fw-semibold text-neutral-700 mb-4">Warna Teks</label>
                                 <input type="color" id="inspColor" class="form-control form-control-sm form-control-color w-100 radius-6" value="#0f172a">
+                            </div>
+                            <div class="col-12 d-none" id="inspSignatureNotice">
+                                <div class="alert alert-info py-8 px-12 radius-6 text-xs mb-0 d-flex align-items-center gap-2">
+                                    <iconify-icon icon="solar:shield-check-bold" class="text-base text-primary-600 flex-shrink-0"></iconify-icon>
+                                    <span>Blok Stempel TTE Resmi PBJ diformat otomatis sesuai naskah dinas resmi (termasuk nama pejabat, jabatan, NIP, tanggal penerbitan, dan segel kriptografis).</span>
+                                </div>
                             </div>
                             <div class="col-12 pt-4">
                                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -968,7 +1111,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const origWPct = +((phWidthPt / pageWidthPt) * 100).toFixed(2);
                 const origHPct = +(((line.font_size * 1.35) / pageHeightPt) * 100).toFixed(2);
 
-                const isStandalone = line.text.trim() === fullMatch;
+                const rawTrimmed = line.text.trim();
+                const cleanTrimmed = rawTrimmed.replace(/^["'“”«»?*~`\s]+|["'“”«»?*~`\s]+$/g, '');
+                const isStandalone = (rawTrimmed === fullMatch || cleanTrimmed === fullMatch);
                 const centerXPct = origXPct + (origWPct / 2);
                 const nearCenter = Math.abs(centerXPct - 50) <= 10;
 
@@ -1011,13 +1156,30 @@ document.addEventListener('DOMContentLoaded', function() {
         return detected;
     }
 
+    function isSignatureTag(tag) {
+        return ['{{tanda_tangan}}', '{{stempel_tte}}', '{{segel_digital}}'].includes(tag);
+    }
+
+    function escapeHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str || '';
+        return d.innerHTML;
+    }
+
     function getPlaceholderLabel(tag) {
         const itemEl = document.querySelector('.placeholder-item[data-tag="' + tag + '"]');
         if (itemEl && itemEl.dataset.label) return itemEl.dataset.label;
+        if (tag === '{{tanda_tangan}}') return 'Stempel Visual TTE Resmi Pejabat';
+        if (tag === '{{stempel_tte}}') return 'Stempel Sertifikat Elektronik';
+        if (tag === '{{segel_digital}}') return 'Alias Stempel Sertifikat Elektronik';
         return tag.replace(/[{}]/g, '').replace(/_/g, ' ');
     }
 
     function getSampleValue(tag) {
+        if (isSignatureTag(tag)) {
+            if (tag === '{{tanda_tangan}}') return 'Blok Stempel Visual TTE Resmi Biro PBJ';
+            return 'Sertifikat Elektronik (Terotentikasi)';
+        }
         if (sampleValues[tag] !== undefined) return sampleValues[tag];
         const itemEl = document.querySelector('.placeholder-item[data-tag="' + tag + '"]');
         if (itemEl && itemEl.dataset.example) return itemEl.dataset.example;
@@ -1182,45 +1344,64 @@ document.addEventListener('DOMContentLoaded', function() {
         pdfMaskLayer.innerHTML = '';
         pdfInteractiveOverlay.innerHTML = '';
 
+        pdfStageOuter.classList.remove('stage-mode-sample', 'stage-mode-tags');
+        pdfStageOuter.classList.add(viewMode === 'sample' ? 'stage-mode-sample' : 'stage-mode-tags');
+
         const stageRect = pdfStageOuter.getBoundingClientRect();
         const pageW = parseFloat(pageWidthMmInput.value) || 297;
         // Faktor skala antara ukuran poin PDF (841.89pt) dengan lebar piksel kanvas di layar
         const ptToPxScale = stageRect.width > 0 ? (stageRect.width / (pageW * 72 / 25.4)) : 1.0;
 
         placeholders.forEach(function(ph) {
-            // 1. Pada mode 'sample' atau jika mask_bg diaktifkan, tutup teks {{placeholder}} asli pada kanvas pratinjau
-            //    agar pengguna melihat tampilan bersih seperti hasil akhir setelah teks {{...}} dihapus dari stream PDF
+            const isTte = isSignatureTag(ph.tag) || ph.type === 'signature';
+            const isQr = ph.type === 'qr' || ph.tag === '{{qr_code}}' || ph.tag === '{{qr_block}}';
+            const isSelected = ph.id === selectedId;
+
+            // 1. Layer Masking: Pada mode 'sample' (agar teks {{...}} asli tertutup rapi oleh nilai nyata) atau jika mask_bg diaktifkan
             if (viewMode === 'sample' || ph.mask_bg) {
                 const maskEl = document.createElement('div');
-                const ox = ph.orig_x_pct !== undefined ? ph.orig_x_pct : Math.max(0, ph.x_pct - 10);
+                const ox = ph.orig_x_pct !== undefined ? ph.orig_x_pct : ph.x_pct;
                 const oy = ph.orig_y_pct !== undefined ? ph.orig_y_pct : ph.y_pct;
                 const ow = ph.orig_w_pct !== undefined ? ph.orig_w_pct : 20;
-                const oh = ph.orig_h_pct !== undefined ? ph.orig_h_pct : 4.2;
+                const oh = ph.orig_h_pct !== undefined ? ph.orig_h_pct : 3.5;
+
+                let bgColor = ph.mask_color || '#ffffff';
+
+                // Sampling warna latar dari kanvas PDF.js tepat di sekitar koordinat agar blending sempurna
+                if (pdfCanvas && pdfCanvas.width > 0 && pdfCanvas.height > 0) {
+                    try {
+                        const ctx = pdfCanvas.getContext('2d', { willReadFrequently: true });
+                        const sampleX = Math.round(((ox + Math.min(2, ow / 2)) / 100) * pdfCanvas.width);
+                        const sampleY = Math.max(0, Math.round(((oy - 0.4) / 100) * pdfCanvas.height));
+                        const p = ctx.getImageData(sampleX, sampleY, 1, 1).data;
+                        if (p[3] > 0) {
+                            bgColor = 'rgb(' + p[0] + ',' + p[1] + ',' + p[2] + ')';
+                        }
+                    } catch (e) {
+                        // fallback ke mask_color atau #ffffff
+                    }
+                }
 
                 maskEl.style.position = 'absolute';
-                maskEl.style.left = Math.max(0, ox - 0.4) + '%';
-                maskEl.style.top = Math.max(0, oy - 0.2) + '%';
-                maskEl.style.width = Math.min(100, ow + 0.8) + '%';
-                maskEl.style.height = Math.min(50, oh + 0.4) + '%';
-                maskEl.style.backgroundColor = ph.mask_color || '#ffffff';
+                maskEl.style.left = Math.max(0, ox - 0.15) + '%';
+                maskEl.style.top = Math.max(0, oy - 0.15) + '%';
+                maskEl.style.width = (ow + 0.3) + '%';
+                maskEl.style.height = (oh + 0.3) + '%';
+                maskEl.style.backgroundColor = bgColor;
                 maskEl.style.borderRadius = '2px';
+                maskEl.style.pointerEvents = 'none';
+                maskEl.style.zIndex = '5';
                 pdfMaskLayer.appendChild(maskEl);
             }
 
-            // 2. Render elemen interaktif placeholder
+            // 2. Render elemen placeholder interaktif
             const el = document.createElement('div');
-            const isSelected = ph.id === selectedId;
-            el.className = 'pdf-ph-marker';
+            el.className = 'pdf-ph-marker' + (isSelected ? ' is-selected' : '');
             el.dataset.id = ph.id;
-            el.style.position = 'absolute';
-            el.style.top = ph.y_pct + '%';
             el.style.left = ph.x_pct + '%';
-            el.style.cursor = 'move';
-            el.style.padding = '2px 6px';
-            el.style.borderRadius = '4px';
-            el.style.whiteSpace = 'nowrap';
-            el.style.transition = 'box-shadow 0.12s ease';
+            el.style.top = ph.y_pct + '%';
 
+            // Alignment transform
             if (ph.align === 'center') {
                 el.style.transform = 'translateX(-50%)';
                 el.style.textAlign = 'center';
@@ -1232,44 +1413,101 @@ document.addEventListener('DOMContentLoaded', function() {
                 el.style.textAlign = 'left';
             }
 
-            if (isSelected) {
-                el.style.outline = '2px solid #2563eb';
-                el.style.backgroundColor = viewMode === 'sample' ? 'rgba(239, 246, 255, 0.85)' : 'rgba(37, 99, 235, 0.92)';
-                el.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.25)';
-                el.style.zIndex = '20';
+            if (viewMode === 'tags') {
+                // ==========================================
+                // MODE TAGS: Tampilkan Tag Badge Pills
+                // ==========================================
+                let chipClass = 'chip-text';
+                let iconName = 'solar:text-bold';
+                if (isQr) {
+                    chipClass = 'chip-qr';
+                    iconName = 'solar:qr-code-bold';
+                } else if (isTte) {
+                    chipClass = 'chip-tte';
+                    iconName = 'solar:pen-bold';
+                }
+
+                el.innerHTML = '<span class="ph-tag-chip ' + chipClass + '">' +
+                    '<iconify-icon icon="' + iconName + '" class="text-sm"></iconify-icon> ' +
+                    escapeHtml(ph.tag) +
+                    '</span>';
             } else {
-                el.style.outline = '1px dashed rgba(37, 99, 235, 0.65)';
-                el.style.backgroundColor = viewMode === 'sample' ? 'rgba(255, 255, 255, 0.55)' : 'rgba(15, 23, 42, 0.82)';
-                el.style.zIndex = '10';
+                // ==========================================
+                // MODE SAMPLE: Pratinjau Nilai Asli
+                // ==========================================
+                if (isQr) {
+                    const qrPx = Math.max(36, Math.round((ph.qr_size || 105) * ptToPxScale));
+                    el.style.width = qrPx + 'px';
+                    el.style.height = qrPx + 'px';
+                    el.style.padding = '2px';
+                    el.style.backgroundColor = '#ffffff';
+                    el.style.borderRadius = '4px';
+                    el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
+                    if (sampleQrUri) {
+                        el.innerHTML = '<img src="' + sampleQrUri + '" style="width:100%;height:100%;object-fit:contain;pointer-events:none;" alt="QR">';
+                    } else {
+                        el.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f0fdf4;color:#166534;font-size:9px;font-weight:700;">QR</div>';
+                    }
+                } else if (isTte) {
+                    const signerName = signerNameInput?.value || sampleValues['{{penandatangan_nama}}'] || 'Dr. H. Rahmad Hidayat, S.E., M.Si.';
+                    const signerPos = signerPosInput?.value || sampleValues['{{penandatangan_jabatan}}'] || 'Kepala Biro Pengadaan Barang dan Jasa';
+                    const signerNip = signerNipInput?.value || sampleValues['{{penandatangan_nip}}'] || '19750812 199903 1 004';
+
+                    if (ph.tag === '{{tanda_tangan}}') {
+                        el.style.width = Math.max(180, Math.round(260 * ptToPxScale)) + 'px';
+                        el.style.padding = '6px 10px';
+                        el.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                        el.style.border = '1px solid #0284c7';
+                        el.style.borderRadius = '6px';
+                        el.style.boxShadow = '0 2px 8px rgba(2, 132, 199, 0.15)';
+                        el.innerHTML =
+                            '<div style="display:flex;align-items:center;gap:8px;text-align:left;pointer-events:none;">' +
+                                '<div style="width:34px;height:34px;border-radius:50%;border:1.5px dashed #0284c7;background:#f0f9ff;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:bold;color:#0284c7;line-height:1;text-align:center;flex-shrink:0;">' +
+                                    'TTE<br>RESMI' +
+                                '</div>' +
+                                '<div style="overflow:hidden;line-height:1.2;">' +
+                                    '<div style="font-size:7px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Ditandatangani Elektronik:</div>' +
+                                    '<div style="font-size:10px;font-weight:bold;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(signerName) + '</div>' +
+                                    '<div style="font-size:7.5px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(signerPos) + '</div>' +
+                                    '<div style="font-size:7px;color:#0284c7;font-family:monospace;">NIP. ' + escapeHtml(signerNip) + ' &bull; Segel PBJ</div>' +
+                                '</div>' +
+                            '</div>';
+                    } else {
+                        // {{stempel_tte}} / {{segel_digital}}
+                        const stampWidth = Math.max(130, Math.round(180 * ptToPxScale));
+                        el.style.width = stampWidth + 'px';
+                        el.style.padding = '4px 8px';
+                        el.style.backgroundColor = '#f0f9ff';
+                        el.style.border = '2px solid #0284c7';
+                        el.style.borderRadius = '6px';
+                        el.style.boxShadow = '0 2px 6px rgba(2, 132, 199, 0.15)';
+                        el.style.textAlign = 'center';
+                        el.style.boxSizing = 'border-box';
+                        el.innerHTML =
+                            '<div style="font-family:\'Helvetica Neue\',Helvetica,Arial,sans-serif;line-height:1.2;font-weight:bold;pointer-events:none;">' +
+                                '<div style="font-size:' + Math.max(8.5, Math.round(8 * ptToPxScale)) + 'px;color:#0c4a6e;margin:2px 0;letter-spacing:0.5px;">SERTIFIKAT ELEKTRONIK</div>' +
+                                '<div style="font-size:' + Math.max(6.5, Math.round(6 * ptToPxScale)) + 'px;font-weight:normal;color:#075985;">TEROTENTIKASI &bull; ' + new Date().toLocaleDateString('id-ID') + '</div>' +
+                                '<div style="font-size:' + Math.max(6, Math.round(5.5 * ptToPxScale)) + 'px;font-family:Courier,monospace;color:#0284c7;border-top:1px solid #bae6fd;margin-top:2px;padding-top:2px;">SHA256:55331D095A99</div>' +
+                            '</div>';
+                    }
+                } else {
+                    const scaledFontPx = Math.max(9, (ph.font_size || 14) * ptToPxScale);
+                    el.style.fontSize = scaledFontPx + 'px';
+                    el.style.fontWeight = ph.font_weight === 'bold' ? '700' : '400';
+                    el.style.color = ph.color || '#0f172a';
+                    el.style.lineHeight = '1.2';
+                    el.style.padding = '0';
+                    el.style.whiteSpace = 'nowrap';
+                    el.textContent = getSampleValue(ph.tag);
+                }
             }
 
-            if (ph.type === 'qr') {
-                const qrPx = Math.max(36, Math.round((ph.qr_size || 110) * ptToPxScale * 0.75));
-                el.style.width = qrPx + 'px';
-                el.style.height = qrPx + 'px';
-                el.style.padding = '2px';
-                el.style.backgroundColor = '#ffffff';
-                if (viewMode === 'sample' && sampleQrUri) {
-                    el.innerHTML = '<img src="' + sampleQrUri + '" style="width:100%;height:100%;object-fit:contain;pointer-events:none;" alt="QR">';
-                } else {
-                    el.innerHTML = '<div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-primary-50 text-primary-700" style="font-size:10px;font-weight:700;">' +
-                        '<iconify-icon icon="solar:qr-code-bold" class="text-xl"></iconify-icon><span>{{qr_code}}</span></div>';
-                }
-            } else {
-                const scaledFontPx = Math.max(9, (ph.font_size || 16) * ptToPxScale);
-                el.style.fontSize = scaledFontPx + 'px';
-                el.style.fontWeight = ph.font_weight === 'bold' ? '700' : '400';
-                el.style.lineHeight = '1.15';
-
-                if (viewMode === 'sample') {
-                    el.style.color = ph.color || '#0f172a';
-                    el.textContent = getSampleValue(ph.tag);
-                } else {
-                    el.style.color = '#ffffff';
-                    el.style.fontSize = Math.max(10, Math.min(16, scaledFontPx)) + 'px';
-                    el.style.fontFamily = 'monospace';
-                    el.textContent = ph.tag;
-                }
+            // Tambahkan tooltip koordinat jika sedang terpilih
+            if (isSelected) {
+                const tip = document.createElement('div');
+                tip.className = 'ph-coord-tooltip';
+                tip.textContent = ph.tag + ' (X: ' + ph.x_pct + '%, Y: ' + ph.y_pct + '%)';
+                el.appendChild(tip);
             }
 
             // Drag & Drop handler pada kanvas PDF
@@ -1291,10 +1529,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const rect = pdfStageOuter.getBoundingClientRect();
         if (rect.width <= 0 || rect.height <= 0) return;
 
+        pdfStageOuter.classList.add('is-dragging');
         const startX = startEvt.clientX;
         const startY = startEvt.clientY;
         const initXPct = ph.x_pct;
         const initYPct = ph.y_pct;
+        let lastXPct = initXPct;
+        let lastYPct = initYPct;
+
+        const draggedEl = pdfInteractiveOverlay.querySelector('.pdf-ph-marker[data-id="' + ph.id + '"]');
 
         function onMouseMove(moveEvt) {
             const dx = moveEvt.clientX - startX;
@@ -1302,14 +1545,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const dXPct = (dx / rect.width) * 100;
             const dYPct = (dy / rect.height) * 100;
 
-            ph.x_pct = +Math.max(0, Math.min(100, initXPct + dXPct)).toFixed(1);
-            ph.y_pct = +Math.max(0, Math.min(100, initYPct + dYPct)).toFixed(1);
-            renderStage();
+            lastXPct = +Math.max(0, Math.min(100, initXPct + dXPct)).toFixed(1);
+            lastYPct = +Math.max(0, Math.min(100, initYPct + dYPct)).toFixed(1);
+
+            if (draggedEl) {
+                draggedEl.style.left = lastXPct + '%';
+                draggedEl.style.top = lastYPct + '%';
+                const tip = draggedEl.querySelector('.ph-coord-tooltip');
+                if (tip) {
+                    tip.textContent = ph.tag + ' (X: ' + lastXPct + '%, Y: ' + lastYPct + '%)';
+                }
+            }
+
+            if (inspXPct) inspXPct.value = lastXPct;
+            if (inspYPct) inspYPct.value = lastYPct;
         }
 
         function onMouseUp() {
+            pdfStageOuter.classList.remove('is-dragging');
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
+
+            ph.x_pct = lastXPct;
+            ph.y_pct = lastYPct;
+            renderStage();
         }
 
         document.addEventListener('mousemove', onMouseMove);
@@ -1337,18 +1596,31 @@ document.addEventListener('DOMContentLoaded', function() {
         inspMaskBg.checked = !!ph.mask_bg;
         inspMaskColor.value = ph.mask_color || '#ffffff';
 
-        if (ph.type === 'qr') {
+        const isTte = isSignatureTag(ph.tag) || ph.type === 'signature';
+        const isQr = ph.type === 'qr' || ph.tag === '{{qr_code}}' || ph.tag === '{{qr_block}}';
+        const sigNotice = document.getElementById('inspSignatureNotice');
+
+        if (sigNotice) {
+            sigNotice.classList.toggle('d-none', !isTte);
+        }
+
+        if (isQr) {
             inspFontSizeGroup.classList.add('d-none');
             inspWeightGroup.classList.add('d-none');
             inspColorGroup.classList.add('d-none');
             inspQrSizeGroup.classList.remove('d-none');
-            inspQrSize.value = ph.qr_size || 110;
+            inspQrSize.value = ph.qr_size || 105;
+        } else if (isTte) {
+            inspFontSizeGroup.classList.add('d-none');
+            inspWeightGroup.classList.add('d-none');
+            inspColorGroup.classList.add('d-none');
+            inspQrSizeGroup.classList.add('d-none');
         } else {
             inspFontSizeGroup.classList.remove('d-none');
             inspWeightGroup.classList.remove('d-none');
             inspColorGroup.classList.remove('d-none');
             inspQrSizeGroup.classList.add('d-none');
-            inspFontSize.value = ph.font_size || 16;
+            inspFontSize.value = ph.font_size || 14;
             inspFontWeight.value = ph.font_weight || 'normal';
             inspColor.value = ph.color || '#0f172a';
         }
@@ -1369,10 +1641,10 @@ document.addEventListener('DOMContentLoaded', function() {
             updateSelected(function(ph) { ph.y_pct = parseFloat(inspYPct.value) || 0; });
         });
         inspFontSize.addEventListener('input', function() {
-            updateSelected(function(ph) { ph.font_size = parseInt(inspFontSize.value, 10) || 16; });
+            updateSelected(function(ph) { ph.font_size = parseInt(inspFontSize.value, 10) || 14; });
         });
         inspQrSize.addEventListener('input', function() {
-            updateSelected(function(ph) { ph.qr_size = parseInt(inspQrSize.value, 10) || 110; });
+            updateSelected(function(ph) { ph.qr_size = parseInt(inspQrSize.value, 10) || 105; });
         });
         inspFontWeight.addEventListener('change', function() {
             updateSelected(function(ph) { ph.font_weight = inspFontWeight.value; });
@@ -1416,15 +1688,32 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             tr.style.cursor = 'pointer';
 
-            const sampleText = ph.type === 'qr' ? '[Gambar QR Code Verifikasi]' : getSampleValue(ph.tag);
-            const styleInfo = ph.type === 'qr'
-                ? (ph.qr_size || 110) + ' px'
-                : (ph.font_size || 16) + 'pt, ' + (ph.font_weight === 'bold' ? 'Bold' : 'Normal');
+            const isTte = isSignatureTag(ph.tag) || ph.type === 'signature';
+            const isQr = ph.type === 'qr' || ph.tag === '{{qr_code}}' || ph.tag === '{{qr_block}}';
+
+            let sampleDisplay = '';
+            if (isQr) {
+                sampleDisplay = '<span class="badge bg-success-50 text-success-700 border border-success-200 text-xs">Gambar QR Code Verifikasi</span>';
+            } else if (isTte) {
+                sampleDisplay = '<span class="badge bg-purple-50 text-purple-700 border border-purple-200 text-xs">' + escapeHtml(getSampleValue(ph.tag)) + '</span>';
+            } else {
+                sampleDisplay = '<span class="text-truncate d-inline-block" style="max-width:240px;" title="' + escapeHtml(getSampleValue(ph.tag)) + '">' + escapeHtml(getSampleValue(ph.tag)) + '</span>';
+            }
+
+            let styleInfo = '';
+            if (isQr) {
+                styleInfo = (ph.qr_size || 105) + ' px';
+            } else if (isTte) {
+                styleInfo = '<span class="text-purple-700 fw-semibold">Format Naskah Dinas</span>';
+            } else {
+                styleInfo = (ph.font_size || 14) + 'pt, ' + (ph.font_weight === 'bold' ? 'Tebal' : 'Normal');
+            }
+
             const alignLabel = ph.align === 'center' ? 'Tengah' : (ph.align === 'right' ? 'Kanan' : 'Kiri');
 
             tr.innerHTML =
-                '<td class="py-8 px-12"><code class="fw-bold text-primary-700">' + ph.tag + '</code></td>' +
-                '<td class="py-8 px-12 text-neutral-700 text-truncate" style="max-width:220px;">' + sampleText + '</td>' +
+                '<td class="py-8 px-12"><code class="fw-bold ' + (isTte ? 'text-purple-700' : (isQr ? 'text-success-700' : 'text-primary-700')) + '">' + escapeHtml(ph.tag) + '</code></td>' +
+                '<td class="py-8 px-12 text-neutral-700">' + sampleDisplay + '</td>' +
                 '<td class="py-8 px-12 text-center font-monospace">' + ph.x_pct + '%, ' + ph.y_pct + '%</td>' +
                 '<td class="py-8 px-12 text-center">' + styleInfo + '</td>' +
                 '<td class="py-8 px-12 text-center">' + alignLabel + '</td>' +
@@ -1475,17 +1764,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Preset Placeholder Standar
     function loadDefaultPresetPlaceholders() {
         placeholders = [
-            { id: 'ph_1', tag: '{{nomor_sertifikat}}', key: 'nomor_sertifikat', label: 'Nomor Sertifikat', type: 'text', x_pct: 50, y_pct: 22, orig_x_pct: 38, orig_y_pct: 22, orig_w_pct: 24, orig_h_pct: 3.5, font_size: 13, font_weight: 'bold', color: '#1e3a8a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 110 },
-            { id: 'ph_2', tag: '{{nama_peserta}}', key: 'nama_peserta', label: 'Nama Lengkap Peserta', type: 'text', x_pct: 50, y_pct: 37, orig_x_pct: 32, orig_y_pct: 37, orig_w_pct: 36, orig_h_pct: 5.5, font_size: 26, font_weight: 'bold', color: '#0f172a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 110 },
-            { id: 'ph_3', tag: '{{nip}}', key: 'nip', label: 'NIP Peserta', type: 'text', x_pct: 50, y_pct: 44, orig_x_pct: 40, orig_y_pct: 44, orig_w_pct: 20, orig_h_pct: 3.5, font_size: 12, font_weight: 'normal', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 110 },
-            { id: 'ph_4', tag: '{{instansi}}', key: 'instansi', label: 'Instansi Peserta', type: 'text', x_pct: 50, y_pct: 48, orig_x_pct: 30, orig_y_pct: 48, orig_w_pct: 40, orig_h_pct: 3.5, font_size: 12, font_weight: 'normal', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 110 },
-            { id: 'ph_5', tag: '{{judul_kegiatan}}', key: 'judul_kegiatan', label: 'Judul Kegiatan', type: 'text', x_pct: 50, y_pct: 57, orig_x_pct: 25, orig_y_pct: 57, orig_w_pct: 50, orig_h_pct: 4.5, font_size: 18, font_weight: 'bold', color: '#166534', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 110 },
-            { id: 'ph_6', tag: '{{jam_pelajaran}}', key: 'jam_pelajaran', label: 'Jam Pelajaran', type: 'text', x_pct: 50, y_pct: 64, orig_x_pct: 44, orig_y_pct: 64, orig_w_pct: 12, orig_h_pct: 3.5, font_size: 12, font_weight: 'bold', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 110 },
-            { id: 'ph_7', tag: '{{tanggal_terbit}}', key: 'tanggal_terbit', label: 'Tanggal Terbit', type: 'text', x_pct: 25, y_pct: 73, orig_x_pct: 18, orig_y_pct: 73, orig_w_pct: 16, orig_h_pct: 3.5, font_size: 11, font_weight: 'normal', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 110 },
-            { id: 'ph_8', tag: '{{penandatangan_jabatan}}', key: 'penandatangan_jabatan', label: 'Jabatan Penanda Tangan', type: 'text', x_pct: 25, y_pct: 77, orig_x_pct: 12, orig_y_pct: 77, orig_w_pct: 26, orig_h_pct: 3.5, font_size: 11, font_weight: 'bold', color: '#0f172a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 110 },
-            { id: 'ph_9', tag: '{{penandatangan_nama}}', key: 'penandatangan_nama', label: 'Nama Penanda Tangan', type: 'text', x_pct: 25, y_pct: 89, orig_x_pct: 12, orig_y_pct: 89, orig_w_pct: 26, orig_h_pct: 3.5, font_size: 12, font_weight: 'bold', color: '#0f172a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 110 },
-            { id: 'ph_10', tag: '{{penandatangan_nip}}', key: 'penandatangan_nip', label: 'NIP Penanda Tangan', type: 'text', x_pct: 25, y_pct: 93, orig_x_pct: 14, orig_y_pct: 93, orig_w_pct: 22, orig_h_pct: 3.5, font_size: 10, font_weight: 'normal', color: '#475569', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 110 },
-            { id: 'ph_11', tag: '{{qr_code}}', key: 'qr_code', label: 'QR Code Verifikasi', type: 'qr', x_pct: 80, y_pct: 74, orig_x_pct: 74, orig_y_pct: 74, orig_w_pct: 12, orig_h_pct: 18, font_size: 12, font_weight: 'normal', color: '#0f172a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 }
+            { id: 'ph_1', tag: '{{nomor_sertifikat}}', key: 'nomor_sertifikat', label: 'Nomor Sertifikat', type: 'text', x_pct: 50, y_pct: 22, orig_x_pct: 38, orig_y_pct: 22, orig_w_pct: 24, orig_h_pct: 3.5, font_size: 13, font_weight: 'bold', color: '#1e3a8a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
+            { id: 'ph_2', tag: '{{nama_peserta}}', key: 'nama_peserta', label: 'Nama Lengkap Peserta', type: 'text', x_pct: 50, y_pct: 37, orig_x_pct: 32, orig_y_pct: 37, orig_w_pct: 36, orig_h_pct: 5.5, font_size: 24, font_weight: 'bold', color: '#0f172a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
+            { id: 'ph_3', tag: '{{nip}}', key: 'nip', label: 'NIP Peserta', type: 'text', x_pct: 50, y_pct: 44, orig_x_pct: 40, orig_y_pct: 44, orig_w_pct: 20, orig_h_pct: 3.5, font_size: 12, font_weight: 'normal', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
+            { id: 'ph_4', tag: '{{instansi}}', key: 'instansi', label: 'Instansi Peserta', type: 'text', x_pct: 50, y_pct: 48, orig_x_pct: 30, orig_y_pct: 48, orig_w_pct: 40, orig_h_pct: 3.5, font_size: 12, font_weight: 'normal', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
+            { id: 'ph_5', tag: '{{judul_kegiatan}}', key: 'judul_kegiatan', label: 'Judul Kegiatan', type: 'text', x_pct: 50, y_pct: 57, orig_x_pct: 25, orig_y_pct: 57, orig_w_pct: 50, orig_h_pct: 4.5, font_size: 17, font_weight: 'bold', color: '#166534', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
+            { id: 'ph_6', tag: '{{jam_pelajaran}}', key: 'jam_pelajaran', label: 'Jam Pelajaran', type: 'text', x_pct: 50, y_pct: 64, orig_x_pct: 44, orig_y_pct: 64, orig_w_pct: 12, orig_h_pct: 3.5, font_size: 12, font_weight: 'bold', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
+            { id: 'ph_7', tag: '{{tanggal_terbit}}', key: 'tanggal_terbit', label: 'Tanggal Terbit', type: 'text', x_pct: 25, y_pct: 73, orig_x_pct: 18, orig_y_pct: 73, orig_w_pct: 16, orig_h_pct: 3.5, font_size: 11, font_weight: 'normal', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
+            { id: 'ph_8', tag: '{{tanda_tangan}}', key: 'tanda_tangan', label: 'Stempel Visual TTE Resmi', type: 'signature', x_pct: 25, y_pct: 78, orig_x_pct: 14, orig_y_pct: 78, orig_w_pct: 22, orig_h_pct: 14, font_size: 11, font_weight: 'normal', color: '#0f172a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
+            { id: 'ph_9', tag: '{{qr_code}}', key: 'qr_code', label: 'QR Code Verifikasi', type: 'qr', x_pct: 80, y_pct: 75, orig_x_pct: 74, orig_y_pct: 75, orig_w_pct: 12, orig_h_pct: 18, font_size: 12, font_weight: 'normal', color: '#0f172a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 }
         ];
         selectedId = placeholders[0].id;
         renderStage();
@@ -1531,30 +1818,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const key = tag.replace(/[{}]/g, '');
             const isQr = (key === 'qr_code' || key === 'qr_block');
+            const isTte = isSignatureTag(tag);
             const isName = (key === 'nama_peserta' || key === 'participant_name');
             const isTitle = (key === 'judul_kegiatan' || key === 'certificate_title');
             const newId = 'ph_' + Date.now();
             const yOffset = Math.min(88, 25 + (placeholders.length * 6));
+
+            let defX = 50;
+            let defY = yOffset;
+            let defAlign = 'center';
+
+            if (isQr) {
+                defX = 80;
+                defY = 75;
+                defAlign = 'center';
+            } else if (isTte) {
+                defX = 25;
+                defY = 78;
+                defAlign = 'center';
+            }
 
             placeholders.push({
                 id: newId,
                 tag: tag,
                 key: key,
                 label: label,
-                type: isQr ? 'qr' : 'text',
-                x_pct: isQr ? 80 : 50,
-                y_pct: isQr ? 74 : yOffset,
-                orig_x_pct: isQr ? 74 : 38,
-                orig_y_pct: isQr ? 74 : yOffset,
-                orig_w_pct: isQr ? 12 : 24,
-                orig_h_pct: isQr ? 18 : 4,
-                font_size: isName ? 26 : (isTitle ? 18 : 13),
+                type: isQr ? 'qr' : (isTte ? 'signature' : 'text'),
+                x_pct: defX,
+                y_pct: defY,
+                orig_x_pct: defX - 10,
+                orig_y_pct: defY,
+                orig_w_pct: 20,
+                orig_h_pct: 3.5,
+                font_size: isName ? 24 : (isTitle ? 18 : 13),
                 font_weight: (isName || isTitle || key === 'nomor_sertifikat' || key === 'penandatangan_nama') ? 'bold' : 'normal',
                 color: '#0f172a',
-                align: 'center',
+                align: defAlign,
                 mask_bg: false,
                 mask_color: '#ffffff',
-                qr_size: 110
+                qr_size: 105
             });
 
             selectedId = newId;
@@ -1566,56 +1868,49 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tombol Uji / Pratinjau Hasil Generate PDF Secara Langsung (Tab Baru)
     function triggerLivePdfPreview() {
         syncHiddenJson();
+        showToast('Sedang merender pratinjau PDF...');
         const fd = new FormData(form);
 
-        // Buka di tab baru melalui form sementara
-        const previewForm = document.createElement('form');
-        previewForm.method = 'POST';
-        previewForm.action = livePreviewEndpoint;
-        previewForm.target = '_blank';
-        previewForm.enctype = 'multipart/form-data';
-        previewForm.style.display = 'none';
-
-        for (const [k, v] of fd.entries()) {
-            if (v instanceof File) continue;
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = k;
-            input.value = v;
-            previewForm.appendChild(input);
-        }
-
-        // Jika ada file baru yang dipilih di fileInput, kirim via fetch + Blob URL agar file ikut terkirim
-        const hasNewFile = fileInput && fileInput.files && fileInput.files.length > 0;
-        if (hasNewFile) {
-            showToast('Sedang merender pratinjau PDF...');
-            fetch(livePreviewEndpoint, {
-                method: 'POST',
-                body: fd
-            })
-            .then(function(resp) {
-                if (!resp.ok) throw new Error('Gagal merender PDF');
-                return resp.blob();
-            })
-            .then(function(blob) {
-                const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
-            })
-            .catch(function(err) {
-                alert('Gagal membuat pratinjau PDF: ' + err.message);
-            });
-            return;
-        }
-
-        document.body.appendChild(previewForm);
-        previewForm.submit();
-        document.body.removeChild(previewForm);
+        fetch(livePreviewEndpoint, {
+            method: 'POST',
+            body: fd,
+            cache: 'no-store'
+        })
+        .then(function(resp) {
+            if (!resp.ok) {
+                return resp.text().then(function(t) { throw new Error(t || 'Gagal merender PDF'); });
+            }
+            return resp.blob();
+        })
+        .then(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const win = window.open(url, '_blank');
+            if (!win) {
+                // Jika popup diblokir oleh browser, buat trigger klik anchor
+                const a = document.createElement('a');
+                a.href = url;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        })
+        .catch(function(err) {
+            alert('Gagal membuat pratinjau PDF: ' + err.message);
+        });
     }
 
     const btnTopPreview = document.getElementById('btnTopLivePdfPreview');
     const btnBottomPreview = document.getElementById('btnBottomLivePdfPreview');
     if (btnTopPreview) btnTopPreview.addEventListener('click', triggerLivePdfPreview);
     if (btnBottomPreview) btnBottomPreview.addEventListener('click', triggerLivePdfPreview);
+
+    if (form) {
+        form.addEventListener('submit', function() {
+            syncHiddenJson();
+        });
+    }
 
     // Dynamic Scope & Event switching (Bagian 1)
     const sourceTypeSelect = document.getElementById('sourceTypeSelect');

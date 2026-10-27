@@ -308,19 +308,7 @@ class ContactMessageController extends BaseController
             return redirect()->back()->with('error', 'Gagal menyimpan balasan pesan.');
         }
 
-        // Kirim notifikasi sistem jika pemohon adalah pengguna terdaftar
-        $notes = ContactMessageModel::parseAdminNotes($message['admin_notes'] ?? null);
-        if ($channel !== 'internal' && ! empty($notes['user_id'])) {
-            try {
-                (new \App\Services\NotificationService())->notifyTicketReply(
-                    (int) $notes['user_id'],
-                    $message['ticket_number'],
-                    $actorName,
-                    $replyText
-                );
-            } catch (\Throwable) {
-            }
-        }
+        // Notifikasi ke pemohon telah ditangani secara tunggal oleh appendThread() untuk mencegah duplikasi notifikasi
 
         // WhatsApp redirect handling
         if ($channel === 'whatsapp') {

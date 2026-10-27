@@ -66,8 +66,10 @@ class CertificateDownloadController extends BaseController
             : null;
         $fullPath  = $fileRow ? (WRITEPATH . ltrim((string) $fileRow['path'], '/')) : '';
 
-        // Auto-regenerate PDF jika belum tersedia di DB atau file fisik hilang di disk
-        if ($pdfFileId < 1 || ! $fileRow || ! is_file($fullPath)) {
+        // Auto-regenerate PDF jika belum tersedia di DB, file fisik hilang di disk, atau dipaksa via ?regen=1
+        $forceRegen = in_array((string) $this->request->getGet('regen'), ['1', 'true'], true)
+            || in_array((string) $this->request->getGet('fresh'), ['1', 'true'], true);
+        if ($forceRegen || $pdfFileId < 1 || ! $fileRow || ! is_file($fullPath)) {
             try {
                 $regen = (new CertificateGenerator())->regeneratePdfForCertificate($certificateId, $actorId, true);
                 $pdfFileId = (int) $regen['pdf_file_id'];
