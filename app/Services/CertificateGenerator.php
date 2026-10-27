@@ -873,7 +873,12 @@ class CertificateGenerator
                 'bumn_bumd'              => 'BUMN / BUMD',
                 default                  => 'Pemerintah Provinsi Lampung',
             };
-            $instansi  = trim((string) ($asn['institution_name'] ?? '')) ?: $fallbackInstansi;
+            $rawInstansi = trim((string) ($asn['institution_name'] ?? ''));
+            // Sanitasi: jika ASN Pemprov Lampung tertimpa 'Universitas Lampung' akibat tabrakan form profil
+            if ($originType === 'pemprov_lampung' && ($rawInstansi === '' || $rawInstansi === 'Universitas Lampung')) {
+                $rawInstansi = 'Pemerintah Provinsi Lampung';
+            }
+            $instansi  = $rawInstansi ?: $fallbackInstansi;
             $unit      = trim((string) ($asn['unit_name'] ?? '')) ?: $instansi;
             $jabatan   = (string) ($asn['position_name'] ?: ($isPppk ? 'PPPK' : 'Pegawai Negeri Sipil'));
             $rankGrade = (string) ($asn['rank_grade'] ?? '');
