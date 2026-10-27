@@ -759,6 +759,12 @@ class CommunicationService
 
     public function batchGenerateEventCertificates(int $eventId, ?int $actorId = null): array
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        @ini_set('max_execution_time', '0');
+        @ini_set('memory_limit', '512M');
+
         $db = db_connect();
         $event = $db->table('events')->where('id', $eventId)->get()->getRowArray();
         if (! $event) {
@@ -780,6 +786,9 @@ class CommunicationService
         $generator = new \App\Services\CertificateGenerator();
 
         foreach ($participants as $p) {
+            if (function_exists('set_time_limit')) {
+                @set_time_limit(120);
+            }
             $regId  = (int) $p['registration_id'];
             $userId = (int) $p['user_id'];
 

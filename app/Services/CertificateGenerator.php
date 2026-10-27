@@ -162,6 +162,10 @@ class CertificateGenerator
      */
     public function generateFromApproval(int $approvalId, int $actorId): array
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(120);
+        }
+
         $approval = $this->approvalModel->find($approvalId);
         if (! $approval) {
             throw new RuntimeException('Approval tidak ditemukan.');
@@ -347,6 +351,10 @@ class CertificateGenerator
      */
     public function generateDirect(string $sourceType, int $sourceId, int $actorId, array $options = []): array
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(120);
+        }
+
         if (! in_array($sourceType, ['learning_enrollment', 'event_registration'], true)) {
             throw new RuntimeException('Tipe sumber sertifikat tidak valid: ' . $sourceType);
         }
@@ -1127,6 +1135,10 @@ class CertificateGenerator
      */
     public function regeneratePdfForCertificate(int $certificateId, int $actorId = 1, bool $normalizeLegacyNumber = true): array
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(120);
+        }
+
         $cert = $this->db->table('certificates')->where('id', $certificateId)->get()->getRowArray();
         if (! $cert) {
             throw new RuntimeException('Sertifikat tidak ditemukan.');

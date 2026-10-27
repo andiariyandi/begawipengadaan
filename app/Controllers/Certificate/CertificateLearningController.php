@@ -245,6 +245,12 @@ class CertificateLearningController extends BaseController
      */
     public function issueClassBatch(string $classId)
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        @ini_set('max_execution_time', '0');
+        @ini_set('memory_limit', '512M');
+
         $classIdInt = (int) $classId;
         $actorId    = (int) session()->get('user_id');
 
@@ -278,6 +284,9 @@ class CertificateLearningController extends BaseController
             $failedCount  = 0;
 
             foreach ($enrollments as $e) {
+                if (function_exists('set_time_limit')) {
+                    @set_time_limit(120);
+                }
                 $enrId = (int) $e['id'];
                 // Check if already certified
                 $exists = $this->db->table('certificates')

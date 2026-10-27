@@ -38,6 +38,10 @@ class CertificatePdfGenerator
      */
     public function generate(string $html, mixed $backgroundPdfOrTemplate = null): string
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(120);
+        }
+
         $pdfBackgroundPath = $this->resolveBackgroundPdfPath($backgroundPdfOrTemplate);
 
         if ($pdfBackgroundPath !== null && is_file($pdfBackgroundPath)) {
@@ -67,6 +71,7 @@ class CertificatePdfGenerator
         $dompdf->addInfo('Creator', 'BegawiPengadaan Electronic Signature System');
 
         $output = $dompdf->output();
+        unset($dompdf);
         if (! is_string($output) || $output === '') {
             throw new RuntimeException('PDF generator tidak menghasilkan output.');
         }

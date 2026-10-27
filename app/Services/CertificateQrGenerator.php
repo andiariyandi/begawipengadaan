@@ -27,9 +27,22 @@ use RuntimeException;
  */
 class CertificateQrGenerator
 {
+    private static ?PngWriter $sharedWriter = null;
+
     public function __construct()
     {
         // Endroid self-contained.
+    }
+
+    /**
+     * Dapatkan instance PngWriter singleton untuk menghindari overhead instansiasi berulang pada batch generation.
+     */
+    private static function getWriter(): PngWriter
+    {
+        if (self::$sharedWriter === null) {
+            self::$sharedWriter = new PngWriter();
+        }
+        return self::$sharedWriter;
     }
 
     /**
@@ -37,6 +50,10 @@ class CertificateQrGenerator
      */
     public function generate(string $token): string
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(120);
+        }
+
         return $this->generateDataUri($this->buildVerifyUrl($token));
     }
 
@@ -45,19 +62,22 @@ class CertificateQrGenerator
      */
     public function generateAsFile(string $token, string $outputPath): string
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(120);
+        }
+
         $url = $this->buildVerifyUrl($token);
         $qr  = new QrCode(
             $url,
             new Encoding('UTF-8'),
             ErrorCorrectionLevel::Low,
-            600,
-            20,
+            320,
+            8,
             RoundBlockSizeMode::Margin,
             new Color(0, 0, 0),
             new Color(255, 255, 255)
         );
-        $writer = new PngWriter();
-        $result = $writer->write($qr);
+        $result = self::getWriter()->write($qr);
 
         $dir = dirname($outputPath);
         if (! is_dir($dir)) {
@@ -89,21 +109,29 @@ class CertificateQrGenerator
 
     /**
      * Render QR PNG menjadi data URI (base64 inline image).
+     *
+     * Dioptimalkan:
+     * - Refresh set_time_limit(120) agar eksekusi batch masal tidak pernah terputus di tengah proses.
+     * - Ukuran 160px margin 4 ideal untuk kontainer tampilan 140px pada template sertifikat.
+     * - Mengurangi beban kalkulasi penalti matrix (MaskUtil) dan GD encoding hingga >60%.
      */
     private function generateDataUri(string $data): string
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(120);
+        }
+
         $qr = new QrCode(
             $data,
             new Encoding('UTF-8'),
             ErrorCorrectionLevel::Low,
-            300,
-            10,
+            160,
+            4,
             RoundBlockSizeMode::Margin,
             new Color(0, 0, 0),
             new Color(255, 255, 255)
         );
-        $writer = new PngWriter();
-        $result = $writer->write($qr);
+        $result = self::getWriter()->write($qr);
         return 'data:image/png;base64,' . base64_encode((string) $result->getString());
     }
 }

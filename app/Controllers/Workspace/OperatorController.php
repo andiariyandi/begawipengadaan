@@ -2344,6 +2344,12 @@ class OperatorController extends BaseController
      */
     public function bulkIssueCertificates()
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        @ini_set('max_execution_time', '0');
+        @ini_set('memory_limit', '512M');
+
         $actorId       = $this->assertOperatorAccess();
         $rawIds        = (array) $this->request->getPost('enrollment_ids');
         $justification = trim((string) $this->request->getPost('justification'));
@@ -2357,6 +2363,9 @@ class OperatorController extends BaseController
         $failedCount = 0;
 
         foreach ($ids as $eid) {
+            if (function_exists('set_time_limit')) {
+                @set_time_limit(120);
+            }
             try {
                 $certNum = $this->issueSingleCertificate($eid, $actorId, $justification ?: null);
                 if ($certNum !== null) {

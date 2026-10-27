@@ -1065,8 +1065,8 @@ class CertificateTemplateController extends BaseController
             'issued_at'          => date('Y-m-d H:i:s'),
             'city'               => 'Bandar Lampung',
             'kota_terbit'        => 'Bandar Lampung',
-            'signer_rank'        => 'Pembina Utama Madya (IV/d)',
-            'penandatangan_pangkat' => 'Pembina Utama Madya (IV/d)',
+            'signer_rank'        => 'Pembina Utama Muda / IV.c',
+            'penandatangan_pangkat' => 'Pembina Utama Muda / IV.c',
             'event_start_at'     => date('Y-m-d 08:00:00', strtotime('-5 days')),
             'event_end_at'       => date('Y-m-d 16:00:00'),
             'verification_url'   => site_url('verifikasi-sertifikat/' . ($isLearning ? "SERT-00035-AB-5-05-{$year}" : "SERT-00021-WB-1-05-{$year}")),
@@ -1108,13 +1108,13 @@ class CertificateTemplateController extends BaseController
 
         $signerName = isset($raw['signer_name']) && is_string($raw['signer_name']) && trim($raw['signer_name']) !== ''
             ? trim($raw['signer_name'])
-            : 'Dr. H. Rahmad Hidayat, S.E., M.Si.';
+            : 'Ir. S. Hendriyanto, S.T., M.T.';
         $signerPos  = isset($raw['signer_position']) && is_string($raw['signer_position']) && trim($raw['signer_position']) !== ''
             ? trim($raw['signer_position'])
             : 'Kepala Biro Pengadaan Barang dan Jasa';
         $signerNip  = isset($raw['signer_nip']) && is_string($raw['signer_nip']) && trim($raw['signer_nip']) !== ''
             ? trim($raw['signer_nip'])
-            : '19750812 199903 1 004';
+            : '19730915 199902 1 001';
 
         $tteMode = isset($raw['tte_mode']) && in_array($raw['tte_mode'], ['visual_qr', 'cryptographic_pades'], true)
             ? (string) $raw['tte_mode']
@@ -1214,9 +1214,9 @@ class CertificateTemplateController extends BaseController
             'body_html'        => '',
             'css'              => '',
             'issuer_name'      => 'Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa',
-            'signer_name'      => 'Dr. H. Rahmad Hidayat, S.E., M.Si.',
+            'signer_name'      => 'Ir. S. Hendriyanto, S.T., M.T.',
             'signer_position'  => 'Kepala Biro Pengadaan Barang dan Jasa',
-            'signer_nip'       => '19750812 199903 1 004',
+            'signer_nip'       => '19730915 199902 1 001',
             'tte_mode'         => 'visual_qr',
             'qr_position'      => 'right',
             'target_scope'     => 'global',

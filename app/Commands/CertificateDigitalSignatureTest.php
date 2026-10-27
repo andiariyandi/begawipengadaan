@@ -35,7 +35,7 @@ class CertificateDigitalSignatureTest extends BaseCommand
         $certNum   = 'SERT-00035/AB-5/05/2026';
         $token     = '34c91ac31aa1d6709f1234567890abcdef1234567890abcdef1234567890abcd';
         $issuedAt  = '2026-10-26 10:45:00';
-        $signerNip = '19750812 199903 1 004';
+        $signerNip = '19730915 199902 1 001';
 
         $checksum = $sigService->computeDocumentChecksum($certNum, $token, $issuedAt, $signerNip);
         if (strlen($checksum) === 64 && ctype_xdigit($checksum)) {
@@ -56,15 +56,15 @@ class CertificateDigitalSignatureTest extends BaseCommand
         }
 
         $visualBlock = $sigService->generateVisualTteBlock([
-            'signer_name'        => 'Dr. H. Rahmad Hidayat, S.E., M.Si.',
+            'signer_name'        => 'Ir. S. Hendriyanto, S.T., M.T.',
             'signer_position'    => 'Kepala Biro Pengadaan Barang dan Jasa',
-            'signer_nip'         => '19750812 199903 1 004',
+            'signer_nip'         => '19730915 199902 1 001',
             'signed_at'          => $formattedTime,
             'certificate_number' => $certNum,
             'checksum_short'     => 'SHA256:' . strtoupper(substr($checksum, 0, 12)),
         ]);
 
-        if (str_contains($visualBlock, 'DITANDATANGANI SECARA ELEKTRONIK') && str_contains($visualBlock, 'Dr. H. Rahmad Hidayat')) {
+        if (str_contains($visualBlock, 'DITANDATANGANI SECARA ELEKTRONIK') && str_contains($visualBlock, 'Ir. S. Hendriyanto')) {
             CLI::write("  [PASS] Blok visual TTE resmi naskah dinas berhasil dibuat dengan styling presisi", "green");
             $passCount++;
         } else {
@@ -229,8 +229,8 @@ class CertificateDigitalSignatureTest extends BaseCommand
         }
 
         $cryptoSignedPdf = $sigService->signPdfCryptographic($pdfBytes, [
-            'signer_name' => 'Dr. H. Rahmad Hidayat, S.E., M.Si.',
-            'signer_nip'  => '19750812 199903 1 004',
+            'signer_name' => 'Ir. S. Hendriyanto, S.T., M.T.',
+            'signer_nip'  => '19730915 199902 1 001',
         ]);
 
         if (str_starts_with($cryptoSignedPdf, '%PDF-') && strlen($cryptoSignedPdf) > strlen($pdfBytes)) {
@@ -257,11 +257,11 @@ class CertificateDigitalSignatureTest extends BaseCommand
 
         $padesPayload = [
             'tte_mode'    => 'cryptographic_pades',
-            'signer_name' => 'Dr. H. Rahmad Hidayat, S.E., M.Si.',
+            'signer_name' => 'Ir. S. Hendriyanto, S.T., M.T.',
         ];
         $visualPayload = [
             'tte_mode'    => 'visual_qr',
-            'signer_name' => 'Dr. H. Rahmad Hidayat, S.E., M.Si.',
+            'signer_name' => 'Ir. S. Hendriyanto, S.T., M.T.',
         ];
 
         if ($padesPayload['tte_mode'] === 'cryptographic_pades' && $visualPayload['tte_mode'] === 'visual_qr') {
@@ -301,7 +301,7 @@ class CertificateDigitalSignatureTest extends BaseCommand
                 'x_pct'      => 50.0,
                 'y_pct'      => 40.0,
                 'font_size'  => 24,
-                'font_weight'=> 'bold',
+                'font_weight' => 'bold',
                 'align'      => 'center',
                 'color'      => '#0f172a',
                 'mask_bg'    => false,

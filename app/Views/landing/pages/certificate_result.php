@@ -109,9 +109,9 @@
                                 <div class="row g-2 pt-2 border-top border-secondary-subtle small">
                                     <div class="col-md-6">
                                         <div class="text-muted">Pejabat Penandatangan:</div>
-                                        <div class="fw-bold text-dark"><?= esc($result['tte_signer_name'] ?? 'Dr. H. Rahmad Hidayat, S.E., M.Si.') ?></div>
+                                        <div class="fw-bold text-dark"><?= esc($result['tte_signer_name'] ?? 'Ir. S. Hendriyanto, S.T., M.T.') ?></div>
                                         <div class="text-secondary"><?= esc($result['tte_signer_position'] ?? 'Kepala Biro Pengadaan Barang dan Jasa') ?></div>
-                                        <div class="text-muted font-monospace">NIP. <?= esc($result['tte_signer_nip'] ?? '19750812 199903 1 004') ?></div>
+                                        <div class="text-muted font-monospace">NIP. <?= esc($result['tte_signer_nip'] ?? '19730915 199902 1 001') ?></div>
                                     </div>
                                     <div class="col-md-6 text-md-end text-start mt-2 mt-md-0">
                                         <div class="text-muted">Waktu Pembubuhan TTE:</div>
