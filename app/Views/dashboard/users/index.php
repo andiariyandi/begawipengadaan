@@ -373,6 +373,20 @@ $stats = $stats ?? [
                                                         <span>Ubah Data</span>
                                                     </a>
                                                 </li>
+                                                <?php if ((int) $user['id'] !== 13 && (int) $user['id'] !== 14 && (int) $user['id'] !== (int) session()->get('user_id')): ?>
+                                                    <li>
+                                                        <button type="button" class="dropdown-item px-12 py-8 radius-4 text-danger-600 bg-hover-danger-100 d-flex align-items-center gap-2 text-sm w-100 text-start border-0 bg-transparent btn-delete-user"
+                                                                data-user-id="<?= (int) $user['id'] ?>"
+                                                                data-user-name="<?= esc($user['name'] ?? $user['username'] ?? 'Pengguna') ?>"
+                                                                data-user-email="<?= esc($user['email'] ?? '-') ?>"
+                                                                data-user-profile-type="<?= esc($user['profile_type'] ?? 'asn') ?>"
+                                                                data-action-url="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id'] . '/hapus') ?>"
+                                                                data-summary-url="<?= site_url('dashboard/akses/pengguna/' . (int) $user['id'] . '/impact-summary') ?>">
+                                                            <iconify-icon icon="solar:trash-bin-trash-outline" class="text-lg text-danger-600"></iconify-icon>
+                                                            <span>Hapus Data</span>
+                                                        </button>
+                                                    </li>
+                                                <?php endif; ?>
                                                 <?php if (in_array($user['account_status'] ?? '', ['pending_approval', 'pending_verification', 'submitted', 'revision_required'], true)): ?>
                                                     <li><hr class="dropdown-divider my-4"></li>
                                                     <li>
@@ -485,5 +499,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+
+<?= view('dashboard/users/_modal_delete') ?>
 
 <?= $this->endSection() ?>
