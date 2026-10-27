@@ -199,6 +199,12 @@ class CertificateEventController extends BaseController
      */
     public function issueBatch(string $eventId)
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        @ini_set('max_execution_time', '0');
+        @ini_set('memory_limit', '512M');
+
         $eventIdInt = (int) $eventId;
         $actorId    = (int) session()->get('user_id');
 
@@ -222,6 +228,9 @@ class CertificateEventController extends BaseController
             $failedCount  = 0;
 
             foreach ($attendees as $att) {
+                if (function_exists('set_time_limit')) {
+                    @set_time_limit(120);
+                }
                 $regId = (int) $att['id'];
 
                 // Cek apakah sudah pernah terbit

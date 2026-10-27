@@ -344,10 +344,10 @@ class CertificateTemplateRenderer
 
         // Penerbit & Pejabat
         $issuerName  = (string) ($payload['issuer_name'] ?? $data['issuer_name'] ?? 'Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa');
-        $signerName  = (string) ($payload['signer_name'] ?? 'Dr. H. Rahmad Hidayat, S.E., M.Si.');
+        $signerName  = (string) ($payload['signer_name'] ?? 'Ir. S. Hendriyanto, S.T., M.T.');
         $signerPos   = (string) ($payload['signer_position'] ?? 'Kepala Biro Pengadaan Barang dan Jasa');
-        $signerNip   = (string) ($payload['signer_nip'] ?? '19750812 199903 1 004');
-        $signerRank  = (string) ($payload['signer_rank'] ?? $data['signer_rank'] ?? 'Pembina Utama Madya (IV/d)');
+        $signerNip   = (string) ($payload['signer_nip'] ?? '19730915 199902 1 001');
+        $signerRank  = (string) ($payload['signer_rank'] ?? $data['signer_rank'] ?? 'Pembina Utama Muda / IV.c');
 
         $verifyUrl   = (string) ($data['verification_url'] ?? '');
 
@@ -632,10 +632,10 @@ class CertificateTemplateRenderer
             ],
             'Pengesahan & Verifikasi Digital' => [
                 ['tag' => '{{penerbit}}', 'label' => 'Instansi Resmi Penerbit', 'example' => 'Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung'],
-                ['tag' => '{{penandatangan_nama}}', 'label' => 'Nama Pejabat Penanda Tangan', 'example' => 'Dr. H. Rahmad Hidayat, S.E., M.Si.'],
+                ['tag' => '{{penandatangan_nama}}', 'label' => 'Nama Pejabat Penanda Tangan', 'example' => 'Ir. S. Hendriyanto, S.T., M.T.'],
                 ['tag' => '{{penandatangan_jabatan}}', 'label' => 'Jabatan Pejabat Penanda Tangan', 'example' => 'Kepala Biro Pengadaan Barang dan Jasa'],
-                ['tag' => '{{penandatangan_nip}}', 'label' => 'NIP Pejabat Penanda Tangan', 'example' => '19750812 199903 1 004'],
-                ['tag' => '{{penandatangan_pangkat}}', 'label' => 'Pangkat / Golongan Pejabat Penanda Tangan', 'example' => 'Pembina Utama Madya (IV/d)'],
+                ['tag' => '{{penandatangan_nip}}', 'label' => 'NIP Pejabat Penanda Tangan', 'example' => '19730915 199902 1 001'],
+                ['tag' => '{{penandatangan_pangkat}}', 'label' => 'Pangkat / Golongan Pejabat Penanda Tangan', 'example' => 'Pembina Utama Muda / IV.c'],
                 ['tag' => '{{tanda_tangan}}', 'label' => 'Stempel Blok Tanda Tangan Elektronik (TTE) Resmi Pejabat', 'example' => '[Blok TTE Resmi Pejabat]'],
                 ['tag' => '{{stempel_tte}}', 'label' => 'Stempel Sertifikat Elektronik (Terotentikasi)', 'example' => '[Sertifikat Elektronik]'],
                 ['tag' => '{{segel_digital}}', 'label' => 'Alias Stempel Sertifikat Elektronik', 'example' => '[Sertifikat Elektronik]'],

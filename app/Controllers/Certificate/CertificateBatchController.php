@@ -104,6 +104,13 @@ class CertificateBatchController extends BaseController
      */
     public function processLearningBatch()
     {
+        // Proteksi batas waktu dan alokasi memori untuk batch eksekusi masal
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        @ini_set('max_execution_time', '0');
+        @ini_set('memory_limit', '512M');
+
         $classId    = (int) $this->request->getPost('class_id');
         $templateId = (int) $this->request->getPost('template_id');
         $actorId    = (int) session()->get('user_id');
@@ -143,6 +150,9 @@ class CertificateBatchController extends BaseController
             $options      = $templateId > 0 ? ['template_id' => $templateId] : [];
 
             foreach ($enrollments as $e) {
+                if (function_exists('set_time_limit')) {
+                    @set_time_limit(120);
+                }
                 $enrId = (int) $e['id'];
 
                 $exists = $this->db->table('certificates')
@@ -186,6 +196,13 @@ class CertificateBatchController extends BaseController
      */
     public function processEventBatch()
     {
+        // Proteksi batas waktu dan alokasi memori untuk batch eksekusi masal
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        @ini_set('max_execution_time', '0');
+        @ini_set('memory_limit', '512M');
+
         $eventId    = (int) $this->request->getPost('event_id');
         $templateId = (int) $this->request->getPost('template_id');
         $actorId    = (int) session()->get('user_id');
@@ -217,6 +234,9 @@ class CertificateBatchController extends BaseController
             $options      = $templateId > 0 ? ['template_id' => $templateId] : [];
 
             foreach ($attendees as $att) {
+                if (function_exists('set_time_limit')) {
+                    @set_time_limit(120);
+                }
                 $regId = (int) $att['id'];
 
                 $exists = $this->db->table('certificates')

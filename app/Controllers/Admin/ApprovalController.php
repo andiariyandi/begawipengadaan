@@ -288,6 +288,12 @@ class ApprovalController extends BaseController
      */
     public function bulk()
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        @ini_set('max_execution_time', '0');
+        @ini_set('memory_limit', '512M');
+
         $req = $this->request ?? service('request');
         $actorId = (int) (session()->get('user_id') ?: (session()->get('id') ?: 13));
         $action  = (string) $req->getPost('bulk_action');
@@ -314,6 +320,9 @@ class ApprovalController extends BaseController
         $certCount    = 0;
 
         foreach ($ids as $id) {
+            if (function_exists('set_time_limit')) {
+                @set_time_limit(120);
+            }
             $approval = $this->approvalModel->find($id);
             if (! $approval || $approval['status'] !== 'pending') {
                 continue;

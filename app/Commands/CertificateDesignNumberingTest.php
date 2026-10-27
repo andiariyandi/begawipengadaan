@@ -33,13 +33,13 @@ class CertificateDesignNumberingTest extends BaseCommand
 
         $cases = [
             ['seq' => 35,  'source' => 'learning_enrollment', 'data' => ['class_id' => 5],                        'year' => 2026, 'expected' => 'SERT-00035/AB-5/05/2026'],
-            ['seq' => 5264,'source' => 'event_registration',  'data' => ['event_id' => 10, 'event_type' => 'other'],'year' => 2026, 'expected' => 'SERT-05264/EV-10/05/2026'],
-            ['seq' => 21,  'source' => 'event_registration',  'data' => ['event_id' => 1,  'event_type' => 'webinar'],'year' => 2026, 'expected' => 'SERT-00021/WB-1/05/2026'],
+            ['seq' => 5264, 'source' => 'event_registration',  'data' => ['event_id' => 10, 'event_type' => 'other'], 'year' => 2026, 'expected' => 'SERT-05264/EV-10/05/2026'],
+            ['seq' => 21,  'source' => 'event_registration',  'data' => ['event_id' => 1,  'event_type' => 'webinar'], 'year' => 2026, 'expected' => 'SERT-00021/WB-1/05/2026'],
             ['seq' => 42,  'source' => 'event_registration',  'data' => ['event_id' => 3,  'event_type' => 'bimtek'], 'year' => 2026, 'expected' => 'SERT-00042/BT-3/05/2026'],
-            ['seq' => 10,  'source' => 'event_registration',  'data' => ['event_id' => 7,  'event_type' => 'workshop'],'year' => 2026, 'expected' => 'SERT-00010/WS-7/05/2026'],
-            ['seq' => 15,  'source' => 'event_registration',  'data' => ['event_id' => 2,  'event_type' => 'sosialisasi'],'year' => 2026, 'expected' => 'SERT-00015/SO-2/05/2026'],
-            ['seq' => 18,  'source' => 'event_registration',  'data' => ['event_id' => 4,  'event_type' => 'seminar'],'year' => 2026, 'expected' => 'SERT-00018/SM-4/05/2026'],
-            ['seq' => 22,  'source' => 'event_registration',  'data' => ['event_id' => 8,  'event_type' => 'pelatihan'],'year' => 2026, 'expected' => 'SERT-00022/PL-8/05/2026'],
+            ['seq' => 10,  'source' => 'event_registration',  'data' => ['event_id' => 7,  'event_type' => 'workshop'], 'year' => 2026, 'expected' => 'SERT-00010/WS-7/05/2026'],
+            ['seq' => 15,  'source' => 'event_registration',  'data' => ['event_id' => 2,  'event_type' => 'sosialisasi'], 'year' => 2026, 'expected' => 'SERT-00015/SO-2/05/2026'],
+            ['seq' => 18,  'source' => 'event_registration',  'data' => ['event_id' => 4,  'event_type' => 'seminar'], 'year' => 2026, 'expected' => 'SERT-00018/SM-4/05/2026'],
+            ['seq' => 22,  'source' => 'event_registration',  'data' => ['event_id' => 8,  'event_type' => 'pelatihan'], 'year' => 2026, 'expected' => 'SERT-00022/PL-8/05/2026'],
             ['seq' => 30,  'source' => 'event_registration',  'data' => ['event_id' => 6,  'event_type' => 'rakor'],  'year' => 2026, 'expected' => 'SERT-00030/RK-6/05/2026'],
             ['seq' => 33,  'source' => 'event_registration',  'data' => ['event_id' => 9,  'event_type' => 'klinik'], 'year' => 2026, 'expected' => 'SERT-00033/KL-9/05/2026'],
         ];
@@ -89,9 +89,9 @@ class CertificateDesignNumberingTest extends BaseCommand
             'background_file_id' => null,
             'template_payload'   => json_encode([
                 'issuer_name'     => 'Biro Pengadaan Barang dan Jasa Provinsi Lampung',
-                'signer_name'     => 'Dr. H. Rahmad Hidayat, S.E., M.Si.',
+                'signer_name'     => 'Ir. S. Hendriyanto, S.T., M.T.',
                 'signer_position' => 'Kepala Biro Pengadaan Barang dan Jasa',
-                'signer_nip'      => '19750812 199903 1 004',
+                'signer_nip'      => '19730915 199902 1 001',
                 'body_html'       => '<h1>SERTIFIKAT {{nomor_sertifikat}}</h1><p>Diberikan kepada: {{nama_peserta}} (NIP: {{nip}})</p><p>Instansi: {{instansi}}</p><p>Kegiatan: {{judul_kegiatan}} ({{jam_pelajaran}}, Predikat: {{predikat}})</p><p>Pejabat: {{penandatangan_nama}} - {{penandatangan_jabatan}} ({{penandatangan_nip}})</p>{{qr_code}}',
             ]),
         ];
@@ -106,7 +106,7 @@ class CertificateDesignNumberingTest extends BaseCommand
             'Penyusunan Spesifikasi Teknis dan HPS Pengadaan' => 'Judul Kegiatan',
             '32 JP' => 'Jam Pelajaran (JP)',
             'Sangat Baik' => 'Predikat Kelulusan',
-            'Dr. H. Rahmad Hidayat, S.E., M.Si.' => 'Nama Penandatangan',
+            'Ir. S. Hendriyanto, S.T., M.T.' => 'Nama Penandatangan',
             '<!--CERTIFICATE_QR_PLACEHOLDER-->' => 'QR Placeholder Marker',
         ];
 

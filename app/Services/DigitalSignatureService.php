@@ -13,10 +13,10 @@ namespace App\Services;
 class DigitalSignatureService
 {
     public const DEFAULT_ISSUER       = 'Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa';
-    public const DEFAULT_SIGNER_NAME  = 'Dr. H. Rahmad Hidayat, S.E., M.Si.';
+    public const DEFAULT_SIGNER_NAME  = 'Ir. S. Hendriyanto, S.T., M.T.';
     public const DEFAULT_SIGNER_POS   = 'Kepala Biro Pengadaan Barang dan Jasa';
-    public const DEFAULT_SIGNER_NIP   = '19750812 199903 1 004';
-    public const DEFAULT_SIGNER_RANK  = 'Pembina Utama Madya (IV/d)';
+    public const DEFAULT_SIGNER_NIP   = '19730915 199902 1 001';
+    public const DEFAULT_SIGNER_RANK  = 'Pembina Utama Muda / IV.c';
     public const SYSTEM_CREATOR       = 'BegawiPengadaan Electronic Signature System (Pemprov Lampung)';
 
     /**
@@ -94,19 +94,19 @@ class DigitalSignatureService
 
         return sprintf(
             '<div class="cert-tte-block" style="display:inline-block;border:1.5px solid #1e3a8a;background-color:#f8fafc;padding:6px 10px;border-radius:4px;font-family:\'Helvetica Neue\',Helvetica,Arial,sans-serif;text-align:left;max-width:270px;line-height:1.2;box-sizing:border-box;">'
-            . '<div style="font-size:7.5pt;font-weight:bold;color:#1e3a8a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #cbd5e1;padding-bottom:3px;margin-bottom:4px;display:flex;align-items:center;">'
-            . '<span style="display:inline-block;width:7px;height:7px;background-color:#16a34a;border-radius:50%%;margin-right:4px;"></span>'
-            . 'DITANDATANGANI SECARA ELEKTRONIK'
-            . '</div>'
-            . '%s'
-            . '<div style="font-size:8.5pt;font-weight:bold;color:#0f172a;margin-bottom:1px;">%s</div>'
-            . '<div style="font-size:7.5pt;color:#334155;">%s</div>'
-            . '<div style="font-size:7.5pt;color:#64748b;font-family:Courier,monospace;">NIP. %s</div>'
-            . '<div style="font-size:6.5pt;color:#475569;border-top:1px dashed #cbd5e1;margin-top:4px;padding-top:3px;">'
-            . 'Waktu: %s<br/>'
-            . '<span style="font-family:Courier,monospace;">Integritas: %s</span>'
-            . '</div>'
-            . '</div>',
+                . '<div style="font-size:7.5pt;font-weight:bold;color:#1e3a8a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #cbd5e1;padding-bottom:3px;margin-bottom:4px;display:flex;align-items:center;">'
+                . '<span style="display:inline-block;width:7px;height:7px;background-color:#16a34a;border-radius:50%%;margin-right:4px;"></span>'
+                . 'DITANDATANGANI SECARA ELEKTRONIK'
+                . '</div>'
+                . '%s'
+                . '<div style="font-size:8.5pt;font-weight:bold;color:#0f172a;margin-bottom:1px;">%s</div>'
+                . '<div style="font-size:7.5pt;color:#334155;">%s</div>'
+                . '<div style="font-size:7.5pt;color:#64748b;font-family:Courier,monospace;">NIP. %s</div>'
+                . '<div style="font-size:6.5pt;color:#475569;border-top:1px dashed #cbd5e1;margin-top:4px;padding-top:3px;">'
+                . 'Waktu: %s<br/>'
+                . '<span style="font-family:Courier,monospace;">Integritas: %s</span>'
+                . '</div>'
+                . '</div>',
             $specimenHtml,
             htmlspecialchars($signerName, ENT_QUOTES, 'UTF-8'),
             htmlspecialchars($signerPos, ENT_QUOTES, 'UTF-8'),
@@ -128,10 +128,10 @@ class DigitalSignatureService
 
         return sprintf(
             '<div class="cert-tte-stamp" style="display:inline-block;width:180px;border:2px solid #0284c7;background:#f0f9ff;color:#0369a1;padding:4px 8px;border-radius:6px;font-family:\'Helvetica Neue\',Helvetica,Arial,sans-serif;text-align:center;font-size:7pt;line-height:1.2;font-weight:bold;box-sizing:border-box;">'
-            . '<div style="font-size:8pt;color:#0c4a6e;margin:2px 0;letter-spacing:0.5px;">SERTIFIKAT ELEKTRONIK</div>'
-            . '<div style="font-size:6pt;font-weight:normal;color:#075985;">TEROTENTIKASI &bull; %s</div>'
-            . '<div style="font-size:5.5pt;font-family:Courier,monospace;color:#0284c7;border-top:1px solid #bae6fd;margin-top:2px;padding-top:2px;">%s</div>'
-            . '</div>',
+                . '<div style="font-size:8pt;color:#0c4a6e;margin:2px 0;letter-spacing:0.5px;">SERTIFIKAT ELEKTRONIK</div>'
+                . '<div style="font-size:6pt;font-weight:normal;color:#075985;">TEROTENTIKASI &bull; %s</div>'
+                . '<div style="font-size:5.5pt;font-family:Courier,monospace;color:#0284c7;border-top:1px solid #bae6fd;margin-top:2px;padding-top:2px;">%s</div>'
+                . '</div>',
             htmlspecialchars($date, ENT_QUOTES, 'UTF-8'),
             htmlspecialchars($checksum, ENT_QUOTES, 'UTF-8')
         );
@@ -386,19 +386,19 @@ class DigitalSignatureService
 
         $sigDict = sprintf(
             "%d 0 obj\n"
-            . "<<\n"
-            . "  /Type /Sig\n"
-            . "  /Filter /Adobe.PPKLite\n"
-            . "  /SubFilter /adbe.pkcs7.detached\n"
-            . "  /ByteRange %s\n"
-            . "  /Contents <%s>\n"
-            . "  /M (%s)\n"
-            . "  /Name (%s)\n"
-            . "  /Reason (%s)\n"
-            . "  /Location (%s)\n"
-            . "  /ContactInfo (begawipengadaan@lampungprov.go.id)\n"
-            . ">>\n"
-            . "endobj\n",
+                . "<<\n"
+                . "  /Type /Sig\n"
+                . "  /Filter /Adobe.PPKLite\n"
+                . "  /SubFilter /adbe.pkcs7.detached\n"
+                . "  /ByteRange %s\n"
+                . "  /Contents <%s>\n"
+                . "  /M (%s)\n"
+                . "  /Name (%s)\n"
+                . "  /Reason (%s)\n"
+                . "  /Location (%s)\n"
+                . "  /ContactInfo (begawipengadaan@lampungprov.go.id)\n"
+                . ">>\n"
+                . "endobj\n",
             $sigObjId,
             $byteRangePlaceholder,
             $contentsHexPlaceholder,
@@ -410,16 +410,16 @@ class DigitalSignatureService
 
         $annotObj = sprintf(
             "%d 0 obj\n"
-            . "<<\n"
-            . "  /Type /Annot\n"
-            . "  /Subtype /Widget\n"
-            . "  /FT /Sig\n"
-            . "  /T (BegawiPbjDigitalSignature)\n"
-            . "  /V %d 0 R\n"
-            . "  /F 4\n"
-            . "  /Rect [0 0 0 0]\n"
-            . ">>\n"
-            . "endobj\n",
+                . "<<\n"
+                . "  /Type /Annot\n"
+                . "  /Subtype /Widget\n"
+                . "  /FT /Sig\n"
+                . "  /T (BegawiPbjDigitalSignature)\n"
+                . "  /V %d 0 R\n"
+                . "  /F 4\n"
+                . "  /Rect [0 0 0 0]\n"
+                . ">>\n"
+                . "endobj\n",
             $annotId,
             $sigObjId
         );
@@ -433,9 +433,9 @@ class DigitalSignatureService
 
         $newXref = sprintf(
             "xref\n"
-            . "%d 2\n"
-            . "%010d 00000 n \n"
-            . "%010d 00000 n \n",
+                . "%d 2\n"
+                . "%010d 00000 n \n"
+                . "%010d 00000 n \n",
             $sigObjId,
             $sigOffset,
             $annotOffset
@@ -443,14 +443,14 @@ class DigitalSignatureService
 
         $trailer = sprintf(
             "trailer\n"
-            . "<<\n"
-            . "  /Size %d\n"
-            . "  /Root %d 0 R\n"
-            . ($prevStartXref > 0 ? ("  /Prev " . $prevStartXref . "\n") : '')
-            . ">>\n"
-            . "startxref\n"
-            . "%d\n"
-            . "%%%%EOF\n",
+                . "<<\n"
+                . "  /Size %d\n"
+                . "  /Root %d 0 R\n"
+                . ($prevStartXref > 0 ? ("  /Prev " . $prevStartXref . "\n") : '')
+                . ">>\n"
+                . "startxref\n"
+                . "%d\n"
+                . "%%%%EOF\n",
             $annotId + 1,
             $rootId,
             $newXrefOffset

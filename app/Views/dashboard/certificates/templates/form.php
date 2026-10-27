@@ -51,12 +51,12 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
 </div>
 
 <form method="post"
-      id="certificateTemplateForm"
-      action="<?= esc($isCreate
-                  ? site_url('dashboard/sertifikat/template/simpan')
-                  : site_url('dashboard/sertifikat/template/' . (int) ($t['id'] ?? 0) . '/ubah')) ?>"
-      enctype="multipart/form-data"
-      novalidate>
+    id="certificateTemplateForm"
+    action="<?= esc($isCreate
+                ? site_url('dashboard/sertifikat/template/simpan')
+                : site_url('dashboard/sertifikat/template/' . (int) ($t['id'] ?? 0) . '/ubah')) ?>"
+    enctype="multipart/form-data"
+    novalidate>
     <?= csrf_field() ?>
     <input type="hidden" name="template_id" id="templateIdInput" value="<?= (int) ($t['id'] ?? 0) ?>">
     <input type="hidden" name="payload[pdf_placeholders_json]" id="pdfPlaceholdersJsonInput" value="<?= esc(json_encode($pdfPlaceholders, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) ?>">
@@ -84,8 +84,8 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                                 Nama Template Sertifikat <span class="text-danger">*</span>
                             </label>
                             <input type="text" name="name" id="templateNameInput" class="form-control radius-8" required maxlength="255"
-                                   placeholder="cth: Template Resmi Kelulusan Arena Belajar PBJ 2026"
-                                   value="<?= esc(old('name', $t['name'] ?? '')) ?>">
+                                placeholder="cth: Template Resmi Kelulusan Arena Belajar PBJ 2026"
+                                value="<?= esc(old('name', $t['name'] ?? '')) ?>">
                             <small class="text-secondary-light">Nama pengenal template untuk pengelolaan di dashboard.</small>
                         </div>
 
@@ -352,7 +352,7 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                                 <?= (! empty($payload['background_path']) || ! empty($bgAsset)) ? 'Ganti File PDF / Gambar Template (Opsional)' : 'Pilih File PDF Template Sertifikat' ?>
                             </label>
                             <input type="file" name="background_file" id="backgroundFileInput" class="form-control radius-8"
-                                   accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg">
+                                accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg">
                         </div>
                         <div class="col-md-3">
                             <button type="button" id="btnRescanPdf" class="btn btn-outline-primary-600 radius-8 w-100 py-10 text-xs fw-semibold d-flex align-items-center justify-content-center gap-1">
@@ -380,8 +380,8 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-primary-light text-sm mb-6">Nama Instansi Penerbit (<code>{{penerbit}}</code>)</label>
                             <input type="text" name="payload[issuer_name]" id="issuerNameInput" class="form-control radius-8"
-                                   placeholder="Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa"
-                                   value="<?= esc(old('payload.issuer_name', $payload['issuer_name'] ?? 'Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa')) ?>">
+                                placeholder="Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa"
+                                value="<?= esc(old('payload.issuer_name', $payload['issuer_name'] ?? 'Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa')) ?>">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-primary-light text-sm mb-6">Status Template</label>
@@ -394,20 +394,20 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                         <div class="col-md-5">
                             <label class="form-label fw-semibold text-primary-light text-sm mb-6">Nama Pejabat (<code>{{penandatangan_nama}}</code>)</label>
                             <input type="text" name="payload[signer_name]" id="signerNameInput" class="form-control radius-8"
-                                   placeholder="Dr. H. Rahmad Hidayat, S.E., M.Si."
-                                   value="<?= esc(old('payload.signer_name', $payload['signer_name'] ?? 'Dr. H. Rahmad Hidayat, S.E., M.Si.')) ?>">
+                                placeholder="Ir. S. Hendriyanto, S.T., M.T."
+                                value="<?= esc(old('payload.signer_name', $payload['signer_name'] ?? 'Ir. S. Hendriyanto, S.T., M.T.')) ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold text-primary-light text-sm mb-6">Jabatan Pejabat (<code>{{penandatangan_jabatan}}</code>)</label>
                             <input type="text" name="payload[signer_position]" id="signerPositionInput" class="form-control radius-8"
-                                   placeholder="Kepala Biro Pengadaan Barang dan Jasa"
-                                   value="<?= esc(old('payload.signer_position', $payload['signer_position'] ?? 'Kepala Biro Pengadaan Barang dan Jasa')) ?>">
+                                placeholder="Kepala Biro Pengadaan Barang dan Jasa"
+                                value="<?= esc(old('payload.signer_position', $payload['signer_position'] ?? 'Kepala Biro Pengadaan Barang dan Jasa')) ?>">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-semibold text-primary-light text-sm mb-6">NIP Pejabat (<code>{{penandatangan_nip}}</code>)</label>
                             <input type="text" name="payload[signer_nip]" id="signerNipInput" class="form-control radius-8"
-                                   placeholder="19750812 199903 1 004"
-                                   value="<?= esc(old('payload.signer_nip', $payload['signer_nip'] ?? '19750812 199903 1 004')) ?>">
+                                placeholder="19730915 199902 1 001"
+                                value="<?= esc(old('payload.signer_nip', $payload['signer_nip'] ?? '19730915 199902 1 001')) ?>">
                         </div>
 
                         <!-- Pilihan Mode TTE Sertifikat (Opsi 1 vs Opsi 2) -->
@@ -453,101 +453,111 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
             </div>
 
             <style>
-            /* Kanvas Pratinjau & Penataan Placeholder PDF Interaktif */
-            #pdfStageOuter {
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-                transition: box-shadow 0.2s ease;
-                background-color: #ffffff;
-            }
-            #pdfStageOuter.is-dragging {
-                cursor: grabbing !important;
-            }
-            .pdf-ph-marker {
-                position: absolute;
-                cursor: grab;
-                user-select: none;
-                box-sizing: border-box;
-                transition: border 0.12s ease, background-color 0.12s ease, box-shadow 0.12s ease;
-            }
-            .pdf-ph-marker:active {
-                cursor: grabbing;
-            }
+                /* Kanvas Pratinjau & Penataan Placeholder PDF Interaktif */
+                #pdfStageOuter {
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                    transition: box-shadow 0.2s ease;
+                    background-color: #ffffff;
+                }
 
-            /* Mode Pratinjau Data Asli: Teks alami bersih seperti sertifikat tercetak */
-            .stage-mode-sample .pdf-ph-marker {
-                border: 1px solid transparent;
-                border-radius: 3px;
-                background: transparent;
-            }
-            .stage-mode-sample .pdf-ph-marker:hover {
-                border: 1px dashed #0284c7 !important;
-                background-color: rgba(2, 132, 199, 0.08) !important;
-                z-index: 20 !important;
-            }
-            .stage-mode-sample .pdf-ph-marker.is-selected {
-                border: 1.5px solid #2563eb !important;
-                background-color: rgba(37, 99, 235, 0.12) !important;
-                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
-                z-index: 30 !important;
-            }
+                #pdfStageOuter.is-dragging {
+                    cursor: grabbing !important;
+                }
 
-            /* Mode Tampilkan Tag: Badge chip berwarna rapi & jelas */
-            .stage-mode-tags .pdf-ph-marker {
-                border-radius: 6px;
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-                z-index: 10;
-            }
-            .stage-mode-tags .pdf-ph-marker:hover {
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-                z-index: 20 !important;
-            }
-            .stage-mode-tags .pdf-ph-marker.is-selected {
-                box-shadow: 0 0 0 3px #f59e0b, 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-                z-index: 30 !important;
-            }
+                .pdf-ph-marker {
+                    position: absolute;
+                    cursor: grab;
+                    user-select: none;
+                    box-sizing: border-box;
+                    transition: border 0.12s ease, background-color 0.12s ease, box-shadow 0.12s ease;
+                }
 
-            .ph-tag-chip {
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                padding: 3px 8px;
-                font-size: 11px;
-                font-weight: 600;
-                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-                color: #ffffff;
-                border-radius: 4px;
-                white-space: nowrap;
-                pointer-events: none;
-                line-height: 1.3;
-            }
-            .ph-tag-chip.chip-text {
-                background-color: #0f172a;
-            }
-            .ph-tag-chip.chip-qr {
-                background-color: #059669;
-            }
-            .ph-tag-chip.chip-tte {
-                background-color: #7c3aed;
-            }
+                .pdf-ph-marker:active {
+                    cursor: grabbing;
+                }
 
-            /* Tooltip koordinat penunjuk saat placeholder dipilih */
-            .ph-coord-tooltip {
-                position: absolute;
-                bottom: 100%;
-                left: 50%;
-                transform: translateX(-50%);
-                margin-bottom: 4px;
-                padding: 2px 6px;
-                background-color: #1e293b;
-                color: #ffffff;
-                font-size: 9px;
-                font-family: monospace;
-                border-radius: 3px;
-                white-space: nowrap;
-                pointer-events: none;
-                z-index: 40;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            }
+                /* Mode Pratinjau Data Asli: Teks alami bersih seperti sertifikat tercetak */
+                .stage-mode-sample .pdf-ph-marker {
+                    border: 1px solid transparent;
+                    border-radius: 3px;
+                    background: transparent;
+                }
+
+                .stage-mode-sample .pdf-ph-marker:hover {
+                    border: 1px dashed #0284c7 !important;
+                    background-color: rgba(2, 132, 199, 0.08) !important;
+                    z-index: 20 !important;
+                }
+
+                .stage-mode-sample .pdf-ph-marker.is-selected {
+                    border: 1.5px solid #2563eb !important;
+                    background-color: rgba(37, 99, 235, 0.12) !important;
+                    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
+                    z-index: 30 !important;
+                }
+
+                /* Mode Tampilkan Tag: Badge chip berwarna rapi & jelas */
+                .stage-mode-tags .pdf-ph-marker {
+                    border-radius: 6px;
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+                    z-index: 10;
+                }
+
+                .stage-mode-tags .pdf-ph-marker:hover {
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+                    z-index: 20 !important;
+                }
+
+                .stage-mode-tags .pdf-ph-marker.is-selected {
+                    box-shadow: 0 0 0 3px #f59e0b, 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+                    z-index: 30 !important;
+                }
+
+                .ph-tag-chip {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    padding: 3px 8px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                    color: #ffffff;
+                    border-radius: 4px;
+                    white-space: nowrap;
+                    pointer-events: none;
+                    line-height: 1.3;
+                }
+
+                .ph-tag-chip.chip-text {
+                    background-color: #0f172a;
+                }
+
+                .ph-tag-chip.chip-qr {
+                    background-color: #059669;
+                }
+
+                .ph-tag-chip.chip-tte {
+                    background-color: #7c3aed;
+                }
+
+                /* Tooltip koordinat penunjuk saat placeholder dipilih */
+                .ph-coord-tooltip {
+                    position: absolute;
+                    bottom: 100%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    margin-bottom: 4px;
+                    padding: 2px 6px;
+                    background-color: #1e293b;
+                    color: #ffffff;
+                    font-size: 9px;
+                    font-family: monospace;
+                    border-radius: 3px;
+                    white-space: nowrap;
+                    pointer-events: none;
+                    z-index: 40;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                }
             </style>
 
             <!-- Card 4: Kanvas Visual & Pengaturan Placeholder di Dalam PDF -->
@@ -593,20 +603,20 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
 
                         <!-- Wrapper Proporsional A4 Landscape (atau sesuai rasio PDF) -->
                         <div id="pdfStageOuter" class="mx-auto position-relative shadow-sm border bg-white overflow-hidden"
-                             style="width: 100%; max-width: 840px; aspect-ratio: <?= esc((string) $pageWidthMm) ?> / <?= esc((string) $pageHeightMm) ?>; user-select: none;">
+                            style="width: 100%; max-width: 840px; aspect-ratio: <?= esc((string) $pageWidthMm) ?> / <?= esc((string) $pageHeightMm) ?>; user-select: none;">
 
                             <!-- Canvas tempat PDF.js merender halaman 1 PDF -->
                             <canvas id="pdfRenderCanvas" class="w-100 h-100 d-block" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;"></canvas>
 
                             <!-- Gambar fallback jika yang diunggah adalah PNG/JPG -->
                             <img id="imageRenderStage" src="<?= ($existingBgExt !== 'pdf' && $existingBgUrl !== '') ? esc($existingBgUrl) : '' ?>"
-                                 alt="Template Background"
-                                 class="<?= ($existingBgExt !== 'pdf' && $existingBgUrl !== '') ? '' : 'd-none' ?>"
-                                 style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;z-index:1;">
+                                alt="Template Background"
+                                class="<?= ($existingBgExt !== 'pdf' && $existingBgUrl !== '') ? '' : 'd-none' ?>"
+                                style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;z-index:1;">
 
                             <!-- Empty State jika belum ada file PDF yang dipilih -->
                             <div id="pdfEmptyStateOverlay" class="<?= $existingBgUrl !== '' ? 'd-none' : 'd-flex' ?> flex-column align-items-center justify-content-center text-center p-24"
-                                 style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;">
+                                style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;">
                                 <iconify-icon icon="solar:file-send-bold-duotone" class="text-5xl text-neutral-300 mb-2"></iconify-icon>
                                 <p class="text-sm fw-semibold text-neutral-500 mb-1">Unggah File PDF Template Sertifikat pada Bagian 2 di Atas</p>
                                 <p class="text-xs text-neutral-400 mb-0">Pratinjau halaman PDF beserta titik-titik penggantian <code>{{placeholder}}</code> akan tampil secara otomatis di kanvas ini.</p>
@@ -727,7 +737,7 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                     <!-- Accordion Opsi Lanjutan: Mode Tata Letak & HTML Kustom -->
                     <div class="mt-20 pt-16 border-top">
                         <a class="text-xs fw-semibold text-secondary-light text-decoration-none d-inline-flex align-items-center gap-1"
-                           data-bs-toggle="collapse" href="#advancedHtmlCollapse" role="button" aria-expanded="false">
+                            data-bs-toggle="collapse" href="#advancedHtmlCollapse" role="button" aria-expanded="false">
                             <iconify-icon icon="solar:settings-bold"></iconify-icon>
                             Opsi Lanjutan: Mode Render &amp; Editor Body HTML Manual (Opsional)
                         </a>
@@ -759,14 +769,14 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                                     <div class="col-12">
                                         <label class="form-label fw-semibold text-primary-light text-xs mb-4">Body HTML Manual (Hanya dipakai jika memilih Mode HTML Manual)</label>
                                         <textarea name="payload[body_html]" id="bodyHtmlEditor" class="form-control font-monospace radius-8" rows="5"
-                                                  style="font-size: 12px; background: #fff;"
-                                                  placeholder="Kosongkan bila menggunakan penggantian placeholder langsung di dalam PDF..."><?= esc(old('payload.body_html', $payload['body_html'] ?? '')) ?></textarea>
+                                            style="font-size: 12px; background: #fff;"
+                                            placeholder="Kosongkan bila menggunakan penggantian placeholder langsung di dalam PDF..."><?= esc(old('payload.body_html', $payload['body_html'] ?? '')) ?></textarea>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label fw-semibold text-primary-light text-xs mb-4">CSS Tambahan Kustom (Opsional)</label>
                                         <textarea name="payload[css]" class="form-control font-monospace radius-8" rows="2"
-                                                  style="font-size: 12px; background: #fff;"
-                                                  placeholder=".cert-ph-text { font-family: 'Times New Roman', serif; }"><?= esc(old('payload.css', $payload['css'] ?? '')) ?></textarea>
+                                            style="font-size: 12px; background: #fff;"
+                                            placeholder=".cert-ph-text { font-family: 'Times New Roman', serif; }"><?= esc(old('payload.css', $payload['css'] ?? '')) ?></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -824,10 +834,10 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                             <div class="d-flex flex-column gap-6">
                                 <?php foreach ($tags as $item): ?>
                                     <div class="placeholder-item d-flex align-items-center justify-content-between p-8 radius-6 border bg-white hover-bg-neutral-50 cursor-pointer"
-                                         data-tag="<?= esc($item['tag']) ?>"
-                                         data-label="<?= esc($item['label']) ?>"
-                                         data-example="<?= esc($item['example']) ?>"
-                                         title="Klik untuk menyalin &amp; menambahkan <?= esc($item['tag']) ?> ke kanvas PDF">
+                                        data-tag="<?= esc($item['tag']) ?>"
+                                        data-label="<?= esc($item['label']) ?>"
+                                        data-example="<?= esc($item['example']) ?>"
+                                        title="Klik untuk menyalin &amp; menambahkan <?= esc($item['tag']) ?> ke kanvas PDF">
                                         <div>
                                             <code class="fw-bold text-primary-600 text-xs"><?= esc($item['tag']) ?></code>
                                             <div class="text-xs text-secondary-light mt-1"><?= esc($item['label']) ?></div>
@@ -852,1109 +862,1330 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
 <!-- PDF.js Library untuk Render Halaman PDF & Deteksi Teks Placeholder Presisi di Browser -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    if (window.pdfjsLib) {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-
-    const form = document.getElementById('certificateTemplateForm');
-    const fileInput = document.getElementById('backgroundFileInput');
-    const btnRescanPdf = document.getElementById('btnRescanPdf');
-    const scanBanner = document.getElementById('pdfScanStatusBanner');
-
-    const pdfStageOuter = document.getElementById('pdfStageOuter');
-    const pdfCanvas = document.getElementById('pdfRenderCanvas');
-    const imageRenderStage = document.getElementById('imageRenderStage');
-    const emptyStateOverlay = document.getElementById('pdfEmptyStateOverlay');
-    const pdfMaskLayer = document.getElementById('pdfMaskLayer');
-    const pdfInteractiveOverlay = document.getElementById('pdfInteractiveOverlay');
-    const canvasDimensionBadge = document.getElementById('canvasDimensionBadge');
-    const activeCountBadge = document.getElementById('activePlaceholderCountBadge');
-
-    const jsonInput = document.getElementById('pdfPlaceholdersJsonInput');
-    const pageWidthMmInput = document.getElementById('pageWidthMmInput');
-    const pageHeightMmInput = document.getElementById('pageHeightMmInput');
-
-    const inspectorPanel = document.getElementById('placeholderInspectorPanel');
-    const inspSelectedTag = document.getElementById('inspSelectedTag');
-    const inspSelectedLabel = document.getElementById('inspSelectedLabel');
-    const inspXPct = document.getElementById('inspXPct');
-    const inspYPct = document.getElementById('inspYPct');
-    const inspFontSize = document.getElementById('inspFontSize');
-    const inspQrSize = document.getElementById('inspQrSize');
-    const inspFontSizeGroup = document.getElementById('inspFontSizeGroup');
-    const inspQrSizeGroup = document.getElementById('inspQrSizeGroup');
-    const inspWeightGroup = document.getElementById('inspWeightGroup');
-    const inspColorGroup = document.getElementById('inspColorGroup');
-    const inspFontWeight = document.getElementById('inspFontWeight');
-    const inspAlign = document.getElementById('inspAlign');
-    const inspColor = document.getElementById('inspColor');
-    const inspMaskBg = document.getElementById('inspMaskBg');
-    const inspMaskColor = document.getElementById('inspMaskColor');
-    const btnDeleteSelectedPh = document.getElementById('btnDeleteSelectedPh');
-
-    const tbody = document.getElementById('detectedPlaceholdersTbody');
-    const btnViewModeSample = document.getElementById('btnViewModeSample');
-    const btnViewModeTags = document.getElementById('btnViewModeTags');
-    const btnAddDefaultPlaceholders = document.getElementById('btnAddDefaultPlaceholders');
-    const btnClearAllPlaceholders = document.getElementById('btnClearAllPlaceholders');
-
-    const toast = document.getElementById('copyToast');
-    const toastText = document.getElementById('copyToastText');
-    let toastTimeout = null;
-
-    // Data sampel dari server untuk pratinjau nilai asli
-    const sampleValues = <?= json_encode($sampleValues ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-    const sampleQrUri = <?= json_encode($sampleQrUri ?? '', JSON_UNESCAPED_SLASHES) ?>;
-    const existingBgUrl = <?= json_encode($existingBgUrl, JSON_UNESCAPED_SLASHES) ?>;
-    const existingBgExt = <?= json_encode($existingBgExt) ?>;
-    const inspectEndpoint = <?= json_encode(site_url('dashboard/sertifikat/template/inspect-pdf'), JSON_UNESCAPED_SLASHES) ?>;
-    const livePreviewEndpoint = <?= json_encode(site_url('dashboard/sertifikat/template/live-preview-pdf'), JSON_UNESCAPED_SLASHES) ?>;
-
-    // State utama daftar placeholder PDF
-    let placeholders = [];
-    try {
-        const parsed = JSON.parse(jsonInput.value || '[]');
-        if (Array.isArray(parsed)) placeholders = parsed;
-    } catch (e) {
-        placeholders = [];
-    }
-
-    let selectedId = placeholders.length > 0 ? placeholders[0].id : null;
-    let viewMode = 'sample'; // 'sample' | 'tags'
-    let currentPdfDoc = null;
-
-    // Sinkronisasi input Pejabat Penanda Tangan dengan sampleValues secara real-time
-    const issuerInput = document.getElementById('issuerNameInput');
-    const signerNameInput = document.getElementById('signerNameInput');
-    const signerPosInput = document.getElementById('signerPositionInput');
-    const signerNipInput = document.getElementById('signerNipInput');
-
-    function syncSignerInputsToSample() {
-        if (issuerInput) {
-            sampleValues['{{penerbit}}'] = issuerInput.value;
-            sampleValues['{{issuer_name}}'] = issuerInput.value;
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         }
-        if (signerNameInput) {
-            sampleValues['{{penandatangan_nama}}'] = signerNameInput.value;
-            sampleValues['{{signer_name}}'] = signerNameInput.value;
+
+        const form = document.getElementById('certificateTemplateForm');
+        const fileInput = document.getElementById('backgroundFileInput');
+        const btnRescanPdf = document.getElementById('btnRescanPdf');
+        const scanBanner = document.getElementById('pdfScanStatusBanner');
+
+        const pdfStageOuter = document.getElementById('pdfStageOuter');
+        const pdfCanvas = document.getElementById('pdfRenderCanvas');
+        const imageRenderStage = document.getElementById('imageRenderStage');
+        const emptyStateOverlay = document.getElementById('pdfEmptyStateOverlay');
+        const pdfMaskLayer = document.getElementById('pdfMaskLayer');
+        const pdfInteractiveOverlay = document.getElementById('pdfInteractiveOverlay');
+        const canvasDimensionBadge = document.getElementById('canvasDimensionBadge');
+        const activeCountBadge = document.getElementById('activePlaceholderCountBadge');
+
+        const jsonInput = document.getElementById('pdfPlaceholdersJsonInput');
+        const pageWidthMmInput = document.getElementById('pageWidthMmInput');
+        const pageHeightMmInput = document.getElementById('pageHeightMmInput');
+
+        const inspectorPanel = document.getElementById('placeholderInspectorPanel');
+        const inspSelectedTag = document.getElementById('inspSelectedTag');
+        const inspSelectedLabel = document.getElementById('inspSelectedLabel');
+        const inspXPct = document.getElementById('inspXPct');
+        const inspYPct = document.getElementById('inspYPct');
+        const inspFontSize = document.getElementById('inspFontSize');
+        const inspQrSize = document.getElementById('inspQrSize');
+        const inspFontSizeGroup = document.getElementById('inspFontSizeGroup');
+        const inspQrSizeGroup = document.getElementById('inspQrSizeGroup');
+        const inspWeightGroup = document.getElementById('inspWeightGroup');
+        const inspColorGroup = document.getElementById('inspColorGroup');
+        const inspFontWeight = document.getElementById('inspFontWeight');
+        const inspAlign = document.getElementById('inspAlign');
+        const inspColor = document.getElementById('inspColor');
+        const inspMaskBg = document.getElementById('inspMaskBg');
+        const inspMaskColor = document.getElementById('inspMaskColor');
+        const btnDeleteSelectedPh = document.getElementById('btnDeleteSelectedPh');
+
+        const tbody = document.getElementById('detectedPlaceholdersTbody');
+        const btnViewModeSample = document.getElementById('btnViewModeSample');
+        const btnViewModeTags = document.getElementById('btnViewModeTags');
+        const btnAddDefaultPlaceholders = document.getElementById('btnAddDefaultPlaceholders');
+        const btnClearAllPlaceholders = document.getElementById('btnClearAllPlaceholders');
+
+        const toast = document.getElementById('copyToast');
+        const toastText = document.getElementById('copyToastText');
+        let toastTimeout = null;
+
+        // Data sampel dari server untuk pratinjau nilai asli
+        const sampleValues = <?= json_encode($sampleValues ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+        const sampleQrUri = <?= json_encode($sampleQrUri ?? '', JSON_UNESCAPED_SLASHES) ?>;
+        const existingBgUrl = <?= json_encode($existingBgUrl, JSON_UNESCAPED_SLASHES) ?>;
+        const existingBgExt = <?= json_encode($existingBgExt) ?>;
+        const inspectEndpoint = <?= json_encode(site_url('dashboard/sertifikat/template/inspect-pdf'), JSON_UNESCAPED_SLASHES) ?>;
+        const livePreviewEndpoint = <?= json_encode(site_url('dashboard/sertifikat/template/live-preview-pdf'), JSON_UNESCAPED_SLASHES) ?>;
+
+        // State utama daftar placeholder PDF
+        let placeholders = [];
+        try {
+            const parsed = JSON.parse(jsonInput.value || '[]');
+            if (Array.isArray(parsed)) placeholders = parsed;
+        } catch (e) {
+            placeholders = [];
         }
-        if (signerPosInput) {
-            sampleValues['{{penandatangan_jabatan}}'] = signerPosInput.value;
-            sampleValues['{{signer_position}}'] = signerPosInput.value;
+
+        let selectedId = placeholders.length > 0 ? placeholders[0].id : null;
+        let viewMode = 'sample'; // 'sample' | 'tags'
+        let currentPdfDoc = null;
+
+        // Sinkronisasi input Pejabat Penanda Tangan dengan sampleValues secara real-time
+        const issuerInput = document.getElementById('issuerNameInput');
+        const signerNameInput = document.getElementById('signerNameInput');
+        const signerPosInput = document.getElementById('signerPositionInput');
+        const signerNipInput = document.getElementById('signerNipInput');
+
+        function syncSignerInputsToSample() {
+            if (issuerInput) {
+                sampleValues['{{penerbit}}'] = issuerInput.value;
+                sampleValues['{{issuer_name}}'] = issuerInput.value;
+            }
+            if (signerNameInput) {
+                sampleValues['{{penandatangan_nama}}'] = signerNameInput.value;
+                sampleValues['{{signer_name}}'] = signerNameInput.value;
+            }
+            if (signerPosInput) {
+                sampleValues['{{penandatangan_jabatan}}'] = signerPosInput.value;
+                sampleValues['{{signer_position}}'] = signerPosInput.value;
+            }
+            if (signerNipInput) {
+                sampleValues['{{penandatangan_nip}}'] = signerNipInput.value;
+                sampleValues['{{signer_nip}}'] = signerNipInput.value;
+            }
+            renderStage();
         }
-        if (signerNipInput) {
-            sampleValues['{{penandatangan_nip}}'] = signerNipInput.value;
-            sampleValues['{{signer_nip}}'] = signerNipInput.value;
+
+        [issuerInput, signerNameInput, signerPosInput, signerNipInput].forEach(function(inp) {
+            if (inp) inp.addEventListener('input', syncSignerInputsToSample);
+        });
+
+        function showToast(msg) {
+            if (!toast || !toastText) return;
+            toastText.textContent = msg;
+            toast.classList.remove('d-none');
+            toast.classList.add('d-flex');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(function() {
+                toast.classList.remove('d-flex');
+                toast.classList.add('d-none');
+            }, 3000);
         }
-        renderStage();
-    }
 
-    [issuerInput, signerNameInput, signerPosInput, signerNipInput].forEach(function(inp) {
-        if (inp) inp.addEventListener('input', syncSignerInputsToSample);
-    });
+        function showScanBanner(type, htmlMsg) {
+            if (!scanBanner) return;
+            scanBanner.className = 'mt-12 alert py-10 px-14 radius-8 text-xs d-flex align-items-center gap-2 mb-0 alert-' + type;
+            scanBanner.innerHTML = htmlMsg;
+            scanBanner.classList.remove('d-none');
+        }
 
-    function showToast(msg) {
-        if (!toast || !toastText) return;
-        toastText.textContent = msg;
-        toast.classList.remove('d-none');
-        toast.classList.add('d-flex');
-        if (toastTimeout) clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(function() {
-            toast.classList.remove('d-flex');
-            toast.classList.add('d-none');
-        }, 3000);
-    }
-
-    function showScanBanner(type, htmlMsg) {
-        if (!scanBanner) return;
-        scanBanner.className = 'mt-12 alert py-10 px-14 radius-8 text-xs d-flex align-items-center gap-2 mb-0 alert-' + type;
-        scanBanner.innerHTML = htmlMsg;
-        scanBanner.classList.remove('d-none');
-    }
-
-    function updateStageAspectRatio(wMm, hMm) {
-        if (wMm > 10 && hMm > 10) {
-            pageWidthMmInput.value = wMm.toFixed(2);
-            pageHeightMmInput.value = hMm.toFixed(2);
-            pdfStageOuter.style.aspectRatio = wMm + ' / ' + hMm;
-            if (canvasDimensionBadge) {
-                canvasDimensionBadge.textContent = 'Kanvas Sertifikat: ' + wMm.toFixed(0) + ' × ' + hMm.toFixed(0) + ' mm';
+        function updateStageAspectRatio(wMm, hMm) {
+            if (wMm > 10 && hMm > 10) {
+                pageWidthMmInput.value = wMm.toFixed(2);
+                pageHeightMmInput.value = hMm.toFixed(2);
+                pdfStageOuter.style.aspectRatio = wMm + ' / ' + hMm;
+                if (canvasDimensionBadge) {
+                    canvasDimensionBadge.textContent = 'Kanvas Sertifikat: ' + wMm.toFixed(0) + ' × ' + hMm.toFixed(0) + ' mm';
+                }
             }
         }
-    }
 
-    // =========================================================================
-    // Render PDF.js & Ekstraksi Koordinat Placeholder dari PDF
-    // =========================================================================
+        // =========================================================================
+        // Render PDF.js & Ekstraksi Koordinat Placeholder dari PDF
+        // =========================================================================
 
-    async function loadPdfIntoCanvas(arrayBuffer, autoDetectPlaceholders) {
-        if (!window.pdfjsLib) return [];
-        try {
-            const loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer });
-            currentPdfDoc = await loadingTask.promise;
-            const page = await currentPdfDoc.getPage(1);
+        async function loadPdfIntoCanvas(arrayBuffer, autoDetectPlaceholders) {
+            if (!window.pdfjsLib) return [];
+            try {
+                const loadingTask = window.pdfjsLib.getDocument({
+                    data: arrayBuffer
+                });
+                currentPdfDoc = await loadingTask.promise;
+                const page = await currentPdfDoc.getPage(1);
 
-            const baseViewport = page.getViewport({ scale: 1.0 });
-            const widthPt = baseViewport.width;
-            const heightPt = baseViewport.height;
-            const widthMm = +(widthPt * 25.4 / 72.0).toFixed(2);
-            const heightMm = +(heightPt * 25.4 / 72.0).toFixed(2);
-            updateStageAspectRatio(widthMm, heightMm);
+                const baseViewport = page.getViewport({
+                    scale: 1.0
+                });
+                const widthPt = baseViewport.width;
+                const heightPt = baseViewport.height;
+                const widthMm = +(widthPt * 25.4 / 72.0).toFixed(2);
+                const heightMm = +(heightPt * 25.4 / 72.0).toFixed(2);
+                updateStageAspectRatio(widthMm, heightMm);
 
-            // Render ke <canvas> dengan skala tajam (2.0x)
-            const scale = 2.0;
-            const viewport = page.getViewport({ scale: scale });
-            const ctx = pdfCanvas.getContext('2d');
-            pdfCanvas.width = viewport.width;
-            pdfCanvas.height = viewport.height;
+                // Render ke <canvas> dengan skala tajam (2.0x)
+                const scale = 2.0;
+                const viewport = page.getViewport({
+                    scale: scale
+                });
+                const ctx = pdfCanvas.getContext('2d');
+                pdfCanvas.width = viewport.width;
+                pdfCanvas.height = viewport.height;
 
-            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                await page.render({
+                    canvasContext: ctx,
+                    viewport: viewport
+                }).promise;
 
-            emptyStateOverlay.classList.add('d-none');
-            emptyStateOverlay.classList.remove('d-flex');
-            imageRenderStage.classList.add('d-none');
-            pdfCanvas.classList.remove('d-none');
+                emptyStateOverlay.classList.add('d-none');
+                emptyStateOverlay.classList.remove('d-flex');
+                imageRenderStage.classList.add('d-none');
+                pdfCanvas.classList.remove('d-none');
 
-            if (!autoDetectPlaceholders) {
-                renderStage();
+                if (!autoDetectPlaceholders) {
+                    renderStage();
+                    return [];
+                }
+
+                // Ekstrak teks dan koordinat dari halaman 1 via PDF.js getTextContent()
+                const textContent = await page.getTextContent();
+                const clientDetected = extractPlaceholdersFromPdfJsTextContent(textContent, widthPt, heightPt, ctx, scale);
+                return clientDetected;
+            } catch (err) {
+                console.warn('PDF.js render warning:', err);
                 return [];
             }
-
-            // Ekstrak teks dan koordinat dari halaman 1 via PDF.js getTextContent()
-            const textContent = await page.getTextContent();
-            const clientDetected = extractPlaceholdersFromPdfJsTextContent(textContent, widthPt, heightPt, ctx, scale);
-            return clientDetected;
-        } catch (err) {
-            console.warn('PDF.js render warning:', err);
-            return [];
         }
-    }
 
-    /**
-     * Ekstrak {{placeholder}} dari hasil page.getTextContent() milik PDF.js
-     * termasuk menggabungkan item teks yang bersebelahan di baris yang sama.
-     */
-    function extractPlaceholdersFromPdfJsTextContent(textContent, pageWidthPt, pageHeightPt, canvasCtx, canvasScale) {
-        if (!textContent || !Array.isArray(textContent.items)) return [];
+        /**
+         * Ekstrak {{placeholder}} dari hasil page.getTextContent() milik PDF.js
+         * termasuk menggabungkan item teks yang bersebelahan di baris yang sama.
+         */
+        function extractPlaceholdersFromPdfJsTextContent(textContent, pageWidthPt, pageHeightPt, canvasCtx, canvasScale) {
+            if (!textContent || !Array.isArray(textContent.items)) return [];
 
-        const rawRuns = [];
-        textContent.items.forEach(function(item) {
-            const str = item.str || '';
-            if (str === '') return;
-            const tr = item.transform || [12, 0, 0, 12, 0, 0];
-            const fontSizePt = Math.max(6, Math.round(Math.hypot(tr[2], tr[3]) || Math.hypot(tr[0], tr[1]) || 12));
-            const xPt = tr[4];
-            const yPt = tr[5];
-            const wPt = item.width > 0 ? item.width : (str.length * fontSizePt * 0.52);
+            const rawRuns = [];
+            textContent.items.forEach(function(item) {
+                const str = item.str || '';
+                if (str === '') return;
+                const tr = item.transform || [12, 0, 0, 12, 0, 0];
+                const fontSizePt = Math.max(6, Math.round(Math.hypot(tr[2], tr[3]) || Math.hypot(tr[0], tr[1]) || 12));
+                const xPt = tr[4];
+                const yPt = tr[5];
+                const wPt = item.width > 0 ? item.width : (str.length * fontSizePt * 0.52);
 
-            rawRuns.push({
-                text: str,
-                x_pt: xPt,
-                y_pt: yPt,
-                width_pt: wPt,
-                font_size: fontSizePt,
-                font_name: item.fontName || ''
-            });
-        });
-
-        // Gabungkan item yang berada di baseline Y yang sama
-        const mergedLines = [];
-        rawRuns.forEach(function(run) {
-            if (mergedLines.length === 0) {
-                mergedLines.push(Object.assign({}, run));
-                return;
-            }
-            const last = mergedLines[mergedLines.length - 1];
-            const sameLine = Math.abs(run.y_pt - last.y_pt) <= Math.max(3.0, last.font_size * 0.3);
-            const expectedX = last.x_pt + last.width_pt;
-            const gap = run.x_pt - expectedX;
-
-            if (sameLine && gap >= -(last.font_size * 0.9) && gap <= Math.max(22, last.font_size * 1.8)) {
-                let spacer = (gap > last.font_size * 0.35 && !last.text.endsWith(' ') && !run.text.startsWith(' ')) ? ' ' : '';
-                if (last.text.endsWith('{') || run.text.startsWith('}') || last.text.endsWith('_') || run.text.startsWith('_')) {
-                    spacer = '';
-                }
-                last.text += spacer + run.text;
-                last.width_pt = Math.max(last.width_pt, (run.x_pt + run.width_pt) - last.x_pt);
-            } else {
-                mergedLines.push(Object.assign({}, run));
-            }
-        });
-
-        const detected = [];
-        const regex = /(\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}|__QR_BLOCK__)/g;
-        let idx = 1;
-
-        mergedLines.forEach(function(line) {
-            let match;
-            regex.lastIndex = 0;
-            const lineLen = Math.max(1, line.text.length);
-
-            while ((match = regex.exec(line.text)) !== null) {
-                const fullMatch = match[1];
-                const rawKey = fullMatch === '__QR_BLOCK__' ? 'qr_code' : (match[2] || '').toLowerCase().trim();
-                const tag = '{{' + rawKey + '}}';
-                const isQr = (rawKey === 'qr_code' || rawKey === 'qr_block');
-
-                const charOffset = match.index;
-                const matchLen = fullMatch.length;
-                const prefixRatio = charOffset / lineLen;
-                const widthRatio = matchLen / lineLen;
-
-                const phXPt = line.x_pt + (line.width_pt * prefixRatio);
-                const phWidthPt = Math.max(line.font_size * 2.5, line.width_pt * widthRatio);
-                const topPt = Math.max(0, Math.min(pageHeightPt, pageHeightPt - (line.y_pt + line.font_size * 0.85)));
-
-                const origXPct = +((phXPt / pageWidthPt) * 100).toFixed(2);
-                const origYPct = +((topPt / pageHeightPt) * 100).toFixed(2);
-                const origWPct = +((phWidthPt / pageWidthPt) * 100).toFixed(2);
-                const origHPct = +(((line.font_size * 1.35) / pageHeightPt) * 100).toFixed(2);
-
-                const rawTrimmed = line.text.trim();
-                const cleanTrimmed = rawTrimmed.replace(/^["'“”«»?*~`\s]+|["'“”«»?*~`\s]+$/g, '');
-                const isStandalone = (rawTrimmed === fullMatch || cleanTrimmed === fullMatch);
-                const centerXPct = origXPct + (origWPct / 2);
-                const nearCenter = Math.abs(centerXPct - 50) <= 10;
-
-                let align = 'left';
-                let xPct = origXPct;
-                if (isQr) {
-                    align = 'center';
-                    xPct = +centerXPct.toFixed(2);
-                } else if (isStandalone && nearCenter) {
-                    align = 'center';
-                    xPct = 50.0;
-                }
-
-                const boldDefaults = ['nama_peserta', 'nama_lengkap', 'participant_name', 'nomor_sertifikat', 'judul_kegiatan', 'penandatangan_nama'];
-                const isBold = boldDefaults.includes(rawKey);
-
-                detected.push({
-                    id: 'ph_' + (idx++),
-                    tag: tag,
-                    key: rawKey,
-                    label: getPlaceholderLabel(tag),
-                    type: isQr ? 'qr' : 'text',
-                    x_pct: xPct,
-                    y_pct: origYPct,
-                    orig_x_pct: origXPct,
-                    orig_y_pct: origYPct,
-                    orig_w_pct: origWPct,
-                    orig_h_pct: origHPct,
-                    font_size: line.font_size,
-                    font_weight: isBold ? 'bold' : 'normal',
-                    color: '#0f172a',
-                    align: align,
-                    mask_bg: false,
-                    mask_color: '#ffffff',
-                    qr_size: 110
+                rawRuns.push({
+                    text: str,
+                    x_pt: xPt,
+                    y_pt: yPt,
+                    width_pt: wPt,
+                    font_size: fontSizePt,
+                    font_name: item.fontName || ''
                 });
-            }
-        });
-
-        return detected;
-    }
-
-    function isSignatureTag(tag) {
-        return ['{{tanda_tangan}}', '{{stempel_tte}}', '{{segel_digital}}'].includes(tag);
-    }
-
-    function escapeHtml(str) {
-        const d = document.createElement('div');
-        d.textContent = str || '';
-        return d.innerHTML;
-    }
-
-    function getPlaceholderLabel(tag) {
-        const itemEl = document.querySelector('.placeholder-item[data-tag="' + tag + '"]');
-        if (itemEl && itemEl.dataset.label) return itemEl.dataset.label;
-        if (tag === '{{tanda_tangan}}') return 'Stempel Visual TTE Resmi Pejabat';
-        if (tag === '{{stempel_tte}}') return 'Stempel Sertifikat Elektronik';
-        if (tag === '{{segel_digital}}') return 'Alias Stempel Sertifikat Elektronik';
-        return tag.replace(/[{}]/g, '').replace(/_/g, ' ');
-    }
-
-    function getSampleValue(tag) {
-        if (isSignatureTag(tag)) {
-            if (tag === '{{tanda_tangan}}') return 'Blok Stempel Visual TTE Resmi Biro PBJ';
-            return 'Sertifikat Elektronik (Terotentikasi)';
-        }
-        if (sampleValues[tag] !== undefined) return sampleValues[tag];
-        const itemEl = document.querySelector('.placeholder-item[data-tag="' + tag + '"]');
-        if (itemEl && itemEl.dataset.example) return itemEl.dataset.example;
-        return tag;
-    }
-
-    /**
-     * Panggil endpoint server inspect-pdf sekaligus gabungkan dengan deteksi PDF.js client-side.
-     */
-    async function inspectSelectedPdfFile(file, existingTplId) {
-        showScanBanner('info', '<iconify-icon icon="solar:refresh-bold" class="text-base"></iconify-icon> <span>Memindai halaman PDF dan mendeteksi koordinat <code>{{placeholder}}</code>...</span>');
-
-        let clientPlaceholders = [];
-        if (file) {
-            const arrayBuffer = await file.arrayBuffer();
-            clientPlaceholders = await loadPdfIntoCanvas(arrayBuffer, true);
-        }
-
-        // Kirim juga ke server inspect-pdf untuk mendapatkan warna teks & validasi stream PDF
-        try {
-            const fd = new FormData();
-            const csrfInput = form.querySelector('input[type="hidden"][name^="csrf_"]');
-            if (csrfInput) {
-                fd.append(csrfInput.name, csrfInput.value);
-            }
-            if (file) {
-                fd.append('background_file', file);
-            } else if (existingTplId > 0) {
-                fd.append('template_id', existingTplId);
-            }
-
-            const resp = await fetch(inspectEndpoint, {
-                method: 'POST',
-                body: fd,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
 
-            if (resp.ok) {
-                const data = await resp.json();
-                if (data && data.status === 'ok') {
-                    if (data.page_width_mm && data.page_height_mm) {
-                        updateStageAspectRatio(parseFloat(data.page_width_mm), parseFloat(data.page_height_mm));
-                    }
-                    if (Array.isArray(data.placeholders) && data.placeholders.length >= clientPlaceholders.length && data.placeholders.length > 0) {
-                        placeholders = data.placeholders;
-                    } else if (clientPlaceholders.length > 0) {
-                        placeholders = clientPlaceholders;
-                    }
+            // Gabungkan item yang berada di baseline Y yang sama
+            const mergedLines = [];
+            rawRuns.forEach(function(run) {
+                if (mergedLines.length === 0) {
+                    mergedLines.push(Object.assign({}, run));
+                    return;
                 }
-            } else if (clientPlaceholders.length > 0) {
-                placeholders = clientPlaceholders;
-            }
-        } catch (err) {
-            if (clientPlaceholders.length > 0) {
-                placeholders = clientPlaceholders;
-            }
-        }
+                const last = mergedLines[mergedLines.length - 1];
+                const sameLine = Math.abs(run.y_pt - last.y_pt) <= Math.max(3.0, last.font_size * 0.3);
+                const expectedX = last.x_pt + last.width_pt;
+                const gap = run.x_pt - expectedX;
 
-        if (placeholders.length > 0) {
-            selectedId = placeholders[0].id;
-            const tagsList = placeholders.map(function(p) { return '<code>' + p.tag + '</code>'; }).join(', ');
-            showScanBanner(
-                'success',
-                '<iconify-icon icon="solar:check-circle-bold" class="text-lg text-success-600 flex-shrink-0"></iconify-icon>' +
-                '<div><strong>Berhasil mendeteksi ' + placeholders.length + ' placeholder di dalam PDF:</strong> ' + tagsList +
-                '<div class="text-neutral-600 mt-1">Teks placeholder asli pada PDF akan otomatis diganti dengan data peserta saat sertifikat digenerate.</div></div>'
-            );
-        } else {
-            showScanBanner(
-                'warning',
-                '<iconify-icon icon="solar:info-circle-bold" class="text-lg text-warning-600 flex-shrink-0"></iconify-icon>' +
-                '<div>File PDF berhasil dimuat, namun belum ditemukan teks bertanda <code>{{...}}</code> di dalamnya. ' +
-                'Anda dapat menekan tombol <strong>Muat Preset Placeholder</strong> atau klik placeholder di panel kanan untuk menempatkannya di atas PDF.</div>'
-            );
-        }
-
-        renderStage();
-    }
-
-    // Jika sedang mode Edit dan memiliki file PDF existing, muat ke kanvas
-    if (existingBgUrl && existingBgExt === 'pdf') {
-        fetch(existingBgUrl)
-            .then(function(r) { return r.arrayBuffer(); })
-            .then(function(buf) {
-                loadPdfIntoCanvas(buf, placeholders.length === 0).then(function(detected) {
-                    if (placeholders.length === 0 && detected.length > 0) {
-                        placeholders = detected;
-                        selectedId = placeholders[0].id;
+                if (sameLine && gap >= -(last.font_size * 0.9) && gap <= Math.max(22, last.font_size * 1.8)) {
+                    let spacer = (gap > last.font_size * 0.35 && !last.text.endsWith(' ') && !run.text.startsWith(' ')) ? ' ' : '';
+                    if (last.text.endsWith('{') || run.text.startsWith('}') || last.text.endsWith('_') || run.text.startsWith('_')) {
+                        spacer = '';
                     }
+                    last.text += spacer + run.text;
+                    last.width_pt = Math.max(last.width_pt, (run.x_pt + run.width_pt) - last.x_pt);
+                } else {
+                    mergedLines.push(Object.assign({}, run));
+                }
+            });
+
+            const detected = [];
+            const regex = /(\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}|__QR_BLOCK__)/g;
+            let idx = 1;
+
+            mergedLines.forEach(function(line) {
+                let match;
+                regex.lastIndex = 0;
+                const lineLen = Math.max(1, line.text.length);
+
+                while ((match = regex.exec(line.text)) !== null) {
+                    const fullMatch = match[1];
+                    const rawKey = fullMatch === '__QR_BLOCK__' ? 'qr_code' : (match[2] || '').toLowerCase().trim();
+                    const tag = '{{' + rawKey + '}}';
+                    const isQr = (rawKey === 'qr_code' || rawKey === 'qr_block');
+
+                    const charOffset = match.index;
+                    const matchLen = fullMatch.length;
+                    const prefixRatio = charOffset / lineLen;
+                    const widthRatio = matchLen / lineLen;
+
+                    const phXPt = line.x_pt + (line.width_pt * prefixRatio);
+                    const phWidthPt = Math.max(line.font_size * 2.5, line.width_pt * widthRatio);
+                    const topPt = Math.max(0, Math.min(pageHeightPt, pageHeightPt - (line.y_pt + line.font_size * 0.85)));
+
+                    const origXPct = +((phXPt / pageWidthPt) * 100).toFixed(2);
+                    const origYPct = +((topPt / pageHeightPt) * 100).toFixed(2);
+                    const origWPct = +((phWidthPt / pageWidthPt) * 100).toFixed(2);
+                    const origHPct = +(((line.font_size * 1.35) / pageHeightPt) * 100).toFixed(2);
+
+                    const rawTrimmed = line.text.trim();
+                    const cleanTrimmed = rawTrimmed.replace(/^["'“”«»?*~`\s]+|["'“”«»?*~`\s]+$/g, '');
+                    const isStandalone = (rawTrimmed === fullMatch || cleanTrimmed === fullMatch);
+                    const centerXPct = origXPct + (origWPct / 2);
+                    const nearCenter = Math.abs(centerXPct - 50) <= 10;
+
+                    let align = 'left';
+                    let xPct = origXPct;
+                    if (isQr) {
+                        align = 'center';
+                        xPct = +centerXPct.toFixed(2);
+                    } else if (isStandalone && nearCenter) {
+                        align = 'center';
+                        xPct = 50.0;
+                    }
+
+                    const boldDefaults = ['nama_peserta', 'nama_lengkap', 'participant_name', 'nomor_sertifikat', 'judul_kegiatan', 'penandatangan_nama'];
+                    const isBold = boldDefaults.includes(rawKey);
+
+                    detected.push({
+                        id: 'ph_' + (idx++),
+                        tag: tag,
+                        key: rawKey,
+                        label: getPlaceholderLabel(tag),
+                        type: isQr ? 'qr' : 'text',
+                        x_pct: xPct,
+                        y_pct: origYPct,
+                        orig_x_pct: origXPct,
+                        orig_y_pct: origYPct,
+                        orig_w_pct: origWPct,
+                        orig_h_pct: origHPct,
+                        font_size: line.font_size,
+                        font_weight: isBold ? 'bold' : 'normal',
+                        color: '#0f172a',
+                        align: align,
+                        mask_bg: false,
+                        mask_color: '#ffffff',
+                        qr_size: 110
+                    });
+                }
+            });
+
+            return detected;
+        }
+
+        function isSignatureTag(tag) {
+            return ['{{tanda_tangan}}', '{{stempel_tte}}', '{{segel_digital}}'].includes(tag);
+        }
+
+        function escapeHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        function getPlaceholderLabel(tag) {
+            const itemEl = document.querySelector('.placeholder-item[data-tag="' + tag + '"]');
+            if (itemEl && itemEl.dataset.label) return itemEl.dataset.label;
+            if (tag === '{{tanda_tangan}}') return 'Stempel Visual TTE Resmi Pejabat';
+            if (tag === '{{stempel_tte}}') return 'Stempel Sertifikat Elektronik';
+            if (tag === '{{segel_digital}}') return 'Alias Stempel Sertifikat Elektronik';
+            return tag.replace(/[{}]/g, '').replace(/_/g, ' ');
+        }
+
+        function getSampleValue(tag) {
+            if (isSignatureTag(tag)) {
+                if (tag === '{{tanda_tangan}}') return 'Blok Stempel Visual TTE Resmi Biro PBJ';
+                return 'Sertifikat Elektronik (Terotentikasi)';
+            }
+            if (sampleValues[tag] !== undefined) return sampleValues[tag];
+            const itemEl = document.querySelector('.placeholder-item[data-tag="' + tag + '"]');
+            if (itemEl && itemEl.dataset.example) return itemEl.dataset.example;
+            return tag;
+        }
+
+        /**
+         * Panggil endpoint server inspect-pdf sekaligus gabungkan dengan deteksi PDF.js client-side.
+         */
+        async function inspectSelectedPdfFile(file, existingTplId) {
+            showScanBanner('info', '<iconify-icon icon="solar:refresh-bold" class="text-base"></iconify-icon> <span>Memindai halaman PDF dan mendeteksi koordinat <code>{{placeholder}}</code>...</span>');
+
+            let clientPlaceholders = [];
+            if (file) {
+                const arrayBuffer = await file.arrayBuffer();
+                clientPlaceholders = await loadPdfIntoCanvas(arrayBuffer, true);
+            }
+
+            // Kirim juga ke server inspect-pdf untuk mendapatkan warna teks & validasi stream PDF
+            try {
+                const fd = new FormData();
+                const csrfInput = form.querySelector('input[type="hidden"][name^="csrf_"]');
+                if (csrfInput) {
+                    fd.append(csrfInput.name, csrfInput.value);
+                }
+                if (file) {
+                    fd.append('background_file', file);
+                } else if (existingTplId > 0) {
+                    fd.append('template_id', existingTplId);
+                }
+
+                const resp = await fetch(inspectEndpoint, {
+                    method: 'POST',
+                    body: fd,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && data.status === 'ok') {
+                        if (data.page_width_mm && data.page_height_mm) {
+                            updateStageAspectRatio(parseFloat(data.page_width_mm), parseFloat(data.page_height_mm));
+                        }
+                        if (Array.isArray(data.placeholders) && data.placeholders.length >= clientPlaceholders.length && data.placeholders.length > 0) {
+                            placeholders = data.placeholders;
+                        } else if (clientPlaceholders.length > 0) {
+                            placeholders = clientPlaceholders;
+                        }
+                    }
+                } else if (clientPlaceholders.length > 0) {
+                    placeholders = clientPlaceholders;
+                }
+            } catch (err) {
+                if (clientPlaceholders.length > 0) {
+                    placeholders = clientPlaceholders;
+                }
+            }
+
+            if (placeholders.length > 0) {
+                selectedId = placeholders[0].id;
+                const tagsList = placeholders.map(function(p) {
+                    return '<code>' + p.tag + '</code>';
+                }).join(', ');
+                showScanBanner(
+                    'success',
+                    '<iconify-icon icon="solar:check-circle-bold" class="text-lg text-success-600 flex-shrink-0"></iconify-icon>' +
+                    '<div><strong>Berhasil mendeteksi ' + placeholders.length + ' placeholder di dalam PDF:</strong> ' + tagsList +
+                    '<div class="text-neutral-600 mt-1">Teks placeholder asli pada PDF akan otomatis diganti dengan data peserta saat sertifikat digenerate.</div></div>'
+                );
+            } else {
+                showScanBanner(
+                    'warning',
+                    '<iconify-icon icon="solar:info-circle-bold" class="text-lg text-warning-600 flex-shrink-0"></iconify-icon>' +
+                    '<div>File PDF berhasil dimuat, namun belum ditemukan teks bertanda <code>{{...}}</code> di dalamnya. ' +
+                    'Anda dapat menekan tombol <strong>Muat Preset Placeholder</strong> atau klik placeholder di panel kanan untuk menempatkannya di atas PDF.</div>'
+                );
+            }
+
+            renderStage();
+        }
+
+        // Jika sedang mode Edit dan memiliki file PDF existing, muat ke kanvas
+        if (existingBgUrl && existingBgExt === 'pdf') {
+            fetch(existingBgUrl)
+                .then(function(r) {
+                    return r.arrayBuffer();
+                })
+                .then(function(buf) {
+                    loadPdfIntoCanvas(buf, placeholders.length === 0).then(function(detected) {
+                        if (placeholders.length === 0 && detected.length > 0) {
+                            placeholders = detected;
+                            selectedId = placeholders[0].id;
+                        }
+                        renderStage();
+                    });
+                })
+                .catch(function() {
                     renderStage();
                 });
-            })
-            .catch(function() {
-                renderStage();
-            });
-    }
-
-    // Event saat pengguna memilih file PDF / Gambar baru
-    if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const fileName = (file.name || '').toLowerCase();
-            const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
-
-            // Isi otomatis nama template bila masih kosong
-            const nameInput = document.getElementById('templateNameInput');
-            if (nameInput && nameInput.value.trim() === '') {
-                const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ');
-                nameInput.value = 'Template Sertifikat - ' + cleanTitle;
-            }
-
-            if (isPdf) {
-                inspectSelectedPdfFile(file, 0);
-            } else if (file.type.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(fileName)) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    pdfCanvas.classList.add('d-none');
-                    emptyStateOverlay.classList.add('d-none');
-                    emptyStateOverlay.classList.remove('d-flex');
-                    imageRenderStage.src = evt.target.result;
-                    imageRenderStage.classList.remove('d-none');
-                    if (placeholders.length === 0) {
-                        loadDefaultPresetPlaceholders();
-                    } else {
-                        renderStage();
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-
-    if (btnRescanPdf) {
-        btnRescanPdf.addEventListener('click', function() {
-            const file = fileInput && fileInput.files ? fileInput.files[0] : null;
-            const tplId = parseInt(document.getElementById('templateIdInput')?.value || '0', 10);
-            if (file) {
-                inspectSelectedPdfFile(file, 0);
-            } else if (tplId > 0 && existingBgExt === 'pdf') {
-                inspectSelectedPdfFile(null, tplId);
-            } else {
-                showToast('Pilih file PDF terlebih dahulu pada Bagian 2.');
-            }
-        });
-    }
-
-    // =========================================================================
-    // Render Elemen Interaktif di Atas Kanvas PDF & Tabel
-    // =========================================================================
-
-    function syncHiddenJson() {
-        jsonInput.value = JSON.stringify(placeholders);
-        if (activeCountBadge) {
-            activeCountBadge.textContent = placeholders.length + ' Placeholder Terpasang';
         }
-    }
 
-    function renderStage() {
-        syncHiddenJson();
-        pdfMaskLayer.innerHTML = '';
-        pdfInteractiveOverlay.innerHTML = '';
+        // Event saat pengguna memilih file PDF / Gambar baru
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
 
-        pdfStageOuter.classList.remove('stage-mode-sample', 'stage-mode-tags');
-        pdfStageOuter.classList.add(viewMode === 'sample' ? 'stage-mode-sample' : 'stage-mode-tags');
+                const fileName = (file.name || '').toLowerCase();
+                const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
 
-        const stageRect = pdfStageOuter.getBoundingClientRect();
-        const pageW = parseFloat(pageWidthMmInput.value) || 297;
-        // Faktor skala antara ukuran poin PDF (841.89pt) dengan lebar piksel kanvas di layar
-        const ptToPxScale = stageRect.width > 0 ? (stageRect.width / (pageW * 72 / 25.4)) : 1.0;
+                // Isi otomatis nama template bila masih kosong
+                const nameInput = document.getElementById('templateNameInput');
+                if (nameInput && nameInput.value.trim() === '') {
+                    const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ');
+                    nameInput.value = 'Template Sertifikat - ' + cleanTitle;
+                }
 
-        placeholders.forEach(function(ph) {
-            const isTte = isSignatureTag(ph.tag) || ph.type === 'signature';
-            const isQr = ph.type === 'qr' || ph.tag === '{{qr_code}}' || ph.tag === '{{qr_block}}';
-            const isSelected = ph.id === selectedId;
-
-            // 1. Layer Masking: Pada mode 'sample' (agar teks {{...}} asli tertutup rapi oleh nilai nyata) atau jika mask_bg diaktifkan
-            if (viewMode === 'sample' || ph.mask_bg) {
-                const maskEl = document.createElement('div');
-                const ox = ph.orig_x_pct !== undefined ? ph.orig_x_pct : ph.x_pct;
-                const oy = ph.orig_y_pct !== undefined ? ph.orig_y_pct : ph.y_pct;
-                const ow = ph.orig_w_pct !== undefined ? ph.orig_w_pct : 20;
-                const oh = ph.orig_h_pct !== undefined ? ph.orig_h_pct : 3.5;
-
-                let bgColor = ph.mask_color || '#ffffff';
-
-                // Sampling warna latar dari kanvas PDF.js tepat di sekitar koordinat agar blending sempurna
-                if (pdfCanvas && pdfCanvas.width > 0 && pdfCanvas.height > 0) {
-                    try {
-                        const ctx = pdfCanvas.getContext('2d', { willReadFrequently: true });
-                        const sampleX = Math.round(((ox + Math.min(2, ow / 2)) / 100) * pdfCanvas.width);
-                        const sampleY = Math.max(0, Math.round(((oy - 0.4) / 100) * pdfCanvas.height));
-                        const p = ctx.getImageData(sampleX, sampleY, 1, 1).data;
-                        if (p[3] > 0) {
-                            bgColor = 'rgb(' + p[0] + ',' + p[1] + ',' + p[2] + ')';
+                if (isPdf) {
+                    inspectSelectedPdfFile(file, 0);
+                } else if (file.type.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(fileName)) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        pdfCanvas.classList.add('d-none');
+                        emptyStateOverlay.classList.add('d-none');
+                        emptyStateOverlay.classList.remove('d-flex');
+                        imageRenderStage.src = evt.target.result;
+                        imageRenderStage.classList.remove('d-none');
+                        if (placeholders.length === 0) {
+                            loadDefaultPresetPlaceholders();
+                        } else {
+                            renderStage();
                         }
-                    } catch (e) {
-                        // fallback ke mask_color atau #ffffff
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        if (btnRescanPdf) {
+            btnRescanPdf.addEventListener('click', function() {
+                const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+                const tplId = parseInt(document.getElementById('templateIdInput')?.value || '0', 10);
+                if (file) {
+                    inspectSelectedPdfFile(file, 0);
+                } else if (tplId > 0 && existingBgExt === 'pdf') {
+                    inspectSelectedPdfFile(null, tplId);
+                } else {
+                    showToast('Pilih file PDF terlebih dahulu pada Bagian 2.');
+                }
+            });
+        }
+
+        // =========================================================================
+        // Render Elemen Interaktif di Atas Kanvas PDF & Tabel
+        // =========================================================================
+
+        function syncHiddenJson() {
+            jsonInput.value = JSON.stringify(placeholders);
+            if (activeCountBadge) {
+                activeCountBadge.textContent = placeholders.length + ' Placeholder Terpasang';
+            }
+        }
+
+        function renderStage() {
+            syncHiddenJson();
+            pdfMaskLayer.innerHTML = '';
+            pdfInteractiveOverlay.innerHTML = '';
+
+            pdfStageOuter.classList.remove('stage-mode-sample', 'stage-mode-tags');
+            pdfStageOuter.classList.add(viewMode === 'sample' ? 'stage-mode-sample' : 'stage-mode-tags');
+
+            const stageRect = pdfStageOuter.getBoundingClientRect();
+            const pageW = parseFloat(pageWidthMmInput.value) || 297;
+            // Faktor skala antara ukuran poin PDF (841.89pt) dengan lebar piksel kanvas di layar
+            const ptToPxScale = stageRect.width > 0 ? (stageRect.width / (pageW * 72 / 25.4)) : 1.0;
+
+            placeholders.forEach(function(ph) {
+                const isTte = isSignatureTag(ph.tag) || ph.type === 'signature';
+                const isQr = ph.type === 'qr' || ph.tag === '{{qr_code}}' || ph.tag === '{{qr_block}}';
+                const isSelected = ph.id === selectedId;
+
+                // 1. Layer Masking: Pada mode 'sample' (agar teks {{...}} asli tertutup rapi oleh nilai nyata) atau jika mask_bg diaktifkan
+                if (viewMode === 'sample' || ph.mask_bg) {
+                    const maskEl = document.createElement('div');
+                    const ox = ph.orig_x_pct !== undefined ? ph.orig_x_pct : ph.x_pct;
+                    const oy = ph.orig_y_pct !== undefined ? ph.orig_y_pct : ph.y_pct;
+                    const ow = ph.orig_w_pct !== undefined ? ph.orig_w_pct : 20;
+                    const oh = ph.orig_h_pct !== undefined ? ph.orig_h_pct : 3.5;
+
+                    let bgColor = ph.mask_color || '#ffffff';
+
+                    // Sampling warna latar dari kanvas PDF.js tepat di sekitar koordinat agar blending sempurna
+                    if (pdfCanvas && pdfCanvas.width > 0 && pdfCanvas.height > 0) {
+                        try {
+                            const ctx = pdfCanvas.getContext('2d', {
+                                willReadFrequently: true
+                            });
+                            const sampleX = Math.round(((ox + Math.min(2, ow / 2)) / 100) * pdfCanvas.width);
+                            const sampleY = Math.max(0, Math.round(((oy - 0.4) / 100) * pdfCanvas.height));
+                            const p = ctx.getImageData(sampleX, sampleY, 1, 1).data;
+                            if (p[3] > 0) {
+                                bgColor = 'rgb(' + p[0] + ',' + p[1] + ',' + p[2] + ')';
+                            }
+                        } catch (e) {
+                            // fallback ke mask_color atau #ffffff
+                        }
                     }
+
+                    maskEl.style.position = 'absolute';
+                    maskEl.style.left = Math.max(0, ox - 0.15) + '%';
+                    maskEl.style.top = Math.max(0, oy - 0.15) + '%';
+                    maskEl.style.width = (ow + 0.3) + '%';
+                    maskEl.style.height = (oh + 0.3) + '%';
+                    maskEl.style.backgroundColor = bgColor;
+                    maskEl.style.borderRadius = '2px';
+                    maskEl.style.pointerEvents = 'none';
+                    maskEl.style.zIndex = '5';
+                    pdfMaskLayer.appendChild(maskEl);
                 }
 
-                maskEl.style.position = 'absolute';
-                maskEl.style.left = Math.max(0, ox - 0.15) + '%';
-                maskEl.style.top = Math.max(0, oy - 0.15) + '%';
-                maskEl.style.width = (ow + 0.3) + '%';
-                maskEl.style.height = (oh + 0.3) + '%';
-                maskEl.style.backgroundColor = bgColor;
-                maskEl.style.borderRadius = '2px';
-                maskEl.style.pointerEvents = 'none';
-                maskEl.style.zIndex = '5';
-                pdfMaskLayer.appendChild(maskEl);
-            }
+                // 2. Render elemen placeholder interaktif
+                const el = document.createElement('div');
+                el.className = 'pdf-ph-marker' + (isSelected ? ' is-selected' : '');
+                el.dataset.id = ph.id;
+                el.style.left = ph.x_pct + '%';
+                el.style.top = ph.y_pct + '%';
 
-            // 2. Render elemen placeholder interaktif
-            const el = document.createElement('div');
-            el.className = 'pdf-ph-marker' + (isSelected ? ' is-selected' : '');
-            el.dataset.id = ph.id;
-            el.style.left = ph.x_pct + '%';
-            el.style.top = ph.y_pct + '%';
-
-            // Alignment transform
-            if (ph.align === 'center') {
-                el.style.transform = 'translateX(-50%)';
-                el.style.textAlign = 'center';
-            } else if (ph.align === 'right') {
-                el.style.transform = 'translateX(-100%)';
-                el.style.textAlign = 'right';
-            } else {
-                el.style.transform = 'none';
-                el.style.textAlign = 'left';
-            }
-
-            if (viewMode === 'tags') {
-                // ==========================================
-                // MODE TAGS: Tampilkan Tag Badge Pills
-                // ==========================================
-                let chipClass = 'chip-text';
-                let iconName = 'solar:text-bold';
-                if (isQr) {
-                    chipClass = 'chip-qr';
-                    iconName = 'solar:qr-code-bold';
-                } else if (isTte) {
-                    chipClass = 'chip-tte';
-                    iconName = 'solar:pen-bold';
+                // Alignment transform
+                if (ph.align === 'center') {
+                    el.style.transform = 'translateX(-50%)';
+                    el.style.textAlign = 'center';
+                } else if (ph.align === 'right') {
+                    el.style.transform = 'translateX(-100%)';
+                    el.style.textAlign = 'right';
+                } else {
+                    el.style.transform = 'none';
+                    el.style.textAlign = 'left';
                 }
 
-                el.innerHTML = '<span class="ph-tag-chip ' + chipClass + '">' +
-                    '<iconify-icon icon="' + iconName + '" class="text-sm"></iconify-icon> ' +
-                    escapeHtml(ph.tag) +
-                    '</span>';
-            } else {
-                // ==========================================
-                // MODE SAMPLE: Pratinjau Nilai Asli
-                // ==========================================
-                if (isQr) {
-                    const qrPx = Math.max(36, Math.round((ph.qr_size || 105) * ptToPxScale));
-                    el.style.width = qrPx + 'px';
-                    el.style.height = qrPx + 'px';
-                    el.style.padding = '2px';
-                    el.style.backgroundColor = '#ffffff';
-                    el.style.borderRadius = '4px';
-                    el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
-                    if (sampleQrUri) {
-                        el.innerHTML = '<img src="' + sampleQrUri + '" style="width:100%;height:100%;object-fit:contain;pointer-events:none;" alt="QR">';
-                    } else {
-                        el.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f0fdf4;color:#166534;font-size:9px;font-weight:700;">QR</div>';
+                if (viewMode === 'tags') {
+                    // ==========================================
+                    // MODE TAGS: Tampilkan Tag Badge Pills
+                    // ==========================================
+                    let chipClass = 'chip-text';
+                    let iconName = 'solar:text-bold';
+                    if (isQr) {
+                        chipClass = 'chip-qr';
+                        iconName = 'solar:qr-code-bold';
+                    } else if (isTte) {
+                        chipClass = 'chip-tte';
+                        iconName = 'solar:pen-bold';
                     }
-                } else if (isTte) {
-                    const signerName = signerNameInput?.value || sampleValues['{{penandatangan_nama}}'] || 'Dr. H. Rahmad Hidayat, S.E., M.Si.';
-                    const signerPos = signerPosInput?.value || sampleValues['{{penandatangan_jabatan}}'] || 'Kepala Biro Pengadaan Barang dan Jasa';
-                    const signerNip = signerNipInput?.value || sampleValues['{{penandatangan_nip}}'] || '19750812 199903 1 004';
 
-                    if (ph.tag === '{{tanda_tangan}}') {
-                        el.style.width = Math.max(180, Math.round(260 * ptToPxScale)) + 'px';
-                        el.style.padding = '6px 10px';
-                        el.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-                        el.style.border = '1px solid #0284c7';
-                        el.style.borderRadius = '6px';
-                        el.style.boxShadow = '0 2px 8px rgba(2, 132, 199, 0.15)';
-                        el.innerHTML =
-                            '<div style="display:flex;align-items:center;gap:8px;text-align:left;pointer-events:none;">' +
+                    el.innerHTML = '<span class="ph-tag-chip ' + chipClass + '">' +
+                        '<iconify-icon icon="' + iconName + '" class="text-sm"></iconify-icon> ' +
+                        escapeHtml(ph.tag) +
+                        '</span>';
+                } else {
+                    // ==========================================
+                    // MODE SAMPLE: Pratinjau Nilai Asli
+                    // ==========================================
+                    if (isQr) {
+                        const qrPx = Math.max(36, Math.round((ph.qr_size || 105) * ptToPxScale));
+                        el.style.width = qrPx + 'px';
+                        el.style.height = qrPx + 'px';
+                        el.style.padding = '2px';
+                        el.style.backgroundColor = '#ffffff';
+                        el.style.borderRadius = '4px';
+                        el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
+                        if (sampleQrUri) {
+                            el.innerHTML = '<img src="' + sampleQrUri + '" style="width:100%;height:100%;object-fit:contain;pointer-events:none;" alt="QR">';
+                        } else {
+                            el.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f0fdf4;color:#166534;font-size:9px;font-weight:700;">QR</div>';
+                        }
+                    } else if (isTte) {
+                        const signerName = signerNameInput?.value || sampleValues['{{penandatangan_nama}}'] || 'Ir. S. Hendriyanto, S.T., M.T.';
+                        const signerPos = signerPosInput?.value || sampleValues['{{penandatangan_jabatan}}'] || 'Kepala Biro Pengadaan Barang dan Jasa';
+                        const signerNip = signerNipInput?.value || sampleValues['{{penandatangan_nip}}'] || '19730915 199902 1 001';
+
+                        if (ph.tag === '{{tanda_tangan}}') {
+                            el.style.width = Math.max(180, Math.round(260 * ptToPxScale)) + 'px';
+                            el.style.padding = '6px 10px';
+                            el.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                            el.style.border = '1px solid #0284c7';
+                            el.style.borderRadius = '6px';
+                            el.style.boxShadow = '0 2px 8px rgba(2, 132, 199, 0.15)';
+                            el.innerHTML =
+                                '<div style="display:flex;align-items:center;gap:8px;text-align:left;pointer-events:none;">' +
                                 '<div style="width:34px;height:34px;border-radius:50%;border:1.5px dashed #0284c7;background:#f0f9ff;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:bold;color:#0284c7;line-height:1;text-align:center;flex-shrink:0;">' +
-                                    'TTE<br>RESMI' +
+                                'TTE<br>RESMI' +
                                 '</div>' +
                                 '<div style="overflow:hidden;line-height:1.2;">' +
-                                    '<div style="font-size:7px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Ditandatangani Elektronik:</div>' +
-                                    '<div style="font-size:10px;font-weight:bold;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(signerName) + '</div>' +
-                                    '<div style="font-size:7.5px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(signerPos) + '</div>' +
-                                    '<div style="font-size:7px;color:#0284c7;font-family:monospace;">NIP. ' + escapeHtml(signerNip) + ' &bull; Segel PBJ</div>' +
+                                '<div style="font-size:7px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Ditandatangani Elektronik:</div>' +
+                                '<div style="font-size:10px;font-weight:bold;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(signerName) + '</div>' +
+                                '<div style="font-size:7.5px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(signerPos) + '</div>' +
+                                '<div style="font-size:7px;color:#0284c7;font-family:monospace;">NIP. ' + escapeHtml(signerNip) + ' &bull; Segel PBJ</div>' +
                                 '</div>' +
-                            '</div>';
-                    } else {
-                        // {{stempel_tte}} / {{segel_digital}}
-                        const stampWidth = Math.max(130, Math.round(180 * ptToPxScale));
-                        el.style.width = stampWidth + 'px';
-                        el.style.padding = '4px 8px';
-                        el.style.backgroundColor = '#f0f9ff';
-                        el.style.border = '2px solid #0284c7';
-                        el.style.borderRadius = '6px';
-                        el.style.boxShadow = '0 2px 6px rgba(2, 132, 199, 0.15)';
-                        el.style.textAlign = 'center';
-                        el.style.boxSizing = 'border-box';
-                        el.innerHTML =
-                            '<div style="font-family:\'Helvetica Neue\',Helvetica,Arial,sans-serif;line-height:1.2;font-weight:bold;pointer-events:none;">' +
+                                '</div>';
+                        } else {
+                            // {{stempel_tte}} / {{segel_digital}}
+                            const stampWidth = Math.max(130, Math.round(180 * ptToPxScale));
+                            el.style.width = stampWidth + 'px';
+                            el.style.padding = '4px 8px';
+                            el.style.backgroundColor = '#f0f9ff';
+                            el.style.border = '2px solid #0284c7';
+                            el.style.borderRadius = '6px';
+                            el.style.boxShadow = '0 2px 6px rgba(2, 132, 199, 0.15)';
+                            el.style.textAlign = 'center';
+                            el.style.boxSizing = 'border-box';
+                            el.innerHTML =
+                                '<div style="font-family:\'Helvetica Neue\',Helvetica,Arial,sans-serif;line-height:1.2;font-weight:bold;pointer-events:none;">' +
                                 '<div style="font-size:' + Math.max(8.5, Math.round(8 * ptToPxScale)) + 'px;color:#0c4a6e;margin:2px 0;letter-spacing:0.5px;">SERTIFIKAT ELEKTRONIK</div>' +
                                 '<div style="font-size:' + Math.max(6.5, Math.round(6 * ptToPxScale)) + 'px;font-weight:normal;color:#075985;">TEROTENTIKASI &bull; ' + new Date().toLocaleDateString('id-ID') + '</div>' +
                                 '<div style="font-size:' + Math.max(6, Math.round(5.5 * ptToPxScale)) + 'px;font-family:Courier,monospace;color:#0284c7;border-top:1px solid #bae6fd;margin-top:2px;padding-top:2px;">SHA256:55331D095A99</div>' +
-                            '</div>';
+                                '</div>';
+                        }
+                    } else {
+                        const scaledFontPx = Math.max(9, (ph.font_size || 14) * ptToPxScale);
+                        el.style.fontSize = scaledFontPx + 'px';
+                        el.style.fontWeight = ph.font_weight === 'bold' ? '700' : '400';
+                        el.style.color = ph.color || '#0f172a';
+                        el.style.lineHeight = '1.2';
+                        el.style.padding = '0';
+                        el.style.whiteSpace = 'nowrap';
+                        el.textContent = getSampleValue(ph.tag);
                     }
-                } else {
-                    const scaledFontPx = Math.max(9, (ph.font_size || 14) * ptToPxScale);
-                    el.style.fontSize = scaledFontPx + 'px';
-                    el.style.fontWeight = ph.font_weight === 'bold' ? '700' : '400';
-                    el.style.color = ph.color || '#0f172a';
-                    el.style.lineHeight = '1.2';
-                    el.style.padding = '0';
-                    el.style.whiteSpace = 'nowrap';
-                    el.textContent = getSampleValue(ph.tag);
                 }
-            }
 
-            // Tambahkan tooltip koordinat jika sedang terpilih
-            if (isSelected) {
-                const tip = document.createElement('div');
-                tip.className = 'ph-coord-tooltip';
-                tip.textContent = ph.tag + ' (X: ' + ph.x_pct + '%, Y: ' + ph.y_pct + '%)';
-                el.appendChild(tip);
-            }
+                // Tambahkan tooltip koordinat jika sedang terpilih
+                if (isSelected) {
+                    const tip = document.createElement('div');
+                    tip.className = 'ph-coord-tooltip';
+                    tip.textContent = ph.tag + ' (X: ' + ph.x_pct + '%, Y: ' + ph.y_pct + '%)';
+                    el.appendChild(tip);
+                }
 
-            // Drag & Drop handler pada kanvas PDF
-            el.addEventListener('mousedown', function(evt) {
-                evt.stopPropagation();
-                selectPlaceholder(ph.id);
-                startDragging(evt, ph);
+                // Drag & Drop handler pada kanvas PDF
+                el.addEventListener('mousedown', function(evt) {
+                    evt.stopPropagation();
+                    selectPlaceholder(ph.id);
+                    startDragging(evt, ph);
+                });
+
+                pdfInteractiveOverlay.appendChild(el);
             });
 
-            pdfInteractiveOverlay.appendChild(el);
-        });
+            renderInspector();
+            renderTable();
+        }
 
-        renderInspector();
-        renderTable();
-    }
+        function startDragging(startEvt, ph) {
+            startEvt.preventDefault();
+            const rect = pdfStageOuter.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0) return;
 
-    function startDragging(startEvt, ph) {
-        startEvt.preventDefault();
-        const rect = pdfStageOuter.getBoundingClientRect();
-        if (rect.width <= 0 || rect.height <= 0) return;
+            pdfStageOuter.classList.add('is-dragging');
+            const startX = startEvt.clientX;
+            const startY = startEvt.clientY;
+            const initXPct = ph.x_pct;
+            const initYPct = ph.y_pct;
+            let lastXPct = initXPct;
+            let lastYPct = initYPct;
 
-        pdfStageOuter.classList.add('is-dragging');
-        const startX = startEvt.clientX;
-        const startY = startEvt.clientY;
-        const initXPct = ph.x_pct;
-        const initYPct = ph.y_pct;
-        let lastXPct = initXPct;
-        let lastYPct = initYPct;
+            const draggedEl = pdfInteractiveOverlay.querySelector('.pdf-ph-marker[data-id="' + ph.id + '"]');
 
-        const draggedEl = pdfInteractiveOverlay.querySelector('.pdf-ph-marker[data-id="' + ph.id + '"]');
+            function onMouseMove(moveEvt) {
+                const dx = moveEvt.clientX - startX;
+                const dy = moveEvt.clientY - startY;
+                const dXPct = (dx / rect.width) * 100;
+                const dYPct = (dy / rect.height) * 100;
 
-        function onMouseMove(moveEvt) {
-            const dx = moveEvt.clientX - startX;
-            const dy = moveEvt.clientY - startY;
-            const dXPct = (dx / rect.width) * 100;
-            const dYPct = (dy / rect.height) * 100;
+                lastXPct = +Math.max(0, Math.min(100, initXPct + dXPct)).toFixed(1);
+                lastYPct = +Math.max(0, Math.min(100, initYPct + dYPct)).toFixed(1);
 
-            lastXPct = +Math.max(0, Math.min(100, initXPct + dXPct)).toFixed(1);
-            lastYPct = +Math.max(0, Math.min(100, initYPct + dYPct)).toFixed(1);
-
-            if (draggedEl) {
-                draggedEl.style.left = lastXPct + '%';
-                draggedEl.style.top = lastYPct + '%';
-                const tip = draggedEl.querySelector('.ph-coord-tooltip');
-                if (tip) {
-                    tip.textContent = ph.tag + ' (X: ' + lastXPct + '%, Y: ' + lastYPct + '%)';
+                if (draggedEl) {
+                    draggedEl.style.left = lastXPct + '%';
+                    draggedEl.style.top = lastYPct + '%';
+                    const tip = draggedEl.querySelector('.ph-coord-tooltip');
+                    if (tip) {
+                        tip.textContent = ph.tag + ' (X: ' + lastXPct + '%, Y: ' + lastYPct + '%)';
+                    }
                 }
+
+                if (inspXPct) inspXPct.value = lastXPct;
+                if (inspYPct) inspYPct.value = lastYPct;
             }
 
-            if (inspXPct) inspXPct.value = lastXPct;
-            if (inspYPct) inspYPct.value = lastYPct;
-        }
+            function onMouseUp() {
+                pdfStageOuter.classList.remove('is-dragging');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
 
-        function onMouseUp() {
-            pdfStageOuter.classList.remove('is-dragging');
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-
-            ph.x_pct = lastXPct;
-            ph.y_pct = lastYPct;
-            renderStage();
-        }
-
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    }
-
-    function selectPlaceholder(id) {
-        selectedId = id;
-        renderStage();
-    }
-
-    function renderInspector() {
-        const ph = placeholders.find(function(p) { return p.id === selectedId; });
-        if (!ph) {
-            inspectorPanel.classList.add('d-none');
-            return;
-        }
-
-        inspectorPanel.classList.remove('d-none');
-        inspSelectedTag.textContent = ph.tag;
-        inspSelectedLabel.textContent = ph.label || getPlaceholderLabel(ph.tag);
-        inspXPct.value = ph.x_pct;
-        inspYPct.value = ph.y_pct;
-        inspAlign.value = ph.align || 'center';
-        inspMaskBg.checked = !!ph.mask_bg;
-        inspMaskColor.value = ph.mask_color || '#ffffff';
-
-        const isTte = isSignatureTag(ph.tag) || ph.type === 'signature';
-        const isQr = ph.type === 'qr' || ph.tag === '{{qr_code}}' || ph.tag === '{{qr_block}}';
-        const sigNotice = document.getElementById('inspSignatureNotice');
-
-        if (sigNotice) {
-            sigNotice.classList.toggle('d-none', !isTte);
-        }
-
-        if (isQr) {
-            inspFontSizeGroup.classList.add('d-none');
-            inspWeightGroup.classList.add('d-none');
-            inspColorGroup.classList.add('d-none');
-            inspQrSizeGroup.classList.remove('d-none');
-            inspQrSize.value = ph.qr_size || 105;
-        } else if (isTte) {
-            inspFontSizeGroup.classList.add('d-none');
-            inspWeightGroup.classList.add('d-none');
-            inspColorGroup.classList.add('d-none');
-            inspQrSizeGroup.classList.add('d-none');
-        } else {
-            inspFontSizeGroup.classList.remove('d-none');
-            inspWeightGroup.classList.remove('d-none');
-            inspColorGroup.classList.remove('d-none');
-            inspQrSizeGroup.classList.add('d-none');
-            inspFontSize.value = ph.font_size || 14;
-            inspFontWeight.value = ph.font_weight || 'normal';
-            inspColor.value = ph.color || '#0f172a';
-        }
-    }
-
-    function bindInspectorEvents() {
-        function updateSelected(updater) {
-            const ph = placeholders.find(function(p) { return p.id === selectedId; });
-            if (!ph) return;
-            updater(ph);
-            renderStage();
-        }
-
-        inspXPct.addEventListener('input', function() {
-            updateSelected(function(ph) { ph.x_pct = parseFloat(inspXPct.value) || 0; });
-        });
-        inspYPct.addEventListener('input', function() {
-            updateSelected(function(ph) { ph.y_pct = parseFloat(inspYPct.value) || 0; });
-        });
-        inspFontSize.addEventListener('input', function() {
-            updateSelected(function(ph) { ph.font_size = parseInt(inspFontSize.value, 10) || 14; });
-        });
-        inspQrSize.addEventListener('input', function() {
-            updateSelected(function(ph) { ph.qr_size = parseInt(inspQrSize.value, 10) || 105; });
-        });
-        inspFontWeight.addEventListener('change', function() {
-            updateSelected(function(ph) { ph.font_weight = inspFontWeight.value; });
-        });
-        inspAlign.addEventListener('change', function() {
-            updateSelected(function(ph) { ph.align = inspAlign.value; });
-        });
-        inspColor.addEventListener('input', function() {
-            updateSelected(function(ph) { ph.color = inspColor.value; });
-        });
-        inspMaskBg.addEventListener('change', function() {
-            updateSelected(function(ph) { ph.mask_bg = inspMaskBg.checked; });
-        });
-        inspMaskColor.addEventListener('input', function() {
-            updateSelected(function(ph) { ph.mask_color = inspMaskColor.value; });
-        });
-
-        btnDeleteSelectedPh.addEventListener('click', function() {
-            if (!selectedId) return;
-            placeholders = placeholders.filter(function(p) { return p.id !== selectedId; });
-            selectedId = placeholders.length > 0 ? placeholders[0].id : null;
-            renderStage();
-        });
-    }
-    bindInspectorEvents();
-
-    function renderTable() {
-        if (!tbody) return;
-        if (placeholders.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-16 text-secondary-light">' +
-                'Belum ada placeholder. Unggah file PDF berisi tag <code>{{...}}</code> atau klik daftar placeholder di panel kanan.' +
-                '</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = '';
-        placeholders.forEach(function(ph) {
-            const tr = document.createElement('tr');
-            if (ph.id === selectedId) {
-                tr.className = 'table-primary';
+                ph.x_pct = lastXPct;
+                ph.y_pct = lastYPct;
+                renderStage();
             }
-            tr.style.cursor = 'pointer';
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        }
+
+        function selectPlaceholder(id) {
+            selectedId = id;
+            renderStage();
+        }
+
+        function renderInspector() {
+            const ph = placeholders.find(function(p) {
+                return p.id === selectedId;
+            });
+            if (!ph) {
+                inspectorPanel.classList.add('d-none');
+                return;
+            }
+
+            inspectorPanel.classList.remove('d-none');
+            inspSelectedTag.textContent = ph.tag;
+            inspSelectedLabel.textContent = ph.label || getPlaceholderLabel(ph.tag);
+            inspXPct.value = ph.x_pct;
+            inspYPct.value = ph.y_pct;
+            inspAlign.value = ph.align || 'center';
+            inspMaskBg.checked = !!ph.mask_bg;
+            inspMaskColor.value = ph.mask_color || '#ffffff';
 
             const isTte = isSignatureTag(ph.tag) || ph.type === 'signature';
             const isQr = ph.type === 'qr' || ph.tag === '{{qr_code}}' || ph.tag === '{{qr_block}}';
+            const sigNotice = document.getElementById('inspSignatureNotice');
 
-            let sampleDisplay = '';
-            if (isQr) {
-                sampleDisplay = '<span class="badge bg-success-50 text-success-700 border border-success-200 text-xs">Gambar QR Code Verifikasi</span>';
-            } else if (isTte) {
-                sampleDisplay = '<span class="badge bg-purple-50 text-purple-700 border border-purple-200 text-xs">' + escapeHtml(getSampleValue(ph.tag)) + '</span>';
-            } else {
-                sampleDisplay = '<span class="text-truncate d-inline-block" style="max-width:240px;" title="' + escapeHtml(getSampleValue(ph.tag)) + '">' + escapeHtml(getSampleValue(ph.tag)) + '</span>';
+            if (sigNotice) {
+                sigNotice.classList.toggle('d-none', !isTte);
             }
 
-            let styleInfo = '';
             if (isQr) {
-                styleInfo = (ph.qr_size || 105) + ' px';
+                inspFontSizeGroup.classList.add('d-none');
+                inspWeightGroup.classList.add('d-none');
+                inspColorGroup.classList.add('d-none');
+                inspQrSizeGroup.classList.remove('d-none');
+                inspQrSize.value = ph.qr_size || 105;
             } else if (isTte) {
-                styleInfo = '<span class="text-purple-700 fw-semibold">Format Naskah Dinas</span>';
+                inspFontSizeGroup.classList.add('d-none');
+                inspWeightGroup.classList.add('d-none');
+                inspColorGroup.classList.add('d-none');
+                inspQrSizeGroup.classList.add('d-none');
             } else {
-                styleInfo = (ph.font_size || 14) + 'pt, ' + (ph.font_weight === 'bold' ? 'Tebal' : 'Normal');
+                inspFontSizeGroup.classList.remove('d-none');
+                inspWeightGroup.classList.remove('d-none');
+                inspColorGroup.classList.remove('d-none');
+                inspQrSizeGroup.classList.add('d-none');
+                inspFontSize.value = ph.font_size || 14;
+                inspFontWeight.value = ph.font_weight || 'normal';
+                inspColor.value = ph.color || '#0f172a';
             }
+        }
 
-            const alignLabel = ph.align === 'center' ? 'Tengah' : (ph.align === 'right' ? 'Kanan' : 'Kiri');
-
-            tr.innerHTML =
-                '<td class="py-8 px-12"><code class="fw-bold ' + (isTte ? 'text-purple-700' : (isQr ? 'text-success-700' : 'text-primary-700')) + '">' + escapeHtml(ph.tag) + '</code></td>' +
-                '<td class="py-8 px-12 text-neutral-700">' + sampleDisplay + '</td>' +
-                '<td class="py-8 px-12 text-center font-monospace">' + ph.x_pct + '%, ' + ph.y_pct + '%</td>' +
-                '<td class="py-8 px-12 text-center">' + styleInfo + '</td>' +
-                '<td class="py-8 px-12 text-center">' + alignLabel + '</td>' +
-                '<td class="py-8 px-12 text-end">' +
-                    '<button type="button" class="btn btn-xs btn-outline-danger-600 radius-4 px-6 py-2 btn-del-row" data-id="' + ph.id + '" title="Hapus">' +
-                        '<iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>' +
-                    '</button>' +
-                '</td>';
-
-            tr.addEventListener('click', function(e) {
-                if (e.target.closest('.btn-del-row')) return;
-                selectPlaceholder(ph.id);
-            });
-
-            const delBtn = tr.querySelector('.btn-del-row');
-            if (delBtn) {
-                delBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    placeholders = placeholders.filter(function(p) { return p.id !== ph.id; });
-                    if (selectedId === ph.id) {
-                        selectedId = placeholders.length > 0 ? placeholders[0].id : null;
-                    }
-                    renderStage();
+        function bindInspectorEvents() {
+            function updateSelected(updater) {
+                const ph = placeholders.find(function(p) {
+                    return p.id === selectedId;
                 });
-            }
-
-            tbody.appendChild(tr);
-        });
-    }
-
-    // Mode Tampilan: Pratinjau Data Asli vs Tag {{...}}
-    if (btnViewModeSample && btnViewModeTags) {
-        btnViewModeSample.addEventListener('click', function() {
-            viewMode = 'sample';
-            btnViewModeSample.className = 'btn btn-outline-primary-600 px-12 py-6 text-xs fw-semibold';
-            btnViewModeTags.className = 'btn btn-outline-neutral-300 px-12 py-6 text-xs fw-semibold text-neutral-700';
-            renderStage();
-        });
-
-        btnViewModeTags.addEventListener('click', function() {
-            viewMode = 'tags';
-            btnViewModeTags.className = 'btn btn-outline-primary-600 px-12 py-6 text-xs fw-semibold';
-            btnViewModeSample.className = 'btn btn-outline-neutral-300 px-12 py-6 text-xs fw-semibold text-neutral-700';
-            renderStage();
-        });
-    }
-
-    // Preset Placeholder Standar
-    function loadDefaultPresetPlaceholders() {
-        placeholders = [
-            { id: 'ph_1', tag: '{{nomor_sertifikat}}', key: 'nomor_sertifikat', label: 'Nomor Sertifikat', type: 'text', x_pct: 50, y_pct: 22, orig_x_pct: 38, orig_y_pct: 22, orig_w_pct: 24, orig_h_pct: 3.5, font_size: 13, font_weight: 'bold', color: '#1e3a8a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
-            { id: 'ph_2', tag: '{{nama_peserta}}', key: 'nama_peserta', label: 'Nama Lengkap Peserta', type: 'text', x_pct: 50, y_pct: 37, orig_x_pct: 32, orig_y_pct: 37, orig_w_pct: 36, orig_h_pct: 5.5, font_size: 24, font_weight: 'bold', color: '#0f172a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
-            { id: 'ph_3', tag: '{{nip}}', key: 'nip', label: 'NIP Peserta', type: 'text', x_pct: 50, y_pct: 44, orig_x_pct: 40, orig_y_pct: 44, orig_w_pct: 20, orig_h_pct: 3.5, font_size: 12, font_weight: 'normal', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
-            { id: 'ph_4', tag: '{{instansi}}', key: 'instansi', label: 'Instansi Peserta', type: 'text', x_pct: 50, y_pct: 48, orig_x_pct: 30, orig_y_pct: 48, orig_w_pct: 40, orig_h_pct: 3.5, font_size: 12, font_weight: 'normal', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
-            { id: 'ph_5', tag: '{{judul_kegiatan}}', key: 'judul_kegiatan', label: 'Judul Kegiatan', type: 'text', x_pct: 50, y_pct: 57, orig_x_pct: 25, orig_y_pct: 57, orig_w_pct: 50, orig_h_pct: 4.5, font_size: 17, font_weight: 'bold', color: '#166534', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
-            { id: 'ph_6', tag: '{{jam_pelajaran}}', key: 'jam_pelajaran', label: 'Jam Pelajaran', type: 'text', x_pct: 50, y_pct: 64, orig_x_pct: 44, orig_y_pct: 64, orig_w_pct: 12, orig_h_pct: 3.5, font_size: 12, font_weight: 'bold', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
-            { id: 'ph_7', tag: '{{tanggal_terbit}}', key: 'tanggal_terbit', label: 'Tanggal Terbit', type: 'text', x_pct: 25, y_pct: 73, orig_x_pct: 18, orig_y_pct: 73, orig_w_pct: 16, orig_h_pct: 3.5, font_size: 11, font_weight: 'normal', color: '#334155', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
-            { id: 'ph_8', tag: '{{tanda_tangan}}', key: 'tanda_tangan', label: 'Stempel Visual TTE Resmi', type: 'signature', x_pct: 25, y_pct: 78, orig_x_pct: 14, orig_y_pct: 78, orig_w_pct: 22, orig_h_pct: 14, font_size: 11, font_weight: 'normal', color: '#0f172a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 },
-            { id: 'ph_9', tag: '{{qr_code}}', key: 'qr_code', label: 'QR Code Verifikasi', type: 'qr', x_pct: 80, y_pct: 75, orig_x_pct: 74, orig_y_pct: 75, orig_w_pct: 12, orig_h_pct: 18, font_size: 12, font_weight: 'normal', color: '#0f172a', align: 'center', mask_bg: false, mask_color: '#ffffff', qr_size: 105 }
-        ];
-        selectedId = placeholders[0].id;
-        renderStage();
-    }
-
-    if (btnAddDefaultPlaceholders) {
-        btnAddDefaultPlaceholders.addEventListener('click', function() {
-            if (placeholders.length > 0 && !confirm('Muat preset placeholder standar? Daftar placeholder saat ini akan diganti.')) {
-                return;
-            }
-            loadDefaultPresetPlaceholders();
-            showToast('Preset placeholder standar berhasil dimuat ke kanvas.');
-        });
-    }
-
-    if (btnClearAllPlaceholders) {
-        btnClearAllPlaceholders.addEventListener('click', function() {
-            if (placeholders.length === 0) return;
-            if (confirm('Hapus semua placeholder dari kanvas?')) {
-                placeholders = [];
-                selectedId = null;
+                if (!ph) return;
+                updater(ph);
                 renderStage();
             }
-        });
-    }
 
-    // Klik pada Palet Placeholder di Kolom Kanan -> Salin ke Clipboard + Tambahkan ke Kanvas PDF
-    document.querySelectorAll('.placeholder-item').forEach(function(item) {
-        item.addEventListener('click', function() {
-            const tag = this.getAttribute('data-tag');
-            const label = this.getAttribute('data-label') || tag;
-            if (!tag) return;
+            inspXPct.addEventListener('input', function() {
+                updateSelected(function(ph) {
+                    ph.x_pct = parseFloat(inspXPct.value) || 0;
+                });
+            });
+            inspYPct.addEventListener('input', function() {
+                updateSelected(function(ph) {
+                    ph.y_pct = parseFloat(inspYPct.value) || 0;
+                });
+            });
+            inspFontSize.addEventListener('input', function() {
+                updateSelected(function(ph) {
+                    ph.font_size = parseInt(inspFontSize.value, 10) || 14;
+                });
+            });
+            inspQrSize.addEventListener('input', function() {
+                updateSelected(function(ph) {
+                    ph.qr_size = parseInt(inspQrSize.value, 10) || 105;
+                });
+            });
+            inspFontWeight.addEventListener('change', function() {
+                updateSelected(function(ph) {
+                    ph.font_weight = inspFontWeight.value;
+                });
+            });
+            inspAlign.addEventListener('change', function() {
+                updateSelected(function(ph) {
+                    ph.align = inspAlign.value;
+                });
+            });
+            inspColor.addEventListener('input', function() {
+                updateSelected(function(ph) {
+                    ph.color = inspColor.value;
+                });
+            });
+            inspMaskBg.addEventListener('change', function() {
+                updateSelected(function(ph) {
+                    ph.mask_bg = inspMaskBg.checked;
+                });
+            });
+            inspMaskColor.addEventListener('input', function() {
+                updateSelected(function(ph) {
+                    ph.mask_color = inspMaskColor.value;
+                });
+            });
 
-            navigator.clipboard.writeText(tag).catch(function() {});
+            btnDeleteSelectedPh.addEventListener('click', function() {
+                if (!selectedId) return;
+                placeholders = placeholders.filter(function(p) {
+                    return p.id !== selectedId;
+                });
+                selectedId = placeholders.length > 0 ? placeholders[0].id : null;
+                renderStage();
+            });
+        }
+        bindInspectorEvents();
 
-            // Cek apakah sudah ada di kanvas; jika belum, tambahkan
-            const existing = placeholders.find(function(p) { return p.tag === tag; });
-            if (existing) {
-                selectPlaceholder(existing.id);
-                showToast('Placeholder ' + tag + ' disalin & dipilih pada kanvas!');
+        function renderTable() {
+            if (!tbody) return;
+            if (placeholders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-16 text-secondary-light">' +
+                    'Belum ada placeholder. Unggah file PDF berisi tag <code>{{...}}</code> atau klik daftar placeholder di panel kanan.' +
+                    '</td></tr>';
                 return;
             }
 
-            const key = tag.replace(/[{}]/g, '');
-            const isQr = (key === 'qr_code' || key === 'qr_block');
-            const isTte = isSignatureTag(tag);
-            const isName = (key === 'nama_peserta' || key === 'participant_name');
-            const isTitle = (key === 'judul_kegiatan' || key === 'certificate_title');
-            const newId = 'ph_' + Date.now();
-            const yOffset = Math.min(88, 25 + (placeholders.length * 6));
+            tbody.innerHTML = '';
+            placeholders.forEach(function(ph) {
+                const tr = document.createElement('tr');
+                if (ph.id === selectedId) {
+                    tr.className = 'table-primary';
+                }
+                tr.style.cursor = 'pointer';
 
-            let defX = 50;
-            let defY = yOffset;
-            let defAlign = 'center';
+                const isTte = isSignatureTag(ph.tag) || ph.type === 'signature';
+                const isQr = ph.type === 'qr' || ph.tag === '{{qr_code}}' || ph.tag === '{{qr_block}}';
 
-            if (isQr) {
-                defX = 80;
-                defY = 75;
-                defAlign = 'center';
-            } else if (isTte) {
-                defX = 25;
-                defY = 78;
-                defAlign = 'center';
-            }
+                let sampleDisplay = '';
+                if (isQr) {
+                    sampleDisplay = '<span class="badge bg-success-50 text-success-700 border border-success-200 text-xs">Gambar QR Code Verifikasi</span>';
+                } else if (isTte) {
+                    sampleDisplay = '<span class="badge bg-purple-50 text-purple-700 border border-purple-200 text-xs">' + escapeHtml(getSampleValue(ph.tag)) + '</span>';
+                } else {
+                    sampleDisplay = '<span class="text-truncate d-inline-block" style="max-width:240px;" title="' + escapeHtml(getSampleValue(ph.tag)) + '">' + escapeHtml(getSampleValue(ph.tag)) + '</span>';
+                }
 
-            placeholders.push({
-                id: newId,
-                tag: tag,
-                key: key,
-                label: label,
-                type: isQr ? 'qr' : (isTte ? 'signature' : 'text'),
-                x_pct: defX,
-                y_pct: defY,
-                orig_x_pct: defX - 10,
-                orig_y_pct: defY,
-                orig_w_pct: 20,
-                orig_h_pct: 3.5,
-                font_size: isName ? 24 : (isTitle ? 18 : 13),
-                font_weight: (isName || isTitle || key === 'nomor_sertifikat' || key === 'penandatangan_nama') ? 'bold' : 'normal',
-                color: '#0f172a',
-                align: defAlign,
-                mask_bg: false,
-                mask_color: '#ffffff',
-                qr_size: 105
+                let styleInfo = '';
+                if (isQr) {
+                    styleInfo = (ph.qr_size || 105) + ' px';
+                } else if (isTte) {
+                    styleInfo = '<span class="text-purple-700 fw-semibold">Format Naskah Dinas</span>';
+                } else {
+                    styleInfo = (ph.font_size || 14) + 'pt, ' + (ph.font_weight === 'bold' ? 'Tebal' : 'Normal');
+                }
+
+                const alignLabel = ph.align === 'center' ? 'Tengah' : (ph.align === 'right' ? 'Kanan' : 'Kiri');
+
+                tr.innerHTML =
+                    '<td class="py-8 px-12"><code class="fw-bold ' + (isTte ? 'text-purple-700' : (isQr ? 'text-success-700' : 'text-primary-700')) + '">' + escapeHtml(ph.tag) + '</code></td>' +
+                    '<td class="py-8 px-12 text-neutral-700">' + sampleDisplay + '</td>' +
+                    '<td class="py-8 px-12 text-center font-monospace">' + ph.x_pct + '%, ' + ph.y_pct + '%</td>' +
+                    '<td class="py-8 px-12 text-center">' + styleInfo + '</td>' +
+                    '<td class="py-8 px-12 text-center">' + alignLabel + '</td>' +
+                    '<td class="py-8 px-12 text-end">' +
+                    '<button type="button" class="btn btn-xs btn-outline-danger-600 radius-4 px-6 py-2 btn-del-row" data-id="' + ph.id + '" title="Hapus">' +
+                    '<iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>' +
+                    '</button>' +
+                    '</td>';
+
+                tr.addEventListener('click', function(e) {
+                    if (e.target.closest('.btn-del-row')) return;
+                    selectPlaceholder(ph.id);
+                });
+
+                const delBtn = tr.querySelector('.btn-del-row');
+                if (delBtn) {
+                    delBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        placeholders = placeholders.filter(function(p) {
+                            return p.id !== ph.id;
+                        });
+                        if (selectedId === ph.id) {
+                            selectedId = placeholders.length > 0 ? placeholders[0].id : null;
+                        }
+                        renderStage();
+                    });
+                }
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Mode Tampilan: Pratinjau Data Asli vs Tag {{...}}
+        if (btnViewModeSample && btnViewModeTags) {
+            btnViewModeSample.addEventListener('click', function() {
+                viewMode = 'sample';
+                btnViewModeSample.className = 'btn btn-outline-primary-600 px-12 py-6 text-xs fw-semibold';
+                btnViewModeTags.className = 'btn btn-outline-neutral-300 px-12 py-6 text-xs fw-semibold text-neutral-700';
+                renderStage();
             });
 
-            selectedId = newId;
-            renderStage();
-            showToast('Placeholder ' + tag + ' disalin & ditambahkan ke kanvas PDF!');
-        });
-    });
-
-    // Tombol Uji / Pratinjau Hasil Generate PDF Secara Langsung (Tab Baru)
-    function triggerLivePdfPreview() {
-        syncHiddenJson();
-        showToast('Sedang merender pratinjau PDF...');
-        const fd = new FormData(form);
-
-        fetch(livePreviewEndpoint, {
-            method: 'POST',
-            body: fd,
-            cache: 'no-store'
-        })
-        .then(function(resp) {
-            if (!resp.ok) {
-                return resp.text().then(function(t) { throw new Error(t || 'Gagal merender PDF'); });
-            }
-            return resp.blob();
-        })
-        .then(function(blob) {
-            const url = URL.createObjectURL(blob);
-            const win = window.open(url, '_blank');
-            if (!win) {
-                // Jika popup diblokir oleh browser, buat trigger klik anchor
-                const a = document.createElement('a');
-                a.href = url;
-                a.target = '_blank';
-                a.rel = 'noopener noreferrer';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-        })
-        .catch(function(err) {
-            alert('Gagal membuat pratinjau PDF: ' + err.message);
-        });
-    }
-
-    const btnTopPreview = document.getElementById('btnTopLivePdfPreview');
-    const btnBottomPreview = document.getElementById('btnBottomLivePdfPreview');
-    if (btnTopPreview) btnTopPreview.addEventListener('click', triggerLivePdfPreview);
-    if (btnBottomPreview) btnBottomPreview.addEventListener('click', triggerLivePdfPreview);
-
-    if (form) {
-        form.addEventListener('submit', function() {
-            syncHiddenJson();
-        });
-    }
-
-    // Dynamic Scope & Event switching (Bagian 1)
-    const sourceTypeSelect = document.getElementById('sourceTypeSelect');
-    const learningScopeSection = document.getElementById('learningScopeSection');
-    const eventScopeSection = document.getElementById('eventScopeSection');
-    const scopeRadios = document.querySelectorAll('input[name="payload[target_scope]"]');
-    const fieldProgram = document.getElementById('fieldProgram');
-    const fieldCourse = document.getElementById('fieldCourse');
-    const fieldClass = document.getElementById('fieldClass');
-    const selectEvent = document.getElementById('selectEvent');
-    const templateNameInput = document.getElementById('templateNameInput');
-
-    function updateScopeVisibility() {
-        const isLearning = sourceTypeSelect.value === 'learning';
-        if (learningScopeSection) learningScopeSection.style.display = isLearning ? 'block' : 'none';
-        if (eventScopeSection) eventScopeSection.style.display = isLearning ? 'none' : 'block';
-
-        if (isLearning) {
-            let activeScope = 'global';
-            scopeRadios.forEach(function(r) { if (r.checked) activeScope = r.value; });
-            if (fieldProgram) fieldProgram.style.display = (activeScope === 'program') ? 'block' : 'none';
-            if (fieldCourse)  fieldCourse.style.display  = (activeScope === 'course') ? 'block' : 'none';
-            if (fieldClass)   fieldClass.style.display   = (activeScope === 'class') ? 'block' : 'none';
+            btnViewModeTags.addEventListener('click', function() {
+                viewMode = 'tags';
+                btnViewModeTags.className = 'btn btn-outline-primary-600 px-12 py-6 text-xs fw-semibold';
+                btnViewModeSample.className = 'btn btn-outline-neutral-300 px-12 py-6 text-xs fw-semibold text-neutral-700';
+                renderStage();
+            });
         }
-    }
 
-    if (sourceTypeSelect) sourceTypeSelect.addEventListener('change', updateScopeVisibility);
-    scopeRadios.forEach(function(r) { r.addEventListener('change', updateScopeVisibility); });
+        // Preset Placeholder Standar
+        function loadDefaultPresetPlaceholders() {
+            placeholders = [{
+                    id: 'ph_1',
+                    tag: '{{nomor_sertifikat}}',
+                    key: 'nomor_sertifikat',
+                    label: 'Nomor Sertifikat',
+                    type: 'text',
+                    x_pct: 50,
+                    y_pct: 22,
+                    orig_x_pct: 38,
+                    orig_y_pct: 22,
+                    orig_w_pct: 24,
+                    orig_h_pct: 3.5,
+                    font_size: 13,
+                    font_weight: 'bold',
+                    color: '#1e3a8a',
+                    align: 'center',
+                    mask_bg: false,
+                    mask_color: '#ffffff',
+                    qr_size: 105
+                },
+                {
+                    id: 'ph_2',
+                    tag: '{{nama_peserta}}',
+                    key: 'nama_peserta',
+                    label: 'Nama Lengkap Peserta',
+                    type: 'text',
+                    x_pct: 50,
+                    y_pct: 37,
+                    orig_x_pct: 32,
+                    orig_y_pct: 37,
+                    orig_w_pct: 36,
+                    orig_h_pct: 5.5,
+                    font_size: 24,
+                    font_weight: 'bold',
+                    color: '#0f172a',
+                    align: 'center',
+                    mask_bg: false,
+                    mask_color: '#ffffff',
+                    qr_size: 105
+                },
+                {
+                    id: 'ph_3',
+                    tag: '{{nip}}',
+                    key: 'nip',
+                    label: 'NIP Peserta',
+                    type: 'text',
+                    x_pct: 50,
+                    y_pct: 44,
+                    orig_x_pct: 40,
+                    orig_y_pct: 44,
+                    orig_w_pct: 20,
+                    orig_h_pct: 3.5,
+                    font_size: 12,
+                    font_weight: 'normal',
+                    color: '#334155',
+                    align: 'center',
+                    mask_bg: false,
+                    mask_color: '#ffffff',
+                    qr_size: 105
+                },
+                {
+                    id: 'ph_4',
+                    tag: '{{instansi}}',
+                    key: 'instansi',
+                    label: 'Instansi Peserta',
+                    type: 'text',
+                    x_pct: 50,
+                    y_pct: 48,
+                    orig_x_pct: 30,
+                    orig_y_pct: 48,
+                    orig_w_pct: 40,
+                    orig_h_pct: 3.5,
+                    font_size: 12,
+                    font_weight: 'normal',
+                    color: '#334155',
+                    align: 'center',
+                    mask_bg: false,
+                    mask_color: '#ffffff',
+                    qr_size: 105
+                },
+                {
+                    id: 'ph_5',
+                    tag: '{{judul_kegiatan}}',
+                    key: 'judul_kegiatan',
+                    label: 'Judul Kegiatan',
+                    type: 'text',
+                    x_pct: 50,
+                    y_pct: 57,
+                    orig_x_pct: 25,
+                    orig_y_pct: 57,
+                    orig_w_pct: 50,
+                    orig_h_pct: 4.5,
+                    font_size: 17,
+                    font_weight: 'bold',
+                    color: '#166534',
+                    align: 'center',
+                    mask_bg: false,
+                    mask_color: '#ffffff',
+                    qr_size: 105
+                },
+                {
+                    id: 'ph_6',
+                    tag: '{{jam_pelajaran}}',
+                    key: 'jam_pelajaran',
+                    label: 'Jam Pelajaran',
+                    type: 'text',
+                    x_pct: 50,
+                    y_pct: 64,
+                    orig_x_pct: 44,
+                    orig_y_pct: 64,
+                    orig_w_pct: 12,
+                    orig_h_pct: 3.5,
+                    font_size: 12,
+                    font_weight: 'bold',
+                    color: '#334155',
+                    align: 'center',
+                    mask_bg: false,
+                    mask_color: '#ffffff',
+                    qr_size: 105
+                },
+                {
+                    id: 'ph_7',
+                    tag: '{{tanggal_terbit}}',
+                    key: 'tanggal_terbit',
+                    label: 'Tanggal Terbit',
+                    type: 'text',
+                    x_pct: 25,
+                    y_pct: 73,
+                    orig_x_pct: 18,
+                    orig_y_pct: 73,
+                    orig_w_pct: 16,
+                    orig_h_pct: 3.5,
+                    font_size: 11,
+                    font_weight: 'normal',
+                    color: '#334155',
+                    align: 'center',
+                    mask_bg: false,
+                    mask_color: '#ffffff',
+                    qr_size: 105
+                },
+                {
+                    id: 'ph_8',
+                    tag: '{{tanda_tangan}}',
+                    key: 'tanda_tangan',
+                    label: 'Stempel Visual TTE Resmi',
+                    type: 'signature',
+                    x_pct: 25,
+                    y_pct: 78,
+                    orig_x_pct: 14,
+                    orig_y_pct: 78,
+                    orig_w_pct: 22,
+                    orig_h_pct: 14,
+                    font_size: 11,
+                    font_weight: 'normal',
+                    color: '#0f172a',
+                    align: 'center',
+                    mask_bg: false,
+                    mask_color: '#ffffff',
+                    qr_size: 105
+                },
+                {
+                    id: 'ph_9',
+                    tag: '{{qr_code}}',
+                    key: 'qr_code',
+                    label: 'QR Code Verifikasi',
+                    type: 'qr',
+                    x_pct: 80,
+                    y_pct: 75,
+                    orig_x_pct: 74,
+                    orig_y_pct: 75,
+                    orig_w_pct: 12,
+                    orig_h_pct: 18,
+                    font_size: 12,
+                    font_weight: 'normal',
+                    color: '#0f172a',
+                    align: 'center',
+                    mask_bg: false,
+                    mask_color: '#ffffff',
+                    qr_size: 105
+                }
+            ];
+            selectedId = placeholders[0].id;
+            renderStage();
+        }
 
-    if (selectEvent && templateNameInput) {
-        selectEvent.addEventListener('change', function() {
-            const opt = selectEvent.options[selectEvent.selectedIndex];
-            if (opt && opt.dataset.title && (templateNameInput.value.trim() === '' || templateNameInput.value.indexOf('Template Sertifikat -') === 0)) {
-                templateNameInput.value = 'Template Sertifikat - ' + opt.dataset.title;
-            }
+        if (btnAddDefaultPlaceholders) {
+            btnAddDefaultPlaceholders.addEventListener('click', function() {
+                if (placeholders.length > 0 && !confirm('Muat preset placeholder standar? Daftar placeholder saat ini akan diganti.')) {
+                    return;
+                }
+                loadDefaultPresetPlaceholders();
+                showToast('Preset placeholder standar berhasil dimuat ke kanvas.');
+            });
+        }
+
+        if (btnClearAllPlaceholders) {
+            btnClearAllPlaceholders.addEventListener('click', function() {
+                if (placeholders.length === 0) return;
+                if (confirm('Hapus semua placeholder dari kanvas?')) {
+                    placeholders = [];
+                    selectedId = null;
+                    renderStage();
+                }
+            });
+        }
+
+        // Klik pada Palet Placeholder di Kolom Kanan -> Salin ke Clipboard + Tambahkan ke Kanvas PDF
+        document.querySelectorAll('.placeholder-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                const tag = this.getAttribute('data-tag');
+                const label = this.getAttribute('data-label') || tag;
+                if (!tag) return;
+
+                navigator.clipboard.writeText(tag).catch(function() {});
+
+                // Cek apakah sudah ada di kanvas; jika belum, tambahkan
+                const existing = placeholders.find(function(p) {
+                    return p.tag === tag;
+                });
+                if (existing) {
+                    selectPlaceholder(existing.id);
+                    showToast('Placeholder ' + tag + ' disalin & dipilih pada kanvas!');
+                    return;
+                }
+
+                const key = tag.replace(/[{}]/g, '');
+                const isQr = (key === 'qr_code' || key === 'qr_block');
+                const isTte = isSignatureTag(tag);
+                const isName = (key === 'nama_peserta' || key === 'participant_name');
+                const isTitle = (key === 'judul_kegiatan' || key === 'certificate_title');
+                const newId = 'ph_' + Date.now();
+                const yOffset = Math.min(88, 25 + (placeholders.length * 6));
+
+                let defX = 50;
+                let defY = yOffset;
+                let defAlign = 'center';
+
+                if (isQr) {
+                    defX = 80;
+                    defY = 75;
+                    defAlign = 'center';
+                } else if (isTte) {
+                    defX = 25;
+                    defY = 78;
+                    defAlign = 'center';
+                }
+
+                placeholders.push({
+                    id: newId,
+                    tag: tag,
+                    key: key,
+                    label: label,
+                    type: isQr ? 'qr' : (isTte ? 'signature' : 'text'),
+                    x_pct: defX,
+                    y_pct: defY,
+                    orig_x_pct: defX - 10,
+                    orig_y_pct: defY,
+                    orig_w_pct: 20,
+                    orig_h_pct: 3.5,
+                    font_size: isName ? 24 : (isTitle ? 18 : 13),
+                    font_weight: (isName || isTitle || key === 'nomor_sertifikat' || key === 'penandatangan_nama') ? 'bold' : 'normal',
+                    color: '#0f172a',
+                    align: defAlign,
+                    mask_bg: false,
+                    mask_color: '#ffffff',
+                    qr_size: 105
+                });
+
+                selectedId = newId;
+                renderStage();
+                showToast('Placeholder ' + tag + ' disalin & ditambahkan ke kanvas PDF!');
+            });
         });
-    }
 
-    window.addEventListener('resize', function() {
+        // Tombol Uji / Pratinjau Hasil Generate PDF Secara Langsung (Tab Baru)
+        function triggerLivePdfPreview() {
+            syncHiddenJson();
+            showToast('Sedang merender pratinjau PDF...');
+            const fd = new FormData(form);
+
+            fetch(livePreviewEndpoint, {
+                    method: 'POST',
+                    body: fd,
+                    cache: 'no-store'
+                })
+                .then(function(resp) {
+                    if (!resp.ok) {
+                        return resp.text().then(function(t) {
+                            throw new Error(t || 'Gagal merender PDF');
+                        });
+                    }
+                    return resp.blob();
+                })
+                .then(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const win = window.open(url, '_blank');
+                    if (!win) {
+                        // Jika popup diblokir oleh browser, buat trigger klik anchor
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }
+                })
+                .catch(function(err) {
+                    alert('Gagal membuat pratinjau PDF: ' + err.message);
+                });
+        }
+
+        const btnTopPreview = document.getElementById('btnTopLivePdfPreview');
+        const btnBottomPreview = document.getElementById('btnBottomLivePdfPreview');
+        if (btnTopPreview) btnTopPreview.addEventListener('click', triggerLivePdfPreview);
+        if (btnBottomPreview) btnBottomPreview.addEventListener('click', triggerLivePdfPreview);
+
+        if (form) {
+            form.addEventListener('submit', function() {
+                syncHiddenJson();
+            });
+        }
+
+        // Dynamic Scope & Event switching (Bagian 1)
+        const sourceTypeSelect = document.getElementById('sourceTypeSelect');
+        const learningScopeSection = document.getElementById('learningScopeSection');
+        const eventScopeSection = document.getElementById('eventScopeSection');
+        const scopeRadios = document.querySelectorAll('input[name="payload[target_scope]"]');
+        const fieldProgram = document.getElementById('fieldProgram');
+        const fieldCourse = document.getElementById('fieldCourse');
+        const fieldClass = document.getElementById('fieldClass');
+        const selectEvent = document.getElementById('selectEvent');
+        const templateNameInput = document.getElementById('templateNameInput');
+
+        function updateScopeVisibility() {
+            const isLearning = sourceTypeSelect.value === 'learning';
+            if (learningScopeSection) learningScopeSection.style.display = isLearning ? 'block' : 'none';
+            if (eventScopeSection) eventScopeSection.style.display = isLearning ? 'none' : 'block';
+
+            if (isLearning) {
+                let activeScope = 'global';
+                scopeRadios.forEach(function(r) {
+                    if (r.checked) activeScope = r.value;
+                });
+                if (fieldProgram) fieldProgram.style.display = (activeScope === 'program') ? 'block' : 'none';
+                if (fieldCourse) fieldCourse.style.display = (activeScope === 'course') ? 'block' : 'none';
+                if (fieldClass) fieldClass.style.display = (activeScope === 'class') ? 'block' : 'none';
+            }
+        }
+
+        if (sourceTypeSelect) sourceTypeSelect.addEventListener('change', updateScopeVisibility);
+        scopeRadios.forEach(function(r) {
+            r.addEventListener('change', updateScopeVisibility);
+        });
+
+        if (selectEvent && templateNameInput) {
+            selectEvent.addEventListener('change', function() {
+                const opt = selectEvent.options[selectEvent.selectedIndex];
+                if (opt && opt.dataset.title && (templateNameInput.value.trim() === '' || templateNameInput.value.indexOf('Template Sertifikat -') === 0)) {
+                    templateNameInput.value = 'Template Sertifikat - ' + opt.dataset.title;
+                }
+            });
+        }
+
+        window.addEventListener('resize', function() {
+            renderStage();
+        });
+
+        // Render awal
         renderStage();
     });
-
-    // Render awal
-    renderStage();
-});
 </script>
 <?= $this->endSection() ?>

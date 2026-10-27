@@ -160,6 +160,12 @@ class CertificateEligibilityController extends BaseController
 
     public function batchGenerate()
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        @ini_set('max_execution_time', '0');
+        @ini_set('memory_limit', '512M');
+
         $classId = (int) $this->request->getPost('class_id');
         $actorId = (int) session()->get('user_id');
         $generator = new CertificateGenerator();
@@ -194,6 +200,9 @@ class CertificateEligibilityController extends BaseController
         $errorCount = 0;
 
         foreach ($eligibleEnrollments as $enr) {
+            if (function_exists('set_time_limit')) {
+                @set_time_limit(120);
+            }
             try {
                 $generator->generateDirect('learning_enrollment', (int) $enr['id'], $actorId);
                 $successCount++;
