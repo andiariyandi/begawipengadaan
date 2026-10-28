@@ -63,45 +63,45 @@ if ($isLoggedIn && $headerUserId > 0) {
                             <li class="<?= $isActive('') ? 'current' : '' ?>"><a href="<?= site_url('/') ?>">Beranda</a></li>
                             <li class="dropdown <?= $isPrefixActive('tentang') ? 'current' : '' ?>">
                                 <a href="<?= site_url('tentang') ?>">Tentang</a>
-                                <ul class="shadow-box">
+                                <!-- <ul class="shadow-box">
                                     <li><a href="<?= site_url('tentang') ?>">Profil Biro PBJ</a></li>
                                     <li><a href="<?= site_url('tentang#visi-misi') ?>">Visi &amp; Misi 2024–2029</a></li>
                                     <li><a href="<?= site_url('tentang#pilar') ?>">5 Pilar Ekosistem BegawiPengadaan</a></li>
                                     <li><a href="<?= site_url('tentang#struktur') ?>">Struktur Organisasi</a></li>
                                     <li><a href="<?= site_url('tentang#maklumat') ?>">Maklumat Pelayanan UKPBJ</a></li>
-                                </ul>
+                                </ul> -->
                             </li>
                             <li class=" <?= $isPrefixActive('arena-belajar') ? 'current' : '' ?>">
                                 <a href="<?= site_url('arena-belajar') ?>">Arena Belajar</a>
                             </li>
                             <li class="dropdown <?= $isPrefixActive('bunga-rampai') ? 'current' : '' ?>">
                                 <a href="<?= site_url('bunga-rampai') ?>">Bunga Rampai</a>
-                                <ul class="shadow-box">
+                                <!-- <ul class="shadow-box">
                                     <li><a href="<?= site_url('bunga-rampai') ?>">Beranda Bunga Rampai</a></li>
                                     <li><a href="<?= site_url('bunga-rampai/artikel') ?>">Artikel PBJ</a></li>
                                     <li><a href="<?= site_url('bunga-rampai/faq') ?>">Tanya Jawab (FAQ)</a></li>
                                     <li><a href="<?= site_url('bunga-rampai/studi-kasus') ?>">Studi Kasus Lapangan</a></li>
                                     <li><a href="<?= site_url('bunga-rampai/template-dokumen') ?>">Template Dokumen Kerja</a></li>
                                     <li><a href="<?= site_url('bunga-rampai/multimedia') ?>">Multimedia PBJ</a></li>
-                                </ul>
+                                </ul> -->
                             </li>
                             <li class="dropdown <?= $isPrefixActive('regulasi') ? 'current' : '' ?>">
                                 <a href="<?= site_url('regulasi') ?>">Regulasi</a>
-                                <ul class="shadow-box">
+                                <!-- <ul class="shadow-box">
                                     <li><a href="<?= site_url('regulasi') ?>">Pusat Regulasi PBJ</a></li>
                                     <li><a href="<?= site_url('regulasi?category=peraturan-presiden') ?>">Peraturan Presiden (Perpres)</a></li>
                                     <li><a href="<?= site_url('regulasi?category=peraturan-lkpp') ?>">Peraturan LKPP (PerLKPP)</a></li>
                                     <li><a href="<?= site_url('regulasi?category=peraturan-daerah-gubernur') ?>">Peraturan Daerah &amp; Pergub</a></li>
                                     <li><a href="<?= site_url('regulasi?category=standar-dokumen-pemilihan') ?>">Standar Dokumen Pemilihan (SDP)</a></li>
                                     <li><a href="<?= site_url('regulasi?category=surat-edaran') ?>">Surat Edaran (SE) PBJ</a></li>
-                                </ul>
+                                </ul> -->
                             </li>
                             <li class="<?= $isPrefixActive('berita') ? 'current' : '' ?>">
                                 <a href="<?= site_url('berita') ?>">Berita</a>
                             </li>
                             <li class="dropdown <?= $isPrefixActive('event') ? 'current' : '' ?>">
                                 <a href="<?= site_url('event') ?>">Event &amp; Agenda</a>
-                                <ul class="shadow-box">
+                                <!-- <ul class="shadow-box">
                                     <li><a href="<?= site_url('event') ?>">Semua Event &amp; Agenda</a></li>
                                     <li><a href="<?= site_url('event/agenda') ?>">Agenda Mendatang</a></li>
                                     <li><a href="<?= site_url('event?tipe=webinar') ?>">Webinar PBJ Daring</a></li>
@@ -109,7 +109,7 @@ if ($isLoggedIn && $headerUserId > 0) {
                                     <li><a href="<?= site_url('event?tipe=workshop') ?>">Workshop &amp; Lokakarya</a></li>
                                     <li><a href="<?= site_url('event?tipe=sosialisasi') ?>">Sosialisasi Regulasi</a></li>
                                     <li><a href="<?= site_url('event/kalender') ?>">Kalender Kegiatan PBJ</a></li>
-                                </ul>
+                                </ul> -->
                             </li>
                             <li class="dropdown <?= $isPrefixActive('statistik') || $isPrefixActive('verifikasi-sertifikat') || $isActive('kontak') || $isPrefixActive('survei-kepuasan/hasil') ? 'current' : '' ?>">
                                 <a href="#">Lainnya</a>

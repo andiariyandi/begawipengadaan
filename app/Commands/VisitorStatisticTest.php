@@ -5,6 +5,9 @@ namespace App\Commands;
 use App\Services\VisitorStatisticService;
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
+use CodeIgniter\HTTP\IncomingRequest;
+use CodeIgniter\HTTP\SiteURI;
+use CodeIgniter\HTTP\UserAgent;
 
 class VisitorStatisticTest extends BaseCommand
 {
@@ -332,6 +335,106 @@ class VisitorStatisticTest extends BaseCommand
         }
 
         // -------------------------------------------------------------
+        // TEST 8: Verifikasi 2 Tombol Simpan & Form Saling Terisolasi Mandiri
+        // -------------------------------------------------------------
+        CLI::newLine();
+        CLI::write("[TEST 8] Verifikasi 2 Tombol Simpan & Form Saling Terisolasi Mandiri...", "yellow");
+
+        // 8.1 Verifikasi Struktur View memiliki 2 Form dan 2 Tombol Simpan Terpisah
+        $adminViewHtml = $adminController->index();
+        $hasFormHome       = str_contains($adminViewHtml, 'id="formHomeStats"');
+        $hasFormFeatures   = str_contains($adminViewHtml, 'id="formFeaturesStats"');
+        $hasBtnHomeSave    = str_contains($adminViewHtml, 'Simpan Trafik Beranda');
+        $hasBtnFeatureSave = str_contains($adminViewHtml, 'Simpan Frekuensi 5 Fitur Unggulan');
+        $hasModalConfirm   = str_contains($adminViewHtml, 'data-confirm=');
+
+        if ($hasFormHome && $hasFormFeatures && $hasBtnHomeSave && $hasBtnFeatureSave && $hasModalConfirm) {
+            CLI::write("  [PASS] View memiliki 2 form independen, 2 tombol simpan terisolasi, dan atribut modal konfirmasi", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] Form atau tombol terisolasi tidak lengkap pada view", "red");
+            $failCount++;
+        }
+
+        // 8.2 Uji Isolasi: Simpan Section 'features' Saja -> Trafik Beranda TIDAK Boleh Berubah
+        $statsBefore = $service->getVisitorStats();
+        $homeTotalBefore = $statsBefore['home']['total'];
+        $homeTodayBefore = $statsBefore['home']['today'];
+
+        // Simulasikan POST ke controller hanya dengan data features
+        $featurePayload = [
+            'section'  => 'features',
+            'features' => [
+                'arena_belajar' => ['today' => 99, 'total' => 21000],
+                'bunga_rampai'  => ['today' => 60, 'total' => 14000],
+                'regulasi'      => ['today' => 70, 'total' => 16000],
+                'berita'        => ['today' => 45, 'total' => 9500],
+                'event'         => ['today' => 50, 'total' => 9800],
+            ],
+        ];
+
+        $reqFeatures = $this->createMockRequest('dashboard/sistem/statistik-kunjungan', 'POST', $featurePayload);
+        $adminController = new \App\Controllers\Admin\VisitorStatisticAdminController();
+        $adminController->initController($reqFeatures, service('response'), service('logger'));
+        $adminController->update();
+
+        $statsAfterFeatures = $service->getVisitorStats();
+        $homeTotalAfter = $statsAfterFeatures['home']['total'];
+        $homeTodayAfter = $statsAfterFeatures['home']['today'];
+
+        if ($homeTotalAfter === $homeTotalBefore && $homeTodayAfter === $homeTodayBefore) {
+            CLI::write("  [PASS] Isolasi Sempurna: Simpan fitur unggulan TIDAK mengubah angka Trafik Beranda ({$homeTotalAfter})", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] Angka beranda bocor/berubah saat simpan fitur: Sebelum={$homeTotalBefore}, Sesudah={$homeTotalAfter}", "red");
+            $failCount++;
+        }
+
+        if ((int) $statsAfterFeatures['features']['arena_belajar']['hits_total'] === 21000) {
+            CLI::write("  [PASS] Angka fitur unggulan (Arena Belajar: 21.000) tersimpan presisten dan akurat", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] Angka fitur unggulan gagal tersimpan presisten", "red");
+            $failCount++;
+        }
+
+        // 8.3 Uji Isolasi: Simpan Section 'home' Saja -> Frekuensi 5 Fitur TIDAK Boleh Berubah
+        $arenaHitsBefore = $statsAfterFeatures['features']['arena_belajar']['hits_total'];
+
+        $homePayload = [
+            'section'    => 'home',
+            'home_today' => 300,
+            'home_week'  => 1200,
+            'home_month' => 4500,
+            'home_year'  => 27000,
+            'home_total' => 42000,
+        ];
+
+        $reqHome = $this->createMockRequest('dashboard/sistem/statistik-kunjungan', 'POST', $homePayload);
+        $adminController = new \App\Controllers\Admin\VisitorStatisticAdminController();
+        $adminController->initController($reqHome, service('response'), service('logger'));
+        $adminController->update();
+
+        $statsAfterHome = $service->getVisitorStats();
+        $arenaHitsAfter = $statsAfterHome['features']['arena_belajar']['hits_total'];
+
+        if ($arenaHitsAfter === $arenaHitsBefore) {
+            CLI::write("  [PASS] Isolasi Sempurna: Simpan Trafik Beranda TIDAK mengubah angka Fitur Unggulan ({$arenaHitsAfter})", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] Angka fitur unggulan berubah saat simpan beranda: Sebelum={$arenaHitsBefore}, Sesudah={$arenaHitsAfter}", "red");
+            $failCount++;
+        }
+
+        if ((int) $statsAfterHome['home']['total'] === 42000) {
+            CLI::write("  [PASS] Angka Trafik Beranda (Total: 42.000) tersimpan presisten dan akurat", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] Angka Trafik Beranda gagal tersimpan presisten", "red");
+            $failCount++;
+        }
+
+        // -------------------------------------------------------------
         // HASIL AKHIR
         // -------------------------------------------------------------
         CLI::newLine();
@@ -346,5 +449,36 @@ class VisitorStatisticTest extends BaseCommand
         CLI::write("==================================================================", "yellow");
 
         return $failCount === 0 ? 0 : 1;
+    }
+
+    private function createMockRequest(string $uriPath, string $method = 'GET', array $params = []): IncomingRequest
+    {
+        $appConfig = config('App');
+        $siteUri = new SiteURI($appConfig, $uriPath);
+        $userAgent = new UserAgent();
+
+        $request = new IncomingRequest($appConfig, $siteUri, null, $userAgent);
+        $request = $request->withMethod($method);
+        $_SERVER['REQUEST_METHOD'] = $method;
+
+        if ($method === 'GET') {
+            $_GET = $params;
+            $_POST = [];
+            $_REQUEST = $params;
+            $request->setGlobal('get', $params);
+            $request->setGlobal('post', []);
+            $request->setGlobal('request', $params);
+        } else {
+            $_POST = $params;
+            $_GET = [];
+            $_REQUEST = $params;
+            $request->setGlobal('post', $params);
+            $request->setGlobal('get', []);
+            $request->setGlobal('request', $params);
+        }
+
+        \Config\Services::injectMock('request', $request);
+
+        return $request;
     }
 }

@@ -76,11 +76,13 @@
     </div>
 </div>
 
-<form method="post" action="<?= site_url('dashboard/sistem/statistik-kunjungan') ?>" id="formVisitorStats">
+<!-- FORM 1: TRAFIK KUNJUNGAN BERANDA (HOME) - TERISOLASI MANDIRI -->
+<form method="post" action="<?= site_url('dashboard/sistem/statistik-kunjungan') ?>" id="formHomeStats">
     <?= csrf_field() ?>
+    <input type="hidden" name="section" value="home">
 
     <!-- CARD 1: TRAFIK KUNJUNGAN BERANDA (HOME) -->
-    <div class="card radius-12 border-0 shadow-none border mb-24">
+    <div class="card radius-12 border-0 shadow-none border mb-24" id="card-home">
         <div class="card-header bg-base border-bottom py-16 px-24 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2">
                 <span class="w-32-px h-32-px rounded-circle bg-primary-50 text-primary-600 d-flex align-items-center justify-content-center">
@@ -91,7 +93,9 @@
                     <p class="text-2xs text-secondary-light mb-0">Sesuaikan total akumulasi dan sebaran interval waktu pada kartu beranda landing page</p>
                 </div>
             </div>
-            <span class="badge bg-light text-muted border text-2xs">Section: card-home</span>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-xs fw-bold px-2 py-1 radius-4">
+                Total Beranda: <?= number_format($stats['home']['total'] ?? 0) ?> Kali Dibuka
+            </span>
         </div>
 
         <div class="card-body p-24">
@@ -157,10 +161,32 @@
                 </span>
             </div>
         </div>
+
+        <div class="card-footer bg-base border-top py-16 px-24 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <span class="text-2xs text-secondary-light">
+                <iconify-icon icon="solar:shield-check-bold" class="align-middle me-1 text-primary"></iconify-icon>
+                Menyimpan bagian ini <strong>hanya memperbarui Trafik Beranda</strong>. Frekuensi 5 fitur unggulan tetap terisolasi dan tidak tersentuh.
+            </span>
+            <button type="submit" class="btn btn-primary radius-8 px-24 py-10 d-flex align-items-center gap-2"
+                    data-confirm="Simpan pembaruan angka statistik Trafik Kunjungan Beranda secara presisten? Data 5 fitur unggulan tidak akan berubah."
+                    data-title="Konfirmasi Simpan Trafik Beranda"
+                    data-type="primary"
+                    data-btn-text="Ya, Simpan Trafik Beranda"
+                    data-icon="solar:disk-bold">
+                <iconify-icon icon="solar:disk-bold" class="text-lg"></iconify-icon>
+                <span>Simpan Trafik Beranda</span>
+            </button>
+        </div>
     </div>
+</form>
+
+<!-- FORM 2: FREKUENSI AKSES 5 FITUR UNGGULAN - TERISOLASI MANDIRI -->
+<form method="post" action="<?= site_url('dashboard/sistem/statistik-kunjungan') ?>" id="formFeaturesStats">
+    <?= csrf_field() ?>
+    <input type="hidden" name="section" value="features">
 
     <!-- CARD 2: FREKUENSI AKSES 5 FITUR UNGGULAN -->
-    <div class="card radius-12 border-0 shadow-none border mb-24">
+    <div class="card radius-12 border-0 shadow-none border mb-24" id="card-features">
         <div class="card-header bg-base border-bottom py-16 px-24 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2">
                 <span class="w-32-px h-32-px rounded-circle bg-success-50 text-success-600 d-flex align-items-center justify-content-center">
@@ -171,8 +197,8 @@
                     <p class="text-2xs text-secondary-light mb-0">Kelola angka pembukaan modul yang ditampilkan pada kolom kedua landing page</p>
                 </div>
             </div>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-xs fw-bold px-2 py-1 radius-4">
-                Total Saat Ini: <?= number_format($stats['total_feature_hits'] ?? 0) ?> Akses
+            <span class="badge bg-success-subtle text-success border border-success-subtle text-xs fw-bold px-2 py-1 radius-4">
+                Total 5 Fitur: <?= number_format($stats['total_feature_hits'] ?? 0) ?> Akses
             </span>
         </div>
 
@@ -230,12 +256,17 @@
 
         <div class="card-footer bg-base border-top py-16 px-24 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <span class="text-2xs text-secondary-light">
-                <iconify-icon icon="solar:info-circle-linear" class="align-middle me-1 text-primary"></iconify-icon>
-                Persentase pangsa akses fitur dihitung otomatis proporsional terhadap total tayang seluruh fitur.
+                <iconify-icon icon="solar:shield-check-bold" class="align-middle me-1 text-success-600"></iconify-icon>
+                Menyimpan bagian ini <strong>hanya memperbarui Frekuensi 5 Fitur Unggulan</strong>. Angka Trafik Beranda tetap terisolasi dan tidak berubah.
             </span>
-            <button type="submit" class="btn btn-primary radius-8 px-24 py-10 d-flex align-items-center gap-2">
+            <button type="submit" class="btn btn-success-600 text-white radius-8 px-24 py-10 d-flex align-items-center gap-2"
+                    data-confirm="Simpan pembaruan angka Frekuensi Akses 5 Fitur Unggulan secara presisten? Data trafik kunjungan beranda tidak akan berubah."
+                    data-title="Konfirmasi Simpan 5 Fitur Unggulan"
+                    data-type="success"
+                    data-btn-text="Ya, Simpan Fitur Unggulan"
+                    data-icon="solar:disk-bold">
                 <iconify-icon icon="solar:disk-bold" class="text-lg"></iconify-icon>
-                <span>Simpan Perubahan Angka Statistik</span>
+                <span>Simpan Frekuensi 5 Fitur Unggulan</span>
             </button>
         </div>
     </div>
