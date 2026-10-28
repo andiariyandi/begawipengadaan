@@ -659,7 +659,7 @@ class VisitorStatisticService
     {
         try {
             $count = $this->db->table('visitor_statistics')->countAllResults();
-            if ($count >= 15) {
+            if ($count > 0) {
                 return;
             }
 

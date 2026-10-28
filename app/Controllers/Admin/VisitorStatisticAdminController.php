@@ -58,6 +58,8 @@ class VisitorStatisticAdminController extends BaseController
 
     /**
      * Simpan pembaruan angka statistik trafik.
+     * Mendukung pembaruan terisolasi: section 'home' (hanya beranda),
+     * section 'features' (hanya 5 fitur unggulan), atau kombinasi keduanya.
      */
     public function update()
     {
@@ -65,63 +67,103 @@ class VisitorStatisticAdminController extends BaseController
             return $res;
         }
 
-        $post = $this->request->getPost();
+        $post    = $this->request->getPost();
+        $section = strtolower(trim((string) ($post['section'] ?? '')));
 
-        // 1. Ekstraksi angka beranda
-        $homeData = [
-            'home_today' => max(0, (int) ($post['home_today'] ?? 0)),
-            'home_week'  => max(0, (int) ($post['home_week'] ?? 0)),
-            'home_month' => max(0, (int) ($post['home_month'] ?? 0)),
-            'home_year'  => max(0, (int) ($post['home_year'] ?? 0)),
-            'home_total' => max(0, (int) ($post['home_total'] ?? 0)),
-        ];
+        $payload    = [];
+        $auditMsg   = '';
+        $successMsg = '';
+        $anchor     = '';
 
-        // Validasi hierarki matematis home
-        if ($homeData['home_week'] < $homeData['home_today']) {
-            $homeData['home_week'] = $homeData['home_today'];
-        }
-        if ($homeData['home_month'] < $homeData['home_week']) {
-            $homeData['home_month'] = $homeData['home_week'];
-        }
-        if ($homeData['home_year'] < $homeData['home_month']) {
-            $homeData['home_year'] = $homeData['home_month'];
-        }
-        if ($homeData['home_total'] < $homeData['home_year']) {
-            $homeData['home_total'] = $homeData['home_year'];
+        $isHomeUpdate     = ($section === 'home') || ($section === '' && (isset($post['home_today']) || isset($post['home_total'])));
+        $isFeaturesUpdate = ($section === 'features') || ($section === '' && isset($post['features']));
+
+        // Isolasi ketat: jika user menekan tombol simpan khusus satu section
+        if ($section === 'home') {
+            $isFeaturesUpdate = false;
+        } elseif ($section === 'features') {
+            $isHomeUpdate = false;
         }
 
-        // 2. Ekstraksi angka 5 fitur unggulan
-        $rawFeatures = $post['features'] ?? [];
-        $featuresData = [];
-        $validKeys   = ['arena_belajar', 'bunga_rampai', 'regulasi', 'berita', 'event'];
-
-        foreach ($validKeys as $key) {
-            $fToday = max(0, (int) ($rawFeatures[$key]['today'] ?? 0));
-            $fTotal = max($fToday, (int) ($rawFeatures[$key]['total'] ?? $fToday));
-            $fMonth = isset($rawFeatures[$key]['month']) ? max($fToday, (int) $rawFeatures[$key]['month']) : null;
-
-            $featuresData[$key] = [
-                'today' => $fToday,
-                'total' => $fTotal,
-                'month' => $fMonth,
+        // 1. Ekstraksi angka beranda (HANYA jika masuk dalam cakupan update)
+        if ($isHomeUpdate) {
+            $homeData = [
+                'home_today' => max(0, (int) ($post['home_today'] ?? 0)),
+                'home_week'  => max(0, (int) ($post['home_week'] ?? 0)),
+                'home_month' => max(0, (int) ($post['home_month'] ?? 0)),
+                'home_year'  => max(0, (int) ($post['home_year'] ?? 0)),
+                'home_total' => max(0, (int) ($post['home_total'] ?? 0)),
             ];
+
+            // Validasi hierarki matematis home
+            if ($homeData['home_week'] < $homeData['home_today']) {
+                $homeData['home_week'] = $homeData['home_today'];
+            }
+            if ($homeData['home_month'] < $homeData['home_week']) {
+                $homeData['home_month'] = $homeData['home_week'];
+            }
+            if ($homeData['home_year'] < $homeData['home_month']) {
+                $homeData['home_year'] = $homeData['home_month'];
+            }
+            if ($homeData['home_total'] < $homeData['home_year']) {
+                $homeData['home_total'] = $homeData['home_year'];
+            }
+
+            $payload = array_merge($payload, $homeData);
         }
 
-        $payload = array_merge($homeData, [
-            'features' => $featuresData,
-        ]);
+        // 2. Ekstraksi angka 5 fitur unggulan (HANYA jika masuk dalam cakupan update)
+        if ($isFeaturesUpdate) {
+            $rawFeatures  = $post['features'] ?? [];
+            $featuresData = [];
+            $validKeys    = ['arena_belajar', 'bunga_rampai', 'regulasi', 'berita', 'event'];
+
+            foreach ($validKeys as $key) {
+                $fToday = max(0, (int) ($rawFeatures[$key]['today'] ?? 0));
+                $fTotal = max($fToday, (int) ($rawFeatures[$key]['total'] ?? $fToday));
+                $fMonth = isset($rawFeatures[$key]['month']) ? max($fToday, (int) $rawFeatures[$key]['month']) : null;
+
+                $featuresData[$key] = [
+                    'today' => $fToday,
+                    'total' => $fTotal,
+                    'month' => $fMonth,
+                ];
+            }
+
+            $payload['features'] = $featuresData;
+        }
+
+        if (empty($payload)) {
+            return redirect()->to(site_url('dashboard/sistem/statistik-kunjungan'))
+                ->with('error', 'Tidak ada data statistik yang dipilih untuk diperbarui.');
+        }
 
         $success = $this->visitorService->updateStats($payload);
 
         if ($success) {
+            if ($section === 'home') {
+                $auditMsg   = 'Administrator memperbarui angka agregasi statistik trafik beranda (halaman utama) secara terisolasi';
+                $successMsg = 'Data statistik trafik kunjungan beranda berhasil diperbarui dan tersimpan permanen!';
+                $anchor     = '#card-home';
+            } elseif ($section === 'features') {
+                $auditMsg   = 'Administrator memperbarui angka agregasi statistik frekuensi akses 5 fitur unggulan secara terisolasi';
+                $successMsg = 'Data statistik frekuensi akses 5 fitur unggulan berhasil diperbarui dan tersimpan permanen!';
+                $anchor     = '#card-features';
+            } else {
+                $auditMsg   = 'Administrator memperbarui angka agregasi statistik trafik beranda & 5 fitur portal';
+                $successMsg = 'Data statistik trafik dan kunjungan portal berhasil diperbarui serta disinkronkan ke landing page!';
+                $anchor     = '';
+            }
+
             // Catat log audit trail
             try {
                 $this->auditService->log(
                     'update',
                     'visitor_statistics',
                     0,
-                    'Administrator memperbarui angka agregasi statistik trafik dan kunjungan portal beranda & 5 fitur',
+                    $auditMsg,
                     [
+                        'section'    => $section ?: 'all',
                         'client_ip'  => $this->visitorService->resolveClientIp($this->request),
                         'user_agent' => substr((string) ($this->request->getUserAgent() ?? ''), 0, 200),
                     ]
@@ -129,8 +171,8 @@ class VisitorStatisticAdminController extends BaseController
             } catch (\Throwable) {
             }
 
-            return redirect()->to(site_url('dashboard/sistem/statistik-kunjungan'))
-                ->with('message', 'Data statistik trafik dan kunjungan portal berhasil diperbarui serta disinkronkan ke landing page!');
+            return redirect()->to(site_url('dashboard/sistem/statistik-kunjungan' . $anchor))
+                ->with('message', $successMsg);
         }
 
         return redirect()->to(site_url('dashboard/sistem/statistik-kunjungan'))
