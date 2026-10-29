@@ -278,15 +278,15 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
+                    <table class="table table-hover align-middle mb-0" id="tableActionSheet" data-page-size="50" style="font-size: 13.5px;">
                         <thead class="table-light">
                             <tr>
                                 <th>Kode RUP</th>
                                 <th>Satuan Kerja (OPD)</th>
                                 <th>Nama Paket Pengadaan</th>
                                 <th>Cara &middot; Metode &middot; Jenis</th>
-                                <th class="text-end">Pagu RUP (Rp)</th>
-                                <th class="text-center">Risiko</th>
+                                <th class="text-end" data-default-sort-dir="desc">Pagu RUP (Rp)</th>
+                                <th class="text-center" data-default-sort-dir="desc">Risiko</th>
                                 <th class="text-center">Status Diff</th>
                                 <th class="text-center">Aksi</th>
                             </tr>
@@ -301,6 +301,16 @@
                                     'RENDAH' => 'bg-info text-dark',
                                     default  => 'bg-success text-white',
                                 };
+                                // Hierarki warna risiko: KRITIS (5) > TINGGI (4) > SEDANG (3) > RENDAH (2) > AMAN (1)
+                                $sevRank = match ($sev) {
+                                    'KRITIS' => 5,
+                                    'TINGGI' => 4,
+                                    'SEDANG' => 3,
+                                    'RENDAH' => 2,
+                                    default  => 1, // AMAN
+                                };
+                                // Bobot terkalibrasi: (Rank * 1000) + violation_count agar paket berisiko sama tersortir sesuai keparahan temuan
+                                $sevWeight = ($sevRank * 1000) + (int) ($pkg['violation_count'] ?? 0);
                             ?>
                             <tr>
                                 <td>
@@ -322,10 +332,10 @@
                                     <span class="badge bg-light text-navy border"><?= esc($pkg['cara_pengadaan']) ?></span>
                                     <span class="d-block small text-muted"><?= esc($pkg['metode_pengadaan']) ?> &middot; <?= esc($pkg['jenis_pengadaan']) ?></span>
                                 </td>
-                                <td class="text-end fw-bold text-navy">
+                                <td class="text-end fw-bold text-navy" data-order="<?= (float) $pkg['total_nilai'] ?>" data-sort="<?= (float) $pkg['total_nilai'] ?>">
                                     Rp <?= number_format($pkg['total_nilai'], 0, ',', '.') ?>
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center" data-order="<?= $sevWeight ?>" data-sort="<?= $sevWeight ?>" data-severity-rank="<?= $sevRank ?>" data-severity="<?= esc($sev) ?>">
                                     <span class="badge <?= $badgeClass ?> rounded-pill px-2 py-1">
                                         <?= esc($sev) ?>
                                     </span>
@@ -359,7 +369,7 @@
                         <ul class="pagination pagination-sm mb-0">
                             <?php for ($p = max(1, $currentPage - 2); $p <= min($totalPages, $currentPage + 2); $p++): ?>
                                 <li class="page-item <?= $p === $currentPage ? 'active' : '' ?>">
-                                    <a class="page-link" href="<?= site_url('workspace/audit-rup/detail/' . esc($batch['batch_uuid']) . '?tab=action-sheet&page=' . $p . '&opd=' . urlencode($filters['opd']) . '&severity=' . $filters['severity'] . '&cycle=' . $filters['budget_cycle'] . '&q=' . urlencode($filters['search'])) ?>">
+                                    <a class="page-link" href="<?= site_url('workspace/audit-rup/detail/' . esc($batch['batch_uuid']) . '?tab=action-sheet&page=' . $p . '&opd=' . urlencode($filters['opd']) . '&severity=' . $filters['severity'] . '&cycle=' . $filters['budget_cycle'] . '&q=' . urlencode($filters['search']) . (!empty($sortBy) && $sortBy !== 'total_nilai' ? '&sort=' . urlencode($sortBy) . '&dir=' . urlencode($sortDir ?? 'DESC') : '')) ?>">
                                         <?= $p ?>
                                     </a>
                                 </li>

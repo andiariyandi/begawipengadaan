@@ -161,6 +161,8 @@ class RupAuditController extends BaseController
         $budgetCycle = trim((string) $this->request->getGet('cycle')) ?: 'ALL';
         $diffStatus  = trim((string) $this->request->getGet('diff')) ?: 'ALL';
         $searchTerm  = trim((string) $this->request->getGet('q'));
+        $sortBy      = trim((string) $this->request->getGet('sort')) ?: 'total_nilai';
+        $sortDir     = trim((string) $this->request->getGet('dir')) ?: 'DESC';
 
         $page   = max(1, (int) $this->request->getGet('page'));
         $limit  = 50;
@@ -175,7 +177,7 @@ class RupAuditController extends BaseController
         ];
 
         $opdLeaderboard = $this->auditService->getOpdLeaderboard($batchId);
-        $packages       = $this->auditService->getPackagesFiltered($batchId, $filters, $limit, $offset);
+        $packages       = $this->auditService->getPackagesFiltered($batchId, $filters, $limit, $offset, $sortBy, $sortDir);
         $totalPackagesFiltered = $this->auditService->countPackagesFiltered($batchId, $filters);
         $totalPages     = (int) ceil($totalPackagesFiltered / $limit);
 
@@ -190,6 +192,8 @@ class RupAuditController extends BaseController
             'macroSummary'          => $macroSummary,
             'activeTab'             => $activeTab,
             'filters'               => $filters,
+            'sortBy'                => $sortBy,
+            'sortDir'               => $sortDir,
             'opdLeaderboard'        => $opdLeaderboard,
             'packages'              => $packages,
             'totalPackagesFiltered' => $totalPackagesFiltered,

@@ -321,9 +321,9 @@ class RupAuditService
     }
 
     /**
-     * Ambil data paket untuk Tab 2 Action Sheet dengan pagination & filter.
+     * Ambil data paket untuk Tab 2 Action Sheet dengan pagination, filter, dan sorting hierarki risiko.
      */
-    public function getPackagesFiltered(int $batchId, array $filters = [], int $limit = 100, int $offset = 0): array
+    public function getPackagesFiltered(int $batchId, array $filters = [], int $limit = 100, int $offset = 0, string $sortBy = 'total_nilai', string $sortDir = 'DESC'): array
     {
         $builder = $this->db->table('rup_audit_packages p')
             ->select('p.*, s.skor_rci as opd_skor_rci, s.predikat_risiko as opd_predikat')
@@ -351,8 +351,19 @@ class RupAuditService
                 ->groupEnd();
         }
 
-        return $builder->orderBy('p.total_nilai', 'DESC')
-            ->limit($limit, $offset)
+        $dir = strtoupper($sortDir) === 'ASC' ? 'ASC' : 'DESC';
+        if ($sortBy === 'severity' || $sortBy === 'risiko') {
+            // Hierarki warna risiko: KRITIS (5) > TINGGI (4) > SEDANG (3) > RENDAH (2) > AMAN (1)
+            $builder->orderBy("CASE p.max_severity WHEN 'KRITIS' THEN 5 WHEN 'TINGGI' THEN 4 WHEN 'SEDANG' THEN 3 WHEN 'RENDAH' THEN 2 WHEN 'AMAN' THEN 1 ELSE 0 END", $dir)
+                ->orderBy('p.violation_count', $dir)
+                ->orderBy('p.total_nilai', 'DESC');
+        } elseif ($sortBy === 'pagu' || $sortBy === 'total_nilai') {
+            $builder->orderBy('p.total_nilai', $dir);
+        } else {
+            $builder->orderBy('p.total_nilai', 'DESC');
+        }
+
+        return $builder->limit($limit, $offset)
             ->get()->getResultArray();
     }
 

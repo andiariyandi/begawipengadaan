@@ -175,7 +175,10 @@
     }
 
     function parseSortableValue(rawText) {
-        var str = (rawText || '').trim();
+        if (typeof rawText === 'number' && !isNaN(rawText)) {
+            return { type: 'number', val: rawText };
+        }
+        var str = String(rawText !== undefined && rawText !== null ? rawText : '').trim();
         if (!str || str === '-') return { type: 'empty', val: '' };
 
         // Check dd/mm/yyyy or dd-mm-yyyy with optional HH:mm
@@ -430,14 +433,15 @@
                         }
                     } else {
                         // Single-column sort
+                        var defaultDir = th.getAttribute('data-default-sort-dir') || 'asc';
                         if (existingIdx !== -1 && state.sortStack.length === 1) {
-                            if (state.sortStack[0].dir === 'asc') {
-                                state.sortStack[0].dir = 'desc';
+                            if (state.sortStack[0].dir === defaultDir) {
+                                state.sortStack[0].dir = (defaultDir === 'asc' ? 'desc' : 'asc');
                             } else {
                                 state.sortStack = [];
                             }
                         } else {
-                            state.sortStack = [{ colIdx: colIdx, dir: 'asc' }];
+                            state.sortStack = [{ colIdx: colIdx, dir: defaultDir }];
                         }
                     }
 
@@ -641,8 +645,14 @@
                             var cIdx = sortItem.colIdx;
                             var dirMult = sortItem.dir === 'asc' ? 1 : -1;
 
-                            var parsedA = parseSortableValue(cleanCellText(cellsA[cIdx]));
-                            var parsedB = parseSortableValue(cleanCellText(cellsB[cIdx]));
+                            var cellA = cellsA[cIdx];
+                            var cellB = cellsB[cIdx];
+
+                            var valA = cellA ? (cellA.getAttribute('data-order') || cellA.getAttribute('data-sort') || cellA.getAttribute('data-value') || cleanCellText(cellA)) : '';
+                            var valB = cellB ? (cellB.getAttribute('data-order') || cellB.getAttribute('data-sort') || cellB.getAttribute('data-value') || cleanCellText(cellB)) : '';
+
+                            var parsedA = parseSortableValue(valA);
+                            var parsedB = parseSortableValue(valB);
 
                             if (parsedA.val === parsedB.val) continue;
                             if (parsedA.type === 'empty') return 1;
