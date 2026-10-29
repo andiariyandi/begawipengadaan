@@ -117,14 +117,20 @@ class RupRciCalculator
                     }
 
                     $isKonsultansiKonstruksi = RupTaxonomy::isKonsultansiKonstruksi($pkg);
-                    // Sesuai Pasal 4 ayat (2) Perlem LKPP 3/2026, Jasa Konsultansi Konstruksi > Rp1 Miliar
-                    // wajib untuk Usaha Menengah/Besar, sehingga dikecualikan dari penyebut eligible UMK.
-                    $isEligibleUmkLe15m = $isKonsultansiKonstruksi ? ($val <= 1000000000.0) : ($val <= 15000000000.0);
+                    $objekPkg = (string) ($pkg['nama_paket_objek'] ?? $pkg['nama_paket_clean'] ?? '');
+                    $isPppkOrIuranOrTunda = RupTaxonomy::match($objekPkg, RupTaxonomy::DICT_PPPK_DAN_IURAN_ASN) || str_contains(strtolower($objekPkg), 'tunda bayar');
 
-                    if ($isEligibleUmkLe15m) {
-                        $g['pagu_penyedia_le15m'] += $val;
-                        if ($pkg['status_umk'] === 'Ya') {
-                            $g['pagu_umk_penyedia_le15m'] += $val;
+                    // Sesuai Pasal 4 ayat (2) Perlem LKPP 3/2026, Jasa Konsultansi Konstruksi > Rp1 Miliar
+                    // wajib untuk Usaha Menengah/Besar, serta PPPK / Iuran ASN / Tunda Bayar,
+                    // sehingga dikecualikan dari penyebut eligible UMK (R-26.1).
+                    if (! $isPppkOrIuranOrTunda) {
+                        $isEligibleUmkLe15m = $isKonsultansiKonstruksi ? ($val <= 1000000000.0) : ($val <= 15000000000.0);
+
+                        if ($isEligibleUmkLe15m) {
+                            $g['pagu_penyedia_le15m'] += $val;
+                            if ($pkg['status_umk'] === 'Ya') {
+                                $g['pagu_umk_penyedia_le15m'] += $val;
+                            }
                         }
                     }
                 }

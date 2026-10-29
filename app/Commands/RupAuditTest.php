@@ -494,6 +494,222 @@ CSV;
             $failCount++;
         }
 
+        // 5l. R-04b Anti-False Positive: Pemeliharaan Kendaraan Perorangan TIDAK boleh memicu R-04b
+        $viol04bExclusion = RupRuleEngine::evaluatePackage([
+            'total_nilai'         => 89490000.0, // Rp89.490.000 (> Rp50 Juta)
+            'cara_pengadaan'      => 'Penyedia',
+            'metode_arr'          => ['Pengadaan Langsung'],
+            'jenis_arr'           => ['Jasa Lainnya'],
+            'nama_paket'          => 'Belanja Pemeliharaan Alat Angkutan-Alat Angkutan Darat Bermotor-Kendaraan Dinas Bermotor Perorangan',
+            'nama_paket_clean'    => 'Belanja Pemeliharaan Alat Angkutan-Alat Angkutan Darat Bermotor-Kendaraan Dinas Bermotor Perorangan',
+            'nama_paket_objek'    => 'Belanja Pemeliharaan Alat Angkutan-Alat Angkutan Darat Bermotor-Kendaraan Dinas Bermotor Perorangan',
+            'status_umk'          => 'Ya',
+            'produk_dalam_negeri' => 'Ya',
+        ]);
+        $hasR04bFalsePositive = false;
+        foreach ($viol04bExclusion as $v) {
+            if ($v['rule_id'] === 'R-04b') {
+                $hasR04bFalsePositive = true;
+            }
+        }
+        if (! $hasR04bFalsePositive) {
+            CLI::write("  [PASS] Rule R-04b Anti-False Positive (Kendaraan Dinas Bermotor Perorangan Rp89,49 Jt TIDAK memicu R-04b) sukses", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] Rule R-04b memicu false positive pada paket pemeliharaan kendaraan dinas perorangan", "red");
+            $failCount++;
+        }
+
+        // 5m. R-11: Validasi PPPK Paruh Waktu (Non-Pelanggaran) vs Honorer PTHL/TKS (Pelanggaran R-11 KRITIS jo. UU 20/2023)
+        $pkgPppk = [
+            'total_nilai'      => 45000000,
+            'cara_pengadaan'   => 'Swakelola',
+            'metode_arr'       => [],
+            'jenis_arr'        => ['Jasa Lainnya'],
+            'nama_paket'       => 'Belanja jasa Pegawai Pemerintah dengan Perjanjian Kerja (PPPK) Paruh Waktu pada jabatan tenaga administrasi',
+            'nama_paket_clean' => 'belanja jasa pegawai pemerintah dengan perjanjian kerja pppk paruh waktu pada jabatan tenaga administrasi',
+            'nama_paket_objek' => 'belanja jasa pegawai pemerintah dengan perjanjian kerja pppk paruh waktu pada jabatan tenaga administrasi',
+            'status_umk'       => '',
+        ];
+        $violPppk = RupRuleEngine::evaluatePackage($pkgPppk);
+        $hasR11Pppk = false;
+        foreach ($violPppk as $v) {
+            if ($v['rule_id'] === 'R-11') {
+                $hasR11Pppk = true;
+            }
+        }
+
+        $pkgPthl = [
+            'total_nilai'      => 60000000,
+            'cara_pengadaan'   => 'Swakelola',
+            'metode_arr'       => [],
+            'jenis_arr'        => ['Jasa Lainnya'],
+            'nama_paket'       => 'Belanja Jasa Tenaga Pelayanan Umum (Honor PTHL)',
+            'nama_paket_clean' => 'belanja jasa tenaga pelayanan umum honor pthl',
+            'nama_paket_objek' => 'belanja jasa tenaga pelayanan umum honor pthl',
+            'status_umk'       => '',
+        ];
+        $violPthl = RupRuleEngine::evaluatePackage($pkgPthl);
+        $hasR11Pthl = false;
+        foreach ($violPthl as $v) {
+            if ($v['rule_id'] === 'R-11') {
+                $hasR11Pthl = true;
+            }
+        }
+
+        if (! $hasR11Pppk && $hasR11Pthl) {
+            CLI::write("  [PASS] Test 5m: PPPK Paruh Waktu TIDAK memicu R-11 & Tenaga Pelayanan Umum PTHL memicu R-11 (KRITIS)", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] Test 5m: Evaluasi PPPK Paruh Waktu atau PTHL pada Swakelola tidak akurat", "red");
+            $failCount++;
+        }
+
+        // 5n. De-Obfuskasi Leetspeak & Normalisasi Typo (R-34 & R-17)
+        $pkgLeetspeak = [
+            'total_nilai'      => 120000000,
+            'cara_pengadaan'   => 'Penyedia',
+            'metode_arr'       => ['Pengadaan Langsung'],
+            'jenis_arr'        => ['Jasa Lainnya'],
+            'nama_paket'       => 'Belanj4 Jasa N0n Person1l',
+            'nama_paket_clean' => RupNlpExtractor::clean('Belanj4 Jasa N0n Person1l'),
+            'nama_paket_objek' => RupNlpExtractor::extractObject('Belanj4 Jasa N0n Person1l'),
+            'status_umk'       => 'Ya',
+        ];
+        $pkgLeetspeak = array_merge($pkgLeetspeak, RupNlpExtractor::extractCoreAndLocation($pkgLeetspeak['nama_paket_objek']));
+        $violLeet = RupRuleEngine::evaluatePackage($pkgLeetspeak);
+        $hasR34Leet = false;
+        foreach ($violLeet as $v) {
+            if ($v['rule_id'] === 'R-34') {
+                $hasR34Leet = true;
+            }
+        }
+
+        $pkgTypo = [
+            'total_nilai'      => 175000000,
+            'cara_pengadaan'   => 'Penyedia',
+            'metode_arr'       => ['Pengadaan Langsung'],
+            'jenis_arr'        => ['Barang'], // Salah jenis: renovasi ruang adalah Pekerjaan Konstruksi
+            'nama_paket'       => 'Belanaja renovasi runag frakssi golkar',
+            'nama_paket_clean' => RupNlpExtractor::clean('Belanaja renovasi runag frakssi golkar'),
+            'nama_paket_objek' => RupNlpExtractor::extractObject('Belanaja renovasi runag frakssi golkar'),
+            'status_umk'       => 'Ya',
+        ];
+        $pkgTypo = array_merge($pkgTypo, RupNlpExtractor::extractCoreAndLocation($pkgTypo['nama_paket_objek']));
+        $violTypo = RupRuleEngine::evaluatePackage($pkgTypo);
+        $hasR17Typo = false;
+        foreach ($violTypo as $v) {
+            if ($v['rule_id'] === 'R-17') {
+                $hasR17Typo = true;
+            }
+        }
+
+        if ($hasR34Leet && $hasR17Typo) {
+            CLI::write("  [PASS] Test 5n: De-obfuskasi leetspeak (R-34) & Normalisasi typo belanja renovasi (R-17) berhasil dideteksi", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] Test 5n: Gagal mendeteksi leetspeak R-34 (has: " . ($hasR34Leet ? '1' : '0') . ") atau typo R-17 (has: " . ($hasR17Typo ? '1' : '0') . ")", "red");
+            $failCount++;
+        }
+
+        // 5o. Anti-False Positive Hotmix (R-17) & Komoditas Tunggal Spesifik Excavator (R-34)
+        $pkgHotmix = [
+            'total_nilai'      => 150000000,
+            'cara_pengadaan'   => 'Penyedia',
+            'metode_arr'       => ['E-Purchasing'],
+            'jenis_arr'        => ['Barang'],
+            'nama_paket'       => 'Belanja Bahan/Material HOTMIX Pemeliharaan Jalan',
+            'nama_paket_clean' => RupNlpExtractor::clean('Belanja Bahan/Material HOTMIX Pemeliharaan Jalan'),
+            'nama_paket_objek' => RupNlpExtractor::extractObject('Belanja Bahan/Material HOTMIX Pemeliharaan Jalan'),
+            'status_umk'       => 'Ya',
+            'produk_dalam_negeri' => 'Ya',
+        ];
+        $pkgHotmix = array_merge($pkgHotmix, RupNlpExtractor::extractCoreAndLocation($pkgHotmix['nama_paket_objek']));
+        $violHotmix = RupRuleEngine::evaluatePackage($pkgHotmix);
+        $hasR17Hotmix = false;
+        foreach ($violHotmix as $v) {
+            if ($v['rule_id'] === 'R-17') {
+                $hasR17Hotmix = true;
+            }
+        }
+
+        $pkgExcavator = [
+            'total_nilai'      => 850000000,
+            'cara_pengadaan'   => 'Penyedia',
+            'metode_arr'       => ['E-Purchasing'],
+            'jenis_arr'        => ['Barang'],
+            'nama_paket'       => 'Belanja Excavator',
+            'nama_paket_clean' => RupNlpExtractor::clean('Belanja Excavator'),
+            'nama_paket_objek' => RupNlpExtractor::extractObject('Belanja Excavator'),
+            'status_umk'       => 'Ya',
+            'produk_dalam_negeri' => 'Ya',
+        ];
+        $pkgExcavator = array_merge($pkgExcavator, RupNlpExtractor::extractCoreAndLocation($pkgExcavator['nama_paket_objek']));
+        $violExcavator = RupRuleEngine::evaluatePackage($pkgExcavator);
+        $hasR34Excavator = false;
+        foreach ($violExcavator as $v) {
+            if ($v['rule_id'] === 'R-34') {
+                $hasR34Excavator = true;
+            }
+        }
+
+        if (! $hasR17Hotmix && ! $hasR34Excavator) {
+            CLI::write("  [PASS] Test 5o: Anti-false positive hotmix (R-17 lolos) & excavator spesifik (R-34 lolos) sukses", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] Test 5o: False positive pada hotmix R-17 (has: " . ($hasR17Hotmix ? '1' : '0') . ") atau excavator R-34 (has: " . ($hasR34Excavator ? '1' : '0') . ")", "red");
+            $failCount++;
+        }
+
+        // 5p. Time-Aware Threshold R-05 (TA 2024 Pagu Rp300 Jt) & Penyalahgunaan Jenis Terintegrasi R-33
+        $pkgKonst2024 = [
+            'total_nilai'         => 300000000, // Rp300 Juta (> Rp200 Jt rezim Perpres 12/2021)
+            'tahun_anggaran'      => 2024,
+            'cara_pengadaan'      => 'Penyedia',
+            'metode_arr'          => ['Pengadaan Langsung'],
+            'jenis_arr'           => ['Pekerjaan Konstruksi'],
+            'nama_paket'          => 'Pembangunan Ruang Kelas Baru SDN 1',
+            'nama_paket_clean'    => 'pembangunan ruang kelas baru sdn 1',
+            'nama_paket_objek'    => 'pembangunan ruang kelas baru sdn 1',
+            'status_umk'          => 'Ya',
+            'produk_dalam_negeri' => 'Ya',
+        ];
+        $violKonst2024 = RupRuleEngine::evaluatePackage($pkgKonst2024);
+        $hasR05OldRegime = false;
+        foreach ($violKonst2024 as $v) {
+            if ($v['rule_id'] === 'R-05' && $v['severity'] === 'KRITIS') {
+                $hasR05OldRegime = true;
+            }
+        }
+
+        $pkgTerintegrasi = [
+            'total_nilai'         => 120000000,
+            'cara_pengadaan'      => 'Penyedia',
+            'metode_arr'          => ['E-Purchasing'],
+            'jenis_arr'           => ['Terintegrasi'],
+            'jenis_pengadaan'     => 'Terintegrasi', // Penyalahgunaan Terintegrasi untuk sewa tenda dan kursi
+            'nama_paket'          => 'Belanja Sewa Tenda dan Kursi',
+            'nama_paket_clean'    => 'belanja sewa tenda dan kursi',
+            'nama_paket_objek'    => 'belanja sewa tenda dan kursi',
+            'status_umk'          => 'Ya',
+            'produk_dalam_negeri' => 'Ya',
+        ];
+        $violTerintegrasi = RupRuleEngine::evaluatePackage($pkgTerintegrasi);
+        $hasR33Terintegrasi = false;
+        foreach ($violTerintegrasi as $v) {
+            if ($v['rule_id'] === 'R-33' && $v['severity'] === 'TINGGI') {
+                $hasR33Terintegrasi = true;
+            }
+        }
+
+        if ($hasR05OldRegime && $hasR33Terintegrasi) {
+            CLI::write("  [PASS] Test 5p: Time-Aware R-05 TA 2024 terdeteksi KRITIS & Penyalahgunaan Terintegrasi terdeteksi TINGGI (R-33)", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] Test 5p: Time-Aware R-05 TA 2024 (has: " . ($hasR05OldRegime ? '1' : '0') . ") atau Terintegrasi R-33 (has: " . ($hasR33Terintegrasi ? '1' : '0') . ") gagal", "red");
+            $failCount++;
+        }
+
         // -------------------------------------------------------------
         // TEST 6: RCI v3.1 Scoring Engine & Zero-Division Guard
         // -------------------------------------------------------------

@@ -144,7 +144,7 @@ class RupRuleEngine
             }
 
             // R-34: Penamaan Paket Kabur / Opaque Naming (SEDANG)
-            if (strlen((string) $pkg['nama_paket_clean']) < 12 || $pkg['token_count'] <= 1 || RupTaxonomy::isOpaque((string) $pkg['nama_paket_clean'])) {
+            if (RupNlpExtractor::isOpaquePackageName($pkg)) {
                 $pkgViolations[] = [
                     'rule_id'               => 'R-34',
                     'severity'              => 'SEDANG',
@@ -181,31 +181,60 @@ class RupRuleEngine
                 // R-04b: Peringatan Fitur Transaksional SPSE > Rp50 Juta & Reviu APIP Jasa Lainnya Perorangan (RENDAH)
                 $isJasaLainnya = in_array('Jasa Lainnya', $pkg['jenis_arr'] ?? [], true);
                 if ($isPL && $isJasaLainnya && $pkg['total_nilai'] > 50000000.0) {
-                    $isTenagaOperasional = RupTaxonomy::match((string) ($pkg['nama_paket_objek'] ?? $pkg['nama_paket_clean']), RupTaxonomy::DICT_02_OUTSOURCING)
-                        || str_contains(strtolower((string) $pkg['nama_paket_clean']), 'perorangan')
-                        || str_contains(strtolower((string) $pkg['nama_paket_clean']), 'tenaga');
+                    $teksObjek   = strtolower((string) ($pkg['nama_paket_objek'] ?? ''));
+                    if ($teksObjek === '') {
+                        $teksObjek = strtolower((string) ($pkg['nama_paket_clean'] ?? ''));
+                    }
+                    $teksLengkap = strtolower((string) (($pkg['nama_paket_clean'] ?? '') . ' ' . ($pkg['nama_paket'] ?? '')));
 
-                    if ($isTenagaOperasional) {
-                        $pkgViolations[] = [
-                            'rule_id'               => 'R-04b',
-                            'severity'              => 'RENDAH',
-                            'kategori'              => 'Bentuk Kontrak & Fitur SPSE',
-                            'regulasi'              => 'Pasal 3 ayat (3), (4) huruf b, dan ayat (5) Perlem LKPP 3/2026',
-                            'deskripsi_pelanggaran' => 'Peringatan Fitur Transaksional SPSE & Reviu APIP Jasa Lainnya > Rp50 Juta: Sesuai Pasal 3 ayat (3), (4), dan (5) Perlem LKPP 3/2026, Pengadaan Langsung Jasa Lainnya > Rp50 Juta wajib dilaksanakan melalui Fitur Transaksional SPSE (bentuk kontrak SPK). Pengecualian penggunaan Fitur Pencatatan untuk penyedia Jasa Lainnya Perorangan pendukung operasional layanan publik WAJIB mendapatkan Reviu APIP (Inspektorat Daerah) sebelum pemilihan Penyedia.',
-                            'rekomendasi_perbaikan' => 'Gunakan Fitur Transaksional SPSE dengan bentuk kontrak SPK, atau pastikan telah memperoleh Berita Acara Reviu APIP (Inspektorat Daerah) sebelum pemilihan jika menggunakan skema Jasa Lainnya Perorangan via Fitur Pencatatan.',
-                            'target_perubahan'      => ['bentuk_kontrak_saran' => 'SPK / Transaksional SPSE (Reviu APIP jika Pencatatan Perorangan)'],
-                        ];
+                    // Anti-False Positive Exclusion R-04b (Kendaraan Perorangan, Tenaga Listrik, Tambah Daya, Alat Angkutan)
+                    $isExcluded = false;
+                    foreach (RupTaxonomy::EXCLUSION_R04B as $exc) {
+                        if (str_contains($teksObjek, $exc) || str_contains($teksLengkap, $exc)) {
+                            $isExcluded = true;
+                            break;
+                        }
+                    }
+
+                    if (! $isExcluded) {
+                        $isTenagaOperasional = RupTaxonomy::match($teksObjek, RupTaxonomy::DICT_02_OUTSOURCING)
+                            || str_contains($teksObjek, 'perorangan')
+                            || str_contains($teksObjek, 'tenaga');
+
+                        if ($isTenagaOperasional) {
+                            $pkgViolations[] = [
+                                'rule_id'               => 'R-04b',
+                                'severity'              => 'RENDAH',
+                                'kategori'              => 'Bentuk Kontrak & Fitur SPSE',
+                                'regulasi'              => 'Pasal 3 ayat (3), (4) huruf b, dan ayat (5) Perlem LKPP 3/2026',
+                                'deskripsi_pelanggaran' => 'Peringatan Fitur Transaksional SPSE & Reviu APIP Jasa Lainnya > Rp50 Juta: Sesuai Pasal 3 ayat (3), (4), dan (5) Perlem LKPP 3/2026, Pengadaan Langsung Jasa Lainnya > Rp50 Juta wajib dilaksanakan melalui Fitur Transaksional SPSE (bentuk kontrak SPK). Pengecualian penggunaan Fitur Pencatatan untuk penyedia Jasa Lainnya Perorangan pendukung operasional layanan publik WAJIB mendapatkan Reviu APIP (Inspektorat Daerah) sebelum pemilihan Penyedia.',
+                                'rekomendasi_perbaikan' => 'Gunakan Fitur Transaksional SPSE dengan bentuk kontrak SPK, atau pastikan telah memperoleh Berita Acara Reviu APIP (Inspektorat Daerah) sebelum pemilihan jika menggunakan skema Jasa Lainnya Perorangan via Fitur Pencatatan.',
+                                'target_perubahan'      => ['bentuk_kontrak_saran' => 'SPK / Transaksional SPSE (Reviu APIP jika Pencatatan Perorangan)'],
+                            ];
+                        }
                     }
                 }
 
-                // R-05: PL Konstruksi > Rp400 Juta (KRITIS)
-                if ($isPL && $isKonstruksi && ! $isKonsultansi && $pkg['total_nilai'] > 400000000) {
+                // Tahun anggaran paket pengadaan untuk kesadaran rezim regulasi (time-aware thresholding)
+                $tahunAnggaran = (int) ($pkg['tahun_anggaran'] ?? 2026);
+                $batasPlKonstruksi = ($tahunAnggaran > 0 && $tahunAnggaran <= 2024) ? 200000000.0 : 400000000.0;
+
+                // R-05: PL Konstruksi > Batas Tertinggi (KRITIS)
+                // Rezim Perpres 12/2021 (TA <= 2024) = Rp200 Juta; Rezim Perpres 46/2025 jo. Perlem LKPP 3/2026 (TA >= 2025) = Rp400 Juta
+                if ($isPL && $isKonstruksi && ! $isKonsultansi && $pkg['total_nilai'] > $batasPlKonstruksi) {
+                    $deskripsiR05 = ($tahunAnggaran > 0 && $tahunAnggaran <= 2024)
+                        ? "Pelanggaran Batas Pagu Pengadaan Langsung Konstruksi Rezim Perpres 12/2021 (> Rp200 Juta): Nilai paket melampaui batas tertinggi PL Konstruksi TA {$tahunAnggaran} (Rp200.000.000)."
+                        : 'Pelanggaran Batas Pagu Pengadaan Langsung Konstruksi (> Rp400 Juta): Nilai paket melampaui batas tertinggi baru PL Konstruksi (Rp400.000.000).';
+                    $regulasiR05 = ($tahunAnggaran > 0 && $tahunAnggaran <= 2024)
+                        ? 'Pasal 1 angka 40 Perpres 12/2021'
+                        : 'Pasal 1 angka 40 Perpres 46/2025 jo. Perlem LKPP 3/2026';
+
                     $pkgViolations[] = [
                         'rule_id'               => 'R-05',
                         'severity'              => 'KRITIS',
                         'kategori'              => 'Batas Pagu Metode',
-                        'regulasi'              => 'Pasal 1 angka 40 Perpres 46/2025 jo. Perlem LKPP 3/2026',
-                        'deskripsi_pelanggaran' => 'Pelanggaran Batas Pagu Pengadaan Langsung Konstruksi (> Rp400 Juta): Nilai paket melampaui batas tertinggi baru PL Konstruksi (Rp400.000.000).',
+                        'regulasi'              => $regulasiR05,
+                        'deskripsi_pelanggaran' => $deskripsiR05,
                         'rekomendasi_perbaikan' => 'Ubah metode pemilihan menjadi Tender atau E-Purchasing Katalog Konstruksi.',
                         'target_perubahan'      => ['metode_pengadaan_saran' => 'Tender / E-Purchasing'],
                     ];
@@ -225,7 +254,8 @@ class RupRuleEngine
                 }
 
                 // R-07: PL Konstruksi Rp200-400 Juta Wajib UMK & Teknologi Sederhana/Risiko Kecil (TINGGI)
-                if ($isPL && $isKonstruksi && $pkg['total_nilai'] > 200000000 && $pkg['total_nilai'] <= 400000000) {
+                // Berlaku khusus rezim Perpres 46/2025 jo. Perlem LKPP 3/2026 (TA >= 2025)
+                if (($tahunAnggaran === 0 || $tahunAnggaran >= 2025) && $isPL && $isKonstruksi && $pkg['total_nilai'] > 200000000 && $pkg['total_nilai'] <= 400000000) {
                     $isNonUmk   = ($pkg['status_umk'] !== 'Ya');
                     $isKompleks = RupTaxonomy::match((string) ($pkg['nama_paket_objek'] ?? $pkg['nama_paket_clean']), RupTaxonomy::DICT_KONSTRUKSI_KOMPLEKS);
 
@@ -256,8 +286,8 @@ class RupRuleEngine
                     }
                 }
 
-                // R-27: Threshold Hugging 95% - 100% Batas PL (TINGGI)
-                $batasPl = RupGraphClusterer::getBatasPl((string) $pkg['jenis_pengadaan']);
+                // R-27: Threshold Hugging 95% - 100% Batas PL (TINGGI) - Time-Aware
+                $batasPl = RupGraphClusterer::getBatasPl((string) $pkg['jenis_pengadaan'], $tahunAnggaran);
                 if ($isPL && $pkg['total_nilai'] >= (0.95 * $batasPl) && $pkg['total_nilai'] <= $batasPl) {
                     $pkgViolations[] = [
                         'rule_id'               => 'R-27',
@@ -300,21 +330,38 @@ class RupRuleEngine
                     ];
                 }
 
-                // R-33: Paket Terintegrasi Melampaui Batas Terendah (TINGGI)
-                if (! empty($pkg['is_integrated_package']) && $isPL) {
-                    $minThreshold = 200000000.0;
-                    if ($isKonsultansi) {
-                        $minThreshold = 100000000.0;
-                    }
-                    if ($pkg['total_nilai'] > $minThreshold) {
+                // R-33: Penajaman Rule Penyalahgunaan Jenis Terintegrasi (Pasal 54 Perpres PBJ) & PL Terintegrasi (TINGGI)
+                $isJenisTerintegrasi = (strtolower(trim((string) ($pkg['jenis_pengadaan'] ?? ''))) === 'terintegrasi');
+                $isIntegratedPackage = ! empty($pkg['is_integrated_package']);
+
+                if ($isPL && ($isIntegratedPackage || $isJenisTerintegrasi)) {
+                    // Kasus a: Paket bertipe is_integrated_package atau jenis Terintegrasi menggunakan Pengadaan Langsung
+                    $pkgViolations[] = [
+                        'rule_id'               => 'R-33',
+                        'severity'              => 'TINGGI',
+                        'kategori'              => 'Paket Terintegrasi',
+                        'regulasi'              => 'Pasal 54 Perpres 16/2018 jo. Perpres 46/2025 & Perlem LKPP 3/2026',
+                        'deskripsi_pelanggaran' => 'Pengadaan Pekerjaan Terintegrasi Dilarang Menggunakan Metode Pengadaan Langsung: Pekerjaan Terintegrasi memiliki kompleksitas tinggi dan wajib dilaksanakan melalui Tender/Seleksi.',
+                        'rekomendasi_perbaikan' => 'Ubah metode pemilihan menjadi Tender/Seleksi atau pisahkan pengadaan sesuai jenis masing-masing.',
+                        'target_perubahan'      => ['metode_pengadaan_saran' => 'Tender'],
+                    ];
+                } elseif ($isJenisTerintegrasi) {
+                    // Kasus b: Paket memilih jenis_pengadaan == 'Terintegrasi' namun objeknya komoditas Barang/Jasa Lainnya standar
+                    $stdCommodities = array_merge(
+                        RupTaxonomy::DICT_04_KATALOG_STANDAR,
+                        RupTaxonomy::DICT_07_MURNI_JASA_LAINNYA,
+                        RupTaxonomy::DICT_08_MURNI_BARANG
+                    );
+                    $objekSearch = (string) ($pkg['nama_paket_objek'] ?? $pkg['nama_paket_clean'] ?? '');
+                    if (RupTaxonomy::match($objekSearch, $stdCommodities)) {
                         $pkgViolations[] = [
                             'rule_id'               => 'R-33',
                             'severity'              => 'TINGGI',
-                            'kategori'              => 'Paket Terintegrasi',
-                            'regulasi'              => 'Pasal 20 & Pasal 38 Perpres 46/2025 jo. Perlem LKPP 3/2026',
-                            'deskripsi_pelanggaran' => 'Paket Gabungan Multi-Jenis Melampaui Ambang Batas Terendah: Pengadaan Langsung tidak boleh melampaui batas terketat komponennya.',
-                            'rekomendasi_perbaikan' => 'Pecah sesuai jenis pengadaan masing-masing atau laksanakan melalui Tender/Seleksi.',
-                            'target_perubahan'      => ['metode_pengadaan_saran' => 'Tender / E-Purchasing'],
+                            'kategori'              => 'Penyalahgunaan Jenis Terintegrasi',
+                            'regulasi'              => 'Pasal 54 Perpres 16/2018 jo. Perpres 46/2025 & Perlem LKPP 3/2026',
+                            'deskripsi_pelanggaran' => 'Penyalahgunaan Jenis Pengadaan Terintegrasi: Objek paket merupakan komoditas Barang/Jasa Lainnya standar yang tidak memenuhi kriteria Pengadaan Terintegrasi (Design & Build / EPC).',
+                            'rekomendasi_perbaikan' => 'Ubah jenis_pengadaan menjadi Barang atau Jasa Lainnya sesuai objek belanja riil.',
+                            'target_perubahan'      => ['jenis_pengadaan_saran' => 'Barang / Jasa Lainnya'],
                         ];
                     }
                 }
@@ -426,13 +473,14 @@ class RupRuleEngine
 
             // R-11: Jasa Tenaga Alih Daya Masuk Swakelola (KRITIS)
             if ($pkg['cara_pengadaan'] === 'Swakelola') {
-                if (RupTaxonomy::match((string) $pkg['nama_paket_clean'], RupTaxonomy::DICT_02_OUTSOURCING)) {
+                $teksSwakelola = (string) ($pkg['nama_paket_objek'] ?? $pkg['nama_paket_clean'] ?? '');
+                if (RupTaxonomy::match($teksSwakelola, RupTaxonomy::DICT_02_OUTSOURCING, RupTaxonomy::NEG_LOOKAHEAD_02)) {
                     $pkgViolations[] = [
                         'rule_id'               => 'R-11',
                         'severity'              => 'KRITIS',
                         'kategori'              => 'Larangan Non-ASN / Outsourcing',
                         'regulasi'              => 'Pasal 66 UU 20/2023 (ASN) & Pasal 16-18 Perpres PBJ',
-                        'deskripsi_pelanggaran' => 'Pengadaan Jasa Alih Daya (Outsourcing) Diinput sebagai Swakelola: Jasa kebersihan/keamanan/sopir berisiko melanggar larangan non-ASN.',
+                        'deskripsi_pelanggaran' => 'Pengadaan Jasa Alih Daya (Outsourcing) Diinput sebagai Swakelola: Jasa kebersihan/keamanan/sopir/tenaga pendukung/PTHL/TKS berisiko melanggar larangan non-ASN.',
                         'rekomendasi_perbaikan' => 'Ubah cara_pengadaan menjadi Penyedia, jenis_pengadaan = Jasa Lainnya, via E-Purchasing / Tender penyedia jasa pekerja.',
                         'target_perubahan'      => [
                             'cara_pengadaan_saran'  => 'Penyedia',
@@ -463,7 +511,7 @@ class RupRuleEngine
             }
 
             // R-13: Belanja Pegawai / Administrasi Internal Diinput Penyedia (TINGGI)
-            if ($pkg['cara_pengadaan'] === 'Penyedia') {
+            if ($pkg['cara_pengadaan'] === 'Penyedia' && ! in_array('Dikecualikan', $pkg['metode_arr'] ?? [], true)) {
                 if (RupTaxonomy::match((string) $pkg['nama_paket_objek'], RupTaxonomy::DICT_03_SWAKELOLA_MURNI, RupTaxonomy::NEG_LOOKAHEAD_03)) {
                     $pkgViolations[] = [
                         'rule_id'               => 'R-13',
@@ -544,7 +592,7 @@ class RupRuleEngine
             }
 
             // R-17: Salah Klasifikasi Pekerjaan Konstruksi (TINGGI)
-            if ($pkg['cara_pengadaan'] === 'Penyedia' && ! in_array('Pekerjaan Konstruksi', $pkg['jenis_arr'] ?? [], true)) {
+            if ($pkg['cara_pengadaan'] === 'Penyedia' && ! in_array('Pekerjaan Konstruksi', $pkg['jenis_arr'] ?? [], true) && ! in_array('Dikecualikan', $pkg['metode_arr'] ?? [], true)) {
                 if (RupTaxonomy::match((string) $pkg['nama_paket_objek'], RupTaxonomy::DICT_05_MURNI_KONSTRUKSI, RupTaxonomy::NEG_LOOKAHEAD_05)) {
                     $pkgViolations[] = [
                         'rule_id'               => 'R-17',
@@ -669,84 +717,89 @@ class RupRuleEngine
             // R-24: Afirmasi Pencadangan Usaha Mikro/Kecil & Batasan Usaha Non-Kecil
             // Sesuai Pasal 65 ayat (4) Perpres 46/2025 jo. Pasal 4 Perlem LKPP 3/2026
             if ($pkg['cara_pengadaan'] === 'Penyedia' && ! in_array('Dikecualikan', $pkg['metode_arr'] ?? [], true)) {
-                $isUtilitas = RupTaxonomy::match((string) $pkg['nama_paket_objek'], RupTaxonomy::DICT_01_DIKECUALIKAN);
-                $isImpor    = RupTaxonomy::match((string) $pkg['nama_paket_objek'], RupTaxonomy::DICT_10_TEKNOLOGI_TINGGI_IMPOR);
-                $isKonsultKonstruksi   = RupTaxonomy::isKonsultansiKonstruksi($pkg);
-                $isPekerjaanKonstruksi = in_array('Pekerjaan Konstruksi', $pkg['jenis_arr'] ?? [], true);
+                $objekPkg = (string) ($pkg['nama_paket_objek'] ?? $pkg['nama_paket_clean'] ?? '');
+                $isPppkOrIuranOrTunda = RupTaxonomy::match($objekPkg, RupTaxonomy::DICT_PPPK_DAN_IURAN_ASN) || str_contains(strtolower($objekPkg), 'tunda bayar');
 
-                if ($isKonsultKonstruksi) {
-                    // Kasus A: Jasa Konsultansi Konstruksi (Pasal 4 ayat (2) Perlem LKPP 3/2026)
-                    // Batas Usaha Kecil: <= Rp1.000.000.000 (Rp1 Miliar)
-                    if ($pkg['total_nilai'] <= 1000000000.0 && $pkg['status_umk'] !== 'Ya' && ! $isUtilitas && ! $isImpor) {
-                        $pkgViolations[] = [
-                            'rule_id'               => 'R-24',
-                            'severity'              => 'TINGGI',
-                            'kategori'              => 'Pencadangan UMK Konsultansi Konstruksi',
-                            'regulasi'              => 'Pasal 4 ayat (2) huruf a Perlem LKPP 3/2026 jo. Pasal 65 Perpres 46/2025',
-                            'deskripsi_pelanggaran' => 'Paket Jasa Konsultansi Konstruksi bernilai <= Rp1 Miliar wajib dicadangkan untuk Badan Usaha Kualifikasi Usaha Kecil (status_umk = Ya).',
-                            'rekomendasi_perbaikan' => 'Ubah status_umk menjadi Ya untuk paket Jasa Konsultansi Konstruksi bernilai sampai dengan Rp1.000.000.000 sesuai Pasal 4 ayat (2) huruf a Perlem LKPP 3/2026.',
-                            'target_perubahan'      => ['status_umk_saran' => 'Ya'],
-                        ];
-                    } elseif ($pkg['total_nilai'] > 1000000000.0 && $pkg['status_umk'] === 'Ya') {
-                        $segmenUsaha = $pkg['total_nilai'] <= 2500000000.0 ? 'Kualifikasi Usaha Menengah (Rp1 M - Rp2,5 M)' : 'Kualifikasi Usaha Besar (> Rp2,5 M)';
-                        $pkgViolations[] = [
-                            'rule_id'               => 'R-24',
-                            'severity'              => 'TINGGI',
-                            'kategori'              => 'Batasan Usaha Konsultansi Konstruksi Non-Kecil',
-                            'regulasi'              => 'Pasal 4 ayat (2) huruf b & c Perlem LKPP 3/2026',
-                            'deskripsi_pelanggaran' => "Paket Jasa Konsultansi Konstruksi bernilai > Rp1 Miliar (Rp " . number_format($pkg['total_nilai'], 0, ',', '.') . ") diperuntukkan bagi {$segmenUsaha}, sehingga status_umk seharusnya 'Tidak'.",
-                            'rekomendasi_perbaikan' => "Ubah status_umk menjadi Tidak karena menurut Pasal 4 ayat (2) Perlem LKPP 3/2026, Jasa Konsultansi Konstruksi > Rp1 Miliar diperuntukkan bagi {$segmenUsaha}.",
-                            'target_perubahan'      => [
-                                'status_umk_saran' => 'Tidak',
-                                'segmentasi_usaha' => $segmenUsaha,
-                            ],
-                        ];
-                    }
-                } else {
-                    // Kasus B: Pengadaan Umum (Barang / Jasa Lainnya / Pekerjaan Konstruksi / Konsultansi Non-Konstruksi)
-                    // 1) Paket <= 15 M non-UMK
-                    if ($pkg['total_nilai'] <= 15000000000.0 && $pkg['status_umk'] !== 'Ya' && ! $isUtilitas && ! $isImpor) {
-                        $targetPerubahan = ['status_umk_saran' => 'Ya'];
-                        $rekomendasiSub = '';
-                        if ($isPekerjaanKonstruksi) {
-                            $subkual = RupTaxonomy::getSubkualifikasiKonstruksi($pkg['total_nilai']);
-                            $targetPerubahan['subkualifikasi_konstruksi'] = $subkual['subkualifikasi'];
-                            $targetPerubahan['afirmasi_domisili'] = $subkual['afirmasi_domisili'];
-                            $rekomendasiSub = " ({$subkual['subkualifikasi']} — {$subkual['afirmasi_domisili']})";
+                if (! $isPppkOrIuranOrTunda) {
+                    $isUtilitas = RupTaxonomy::match((string) $pkg['nama_paket_objek'], RupTaxonomy::DICT_01_DIKECUALIKAN);
+                    $isImpor    = RupTaxonomy::match((string) $pkg['nama_paket_objek'], RupTaxonomy::DICT_10_TEKNOLOGI_TINGGI_IMPOR);
+                    $isKonsultKonstruksi   = RupTaxonomy::isKonsultansiKonstruksi($pkg);
+                    $isPekerjaanKonstruksi = in_array('Pekerjaan Konstruksi', $pkg['jenis_arr'] ?? [], true);
+
+                    if ($isKonsultKonstruksi) {
+                        // Kasus A: Jasa Konsultansi Konstruksi (Pasal 4 ayat (2) Perlem LKPP 3/2026)
+                        // Batas Usaha Kecil: <= Rp1.000.000.000 (Rp1 Miliar)
+                        if ($pkg['total_nilai'] <= 1000000000.0 && $pkg['status_umk'] !== 'Ya' && ! $isUtilitas && ! $isImpor) {
+                            $pkgViolations[] = [
+                                'rule_id'               => 'R-24',
+                                'severity'              => 'TINGGI',
+                                'kategori'              => 'Pencadangan UMK Konsultansi Konstruksi',
+                                'regulasi'              => 'Pasal 4 ayat (2) huruf a Perlem LKPP 3/2026 jo. Pasal 65 Perpres 46/2025',
+                                'deskripsi_pelanggaran' => 'Paket Jasa Konsultansi Konstruksi bernilai <= Rp1 Miliar wajib dicadangkan untuk Badan Usaha Kualifikasi Usaha Kecil (status_umk = Ya).',
+                                'rekomendasi_perbaikan' => 'Ubah status_umk menjadi Ya untuk paket Jasa Konsultansi Konstruksi bernilai sampai dengan Rp1.000.000.000 sesuai Pasal 4 ayat (2) huruf a Perlem LKPP 3/2026.',
+                                'target_perubahan'      => ['status_umk_saran' => 'Ya'],
+                            ];
+                        } elseif ($pkg['total_nilai'] > 1000000000.0 && $pkg['status_umk'] === 'Ya') {
+                            $segmenUsaha = $pkg['total_nilai'] <= 2500000000.0 ? 'Kualifikasi Usaha Menengah (Rp1 M - Rp2,5 M)' : 'Kualifikasi Usaha Besar (> Rp2,5 M)';
+                            $pkgViolations[] = [
+                                'rule_id'               => 'R-24',
+                                'severity'              => 'TINGGI',
+                                'kategori'              => 'Batasan Usaha Konsultansi Konstruksi Non-Kecil',
+                                'regulasi'              => 'Pasal 4 ayat (2) huruf b & c Perlem LKPP 3/2026',
+                                'deskripsi_pelanggaran' => "Paket Jasa Konsultansi Konstruksi bernilai > Rp1 Miliar (Rp " . number_format($pkg['total_nilai'], 0, ',', '.') . ") diperuntukkan bagi {$segmenUsaha}, sehingga status_umk seharusnya 'Tidak'.",
+                                'rekomendasi_perbaikan' => "Ubah status_umk menjadi Tidak karena menurut Pasal 4 ayat (2) Perlem LKPP 3/2026, Jasa Konsultansi Konstruksi > Rp1 Miliar diperuntukkan bagi {$segmenUsaha}.",
+                                'target_perubahan'      => [
+                                    'status_umk_saran' => 'Tidak',
+                                    'segmentasi_usaha' => $segmenUsaha,
+                                ],
+                            ];
+                        }
+                    } else {
+                        // Kasus B: Pengadaan Umum (Barang / Jasa Lainnya / Pekerjaan Konstruksi / Konsultansi Non-Konstruksi)
+                        // 1) Paket <= 15 M non-UMK
+                        if ($pkg['total_nilai'] <= 15000000000.0 && $pkg['status_umk'] !== 'Ya' && ! $isUtilitas && ! $isImpor) {
+                            $targetPerubahan = ['status_umk_saran' => 'Ya'];
+                            $rekomendasiSub = '';
+                            if ($isPekerjaanKonstruksi) {
+                                $subkual = RupTaxonomy::getSubkualifikasiKonstruksi($pkg['total_nilai']);
+                                $targetPerubahan['subkualifikasi_konstruksi'] = $subkual['subkualifikasi'];
+                                $targetPerubahan['afirmasi_domisili'] = $subkual['afirmasi_domisili'];
+                                $rekomendasiSub = " ({$subkual['subkualifikasi']} — {$subkual['afirmasi_domisili']})";
+                            }
+
+                            $pkgViolations[] = [
+                                'rule_id'               => 'R-24',
+                                'severity'              => 'TINGGI',
+                                'kategori'              => 'Pencadangan UMK-Koperasi',
+                                'regulasi'              => 'Pasal 65 ayat (4) Perpres 46/2025 jo. Pasal 4 ayat (1) Perlem LKPP 3/2026',
+                                'deskripsi_pelanggaran' => 'Paket Penyedia bernilai <= Rp15 Miliar wajib dicadangkan untuk Usaha Mikro, Kecil, dan Koperasi (status_umk = Ya).' . $rekomendasiSub,
+                                'rekomendasi_perbaikan' => 'Ubah status_umk menjadi Ya, kecuali ada justifikasi teknis khusus yang tidak dapat dipenuhi UMK.' . ($isPekerjaanKonstruksi ? " Prioritaskan domisili penyedia sesuai subkualifikasi ({$targetPerubahan['subkualifikasi_konstruksi']})." : ''),
+                                'target_perubahan'      => $targetPerubahan,
+                            ];
                         }
 
-                        $pkgViolations[] = [
-                            'rule_id'               => 'R-24',
-                            'severity'              => 'TINGGI',
-                            'kategori'              => 'Pencadangan UMK-Koperasi',
-                            'regulasi'              => 'Pasal 65 ayat (4) Perpres 46/2025 jo. Pasal 4 ayat (1) Perlem LKPP 3/2026',
-                            'deskripsi_pelanggaran' => 'Paket Penyedia bernilai <= Rp15 Miliar wajib dicadangkan untuk Usaha Mikro, Kecil, dan Koperasi (status_umk = Ya).' . $rekomendasiSub,
-                            'rekomendasi_perbaikan' => 'Ubah status_umk menjadi Ya, kecuali ada justifikasi teknis khusus yang tidak dapat dipenuhi UMK.' . ($isPekerjaanKonstruksi ? " Prioritaskan domisili penyedia sesuai subkualifikasi ({$targetPerubahan['subkualifikasi_konstruksi']})." : ''),
-                            'target_perubahan'      => $targetPerubahan,
-                        ];
-                    }
+                        // 2) Paket Kontrak Tunggal > 15 M bertanda UMK = Ya
+                        $isTenderKontrakTunggal = in_array('Tender', $pkg['metode_arr'] ?? [], true) || in_array('Tender Cepat', $pkg['metode_arr'] ?? [], true) || in_array('Seleksi', $pkg['metode_arr'] ?? [], true);
+                        if ($isTenderKontrakTunggal && $pkg['total_nilai'] > 15000000000.0 && $pkg['status_umk'] === 'Ya') {
+                            $targetPerubahan = ['status_umk_saran' => 'Tidak'];
+                            $subTeks = '';
+                            if ($isPekerjaanKonstruksi) {
+                                $subkual = RupTaxonomy::getSubkualifikasiKonstruksi($pkg['total_nilai']);
+                                $targetPerubahan['subkualifikasi_konstruksi'] = $subkual['subkualifikasi'];
+                                $targetPerubahan['afirmasi_domisili'] = $subkual['afirmasi_domisili'];
+                                $subTeks = " ({$subkual['subkualifikasi']})";
+                            }
 
-                    // 2) Paket Kontrak Tunggal > 15 M bertanda UMK = Ya
-                    $isTenderKontrakTunggal = in_array('Tender', $pkg['metode_arr'] ?? [], true) || in_array('Tender Cepat', $pkg['metode_arr'] ?? [], true) || in_array('Seleksi', $pkg['metode_arr'] ?? [], true);
-                    if ($isTenderKontrakTunggal && $pkg['total_nilai'] > 15000000000.0 && $pkg['status_umk'] === 'Ya') {
-                        $targetPerubahan = ['status_umk_saran' => 'Tidak'];
-                        $subTeks = '';
-                        if ($isPekerjaanKonstruksi) {
-                            $subkual = RupTaxonomy::getSubkualifikasiKonstruksi($pkg['total_nilai']);
-                            $targetPerubahan['subkualifikasi_konstruksi'] = $subkual['subkualifikasi'];
-                            $targetPerubahan['afirmasi_domisili'] = $subkual['afirmasi_domisili'];
-                            $subTeks = " ({$subkual['subkualifikasi']})";
+                            $pkgViolations[] = [
+                                'rule_id'               => 'R-24',
+                                'severity'              => 'TINGGI',
+                                'kategori'              => 'Batasan Usaha Non-Kecil',
+                                'regulasi'              => 'Pasal 65 ayat (4) Perpres 46/2025 jo. Pasal 4 ayat (1) Perlem LKPP 3/2026',
+                                'deskripsi_pelanggaran' => 'Paket Tender/Seleksi > Rp15 Miliar diperuntukkan bagi Usaha Non-Kecil (status_umk seharusnya Tidak).' . $subTeks,
+                                'rekomendasi_perbaikan' => 'Ubah status_umk menjadi Tidak untuk paket kontrak tunggal bernilai di atas Rp15 Miliar.' . ($isPekerjaanKonstruksi && $pkg['total_nilai'] > 25000000000.0 ? ' Cantumkan klausul wajib subkontrak kepada Usaha Kecil sesuai Lampiran II Angka 2.3.8 Perlem LKPP 3/2026.' : ''),
+                                'target_perubahan'      => $targetPerubahan,
+                            ];
                         }
-
-                        $pkgViolations[] = [
-                            'rule_id'               => 'R-24',
-                            'severity'              => 'TINGGI',
-                            'kategori'              => 'Batasan Usaha Non-Kecil',
-                            'regulasi'              => 'Pasal 65 ayat (4) Perpres 46/2025 jo. Pasal 4 ayat (1) Perlem LKPP 3/2026',
-                            'deskripsi_pelanggaran' => 'Paket Tender/Seleksi > Rp15 Miliar diperuntukkan bagi Usaha Non-Kecil (status_umk seharusnya Tidak).' . $subTeks,
-                            'rekomendasi_perbaikan' => 'Ubah status_umk menjadi Tidak untuk paket kontrak tunggal bernilai di atas Rp15 Miliar.' . ($isPekerjaanKonstruksi && $pkg['total_nilai'] > 25000000000.0 ? ' Cantumkan klausul wajib subkontrak kepada Usaha Kecil sesuai Lampiran II Angka 2.3.8 Perlem LKPP 3/2026.' : ''),
-                            'target_perubahan'      => $targetPerubahan,
-                        ];
                     }
                 }
             }
