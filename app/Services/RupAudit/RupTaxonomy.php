@@ -4,6 +4,16 @@ namespace App\Services\RupAudit;
 
 class RupTaxonomy
 {
+    // DICT_PPPK_DAN_IURAN_ASN: Komoditas Kepegawaian ASN Sah (UU 20/2023 & BPJS)
+    public const DICT_PPPK_DAN_IURAN_ASN = [
+        'pppk',
+        'pegawai pemerintah dengan perjanjian kerja',
+        'paruh waktu',
+        'iuran jaminan kesehatan',
+        'iuran jaminan kecelakaan kerja',
+        'iuran jaminan kematian',
+    ];
+
     // DICT_01: Tarif Resmi Pemerintah & Kewajiban Statutori
     public const DICT_01_DIKECUALIKAN = [
         'tagihan listrik',
@@ -25,6 +35,12 @@ class RupTaxonomy
         'pnbp',
         'tera ulang',
         'publikasi media massa pemerintah',
+        'pppk',
+        'pegawai pemerintah dengan perjanjian kerja',
+        'paruh waktu',
+        'iuran jaminan kesehatan',
+        'iuran jaminan kecelakaan kerja',
+        'iuran jaminan kematian',
     ];
 
     // DICT_02: Jasa Tenaga Alih Daya (Outsourcing) / Pendukung Non-ASN
@@ -47,7 +63,15 @@ class RupTaxonomy
         'outsourcing',
         'jasa tenaga kerja',
         'petugas taman',
+        'pthl',
+        'tks',
+        'tenaga kerja sukarela',
+        'tenaga harian lepas',
+        'tenaga pendukung',
+        'jaga leuweung',
     ];
+
+    public const NEG_LOOKAHEAD_02 = self::DICT_PPPK_DAN_IURAN_ASN;
 
     // DICT_03: Belanja Pegawai, Honorarium & Administrasi Internal
     public const DICT_03_SWAKELOLA_MURNI = [
@@ -56,8 +80,6 @@ class RupTaxonomy
         'honorarium',
         'uang lembur',
         'tunjangan',
-        'kursus singkat',
-        'pelatihan',
         'bimbingan teknis',
         'bimtek',
         'sosialisasi',
@@ -67,6 +89,12 @@ class RupTaxonomy
         'jasa pelayanan kesehatan bagi asn',
         'gaji dan tunjangan',
         'insentif pemungutan',
+        'pppk',
+        'pegawai pemerintah dengan perjanjian kerja',
+        'paruh waktu',
+        'iuran jaminan kesehatan',
+        'iuran jaminan kecelakaan kerja',
+        'iuran jaminan kematian',
     ];
 
     public const NEG_LOOKAHEAD_03 = [
@@ -82,6 +110,20 @@ class RupTaxonomy
         'akomodasi',
         'sewa',
         'pihak ketiga',
+        'paket meeting',
+        'fullboard',
+        'fullday',
+        'halfday',
+        'penginapan',
+        'uptd pelatihan',
+        'balai pelatihan',
+        'alat pelatihan',
+        'bahan praktek',
+        'konsumsi',
+        'jasa kebersihan',
+        'jasa keamanan',
+        'tenaga kebersihan',
+        'tenaga keamanan',
     ];
 
     // DICT_04: Komoditas Wajib E-Purchasing Katalog V6
@@ -130,12 +172,13 @@ class RupTaxonomy
         'pembangunan ',
         'rehabilitasi ',
         'renovasi ',
+        'renovasi',
         'rekonstruksi ',
         'peningkatan jalan',
         'pemeliharaan rutin jalan',
         'pemeliharaan berkala jalan',
         'lapis penetrasi',
-        'hotmix',
+        'pagar ',
         'irigasi',
         'jaringan irigasi',
         'drainase',
@@ -182,6 +225,24 @@ class RupTaxonomy
         'makan',
         'penyusunan',
         'dokumen',
+        'survey',
+        'survei',
+        'inventarisasi',
+        'maket',
+        'bahan bakar',
+        'bbm',
+        'pelumas',
+        'belanja hotmix',
+        'material hotmix',
+        'bahan/material',
+        'bahan-bahan lainnya',
+        'penyambungan listrik',
+        'tunda bayar',
+        'pembebasan tanah',
+        'pengadaan tanah',
+        'appraisal',
+        'uptd pengelolaan jalan dan jembatan',
+        'uptd pengelolaan sumber daya air',
     ];
 
     // DICT_06: Jasa Konsultansi Konstruksi & Non-Konstruksi
@@ -219,6 +280,23 @@ class RupTaxonomy
         'makan',
         'minum',
         'honorarium',
+        'penyelenggaraan acara',
+        'penyelenggara acara',
+        'event organizer',
+        'mebelair',
+        'mebel',
+        'meubelair',
+        'suvenir',
+        'souvenir',
+        'cinderamata',
+        'pelatihan tenaga ahli',
+        'sertifikasi kompetensi',
+        'kit surveilans',
+        'kit ',
+        'reagen',
+        'pembebasan tanah',
+        'pengadaan tanah',
+        'honorarium narasumber',
     ];
 
     // DICT_07: Jasa Non-Konsultansi / Operasional
@@ -336,6 +414,32 @@ class RupTaxonomy
     // DICT_12: Pola Regex Eksak Penamaan Kabur / Opaque Naming
     public const REGEX_DICT_12_OPAQUE = '/^(belanja|pengadaan|penyediaan)\s+(barang|jasa|barang dan jasa|modal|operasional|rutin|kebutuhan kantor|peralatan|perlengkapan)$/i';
 
+    // LIST_OPAQUE_GENERIC: Daftar Generik Non-Komoditas Pemicu R-34
+    public const LIST_OPAQUE_GENERIC = [
+        'belanja barang',
+        'belanja jasa',
+        'belanja barang dan jasa',
+        'belanja modal',
+        'pengadaan barang',
+        'pengadaan jasa',
+        'belanja operasional',
+        'belanja rutin',
+        'tunda bayar',
+        'belanja honorarium',
+        'bopd sma',
+        'bopd smk',
+        'bopd slb',
+        'bopd',
+        'belanja bahan-bahan lainnya',
+        'belanja bahan bahan lainnya',
+        'belanja bahan lainnya',
+        'pelayanan nonmedik lainnya',
+        'pemeliharaan aset tetap lainnya',
+        'penyediaan jasa konsultan',
+        'belanja jasa non personil',
+        'belanja jasa yang diberikan kepada pihak ketiga/pihak lain',
+    ];
+
     // DICT_KONSTRUKSI_KOMPLEKS: Kata Kunci Konstruksi Kompleks / Berisiko / Tidak Sederhana (Perlem LKPP 3/2026)
     public const DICT_KONSTRUKSI_KOMPLEKS = [
         'jembatan',
@@ -366,6 +470,15 @@ class RupTaxonomy
         'drainase',
         'sungai',
         'bangunan',
+    ];
+
+    // EXCLUSION_R04B: Pengecualian Anti-False Positive untuk Sub-Rule R-04b
+    public const EXCLUSION_R04B = [
+        'kendaraan dinas bermotor perorangan',
+        'kendaraan perorangan',
+        'tenaga listrik',
+        'tambah daya',
+        'alat angkutan',
     ];
 
     /**

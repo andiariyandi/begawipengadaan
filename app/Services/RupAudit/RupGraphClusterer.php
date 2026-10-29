@@ -7,13 +7,16 @@ class RupGraphClusterer
     public const TH_JACCARD_SIMILARITY = 0.78;
 
     /**
-     * Ambang batas Pengadaan Langsung regulasi Perpres 46/2025.
+     * Ambang batas Pengadaan Langsung regulasi Perpres 12/2021 (TA <= 2024) atau Perpres 46/2025 (TA >= 2025).
      */
-    public static function getBatasPl(string $jenisPengadaan): float
+    public static function getBatasPl(string $jenisPengadaan, int $tahunAnggaran = 2026): float
     {
         $jenis = strtolower(trim($jenisPengadaan));
         if (str_contains($jenis, 'konstruksi')) {
-            return 400000000.00; // Rp400 Juta
+            if ($tahunAnggaran > 0 && $tahunAnggaran <= 2024) {
+                return 200000000.00; // Rp200 Juta untuk TA <= 2024 (Rezim Perpres 12/2021)
+            }
+            return 400000000.00; // Rp400 Juta untuk TA >= 2025 (Rezim Perpres 46/2025 jo. Perlem LKPP 3/2026)
         }
         if (str_contains($jenis, 'konsultansi')) {
             return 100000000.00; // Rp100 Juta
@@ -36,6 +39,12 @@ class RupGraphClusterer
         foreach ($packages as $idx => $pkg) {
             // Hanya paket Penyedia yang dievaluasi untuk klaster splitting
             if (($pkg['cara_pengadaan'] ?? '') !== 'Penyedia') {
+                continue;
+            }
+
+            // Pengecualian Tarif Resmi/Utilitas/PPPK (DICT_01_DIKECUALIKAN) dari klaster splitting R-20
+            $objSearch = (string) ($pkg['nama_paket_objek'] ?? $pkg['nama_paket_clean'] ?? '');
+            if (RupTaxonomy::match($objSearch, RupTaxonomy::DICT_01_DIKECUALIKAN)) {
                 continue;
             }
 
@@ -166,7 +175,7 @@ class RupGraphClusterer
         $sipd       = $first['kode_satker_sipd'];
         $cycle      = $first['budget_cycle'];
         $jenis      = $first['jenis_pengadaan'];
-        $batasPl    = self::getBatasPl($jenis);
+        $batasPl    = self::getBatasPl($jenis, (int) ($first['tahun_anggaran'] ?? 2026));
 
         $totalPagu    = 0.0;
         $minVal       = PHP_FLOAT_MAX;
