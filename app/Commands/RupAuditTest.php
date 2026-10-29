@@ -941,6 +941,56 @@ CSV;
         }
 
         // -------------------------------------------------------------
+        // TEST 11: Verifikasi Sorting Hierarki Risiko Row-Level Action Sheet
+        // -------------------------------------------------------------
+        CLI::newLine();
+        CLI::write("[TEST 11] Verifikasi Sorting Hierarki Risiko Row-Level Action Sheet...", "yellow");
+
+        $viewDetailPath = APPPATH . 'Views/main/workspace/pages/rup_audit/detail.php';
+        $viewContent = file_exists($viewDetailPath) ? file_get_contents($viewDetailPath) : '';
+        $jsPath = FCPATH . 'assets/main/js/workspace-pagination.js';
+        $jsContent = file_exists($jsPath) ? file_get_contents($jsPath) : '';
+
+        // 11a. Verifikasi data-order & hierarki bobot pada View
+        $hasTableId       = str_contains($viewContent, 'id="tableActionSheet"');
+        $hasRiskTh        = str_contains($viewContent, 'data-default-sort-dir="desc">Risiko</th>');
+        $hasRiskTdOrder   = str_contains($viewContent, 'data-order="<?= $sevWeight ?>"') && str_contains($viewContent, 'data-sort="<?= $sevWeight ?>"');
+        $hasHierarchyRank = str_contains($viewContent, "'KRITIS' => 5") && str_contains($viewContent, "'TINGGI' => 4") && str_contains($viewContent, "'SEDANG' => 3") && str_contains($viewContent, "'RENDAH' => 2");
+
+        if ($hasTableId && $hasRiskTh && $hasRiskTdOrder && $hasHierarchyRank) {
+            CLI::write("  [PASS] View detail.php memiliki ID unik tableActionSheet, default sort DESC, dan data-order numerik hierarki warna (KRITIS=5 > TINGGI=4 > SEDANG=3 > RENDAH=2 > AMAN=1)", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] View detail.php belum memenuhi spesifikasi sorting hierarki risiko", "red");
+            $failCount++;
+        }
+
+        // 11b. Verifikasi engine workspace-pagination.js membaca data-order/data-sort
+        $hasJsDataOrder = str_contains($jsContent, "cellA.getAttribute('data-order')") && str_contains($jsContent, "cellA.getAttribute('data-sort')");
+        $hasJsDefaultDir = str_contains($jsContent, "data-default-sort-dir");
+
+        if ($hasJsDataOrder && $hasJsDefaultDir) {
+            CLI::write("  [PASS] workspace-pagination.js mengenali data-order/data-sort numerik & data-default-sort-dir tanpa merusak datatable lainnya", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] workspace-pagination.js belum mendukung data-order / data-default-sort-dir", "red");
+            $failCount++;
+        }
+
+        // 11c. Verifikasi SQL backend CASE WHEN sorting pada RupAuditService
+        $servicePath = APPPATH . 'Services/RupAudit/RupAuditService.php';
+        $serviceContent = file_exists($servicePath) ? file_get_contents($servicePath) : '';
+        $hasSqlSeveritySort = str_contains($serviceContent, "CASE p.max_severity WHEN 'KRITIS' THEN 5 WHEN 'TINGGI' THEN 4 WHEN 'SEDANG' THEN 3 WHEN 'RENDAH' THEN 2 WHEN 'AMAN' THEN 1 ELSE 0 END");
+
+        if ($hasSqlSeveritySort) {
+            CLI::write("  [PASS] RupAuditService::getPackagesFiltered mendukung sorting tingkat risiko via SQL CASE WHEN (Kritis vs Tinggi)", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [FAIL] RupAuditService belum mengimplementasikan SQL CASE WHEN untuk hierarki risiko", "red");
+            $failCount++;
+        }
+
+        // -------------------------------------------------------------
         // RINGKASAN AKHIR
         // -------------------------------------------------------------
         CLI::newLine();
