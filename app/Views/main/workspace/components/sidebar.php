@@ -248,6 +248,16 @@ if ($isTrainer && ! $isAdmin) {
     ];
 }
 
+// 6.5. BLOK PENGAWASAN: AUDIT RUP OTOMATIS (Biro PBJ, Inspektorat, Administrator)
+if (\App\Services\RupAudit\RupAccessHelper::canAccess($wsUserId, $roles)) {
+    $menuGroups[] = [
+        'title' => 'Pengawasan & Kepatuhan RUP',
+        'items' => [
+            ['Audit RUP Otomatis', route_to('workspace.rup-audit.index'), 'fas fa-microscope', null, 'bg-primary'],
+        ],
+    ];
+}
+
 // 7. BLOK MELEKAT: AKTIVITAS BELAJAR & KEGIATAN PESERTA (BASIC)
 // Melekat untuk seluruh peran non-administrator (Double Role Universal)
 if (! $isAdmin) {

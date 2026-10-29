@@ -301,6 +301,17 @@ $routes->group('workspace', ['namespace' => 'App\Controllers\Workspace'], static
     $routes->group('admin', static function ($routes) {
         $routes->get('/', 'AdminWorkspaceController::index', ['as' => 'workspace.admin.home']);
     });
+
+    // Universal SIRUP Compliance Engine v3.1 (Audit RUP Otomatis)
+    $routes->group('audit-rup', static function ($routes) {
+        $routes->get('/', 'RupAuditController::index', ['as' => 'workspace.rup-audit.index']);
+        $routes->post('upload', 'RupAuditController::upload', ['as' => 'workspace.rup-audit.upload']);
+        $routes->get('detail/(:segment)', 'RupAuditController::detail/$1', ['as' => 'workspace.rup-audit.detail']);
+        $routes->get('api-row-detail/(:num)', 'RupAuditController::apiRowDetail/$1', ['as' => 'workspace.rup-audit.api-row-detail']);
+        $routes->get('export-excel/(:segment)', 'RupAuditController::exportExcel/$1', ['as' => 'workspace.rup-audit.export-excel']);
+        $routes->get('export-pdf/(:segment)/(:any)', 'RupAuditController::exportPdf/$1/$2', ['as' => 'workspace.rup-audit.export-pdf']);
+        $routes->get('delete/(:segment)', 'RupAuditController::deleteBatch/$1', ['as' => 'workspace.rup-audit.delete']);
+    });
 });
 
 // /profil/* routes were migrated to /workspace/profil/* (route-contract.md Â§6.3).
