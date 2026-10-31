@@ -228,4 +228,85 @@ class RupNlpExtractor
             'tokens'           => array_values($tokens),
         ];
     }
+
+    /**
+     * Ekstraksi Nomor Urut Serial (Paket 1..N, Tahap 1..N, Triwulan 1..4, - 1..N)
+     * dan Kunci Identitas Lokasi (Nomor Ruas Link, Nama Ruas, Kab/Kota, dsb.)
+     * langsung dari nama mentah paket SEBELUM kurung dibersihkan.
+     */
+    public static function extractSerialAndLocation(string $rawName): array
+    {
+        $raw = trim($rawName);
+        $serialParts = [];
+
+        // 1. Deteksi nomor paket/lot ketat (menghindari 'paket meeting', 'paket pengiriman')
+        if (preg_match_all('/\b(paket|pkt|lot)\s*[-:]?\s*([0-9]+[a-z]?|[ivx]+)\b/i', $raw, $mPaket, PREG_SET_ORDER)) {
+            foreach ($mPaket as $mp) {
+                $serialParts[] = ucwords(strtolower($mp[1])) . ' ' . strtoupper($mp[2]);
+            }
+        }
+
+        // 2. Deteksi tahap
+        if (preg_match_all('/\b(tahap|thp)\s*[-:]?\s*([0-9]+|[ivx]+)\b/i', $raw, $mTahap, PREG_SET_ORDER)) {
+            foreach ($mTahap as $mt) {
+                $serialParts[] = 'Tahap ' . strtoupper($mt[2]);
+            }
+        }
+
+        // 3. Deteksi triwulan
+        if (preg_match_all('/\b(triwulan|tw)\s*[-:]?\s*([0-9]+|[ivx]+)\b/i', $raw, $mTw, PREG_SET_ORDER)) {
+            foreach ($mTw as $mw) {
+                $serialParts[] = 'TW ' . strtoupper($mw[2]);
+            }
+        }
+
+        // 4. Deteksi akhiran nomor seri seperti '... Ruas Jalan Provinsi - 35'
+        if (preg_match('/\s*[-–—]\s*([0-9]{1,4})\s*$/', $raw, $mEndNum)) {
+            $serialParts[] = 'Seri ' . $mEndNum[1];
+        }
+
+        $serialSeq = ! empty($serialParts) ? implode(' ', array_unique($serialParts)) : null;
+
+        // 5. Ekstraksi Kunci Identitas Lokasi (Location Identity Key)
+        $locKey = null;
+        // Prioritas a: Nomor Ruas Link (misal: "LINK. 024", "Link 094", "Link. 095")
+        if (preg_match('/\b(link\.?\s*[0-9]+[a-z]?)\b/i', $raw, $mLink)) {
+            $locKey = strtolower(preg_replace('/\s+/', ' ', trim($mLink[1])));
+        }
+        // Prioritas b: Nama Ruas Jalan
+        elseif (preg_match('/\bruas\s+jalan\s+([^()\-–—,]+)/i', $raw, $mRuas)) {
+            $locKey = 'ruas jalan ' . strtolower(trim($mRuas[1]));
+        }
+        // Prioritas c: Kabupaten / Kota
+        elseif (preg_match('/\b(kabupaten|kab\.?|kota)\s+([a-z\s]+?)(?=\b(sub|kegiatan|link|tahap|paket|-|\()|$)/i', $raw, $mKab)) {
+            $locKey = strtolower(trim($mKab[0]));
+        }
+        // Prioritas d: Kecamatan
+        elseif (preg_match('/\b(kecamatan|kec\.?)\s+([a-z\s]+?)(?=\b(sub|kegiatan|link|tahap|paket|-|\()|$)/i', $raw, $mKec)) {
+            $locKey = strtolower(trim($mKec[0]));
+        }
+        // Prioritas e: Desa / Pekon / Kelurahan
+        elseif (preg_match('/\b(desa|pekon|kelurahan|kel\.?)\s+([a-z\s]+?)(?=\b(sub|kegiatan|link|tahap|paket|-|\()|$)/i', $raw, $mDesa)) {
+            $locKey = strtolower(trim($mDesa[0]));
+        }
+
+        if ($locKey !== null) {
+            $locKey = preg_replace('/[^a-z0-9\s]/', '', $locKey);
+            $locKey = trim(preg_replace('/\s+/', ' ', $locKey));
+        }
+
+        return [
+            'serial_sequence_number' => $serialSeq,
+            'location_identity_key'  => $locKey,
+        ];
+    }
+
+    /**
+     * Membentuk Kunci Keluarga Serial untuk isolasi klaster dan pencegahan false positive
+     */
+    public static function generateSerialFamilyKey(string $opdClean, string $jenis, string $sourceFundingProfile, string $coreObject, ?string $locationKey): string
+    {
+        $loc = $locationKey ? strtolower(trim($locationKey)) : 'GLOBAL_LOC';
+        return md5($opdClean . '|' . strtolower($jenis) . '|' . strtolower($sourceFundingProfile) . '|' . strtolower($coreObject) . '|' . $loc);
+    }
 }

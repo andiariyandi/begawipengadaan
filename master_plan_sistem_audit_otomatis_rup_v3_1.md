@@ -1,7 +1,13 @@
 # MASTER PLAN: SISTEM AUDIT OTOMATIS & DETEKSI ANOMALI RUP (UNIVERSAL SIRUP COMPLIANCE ENGINE)
 
-**Versi Dokumen:** 3.4 (Multi-Province & Multi-Year Calibrated Specification — Teruji pada 49.275 Paket RUP Lampung 2024–2026 & Jawa Barat 2026)  
-**Status Dokumen:** Terkalibrasi Universal Lintas Provinsi (Lampung & Jawa Barat) & Lintas Tahun Anggaran (TA 2024–2026), Total Pagu Rp22,19 Triliun (Zero Migration)
+> [!WARNING]
+> **DOKUMEN HISTORIS TELAH DIARSIPKAN (SUPERSEDED OLEH VERSI 4.0)**  
+> Dokumen ini merupakan spesifikasi historis Versi 3.1 / 3.4. Seluruh arsitektur, disiplin 12 kolom CSV, katalog lengkap 40 rules, substitusi formula RCI ke *RUP Risk Attention Score*, dan kebijakan *Zero Database Migration* resmi Begawi Pengadaan saat ini telah dimutakhirkan dan distandarisasi secara definitif ke **Versi 4.0** pada dokumen:
+> 1. [master_plan_sistem_audit_rup_v4_0_csv_only.md](file:///c:/laragon/www/begawipengadaan/master_plan_sistem_audit_rup_v4_0_csv_only.md) — Master Plan Sistem Audit RUP v4.0 (CSV-Only Architecture)
+> 2. [pedoman_rules_dan_logika_audit_rup_v4_0_verifikasi_manual.md](file:///c:/laragon/www/begawipengadaan/pedoman_rules_dan_logika_audit_rup_v4_0_verifikasi_manual.md) — Katalog Lengkap 40 Rules, Logika Algoritma & Dasar Regulasi Audit RUP Otomatis (Versi 4.0)
+
+**Versi Dokumen:** 3.4 (Arsip Historis / Legacy Specification)  
+**Status Dokumen:** Telah Digantikan oleh Spesifikasi Definitif Versi 4.0 (CSV-Only & Zero-Migration)
 
 ---
 

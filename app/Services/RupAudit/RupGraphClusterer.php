@@ -5,6 +5,7 @@ namespace App\Services\RupAudit;
 class RupGraphClusterer
 {
     public const TH_JACCARD_SIMILARITY = 0.78;
+    public const TH_CENTROID_SIMILARITY = 0.70;
 
     /**
      * Ambang batas Pengadaan Langsung regulasi Perpres 12/2021 (TA <= 2024) atau Perpres 46/2025 (TA >= 2025).
@@ -14,27 +15,28 @@ class RupGraphClusterer
         $jenis = strtolower(trim($jenisPengadaan));
         if (str_contains($jenis, 'konstruksi')) {
             if ($tahunAnggaran > 0 && $tahunAnggaran <= 2024) {
-                return 200000000.00; // Rp200 Juta untuk TA <= 2024 (Rezim Perpres 12/2021)
+                return RupTaxonomy::PL_THRESHOLD_2021_KONSTRUKSI; // Rp200 Juta untuk TA <= 2024
             }
-            return 400000000.00; // Rp400 Juta untuk TA >= 2025 (Rezim Perpres 46/2025 jo. Perlem LKPP 3/2026)
+            return RupTaxonomy::PL_THRESHOLD_2026_KONSTRUKSI; // Rp400 Juta untuk TA >= 2025
         }
         if (str_contains($jenis, 'konsultansi')) {
-            return 100000000.00; // Rp100 Juta
+            return RupTaxonomy::PL_THRESHOLD_2026_KONSULTANSI; // Rp100 Juta
         }
-        return 200000000.00; // Rp200 Juta untuk Barang & Jasa Lainnya
+        return RupTaxonomy::PL_THRESHOLD_2026_BARANG; // Rp200 Juta untuk Barang & Jasa Lainnya
     }
 
     /**
      * Jalankan Graph-Based Fuzzy Clustering pada array paket hasil parsing.
      * Mengelompokkan paket dan memperbarui atribut `cluster_id` pada setiap paket,
-     * serta mengembalikan daftar entitas klaster `rup_audit_clusters`.
+     * serta mengembalikan daftar entitas klaster `rup_audit_clusters` v4.0.
      *
      * @param array<int, array> $packages Reference ke parsed packages
      * @return array<int, array> Daftar klaster komoditas
      */
     public function cluster(array &$packages): array
     {
-        // 1. Partisi index baris per (nama_opd_clean, budget_cycle, jenis_pengadaan)
+        // 1. Partisi awal ketat:
+        // (nama_opd_clean | jenis_pengadaan | source_funding_profile | location_identity_key)
         $partitions = [];
         foreach ($packages as $idx => $pkg) {
             // Hanya paket Penyedia yang dievaluasi untuk klaster splitting
@@ -48,17 +50,17 @@ class RupGraphClusterer
                 continue;
             }
 
-            $opd    = $pkg['nama_opd_clean'] ?? 'UNKNOWN';
-            $cycle  = $pkg['budget_cycle'] ?? 'MURNI';
-            $jenis  = $pkg['jenis_pengadaan'] ?? 'Barang';
-            $locKey = 'ALL';
+            $opd     = $pkg['nama_opd_clean'] ?? 'UNKNOWN';
+            $jenis   = $pkg['jenis_pengadaan'] ?? 'Barang';
+            $funding = $pkg['source_funding_profile'] ?? ($pkg['sumber_dana'] ?? 'APBD');
+            $locKey  = 'GLOBAL_LOC';
 
-            // Khusus pekerjaan konstruksi, lokasi memisahkan klaster pemaketan fisik
+            // Khusus pekerjaan konstruksi, lokasi/nomor ruas link memisahkan klaster pemaketan fisik
             if (str_contains(strtolower($jenis), 'konstruksi')) {
-                $locKey = strtolower(trim((string) ($pkg['lokasi_extracted'] ?: ($pkg['lokasi_pekerjaan'] ?? 'LOKASI_UMUM'))));
+                $locKey = strtolower(trim((string) ($pkg['location_identity_key'] ?: ($pkg['lokasi_extracted'] ?: 'LOKASI_UMUM'))));
             }
 
-            $partKey = "{$opd}|{$cycle}|{$jenis}|{$locKey}";
+            $partKey = "{$opd}|{$jenis}|{$funding}|{$locKey}";
             $partitions[$partKey][] = $idx;
         }
 
@@ -82,13 +84,15 @@ class RupGraphClusterer
                 $idxA = $indices[$a];
                 $tokensA = $packages[$idxA]['tokens'] ?? [];
                 $coreA   = $packages[$idxA]['nama_paket_core'] ?? '';
+                $cleanA  = $packages[$idxA]['nama_paket_clean'] ?? '';
 
                 for ($b = $a + 1; $b < $count; $b++) {
                     $idxB = $indices[$b];
                     $tokensB = $packages[$idxB]['tokens'] ?? [];
                     $coreB   = $packages[$idxB]['nama_paket_core'] ?? '';
+                    $cleanB  = $packages[$idxB]['nama_paket_clean'] ?? '';
 
-                    $sim = $this->calculateJaccard($tokensA, $tokensB, $coreA, $coreB);
+                    $sim = $this->calculateJaccard($tokensA, $tokensB, $coreA, $coreB, $cleanA, $cleanB);
                     if ($sim >= self::TH_JACCARD_SIMILARITY) {
                         $adj[$idxA][] = $idxB;
                         $adj[$idxB][] = $idxA;
@@ -96,7 +100,7 @@ class RupGraphClusterer
                 }
             }
 
-            // 3. Cari Connected Components via BFS
+            // 3. Cari Connected Components via BFS dengan validasi homogenitas / centroid check
             $visited = [];
             foreach ($indices as $startNode) {
                 if (isset($visited[$startNode])) {
@@ -113,8 +117,11 @@ class RupGraphClusterer
 
                     foreach ($adj[$curr] as $neighbor) {
                         if (! isset($visited[$neighbor])) {
-                            $visited[$neighbor] = true;
-                            $queue[] = $neighbor;
+                            // Centroid / Representative check: pastikan neighbor mirip dengan anggota lain
+                            if ($this->validateHomogeneity($neighbor, $component, $packages)) {
+                                $visited[$neighbor] = true;
+                                $queue[] = $neighbor;
+                            }
                         }
                     }
                 }
@@ -139,12 +146,38 @@ class RupGraphClusterer
     }
 
     /**
-     * Hitung Jaccard similarity antara dua himpunan token.
+     * Validasi homogenitas untuk mencegah transitive chaining A-B-C yang tidak seragam
      */
-    private function calculateJaccard(array $tokensA, array $tokensB, string $coreA, string $coreB): float
+    private function validateHomogeneity(int $candidateIdx, array $currentMembers, array $packages): bool
     {
-        // Jika nama core persis sama, similarity = 1.0
-        if ($coreA !== '' && $coreA === $coreB) {
+        if (empty($currentMembers)) {
+            return true;
+        }
+
+        $tokensCand = $packages[$candidateIdx]['tokens'] ?? [];
+        $coreCand   = $packages[$candidateIdx]['nama_paket_core'] ?? '';
+        $cleanCand  = $packages[$candidateIdx]['nama_paket_clean'] ?? '';
+
+        $totalSim = 0.0;
+        foreach ($currentMembers as $mIdx) {
+            $tokensM = $packages[$mIdx]['tokens'] ?? [];
+            $coreM   = $packages[$mIdx]['nama_paket_core'] ?? '';
+            $cleanM  = $packages[$mIdx]['nama_paket_clean'] ?? '';
+            $sim = $this->calculateJaccard($tokensCand, $tokensM, $coreCand, $coreM, $cleanCand, $cleanM);
+            $totalSim += $sim;
+        }
+
+        $avgSim = $totalSim / count($currentMembers);
+        return $avgSim >= self::TH_CENTROID_SIMILARITY;
+    }
+
+    /**
+     * Hitung Jaccard similarity antara dua himpunan token dengan perlindungan kesamaan teks utuh.
+     */
+    private function calculateJaccard(array $tokensA, array $tokensB, string $coreA, string $coreB, string $cleanA = '', string $cleanB = ''): float
+    {
+        // Jika nama core atau nama clean persis sama, similarity = 1.0
+        if (($coreA !== '' && $coreA === $coreB) || ($cleanA !== '' && $cleanA === $cleanB)) {
             return 1.0;
         }
 
@@ -166,7 +199,7 @@ class RupGraphClusterer
     }
 
     /**
-     * Bentuk rekap data klaster untuk tabel rup_audit_clusters.
+     * Bentuk rekap data klaster untuk tabel rup_audit_clusters v4.0.
      */
     private function buildClusterSummary(array $componentIndices, array $packages, string $clusterUuid): ?array
     {
@@ -177,14 +210,16 @@ class RupGraphClusterer
         $jenis      = $first['jenis_pengadaan'];
         $batasPl    = self::getBatasPl($jenis, (int) ($first['tahun_anggaran'] ?? 2026));
 
-        $totalPagu    = 0.0;
-        $minVal       = PHP_FLOAT_MAX;
-        $maxVal       = 0.0;
-        $kodeRupList  = [];
-        $coreNames    = [];
-        $metodeCounts = [];
-        $hasPl        = false;
-        $hasMicro     = false;
+        $totalPagu      = 0.0;
+        $minVal         = PHP_FLOAT_MAX;
+        $maxVal         = 0.0;
+        $kodeRupList    = [];
+        $memberRowList  = [];
+        $coreNames      = [];
+        $metodeCounts   = [];
+        $hasPl          = false;
+        $hasMicro       = false;
+        $serialFamCount = 0;
 
         foreach ($componentIndices as $idx) {
             $pkg = $packages[$idx];
@@ -199,6 +234,11 @@ class RupGraphClusterer
 
             if ($pkg['kode_rup'] !== '') {
                 $kodeRupList[] = $pkg['kode_rup'];
+            }
+            $memberRowList[] = $pkg['row_index_csv'] ?? $idx;
+
+            if (! empty($pkg['serial_sequence_number'])) {
+                $serialFamCount++;
             }
 
             $cName = $pkg['nama_paket_core'] ?: $pkg['nama_paket_objek'];
@@ -227,47 +267,62 @@ class RupGraphClusterer
 
         $jumlahPaket = count($componentIndices);
 
-        // Evaluasi Kategori Temuan & Severity
-        $kategoriTemuan = 'KONSOLIDASI_PAKET (R-22)';
-        $severity       = 'SEDANG';
-        $instruksi      = "Konsolidasikan {$jumlahPaket} paket pengadaan sejenis ini menjadi satu paket pengadaan terpadu untuk efisiensi anggaran dan skala ekonomi.";
+        // Evaluasi Kategori Temuan & Severity v4.0
+        $kategoriTemuan    = 'KONSOLIDASI_PAKET (R-22)';
+        $clusterType       = 'PELUANG_KONSOLIDASI';
+        $clusterConfidence = 'SEDANG';
+        $severity          = 'SEDANG';
+        $instruksi         = "Konsolidasikan {$jumlahPaket} paket pengadaan sejenis ini menjadi satu paket pengadaan terpadu untuk efisiensi anggaran dan skala ekonomi.";
 
-        // Jika metode dominan / ada Pengadaan Langsung dan akumulasi pagu melampaui batas PL -> R-20 (Splitting Kritis)
+        // Jika metode dominan / ada Pengadaan Langsung dan akumulasi pagu melampaui batas PL -> R-20 (Splitting Kritis / Tinggi)
         if ($hasPl && $totalPagu > $batasPl) {
-            $kategoriTemuan = 'INDIKASI_SPLITTING (R-20)';
-            $severity       = 'KRITIS';
-            $batasFmt       = number_format($batasPl, 0, ',', '.');
-            $paguFmt        = number_format($totalPagu, 0, ',', '.');
-            $instruksi      = "Indikasi kuat pemecahan paket (splitting) untuk menghindari Tender/Seleksi. Akumulasi pagu (Rp {$paguFmt}) melampaui batas Pengadaan Langsung (Rp {$batasFmt}). Wajib digabung dan dilelangkan melalui E-Purchasing / Tender.";
+            $kategoriTemuan    = 'INDIKASI_SPLITTING (R-20)';
+            $clusterType       = 'SERIAL_SPLITTING_CANDIDATE';
+            $clusterConfidence = ($serialFamCount >= 2) ? 'TINGGI' : 'SEDANG';
+            $severity          = 'TINGGI';
+            $batasFmt          = number_format($batasPl, 0, ',', '.');
+            $paguFmt           = number_format($totalPagu, 0, ',', '.');
+            $instruksi         = "Indikasi pemecahan paket (splitting) untuk menghindari Tender/Seleksi. Akumulasi pagu (Rp {$paguFmt}) melampaui batas Pengadaan Langsung (Rp {$batasFmt}). Disarankan reviu kesatuan perencanaan dan konsolidasikan ke Tender/E-Purchasing.";
         } elseif ($hasPl && ($maxVal >= 0.95 * $batasPl && $maxVal <= $batasPl)) {
-            $kategoriTemuan = 'THRESHOLD_HUGGING (R-27)';
-            $severity       = 'TINGGI';
-            $instruksi      = "Anomali pagu mepet batas maksimal Pengadaan Langsung (95% - 100%). Periksa kewajaran HPS/RAB dan gabungkan paket ke E-Purchasing atau Tender.";
+            $kategoriTemuan    = 'THRESHOLD_HUGGING (R-27)';
+            $clusterType       = 'THRESHOLD_HUGGING_CLUSTER';
+            $clusterConfidence = 'SEDANG';
+            $severity          = 'SEDANG';
+            $instruksi         = "Anomali pagu mendekati batas maksimal Pengadaan Langsung (95% - 100%). Periksa kewajaran HPS/RAB dan kaji peluang konsolidasi.";
         } elseif ($jumlahPaket >= 3 || $hasMicro) {
-            $kategoriTemuan = 'FRAGMENTASI_PAKET (R-22)';
-            $severity       = 'SEDANG';
-            $instruksi      = "Fragmentasi paket berlebihan (>= 3 paket sejenis) atau terdapat paket bernilai mikro (< Rp500.000). Konsolidasikan untuk efisiensi kontrak.";
+            $kategoriTemuan    = 'FRAGMENTASI_PAKET (R-22)';
+            $clusterType       = 'PELUANG_KONSOLIDASI';
+            $clusterConfidence = 'SEDANG';
+            $severity          = 'RENDAH';
+            $instruksi         = "Fragmentasi paket berulang (>= 3 paket sejenis). Disarankan evaluasi konsolidasi kontrak.";
         }
 
+        $limitationNote = "Klaster ini merupakan indikasi analitik berbasis kesamaan atribut CSV dan nomor urut RUP; bukan pembuktian hukum bahwa paket sengaja dipecah untuk menghindari tender. Kebutuhan lapangan, jadwal, dan kesiapan teknis perlu diverifikasi oleh pejabat berwenang.";
+
         return [
-            'cluster_uuid'           => $clusterUuid,
-            'kode_satker_sipd'       => $sipd,
-            'nama_opd_clean'         => $opdClean,
-            'budget_cycle'           => $cycle,
-            'nama_komoditas_klaster' => ucwords($namaKomoditas),
-            'lokasi_klaster'         => $first['lokasi_extracted'] ?: 'ALL',
-            'jenis_pengadaan'        => $jenis,
-            'metode_dominan'         => $metodeDominan,
-            'jumlah_paket_terpecah'  => $jumlahPaket,
-            'nilai_paket_terkecil'   => $minVal === PHP_FLOAT_MAX ? 0.0 : $minVal,
-            'nilai_paket_terbesar'   => $maxVal,
-            'total_pagu_klaster'     => $totalPagu,
-            'batas_regulasi_pl'      => $batasPl,
-            'kategori_temuan'        => $kategoriTemuan,
-            'severity'               => $severity,
-            'daftar_kode_rup'        => json_encode($kodeRupList),
-            'instruksi_konsolidasi'  => $instruksi,
-            'created_at'             => date('Y-m-d H:i:s'),
+            'cluster_uuid'            => $clusterUuid,
+            'kode_satker_sipd'        => $sipd,
+            'nama_opd_clean'          => $opdClean,
+            'budget_cycle'            => $cycle,
+            'nama_komoditas_klaster'  => ucwords($namaKomoditas),
+            'lokasi_klaster'          => $first['location_identity_key'] ?: ($first['lokasi_extracted'] ?: 'ALL'),
+            'jenis_pengadaan'         => $jenis,
+            'metode_dominan'          => $metodeDominan,
+            'cluster_type'            => $clusterType,
+            'cluster_confidence'      => $clusterConfidence,
+            'jumlah_paket_terpecah'   => $jumlahPaket,
+            'serial_family_count'     => $serialFamCount,
+            'nilai_paket_terkecil'    => $minVal === PHP_FLOAT_MAX ? 0.0 : $minVal,
+            'nilai_paket_terbesar'    => $maxVal,
+            'total_pagu_klaster'      => $totalPagu,
+            'batas_regulasi_pl'       => $batasPl,
+            'kategori_temuan'         => $kategoriTemuan,
+            'severity'                => $severity,
+            'daftar_kode_rup'         => json_encode($kodeRupList),
+            'member_package_ids_json' => json_encode($memberRowList),
+            'instruksi_konsolidasi'   => $instruksi,
+            'cluster_limitation_note' => $limitationNote,
+            'created_at'              => date('Y-m-d H:i:s'),
         ];
     }
 }
