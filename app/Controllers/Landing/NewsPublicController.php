@@ -21,16 +21,26 @@ class NewsPublicController extends BaseController
         $this->categoryModel = new NewsCategoryModel();
     }
 
+    public function initController(
+        \CodeIgniter\HTTP\RequestInterface $request,
+        \CodeIgniter\HTTP\ResponseInterface $response,
+        \Psr\Log\LoggerInterface $logger
+    ) {
+        parent::initController($request, $response, $logger);
+
+        if ($this->request->getMethod() === 'GET' && ! $this->request->isAJAX() && ! is_cli()) {
+            try {
+                (new \App\Services\VisitorStatisticService())->recordHit('berita');
+            } catch (\Throwable) {
+            }
+        }
+    }
+
     /**
      * Index listing for Berita PBJ
      */
     public function index(): string
     {
-        try {
-            (new \App\Services\VisitorStatisticService())->recordHit('berita', $this->request->getIPAddress());
-        } catch (\Throwable) {
-        }
-
         $keyword      = trim((string) ($this->request->getGet('q') ?: ''));
         $categorySlug = trim((string) ($this->request->getGet('kategori') ?: $this->request->getGet('category') ?: ''));
         $sort         = trim((string) ($this->request->getGet('sort') ?: 'newest'));

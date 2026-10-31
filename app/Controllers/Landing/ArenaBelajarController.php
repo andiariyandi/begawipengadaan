@@ -10,13 +10,24 @@ use App\Models\Learning\ProgramModel;
 class ArenaBelajarController extends BaseController
 {
     protected $helpers = ['text', 'url', 'form'];
+
+    public function initController(
+        \CodeIgniter\HTTP\RequestInterface $request,
+        \CodeIgniter\HTTP\ResponseInterface $response,
+        \Psr\Log\LoggerInterface $logger
+    ) {
+        parent::initController($request, $response, $logger);
+
+        if ($this->request->getMethod() === 'GET' && ! $this->request->isAJAX() && ! is_cli()) {
+            try {
+                (new \App\Services\VisitorStatisticService())->recordHit('arena_belajar');
+            } catch (\Throwable) {
+            }
+        }
+    }
+
     public function index(): string
     {
-        try {
-            (new \App\Services\VisitorStatisticService())->recordHit('arena_belajar', $this->request->getIPAddress());
-        } catch (\Throwable) {
-        }
-
         $programModel = new ProgramModel();
         $courseModel  = new CourseModel();
         $classModel   = new LearningClassModel();

@@ -1246,9 +1246,15 @@ $bulanIndo = [
                                                 <div class="fw-bold text-dark text-xs">
                                                     <?= number_format($fData['hits_total']) ?> <small class="text-muted fw-normal">tayang</small>
                                                 </div>
-                                                <span class="badge bg-success-subtle text-success text-2xs px-1 py-0">
-                                                    +<?= number_format($fData['hits_today']) ?> hari ini
-                                                </span>
+                                                <?php if ((int) ($fData['hits_today'] ?? 0) > 0): ?>
+                                                    <span class="badge bg-success-subtle text-success text-2xs px-1 py-0">
+                                                        +<?= number_format($fData['hits_today']) ?> hari ini
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-light text-muted border text-2xs px-1 py-0">
+                                                        0 hari ini
+                                                    </span>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                         <div class="visitor-progress-track">

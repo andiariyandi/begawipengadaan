@@ -25,16 +25,26 @@ class BungaRampaiController extends BaseController
     private const VIDEOS_PER_PAGE   = 9;
     private const MULTIMEDIA_PER_PAGE = 12;
 
+    public function initController(
+        \CodeIgniter\HTTP\RequestInterface $request,
+        \CodeIgniter\HTTP\ResponseInterface $response,
+        \Psr\Log\LoggerInterface $logger
+    ) {
+        parent::initController($request, $response, $logger);
+
+        if ($this->request->getMethod() === 'GET' && ! $this->request->isAJAX() && ! is_cli()) {
+            try {
+                (new \App\Services\VisitorStatisticService())->recordHit('bunga_rampai');
+            } catch (\Throwable) {
+            }
+        }
+    }
+
     // ------------------------------------------------------------------
     // Beranda Bunga Rampai
     // ------------------------------------------------------------------
     public function index(): string
     {
-        try {
-            (new \App\Services\VisitorStatisticService())->recordHit('bunga_rampai', $this->request->getIPAddress());
-        } catch (\Throwable) {
-        }
-
         $stats = $this->getKnowledgeStats();
 
         // Featured items across articles, cases, and templates

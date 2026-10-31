@@ -37,13 +37,23 @@ class RegulationPublicController extends BaseController
         $this->request = service('request');
     }
 
+    public function initController(
+        \CodeIgniter\HTTP\RequestInterface $request,
+        \CodeIgniter\HTTP\ResponseInterface $response,
+        \Psr\Log\LoggerInterface $logger
+    ) {
+        parent::initController($request, $response, $logger);
+
+        if ($this->request->getMethod() === 'GET' && ! $this->request->isAJAX() && ! is_cli()) {
+            try {
+                (new \App\Services\VisitorStatisticService())->recordHit('regulasi');
+            } catch (\Throwable) {
+            }
+        }
+    }
+
     public function index()
     {
-        try {
-            (new \App\Services\VisitorStatisticService())->recordHit('regulasi', $this->request->getIPAddress());
-        } catch (\Throwable) {
-        }
-
         $page        = max(1, (int) ($this->request->getGet('page') ?: 1));
         $categoryId  = (int) ($this->request->getGet('category_id') ?: 0) ?: null;
         $keyword     = trim((string) ($this->request->getGet('q') ?: '')) ?: null;
