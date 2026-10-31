@@ -40,23 +40,23 @@ class TrainerController extends BaseController
         $userId = $this->userId();
         $db     = db_connect();
 
-        $assignedClasses = $db->table('class_trainers ct')
-            ->select('ct.class_id, ct.assigned_at, ct.role AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.learning_method, lc.location_or_link, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path, courses.level AS course_level')
-            ->join('learning_classes lc', 'lc.id = ct.class_id')
-            ->join('courses', 'courses.id = lc.course_id')
-            ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
-            ->where('ct.user_id', $userId)
-            ->where('ct.status', 'active')
-            ->orderBy('lc.start_at', 'DESC')
-            ->get()->getResultArray();
-
-        if ($assignedClasses === [] && $this->isUnrestrictedAdmin()) {
+        if ($this->isUnrestrictedAdmin()) {
             $assignedClasses = $db->table('learning_classes lc')
                 ->select('lc.id AS class_id, lc.created_at AS assigned_at, "primary" AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.learning_method, lc.location_or_link, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path, courses.level AS course_level')
                 ->join('courses', 'courses.id = lc.course_id')
                 ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
                 ->orderBy('lc.start_at', 'DESC')
                 ->limit(20)
+                ->get()->getResultArray();
+        } else {
+            $assignedClasses = $db->table('class_trainers ct')
+                ->select('ct.class_id, ct.assigned_at, ct.role AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.learning_method, lc.location_or_link, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path, courses.level AS course_level')
+                ->join('learning_classes lc', 'lc.id = ct.class_id')
+                ->join('courses', 'courses.id = lc.course_id')
+                ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
+                ->where('ct.user_id', $userId)
+                ->where('ct.status', 'active')
+                ->orderBy('lc.start_at', 'DESC')
                 ->get()->getResultArray();
         }
 
@@ -212,23 +212,23 @@ class TrainerController extends BaseController
         $userId = $this->userId();
         $db     = db_connect();
 
-        $items = $db->table('class_trainers ct')
-            ->select('ct.class_id, ct.assigned_at, ct.status AS ct_status, ct.role AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, lc.learning_method, lc.location_or_link, lc.cover_url AS class_cover_url, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.summary AS course_summary, courses.level AS course_level, courses.cover_url AS course_cover_url, fa.path AS cover_path, programs.title AS program_title')
-            ->join('learning_classes lc', 'lc.id = ct.class_id')
-            ->join('courses', 'courses.id = lc.course_id')
-            ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
-            ->join('programs', 'programs.id = courses.program_id', 'left')
-            ->where('ct.user_id', $userId)
-            ->where('ct.status', 'active')
-            ->orderBy('lc.start_at', 'DESC')
-            ->get()->getResultArray();
-
-        if ($items === [] && $this->isUnrestrictedAdmin()) {
+        if ($this->isUnrestrictedAdmin()) {
             $items = $db->table('learning_classes lc')
                 ->select('lc.id AS class_id, lc.created_at AS assigned_at, lc.status AS ct_status, "primary" AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, lc.learning_method, lc.location_or_link, lc.cover_url AS class_cover_url, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.summary AS course_summary, courses.level AS course_level, courses.cover_url AS course_cover_url, fa.path AS cover_path, programs.title AS program_title')
                 ->join('courses', 'courses.id = lc.course_id')
                 ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
                 ->join('programs', 'programs.id = courses.program_id', 'left')
+                ->orderBy('lc.start_at', 'DESC')
+                ->get()->getResultArray();
+        } else {
+            $items = $db->table('class_trainers ct')
+                ->select('ct.class_id, ct.assigned_at, ct.status AS ct_status, ct.role AS trainer_role, lc.code, lc.name, lc.status AS class_status, lc.start_at, lc.end_at, lc.passing_grade, lc.learning_method, lc.location_or_link, lc.cover_url AS class_cover_url, lc.description AS class_description, lc.target_audience AS class_target_audience, courses.title AS course_title, courses.summary AS course_summary, courses.level AS course_level, courses.cover_url AS course_cover_url, fa.path AS cover_path, programs.title AS program_title')
+                ->join('learning_classes lc', 'lc.id = ct.class_id')
+                ->join('courses', 'courses.id = lc.course_id')
+                ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
+                ->join('programs', 'programs.id = courses.program_id', 'left')
+                ->where('ct.user_id', $userId)
+                ->where('ct.status', 'active')
                 ->orderBy('lc.start_at', 'DESC')
                 ->get()->getResultArray();
         }
@@ -2434,7 +2434,16 @@ class TrainerController extends BaseController
 
     private function getTrainerClasses(int $userId): array
     {
-        $classes = db_connect()->table('class_trainers ct')
+        if ($this->isUnrestrictedAdmin()) {
+            return db_connect()->table('learning_classes lc')
+                ->select('lc.id, lc.name, lc.code, lc.status, lc.learning_method, lc.location_or_link, "admin" AS assigned_role, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path')
+                ->join('courses', 'courses.id = lc.course_id')
+                ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
+                ->orderBy('lc.name', 'ASC')
+                ->get()->getResultArray();
+        }
+
+        return db_connect()->table('class_trainers ct')
             ->select('lc.id, lc.name, lc.code, lc.status, lc.learning_method, lc.location_or_link, ct.role AS assigned_role, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path')
             ->join('learning_classes lc', 'lc.id = ct.class_id')
             ->join('courses', 'courses.id = lc.course_id')
@@ -2443,17 +2452,6 @@ class TrainerController extends BaseController
             ->where('ct.status', 'active')
             ->orderBy('lc.name', 'ASC')
             ->get()->getResultArray();
-
-        if ($classes === [] && $this->isUnrestrictedAdmin()) {
-            $classes = db_connect()->table('learning_classes lc')
-                ->select('lc.id, lc.name, lc.code, lc.status, lc.learning_method, lc.location_or_link, "admin" AS assigned_role, courses.title AS course_title, courses.cover_url AS course_cover_url, fa.path AS cover_path')
-                ->join('courses', 'courses.id = lc.course_id')
-                ->join('file_assets fa', 'fa.id = courses.cover_file_id', 'left')
-                ->orderBy('lc.name', 'ASC')
-                ->get()->getResultArray();
-        }
-
-        return $classes;
     }
 
     private function loadLessonsForClass(int $classId): array
@@ -2626,7 +2624,7 @@ class TrainerController extends BaseController
     private function isPrivilegedOperator(): bool
     {
         $roles = (array) session()->get('roles');
-        return array_intersect(['operator', 'administrator', 'super_administrator'], $roles) !== [];
+        return array_intersect(['operator', 'administrator', 'super_administrator', 'admin_arenabelajar'], $roles) !== [];
     }
 
     private function isUnrestrictedAdmin(): bool
@@ -2638,7 +2636,7 @@ class TrainerController extends BaseController
     private function assertTrainerOf(int $userId, int $classId): void
     {
         if ($this->isUnrestrictedAdmin()) {
-            return; // Hanya Admin / Super Admin yang memiliki akses lintas seluruh kelas
+            return; // Hanya Admin / Super Admin / Admin Arena Belajar yang memiliki akses lintas seluruh kelas
         }
         $row = (new ClassTrainerModel())
             ->where('class_id', $classId)
@@ -2690,17 +2688,33 @@ class TrainerController extends BaseController
             exit;
         }
         $roles   = (array) session()->get('roles');
-        $allowed = ['trainer', 'operator', 'administrator', 'super_administrator'];
+        $allowed = ['trainer', 'operator', 'administrator', 'super_administrator', 'admin_arenabelajar'];
         if (array_intersect($allowed, $roles) === []) {
-            redirect()->to('/dashboard/masuk')->with('error', 'Anda tidak memiliki akses Trainer/Operator.')->send();
-            exit;
+            $hasModularAdmin = false;
+            foreach ($roles as $r) {
+                if (str_starts_with(strtolower(trim((string) $r)), 'admin_')) {
+                    $hasModularAdmin = true;
+                    break;
+                }
+            }
+            if (! $hasModularAdmin) {
+                redirect()->to('/dashboard/masuk')->with('error', 'Anda tidak memiliki akses Trainer/Operator.')->send();
+                exit;
+            }
         }
         return $id;
     }
 
     private function render(string $pageTitle, string $viewPage, array $data, string $activeMenu = 'trainer', array $breadcrumbTail = []): string
     {
-        $roleLabel = $this->isPrivilegedOperator() ? 'Operator / Pengajar' : 'Pengajar';
+        $roles = (array) session()->get('roles');
+        if (in_array('admin_arenabelajar', $roles, true)) {
+            $roleLabel = 'Admin Arena Belajar / Pengajar';
+        } elseif ($this->isPrivilegedOperator()) {
+            $roleLabel = 'Operator / Pengajar';
+        } else {
+            $roleLabel = 'Pengajar';
+        }
         $data = array_merge($data, [
             'pageTitle'      => $pageTitle,
             'breadcrumbTail' => $breadcrumbTail,
