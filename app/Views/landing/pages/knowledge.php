@@ -1029,8 +1029,8 @@ if (! empty($carouselSlides)) {
                         <div class="d-flex align-items-start gap-2 p-2 radius-8 bg-light border">
                             <i class="fas fa-check-circle text-primary mt-1" style="font-size: 13px;"></i>
                             <div>
-                                <strong class="d-block text-dark" style="font-size: 12.5px;">Standar LKPP RI &amp; Perpres PBJ</strong>
-                                <small style="color: #334155; font-size: 12px; line-height: 1.45;">Diverifikasi selaras peraturan perundang-undangan pengadaan nasional terkini.</small>
+                                <strong class="d-block text-dark" style="font-size: 12.5px;">Standar Dokumen UKPBJ Lampung</strong>
+                                <small style="color: #334155; font-size: 12px; line-height: 1.45;">Disusun oleh Biro PBJ Provinsi Lampung selaras regulasi pengadaan yang berlaku.</small>
                             </div>
                         </div>
                         <div class="d-flex align-items-start gap-2 p-2 radius-8 bg-light border">

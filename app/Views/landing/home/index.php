@@ -344,7 +344,7 @@ $bulanIndo = [
                             <span class="badge-soft-primary px-3 py-1 radius-999 text-xs fw-bold">E-Learning &amp; Sertifikasi</span>
                         </div>
                         <h3 class="pillar-title">Arena Belajar</h3>
-                        <p class="pillar-desc">Pusat pelatihan mandiri berbasis e-learning, program sertifikasi PBJ, modul berjenjang, dan kelas interaktif bersama instruktur terakreditasi LKPP.</p>
+                        <p class="pillar-desc">Pusat pelatihan mandiri berbasis e-learning, program pembinaan PBJ, modul berjenjang, dan kelas interaktif bersama instruktur dan praktisi UKPBJ Provinsi Lampung.</p>
                         <div class="pillar-stat-row">
                             <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_courses'] ?? 0) ?></strong> Kursus</span>
                             <span class="pillar-stat-chip"><strong><?= (int) ($stats['total_programs'] ?? 0) ?></strong> Program</span>
@@ -432,7 +432,7 @@ $bulanIndo = [
                             <span class="badge-soft-info px-3 py-1 radius-999 text-xs fw-bold">Validasi QR Code</span>
                         </div>
                         <h3 class="pillar-title">Verifikasi Sertifikat Digital</h3>
-                        <p class="pillar-desc">Validasi keabsahan sertifikat pelatihan, bukti tanda lulus, dan kompetensi yang diterbitkan resmi oleh Biro Pengadaan Barang dan Jasa Provinsi Lampung.</p>
+                        <p class="pillar-desc">Validasi keabsahan sertifikat kegiatan belajar, bukti tanda lulus, dan peningkatan pengetahuan yang diterbitkan resmi oleh Biro Pengadaan Barang dan Jasa Provinsi Lampung.</p>
                         <div class="pillar-stat-row">
                             <span class="pillar-stat-chip"><strong>QR Code</strong> Validasi</span>
                             <span class="pillar-stat-chip"><strong>SSL</strong> Aman Terenkripsi</span>
@@ -460,7 +460,7 @@ $bulanIndo = [
                     <span>Arena Belajar PBJ</span>
                 </div>
                 <h2 class="section-title-main mb-1">Kelas PBJ Terbaru</h2>
-                <p class="section-title-desc mb-0">Tingkatkan kompetensi aparatur melalui kelas pembelajaran terkini dengan silabus berstandar LKPP dan instruktur ahli.</p>
+                <p class="section-title-desc mb-0">Tingkatkan wawasan dan pengetahuan aparatur melalui kegiatan belajar terkini dengan materi terstruktur dan pendampingan ahli UKPBJ Provinsi Lampung.</p>
             </div>
             <a href="<?= site_url('arena-belajar/kelas') ?>" class="btn btn-outline-primary px-20 py-10 radius-8 fw-semibold d-inline-flex align-items-center gap-2">
                 <span>Lihat Seluruh Kelas</span>
@@ -537,7 +537,7 @@ $bulanIndo = [
                                 <h3 class="course-title-modern">
                                     <a href="<?= $classUrl ?>"><?= esc($c['name'] ?? $c['title']) ?></a>
                                 </h3>
-                                <p class="course-summary-snippet"><?= esc(! empty($c['summary']) ? $c['summary'] : (! empty($cleanDesc) ? character_limiter($cleanDesc, 110) : 'Materi pembelajaran terstruktur berbasis silabus standar kompetensi LKPP.')) ?></p>
+                                <p class="course-summary-snippet"><?= esc(! empty($c['summary']) ? $c['summary'] : (! empty($cleanDesc) ? character_limiter($cleanDesc, 110) : 'Materi pembelajaran terstruktur berbasis kurikulum aplikatif UKPBJ Provinsi Lampung.')) ?></p>
                                 <div class="course-meta-row">
                                     <span class="text-xs text-muted d-flex align-items-center gap-1">
                                         <iconify-icon icon="solar:users-group-rounded-linear"></iconify-icon>
@@ -944,7 +944,7 @@ $bulanIndo = [
                     <span>Agenda &amp; Pelatihan PBJ</span>
                 </div>
                 <h2 class="section-title-main mb-1">Event, Webinar &amp; Bimtek Mendatang</h2>
-                <p class="section-title-desc mb-0">Ikuti kegiatan peningkatan kapasitas pengadaan bersama pakar LKPP dan praktisi senior.</p>
+                <p class="section-title-desc mb-0">Ikuti kegiatan peningkatan kapasitas pengadaan bersama narasumber ahli dan praktisi senior UKPBJ Provinsi Lampung.</p>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <div class="nav nav-pills event-sub-filter radius-8 p-1 bg-white border shadow-xs" role="tablist">
@@ -1465,8 +1465,8 @@ $bulanIndo = [
                                 <iconify-icon icon="solar:medal-star-bold"></iconify-icon>
                             </div>
                             <div>
-                                <h5 class="fw-bold text-white mb-1 text-sm">Standar Mutu Level 3 LKPP</h5>
-                                <p class="text-slate-300 mb-0 text-xs">UKPBJ Lampung bertransformasi proaktif sebagai pusat keunggulan pengadaan nasional.</p>
+                                <h5 class="fw-bold text-white mb-1 text-sm">Standar Mutu UKPBJ Proaktif</h5>
+                                <p class="text-slate-300 mb-0 text-xs">UKPBJ Provinsi Lampung bertransformasi sebagai pusat keunggulan pengadaan barang dan jasa daerah.</p>
                             </div>
                         </div>
                     </div>
@@ -1700,7 +1700,7 @@ $bulanIndo = [
                     <span class="badge bg-warning text-dark px-3 py-1 radius-6 text-xs fw-bold mb-3 text-uppercase">Mari Bergabung Bersama BegawiPengadaan</span>
                     <h3 class="text-3xl fw-bold text-white mb-3">Tingkatkan Profesionalisme &amp; Kepatuhan Pengadaan Anda</h3>
                     <p class="text-slate-300 mb-0" style="max-width: 600px; font-size: 16px;">
-                        Daftar akun sebagai aparatur pemerintah, staf pengadaan, atau penyedia barang/jasa untuk mengikuti kelas terstruktur, mengunduh template dokumen, dan memperoleh sertifikat kompetensi.
+                        Daftar akun sebagai aparatur pemerintah, staf pengadaan, atau penyedia barang/jasa untuk mengikuti kelas terstruktur, mengunduh template dokumen, dan memperoleh sertifikat tanda lulus kegiatan belajar.
                     </p>
                 </div>
                 <div class="col-12 col-lg-4 text-center text-lg-end mt-3 mt-lg-0">

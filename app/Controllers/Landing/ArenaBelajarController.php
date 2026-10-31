@@ -172,10 +172,10 @@ class ArenaBelajarController extends BaseController
                 'tag_class'      => 'evt-badge-flag--featured',
                 'status_tag'     => '<iconify-icon icon="solar:star-bold" class="align-middle"></iconify-icon> Kurikulum Unggulan',
                 'type_label'     => 'Program Kurikulum',
-                'badge_extra'    => 'Standar LKPP RI',
+                'badge_extra'    => 'UKPBJ Prov. Lampung',
                 'meta_1'         => '<iconify-icon icon="solar:layers-minimalistic-bold" class="text-warning align-middle"></iconify-icon> ' . (int) ($fProg['course_count'] ?? 0) . ' Course Terpadu',
-                'meta_2'         => '<iconify-icon icon="solar:shield-check-bold" class="text-info align-middle"></iconify-icon> Jalur Kompetensi',
-                'meta_3'         => '<iconify-icon icon="solar:diploma-verified-bold" class="text-success align-middle"></iconify-icon> Terhubung Uji Kompetensi',
+                'meta_2'         => '<iconify-icon icon="solar:shield-check-bold" class="text-info align-middle"></iconify-icon> Jalur Belajar Terstruktur',
+                'meta_3'         => '<iconify-icon icon="solar:diploma-verified-bold" class="text-success align-middle"></iconify-icon> Evaluasi Pemahaman &amp; Sertifikat Belajar',
                 'action_text'    => 'Eksplorasi Kurikulum',
                 'carousel_order' => $fProg['carousel_order'] ?? null,
             ];
@@ -487,7 +487,7 @@ class ArenaBelajarController extends BaseController
         return $this->catalog(
             'Program Pembelajaran',
             'programs',
-            'Program kurikulum terstruktur untuk membangun kompetensi PBJ berjenjang dari dasar hingga lanjutan.',
+            'Program kurikulum terstruktur untuk sarana kegiatan belajar dan memperdalam pemahaman PBJ berjenjang dari dasar hingga lanjutan.',
             $items,
             ['q' => $q, 'featuredFilter' => $featuredFilter]
         );

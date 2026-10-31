@@ -116,7 +116,7 @@ class AuditArenaHome extends BaseCommand
         $components = [
             'Breadcrumb & Tagline Hero' => [
                 'tag'   => 'Arena Belajar BegawiPengadaan Lampung',
-                'title' => 'Pusat Pembelajaran &amp; Kompetensi Pengadaan',
+                'title' => 'Pusat Kegiatan Belajar &amp; Peningkatan Wawasan PBJ',
             ],
             'Pencarian Cepat Hero' => [
                 'selector' => 'evt-search-box arena-search-bar',
@@ -150,8 +150,8 @@ class AuditArenaHome extends BaseCommand
                 'title'    => 'Kategori Pembelajaran',
                 'pill'     => 'arena-nav-pill',
             ],
-            'Sidebar Widget Standar LKPP' => [
-                'title'    => 'Standar Kompetensi LKPP &amp; Pemprov Lampung',
+            'Sidebar Widget Jalur Belajar' => [
+                'title'    => 'Jalur Belajar &amp; Peningkatan Pengetahuan',
             ],
             'Sidebar Widget Program Rank' => [
                 'title'    => 'Program Pembelajaran Terbaru',
@@ -174,7 +174,7 @@ class AuditArenaHome extends BaseCommand
             ],
             'Call to Action (CTA) Penutup' => [
                 'section'  => 'arena-cta-section',
-                'heading'  => 'Siap Mengembangkan Kompetensi Pengadaan Anda?',
+                'heading'  => 'Siap Memperdalam Pengetahuan &amp; Wawasan Pengadaan Anda?',
             ],
         ];
 

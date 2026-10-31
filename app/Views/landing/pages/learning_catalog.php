@@ -34,7 +34,7 @@ $heroHeadings = [
     'programs' => [
         'tag'   => 'Kurikulum Terstruktur Berjenjang',
         'title' => 'Program Pembelajaran PBJ',
-        'desc'  => 'Jalur kurikulum terpadu untuk membangun dan menguji kompetensi Pengadaan Barang/Jasa Pemerintah dari tingkat dasar hingga lanjutan.',
+        'desc'  => 'Jalur kurikulum terpadu untuk sarana kegiatan belajar dan memperdalam pemahaman Pengadaan Barang/Jasa Pemerintah dari tingkat dasar hingga lanjutan.',
         'searchPlaceholder' => 'Cari nama program kurikulum PBJ...',
         'searchUrl' => site_url('arena-belajar/program'),
     ],
@@ -124,7 +124,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                             <div>
                                 <span class="badge bg-primary text-white px-2 py-1 radius-12 small text-uppercase" style="letter-spacing: 0.5px; font-size: 12px;">
-                                    <i class="fas fa-route me-1"></i> Jalur Kompetensi Standar
+                                    <i class="fas fa-route me-1"></i> Jalur Belajar Terpadu
                                 </span>
                                 <h4 class="fw-bold mt-1 mb-1" style="color: #082f5c; font-size: 20px;">
                                     Roadmap Kurikulum Pengadaan Barang &amp; Jasa Berjenjang
@@ -663,19 +663,19 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                     </nav>
                 </div>
 
-                <!-- Sidebar Widget 3: Standar Kompetensi LKPP & Pemprov Lampung -->
+                <!-- Sidebar Widget 3: Peningkatan Pengetahuan UKPBJ Provinsi Lampung -->
                 <div class="berita-widget">
                     <h4 class="berita-widget__title">
                         <i class="fas fa-shield-alt" style="background: #e0f2fe; color: #0284c7;"></i>
-                        <span>Standar Kompetensi LKPP &amp; Pemprov</span>
+                        <span>Peningkatan Pengetahuan PBJ</span>
                     </h4>
                     <p class="text-muted small mb-3" style="font-size: 13px; line-height: 1.55;">
-                        Platform pembelajaran terpadu Pengadaan Barang/Jasa Pemerintah selaras standar kurikulum nasional:
+                        Platform pembelajaran terpadu Pengadaan Barang/Jasa Pemerintah oleh Biro PBJ Provinsi Lampung:
                     </p>
                     <div class="d-flex flex-column gap-2">
                         <div class="p-2 radius-8 border-start border-3 border-primary bg-light">
-                            <strong style="font-size: 13px; color: #0f172a;">Kurikulum Berstandar LKPP</strong>
-                            <p class="text-muted small mb-0" style="font-size: 12px; line-height: 1.45;">Materi berbasis Perpres No. 12 Tahun 2021 dan peraturan turunan.</p>
+                            <strong style="font-size: 13px; color: #0f172a;">Kurikulum Terpadu UKPBJ Lampung</strong>
+                            <p class="text-muted small mb-0" style="font-size: 12px; line-height: 1.45;">Materi aplikatif disusun oleh Biro PBJ Provinsi Lampung selaras regulasi terkini.</p>
                         </div>
                         <div class="p-2 radius-8 border-start border-3 border-success bg-light">
                             <strong style="font-size: 13px; color: #0f172a;">Sertifikasi Terverifikasi</strong>
@@ -813,7 +813,7 @@ $heroMeta = $heroHeadings[$catalogType] ?? [
                             <i class="fas fa-check-circle text-success mt-1" style="font-size: 13px;"></i>
                             <div>
                                 <strong class="d-block text-dark" style="font-size: 12.5px;">Fasilitator Terakreditasi Nasional</strong>
-                                <small class="text-muted" style="font-size: 11.5px; line-height: 1.4;">Didampingi langsung oleh widyaiswara, praktisi PBJ, dan penguji kompetensi bersertifikat.</small>
+                                <small class="text-muted" style="font-size: 11.5px; line-height: 1.4;">Didampingi langsung oleh widyaiswara, pejabat fungsional, dan praktisi PBJ berpengalaman.</small>
                             </div>
                         </div>
                         <div class="d-flex align-items-start gap-2 p-2 radius-8 bg-light border">

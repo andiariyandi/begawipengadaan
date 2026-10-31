@@ -156,7 +156,7 @@ $err          = session()->getFlashdata('error');
                             <img src="<?= esc($courseCover) ?>" alt="<?= esc($itemTitle) ?>" class="w-100" style="object-fit: cover; max-height: 380px;">
                             <div class="position-absolute bottom-0 start-0 end-0 p-3" style="background: linear-gradient(to top, rgba(8,47,92,0.85), transparent);">
                                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-white">
-                                    <span class="small fw-semibold"><i class="fas fa-shield-alt text-warning me-1"></i> Standar Akreditasi LKPP &amp; Pemprov Lampung</span>
+                                    <span class="small fw-semibold"><i class="fas fa-shield-alt text-warning me-1"></i> Standar Mutu UKPBJ Provinsi Lampung</span>
                                     <span class="small opacity-75"><i class="fas fa-check-circle text-success me-1"></i> Kurikulum Resmi</span>
                                 </div>
                             </div>
@@ -182,10 +182,10 @@ $err          = session()->getFlashdata('error');
                             <?= nl2br(esc($item['description'] ?? 'Course ini dirancang untuk membekali aparatur pengadaan dan praktisi publik dengan wawasan teknis serta kemampuan terapan sesuai prinsip efisien, efektif, terbuka, transparan, adil, dan akuntabel.')) ?>
                         </div>
 
-                        <!-- Target Capaian Kompetensi PBJ -->
+                        <!-- Target Capaian Pengetahuan PBJ -->
                         <div class="pt-3 border-top">
                             <h5 class="fw-bold text-dark mb-3" style="font-size: 16px;">
-                                <i class="fas fa-award text-primary me-2"></i> Capaian Pembelajaran &amp; Target Kompetensi
+                                <i class="fas fa-award text-primary me-2"></i> Capaian Pembelajaran &amp; Target Pemahaman
                             </h5>
                             <?php
                             $customObjectives = ! empty($item['learning_objectives'])
@@ -357,7 +357,7 @@ $err          = session()->getFlashdata('error');
                                         <div>
                                             <span class="badge bg-primary text-white radius-6 px-2 py-1 small mb-1">Modul 3</span>
                                             <h5 class="fw-bold text-dark mb-1" style="font-size: 15px;">Metode Pemilihan Penyedia &amp; Pelaksanaan E-Purchasing</h5>
-                                            <p class="text-muted small mb-2">Praktek tender, seleksi, negosiasi teknis dan biaya, serta transaksi e-katalog LKPP.</p>
+                                            <p class="text-muted small mb-2">Praktek tender, seleksi, negosiasi teknis dan biaya, serta transaksi e-katalog / e-purchasing.</p>
                                         </div>
                                         <div class="d-flex align-items-center gap-1">
                                             <span class="badge bg-white text-muted border small"><i class="fas fa-book-reader text-primary me-1"></i> Materi</span>
@@ -822,8 +822,8 @@ $err          = session()->getFlashdata('error');
                                 <i class="fas fa-calendar-check me-1 text-success"></i> Jadwal Kelas (<?= count($classes) ?>)
                             </a>
                         <?php endif; ?>
-                        <a href="#kompetensi" class="btn btn-sm btn-light radius-8 px-3 fw-semibold">
-                            <i class="fas fa-award me-1 text-warning"></i> Kompetensi &amp; Sertifikat
+                        <a href="#sertifikat" class="btn btn-sm btn-light radius-8 px-3 fw-semibold">
+                            <i class="fas fa-award me-1 text-warning"></i> Kelulusan Belajar &amp; Sertifikat
                         </a>
                     </div>
 
@@ -847,13 +847,13 @@ $err          = session()->getFlashdata('error');
                         <?php endif; ?>
 
                         <div class="text-secondary" style="font-size: 15px; line-height: 1.8;">
-                            <?= nl2br(esc($item['description'] ?? 'Kurikulum komprehensif ini dirancang untuk membekali aparatur sipil negara dan praktisi pengadaan dengan kompetensi teknis, manajerial, serta pemahaman regulasi terkini dalam Pengadaan Barang/Jasa Pemerintah.')) ?>
+                            <?= nl2br(esc($item['description'] ?? 'Kurikulum komprehensif ini dirancang untuk membekali aparatur sipil negara dan praktisi pengadaan dengan penguatan wawasan, pemahaman teknis, serta penguasaan regulasi terkini dalam Pengadaan Barang/Jasa Pemerintah.')) ?>
                         </div>
 
                         <!-- 4 Competency Pillars for this Curriculum or Custom Learning Objectives -->
                         <div class="mt-4 pt-3 border-top">
                             <h5 class="fw-bold text-dark mb-3" style="font-size: 16px;">
-                                <i class="fas fa-award text-primary me-2"></i> Capaian &amp; Target Kompetensi Program
+                                <i class="fas fa-award text-primary me-2"></i> Capaian &amp; Target Pembelajaran Program
                             </h5>
                             <?php
                             $customProgObjectives = ! empty($item['learning_objectives'])
@@ -1124,7 +1124,7 @@ $err          = session()->getFlashdata('error');
                     <?php endif; ?>
 
                     <!-- 5. Competency & Certification Guarantee -->
-                    <div class="card border-0 shadow-sm radius-16 p-4 p-md-5 mb-4 bg-white" id="kompetensi" style="border-left: 5px solid #16a34a !important;">
+                    <div class="card border-0 shadow-sm radius-16 p-4 p-md-5 mb-4 bg-white" id="sertifikat" style="border-left: 5px solid #16a34a !important;">
                         <span class="arena-section-head__tag m-0 text-success" style="background: #f0fdf4;">
                             <i class="fas fa-certificate me-1"></i> Jaminan Mutu Pembelajaran
                         </span>
@@ -1138,7 +1138,7 @@ $err          = session()->getFlashdata('error');
                             <div class="d-flex align-items-center gap-3">
                                 <i class="fas fa-award text-warning fs-2"></i>
                                 <div>
-                                    <h6 class="fw-bold mb-0">Sertifikat Digital Kompetensi PBJ</h6>
+                                    <h6 class="fw-bold mb-0">Sertifikat Tanda Lulus Kegiatan Belajar PBJ</h6>
                                     <p class="text-muted small mb-0">Terakreditasi BPSDM &amp; Biro Pengadaan Barang dan Jasa Provinsi Lampung</p>
                                 </div>
                             </div>
@@ -1334,7 +1334,7 @@ $err          = session()->getFlashdata('error');
                         </h1>
 
                         <p class="mb-3 text-white-90" style="font-size: 14px; line-height: 1.55; max-width: 720px; color: rgba(255,255,255,0.9);">
-                            Kelas intensif pengadaan barang/jasa pemerintah dengan bimbingan instruktur berkompeten, kurikulum modular terstruktur, penugasan studi kasus, dan evaluasi berbasis standar LKPP.
+                            Kelas intensif pengadaan barang/jasa pemerintah dengan bimbingan instruktur berkompeten, kurikulum modular terstruktur, penugasan studi kasus, dan evaluasi pemahaman belajar oleh UKPBJ Provinsi Lampung.
                         </p>
 
                         <!-- Hero Quick Action Buttons -->
@@ -1446,7 +1446,7 @@ $err          = session()->getFlashdata('error');
 
                         <h5 class="fw-bold text-dark mb-2" style="font-size: 16px;">Deskripsi &amp; Sasaran Pelaksanaan</h5>
                         <div class="text-secondary mb-4" style="line-height: 1.7; font-size: 14.5px;">
-                            <?= ! empty($item['description']) ? nl2br(esc($item['description'])) : 'Kelas <strong>' . esc($item['name']) . '</strong> (Kode Batch: <code class="fw-bold text-primary">' . esc($item['code']) . '</code>) dirancang khusus untuk memfasilitasi pendalaman materi pengadaan barang dan jasa secara terstruktur. Peserta akan mengikuti tahapan pembelajaran terarah, diskusi kasus nyata pengadaan di lingkungan Provinsi Lampung, serta uji kompetensi evaluatif.' ?>
+                            <?= ! empty($item['description']) ? nl2br(esc($item['description'])) : 'Kelas <strong>' . esc($item['name']) . '</strong> (Kode Batch: <code class="fw-bold text-primary">' . esc($item['code']) . '</code>) dirancang khusus untuk memfasilitasi pendalaman materi pengadaan barang dan jasa secara terstruktur. Peserta akan mengikuti tahapan pembelajaran terarah, diskusi kasus nyata pengadaan di lingkungan Provinsi Lampung, serta kuis evaluasi pemahaman belajar.' ?>
                         </div>
 
                         <?php if (! empty($item['target_audience'])): ?>
@@ -2001,7 +2001,7 @@ $err          = session()->getFlashdata('error');
                         </h1>
 
                         <p class="mb-3 text-white-90" style="font-size: 14px; line-height: 1.55; max-width: 680px; color: rgba(255,255,255,0.9);">
-                            Fasilitator dan pengajar resmi Pengadaan Barang/Jasa Pemerintah pada platform BegawiPengadaan. Memandu kelas pembelajaran berstandar kompetensi LKPP dengan fokus pada pemahaman regulasi, studi kasus praktis, dan akuntabilitas pengadaan.
+                            Fasilitator dan pengajar resmi Pengadaan Barang/Jasa Pemerintah pada platform BegawiPengadaan. Memandu kelas pembelajaran kurikulum terstruktur UKPBJ Provinsi Lampung dengan fokus pada pemahaman regulasi, studi kasus praktis, dan akuntabilitas pengadaan.
                         </p>
 
                         <!-- Action CTAs inside Hero -->
@@ -2010,7 +2010,7 @@ $err          = session()->getFlashdata('error');
                                 <i class="fas fa-chalkboard-teacher"></i>
                                 <span>Kelas yang Diampu (<?= count($classes) ?>)</span>
                             </a>
-                            <a href="#profil-kompetensi" class="btn btn-outline-light btn-sm fw-semibold px-3 py-1 radius-8 d-inline-flex align-items-center gap-1" style="font-size: 12.5px;">
+                            <a href="#profil-keahlian" class="btn btn-outline-light btn-sm fw-semibold px-3 py-1 radius-8 d-inline-flex align-items-center gap-1" style="font-size: 12.5px;">
                                 <i class="fas fa-user-check"></i>
                                 <span>Profil &amp; Keahlian</span>
                             </a>
@@ -2054,8 +2054,8 @@ $err          = session()->getFlashdata('error');
 
             <!-- Quick Nav Anchor Bar -->
             <div class="card border-0 shadow-xs radius-12 p-2 mb-4 bg-white d-flex flex-row flex-wrap gap-2">
-                <a href="#profil-kompetensi" class="btn btn-sm btn-light radius-8 px-3 fw-semibold">
-                    <i class="fas fa-id-card me-1 text-primary"></i> Profil &amp; Kompetensi
+                <a href="#profil-keahlian" class="btn btn-sm btn-light radius-8 px-3 fw-semibold">
+                    <i class="fas fa-id-card me-1 text-primary"></i> Profil &amp; Bidang Keahlian
                 </a>
                 <a href="#kelas-diampu" class="btn btn-sm btn-primary radius-8 px-3 fw-semibold text-white">
                     <i class="fas fa-chalkboard-teacher me-1"></i> Kelas yang Diampu (<?= count($classes) ?>)
@@ -2071,8 +2071,8 @@ $err          = session()->getFlashdata('error');
             <div class="row g-4">
                 <!-- Left Main Column (col-xl-8 col-lg-7) -->
                 <div class="col-xl-8 col-lg-7">
-                    <!-- 1. Profil & Kompetensi Keahlian Card -->
-                    <div id="profil-kompetensi" class="card border-0 shadow-sm radius-16 p-4 mb-4 bg-white">
+                    <!-- 1. Profil & Bidang Keahlian Fasilitator Card -->
+                    <div id="profil-keahlian" class="card border-0 shadow-sm radius-16 p-4 mb-4 bg-white">
                         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                             <h4 class="fw-bold text-dark mb-0" style="font-size: 20px;">
                                 <i class="fas fa-id-card text-primary me-2"></i> Profil Profesional &amp; Bidang Keahlian
@@ -2121,7 +2121,7 @@ $err          = session()->getFlashdata('error');
                                         <h6 class="fw-bold mb-0 text-dark" style="font-size: 15.5px;">Pemilihan Penyedia &amp; E-Katalog</h6>
                                     </div>
                                     <p class="text-muted mb-0" style="font-size: 14px; line-height: 1.6;">
-                                        Pelaksanaan tender dan seleksi, e-purchasing LKPP, mini kompetisi katalog elektronik, evaluasi kualifikasi penawaran, dan negosiasi.
+                                        Pelaksanaan tender dan seleksi, transaksi e-purchasing, mini kompetisi katalog elektronik, evaluasi kualifikasi penawaran, dan negosiasi.
                                     </p>
                                 </div>
                             </div>
@@ -2145,7 +2145,7 @@ $err          = session()->getFlashdata('error');
                             </div>
                             <div>
                                 <strong class="text-success-emphasis d-block" style="font-size: 13.5px;">Fasilitator Terdaftar &amp; Teruji BegawiPengadaan</strong>
-                                <small class="text-secondary" style="font-size: 12px;">Profil pengajar telah diverifikasi administratif dan kompetensinya oleh tim koordinator pelatihan BegawiPengadaan.</small>
+                                <small class="text-secondary" style="font-size: 12px;">Profil pengajar telah diverifikasi administratif dan pengalaman praktisnya oleh tim pengelola pelatihan BegawiPengadaan.</small>
                             </div>
                         </div>
                     </div>

@@ -25,7 +25,7 @@ class StatisticPublicController extends BaseController
 
     public function competency(): string
     {
-        return $this->page('Statistik Kompetensi & Sertifikasi', 'Data penerbitan sertifikat digital, kelulusan ujian, dan verifikasi kompetensi PBJ.', 'competency');
+        return $this->page('Statistik Sertifikat & Kelulusan Belajar', 'Data penerbitan sertifikat digital, kelulusan ujian, dan verifikasi tanda kelulusan belajar PBJ.', 'competency');
     }
 
     public function satisfactionSurvey(): string

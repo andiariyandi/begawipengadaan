@@ -632,7 +632,7 @@ $dashboardTypes = [
                     <span class="berita-cta__eyebrow">
                         <i class="fas fa-calendar-check"></i> Agenda Pembinaan Berkelanjutan
                     </span>
-                    <h3 class="berita-cta__title text-white">Tingkatkan Kompetensi Pengadaan Anda Bersama Ahli LKPP &amp; PBJ</h3>
+                    <h3 class="berita-cta__title text-white">Tingkatkan Wawasan &amp; Pengetahuan Pengadaan Anda Bersama Tim Ahli UKPBJ Lampung</h3>
                     <p class="berita-cta__lead text-white" style="opacity: 0.92;">
                         Ingin mengadakan bimbingan teknis khusus, klinik pengadaan, atau konsultasi pendampingan untuk OPD/Instansi Anda? Hubungi Tim Pembinaan Biro PBJ Provinsi Lampung.
                     </p>

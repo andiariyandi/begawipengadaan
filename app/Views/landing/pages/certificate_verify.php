@@ -18,7 +18,7 @@
                     Verifikasi Keabsahan <span>Sertifikat Digital</span>
                 </h1>
                 <p class="cert-hero__subtitle">
-                    Periksa otentisitas dan keabsahan sertifikat kompetensi pengadaan barang dan jasa Pemerintah Provinsi Lampung yang diterbitkan secara elektronik oleh Biro Pengadaan Barang dan Jasa Sekretariat Daerah.
+                    Periksa otentisitas dan keabsahan sertifikat kelulusan kegiatan belajar pengadaan barang dan jasa Pemerintah Provinsi Lampung yang diterbitkan secara elektronik oleh Biro Pengadaan Barang dan Jasa Sekretariat Daerah.
                 </p>
             </div>
         </div>
