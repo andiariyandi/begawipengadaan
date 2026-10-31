@@ -17,7 +17,7 @@ class RupExportService
 
     /**
      * Menghasilkan berkas Excel 5-Sheet (.xlsx) murni menggunakan ZipArchive OpenXML
-     * tanpa memerlukan pustaka PhpSpreadsheet eksternal.
+     * berpedoman pada Master Plan v4.0 (Ringkasan, Temuan_Paket, Cluster_Risiko, Profil_OPD, Tidak_Dapat_Dinilai).
      *
      * @param int $batchId
      * @return string Path absolut ke berkas .xlsx sementara
@@ -29,13 +29,17 @@ class RupExportService
             throw new \RuntimeException("Batch ID {$batchId} tidak ditemukan.");
         }
 
-        $opdList    = $this->auditService->getOpdLeaderboard($batchId);
-        $kritisTinggi = $this->auditService->getPackagesFiltered($batchId, ['severity' => 'KRITIS'], 1000, 0);
-        $tinggiList   = $this->auditService->getPackagesFiltered($batchId, ['severity' => 'TINGGI'], 1000, 0);
-        $mergedKritisTinggi = array_merge($kritisTinggi, $tinggiList);
+        $db = \Config\Database::connect();
+        $opdList     = $this->auditService->getOpdLeaderboard($batchId);
+        $clusters    = $this->auditService->getClusters($batchId);
+        $allPackages = $this->auditService->getPackagesFiltered($batchId, [], 10000, 0);
 
-        $clusters   = $this->auditService->getClusters($batchId);
-        $allPackages = $this->auditService->getPackagesFiltered($batchId, [], 5000, 0);
+        // Ambil temuan pelanggaran per paket
+        $violationsRaw = $db->table('rup_audit_violations v')
+            ->select('v.*, p.row_index_csv, p.kode_rup, p.nama_opd_clean, p.nama_paket, p.total_nilai, p.cara_pengadaan, p.metode_pengadaan, p.jenis_pengadaan')
+            ->join('rup_audit_packages p', 'p.id = v.package_id', 'left')
+            ->where('v.batch_id', $batchId)
+            ->get()->getResultArray();
 
         $tempPath = WRITEPATH . 'uploads/Hasil_Audit_RUP_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $batch['batch_uuid']) . '_' . date('Ymd_His') . '.xlsx';
         if (! is_dir(dirname($tempPath))) {
@@ -81,15 +85,15 @@ class RupExportService
 </Relationships>';
         $zip->addFromString('xl/_rels/workbook.xml.rels', $wbRels);
 
-        // 4. xl/workbook.xml
+        // 4. xl/workbook.xml (5 Sheets: Ringkasan, Temuan_Paket, Cluster_Risiko, Profil_OPD, Tidak_Dapat_Dinilai)
         $wbXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <sheets>
-    <sheet name="Leaderboard RCI OPD" sheetId="1" r:id="rId1"/>
-    <sheet name="Temuan Kritis &amp; Tinggi" sheetId="2" r:id="rId2"/>
-    <sheet name="Matriks Klaster Splitting" sheetId="3" r:id="rId3"/>
-    <sheet name="Daftar Lengkap Anomali" sheetId="4" r:id="rId4"/>
-    <sheet name="Diff-Tracking Log" sheetId="5" r:id="rId5"/>
+    <sheet name="Ringkasan" sheetId="1" r:id="rId1"/>
+    <sheet name="Temuan_Paket" sheetId="2" r:id="rId2"/>
+    <sheet name="Cluster_Risiko" sheetId="3" r:id="rId3"/>
+    <sheet name="Profil_OPD" sheetId="4" r:id="rId4"/>
+    <sheet name="Tidak_Dapat_Dinilai" sheetId="5" r:id="rId5"/>
   </sheets>
 </workbook>';
         $zip->addFromString('xl/workbook.xml', $wbXml);
@@ -118,121 +122,140 @@ class RupExportService
 </styleSheet>';
         $zip->addFromString('xl/styles.xml', $stylesXml);
 
-        // 6. Build Sheet 1: Leaderboard RCI OPD
+        // 6. Build Sheet 1: Ringkasan
+        $macro = json_decode((string) ($batch['macro_summary'] ?? '{}'), true);
+        $dist  = $macro['distribusi_temuan_unik'] ?? [];
         $sheet1Rows = [
-            ['Peringkat', 'Kode SIPD', 'Nama Satuan Kerja (OPD)', 'Skor RCI', 'Predikat Risiko', 'Total Paket', 'Total Pagu (Rp)', 'Pagu Penyedia (Rp)', 'Pagu Swakelola (Rp)', '% E-Purchasing', '% UMK Penyedia', '% UMK Eligible <=15M', 'Temuan Kritis', 'Temuan Tinggi', 'Pagu Berisiko Kritis/Tinggi (Rp)', 'Macro Flags'],
+            ['Parameter Ringkasan Skrining RUP v4.0', 'Nilai / Status'],
+            ['Batch UUID', $batch['batch_uuid']],
+            ['Tahun Anggaran', $batch['tahun_anggaran']],
+            ['Instansi Pemerintah', $batch['nama_instansi']],
+            ['File CSV Sumber', $batch['filename']],
+            ['SHA-256 File', $batch['file_sha256'] ?? '-'],
+            ['Skema Input', '12 Kolom Inti CSV SIRUP (RUP-Only)'],
+            ['Versi Rule Set Engine', $batch['rule_set_version'] ?? '4.0.0'],
+            ['Total Satker / OPD', $batch['total_opd']],
+            ['Total Baris Paket', $batch['total_packages']],
+            ['Total Nilai Pagu RUP (Rp)', $batch['total_pagu']],
+            ['Total Pagu Penyedia (Rp)', $batch['total_pagu_penyedia']],
+            ['Total Pagu Swakelola (Rp)', $batch['total_pagu_swakelola']],
+            ['Proporsi E-Purchasing Penyedia', ($macro['persen_e_purchasing_penyedia'] ?? 0) . '%'],
+            ['Proporsi UMK Penyedia', ($macro['persen_umk_terhadap_penyedia_non_dikecualikan'] ?? 0) . '%'],
+            ['Proporsi PDN Penyedia', ($macro['persen_pdn_penyedia'] ?? 0) . '%'],
+            ['Jumlah Paket Potensi Tidak Sesuai (Tinggi)', $dist['tinggi']['jumlah_paket'] ?? 0],
+            ['Pagu Potensi Tidak Sesuai (Tinggi) (Rp)', $dist['tinggi']['total_pagu_terdampak'] ?? 0],
+            ['Jumlah Paket Perlu Verifikasi (Sedang)', $dist['sedang']['jumlah_paket'] ?? 0],
+            ['Pagu Perlu Verifikasi (Sedang) (Rp)', $dist['sedang']['total_pagu_terdampak'] ?? 0],
+            ['Jumlah Paket Sinyal Risiko (Rendah)', $dist['rendah']['jumlah_paket'] ?? 0],
+            ['Pagu Sinyal Risiko (Rendah) (Rp)', $dist['rendah']['total_pagu_terdampak'] ?? 0],
+            ['Waktu Eksekusi Audit', $batch['created_at']],
         ];
-        $rank = 1;
-        foreach ($opdList as $opd) {
-            $sheet1Rows[] = [
-                $rank++,
-                $opd['kode_satker_sipd'],
-                $opd['nama_opd_clean'],
-                $opd['skor_rci'],
-                $opd['predikat_risiko'],
-                $opd['total_paket'],
-                $opd['total_pagu'],
-                $opd['pagu_penyedia'],
-                $opd['pagu_swakelola'],
-                $opd['persen_epurchasing'] . '%',
-                $opd['persen_umk_penyedia'] . '%',
-                $opd['persen_umk_eligible_le15m'] . '%',
-                $opd['temuan_kritis'],
-                $opd['temuan_tinggi'],
-                $opd['pagu_bermasalah_kritis_tinggi'],
-                $opd['macro_flags'],
-            ];
-        }
         $zip->addFromString('xl/worksheets/sheet1.xml', $this->buildSheetXml($sheet1Rows));
 
-        // 7. Build Sheet 2: Temuan Kritis & Tinggi
+        // 7. Build Sheet 2: Temuan_Paket
         $sheet2Rows = [
-            ['No', 'Kode RUP', 'Nama Satuan Kerja (OPD)', 'Siklus', 'Nama Paket Pengadaan', 'Metode', 'Jenis', 'Pagu RUP (Rp)', 'Tingkat Risiko', 'Status UMK', 'PDN', 'Status Diff'],
+            ['No', 'Row CSV', 'Kode RUP', 'Nama OPD', 'Nama Paket Pengadaan', 'Pagu RUP (Rp)', 'Cara', 'Metode', 'Jenis', 'Status Temuan', 'Severity', 'Confidence', 'ID Rule', 'Regulasi Rujukan', 'Alasan / Bukti Pemicu', 'Rekomendasi Koreksi RUP', 'Batas Inferensi CSV'],
         ];
         $no = 1;
-        foreach ($mergedKritisTinggi as $pkg) {
+        foreach ($violationsRaw as $v) {
+            $payload = ! empty($v['target_perubahan']) ? json_decode((string) $v['target_perubahan'], true) : [];
+            $findingStatus = $v['finding_status'] ?? ($payload['finding_status'] ?? 'POTENSI_TIDAK_SESUAI');
+            $severity      = $payload['severity'] ?? ($v['severity'] ?? 'SEDANG');
+            $confidence    = $v['confidence_level'] ?? ($payload['confidence_level'] ?? 'TINGGI');
+            $recommendation= $v['recommendation_text'] ?? ($payload['recommendation_text'] ?? ($v['rekomendasi_perbaikan'] ?? '-'));
+            $limitation    = $v['limitation_note'] ?? ($payload['limitation_note'] ?? 'Temuan menguji rencana pada data CSV; bukan pembuktian proses pemilihan riil.');
+
             $sheet2Rows[] = [
                 $no++,
-                $pkg['kode_rup'],
-                $pkg['nama_opd_clean'],
-                $pkg['budget_cycle'],
-                $pkg['nama_paket'],
-                $pkg['metode_pengadaan'],
-                $pkg['jenis_pengadaan'],
-                $pkg['total_nilai'],
-                $pkg['max_severity'],
-                $pkg['status_umk'],
-                $pkg['produk_dalam_negeri'],
-                $pkg['diff_status'],
+                $v['row_index_csv'] ?? '-',
+                $v['kode_rup'] ?? '-',
+                $v['nama_opd_clean'] ?? '-',
+                $v['nama_paket'] ?? '-',
+                $v['total_nilai'] ?? 0,
+                $v['cara_pengadaan'] ?? '-',
+                $v['metode_pengadaan'] ?? '-',
+                $v['jenis_pengadaan'] ?? '-',
+                $findingStatus,
+                $severity,
+                $confidence,
+                $v['rule_id'] ?? '-',
+                $v['regulasi'] ?? '-',
+                $v['deskripsi_pelanggaran'] ?? '-',
+                $recommendation,
+                $limitation,
             ];
         }
         $zip->addFromString('xl/worksheets/sheet2.xml', $this->buildSheetXml($sheet2Rows));
 
-        // 8. Build Sheet 3: Matriks Klaster Splitting & Konsolidasi
+        // 8. Build Sheet 3: Cluster_Risiko
         $sheet3Rows = [
-            ['No', 'ID Klaster', 'Nama Satuan Kerja (OPD)', 'Siklus', 'Komoditas Klaster', 'Jenis', 'Jumlah Paket', 'Total Pagu Klaster (Rp)', 'Batas Regulasi PL (Rp)', 'Kategori Temuan', 'Tingkat Risiko', 'Daftar Kode RUP Terpecah', 'Instruksi Konsolidasi'],
+            ['No', 'ID Klaster', 'Nama OPD', 'Komoditas Inti', 'Penanda Lokasi', 'Jenis', 'Jumlah Paket Terpecah', 'Total Pagu Terakumulasi (Rp)', 'Batas PL (Rp)', 'Tipe Klaster', 'Confidence Klaster', 'Severity', 'Daftar Kode RUP', 'Rekomendasi Konsolidasi', 'Catatan Batasan Klaster'],
         ];
         $no = 1;
         foreach ($clusters as $cls) {
+            $dk = ! empty($cls['daftar_kode_rup']) ? json_decode((string) $cls['daftar_kode_rup'], true) : [];
+            $clusterType = $cls['cluster_type'] ?? ($dk['cluster_type'] ?? 'KOMODITAS_SEJENIS');
+            $confidence  = $cls['cluster_confidence'] ?? ($dk['cluster_confidence'] ?? 'SEDANG');
+            $limitation  = $cls['cluster_limitation_note'] ?? ($dk['cluster_limitation_note'] ?? 'Kemiripan teks nama bukan bukti mutlak splitting; periksa kesamaan jadwal, lokasi, dan dokumen perencanaan.');
+            $rupsText    = isset($dk['rups']) ? (is_array($dk['rups']) ? implode(', ', $dk['rups']) : $dk['rups']) : ($cls['daftar_kode_rup'] ?? '-');
+
             $sheet3Rows[] = [
                 $no++,
-                $cls['cluster_uuid'],
-                $cls['nama_opd_clean'],
-                $cls['budget_cycle'],
-                $cls['nama_komoditas_klaster'],
-                $cls['jenis_pengadaan'],
-                $cls['jumlah_paket_terpecah'],
-                $cls['total_pagu_klaster'],
-                $cls['batas_regulasi_pl'],
-                $cls['kategori_temuan'],
-                $cls['severity'],
-                $cls['daftar_kode_rup'],
-                $cls['instruksi_konsolidasi'],
+                $cls['cluster_uuid'] ?? '-',
+                $cls['nama_opd_clean'] ?? '-',
+                $cls['nama_komoditas_klaster'] ?? '-',
+                $cls['lokasi_identity_key'] ?? ($cls['lokasi_klaster'] ?? '-'),
+                $cls['jenis_pengadaan'] ?? '-',
+                $cls['jumlah_paket_terpecah'] ?? 0,
+                $cls['total_pagu_klaster'] ?? 0,
+                $cls['batas_regulasi_pl'] ?? 0,
+                $clusterType,
+                $confidence,
+                $cls['severity'] ?? 'SEDANG',
+                $rupsText,
+                $cls['instruksi_konsolidasi'] ?? 'Konsolidasikan paket-paket sejenis bila kebutuhan dapat direncanakan sejak awal.',
+                $limitation,
             ];
         }
         $zip->addFromString('xl/worksheets/sheet3.xml', $this->buildSheetXml($sheet3Rows));
 
-        // 9. Build Sheet 4: Daftar Lengkap Anomali
+        // 9. Build Sheet 4: Profil_OPD
         $sheet4Rows = [
-            ['No', 'Row CSV', 'Kode RUP', 'Nama Satuan Kerja (OPD)', 'Nama Paket', 'Objek Belanja Utama', 'Cara', 'Metode', 'Jenis', 'Pagu (Rp)', 'Tingkat Risiko', 'Jumlah Pelanggaran', 'Status Diff'],
+            ['Peringkat Perhatian', 'Kode SIPD', 'Nama Satuan Kerja (OPD)', 'Total Paket', 'Total Pagu (Rp)', 'Pagu Penyedia (Rp)', 'Pagu Swakelola (Rp)', '% E-Purchasing', '% UMK Penyedia', '% PDN', 'Pagu Potensi Tidak Sesuai (Rp)', 'Jumlah Potensi Tidak Sesuai', 'Pagu Perlu Verifikasi (Rp)', 'Jumlah Perlu Verifikasi'],
         ];
-        $no = 1;
-        foreach ($allPackages as $pkg) {
-            if ($pkg['max_severity'] === 'AMAN') {
-                continue;
-            }
+        $rank = 1;
+        foreach ($opdList as $opd) {
+            $rp = json_decode((string) ($opd['risk_profile_json'] ?? '{}'), true);
             $sheet4Rows[] = [
-                $no++,
-                $pkg['row_index_csv'],
-                $pkg['kode_rup'],
-                $pkg['nama_opd_clean'],
-                $pkg['nama_paket'],
-                $pkg['nama_paket_objek'],
-                $pkg['cara_pengadaan'],
-                $pkg['metode_pengadaan'],
-                $pkg['jenis_pengadaan'],
-                $pkg['total_nilai'],
-                $pkg['max_severity'],
-                $pkg['violation_count'],
-                $pkg['diff_status'],
+                $rank++,
+                $opd['kode_satker_sipd'] ?? '-',
+                $opd['nama_opd_clean'] ?? '-',
+                $opd['total_paket'] ?? 0,
+                $opd['total_pagu'] ?? 0,
+                $opd['pagu_penyedia'] ?? 0,
+                $opd['pagu_swakelola'] ?? 0,
+                ($opd['persen_epurchasing'] ?? 0) . '%',
+                ($opd['persen_umk_penyedia'] ?? 0) . '%',
+                ($opd['persen_pdn'] ?? 0) . '%',
+                $rp['pagu_potensi_tidak_sesuai'] ?? ($opd['pagu_bermasalah_kritis_tinggi'] ?? 0),
+                $rp['count_potensi_tidak_sesuai'] ?? ($opd['temuan_tinggi'] ?? 0),
+                $rp['pagu_perlu_verifikasi'] ?? 0,
+                $rp['count_perlu_verifikasi'] ?? ($opd['temuan_sedang'] ?? 0),
             ];
         }
         $zip->addFromString('xl/worksheets/sheet4.xml', $this->buildSheetXml($sheet4Rows));
 
-        // 10. Build Sheet 5: Diff-Tracking Log
-        $macro = json_decode((string) ($batch['macro_summary'] ?? '{}'), true);
-        $diff = $macro['diff_tracking'] ?? [];
+        // 10. Build Sheet 5: Tidak_Dapat_Dinilai
         $sheet5Rows = [
-            ['Indikator Diff-Tracking Antar-Versi', 'Nilai / Status'],
-            ['Batch ID Terkini', $batch['batch_uuid']],
-            ['Batch ID Pembanding Sebelumnya', $batch['previous_batch_id'] ?: 'Tidak Ada (Unggahan Pertama)'],
-            ['Status Pembandingan Aktif', ! empty($diff['is_comparison_active']) ? 'AKTIF' : 'NON-AKTIF'],
-            ['Total Anomali Batch Sebelumnya', $diff['total_anomali_batch_lama'] ?? 0],
-            ['Total Anomali Berhasil Diperbaiki (FIXED)', $diff['total_anomali_telah_diperbaiki_fixed'] ?? 0],
-            ['Total Anomali Masih Bertahan (PERSISTENT)', $diff['total_anomali_masih_bertahan_persistent'] ?? 0],
-            ['Total Anomali Baru Terdeteksi (NEW)', $diff['total_anomali_baru_muncul_new'] ?? 0],
-            ['Delta Skor RCI Instansi', $diff['delta_skor_rci_instansi'] ?? '+0.00'],
-            ['Waktu Audit Dilakukan', $batch['created_at']],
+            ['No', 'Tema Pemeriksaan', 'Dasar Regulasi Terkait', 'Fakta / Informasi yang Tidak Ada di CSV 12 Kolom', 'Perlakuan Engine v4.0'],
+            [1, 'Alasan Keadaan Tertentu Penunjukan Langsung', 'Pasal 38 ayat (4)-(5) & Pasal 41 ayat (4)-(5) Perpres 46/2025', 'Tidak ada kolom justifikasi keadaan darurat, paten, repeat order, dll.', 'R-08 ditandai PERLU_VERIFIKASI; sistem tidak menuduh pelanggaran.'],
+            [2, 'Ketersediaan Riil pada Katalog Elektronik', 'Pasal 38 ayat (2) Perpres 46/2025 jo. PerLKPP 2/2026', 'Tidak ada data ketersediaan produk live atau ID katalog barang/jasa.', 'R-15 ditandai PERLU_VERIFIKASI (kandidat cek katalog); bukan pelanggaran terbukti.'],
+            [3, 'Tipe I s.d. IV Pelaksanaan Swakelola', 'PerLKPP Nomor 3 Tahun 2021 tentang Pedoman Swakelola', 'Tidak ada kolom tipe swakelola pada format ekspor 12 kolom.', 'R-12 ditandai PERLU_VERIFIKASI; evaluasi tipe diserahkan ke OPD.'],
+            [4, 'Penggunaan Fitur Transaksional SPSE', 'Pasal 3 Perlem LKPP Nomor 3 Tahun 2026', 'Tidak ada kolom pencatatan transaksi SPSE dalam file RUP.', 'R-04b ditandai PERLU_VERIFIKASI; tidak dinilai sebagai pelanggaran otomatis.'],
+            [5, 'Cakupan RUP Terhadap Pagu DPA / DPPA', 'PP 12/2019 & Permendagri 77/2020', 'Pagu DPA/DPPA tidak ada dalam CSV RUP.', 'R-26.4 dinonaktifkan (NON-AKTIF); tidak dihitung atau diberi penalti.'],
+            [6, 'Kronologi Jadwal Pengumuman dan Kontrak', 'Pasal 22 Perpres 16/2018 jo. Perpres 46/2025', 'Tidak ada kolom tanggal pengumuman/pemilihan/kontrak pada 12 kolom CSV.', 'R-31 dinonaktifkan (NON-AKTIF); tidak dapat dinilai.'],
+            [7, 'Pengawasan Riil Pekerjaan Konstruksi', 'Pasal 7 Perlem LKPP 3/2026 & PP 16/2021', 'Tidak ada data personel pengawas atau surat tugas tim teknis internal.', 'R-32 ditandai INFORMATIF; tidak menyimpulkan pekerjaan tanpa pengawasan.'],
+            [8, 'Pengangkatan Tenaga Non-ASN', 'Pasal 65-66 UU Nomor 20 Tahun 2023 (ASN)', 'Tidak ada data status kepegawaian atau SK pengangkatan personel.', 'R-11 ditandai PERLU_VERIFIKASI; tidak mengklaim pelanggaran UU ASN dari nama paket.'],
         ];
         $zip->addFromString('xl/worksheets/sheet5.xml', $this->buildSheetXml($sheet5Rows));
 
@@ -290,7 +313,7 @@ class RupExportService
     }
 
     /**
-     * Menghasilkan dokumen PDF Berita Acara Reviu RUP per OPD siap cetak/tanda tangan.
+     * Menghasilkan dokumen PDF Berita Acara Reviu/Skrining RUP per OPD siap cetak/tanda tangan.
      *
      * @param int $batchId
      * @param string $kodeSatkerOrOpd
@@ -316,13 +339,11 @@ class RupExportService
             throw new \RuntimeException('Data satuan kerja tidak ditemukan dalam batch audit ini.');
         }
 
-        // Ambil anomali kritis dan tinggi pada OPD ini
         $packages = $this->auditService->getPackagesFiltered($batchId, [
             'opd'      => $opd['nama_opd_clean'],
             'severity' => 'ALL',
         ], 200, 0);
 
-        // Ambil data pejabat penandatangan default
         $html = view('main/workspace/pages/rup_audit/pdf_berita_acara', [
             'batch'    => $batch,
             'opd'      => $opd,
@@ -340,8 +361,8 @@ class RupExportService
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        $dompdf->addInfo('Title', 'Berita Acara Reviu Kepatuhan RUP - ' . $opd['nama_opd_clean']);
-        $dompdf->addInfo('Author', 'Pemerintah Provinsi Lampung - Biro Pengadaan Barang dan Jasa');
+        $dompdf->addInfo('Title', 'Berita Acara Skrining RUP - ' . $opd['nama_opd_clean']);
+        $dompdf->addInfo('Author', 'Pemerintah Daerah - Unit Kerja Pengadaan Barang/Jasa');
         $dompdf->addInfo('Subject', 'Dokumen Pengawasan Tata Kelola RUP Sesuai Perpres 46/2025');
 
         return (string) $dompdf->output();

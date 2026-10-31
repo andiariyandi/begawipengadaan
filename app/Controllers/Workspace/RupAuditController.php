@@ -74,7 +74,7 @@ class RupAuditController extends BaseController
         }
 
         return view('main/workspace/pages/rup_audit/index', [
-            'pageTitle'   => 'Sistem Audit Otomatis RUP (Universal SIRUP Compliance Engine v3.1)',
+            'pageTitle'   => 'Sistem Skrining & Audit RUP (RUP-Only Compliance & Risk Engine v4.0)',
             'batches'     => $batches,
             'latestBatch' => $latestBatch,
             'kpi'         => $kpi,
@@ -160,6 +160,9 @@ class RupAuditController extends BaseController
         $severity    = trim((string) $this->request->getGet('severity')) ?: 'ALL';
         $budgetCycle = trim((string) $this->request->getGet('cycle')) ?: 'ALL';
         $diffStatus  = trim((string) $this->request->getGet('diff')) ?: 'ALL';
+        $caraFilter  = trim((string) $this->request->getGet('cara')) ?: 'ALL';
+        $metodeFilter= trim((string) $this->request->getGet('metode')) ?: 'ALL';
+        $jenisFilter = trim((string) $this->request->getGet('jenis')) ?: 'ALL';
         $searchTerm  = trim((string) $this->request->getGet('q'));
         $sortBy      = trim((string) $this->request->getGet('sort')) ?: 'total_nilai';
         $sortDir     = trim((string) $this->request->getGet('dir')) ?: 'DESC';
@@ -173,6 +176,9 @@ class RupAuditController extends BaseController
             'severity'     => $severity,
             'budget_cycle' => $budgetCycle,
             'diff_status'  => $diffStatus,
+            'cara'         => $caraFilter,
+            'metode'       => $metodeFilter,
+            'jenis'        => $jenisFilter,
             'search'       => $searchTerm,
         ];
 

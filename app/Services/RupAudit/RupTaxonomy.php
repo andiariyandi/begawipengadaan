@@ -302,6 +302,8 @@ class RupTaxonomy
     // DICT_07: Jasa Non-Konsultansi / Operasional
     public const DICT_07_MURNI_JASA_LAINNYA = [
         'belanja sewa',
+        'pengadaan sewa',
+        'sewa alat',
         'sewa ',
         'pemeliharaan alat',
         'pemeliharaan kendaraan',
@@ -328,13 +330,17 @@ class RupTaxonomy
 
     public const NEG_LOOKAHEAD_07 = [
         'belanja modal',
-        'pengadaan alat',
     ];
 
     // DICT_08: Aset Modal Peralatan/Mesin & Barang Habis Pakai
     public const DICT_08_MURNI_BARANG = [
-        'belanja modal alat',
+        'pengadaan bahan rutin',
+        'pengadaan bahan material',
+        'pengadaan bahan/material',
+        'pengadaan bahan rekonstruksi',
         'belanja modal komputer',
+        'komputer unit',
+        'belanja modal alat',
         'belanja modal kendaraan',
         'belanja modal mebel',
         'belanja peralatan dan mesin',
@@ -453,6 +459,26 @@ class RupTaxonomy
         'bunker',
         'radioterapi',
     ];
+
+    // DICT_KONSTRUKSI_STRUKTUR_BERAT: Khusus untuk catatan R-07 PERLU_VERIFIKASI
+    public const DICT_KONSTRUKSI_STRUKTUR_BERAT = [
+        'jembatan',
+        'bendung',
+        'bendungan',
+        'tiang pancang',
+        'bore pile',
+        'bunker',
+        'radioterapi',
+    ];
+
+    // Thresholds Baku v4.0
+    public const PL_THRESHOLD_2026_BARANG = 200000000.0;
+    public const PL_THRESHOLD_2026_JASA_LAINNYA = 200000000.0;
+    public const PL_THRESHOLD_2026_KONSTRUKSI = 400000000.0;
+    public const PL_THRESHOLD_2026_KONSULTANSI = 100000000.0;
+    public const PL_THRESHOLD_2021_KONSTRUKSI = 200000000.0;
+    public const UMK_THRESHOLD_MAX = 15000000000.0;
+    public const UMK_THRESHOLD_KONSULTANSI_KONSTRUKSI = 1000000000.0;
 
     // DICT_KONSULTANSI_KONSTRUKSI: Kata Kunci Jasa Konsultansi Konstruksi (Pasal 4 ayat (2) Perlem LKPP 3/2026)
     public const DICT_KONSULTANSI_KONSTRUKSI = [

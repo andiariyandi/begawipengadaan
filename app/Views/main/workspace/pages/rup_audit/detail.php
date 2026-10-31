@@ -78,7 +78,7 @@
         </div>
     </div>
 
-    <!-- 2. NAVIGASI 5 TAB ANALITIK -->
+    <!-- 2. NAVIGASI 6 TAB ANALITIK -->
     <ul class="nav nav-pills nav-fill bg-white p-2 rounded-4 shadow-sm mb-4" id="rupAuditTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <a class="nav-link rounded-pill fw-bold <?= $activeTab === 'leaderboard' ? 'active' : '' ?>"
@@ -110,6 +110,12 @@
                 <i class="fas fa-print me-1"></i> Tab 5: Ekspor &amp; Berita Acara
             </a>
         </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link rounded-pill fw-bold <?= $activeTab === 'batas-pemeriksaan' ? 'active' : '' ?>"
+               href="<?= site_url('workspace/audit-rup/detail/' . esc($batch['batch_uuid']) . '?tab=batas-pemeriksaan') ?>">
+                <i class="fas fa-shield-alt me-1"></i> Tab 6: Batas Pemeriksaan
+            </a>
+        </li>
     </ul>
 
     <!-- 3. KONTEN TAB AKTIF -->
@@ -123,7 +129,7 @@
             <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
                     <h2 class="h5 fw-bold text-navy mb-1"><i class="fas fa-chart-bar text-primary me-2"></i> Multi-OPD Executive Compliance Leaderboard</h2>
-                    <p class="text-muted small mb-0">Peringkat kepatuhan seluruh OPD Pemerintah Provinsi Lampung diurutkan dari skor RCI terendah (risiko tertinggi).</p>
+                    <p class="text-muted small mb-0">Peringkat seluruh OPD diurutkan berdasarkan Risk Attention Score (prioritas perhatian reviu tertinggi ke terendah).</p>
                 </div>
             </div>
 
@@ -134,14 +140,14 @@
                             <tr>
                                 <th style="width: 50px;">No</th>
                                 <th>Satuan Kerja (OPD) &amp; Kode SIPD</th>
-                                <th class="text-center">Skor RCI v3.1</th>
+                                <th class="text-center">Risk Attention Score</th>
                                 <th class="text-center">Zona Risiko</th>
                                 <th class="text-center">Paket</th>
                                 <th class="text-end">Total Pagu (Rp)</th>
                                 <th class="text-center">% E-Purch</th>
                                 <th class="text-center">% UMK</th>
                                 <th class="text-center">% PDN</th>
-                                <th class="text-end">Pagu Kritis/Tinggi</th>
+                                <th class="text-end">Pagu Potensi Tidak Sesuai</th>
                                 <th class="text-center">Aksi</th>
                             </tr>
                         </thead>
@@ -164,13 +170,15 @@
                                     <small class="text-muted">Kode: <?= esc($opd['kode_satker_sipd'] ?: '-') ?></small>
                                     <?php
                                     $flags = json_decode((string) ($opd['macro_flags'] ?? '[]'), true);
-                                    if (! empty($flags)): ?>
+                                    if (! empty($flags) && is_array($flags)):
+                                        $displayFlags = array_filter($flags, static fn($f) => is_string($f) && $f !== '');
+                                        if (! empty($displayFlags)): ?>
                                         <div class="mt-1">
-                                            <?php foreach ($flags as $fl): ?>
-                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 10px;"><?= esc($fl) ?></span>
+                                            <?php foreach ($displayFlags as $fl): ?>
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 10px;"><?= esc((string) $fl) ?></span>
                                             <?php endforeach; ?>
                                         </div>
-                                    <?php endif; ?>
+                                    <?php endif; endif; ?>
                                 </td>
                                 <td class="text-center">
                                     <span class="h6 fw-bold text-navy mb-0"><?= number_format($rci, 1) ?></span>
@@ -245,6 +253,7 @@
                             <option value="TINGGI" <?= $filters['severity'] === 'TINGGI' ? 'selected' : '' ?>>TINGGI (Oranye)</option>
                             <option value="SEDANG" <?= $filters['severity'] === 'SEDANG' ? 'selected' : '' ?>>SEDANG (Kuning)</option>
                             <option value="RENDAH" <?= $filters['severity'] === 'RENDAH' ? 'selected' : '' ?>>RENDAH (Biru/Hijau)</option>
+                            <option value="INFO"   <?= $filters['severity'] === 'INFO' ? 'selected' : '' ?>>INFO (Informatif)</option>
                             <option value="AMAN"   <?= $filters['severity'] === 'AMAN' ? 'selected' : '' ?>>AMAN (Patuh)</option>
                         </select>
                     </div>
@@ -448,10 +457,12 @@
                                         <span class="text-muted small fw-semibold">Daftar Kode RUP Terpecah:</span>
                                         <div class="mt-1 d-flex flex-wrap gap-1">
                                             <?php
-                                            $rups = json_decode((string) $cls['daftar_kode_rup'], true) ?: [];
-                                            foreach ($rups as $r): ?>
-                                                <span class="badge bg-white text-navy border small"><code><?= esc($r) ?></code></span>
-                                            <?php endforeach; ?>
+                                            $rups = json_decode((string) ($cls['daftar_kode_rup'] ?? '[]'), true) ?: [];
+                                            if (is_array($rups)):
+                                                foreach ($rups as $r):
+                                                    if (! is_scalar($r)) continue; ?>
+                                                <span class="badge bg-white text-navy border small"><code><?= esc((string) $r) ?></code></span>
+                                            <?php endforeach; endif; ?>
                                         </div>
                                     </div>
                                 </div>
@@ -547,7 +558,7 @@
                                 </div>
                             </div>
                             <p class="small text-muted mb-3">
-                                Memuat 5 lembar kerja terstruktur: (1) Leaderboard Kepatuhan RCI OPD, (2) Temuan Kritis &amp; Tinggi, (3) Matriks Klaster Splitting &amp; Konsolidasi, (4) Daftar Lengkap Seluruh Paket, dan (5) Log Diff-Tracking.
+                                Memuat 5 lembar kerja terstruktur: (1) Ringkasan Eksekutif &amp; Validasi CSV, (2) Kertas Kerja Temuan Paket, (3) Matriks Klaster Splitting &amp; Sinyal Konsolidasi, (4) Profil Risiko OPD (RUP Risk Profile), dan (5) Batas-Batas Pemeriksaan &amp; Keterbatasan Inferensi.
                             </p>
                             <a href="<?= site_url('workspace/audit-rup/export-excel/' . esc($batch['batch_uuid'])) ?>" class="btn btn-success rounded-pill px-4 py-2 fw-semibold w-100">
                                 <i class="fas fa-download me-1"></i> Unduh Berkas Excel (.xlsx)
@@ -583,6 +594,96 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- =================================================================== -->
+        <!-- TAB 6: BATAS PEMERIKSAAN (RUP-ONLY 12 KOLOM)                       -->
+        <!-- =================================================================== -->
+        <?php if ($activeTab === 'batas-pemeriksaan'): ?>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold">12 Kolom Inti CSV Saja</span>
+                    <span class="badge bg-secondary-subtle text-secondary px-2 py-1">Disiplin Audit RUP v4.0</span>
+                </div>
+                <h2 class="h5 fw-bold text-navy mb-1"><i class="fas fa-shield-alt text-danger me-2"></i> Batas-Batas Pemeriksaan &amp; Keterbatasan Inferensi</h2>
+                <p class="text-muted small mb-0">Engine v4.0 hanya membaca data RUP pada CSV. Aturan berikut sengaja ditandai <code>PERLU_VERIFIKASI</code> atau <code>NON-AKTIF</code> karena unsurnya memerlukan data di luar 12 kolom inti.</p>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th>Tema Pemeriksaan</th>
+                                <th>Dasar Regulasi</th>
+                                <th>Fakta yang Tidak Ada di CSV</th>
+                                <th class="text-center">Status Engine v4.0</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-center fw-bold">1</td>
+                                <td><strong>Alasan Penunjukan Langsung (R-08)</strong></td>
+                                <td>Pasal 38 ayat (4)-(5) &amp; Pasal 41 ayat (4)-(5) Perpres 46/2025</td>
+                                <td>Tidak ada kolom justifikasi keadaan darurat, hak paten, repeat order, atau tarif resmi.</td>
+                                <td class="text-center"><span class="badge bg-warning text-dark">PERLU_VERIFIKASI</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center fw-bold">2</td>
+                                <td><strong>Ketersediaan Produk pada Katalog Elektronik (R-15)</strong></td>
+                                <td>Pasal 38 ayat (2) Perpres 46/2025 jo. PerLKPP 2/2026</td>
+                                <td>Tidak ada ID produk, status tayang live, atau perbandingan harga katalog pada CSV.</td>
+                                <td class="text-center"><span class="badge bg-warning text-dark">PERLU_VERIFIKASI</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center fw-bold">3</td>
+                                <td><strong>Tipe I s.d. IV Pelaksanaan Swakelola (R-12)</strong></td>
+                                <td>PerLKPP Nomor 3 Tahun 2021 tentang Pedoman Swakelola</td>
+                                <td>Tidak ada kolom tipe swakelola pada skema 12 kolom CSV RUP.</td>
+                                <td class="text-center"><span class="badge bg-warning text-dark">PERLU_VERIFIKASI</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center fw-bold">4</td>
+                                <td><strong>Penggunaan Fitur Transaksional SPSE (R-04b)</strong></td>
+                                <td>Pasal 3 Perlem LKPP Nomor 3 Tahun 2026</td>
+                                <td>Tidak ada catatan transaksi SPSE atau bukti berita acara reviu APIP dalam file RUP.</td>
+                                <td class="text-center"><span class="badge bg-warning text-dark">PERLU_VERIFIKASI</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center fw-bold">5</td>
+                                <td><strong>Cakupan RUP Terhadap Pagu DPA / DPPA (R-26.4)</strong></td>
+                                <td>PP 12/2019 &amp; Permendagri 77/2020</td>
+                                <td>Pagu pengadaan DPA/DPPA tidak termasuk dalam berkas ekspor CSV RUP.</td>
+                                <td class="text-center"><span class="badge bg-secondary text-white">NON-AKTIF</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center fw-bold">6</td>
+                                <td><strong>Kronologi Jadwal Pengumuman dan Kontrak (R-31)</strong></td>
+                                <td>Pasal 22 Perpres 16/2018 jo. Perpres 46/2025</td>
+                                <td>Tidak ada kolom tanggal pengumuman, pemilihan, atau kontrak pada 12 kolom inti CSV.</td>
+                                <td class="text-center"><span class="badge bg-secondary text-white">NON-AKTIF</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center fw-bold">7</td>
+                                <td><strong>Pengawasan Riil Pekerjaan Konstruksi (R-32)</strong></td>
+                                <td>Pasal 7 Perlem LKPP 3/2026 &amp; PP 16/2021</td>
+                                <td>Tidak ada data personel pengawas atau surat tugas tim teknis internal.</td>
+                                <td class="text-center"><span class="badge bg-info text-dark">INFORMATIF</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center fw-bold">8</td>
+                                <td><strong>Pengangkatan Tenaga Non-ASN (R-11)</strong></td>
+                                <td>Pasal 65-66 UU Nomor 20 Tahun 2023 (ASN)</td>
+                                <td>Tidak ada data kepegawaian atau SK hubungan kerja pengangkatan non-ASN.</td>
+                                <td class="text-center"><span class="badge bg-warning text-dark">PERLU_VERIFIKASI</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -653,35 +754,91 @@ document.addEventListener('DOMContentLoaded', function () {
                     var d = res.data;
                     var html = '';
 
+                    // 1. Data 12 Kolom Inti CSV RUP
                     html += '<div class="mb-3 pb-3 border-bottom">';
-                    html += '  <h5 class="h6 fw-bold text-navy mb-1">' + d.nama_paket + '</h5>';
-                    html += '  <p class="small text-muted mb-1">Satker: <strong>' + d.nama_opd_clean + '</strong> &middot; Kode RUP: <code>' + d.kode_rup + '</code></p>';
-                    html += '  <div class="d-flex flex-wrap gap-2">';
-                    html += '    <span class="badge bg-light text-navy border">Cara: ' + d.cara_pengadaan + '</span>';
-                    html += '    <span class="badge bg-light text-navy border">Metode: ' + d.metode_pengadaan + '</span>';
-                    html += '    <span class="badge bg-light text-navy border">Jenis: ' + d.jenis_pengadaan + '</span>';
-                    html += '    <span class="badge bg-primary text-white">Pagu: Rp ' + Number(d.total_nilai).toLocaleString('id-ID') + '</span>';
+                    html += '  <div class="d-flex align-items-center justify-content-between mb-2">';
+                    html += '    <span class="badge bg-danger text-white rounded-pill px-3 py-1">12 Kolom Inti CSV RUP (Fakta Sumber)</span>';
+                    html += '    <code class="text-navy fw-bold">Kode RUP: ' + d.kode_rup + '</code>';
+                    html += '  </div>';
+                    html += '  <h5 class="h6 fw-bold text-navy mb-2">' + d.nama_paket + '</h5>';
+                    html += '  <div class="row g-2 small text-secondary">';
+                    html += '    <div class="col-md-6"><strong>Instansi:</strong> ' + (d.nama_instansi || '-') + '</div>';
+                    html += '    <div class="col-md-6"><strong>Satuan Kerja:</strong> ' + (d.nama_satuan_kerja || '-') + '</div>';
+                    html += '    <div class="col-md-3"><strong>TA:</strong> ' + (d.tahun_anggaran || '-') + '</div>';
+                    html += '    <div class="col-md-3"><strong>Cara:</strong> ' + (d.cara_pengadaan || '-') + '</div>';
+                    html += '    <div class="col-md-3"><strong>Metode:</strong> ' + (d.metode_pengadaan || '-') + '</div>';
+                    html += '    <div class="col-md-3"><strong>Jenis:</strong> ' + (d.jenis_pengadaan || '-') + '</div>';
+                    html += '    <div class="col-md-3"><strong>Sumber Dana:</strong> ' + (d.sumber_dana || '-') + '</div>';
+                    html += '    <div class="col-md-3"><strong>PDN:</strong> ' + (d.produk_dalam_negeri || '-') + '</div>';
+                    html += '    <div class="col-md-3"><strong>UMK:</strong> ' + (d.status_umk || '-') + '</div>';
+                    html += '    <div class="col-md-3"><strong>Total Nilai:</strong> <span class="text-primary fw-bold">Rp ' + Number(d.total_nilai).toLocaleString('id-ID') + '</span></div>';
                     html += '  </div>';
                     html += '</div>';
 
-                    html += '<h6 class="fw-bold text-navy mb-2"><i class="fas fa-exclamation-triangle text-danger me-1"></i> Daftar Temuan Regulasi (' + d.violations.length + ' Aturan):</h6>';
+                    // 2. Atribut Turunan Analisis
+                    html += '<div class="mb-3 pb-2 border-bottom">';
+                    html += '  <span class="badge bg-secondary-subtle text-secondary mb-2">Atribut Turunan Analisis (NLP &amp; Ketentuan yang Berlaku)</span>';
+                    html += '  <div class="row g-2 small text-muted">';
+                    html += '    <div class="col-md-6"><strong>Profil Dana:</strong> ' + (d.source_funding_profile || d.sumber_dana || '-') + '</div>';
+
+                    var regimeDisplay = d.regime_status || '-';
+                    if (regimeDisplay.indexOf('2026') !== -1 || regimeDisplay.indexOf('PERPRES_46') !== -1) {
+                        regimeDisplay = 'Perpres 46/2025 (TA 2026)';
+                    } else if (regimeDisplay.indexOf('TRANSISI') !== -1 || regimeDisplay.indexOf('2025') !== -1) {
+                        regimeDisplay = 'Ketentuan Transisi (TA 2025)';
+                    } else if (regimeDisplay.indexOf('2021') !== -1 || regimeDisplay.indexOf('PERPRES_12') !== -1) {
+                        regimeDisplay = 'Perpres 12/2021 (TA 2021-2024)';
+                    } else {
+                        regimeDisplay = regimeDisplay.replace(/REZIM_/gi, '').replace(/KETENTUAN_/gi, '').replace(/_/g, ' ');
+                    }
+                    html += '    <div class="col-md-6"><strong>Ketentuan yang Berlaku:</strong> ' + regimeDisplay + '</div>';
+                    if (d.serial_sequence_number) {
+                        html += '    <div class="col-md-6"><strong>Nomor Seri Paket:</strong> #' + d.serial_sequence_number + '</div>';
+                    }
+                    if (d.location_identity_key) {
+                        html += '    <div class="col-md-6"><strong>Penanda Lokasi:</strong> ' + d.location_identity_key + '</div>';
+                    }
+                    html += '  </div>';
+                    html += '</div>';
+
+                    // 3. Daftar Temuan Regulasi v4.0
+                    html += '<h6 class="fw-bold text-navy mb-2"><i class="fas fa-exclamation-triangle text-danger me-1"></i> Daftar Temuan Regulasi (' + d.violations.length + ' Catatan):</h6>';
 
                     if (d.violations.length === 0) {
-                        html += '<div class="alert alert-success small mb-0">Paket ini memenuhi standar regulasi (tidak ada pelanggaran terdeteksi).</div>';
+                        html += '<div class="alert alert-success small mb-0">Paket ini memenuhi standar regulasi (tidak ada potensi ketidaksesuaian terdeteksi).</div>';
                     } else {
                         html += '<div class="d-flex flex-column gap-3">';
                         d.violations.forEach(function (v) {
-                            var bClass = v.severity === 'KRITIS' ? 'bg-danger' : (v.severity === 'TINGGI' ? 'bg-orange text-white' : 'bg-warning text-dark');
+                            var statusBadge = 'bg-secondary';
+                            if (v.finding_status === 'POTENSI_TIDAK_SESUAI') statusBadge = 'bg-danger text-white';
+                            else if (v.finding_status === 'PERLU_VERIFIKASI') statusBadge = 'bg-warning text-dark';
+                            else if (v.finding_status === 'SINYAL_RISIKO') statusBadge = 'bg-info text-dark';
+                            else if (v.finding_status === 'ANOMALI_DATA') statusBadge = 'bg-danger text-white';
+                            else if (v.finding_status === 'INFORMATIF') statusBadge = 'bg-light text-navy border';
+
+                            var bClass = (v.severity === 'KRITIS' || v.severity === 'TINGGI') ? 'badge-tinggi' : (v.severity === 'SEDANG' ? 'badge-sedang' : 'badge-rendah');
+
                             html += '<div class="border rounded-3 p-3 bg-light">';
-                            html += '  <div class="d-flex justify-content-between align-items-center mb-1">';
-                            html += '    <strong class="text-navy">' + v.rule_id + ': ' + v.kategori + '</strong>';
-                            html += '    <span class="badge ' + bClass + '">' + v.severity + '</span>';
+                            html += '  <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">';
+                            html += '    <div>';
+                            html += '      <strong class="text-navy">' + v.rule_id + ': ' + v.kategori + '</strong>';
+                            html += '      <span class="badge ' + statusBadge + ' ms-2 small">' + (v.finding_status || 'POTENSI_TIDAK_SESUAI') + '</span>';
+                            html += '    </div>';
+                            html += '    <div>';
+                            html += '      <span class="badge bg-secondary-subtle text-secondary me-1">Confidence: ' + (v.confidence_level || 'TINGGI') + '</span>';
+                            html += '      <span class="badge ' + bClass + '">' + v.severity + '</span>';
+                            html += '    </div>';
                             html += '  </div>';
                             html += '  <p class="small text-dark mb-2">' + v.deskripsi_pelanggaran + '</p>';
-                            html += '  <div class="bg-white p-2 rounded border small text-primary mb-1">';
-                            html += '    <strong>Rekomendasi Koreksi:</strong> ' + v.rekomendasi_perbaikan;
+                            html += '  <div class="bg-white p-2 rounded border small text-primary mb-2">';
+                            html += '    <strong>Rekomendasi Koreksi:</strong> ' + (v.recommendation_text || v.rekomendasi_perbaikan);
                             html += '  </div>';
-                            html += '  <small class="text-muted d-block">Dasar Regulasi: <em>' + v.regulasi + '</em></small>';
+                            if (v.limitation_note) {
+                                html += '  <div class="small text-muted bg-white p-2 rounded border border-dashed mb-1">';
+                                html += '    <i class="fas fa-info-circle me-1 text-secondary"></i><strong>Batas Inferensi:</strong> ' + v.limitation_note;
+                                html += '  </div>';
+                            }
+                            html += '  <small class="text-muted d-block mt-1">Dasar Regulasi: <em>' + v.regulasi + '</em></small>';
                             html += '</div>';
                         });
                         html += '</div>';

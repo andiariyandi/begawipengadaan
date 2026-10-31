@@ -4,6 +4,9 @@ namespace App\Services\RupAudit;
 
 class RupCsvParser
 {
+    /**
+     * Kontrak 12 Kolom Inti Wajib SIRUP (Single Source of Truth v4.0)
+     */
     private const CORE_HEADERS = [
         'nama_instansi'       => ['nama_instansi', 'instansi', 'kldi', 'nama_kldi'],
         'nama_satuan_kerja'   => ['nama_satuan_kerja', 'satuan_kerja', 'satker', 'nama_satker', 'opd', 'skpd'],
@@ -19,17 +22,6 @@ class RupCsvParser
         'total_nilai'         => ['total_nilai', 'pagu', 'nilai_pagu', 'pagu_rup', 'total_pagu', 'nilai'],
     ];
 
-    private const EXTENDED_HEADERS = [
-        'tanggal_umumkan'      => ['tanggal_umumkan', 'tgl_umumkan', 'tgl_pengumuman', 'tanggal_pengumuman'],
-        'jadwal_pemilihan_awal'=> ['jadwal_pemilihan_awal', 'pemilihan_awal', 'awal_pemilihan'],
-        'jadwal_kontrak_awal'  => ['jadwal_kontrak_awal', 'kontrak_awal', 'awal_kontrak'],
-        'jadwal_kontrak_akhir' => ['jadwal_kontrak_akhir', 'kontrak_akhir', 'akhir_kontrak'],
-        'tipe_swakelola'       => ['tipe_swakelola', 'tipe_swakelola_nama'],
-        'lokasi_pekerjaan'     => ['lokasi_pekerjaan', 'lokasi', 'tempat_pelaksanaan'],
-        'kode_rekening_mak'    => ['kode_rekening_mak', 'kode_rekening', 'mak', 'kode_mak', 'rekening_belanja'],
-        'pagu_pengadaan_dpa'   => ['pagu_pengadaan_dpa', 'pagu_dpa', 'nilai_dpa', 'target_dpa'],
-    ];
-
     /**
      * Parse CSV langsung dari raw string konten (berguna untuk testing atau stream).
      *
@@ -38,25 +30,41 @@ class RupCsvParser
      */
     public static function parseString(string $csvContent): array
     {
-        $tmp = tempnam(sys_get_temp_dir(), 'rup_csv_');
-        file_put_contents($tmp, $csvContent);
         $parser = new self();
-        $res = $parser->parse($tmp);
-        @unlink($tmp);
+        $res = $parser->parseContent($csvContent);
         return $res['rows'] ?? [];
     }
 
     /**
-     * Parse file CSV dan validasi skema.
-     * Mengembalikan data ternormalisasi dan metadata parsing.
+     * Parse konten string CSV dan mengembalikan seluruh hasil parse (termasuk status dan schema report).
+     *
+     * @param string $csvContent
+     * @return array
+     */
+    public function parseContent(string $csvContent): array
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'rup_csv_');
+        file_put_contents($tmp, $csvContent);
+        $res = $this->parse($tmp);
+        @unlink($tmp);
+        return $res;
+    }
+
+    /**
+     * Parse file CSV dan validasi skema 12 kolom inti.
+     * Mengembalikan data ternormalisasi dan metadata parsing v4.0.
      *
      * @param string $filePath
      * @return array{
      *   success: bool,
      *   schema_mode: string,
+     *   input_schema_version: string,
+     *   file_sha256: string,
      *   headers: array,
      *   rows: array,
      *   total_raw_rows: int,
+     *   source_row_count: int,
+     *   data_quality_summary_json: string,
      *   error?: string
      * }
      */
@@ -64,25 +72,34 @@ class RupCsvParser
     {
         if (! file_exists($filePath) || ! is_readable($filePath)) {
             return [
-                'success'        => false,
-                'schema_mode'    => 'INVALID',
-                'headers'        => [],
-                'rows'           => [],
-                'total_raw_rows' => 0,
-                'error'          => 'Berkas CSV tidak ditemukan atau tidak dapat dibaca.',
+                'success'                   => false,
+                'schema_mode'               => 'INVALID',
+                'input_schema_version'      => '4.0',
+                'file_sha256'               => '',
+                'headers'                   => [],
+                'rows'                      => [],
+                'total_raw_rows'            => 0,
+                'source_row_count'          => 0,
+                'data_quality_summary_json' => '{}',
+                'error'                     => 'Berkas CSV tidak ditemukan atau tidak dapat dibaca.',
             ];
         }
 
-        $delimiter = $this->detectDelimiter($filePath);
-        $handle    = fopen($filePath, 'r');
+        $fileSha256 = hash_file('sha256', $filePath) ?: '';
+        $delimiter  = $this->detectDelimiter($filePath);
+        $handle     = fopen($filePath, 'r');
         if (! $handle) {
             return [
-                'success'        => false,
-                'schema_mode'    => 'INVALID',
-                'headers'        => [],
-                'rows'           => [],
-                'total_raw_rows' => 0,
-                'error'          => 'Gagal membuka stream berkas CSV.',
+                'success'                   => false,
+                'schema_mode'               => 'INVALID',
+                'input_schema_version'      => '4.0',
+                'file_sha256'               => $fileSha256,
+                'headers'                   => [],
+                'rows'                      => [],
+                'total_raw_rows'            => 0,
+                'source_row_count'          => 0,
+                'data_quality_summary_json' => '{}',
+                'error'                     => 'Gagal membuka stream berkas CSV.',
             ];
         }
 
@@ -91,12 +108,16 @@ class RupCsvParser
         if (! $rawHeader) {
             fclose($handle);
             return [
-                'success'        => false,
-                'schema_mode'    => 'INVALID',
-                'headers'        => [],
-                'rows'           => [],
-                'total_raw_rows' => 0,
-                'error'          => 'Berkas CSV kosong atau tidak memiliki baris header yang valid.',
+                'success'                   => false,
+                'schema_mode'               => 'INVALID',
+                'input_schema_version'      => '4.0',
+                'file_sha256'               => $fileSha256,
+                'headers'                   => [],
+                'rows'                      => [],
+                'total_raw_rows'            => 0,
+                'source_row_count'          => 0,
+                'data_quality_summary_json' => '{}',
+                'error'                     => 'Berkas CSV kosong atau tidak memiliki baris header yang valid.',
             ];
         }
 
@@ -105,7 +126,7 @@ class RupCsvParser
             $rawHeader[0] = preg_replace('/^\xEF\xBB\xBF/', '', $rawHeader[0]);
         }
 
-        // Petakan header ke canonical tags
+        // Petakan header ke 12 canonical tags inti
         $headerMap = $this->mapHeaders($rawHeader);
         $missingCore = [];
         foreach (self::CORE_HEADERS as $tag => $aliases) {
@@ -114,31 +135,46 @@ class RupCsvParser
             }
         }
 
+        // Gate Wajib 12 Kolom Inti: Tolak batch jika ada kolom inti yang hilang
         if (! empty($missingCore)) {
             fclose($handle);
             return [
-                'success'        => false,
-                'schema_mode'    => 'INVALID',
-                'headers'        => $headerMap,
-                'rows'           => [],
-                'total_raw_rows' => 0,
-                'error'          => 'Berkas CSV tidak memenuhi 12 kolom wajib SIRUP. Kolom yang hilang: ' . implode(', ', $missingCore),
+                'success'                   => false,
+                'schema_mode'               => 'INVALID',
+                'input_schema_version'      => '4.0',
+                'file_sha256'               => $fileSha256,
+                'headers'                   => $headerMap,
+                'rows'                      => [],
+                'total_raw_rows'            => 0,
+                'source_row_count'          => 0,
+                'data_quality_summary_json' => '{}',
+                'error'                     => 'Berkas CSV tidak memenuhi 12 kolom wajib SIRUP. Kolom yang hilang: ' . implode(', ', $missingCore),
             ];
         }
 
-        // Tentukan apakah EXTENDED_20_COLS atau CORE_12_COLS
-        $hasExtended = false;
-        foreach (self::EXTENDED_HEADERS as $tag => $aliases) {
-            if (isset($headerMap[$tag])) {
-                $hasExtended = true;
-                break;
+        $schemaMode = 'RUP_CORE_12_COLS';
+
+        // Deteksi kolom ekstra yang diabaikan
+        $extraColumns = [];
+        $mappedIndices = array_values($headerMap);
+        foreach ($rawHeader as $idx => $headerName) {
+            if (! in_array($idx, $mappedIndices, true)) {
+                $extraColumns[] = trim((string) $headerName);
             }
         }
-        $schemaMode = $hasExtended ? 'EXTENDED_20_COLS' : 'CORE_12_COLS';
+
+        $schemaReport = [
+            'detected_headers'      => $rawHeader,
+            'mapped_core_headers'   => $headerMap,
+            'extra_columns_ignored' => $extraColumns,
+            'detected_delimiter'    => $delimiter,
+        ];
 
         $parsedRows  = [];
         $rawRowCount = 0;
-        $rupTruncatedCounts = []; // Untuk mengecek anomali scientific truncated
+        $rupTruncatedCounts = [];
+        $zeroOrNegativeCount = 0;
+        $multiSourceCount = 0;
 
         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rawRowCount++;
@@ -149,6 +185,13 @@ class RupCsvParser
 
             $extracted = $this->extractRowData($row, $headerMap, $rawRowCount);
             $parsedRows[] = $extracted;
+
+            if ($extracted['total_nilai'] <= 0) {
+                $zeroOrNegativeCount++;
+            }
+            if ($extracted['is_multi_source'] === 1) {
+                $multiSourceCount++;
+            }
 
             // Catat hitungan akhiran 00 untuk scientific check
             $opdClean = $extracted['nama_opd_clean'];
@@ -163,6 +206,7 @@ class RupCsvParser
 
         fclose($handle);
 
+        $scientificTruncatedCount = 0;
         // Tandai flag is_scientific_truncated jika proporsi kode_rup berakhiran "00" dalam OPD > 50%
         foreach ($parsedRows as &$pRow) {
             $opd = $pRow['nama_opd_clean'];
@@ -170,22 +214,36 @@ class RupCsvParser
             if ($st && $st['total'] >= 5 && ($st['ends_00'] / $st['total']) > 0.50) {
                 if (strlen($pRow['kode_rup']) >= 8 && str_ends_with($pRow['kode_rup'], '00')) {
                     $pRow['is_scientific_truncated'] = 1;
+                    $scientificTruncatedCount++;
                 }
             }
         }
         unset($pRow);
 
+        $dataQualitySummary = [
+            'total_raw_rows'           => $rawRowCount,
+            'valid_package_rows'       => count($parsedRows),
+            'pagu_zero_or_negative'    => $zeroOrNegativeCount,
+            'multi_source_packages'    => $multiSourceCount,
+            'scientific_truncated_rup' => $scientificTruncatedCount,
+        ];
+
         return [
-            'success'        => true,
-            'schema_mode'    => $schemaMode,
-            'headers'        => $headerMap,
-            'rows'           => $parsedRows,
-            'total_raw_rows' => $rawRowCount,
+            'success'                   => true,
+            'schema_mode'               => $schemaMode,
+            'input_schema_version'      => '4.0',
+            'file_sha256'               => $fileSha256,
+            'headers'                   => $headerMap,
+            'schema_report'             => $schemaReport,
+            'rows'                      => $parsedRows,
+            'total_raw_rows'            => $rawRowCount,
+            'source_row_count'          => count($parsedRows),
+            'data_quality_summary_json' => json_encode($dataQualitySummary),
         ];
     }
 
     /**
-     * Ekstraksi dan sanitasi satu baris data CSV.
+     * Ekstraksi dan sanitasi satu baris data CSV berbasis 12 Kolom Inti.
      */
     private function extractRowData(array $row, array $headerMap, int $rowIndex): array
     {
@@ -205,7 +263,16 @@ class RupCsvParser
         $tahunAnggaran = (int) preg_replace('/[^0-9]/', '', substr($rawTahun, 0, 4)) ?: (int) date('Y');
         $isMultiyears = str_contains($rawTahun, ';') ? 1 : 0;
 
-        $caraPengadaan = ucwords(strtolower($getVal('cara_pengadaan', 'Penyedia')));
+        // Penentuan ketentuan regulasi yang berlaku berdasarkan tahun anggaran
+        $regimeStatus = match (true) {
+            $tahunAnggaran === 2026 => 'KETENTUAN_2026_PERPRES_46_2025',
+            $tahunAnggaran === 2025 => 'KETENTUAN_2025_TRANSISI',
+            $tahunAnggaran >= 2021 && $tahunAnggaran <= 2024 => 'KETENTUAN_2021_PERPRES_12_2021',
+            default => 'KETENTUAN_LAINNYA',
+        };
+
+        $rawCara = $getVal('cara_pengadaan', 'Penyedia');
+        $caraPengadaan = ucwords(strtolower($rawCara));
         if ($caraPengadaan !== 'Swakelola') {
             $caraPengadaan = 'Penyedia';
         }
@@ -231,12 +298,18 @@ class RupCsvParser
         $kodeRupClean = preg_replace('/\.0+$/', '', $rawKodeRup);
         $kodeRupClean = trim((string) $kodeRupClean);
 
-        // Sumber Dana
+        // Sumber Dana & Profil Pendanaan Multi-Tag
         $rawSumberDana = $getVal('sumber_dana', 'APBD');
         $sumberDanaArr = array_values(array_filter(array_map('trim', explode(';', $rawSumberDana))));
         if (empty($sumberDanaArr)) {
             $sumberDanaArr = [$rawSumberDana];
         }
+
+        // Pertahankan kombinasi multi-tag seperti APBD;APBDP -> APBD+APBDP
+        $cleanTags = array_unique(array_map('strtoupper', $sumberDanaArr));
+        sort($cleanTags);
+        $sourceFundingProfile = implode('+', $cleanTags) ?: 'APBD';
+        $isMultiSource = count($cleanTags) > 1 ? 1 : 0;
 
         $sumberDanaUpper = strtoupper($rawSumberDana);
         $budgetCycle     = (str_contains($sumberDanaUpper, 'APBDP') || str_contains($sumberDanaUpper, 'APBD-P')) ? 'PERUBAHAN' : 'MURNI';
@@ -245,9 +318,20 @@ class RupCsvParser
 
         // Nama paket & NLP
         $namaPaket = $getVal('nama_paket', '');
+        $serialAndLoc = RupNlpExtractor::extractSerialAndLocation($namaPaket);
         $namaPaketClean = RupNlpExtractor::clean($namaPaket);
         $namaPaketObjek = RupNlpExtractor::extractObject($namaPaket);
         $coreData       = RupNlpExtractor::extractCoreAndLocation($namaPaketObjek);
+
+        $serialSeqNumber     = $serialAndLoc['serial_sequence_number'];
+        $locationIdentityKey = $serialAndLoc['location_identity_key'] ?: $coreData['lokasi_extracted'];
+        $serialFamilyKey     = RupNlpExtractor::generateSerialFamilyKey(
+            $opdSipd['nama_opd_clean'],
+            $rawJenis,
+            $sourceFundingProfile,
+            $coreData['nama_paket_core'],
+            $locationIdentityKey
+        );
 
         // Sanitasi total_nilai
         $rawTotal = trim($getVal('total_nilai', '0'));
@@ -270,59 +354,60 @@ class RupCsvParser
         $pdn = ucwords(strtolower($getVal('produk_dalam_negeri', 'Ya')));
         $umk = ucwords(strtolower($getVal('status_umk', 'Ya')));
 
-        // Kolom opsional
-        $tglUmumkan = $getVal('tanggal_umumkan');
-        $jadwalPilih = $getVal('jadwal_pemilihan_awal');
-        $kontrakAwal = $getVal('jadwal_kontrak_awal');
-        $kontrakAkhir = $getVal('jadwal_kontrak_akhir');
-        $tipeSwakelola = $getVal('tipe_swakelola') ?: null;
-        $lokasiPekerjaan = $getVal('lokasi_pekerjaan') ?: null;
-        $kodeMak = $getVal('kode_rekening_mak') ?: null;
-        $paguDpa = $getVal('pagu_pengadaan_dpa') !== '' && is_numeric($getVal('pagu_pengadaan_dpa')) ? (float) $getVal('pagu_pengadaan_dpa') : null;
-
         return [
-            'row_index_csv'          => $rowIndex,
-            'kode_rup'               => $kodeRupClean,
-            'nama_instansi'          => $namaInstansi,
-            'nama_satuan_kerja'      => $rawSatker,
-            'nama_opd_clean'         => $opdSipd['nama_opd_clean'],
-            'kode_satker_sipd'       => $opdSipd['kode_satker_sipd'],
-            'tahun_anggaran'         => $tahunAnggaran,
-            'cara_pengadaan'         => $caraPengadaan,
-            'metode_pengadaan'       => $rawMetode,
-            'metode_arr'             => $metodeArr,
-            'jenis_pengadaan'        => $rawJenis,
-            'jenis_arr'              => $jenisArr,
-            'nama_paket'             => $namaPaket,
-            'nama_paket_clean'       => $namaPaketClean,
-            'nama_paket_objek'       => $namaPaketObjek,
-            'nama_paket_core'        => $coreData['nama_paket_core'],
-            'tokens'                 => $coreData['tokens'],
-            'token_count'            => $coreData['token_count'],
-            'lokasi_extracted'       => $coreData['lokasi_extracted'],
-            'sumber_dana'            => $rawSumberDana,
-            'sumber_dana_arr'        => $sumberDanaArr,
-            'budget_cycle'           => $budgetCycle,
-            'is_blud'                => $isBlud,
-            'is_dak'                 => $isDak,
-            'is_multiyears'          => $isMultiyears,
-            'is_scientific_truncated'=> 0, // dihitung kemudian di batch level
-            'is_integrated_package'  => $isIntegrated,
-            'produk_dalam_negeri'    => $pdn,
-            'status_umk'             => $umk,
-            'total_nilai'            => $totalNilai,
-            'cluster_id'             => null,
-            'max_severity'           => 'AMAN',
-            'violation_count'        => 0,
-            'diff_status'            => 'NEW',
-            'tanggal_umumkan'        => ! empty($tglUmumkan) ? date('Y-m-d', strtotime($tglUmumkan)) : null,
-            'jadwal_pemilihan_awal'  => ! empty($jadwalPilih) ? date('Y-m-d', strtotime($jadwalPilih)) : null,
-            'jadwal_kontrak_awal'    => ! empty($kontrakAwal) ? date('Y-m-d', strtotime($kontrakAwal)) : null,
-            'jadwal_kontrak_akhir'   => ! empty($kontrakAkhir) ? date('Y-m-d', strtotime($kontrakAkhir)) : null,
-            'tipe_swakelola'         => $tipeSwakelola,
-            'lokasi_pekerjaan'       => $lokasiPekerjaan,
-            'kode_rekening_mak'      => $kodeMak,
-            'pagu_pengadaan_dpa'     => $paguDpa,
+            'row_index_csv'                  => $rowIndex,
+            'kode_rup'                       => $kodeRupClean,
+            'nama_instansi'                  => $namaInstansi,
+            'nama_satuan_kerja'              => $rawSatker,
+            'nama_opd_clean'                 => $opdSipd['nama_opd_clean'],
+            'kode_satker_sipd'               => $opdSipd['kode_satker_sipd'],
+            'tahun_anggaran'                 => $tahunAnggaran,
+            'regime_status'                  => $regimeStatus,
+            'cara_pengadaan'                 => $caraPengadaan,
+            'metode_pengadaan'               => $rawMetode,
+            'metode_arr'                     => $metodeArr,
+            'jenis_pengadaan'                => $rawJenis,
+            'jenis_arr'                      => $jenisArr,
+            'nama_paket'                     => $namaPaket,
+            'nama_paket_clean'               => $namaPaketClean,
+            'nama_paket_objek'               => $namaPaketObjek,
+            'nama_paket_core'                => $coreData['nama_paket_core'],
+            'tokens'                         => $coreData['tokens'],
+            'token_count'                    => $coreData['token_count'],
+            'lokasi_extracted'               => $coreData['lokasi_extracted'],
+            'serial_sequence_number'         => $serialSeqNumber,
+            'location_identity_key'          => $locationIdentityKey,
+            'serial_family_key'              => $serialFamilyKey,
+            'sumber_dana'                    => $rawSumberDana,
+            'sumber_dana_arr'                => $sumberDanaArr,
+            'source_funding_profile'         => $sourceFundingProfile,
+            'is_multi_source'                => $isMultiSource,
+            'budget_cycle'                   => $budgetCycle,
+            'is_blud'                        => $isBlud,
+            'is_dak'                         => $isDak,
+            'is_multiyears'                  => $isMultiyears,
+            'is_scientific_truncated'        => 0, // dihitung kemudian di batch level
+            'is_integrated_package'          => $isIntegrated,
+            'produk_dalam_negeri'            => $pdn,
+            'status_umk'                     => $umk,
+            'total_nilai'                    => $totalNilai,
+            'cluster_id'                     => null,
+            'max_severity'                   => 'AMAN',
+            'violation_count'                => 0,
+            'diff_status'                    => 'NEW',
+            'previous_kode_rup'              => null,
+            'normalized_classification_json' => json_encode([
+                'cara_norm'    => $caraPengadaan,
+                'metode_norm'  => $metodeArr,
+                'jenis_norm'   => $jenisArr,
+                'funding_norm' => $sourceFundingProfile,
+            ]),
+            'data_quality_flags_json'        => json_encode([
+                'pagu_is_invalid' => ($totalNilai <= 0) ? 1 : 0,
+                'is_multi_source' => $isMultiSource,
+                'has_serial'      => ! empty($serialSeqNumber) ? 1 : 0,
+                'has_location'    => ! empty($locationIdentityKey) ? 1 : 0,
+            ]),
         ];
     }
 
@@ -345,19 +430,18 @@ class RupCsvParser
     }
 
     /**
-     * Memetakan nama kolom CSV asli ke canonical tags
+     * Memetakan nama kolom CSV asli ke 12 canonical tags inti
      */
     private function mapHeaders(array $rawHeaders): array
     {
         $map = [];
-        $allDefinitions = array_merge(self::CORE_HEADERS, self::EXTENDED_HEADERS);
 
         foreach ($rawHeaders as $idx => $headerName) {
             $norm = strtolower(trim((string) $headerName));
             $norm = preg_replace('/[^a-z0-9_]/', '_', $norm);
             $norm = trim((string) preg_replace('/_+/', '_', $norm), '_');
 
-            foreach ($allDefinitions as $tag => $aliases) {
+            foreach (self::CORE_HEADERS as $tag => $aliases) {
                 if (in_array($norm, $aliases, true) || $norm === $tag) {
                     $map[$tag] = $idx;
                     break;

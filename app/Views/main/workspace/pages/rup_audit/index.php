@@ -9,17 +9,17 @@
             <div class="col-lg-7">
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                     <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
-                        <i class="fas fa-microscope me-1"></i> Universal SIRUP Compliance Engine v3.1
+                        <i class="fas fa-microscope me-1"></i> RUP Compliance &amp; Risk Screening Engine v4.0
                     </span>
                     <span class="badge bg-white text-navy px-3 py-2 rounded-pill small fw-bold shadow-sm">
-                        <i class="fas fa-balance-scale text-primary me-1"></i> Perpres 46/2025 &middot; UU 20/2023 &middot; Perlem LKPP 3/2026
+                        <i class="fas fa-balance-scale text-primary me-1"></i> Disiplin 12 Kolom Inti CSV &middot; Perpres 46/2025 &middot; Perlem LKPP 3/2026
                     </span>
                 </div>
                 <h1 class="h2 text-white fw-bold mb-2">
-                    Audit Kepatuhan RUP Otomatis
+                    Skrining &amp; Audit Kepatuhan Data RUP
                 </h1>
                 <p class="text-white-50 mb-0 fs-6" style="max-width: 650px;">
-                    Sistem audit 100% populasi paket RUP Pemerintah Provinsi Lampung untuk deteksi dini pemecahan paket (<em>splitting</em>), anomali pagu mepet batas, kewajiban Katalog V6, afirmasi UMK &ge;40%, serta kalkulasi skor <strong>RUP Compliance Index (RCI v3.1)</strong>.
+                    Sistem skrining dan penapisan risiko 100% populasi paket RUP berbasis 12 kolom inti CSV SIRUP untuk deteksi dini pemecahan paket (<em>serial splitting</em>), pelampauan batas Pengadaan Langsung, anomali pagu ambang, afirmasi UMK, dan pemetaan profil risiko OPD.
                 </p>
             </div>
 
@@ -61,7 +61,7 @@
             <div class="card h-100 border-0 shadow-sm rounded-4 p-3 bg-white">
                 <span class="text-secondary small fw-semibold">E-Purchasing</span>
                 <h3 class="h4 fw-bold text-success mt-1 mb-0"><?= number_format($kpi['persen_epurchasing'], 1) ?>%</h3>
-                <small class="text-muted">Target: &ge; 30% Penyedia</small>
+                <small class="text-muted">Indikator Pagu Penyedia</small>
             </div>
         </div>
 
@@ -74,12 +74,12 @@
             </div>
         </div>
 
-        <!-- Card 5: Pagu Berisiko Kritis/Tinggi -->
+        <!-- Card 5: Pagu Potensi Tidak Sesuai -->
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100 border-0 shadow-sm rounded-4 p-3 bg-white">
-                <span class="text-secondary small fw-semibold">Pagu Berisiko Kritis/Tinggi</span>
+                <span class="text-secondary small fw-semibold">Pagu Potensi Tidak Sesuai</span>
                 <h3 class="h4 fw-bold text-danger mt-1 mb-0">Rp <?= number_format($kpi['pagu_kritis_tinggi'], 0, ',', '.') ?></h3>
-                <small class="text-muted">Prioritas Reviu Probity</small>
+                <small class="text-muted">Prioritas Reviu Kepatuhan</small>
             </div>
         </div>
     </div>
@@ -92,7 +92,7 @@
                 <p class="text-muted small mb-0">Mendukung file CSV 1 OPD maupun Multi-OPD (~8.000+ baris) dengan pemisahan otomatis kode 22 digit SIPD.</p>
             </div>
             <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 fw-semibold">
-                Skema Dual-Mode (12 Wajib + 8 Ekstensi)
+                Skema 12 Kolom Inti CSV (RUP-Only)
             </span>
         </div>
 
@@ -127,11 +127,11 @@
 
                     <div class="col-12 text-end pt-2">
                         <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold"
-                                data-confirm="Mulai eksekusi audit otomatis kepatuhan RUP terhadap seluruh paket dalam berkas CSV ini?"
-                                data-title="Konfirmasi Mulai Audit RUP v3.1"
+                                data-confirm="Mulai eksekusi skrining kepatuhan dan risiko RUP terhadap seluruh paket dalam berkas CSV ini?"
+                                data-title="Konfirmasi Mulai Audit RUP v4.0"
                                 data-type="primary"
                                 data-btn-text="Ya, Jalankan Audit">
-                            <i class="fas fa-play-circle me-1"></i> Jalankan Engine Audit v3.1
+                            <i class="fas fa-play-circle me-1"></i> Jalankan Engine Skrining v4.0
                         </button>
                     </div>
                 </div>
@@ -207,7 +207,7 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm">
-                                        <a href="<?= site_url('workspace/audit-rup/detail/' . esc($b['batch_uuid'])) ?>" class="btn btn-outline-primary" title="Buka Dashboard Analitik 5 Tab">
+                                        <a href="<?= site_url('workspace/audit-rup/detail/' . esc($b['batch_uuid'])) ?>" class="btn btn-outline-primary" title="Buka Dashboard Analitik 6 Tab">
                                             <i class="fas fa-eye"></i> Buka
                                         </a>
                                         <a href="<?= site_url('workspace/audit-rup/export-excel/' . esc($b['batch_uuid'])) ?>" class="btn btn-outline-success" title="Unduh Excel 5-Sheet">
