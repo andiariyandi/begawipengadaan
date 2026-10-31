@@ -312,11 +312,11 @@ class HomeController extends BaseController
         }
         $upcomingEvents = $upcomingEventsNear;
 
-        // 7. Visitor Statistics Tracking (Non-unique page views)
+        // 7. Visitor Statistics Tracking
         $visitorStats = [];
         try {
             $visitorService = new \App\Services\VisitorStatisticService();
-            $visitorService->recordHit('home', $this->request->getIPAddress());
+            $visitorService->recordHit('home');
             $visitorStats = $visitorService->getVisitorStats();
         } catch (\Throwable) {
         }

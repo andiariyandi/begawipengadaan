@@ -21,16 +21,26 @@ class EventPublicController extends BaseController
         $this->auditService = new AuditService();
     }
 
+    public function initController(
+        \CodeIgniter\HTTP\RequestInterface $request,
+        \CodeIgniter\HTTP\ResponseInterface $response,
+        \Psr\Log\LoggerInterface $logger
+    ) {
+        parent::initController($request, $response, $logger);
+
+        if ($this->request->getMethod() === 'GET' && ! $this->request->isAJAX() && ! is_cli()) {
+            try {
+                (new \App\Services\VisitorStatisticService())->recordHit('event');
+            } catch (\Throwable) {
+            }
+        }
+    }
+
     /**
      * Main Event & Agenda index with filters, pagination, and KPI ribbon
      */
     public function index(): string
     {
-        try {
-            (new \App\Services\VisitorStatisticService())->recordHit('event', $this->request->getIPAddress());
-        } catch (\Throwable) {
-        }
-
         return $this->renderCatalog('all');
     }
 

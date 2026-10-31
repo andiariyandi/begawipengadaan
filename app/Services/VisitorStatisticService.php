@@ -48,16 +48,19 @@ class VisitorStatisticService
 
         $server = $_SERVER ?? [];
         $candidates = [
-            $server['HTTP_CF_CONNECTING_IP'] ?? null,
-            $server['HTTP_X_REAL_IP'] ?? null,
-            $server['HTTP_X_FORWARDED_FOR'] ?? null,
-            $server['HTTP_CLIENT_IP'] ?? null,
+            $server['HTTP_CF_CONNECTING_IP'] ?? ($request instanceof \CodeIgniter\HTTP\IncomingRequest ? $request->getHeaderLine('CF-Connecting-IP') : null),
+            $server['HTTP_X_REAL_IP'] ?? ($request instanceof \CodeIgniter\HTTP\IncomingRequest ? $request->getHeaderLine('X-Real-IP') : null),
+            $server['HTTP_X_FORWARDED_FOR'] ?? ($request instanceof \CodeIgniter\HTTP\IncomingRequest ? $request->getHeaderLine('X-Forwarded-For') : null),
+            $server['HTTP_CLIENT_IP'] ?? ($request instanceof \CodeIgniter\HTTP\IncomingRequest ? $request->getHeaderLine('Client-IP') : null),
         ];
 
         foreach ($candidates as $candidate) {
             if (! empty($candidate)) {
-                $parts = explode(',', $candidate);
+                $parts = explode(',', (string) $candidate);
                 $cleanIp = trim($parts[0]);
+                if (str_contains($cleanIp, ':') && ! str_contains($cleanIp, '::') && substr_count($cleanIp, ':') === 1) {
+                    $cleanIp = explode(':', $cleanIp)[0];
+                }
                 if (filter_var($cleanIp, FILTER_VALIDATE_IP)) {
                     return $cleanIp;
                 }
@@ -89,12 +92,37 @@ class VisitorStatisticService
             $feature = 'home';
         }
 
-        if (empty($ip)) {
-            $ip = $this->resolveClientIp();
+        // Resolusi IP Client cerdas: jika $ip kosong atau bernilai loopback (127.0.0.1 / ::1),
+        // prioritaskan pemeriksaan header reverse proxy (CF-Connecting-IP, X-Real-IP, X-Forwarded-For).
+        if (empty($ip) || $ip === '127.0.0.1' || $ip === '::1') {
+            $resolved = $this->resolveClientIp();
+            if (! empty($resolved) && $resolved !== '127.0.0.1' && $resolved !== '::1') {
+                $ip = $resolved;
+            } elseif (empty($ip)) {
+                $ip = $resolved;
+            }
         }
 
         if ($userAgent === null && isset($_SERVER['HTTP_USER_AGENT'])) {
             $userAgent = substr(trim($_SERVER['HTTP_USER_AGENT']), 0, 250);
+        }
+
+        // Penanganan simulasi dan pengujian multi-klien di lingkungan lokal (Laragon / localhost):
+        // Jika IP terdeteksi loopback (127.0.0.1 / ::1), bedakan sesi/klien menggunakan cookie bp_vid atau User-Agent
+        // agar browser / device / sesi berbeda tidak terjebak di 1 slot IP yang sama.
+        if (($ip === '127.0.0.1' || $ip === '::1') && ! is_cli()) {
+            $clientToken = $_COOKIE['bp_vid'] ?? null;
+            if ($clientToken === null && ! headers_sent()) {
+                $clientToken = bin2hex(random_bytes(6));
+                setcookie('bp_vid', $clientToken, time() + 86400 * 30, '/');
+                $_COOKIE['bp_vid'] = $clientToken;
+            }
+
+            $seed = ($clientToken ?? '') . '_' . ($userAgent ?? '');
+            if (! empty($seed) && $seed !== '_') {
+                $slot = (abs(crc32($seed)) % 250) + 2; // Range 127.0.0.2 - 127.0.0.251
+                $ip   = '127.0.0.' . $slot;
+            }
         }
 
         $today = date('Y-m-d');
