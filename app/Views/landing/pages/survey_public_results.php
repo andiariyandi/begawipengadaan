@@ -257,7 +257,7 @@
                             <i class="far fa-calendar-check me-1"></i> Event &amp; Agenda
                         </a>
                         <a href="<?= site_url('statistik/kompetensi') ?>" class="arena-filter-pill arena-filter-pill--inactive">
-                            <i class="fas fa-certificate me-1"></i> Sertifikasi PBJ
+                            <i class="fas fa-certificate me-1"></i> Sertifikat Belajar PBJ
                         </a>
                         <a href="<?= site_url('statistik/survei-kepuasan') ?>" class="arena-filter-pill arena-filter-pill--active">
                             <i class="fas fa-star text-warning me-1"></i> Survei IKM

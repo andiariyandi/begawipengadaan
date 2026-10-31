@@ -186,7 +186,7 @@ $heroHeadings = [
     'faqs' => [
         'tag'   => 'Pusat Tanya Jawab Pengadaan Pemerintah',
         'title' => 'Tanya Jawab (FAQ) PBJ',
-        'desc'  => 'Jawaban ringkas dan berlandaskan regulasi LKPP atas problematika teknis yang sering dihadapi PPK, Pokja, dan penyedia.',
+        'desc'  => 'Jawaban ringkas dan berlandaskan regulasi pengadaan atas problematika teknis yang sering dihadapi PPK, Pokja, dan penyedia.',
         'searchPlaceholder' => 'Cari pertanyaan atau kata kunci regulasi...',
         'searchUrl' => site_url('bunga-rampai/faq'),
     ],
@@ -1200,7 +1200,7 @@ $chips = $catalogChips[$catalogType] ?? ['Perpres 46/2025', 'HPS', 'KAK'];
                     <div class="d-flex flex-column gap-2">
                         <div class="p-2 radius-8 border-start border-3 border-primary bg-light">
                             <strong style="font-size: 13px; color: #0f172a;">Rujukan Praktik Baik</strong>
-                            <p class="text-muted small mb-0" style="font-size: 12px; line-height: 1.45;">Analisis dan tips mitigasi temuan pemeriksaan LKPP &amp; BPK.</p>
+                            <p class="text-muted small mb-0" style="font-size: 12px; line-height: 1.45;">Analisis dan tips mitigasi temuan pemeriksaan APIP &amp; BPK.</p>
                         </div>
                         <div class="p-2 radius-8 border-start border-3 border-success bg-light">
                             <strong style="font-size: 13px; color: #0f172a;">Template Baku Teruji</strong>

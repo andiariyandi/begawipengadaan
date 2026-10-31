@@ -90,7 +90,7 @@ $activeTab    = $activeTab ?? 'all';
                         <span>Pemerintah Provinsi Lampung</span>
                     </h1>
                     <p class="evt-hero-desc mb-0">
-                        Transparansi capaian pembelajaran, kepatuhan regulasi hukum, partisipasi agenda pembinaan, survei kepuasan masyarakat (IKM), dan sertifikasi kompetensi pengadaan barang dan jasa.
+                        Transparansi capaian pembelajaran, kepatuhan regulasi hukum, partisipasi agenda pembinaan, survei kepuasan masyarakat (IKM), dan sertifikat kelulusan kegiatan belajar pengadaan barang dan jasa.
                     </p>
                 </div>
                 <div class="col-lg-4 text-lg-end">
@@ -116,7 +116,7 @@ $activeTab    = $activeTab ?? 'all';
                         <i class="far fa-calendar-check me-1"></i> Event &amp; Agenda
                     </a>
                     <a href="<?= site_url('statistik/kompetensi') ?>" class="arena-filter-pill <?= $activeTab === 'competency' ? 'arena-filter-pill--active' : 'arena-filter-pill--inactive' ?>">
-                        <i class="fas fa-certificate me-1"></i> Sertifikasi PBJ
+                        <i class="fas fa-certificate me-1"></i> Sertifikat Belajar PBJ
                     </a>
                     <a href="<?= site_url('statistik/survei-kepuasan') ?>" class="arena-filter-pill arena-filter-pill--inactive">
                         <i class="fas fa-star text-warning me-1"></i> Survei IKM

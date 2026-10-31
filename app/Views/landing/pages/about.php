@@ -134,7 +134,7 @@
                     }
                     if (empty($missions)) {
                         $missions = [
-                            'Peningkatan Kompetensi Berkelanjutan: Mengembangkan kapasitas SDM PBJ melalui Arena Belajar digital, bimtek teknis, dan sertifikasi terstandarisasi.',
+                            'Peningkatan Pengetahuan Berkelanjutan: Mengembangkan wawasan dan kapasitas SDM PBJ melalui Arena Belajar digital, kegiatan bimtek teknis, dan sertifikat kelulusan belajar.',
                             'Penguatan Tata Kelola & Advokasi: Memberikan layanan pembinaan, pendampingan hukum, dan mitigasi risiko pengadaan bagi seluruh OPD.',
                             'Akselerasi E-Purchasing & UMKM: Mengoptimalkan E-Katalog Lokal Lampung dan Toko Daring guna menyerap produk dalam negeri (P3DN).',
                             'Pusat Literasi & Regulasi Terbuka: Menjamin kemudahan akses regulasi, standar dokumen, dan telaah hukum melalui Bunga Rampai.',
@@ -288,7 +288,7 @@
                         </div>
                         <h4>Government Intelligence PBJ</h4>
                         <p>
-                            Pemantauan analitik pengadaan, statistik kompetensi aparatur pemerintah daerah, dan data strategis pengadaan barang/jasa secara real-time.
+                            Pemantauan analitik pengadaan, statistik partisipasi belajar aparatur pemerintah daerah, dan data strategis pengadaan barang/jasa secara real-time.
                         </p>
                         <a href="<?= site_url('statistik') ?>" class="text-primary fw-bold text-decoration-none small">
                             Lihat Statistik Publik <i class="fas fa-arrow-right ms-1"></i>
@@ -347,7 +347,7 @@
                         <div class="abt-patik-letter">P</div>
                         <div>
                             <h4 class="abt-patik-title">Profesional</h4>
-                            <p class="abt-patik-desc">Bekerja berlandaskan keahlian teknis, standar kompetensi tinggi, dan kepatuhan penuh terhadap SOP pengadaan.</p>
+                            <p class="abt-patik-desc">Bekerja berlandaskan keahlian teknis, pemahaman regulasi yang mendalam, dan kepatuhan penuh terhadap SOP pengadaan.</p>
                         </div>
                     </div>
                 </div>
@@ -387,7 +387,7 @@
                         <div class="abt-patik-letter">K</div>
                         <div>
                             <h4 class="abt-patik-title">Kolaboratif</h4>
-                            <p class="abt-patik-desc">Membangun sinergi aktif antara perangkat daerah, instansi pembina LKPP, penyedia swasta, akademisi, dan publik.</p>
+                            <p class="abt-patik-desc">Membangun sinergi aktif antara perangkat daerah, UKPBJ Provinsi Lampung, penyedia swasta, akademisi, dan publik.</p>
                         </div>
                     </div>
                 </div>
@@ -442,7 +442,7 @@
                         </div>
                         <h5>Bagian Pembinaan &amp; Advokasi PBJ</h5>
                         <p>
-                            Membina SDM pengadaan, mengelola pembelajaran kompetensi, memberikan telaah dan pendampingan hukum, serta mitigasi risiko PBJ.
+                            Membina SDM pengadaan, mengelola kegiatan belajar dan peningkatan pengetahuan, memberikan telaah dan pendampingan hukum, serta mitigasi risiko PBJ.
                         </p>
                     </div>
                 </div>
@@ -511,7 +511,7 @@
     <div class="container">
         <h2 class="abt-sec-title">Butuh Konsultasi atau Pendampingan PBJ?</h2>
         <p class="abt-sec-desc max-w-700 mx-auto mb-4">
-            Tim Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung siap membantu konsultasi teknis, bimbingan penggunaan SPSE, dan peningkatan kompetensi pengadaan.
+            Tim Biro Pengadaan Barang dan Jasa Sekretariat Daerah Provinsi Lampung siap membantu konsultasi teknis, bimbingan penggunaan SPSE, dan peningkatan pengetahuan pengadaan.
         </p>
         <div class="d-flex flex-wrap justify-content-center gap-3">
             <a href="<?= site_url('kontak') ?>" class="thm-btn">

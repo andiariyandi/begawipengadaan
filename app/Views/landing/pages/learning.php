@@ -56,10 +56,10 @@ if (! empty($featuredPrograms)) {
             'tag_class'   => 'evt-badge-flag--featured',
             'status_tag'  => '<iconify-icon icon="solar:star-bold" class="align-middle"></iconify-icon> Kurikulum Unggulan',
             'type_label'  => 'Program Kurikulum',
-            'badge_extra' => 'Standar LKPP RI',
+            'badge_extra' => 'UKPBJ Prov. Lampung',
             'meta_1'      => '<iconify-icon icon="solar:layers-minimalistic-bold" class="text-warning align-middle"></iconify-icon> ' . (int) ($fProg['course_count'] ?? 0) . ' Course Terpadu',
-            'meta_2'      => '<iconify-icon icon="solar:shield-check-bold" class="text-info align-middle"></iconify-icon> Jalur Kompetensi',
-            'meta_3'      => '<iconify-icon icon="solar:diploma-verified-bold" class="text-success align-middle"></iconify-icon> Terhubung Uji Kompetensi',
+            'meta_2'      => '<iconify-icon icon="solar:shield-check-bold" class="text-info align-middle"></iconify-icon> Jalur Belajar Terstruktur',
+            'meta_3'      => '<iconify-icon icon="solar:diploma-verified-bold" class="text-success align-middle"></iconify-icon> Evaluasi Pemahaman &amp; Sertifikat Belajar',
             'action_text' => 'Eksplorasi Kurikulum',
         ];
     }
@@ -157,7 +157,7 @@ if ($spotlightMode === 'program') {
             <div class="row align-items-center justify-content-between g-3 mb-2">
                 <div class="col-lg-7">
                     <h1 class="evt-hero-title mb-2">
-                        Pusat Pembelajaran &amp; Kompetensi Pengadaan <br>
+                        Pusat Kegiatan Belajar &amp; Peningkatan Wawasan PBJ <br>
                         <span>Pemerintah Provinsi Lampung</span>
                     </h1>
                     <p class="evt-hero-desc mb-0">
@@ -445,7 +445,7 @@ if ($spotlightMode === 'program') {
                                                 </a>
                                             </h4>
                                             <p class="arena-card__text">
-                                                <?= esc(mb_strimwidth($prog['summary'] ?: ($prog['target_audience'] ?: 'Program kurikulum kompetensi pengadaan barang dan jasa.'), 0, 85, '…')) ?>
+                                                <?= esc(mb_strimwidth($prog['summary'] ?: ($prog['target_audience'] ?: 'Program kegiatan belajar dan peningkatan wawasan pengadaan barang dan jasa.'), 0, 85, '…')) ?>
                                             </p>
                                             <div class="arena-card__meta">
                                                 <span><i class="fas fa-book-open text-primary"></i> <?= (int) ($prog['course_count'] ?? 0) ?> Course</span>
@@ -688,11 +688,11 @@ if ($spotlightMode === 'program') {
                     </nav>
                 </div>
 
-                <!-- Sidebar Widget 3: Standar Kompetensi LKPP & Pemprov Lampung (Dipindahkan setelah Kategori) -->
+                <!-- Sidebar Widget 3: Peningkatan Pengetahuan & Wawasan PBJ Lampung (Dipindahkan setelah Kategori) -->
                 <div class="berita-widget">
                     <h4 class="berita-widget__title">
                         <i class="fas fa-route" style="background: #e0f2fe; color: #0284c7;"></i>
-                        <span>Standar Kompetensi LKPP &amp; Pemprov Lampung</span>
+                        <span>Jalur Belajar &amp; Peningkatan Pengetahuan</span>
                     </h4>
                     <p class="text-muted small mb-3" style="font-size: 13px; line-height: 1.55;">
                         Roadmap Jalur Belajar Pengadaan Barang &amp; Jasa Berjenjang dari dasar regulasi hingga mitigasi risiko:
@@ -883,8 +883,8 @@ if ($spotlightMode === 'program') {
                         <div class="d-flex align-items-start gap-2 p-2 radius-8 bg-light border">
                             <i class="fas fa-check-circle text-primary mt-1" style="font-size: 13px;"></i>
                             <div>
-                                <strong class="d-block text-dark" style="font-size: 12.5px;">Kurikulum Berstandar LKPP RI</strong>
-                                <small class="text-muted" style="font-size: 11.5px; line-height: 1.4;">Dirancang berjenjang sesuai okupasi dan standar nasional pengadaan.</small>
+                                <strong class="d-block text-dark" style="font-size: 12.5px;">Kurikulum Terpadu UKPBJ Lampung</strong>
+                                <small class="text-muted" style="font-size: 11.5px; line-height: 1.4;">Dirancang berjenjang oleh Biro PBJ Pemprov Lampung sesuai kebutuhan pengadaan daerah.</small>
                             </div>
                         </div>
                         <div class="d-flex align-items-start gap-2 p-2 radius-8 bg-light border">
@@ -942,7 +942,7 @@ if ($spotlightMode === 'program') {
             <i class="fas fa-rocket me-1"></i> Mulai Pembelajaran Hari Ini
         </span>
         <h2 class="text-white mb-2" style="font-size: 26px; font-weight: 800; line-height: 1.3;">
-            Siap Mengembangkan Kompetensi Pengadaan Anda?
+            Siap Memperdalam Pengetahuan &amp; Wawasan Pengadaan Anda?
         </h2>
         <p class="mx-auto mb-3 text-white-80" style="max-width: 620px; font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,0.85);">
             Bergabunglah bersama ribuan aparatur sipil negara dan pelaku usaha pengadaan di Provinsi Lampung untuk mewujudkan pengadaan yang transparan, akuntabel, dan profesional.

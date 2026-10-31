@@ -273,7 +273,7 @@ $previewUrl  = site_url('regulasi/' . esc($regulation['slug'] ?? '') . '/preview
                             <i class="fas fa-history"></i> Riwayat Versi (<?= count($versions) ?>)
                         </button>
                         <button type="button" class="regulation-tab-btn" onclick="switchTab('tab-tahapan', this)">
-                            <i class="fas fa-tasks"></i> Tahapan &amp; Kompetensi
+                            <i class="fas fa-tasks"></i> Tahapan &amp; Bidang PBJ
                         </button>
                     </div>
 
@@ -525,7 +525,7 @@ $previewUrl  = site_url('regulasi/' . esc($regulation['slug'] ?? '') . '/preview
                         <?php endif; ?>
                     </div>
 
-                    <!-- TAB 4: TAHAPAN PBJ & KOMPETENSI -->
+                    <!-- TAB 4: TAHAPAN & BIDANG PENGADAAN -->
                     <div id="tab-tahapan" class="tab-pane-content" style="display: none;">
                         <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2" style="color: #052143;">
                             <i class="fas fa-tasks text-primary"></i>
@@ -555,11 +555,11 @@ $previewUrl  = site_url('regulasi/' . esc($regulation['slug'] ?? '') . '/preview
                             <p class="fst-italic mb-4" style="color: #64748b;">Belum ada pemetaan tahapan spesifik.</p>
                         <?php endif; ?>
 
-                        <!-- Kompetensi Terkait -->
+                        <!-- Bidang Keahlian Terkait -->
                         <?php if (! empty($competencies)): ?>
                             <h4 class="h6 fw-bold mb-3 pt-3 border-top d-flex align-items-center gap-2" style="color: #052143; border-color: #e2e8f0 !important;">
                                 <i class="fas fa-user-graduate text-info"></i>
-                                Kompetensi Keahlian Pengadaan Terkait
+                                Bidang Pengadaan &amp; Wawasan Terkait
                             </h4>
                             <div class="d-flex flex-wrap gap-2">
                                 <?php foreach ($competencies as $comp): ?>
@@ -706,8 +706,8 @@ $previewUrl  = site_url('regulasi/' . esc($regulation['slug'] ?? '') . '/preview
                         <div class="d-flex align-items-start gap-2 p-2 radius-8 bg-light border">
                             <i class="fas fa-check-circle text-primary mt-1" style="font-size: 13px;"></i>
                             <div>
-                                <strong class="d-block text-dark" style="font-size: 12.5px;">Standar LKPP RI &amp; JDIH</strong>
-                                <small style="color: #334155; font-size: 12px; line-height: 1.45;">Naskah resmi diverifikasi selaras regulasi kepengadaan nasional.</small>
+                                <strong class="d-block text-dark" style="font-size: 12.5px;">JDIH &amp; Regulasi Resmi PBJ</strong>
+                                <small style="color: #334155; font-size: 12px; line-height: 1.45;">Naskah resmi dihimpun dan diverifikasi oleh Biro PBJ Provinsi Lampung.</small>
                             </div>
                         </div>
                         <div class="d-flex align-items-start gap-2 p-2 radius-8 bg-light border">

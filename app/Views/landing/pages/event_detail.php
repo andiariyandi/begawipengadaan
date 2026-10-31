@@ -175,7 +175,7 @@
                     <!-- Full Description Body -->
                     <h3 class="h5 fw-bold text-slate-900 mb-3">Deskripsi &amp; Latar Belakang</h3>
                     <div class="text-slate-700 mb-4" style="line-height: 1.8; font-size: 15px;">
-                        <?= nl2br(esc($event['description'] ?: 'Kegiatan pembinaan, sosialisasi regulasi, dan peningkatan kompetensi pengadaan barang dan jasa Pemerintah Provinsi Lampung.')) ?>
+                        <?= nl2br(esc($event['description'] ?: 'Kegiatan pembinaan, sosialisasi regulasi, dan peningkatan wawasan serta pengetahuan pengadaan barang dan jasa Pemerintah Provinsi Lampung.')) ?>
                     </div>
 
                     <!-- Susunan Acara (Rundown Kegiatan) - Strictly Real from Event Timestamps -->
@@ -246,7 +246,7 @@
                                 </div>
                                 <div>
                                     <h6 class="fw-bold mb-0 text-slate-900">Instruktur &amp; Narasumber PBJ Terakreditasi</h6>
-                                    <small class="text-slate-600">Fasilitator Berstandar Nasional LKPP</small>
+                                    <small class="text-slate-600">Fasilitator Berkompeten UKPBJ Provinsi Lampung</small>
                                 </div>
                             </div>
                         </div>

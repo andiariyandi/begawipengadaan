@@ -163,7 +163,7 @@ $surveyCaptchaQuestion = "{$surveyNum1} + {$surveyNum2}";
                                 <div class="survey-aspect-item">
                                     <div class="survey-aspect-info">
                                         <div class="survey-aspect-name"><i class="fas fa-graduation-cap text-success me-2"></i>Kualitas Arena Belajar & Pelatihan PBJ</div>
-                                        <div class="survey-aspect-hint">Kesesuaian silabus, kompetensi instruktur, kejelasan modul bimtek</div>
+                                        <div class="survey-aspect-hint">Kesesuaian materi, penyampaian instruktur, kejelasan modul belajar</div>
                                     </div>
                                     <div class="survey-aspect-stars" data-input="service_learning_rating">
                                         <input type="hidden" name="service_learning_rating" value="5">

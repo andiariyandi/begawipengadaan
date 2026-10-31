@@ -151,7 +151,7 @@ class CertificateVerificationController extends BaseController
         return view('landing/pages/certificate_verify', [
             'title'           => 'Verifikasi Keabsahan Sertifikat Digital PBJ | BegawiPengadaan',
             'pageTitle'       => 'Verifikasi Sertifikat Digital',
-            'metaDescription' => 'Portal resmi verifikasi keabsahan sertifikat kompetensi pengadaan barang/jasa Pemerintah Provinsi Lampung berbasis kode unik dan kriptografi digital.',
+            'metaDescription' => 'Portal resmi verifikasi keabsahan sertifikat kelulusan kegiatan belajar pengadaan barang/jasa Pemerintah Provinsi Lampung berbasis kode unik dan kriptografi digital.',
             'metaKeywords'    => 'verifikasi sertifikat, cek sertifikat PBJ Lampung, keabsahan sertifikat pengadaan, BegawiPengadaan sertifikasi',
             'breadcrumbs'     => [
                 ['label' => 'Verifikasi Sertifikat'],
@@ -384,7 +384,7 @@ class CertificateVerificationController extends BaseController
             'id'                  => (int) ($row['id'] ?? 0),
             'certificate_number'  => $row['certificate_number'] ?? '—',
             'user_name'           => ! empty($row['user_name']) ? $row['user_name'] : 'Peserta PBJ Terverifikasi',
-            'title'               => $row['title'] ?? 'Pelatihan Kompetensi Pengadaan Barang/Jasa',
+            'title'               => $row['title'] ?? 'Kegiatan Belajar Pengadaan Barang/Jasa',
             'source_type'         => $row['source_type'] ?? '',
             'source_label'        => $sourceLabel[$row['source_type'] ?? ''] ?? 'Kegiatan PBJ Resmi',
             'status'              => $status,
@@ -441,7 +441,7 @@ class CertificateVerificationController extends BaseController
                 ->where('c.id', $certificateId)
                 ->get()
                 ->getRowArray();
-            return ! empty($row['course_title']) ? $row['course_title'] : 'Pelatihan Kompetensi Pengadaan Barang/Jasa';
+            return ! empty($row['course_title']) ? $row['course_title'] : 'Kegiatan Belajar Pengadaan Barang/Jasa';
         }
 
         if ($sourceType === 'event_registration') {

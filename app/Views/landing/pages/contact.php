@@ -18,7 +18,7 @@
                     <?= !empty($pageBanner['title']) ? $pageBanner['title'] : 'Hubungi Biro PBJ & <span>Helpdesk LPSE</span>' ?>
                 </h1>
                 <p class="contact-hero__subtitle">
-                    <?= esc($pageBanner['subtitle'] ?? 'Pemerintah Provinsi Lampung siap memberikan layanan konsultasi teknis, fasilitasi SPSE, pendampingan regulasi, dan informasi pelatihan kompetensi pengadaan barang/jasa.') ?>
+                    <?= esc($pageBanner['subtitle'] ?? 'Pemerintah Provinsi Lampung siap memberikan layanan konsultasi teknis, fasilitasi SPSE, pendampingan regulasi, dan informasi kegiatan belajar dan peningkatan wawasan pengadaan barang/jasa.') ?>
                 </p>
             </div>
         </div>

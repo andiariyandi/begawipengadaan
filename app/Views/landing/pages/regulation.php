@@ -969,8 +969,8 @@ $renderArenaRegulationCard = function (array $reg, int $idx = 0) {
                         <div class="d-flex align-items-start gap-2 p-2 radius-8 bg-light border">
                             <i class="fas fa-check-circle text-primary mt-1" style="font-size: 13px;"></i>
                             <div>
-                                <strong class="d-block text-dark" style="font-size: 12.5px;">Standar LKPP RI &amp; Perpres PBJ</strong>
-                                <small style="color: #475569; font-size: 12px; line-height: 1.45;">Seluruh dokumen diverifikasi selaras regulasi kepengadaan nasional terkini.</small>
+                                <strong class="d-block text-dark" style="font-size: 12.5px;">Repositori Regulasi PBJ Terpadu</strong>
+                                <small style="color: #475569; font-size: 12px; line-height: 1.45;">Dihimpun dan diverifikasi oleh Biro PBJ Provinsi Lampung selaras hukum nasional terkini.</small>
                             </div>
                         </div>
                         <div class="d-flex align-items-start gap-2 p-2 radius-8 bg-light border">
