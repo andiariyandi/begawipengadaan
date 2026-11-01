@@ -272,22 +272,22 @@ class RupRuleEngine
                 );
             }
 
-            // R-36: Kode RUP Bermasalah / Duplikasi -> ANOMALI_DATA, TINGGI, TINGGI
+            // R-21a: Kode RUP Bermasalah / Duplikasi -> ANOMALI_DATA, TINGGI, TINGGI
             $isTruncated = ! empty($pkg['is_scientific_truncated']);
             $isDupCode   = ($kRup !== '' && ($kodeRupCounts[$kRup] ?? 0) > 1);
             $isCodeEmpty = ($kRup === '' || $kRup === '-');
             if ($isTruncated || $isDupCode || $isCodeEmpty) {
-                $alasanR36 = $isCodeEmpty
+                $alasanR21a = $isCodeEmpty
                     ? 'Kode RUP Kosong pada baris paket.'
                     : ($isDupCode ? "Kode RUP '{$kRup}' muncul lebih dari satu kali dalam file." : "Kode RUP '{$kRup}' rusak (notasi ilmiah/akhiran .0).");
                 $pkgViolations[] = $this->buildFinding(
-                    'R-36',
+                    'R-21a',
                     'ANOMALI_DATA',
                     'TINGGI',
                     'TINGGI',
                     'Integritas Kode RUP',
                     'Standar Unik Kode Pengenal SIRUP LKPP (INAPROC)',
-                    'Kode RUP Bermasalah: ' . $alasanR36,
+                    'Kode RUP Bermasalah / Duplikasi: ' . $alasanR21a,
                     'Pastikan ekspor data memperlakukan kode_rup sebagai teks (string murni) tanpa konversi angka dan hapus duplikasi kode jika ada.',
                     'Penilaian hanya terhadap format dan keunikan kode_rup pada file CSV yang diunggah.',
                     [
@@ -608,36 +608,58 @@ class RupRuleEngine
                     );
                 }
 
-                // R-27a: Statutory Threshold Hugging 95% - 100% Batas PL -> SINYAL_RISIKO, RENDAH, TINGGI
+                // R-27a & R-27b: Statutory Threshold Hugging 95% - 100% Batas PL -> SINYAL_RISIKO, RENDAH, TINGGI
+                // R-27a: EXACT_THRESHOLD (182 paket) | R-27b: NEAR_THRESHOLD (27 paket) -> Total 209 paket
                 $batasPl = RupGraphClusterer::getBatasPl($jenis, $tahunAnggaran);
                 if ($isPL && $totalNilai >= (0.95 * $batasPl) && $totalNilai <= $batasPl) {
                     $isExact = (abs($totalNilai - $batasPl) < 0.01);
-                    $subTeks = $isExact ? 'EXACT_THRESHOLD (tepat pada batas maksimum)' : 'NEAR_THRESHOLD (95% s.d. <100% batas)';
-                    $pkgViolations[] = $this->buildFinding(
-                        'R-27a',
-                        'SINYAL_RISIKO',
-                        'RENDAH',
-                        'TINGGI',
-                        'Sinyal Pagu Ambang',
-                        'Pasal 20 ayat (2) Perpres PBJ & Pedoman Reviu Perencanaan',
-                        "Sinyal Nilai Pagu Mendekati Batas Pengadaan Langsung ({$subTeks}): Pagu paket berada pada rentang 95% - 100% dari ambang tertinggi (Rp " . number_format($batasPl, 0, ',', '.') . ").",
-                        'Lakukan reviu kertas kerja HPS/RAB untuk memastikan kewajaran estimasi dan tidak terjadi pemecahan kebutuhan yang disengaja.',
-                        'Mendekati ambang batas bukan pelanggaran hukum; nilai tepat pada batas masih termasuk cakupan Pengadaan Langsung.',
-                        [
-                            ['field' => 'metode_pengadaan', 'raw_value' => $metode],
-                            ['field' => 'total_nilai', 'raw_value' => (string) $totalNilai],
-                            ['field' => 'ambang_batas', 'raw_value' => (string) $batasPl],
-                        ],
-                        [
-                            ['regulation' => 'Perpres 16/2018 jo. Perpres 46/2025', 'article' => 'Pasal 20 ayat (2)', 'norm_summary' => 'Larangan memecah pengadaan untuk menghindari tender'],
-                        ]
-                    );
+                    if ($isExact) {
+                        $pkgViolations[] = $this->buildFinding(
+                            'R-27a',
+                            'SINYAL_RISIKO',
+                            'RENDAH',
+                            'TINGGI',
+                            'Sinyal Pagu Ambang',
+                            'Pasal 20 ayat (2) Perpres PBJ & Pedoman Reviu Perencanaan',
+                            "Sinyal Nilai Pagu Tepat Batas Pengadaan Langsung (EXACT_THRESHOLD): Pagu paket berada tepat pada ambang tertinggi (Rp " . number_format($batasPl, 0, ',', '.') . ").",
+                            'Lakukan reviu kertas kerja HPS/RAB untuk memastikan kewajaran estimasi dan tidak terjadi pemecahan kebutuhan yang disengaja.',
+                            'Mendekati ambang batas bukan pelanggaran hukum; nilai tepat pada batas masih termasuk cakupan Pengadaan Langsung.',
+                            [
+                                ['field' => 'metode_pengadaan', 'raw_value' => $metode],
+                                ['field' => 'total_nilai', 'raw_value' => (string) $totalNilai],
+                                ['field' => 'ambang_batas', 'raw_value' => (string) $batasPl],
+                            ],
+                            [
+                                ['regulation' => 'Perpres 16/2018 jo. Perpres 46/2025', 'article' => 'Pasal 20 ayat (2)', 'norm_summary' => 'Larangan memecah pengadaan untuk menghindari tender'],
+                            ]
+                        );
+                    } else {
+                        $pkgViolations[] = $this->buildFinding(
+                            'R-27b',
+                            'SINYAL_RISIKO',
+                            'RENDAH',
+                            'TINGGI',
+                            'Sinyal Pagu Ambang',
+                            'Pasal 20 ayat (2) Perpres PBJ & Pedoman Reviu Perencanaan',
+                            "Sinyal Nilai Pagu Mendekati Batas Pengadaan Langsung (NEAR_THRESHOLD): Pagu paket berada pada rentang 95% s.d. <100% dari ambang tertinggi (Rp " . number_format($batasPl, 0, ',', '.') . ").",
+                            'Lakukan reviu kertas kerja HPS/RAB untuk memastikan kewajaran estimasi dan tidak terjadi pemecahan kebutuhan yang disengaja.',
+                            'Mendekati ambang batas bukan pelanggaran hukum; nilai mendekati batas masih termasuk cakupan Pengadaan Langsung.',
+                            [
+                                ['field' => 'metode_pengadaan', 'raw_value' => $metode],
+                                ['field' => 'total_nilai', 'raw_value' => (string) $totalNilai],
+                                ['field' => 'ambang_batas', 'raw_value' => (string) $batasPl],
+                            ],
+                            [
+                                ['regulation' => 'Perpres 16/2018 jo. Perpres 46/2025', 'article' => 'Pasal 20 ayat (2)', 'norm_summary' => 'Larangan memecah pengadaan untuk menghindari tender'],
+                            ]
+                        );
+                    }
                 }
 
-                // R-27b: Sub-Threshold Hugging Konstruksi TA 2026 (Rp190 Juta s.d. Rp200 Juta) -> SINYAL_RISIKO, RENDAH, TINGGI
+                // R-27c: Sub-Threshold Hugging Konstruksi TA >= 2025 (Rp190 Juta s.d. Rp200 Juta) -> SINYAL_RISIKO, RENDAH, TINGGI
                 if ($tahunAnggaran >= 2025 && $isPL && $isKonstruksi && $totalNilai >= 190000000.0 && $totalNilai <= 200000000.0) {
                     $pkgViolations[] = $this->buildFinding(
-                        'R-27b',
+                        'R-27c',
                         'SINYAL_RISIKO',
                         'RENDAH',
                         'TINGGI',
@@ -679,25 +701,48 @@ class RupRuleEngine
                     );
                 }
 
-                // R-29: Validasi Tender Cepat -> TIDAK_DAPAT_DINILAI_DARI_CSV, INFO, SEDANG
+                // R-29: Validasi Tender Cepat -> PERLU_VERIFIKASI (Konstruksi) / TIDAK_DAPAT_DINILAI_DARI_CSV (Non-Konstruksi)
                 if (in_array('Tender Cepat', $metodeArr, true)) {
-                    $pkgViolations[] = $this->buildFinding(
-                        'R-29',
-                        'TIDAK_DAPAT_DINILAI_DARI_CSV',
-                        'INFO',
-                        'SEDANG',
-                        'Verifikasi Tender Cepat',
-                        'Pasal 38 ayat (6) Perpres 46/2025 jo. Perlem LKPP 3/2026',
-                        'Kebutuhan Verifikasi Kelayakan Tender Cepat: Tender Cepat mensyaratkan spesifikasi teknis dan kualifikasi penyedia telah terstandarisasi dalam SIKaP.',
-                        'Pastikan spesifikasi teknis telah distandarisasi dan pelaku usaha terdaftar serta terkualifikasi dalam SIKaP sebelum proses dimulai.',
-                        'CSV RUP tidak memuat rincian spesifikasi atau status kualifikasi penyedia di SIKaP.',
-                        [
-                            ['field' => 'metode_pengadaan', 'raw_value' => $metode],
-                        ],
-                        [
-                            ['regulation' => 'Perpres 16/2018 jo. Perpres 46/2025', 'article' => 'Pasal 38 ayat (6)', 'norm_summary' => 'Syarat penggunaan metode Tender Cepat'],
-                        ]
-                    );
+                    if ($isKonstruksi) {
+                        $pkgViolations[] = $this->buildFinding(
+                            'R-29',
+                            'PERLU_VERIFIKASI',
+                            'TINGGI',
+                            'TINGGI',
+                            'Kesesuaian Metode Tender Cepat',
+                            'Pasal 38 ayat (6) Perpres 16/2018 jo. Perpres 46/2025 & Perlem LKPP 3/2026',
+                            'Tender Cepat pada Pekerjaan Konstruksi Perlu Penelaahan: Pekerjaan Konstruksi umumnya menuntut evaluasi teknis dan metode pelaksanaan yang tidak dapat distandarisasi secara penuh dalam SIKaP.',
+                            'Reviu kelayakan metode; jika pekerjaan memerlukan penilaian proposal teknis, gunakan metode Tender konvensional sesuai Pasal 38 ayat (1).',
+                            'Tender Cepat hanya dapat digunakan jika spesifikasi teknis dan volume pekerjaan telah dapat distandarisasi.',
+                            [
+                                ['field' => 'metode_pengadaan', 'raw_value' => $metode],
+                                ['field' => 'jenis_pengadaan', 'raw_value' => $jenis],
+                            ],
+                            [
+                                ['regulation' => 'Perpres 16/2018 jo. Perpres 46/2025', 'article' => 'Pasal 38 ayat (6)', 'norm_summary' => 'Syarat penggunaan metode Tender Cepat untuk barang/pekerjaan yang terstandarisasi'],
+                                ['regulation' => 'Perlem LKPP Nomor 3 Tahun 2026', 'article' => 'Pedoman Tender Cepat', 'norm_summary' => 'Batasan dan tata cara evaluasi metode Tender Cepat'],
+                            ],
+                            ['metode_pengadaan' => 'Tender']
+                        );
+                    } else {
+                        $pkgViolations[] = $this->buildFinding(
+                            'R-29',
+                            'TIDAK_DAPAT_DINILAI_DARI_CSV',
+                            'INFO',
+                            'SEDANG',
+                            'Verifikasi Tender Cepat',
+                            'Pasal 38 ayat (6) Perpres 46/2025 jo. Perlem LKPP 3/2026',
+                            'Kebutuhan Verifikasi Kelayakan Tender Cepat: Tender Cepat mensyaratkan spesifikasi teknis dan kualifikasi penyedia telah terstandarisasi dalam SIKaP.',
+                            'Pastikan spesifikasi teknis telah distandarisasi dan pelaku usaha terdaftar serta terkualifikasi dalam SIKaP sebelum proses dimulai.',
+                            'CSV RUP tidak memuat rincian spesifikasi atau status kualifikasi penyedia di SIKaP.',
+                            [
+                                ['field' => 'metode_pengadaan', 'raw_value' => $metode],
+                            ],
+                            [
+                                ['regulation' => 'Perpres 16/2018 jo. Perpres 46/2025', 'article' => 'Pasal 38 ayat (6)', 'norm_summary' => 'Syarat penggunaan metode Tender Cepat'],
+                            ]
+                        );
+                    }
                 }
 
                 // R-33: Jenis Terintegrasi atau PL untuk Terintegrasi -> PERLU_VERIFIKASI, SEDANG, SEDANG
@@ -925,10 +970,10 @@ class RupRuleEngine
                 );
             }
 
-            // R-36b / R-36 Profil Sumber Dana Multi-Tag -> INFORMATIF, INFO, TINGGI
+            // R-36: Profil Sumber Dana Multi-Tag -> INFORMATIF, INFO, TINGGI
             if (! empty($pkg['is_multi_source']) || str_contains($fundingProfile, '+')) {
                 $pkgViolations[] = $this->buildFinding(
-                    'R-36_MULTI',
+                    'R-36',
                     'INFORMATIF',
                     'INFO',
                     'TINGGI',
@@ -976,21 +1021,34 @@ class RupRuleEngine
                 }
             }
 
-            // R-16: Kandidat Salah Klasifikasi Jasa Konsultansi -> PERLU_VERIFIKASI, SEDANG, SEDANG
+            // R-16: Kandidat Salah Klasifikasi Jasa Konsultansi -> PERLU_VERIFIKASI / POTENSI_TIDAK_SESUAI
             if ($cara === 'Penyedia' && ! in_array('Jasa Konsultansi', $jenisArr, true)) {
                 if (RupTaxonomy::match($namaObjek, RupTaxonomy::DICT_06_MURNI_KONSULTANSI, RupTaxonomy::NEG_LOOKAHEAD_06)) {
+                    $isPlEvasion = $isPL && $totalNilai > 100000000.0;
+                    $statusFinding      = $isPlEvasion ? 'POTENSI_TIDAK_SESUAI' : 'PERLU_VERIFIKASI';
+                    $severityFinding    = $isPlEvasion ? 'TINGGI' : 'SEDANG';
+                    $confidenceFinding  = $isPlEvasion ? 'TINGGI' : 'SEDANG';
+                    $deskripsiFinding   = $isPlEvasion
+                        ? 'Objek paket menunjukkan Jasa Konsultansi/DED/Tenaga Ahli dengan pagu di atas batas Pengadaan Langsung Konsultansi (Rp100.000.000), namun diklasifikasikan sebagai non-Konsultansi sehingga berpotensi menghindari kewajiban metode Seleksi (Pasal 41 ayat (3) Perpres 16/2018 jo. Perpres 46/2025).'
+                        : 'Kandidat Salah Klasifikasi Jasa Konsultansi: Objek paket memuat frasa perencanaan teknis/pengawasan teknis/kajian/DED/tenaga ahli namun tercatat non-Konsultansi.';
+                    $rekomendasiFinding = $isPlEvasion
+                        ? 'Segera batalkan metode Pengadaan Langsung dan ubah jenis pengadaan menjadi Jasa Konsultansi serta gunakan metode Seleksi sesuai ketentuan Pasal 41 ayat (3) Perpres 16/2018 jo. Perpres 46/2025.'
+                        : 'Periksa objek utama; jika merupakan layanan keahlian intelektual (konsultansi), koreksi jenis_pengadaan menjadi Jasa Konsultansi.';
+
                     $pkgViolations[] = $this->buildFinding(
                         'R-16',
-                        'PERLU_VERIFIKASI',
-                        'SEDANG',
-                        'SEDANG',
+                        $statusFinding,
+                        $severityFinding,
+                        $confidenceFinding,
                         'Klasifikasi Jenis Pengadaan',
                         'Pasal 41 Perpres 16/2018 jo. Perpres 46/2025',
-                        'Kandidat Salah Klasifikasi Jasa Konsultansi: Objek paket memuat frasa perencanaan teknis/pengawasan teknis/kajian/DED/tenaga ahli namun tercatat non-Konsultansi.',
-                        'Periksa objek utama; jika merupakan layanan keahlian intelektual (konsultansi), koreksi jenis_pengadaan menjadi Jasa Konsultansi.',
+                        $deskripsiFinding,
+                        $rekomendasiFinding,
                         'Penilaian berdasarkan kata kunci nama paket; verifikasi KAK diperlukan untuk memastikan dominasi lingkup pekerjaan.',
                         [
                             ['field' => 'jenis_pengadaan', 'raw_value' => $jenis],
+                            ['field' => 'metode_pengadaan', 'raw_value' => $metode],
+                            ['field' => 'total_nilai', 'raw_value' => (string) $totalNilai],
                             ['field' => 'nama_paket', 'raw_value' => $namaPaketRaw],
                         ],
                         [
@@ -1026,8 +1084,8 @@ class RupRuleEngine
                 }
             }
 
-            // R-18: Kandidat Jasa Lainnya Diklasifikasikan Barang -> PERLU_VERIFIKASI, SEDANG, SEDANG
-            if ($cara === 'Penyedia' && count($jenisArr) === 1 && in_array('Barang', $jenisArr, true)) {
+            // R-18: Kandidat Jasa Lainnya Diklasifikasikan Non-Jasa Lainnya -> PERLU_VERIFIKASI, SEDANG, SEDANG
+            if ($cara === 'Penyedia' && ! in_array('Jasa Lainnya', $jenisArr, true) && ! in_array('Dikecualikan', $metodeArr, true)) {
                 if (RupTaxonomy::match($namaObjek, RupTaxonomy::DICT_07_MURNI_JASA_LAINNYA, RupTaxonomy::NEG_LOOKAHEAD_07)) {
                     $pkgViolations[] = $this->buildFinding(
                         'R-18',
@@ -1036,7 +1094,7 @@ class RupRuleEngine
                         'SEDANG',
                         'Klasifikasi Jenis Pengadaan',
                         'Pasal 3 Perpres 16/2018 jo. Perpres 46/2025',
-                        'Kandidat Jasa Lainnya Tercatat Barang: Objek paket berupa layanan sewa/pemeliharaan/kebersihan/keamanan namun dipilih jenis Barang.',
+                        "Kandidat Jasa Lainnya Tercatat Selain Jasa Lainnya: Objek paket berupa layanan sewa/pemeliharaan/kebersihan/keamanan namun dipilih jenis '{$jenis}'.",
                         'Reviu apakah substansi kontrak adalah layanan jasa non-intelektual (sewa alat/jasa pemeliharaan); jika ya, koreksi jenis menjadi Jasa Lainnya.',
                         'Penilaian berdasarkan nama paket; jika pengadaan barang disertai layanan purna jual, jenis Barang dapat tetap tepat.',
                         [
@@ -1052,7 +1110,7 @@ class RupRuleEngine
             }
 
             // R-19: Kandidat Barang Diklasifikasikan Non-Barang -> PERLU_VERIFIKASI, SEDANG, SEDANG
-            if ($cara === 'Penyedia' && ! in_array('Barang', $jenisArr, true)) {
+            if ($cara === 'Penyedia' && ! in_array('Barang', $jenisArr, true) && ! in_array('Dikecualikan', $metodeArr, true)) {
                 if (RupTaxonomy::match($namaObjek, RupTaxonomy::DICT_08_MURNI_BARANG, RupTaxonomy::NEG_LOOKAHEAD_08)) {
                     $pkgViolations[] = $this->buildFinding(
                         'R-19',
@@ -1061,7 +1119,7 @@ class RupRuleEngine
                         'SEDANG',
                         'Klasifikasi Jenis Pengadaan',
                         'Pasal 3 Perpres 16/2018 jo. Perpres 46/2025',
-                        'Kandidat Barang Tercatat Non-Barang: Objek paket jelas berupa pembelian komoditas barang habis pakai, material rutin, atau peralatan komputer namun tercatat selain Barang.',
+                        "Kandidat Barang Tercatat Selain Barang: Objek paket jelas berupa pembelian komoditas barang habis pakai, material rutin, atau peralatan komputer namun tercatat jenis '{$jenis}'.",
                         'Reviu apakah objek utama yang diserahterimakan adalah wujud benda/komoditas barang; jika ya, sesuaikan jenis menjadi Barang.',
                         'Penilaian didasarkan pada kata kunci komoditas fisik pada nama paket.',
                         [
@@ -1084,7 +1142,7 @@ class RupRuleEngine
                 $isUtilitas = RupTaxonomy::match($namaObjek, RupTaxonomy::DICT_01_DIKECUALIKAN);
                 $isImpor    = RupTaxonomy::match($namaObjek, RupTaxonomy::DICT_10_TEKNOLOGI_TINGGI_IMPOR);
 
-                if ($totalNilai <= 15000000000.0 && $statusUmk !== 'Ya' && ! $isUtilitas && ! $isImpor) {
+                if ($totalNilai > 0.0 && $totalNilai <= 15000000000.0 && $statusUmk !== 'Ya' && ! $isUtilitas && ! $isImpor) {
                     $pkgViolations[] = $this->buildFinding(
                         'R-24',
                         'POTENSI_TIDAK_SESUAI',
@@ -1107,26 +1165,100 @@ class RupRuleEngine
                         ['status_umk' => 'Ya (kecuali ada justifikasi teknis Pasal 65 ayat 4)']
                     );
                 }
+            }
 
-                // R-24b: Paket Kontrak Tunggal > 15 Miliar Berlabel UMK = Ya -> PERLU_VERIFIKASI, SEDANG, TINGGI
-                $isTenderKontrakTunggal = in_array('Tender', $metodeArr, true) || in_array('Tender Cepat', $metodeArr, true);
-                if ($isTenderKontrakTunggal && $totalNilai > 15000000000.0 && $statusUmk === 'Ya') {
+            // R-24b: Segmentasi Kualifikasi Usaha & Afirmasi UMK Konsultansi (Pasal 65 ayat (4) jo. Pasal 4 PerLKPP 3/2026)
+            if ($cara === 'Penyedia') {
+                $isKonsultansiJenis = in_array('Jasa Konsultansi', $jenisArr, true);
+                $isKonsultansiKonstruksi = RupTaxonomy::isKonsultansiKonstruksi($pkg);
+
+                // Skenario 1: Jasa Konsultansi Konstruksi > Rp1.000.000.000 yang ditandai status_umk == 'Ya'
+                // Wajib Kualifikasi Usaha Menengah (> Rp1 M - Rp2,5 M) atau Besar (> Rp2,5 M) sesuai Pasal 4 ayat (2) PerLKPP 3/2026
+                if ($isKonsultansiJenis && $totalNilai > 1000000000.0 && $statusUmk === 'Ya') {
+                    $judulFinding1 = $isKonsultansiKonstruksi
+                        ? 'Segmentasi Kualifikasi Usaha Konsultansi Konstruksi'
+                        : 'Segmentasi Kualifikasi Usaha Non-Kecil';
+                    $deskripsiFinding1 = $isKonsultansiKonstruksi
+                        ? "Jasa Konsultansi Konstruksi > Rp1 Miliar Tercatat UMK=Ya: Paket bernilai Rp " . number_format($totalNilai, 0, ',', '.') . " wajib diperuntukkan bagi Penyedia Kualifikasi Usaha Menengah (> Rp1 M s.d. Rp2,5 M) atau Besar (> Rp2,5 M) sesuai Pasal 4 ayat (2) Perlem LKPP 3/2026."
+                        : "Paket Jasa Konsultansi > Rp1 Miliar Tercatat UMK=Ya: Paket bernilai Rp " . number_format($totalNilai, 0, ',', '.') . " umumnya diperuntukkan bagi Penyedia Kualifikasi Usaha Non-Kecil (Menengah/Besar).";
+
                     $pkgViolations[] = $this->buildFinding(
                         'R-24b',
-                        'PERLU_VERIFIKASI',
-                        'SEDANG',
+                        'POTENSI_TIDAK_SESUAI',
                         'TINGGI',
-                        'Segmentasi Usaha Non-Kecil',
-                        'Pasal 65 ayat (4) Perpres 46/2025 jo. Pasal 4 Perlem LKPP 3/2026',
-                        "Paket Kontrak Tunggal > Rp15 Miliar Tercatat UMK=Ya: Paket bernilai Rp " . number_format($totalNilai, 0, ',', '.') . " umumnya diperuntukkan bagi Kualifikasi Usaha Menengah/Besar.",
-                        'Periksa apakah paket merupakan paket tunggal atau konsolidasi yang mensyaratkan kemitraan/subkontrak dengan usaha kecil; sesuaikan status_umk menjadi Tidak jika bukan peruntukan usaha kecil.',
-                        'Evaluasi berdasarkan batas statutory Rp15 Miliar; ketentuan kemitraan subkontrak diatur dalam dokumen pemilihan.',
+                        'TINGGI',
+                        $judulFinding1,
+                        'Pasal 65 ayat (4) Perpres 46/2025 jo. Pasal 4 ayat (2) PerLKPP 3/2026',
+                        $deskripsiFinding1,
+                        "Koreksi status_umk menjadi 'Tidak' pada SIRUP dan pastikan dokumen pemilihan mempersyaratkan Kualifikasi Usaha Non-Kecil (Menengah/Besar).",
+                        'Batas statutory kualifikasi usaha kecil untuk Jasa Konsultansi Konstruksi adalah Rp1.000.000.000 (Pasal 4 ayat 2 huruf a).',
                         [
+                            ['field' => 'jenis_pengadaan', 'raw_value' => $jenis],
                             ['field' => 'total_nilai', 'raw_value' => (string) $totalNilai],
                             ['field' => 'status_umk', 'raw_value' => $statusUmk],
                         ],
                         [
-                            ['regulation' => 'Perlem LKPP Nomor 3 Tahun 2026', 'article' => 'Pasal 4', 'norm_summary' => 'Segmentasi kualifikasi usaha pada paket bernilai di atas Rp15 Miliar'],
+                            ['regulation' => 'Perpres 16/2018 jo. Perpres 46/2025', 'article' => 'Pasal 65 ayat (4)', 'norm_summary' => 'Pengecualian usaha kecil untuk paket yang menuntut kualifikasi teknis tertentu'],
+                            ['regulation' => 'Perlem LKPP Nomor 3 Tahun 2026', 'article' => 'Pasal 4 ayat (2)', 'norm_summary' => 'Segmentasi kualifikasi usaha Jasa Konsultansi Konstruksi (Kecil <= Rp1 M, Menengah Rp1-2,5 M, Besar > Rp2,5 M)'],
+                        ],
+                        ['status_umk' => 'Tidak (Kualifikasi Usaha Menengah/Besar)']
+                    );
+                }
+
+                // Skenario 2: Jasa Konsultansi <= Rp1.000.000.000 (non-Dikecualikan) yang ditandai status_umk != 'Ya'
+                // Wajib dicadangkan bagi Usaha Kecil sesuai Pasal 4 ayat (2) huruf a PerLKPP 3/2026
+                $isPerorangan = str_contains($namaClean, 'individu') || str_contains($namaClean, 'perorangan');
+                if ($isKonsultansiJenis && ! in_array('Dikecualikan', $metodeArr, true) && $totalNilai > 0.0 && $totalNilai <= 1000000000.0 && $statusUmk !== 'Ya' && ! $isPerorangan) {
+                    $judulFinding2 = $isKonsultansiKonstruksi
+                        ? 'Pencadangan UMK Konsultansi Konstruksi'
+                        : 'Pencadangan UMK Konsultansi';
+                    $deskripsiFinding2 = $isKonsultansiKonstruksi
+                        ? "Kandidat Pencadangan Usaha Kecil Konsultansi Konstruksi: Paket Jasa Konsultansi Konstruksi bernilai <= Rp1 Miliar (Rp " . number_format($totalNilai, 0, ',', '.') . ") tercatat status_umk '{$statusUmk}'."
+                        : "Kandidat Pencadangan Usaha Kecil Konsultansi: Paket Jasa Konsultansi bernilai <= Rp1 Miliar (Rp " . number_format($totalNilai, 0, ',', '.') . ") tercatat status_umk '{$statusUmk}'.";
+
+                    $pkgViolations[] = $this->buildFinding(
+                        'R-24b',
+                        'PERLU_VERIFIKASI',
+                        'SEDANG',
+                        'SEDANG',
+                        $judulFinding2,
+                        'Pasal 4 ayat (2) huruf a PerLKPP 3/2026',
+                        $deskripsiFinding2,
+                        "Reviu status pencadangan UMK; jika pekerjaan dapat dilaksanakan oleh Penyedia Kualifikasi Usaha Kecil, cadangkan bagi Usaha Kecil sesuai Pasal 4 ayat (2) huruf a Perlem LKPP 3/2026.",
+                        'Paket Jasa Konsultansi Konstruksi sampai dengan nilai Rp1 Miliar dicadangkan bagi Kualifikasi Usaha Kecil.',
+                        [
+                            ['field' => 'jenis_pengadaan', 'raw_value' => $jenis],
+                            ['field' => 'total_nilai', 'raw_value' => (string) $totalNilai],
+                            ['field' => 'status_umk', 'raw_value' => $statusUmk],
+                        ],
+                        [
+                            ['regulation' => 'Perlem LKPP Nomor 3 Tahun 2026', 'article' => 'Pasal 4 ayat (2) huruf a', 'norm_summary' => 'Paket Jasa Konsultansi Konstruksi sampai dengan nilai Rp1.000.000.000 diperuntukkan bagi Penyedia Jasa Konsultansi Konstruksi kualifikasi usaha kecil'],
+                        ],
+                        ['status_umk' => 'Ya (Kualifikasi Usaha Kecil)']
+                    );
+                }
+
+                // Skenario 3: Seluruh Paket Penyedia > Rp15.000.000.000 yang masih ditandai status_umk == 'Ya'
+                // Umumnya diperuntukkan bagi Usaha Menengah/Besar (kecuali pagu agregat katalog/BOSP)
+                if (! $isKonsultansiJenis && $totalNilai > 15000000000.0 && $statusUmk === 'Ya') {
+                    $pkgViolations[] = $this->buildFinding(
+                        'R-24b',
+                        'PERLU_VERIFIKASI',
+                        'SEDANG',
+                        'SEDANG',
+                        'Segmentasi Usaha Non-Kecil',
+                        'Pasal 65 ayat (4) Perpres 46/2025 jo. Pasal 4 PerLKPP 3/2026',
+                        "Paket Penyedia > Rp15 Miliar Tercatat UMK=Ya: Paket bernilai Rp " . number_format($totalNilai, 0, ',', '.') . " umumnya diperuntukkan bagi Kualifikasi Usaha Menengah/Besar.",
+                        'Periksa apakah paket merupakan paket tunggal (wajib Non-Kecil) atau agregat pagu (seperti Katalog/BOSP) yang transaksinya terpecah ke pelaku usaha kecil; sesuaikan status_umk bila paket diperuntukkan bagi Non-Kecil.',
+                        'Evaluasi berdasarkan batas statutory afirmasi UMK Rp15 Miliar pada Pasal 65 ayat (3) & (4); reviu KAK/RAB diperlukan.',
+                        [
+                            ['field' => 'jenis_pengadaan', 'raw_value' => $jenis],
+                            ['field' => 'total_nilai', 'raw_value' => (string) $totalNilai],
+                            ['field' => 'status_umk', 'raw_value' => $statusUmk],
+                        ],
+                        [
+                            ['regulation' => 'Perpres 16/2018 jo. Perpres 46/2025', 'article' => 'Pasal 65 ayat (4)', 'norm_summary' => 'Batasan pencadangan paket usaha kecil maksimal Rp15 Miliar'],
+                            ['regulation' => 'Perlem LKPP Nomor 3 Tahun 2026', 'article' => 'Pasal 4', 'norm_summary' => 'Segmentasi kualifikasi usaha non-kecil untuk paket di atas Rp15 Miliar'],
                         ]
                     );
                 }
@@ -1190,7 +1322,7 @@ class RupRuleEngine
                     $pkgViolations[] = $this->buildFinding(
                         'R-22',
                         'INFORMATIF',
-                        'RENDAH',
+                        'INFO',
                         'SEDANG',
                         'Peluang Konsolidasi',
                         'Pasal 21 Perpres 16/2018 jo. Perpres 46/2025',
@@ -1205,27 +1337,6 @@ class RupRuleEngine
                         ]
                     );
                 }
-            }
-
-            // R-21a: Duplikasi Teknis Kode RUP -> ANOMALI_DATA, TINGGI, TINGGI
-            if ($kRup !== '' && ($kodeRupCounts[$kRup] ?? 0) > 1) {
-                $pkgViolations[] = $this->buildFinding(
-                    'R-21a',
-                    'ANOMALI_DATA',
-                    'TINGGI',
-                    'TINGGI',
-                    'Integritas Kode RUP',
-                    'Standar Unik Kode RUP SIRUP INAPROC',
-                    "Duplikasi Teknis Kode RUP: Kode RUP '{$kRup}' muncul lebih dari 1 kali pada file CSV yang diunggah.",
-                    'Periksa sistem pengekspor atau hapus entri ganda di SIRUP sebelum mengunggah kembali data.',
-                    'Evaluasi berdasarkan perbandingan string kode_rup antarisian dalam file.',
-                    [
-                        ['field' => 'kode_rup', 'raw_value' => $kRup],
-                    ],
-                    [
-                        ['regulation' => 'Petunjuk Teknis SIRUP LKPP', 'article' => 'Identitas Paket', 'norm_summary' => 'Kode RUP adalah primary key unik nasional'],
-                    ]
-                );
             }
 
             // R-21b: Indikasi Paket Identik Lintas Kode RUP -> SINYAL_RISIKO, SEDANG, SEDANG
@@ -1332,7 +1443,29 @@ class RupRuleEngine
             $sevWeightMap = ['INFO' => 0, 'RENDAH' => 1, 'SEDANG' => 2, 'TINGGI' => 3, 'KRITIS' => 3];
             $maxW = 0;
 
+            // Prioritas status temuan:
+            // POTENSI_TIDAK_SESUAI > ANOMALI_DATA > PERLU_VERIFIKASI > SINYAL_RISIKO > TIDAK_DAPAT_DINILAI_DARI_CSV > INFORMATIF > AMAN
+            $statusPriorityMap = [
+                'POTENSI_TIDAK_SESUAI'        => 6,
+                'ANOMALI_DATA'                => 5,
+                'PERLU_VERIFIKASI'            => 4,
+                'SINYAL_RISIKO'               => 3,
+                'TIDAK_DAPAT_DINILAI_DARI_CSV'=> 2,
+                'INFORMATIF'                  => 1,
+            ];
+            $primaryStatus   = 'AMAN';
+            $maxStatusWeight = 0;
+            $statusList      = [];
+
             foreach ($pkgViolations as $v) {
+                $st = $v['finding_status'] ?? 'INFORMATIF';
+                $statusList[] = $st;
+                $stWeight = $statusPriorityMap[$st] ?? 0;
+                if ($stWeight > $maxStatusWeight) {
+                    $maxStatusWeight = $stWeight;
+                    $primaryStatus   = $st;
+                }
+
                 $w = $sevWeightMap[$v['severity']] ?? 0;
                 if ($w > $maxW) {
                     $maxW = $w;
@@ -1345,8 +1478,10 @@ class RupRuleEngine
                 $allViolations[]    = $v;
             }
 
-            $pkg['max_severity']    = $maxW > 0 ? $currentMaxSeverity : 'AMAN';
-            $pkg['violation_count'] = count($pkgViolations);
+            $pkg['max_severity']           = $maxW > 0 ? $currentMaxSeverity : 'AMAN';
+            $pkg['violation_count']        = count($pkgViolations);
+            $pkg['primary_finding_status'] = $primaryStatus;
+            $pkg['finding_status_list']    = array_values(array_unique($statusList));
         }
         unset($pkg);
 

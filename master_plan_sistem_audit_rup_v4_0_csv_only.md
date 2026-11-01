@@ -296,7 +296,7 @@ Severity dan confidence tidak boleh digabung. Temuan dapat ber-severity sedang t
 | **R-03 Pagu sangat kecil/tidak wajar** | AKTIF — `SINYAL_RISIKO` | `0 < total_nilai < Rp10.000` (ambang hanya pemicu statistik) | Tidak ada pelanggaran hukum otomatis; indikator kualitas data internal | Verifikasi satuan, pemisah ribuan, dan kemungkinan salah digit. Tampilkan nilai asli dan nilai parsing. Jangan menyimpulkan pemborosan atau pemecahan paket. |
 | **R-34 Penamaan paket terlalu generik** | AKTIF — `SINYAL_RISIKO` | Nama hanya berupa pola umum seperti `Belanja Barang`, `Pengadaan Jasa`, `Kebutuhan Operasional`, atau objek tidak terbaca setelah normalisasi. Komoditas tunggal jelas seperti `Pengadaan Laptop` tidak boleh dipicu. | Prinsip transparansi dan perencanaan RUP; PerLKPP 11/2021 | Perjelas nama agar mencerminkan objek utama/keluaran. Sistem menyarankan format nama, tetapi tidak mengarang volume, lokasi, spesifikasi, atau kegiatan. |
 | **R-35 Nilai enum tidak dikenal** | BARU — `ANOMALI_DATA` | `cara`, `metode`, `jenis`, `status_umk`, atau `produk_dalam_negeri` di luar nilai yang dikenali setelah normalisasi | Kontrak skema CSV sistem; tidak otomatis pelanggaran hukum | Tampilkan nilai mentah dan pilihan standar yang dikenal. Minta koreksi pada data sumber/SIRUP; jangan mengubah diam-diam. |
-| **R-36 Kode RUP bermasalah** | BARU — `ANOMALI_DATA` | Kode kosong, notasi ilmiah, akhiran `.0`, format digit rusak, atau duplikasi kode dalam satu batch | Validitas identifikasi paket RUP; bukan norma materiil PBJ | Impor ulang CSV dengan `kode_rup` sebagai teks. Untuk duplikasi kode, tampilkan seluruh baris terkait dan jangan menggabungkan otomatis. |
+| **R-21a Integritas & format kode RUP** | AKTIF — ANOMALI_DATA | Kode kosong, notasi ilmiah, akhiran .0, format digit rusak, atau duplikasi kode dalam satu batch | Integritas identitas data RUP | Impor ulang CSV dengan kode_rup sebagai teks. Untuk duplikasi kode, tampilkan seluruh baris terkait dan jangan menggabungkan otomatis. |
 
 ## Kelompok B — Ambang Pengadaan Langsung dan metode pemilihan
 
@@ -309,7 +309,7 @@ Severity dan confidence tidak boleh digabung. Temuan dapat ber-severity sedang t
 | **R-08 Penunjukan Langsung tanpa alasan yang terlihat** | AKTIF — `PERLU_VERIFIKASI` | Metode `Penunjukan Langsung`; CSV tidak memiliki alasan/justifikasi keadaan tertentu | Perpres 46/2025, Pasal 38 ayat (4)–(5) dan Pasal 41 ayat (4)–(5) | Tampilkan peringatan: alasan Penunjukan Langsung tidak tersedia di data RUP. Jangan menyebut pelanggaran. Rekomendasikan PPK/UKPBJ memastikan kategori keadaan tertentu dan kesesuaian metode sebelum proses. |
 | **R-08b Repeat Order** | AKTIF — `TIDAK_DAPAT_DINILAI_DARI_CSV` | Nama paket mengandung frasa `repeat order` | Perpres 46/2025 dan pedoman teknis PerLKPP 3/2026 mengenai repeat order; syaratnya memerlukan riwayat paket awal, nilai kontrak/HPS, kinerja penyedia, dan/atau personel | Tampilkan daftar syarat yang harus diverifikasi; jangan meloloskan atau menggugurkan paket dari nama. CSV tidak memuat sejarah kontrak, HPS, nilai kinerja, atau Team Leader. |
 | **R-09 Ketidakcocokan jenis dan metode** | AKTIF — `POTENSI_TIDAK_SESUAI` atau `PERLU_VERIFIKASI` | `Seleksi` dipakai untuk jenis non-konsultansi; atau `Tender/Tender Cepat` dipakai untuk `Jasa Konsultansi`; metode/jenis tidak dikenali; multi-jenis/multi-metode bertentangan | Perpres 46/2025 Pasal 38 dan Pasal 41 | Tampilkan ketidakcocokan atribut. Rekomendasikan verifikasi objek dan koreksi jenis/metode pada RUP. Jangan menilai syarat teknis Tender Cepat dari CSV karena data SIKaP dan spesifikasi tidak tersedia. |
-| **R-27 Pagu mendekati batas PL (threshold hugging)** | AKTIF — `SINYAL_RISIKO` | Pagu PL berada pada 95%–100% dari batas yang relevan; termasuk tepat sama dengan batas | Tidak ada larangan hukum otomatis hanya karena mendekati batas; gunakan Pasal 20 ayat (2) Perpres PBJ sebagai prinsip menghindari pemaketan yang menghindari Tender bila fakta splitting memang ada | Prioritaskan reviu kemiripan paket dan kewajaran batas paket. Tampilkan “indikasi mendekati ambang”, bukan “pelanggaran threshold”. Jangan otomatis mengubah metode. |
+| **R-27 Pagu mendekati batas PL (threshold hugging)** | AKTIF — `SINYAL_RISIKO` | Pagu PL berada pada 95%–100% dari batas yang relevan; termasuk tepat sama dengan batas (`R-27a`: EXACT_THRESHOLD, `R-27b`: NEAR_THRESHOLD, total 209 paket), serta `R-27c` untuk paket PL Pekerjaan Konstruksi TA $\ge 2025$ pada rentang Rp190–200 Juta (142 paket senilai Rp28,07 Miliar) | Tidak ada larangan hukum otomatis hanya karena mendekati batas; gunakan Pasal 20 ayat (2) Perpres PBJ sebagai prinsip menghindari pemaketan yang menghindari Tender bila fakta splitting memang ada | Prioritaskan reviu kemiripan paket dan kewajaran batas paket. Tampilkan “indikasi mendekati ambang”, bukan “pelanggaran threshold”. Jangan otomatis mengubah metode. |
 | **R-28 Tender/Seleksi pada nilai yang masih dapat PL** | AKTIF — `INFORMATIF` / `SINYAL_RISIKO` | Metode Tender/Tender Cepat untuk paket yang nilainya berada di bawah batas PL | Tidak ada larangan otomatis; metode kompetitif dapat dipilih sesuai kebutuhan/ketentuan | Tampilkan sebagai statistik efisiensi/reviu metode. Jangan mewajibkan perubahan menjadi PL atau E-Purchasing. |
 | **R-29 Kelayakan Tender Cepat** | AKTIF — `TIDAK_DAPAT_DINILAI_DARI_CSV` | Metode `Tender Cepat` terdeteksi | Perpres 46/2025 Pasal 38 ayat (6) dan ketentuan teknis PerLKPP 3/2026; kelayakan mensyaratkan informasi kualifikasi/penyedia/spesifikasi yang tidak ada di CSV | Tampilkan metode sebagai perlu pemeriksaan syarat Tender Cepat. Jika jenisnya Jasa Konsultansi, gunakan R-09. Jangan menyatakan Tender Cepat untuk Konstruksi otomatis dilarang. |
 | **R-33 Jenis `Terintegrasi` atau PL untuk pekerjaan terintegrasi** | AKTIF — `PERLU_VERIFIKASI` | Jenis `Terintegrasi`, khususnya jika nama paket menunjukkan komoditas sederhana atau metodenya PL | Perpres 16/2018 jo. Perpres 46/2025 tentang jenis/metode pemilihan dan pekerjaan terintegrasi; rincian lingkup tidak ada di CSV | Periksa apakah kata `Terintegrasi` menggambarkan ruang lingkup pekerjaan yang sesungguhnya atau salah pilih enum. Jika objek hanya barang/jasa sederhana, koreksi jenis. Hindari kesimpulan otomatis hanya dari enum. |
@@ -332,11 +332,12 @@ Severity dan confidence tidak boleh digabung. Temuan dapat ber-severity sedang t
 | Rule | Status v4.0 | Kondisi berbasis CSV | Dasar regulasi / rujukan | Rekomendasi otomatis |
 |---|---|---|---|---|
 | **R-15 Kandidat komoditas katalog** | AKTIF — `PERLU_VERIFIKASI` | Nama objek mengindikasikan komoditas yang umum diperdagangkan melalui katalog, tetapi metode bukan E-Purchasing | Perpres 46/2025 Pasal 38 ayat (2); PerLKPP 2/2026 | Tampilkan “kandidat cek katalog”. Rekomendasikan pengecekan apakah barang/jasa tersebut benar tersedia dalam katalog dan apakah pengecualian berlaku. Jangan menyatakan pelanggaran E-Purchasing karena CSV tidak berisi ketersediaan katalog. |
-| **R-16 Kandidat salah klasifikasi Jasa Konsultansi** | AKTIF — `PERLU_VERIFIKASI` | `Penyedia`, bukan Jasa Konsultansi, dan nama paket mempunyai frasa spesifik seperti jasa konsultansi/perencanaan teknis/pengawasan teknis/studi kelayakan/DED/tenaga ahli sebagai objek inti | Perpres 46/2025 Pasal 41; PerLKPP 3/2026 | Rekomendasikan koreksi jenis menjadi Jasa Konsultansi hanya setelah objek utama dikonfirmasi. Hindari kata tunggal `audit`, `kajian`, `penyusunan`, atau `pengawasan` sebagai pemicu tunggal. |
+| **R-16 Kandidat salah klasifikasi Jasa Konsultansi & Evasion Seleksi** | AKTIF — `POTENSI_TIDAK_SESUAI` / `PERLU_VERIFIKASI` | `Penyedia`, bukan Jasa Konsultansi, dan nama paket mempunyai frasa spesifik seperti jasa konsultansi/perencanaan teknis/pengawasan teknis/studi kelayakan/DED/tenaga ahli sebagai objek inti. Bila metode PL dan pagu > Rp100 Juta, ditingkatkan menjadi `POTENSI_TIDAK_SESUAI` (menangkap 4 paket senilai Rp1,015 Miliar modus penghindaran Seleksi). | Perpres 46/2025 Pasal 41; PerLKPP 3/2026 | Rekomendasikan koreksi jenis menjadi Jasa Konsultansi dan metode Seleksi bila pagu > Rp100 Juta. Hindari kata tunggal `audit`, `kajian`, `penyusunan`, atau `pengawasan` sebagai pemicu tunggal. |
 | **R-17 Kandidat salah klasifikasi Pekerjaan Konstruksi** | AKTIF — `PERLU_VERIFIKASI` | `Penyedia`, jenis bukan Pekerjaan Konstruksi, dan nama menyebut pekerjaan fisik yang cukup spesifik (mis. pembangunan/rehabilitasi gedung, pembangunan jalan/jembatan, drainase, talud) setelah mengecualikan pembelian bahan, sewa, alat kesehatan/rehabilitasi medis, publikasi, dokumen, dan konsultansi | Perpres 46/2025 Pasal 38; PerLKPP 3/2026 | Rekomendasikan reviu klasifikasi objek. Jika yang dibeli adalah material/alat atau jasa pemeliharaan, jenisnya mungkin tetap Barang/Jasa Lainnya. Jangan mengubah jenis otomatis berdasarkan kata `rehabilitasi`, `hotmix`, atau `pembangunan` saja. |
-| **R-18 Kandidat Jasa Lainnya diklasifikasi Barang** | AKTIF — `PERLU_VERIFIKASI` | `Penyedia`, hanya jenis Barang, dan nama paket jelas menyatakan sewa/jasa kebersihan/jasa keamanan/publikasi jasa/pemeliharaan jasa/kalibrasi | Perpres 46/2025 tentang jenis PBJ; PerLKPP 3/2026 | Sarankan jenis Jasa Lainnya hanya jika objek dominan adalah jasa. Untuk pengadaan barang beserta layanan pendukung, pertahankan opsi reviu manual. |
-| **R-19 Kandidat Barang diklasifikasi non-Barang** | AKTIF — `PERLU_VERIFIKASI` | `Penyedia`, jenis bukan Barang, dan nama jelas menunjukkan pembelian barang seperti laptop/printer/kendaraan/suku cadang/peralatan/bahan habis pakai | Perpres 46/2025 tentang jenis PBJ; PerLKPP 3/2026 | Sarankan jenis Barang jika objek yang dibeli adalah barang. Jangan memicu dari kata yang dapat merujuk pada jasa pemeliharaan atau penyewaan. |
-| **R-24 Afirmasi pencadangan paket UMK/Koperasi** | AKTIF — `POTENSI_TIDAK_SESUAI` dengan catatan pengecualian | `Penyedia`; jenis Barang/Pekerjaan Konstruksi/Jasa Lainnya; pagu `<= Rp15 miliar`; `status_umk` bukan `Ya`; metode bukan `Dikecualikan` | Perpres 46/2025 Pasal 65 ayat (3) dan ayat (4) | Tampilkan kandidat paket yang belum ditandai untuk UMK/Koperasi. Rekomendasikan meninjau apakah paket dapat dicadangkan bagi UMK/Koperasi. Catat bahwa Pasal 65 ayat (4) mengecualikan paket dengan kemampuan teknis yang tidak dapat dipenuhi UMK/Koperasi; fakta ini tidak tersedia dalam CSV. Jangan masukkan Jasa Konsultansi dalam rule Pasal 65 ayat (3). Jangan menyatakan semua paket di atas Rp15 miliar wajib Non-UMK. |
+| **R-18 Kandidat Jasa Lainnya diklasifikasi non-Jasa Lainnya** | AKTIF — `PERLU_VERIFIKASI` | `Penyedia`, non-Dikecualikan, jenis bukan Jasa Lainnya (baik Barang maupun Konstruksi), dan nama paket jelas menyatakan sewa alat/jasa kebersihan/jasa keamanan/publikasi jasa/pemeliharaan peralatan/kalibrasi (menangkap 143 paket senilai Rp66,31 Miliar, termasuk 52 paket sewa alat di BMBK). | Perpres 46/2025 tentang jenis PBJ; PerLKPP 3/2026 | Sarankan jenis Jasa Lainnya hanya jika objek dominan adalah jasa. Untuk pengadaan barang beserta layanan pendukung, pertahankan opsi reviu manual. |
+| **R-19 Kandidat Barang diklasifikasi non-Barang** | AKTIF — `PERLU_VERIFIKASI` | `Penyedia`, non-Dikecualikan, jenis bukan Barang (termasuk Pekerjaan Konstruksi/JL), dan nama jelas menunjukkan pembelian barang seperti bahan rutin/bahan material jalan/laptop/printer/kendaraan/suku cadang/peralatan/bahan habis pakai (menangkap 229 paket senilai Rp33,63 Miliar). | Perpres 46/2025 tentang jenis PBJ; PerLKPP 3/2026 | Sarankan jenis Barang jika objek yang dibeli adalah komoditas fisik/material. Ambang batas PL disesuaikan dengan ketentuan Barang (Rp200 Juta). |
+| **R-24 Afirmasi pencadangan paket UMK/Koperasi** | AKTIF — `POTENSI_TIDAK_SESUAI` dengan catatan pengecualian | `Penyedia`; jenis Barang/Pekerjaan Konstruksi/Jasa Lainnya; pagu `<= Rp15 miliar`; `status_umk` bukan `Ya`; metode bukan `Dikecualikan` (tepat 24 paket baseline senilai Rp11.450.777.996) | Perpres 46/2025 Pasal 65 ayat (3) dan ayat (4) | Tampilkan kandidat paket yang belum ditandai untuk UMK/Koperasi. Rekomendasikan meninjau apakah paket dapat dicadangkan bagi UMK/Koperasi. Catat bahwa Pasal 65 ayat (4) mengecualikan paket dengan kemampuan teknis yang tidak dapat dipenuhi UMK/Koperasi; fakta ini tidak tersedia dalam CSV. Jangan masukkan Jasa Konsultansi dalam rule Pasal 65 ayat (3). |
+| **R-24b Segmentasi Kualifikasi Usaha & Afirmasi UMK Konsultansi Konstruksi** | AKTIF — `POTENSI_TIDAK_SESUAI` / `PERLU_VERIFIKASI` | 1) Jasa Konsultansi Konstruksi > Rp1 M UMK='Ya' (POTENSI_TIDAK_SESUAI; 5 paket); 2) Jasa Konsultansi <= Rp1 M UMK!='Ya' (PERLU_VERIFIKASI; 2 paket); 3) Seluruh paket Penyedia > Rp15 M UMK='Ya' (PERLU_VERIFIKASI; 17 paket senilai Rp639,46 Miliar). | Pasal 65 ayat (4) Perpres 46/2025 jo. Pasal 4 ayat (1) & (2) PerLKPP 3/2026 | Koreksi kualifikasi usaha pada SIRUP dan pastikan dokumen pemilihan mempersyaratkan segmentasi kualifikasi yang sah sesuai nilai pagu anggaran. |
 | **R-25 Label PDN pada RUP** | AKTIF — `PERLU_VERIFIKASI` atau `INFORMATIF` | Pada paket Penyedia, `produk_dalam_negeri=Tidak` atau `-` | Perpres 46/2025 ketentuan PDN (Pasal 66 dan pasal terkait); Inpres 2/2022 | `Tidak` memerlukan penjelasan bahwa produk impor/luar negeri dibutuhkan dan ketentuan prioritas PDN telah diperiksa. `-` berarti data tidak terisi. `Ya` bukan bukti nilai TKDN atau bukti barang yang dikirim benar-benar produk dalam negeri. |
 | **R-26.1 Indikator 40% UMK/Koperasi berbasis CSV** | AKTIF — `INFORMATIF` | Hitung proporsi pagu paket Penyedia berstatus `UMK=Ya` terhadap total pagu Penyedia yang masuk CSV | Perpres 46/2025 Pasal 65 ayat (2); Inpres 2/2022 | Sajikan sebagai **proksi perencanaan RUP**, bukan ukuran realisasi dan bukan opini kepatuhan final. Jelaskan bahwa denominator adalah data CSV yang diterima dan bisa tidak sama dengan seluruh anggaran belanja barang/jasa pemerintah daerah. |
 | **R-26.2 Rasio Penunjukan Langsung** | AKTIF — `INFORMATIF` | Hitung proporsi nilai paket `Penunjukan Langsung` terhadap nilai Penyedia | Tidak ada batas universal 5% pada regulasi yang dijadikan dasar rule | Tampilkan komposisi metode dan daftar paket PLg. Jangan memberi penalti atau menyebut melanggar karena rasio >5%. |
@@ -759,22 +760,32 @@ Halaman detail audit (`app/Views/main/workspace/pages/rup_audit/detail.php`) men
 | 30 | Swakelola + istilah outsourcing | R-11 review; tidak mengklaim pelanggaran UU ASN |
 | 31 | Status `UMK=-` | Tidak diperlakukan sama dengan `Tidak` |
 | 32 | Status PDN `Ya` | Tidak mengklaim TKDN terverifikasi |
-| 33 | Kode RUP duplikat | R-36 dan daftar semua baris |
+| 33 | Kode RUP duplikat / format rusak | R-21a dan daftar semua baris |
 | 34 | Dua batch CSV dengan kode RUP sama tetapi nilai berubah | `CHANGED`, bukan bukti perubahan kontrak |
 | 35 | Output seluruh temuan | Memuat rule, regulasi, pasal, alasan, evidence, confidence, limitation, rekomendasi |
+| 36 | Deteksi penghindaran Seleksi Konsultansi > Rp100 Jt berlabel Jasa Lainnya | `R-16` `POTENSI_TIDAK_SESUAI` (`severity = TINGGI`, `confidence = TINGGI`) |
+| 37 | Deteksi salah klasifikasi Pekerjaan Konstruksi pada Bahan Rutin & Sewa Alat | `R-19` (Bahan Rutin Jalan) & `R-18` (Sewa Alat) `PERLU_VERIFIKASI` |
+| 38 | Segmentasi Kualifikasi Usaha & Afirmasi UMK Konsultansi Konstruksi | `R-24b` pada Konsultansi > Rp1M (UMK=Ya) & `R-27c` pada PL Konstruksi Rp199.638.000 |
 
 ## 11.2 Baseline dataset kalibrasi
 
-Untuk CSV yang menjadi dasar v4.0, angka penerimaan riil yang terkalibrasi dan terverifikasi:
+Untuk CSV yang menjadi dasar v4.0.1, angka penerimaan riil yang terkalibrasi dan terverifikasi:
 
 - 7.982 paket, 49 OPD, seluruh TA 2026;
 - 12 header inti hadir;
 - 5 paket pagu nol;
 - 1 paket Penyedia tanpa `jenis_pengadaan` valid;
 - 63 paket PL melampaui threshold numerik dengan pembagian jenis 5/38/2/18 (Total Rp27.707.561.206);
-- 209 paket berada pada 95%–100% threshold, 182 tepat pada nilai ambang;
+- 209 paket berada pada 95%–100% threshold, 182 tepat pada nilai ambang (`R-27a`: 182, `R-27b`: 27);
+- 142 paket PL Konstruksi pada rentang Rp190–200 Juta (`R-27c`) senilai Rp28.072.331.946;
 - 70 paket PL Konstruksi pada rentang >Rp200 juta sampai Rp400 juta tidak memicu rule pelampauan threshold;
-- 24 paket eligible Pasal 65(3) berstatus bukan UMK muncul sebagai kandidat dengan pengecualian Pasal 65(4) belum dapat dinilai (Total Rp11.450.777.996);
+- 24 paket eligible Pasal 65(3) berstatus bukan UMK muncul sebagai kandidat dengan pengecualian Pasal 65(4) belum dapat dinilai (`R-24`: Total Rp11.450.777.996);
+- 5 paket Jasa Konsultansi Konstruksi > Rp1 Miliar berlabel `UMK=Ya` (`R-24b` Skenario 1: `[65546342]` Rp9,28M, `[67076511]` Rp1,74M, dll);
+- 2 paket Jasa Konsultansi <= Rp1 Miliar berlabel `UMK!=Ya` (`R-24b` Skenario 2: `[65107703]` Rp200Jt, `[65925834]` Rp26,34Jt);
+- 17 paket raksasa > Rp15 Miliar berlabel `UMK=Ya` (`R-24b` Skenario 3: Total Rp639,46 Miliar);
+- 4 paket PL Konsultansi berlabel Jasa Lainnya > Rp100 Juta (`R-16` Evasion: Total Rp1,015 Miliar);
+- 143 paket sewa/pemeliharaan alat berlabel non-Jasa Lainnya (`R-18`: Total Rp66,31 Miliar, termasuk 52 paket sewa alat BMBK senilai Rp6,96 Miliar);
+- 229 paket bahan rutin/material jalan berlabel non-Barang (`R-19`: Total Rp33,63 Miliar);
 - 262 paket berprofil sumber dana `APBD;APBDP` dan 2 paket `APBD;BLUD` dipertahankan sebagai multi-tag.
 
 ## 11.3 Hasil Uji Otomatis Real Codebase (`php spark test:rup-audit`)
@@ -784,17 +795,17 @@ Seluruh rangkaian pengujian diimplementasikan ke dalam test command resmi CodeIg
 php spark test:rup-audit
 ```
 
-Hasil verifikasi riil per 31 Oktober 2026:
+Hasil verifikasi riil per 31 Oktober 2026 (Patch Presisi v4.0.1):
 1. **Bagian I (Verifikasi Skema Basis Data Batch 16):** 7/7 PASSED.
    - Tabel `rup_audit_batches`, `rup_audit_opd_summaries`, `rup_audit_packages`, `rup_audit_violations`, dan `rup_audit_clusters` aktif pada skema Batch 16.
    - Kolom penampung JSON `macro_summary`, `target_perubahan`, `daftar_kode_rup`, dan `macro_flags` terverifikasi dapat menyimpan metadata v4.0 secara utuh.
-2. **Bagian II (35 Canonical Test Cases Master Plan):** 35/35 PASSED (TEST 01 s.d. TEST 35).
-3. **Bagian III (Baseline Kalibrasi 7.982 Baris Data Riil Lampung):** 6/6 PASSED.
+2. **Bagian II (38 Canonical Test Cases Master Plan v4.0.1):** 38/38 PASSED (TEST 01 s.d. TEST 38).
+3. **Bagian III (Baseline Kalibrasi 7.982 Baris Data Riil Lampung):** 7/7 PASSED.
    - Kalibrasi 63 PL di atas ambang, 209 threshold hugging, 24 UMK, 264 multi-tag dana, dan pembentukan 588 klaster splitting tanpa false positive 100% presisi.
-4. **Bagian IV (End-to-End Database Persistence Batch 16):** 1/1 PASSED.
-   - Batch 31, 49 OPD, 588 klaster tersimpan dan di-unpack kembali dengan validitas JSON 100%.
+4. **Bagian IV (End-to-End Database Persistence Batch 16 & UI Render):** 1/1 PASSED.
+   - Batch persisten, 49 OPD, 588 klaster tersimpan dan di-unpack kembali dengan validitas JSON 100%, render view detail.php ke-6 Tab sukses 100% bebas error Array to String conversion.
 
-**Total Status Pengujian:** **49/49 PASSED (0 FAIL, 100% SUKSES)**.
+**Total Status Pengujian:** **53/53 PASSED (0 FAIL, 100% SUKSES)**.
 
 ---
 

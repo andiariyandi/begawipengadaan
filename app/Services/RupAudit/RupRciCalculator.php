@@ -200,16 +200,29 @@ class RupRciCalculator
                 continue;
             }
             $val = (float) ($pkg['total_nilai'] ?? 0.0);
-            $maxSev = $pkg['max_severity'] ?? 'AMAN';
-            if ($maxSev === 'TINGGI' || $maxSev === 'KRITIS') {
-                $opdGroups[$opd]['count_potensi_tidak_sesuai']++;
-                $opdGroups[$opd]['pagu_potensi_tidak_sesuai'] += $val;
-            } elseif ($maxSev === 'SEDANG') {
-                $opdGroups[$opd]['count_perlu_verifikasi']++;
-                $opdGroups[$opd]['pagu_perlu_verifikasi'] += $val;
-            } elseif ($maxSev === 'RENDAH') {
-                $opdGroups[$opd]['count_sinyal_risiko']++;
-                $opdGroups[$opd]['pagu_sinyal_risiko'] += $val;
+            $pStatus = $pkg['primary_finding_status'] ?? 'AMAN';
+
+            switch ($pStatus) {
+                case 'POTENSI_TIDAK_SESUAI':
+                    $opdGroups[$opd]['count_potensi_tidak_sesuai']++;
+                    $opdGroups[$opd]['pagu_potensi_tidak_sesuai'] += $val;
+                    break;
+                case 'ANOMALI_DATA':
+                    $opdGroups[$opd]['count_anomali_data']++;
+                    $opdGroups[$opd]['pagu_anomali_data'] += $val;
+                    break;
+                case 'PERLU_VERIFIKASI':
+                    $opdGroups[$opd]['count_perlu_verifikasi']++;
+                    $opdGroups[$opd]['pagu_perlu_verifikasi'] += $val;
+                    break;
+                case 'SINYAL_RISIKO':
+                    $opdGroups[$opd]['count_sinyal_risiko']++;
+                    $opdGroups[$opd]['pagu_sinyal_risiko'] += $val;
+                    break;
+                case 'INFORMATIF':
+                case 'TIDAK_DAPAT_DINILAI_DARI_CSV':
+                    $opdGroups[$opd]['count_informatif']++;
+                    break;
             }
         }
 
@@ -274,6 +287,8 @@ class RupRciCalculator
                 'pagu_swakelola'              => $data['pagu_swakelola'],
                 'pagu_potensi_tidak_sesuai'   => $data['pagu_potensi_tidak_sesuai'],
                 'count_potensi_tidak_sesuai'  => $data['count_potensi_tidak_sesuai'],
+                'pagu_anomali_data'           => $data['pagu_anomali_data'],
+                'count_anomali_data'          => $data['count_anomali_data'],
                 'pagu_perlu_verifikasi'       => $data['pagu_perlu_verifikasi'],
                 'count_perlu_verifikasi'      => $data['count_perlu_verifikasi'],
                 'pagu_sinyal_risiko'          => $data['pagu_sinyal_risiko'],
@@ -349,6 +364,14 @@ class RupRciCalculator
             'info'   => ['jumlah_paket' => 0, 'total_pagu_terdampak' => 0.0],
         ];
 
+        $statusAgregat = [
+            'potensi_tidak_sesuai' => ['jumlah_paket' => 0, 'total_pagu_terdampak' => 0.0],
+            'anomali_data'         => ['jumlah_paket' => 0, 'total_pagu_terdampak' => 0.0],
+            'perlu_verifikasi'     => ['jumlah_paket' => 0, 'total_pagu_terdampak' => 0.0],
+            'sinyal_risiko'        => ['jumlah_paket' => 0, 'total_pagu_terdampak' => 0.0],
+            'informatif'           => ['jumlah_paket' => 0, 'total_pagu_terdampak' => 0.0],
+        ];
+
         $sourceFundingTotals = [];
 
         foreach ($packages as $pkg) {
@@ -395,6 +418,31 @@ class RupRciCalculator
                 $distribusiTemuan[$sev]['jumlah_paket']++;
                 $distribusiTemuan[$sev]['total_pagu_terdampak'] += $val;
             }
+
+            $pStatus = $pkg['primary_finding_status'] ?? 'AMAN';
+            switch ($pStatus) {
+                case 'POTENSI_TIDAK_SESUAI':
+                    $statusAgregat['potensi_tidak_sesuai']['jumlah_paket']++;
+                    $statusAgregat['potensi_tidak_sesuai']['total_pagu_terdampak'] += $val;
+                    break;
+                case 'ANOMALI_DATA':
+                    $statusAgregat['anomali_data']['jumlah_paket']++;
+                    $statusAgregat['anomali_data']['total_pagu_terdampak'] += $val;
+                    break;
+                case 'PERLU_VERIFIKASI':
+                    $statusAgregat['perlu_verifikasi']['jumlah_paket']++;
+                    $statusAgregat['perlu_verifikasi']['total_pagu_terdampak'] += $val;
+                    break;
+                case 'SINYAL_RISIKO':
+                    $statusAgregat['sinyal_risiko']['jumlah_paket']++;
+                    $statusAgregat['sinyal_risiko']['total_pagu_terdampak'] += $val;
+                    break;
+                case 'INFORMATIF':
+                case 'TIDAK_DAPAT_DINILAI_DARI_CSV':
+                    $statusAgregat['informatif']['jumlah_paket']++;
+                    $statusAgregat['informatif']['total_pagu_terdampak'] += $val;
+                    break;
+            }
         }
 
         $scores = array_column($opdSummaries, 'skor_rci');
@@ -409,6 +457,15 @@ class RupRciCalculator
             'persen_umk_eligible_le15m'                    => $paguPenyediaLe15m > 0 ? round(($paguUmkLe15m / $paguPenyediaLe15m) * 100, 2) : 100.00,
             'persen_umk_terhadap_total_rup'                => $totalPagu > 0 ? round(($paguUmkTotal / $totalPagu) * 100, 2) : 0.00,
             'distribusi_temuan_unik'                       => $distribusiTemuan,
+            'status_agregat'                               => $statusAgregat,
+            'count_potensi_tidak_sesuai'                   => $statusAgregat['potensi_tidak_sesuai']['jumlah_paket'],
+            'pagu_potensi_tidak_sesuai'                    => $statusAgregat['potensi_tidak_sesuai']['total_pagu_terdampak'],
+            'count_anomali_data'                           => $statusAgregat['anomali_data']['jumlah_paket'],
+            'pagu_anomali_data'                            => $statusAgregat['anomali_data']['total_pagu_terdampak'],
+            'count_perlu_verifikasi'                       => $statusAgregat['perlu_verifikasi']['jumlah_paket'],
+            'pagu_perlu_verifikasi'                        => $statusAgregat['perlu_verifikasi']['total_pagu_terdampak'],
+            'count_sinyal_risiko'                          => $statusAgregat['sinyal_risiko']['jumlah_paket'],
+            'pagu_sinyal_risiko'                           => $statusAgregat['sinyal_risiko']['total_pagu_terdampak'],
             'source_funding_distribution'                  => $sourceFundingTotals,
             'rata_rata_rci_instansi'                       => $avgRci,
         ];

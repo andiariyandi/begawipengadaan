@@ -58,7 +58,11 @@ class RupAuditController extends BaseController
         if ($latestBatch) {
             $macro = json_decode((string) ($latestBatch['macro_summary'] ?? '{}'), true);
             $dist = $macro['distribusi_temuan_unik'] ?? [];
-            $paguBermasalah = (float) ($dist['kritis']['total_pagu_terdampak'] ?? 0.0) + (float) ($dist['tinggi']['total_pagu_terdampak'] ?? 0.0);
+            $statusAgregat = $macro['status_agregat'] ?? [];
+            $paguBermasalah = (float) ($statusAgregat['potensi_tidak_sesuai']['total_pagu_terdampak'] ?? ($macro['pagu_potensi_tidak_sesuai'] ?? 0.0));
+            if ($paguBermasalah <= 0.0) {
+                $paguBermasalah = (float) ($dist['kritis']['total_pagu_terdampak'] ?? 0.0) + (float) ($dist['tinggi']['total_pagu_terdampak'] ?? 0.0);
+            }
 
             $kpi = [
                 'total_opd'           => (int) $latestBatch['total_opd'],

@@ -29,7 +29,8 @@ class CommunicationService
     // C-2: Anti Stored-XSS Sanitizer untuk konten publik
     private function sanitizeHtmlContent(string $raw): string
     {
-        $clean = strip_tags($raw, '<p><br><b><strong><i><em><u><a><ul><ol><li><h1><h2><h3><h4><h5><h6><blockquote><code><pre><hr>');
+        $processed = \App\Services\ContentMediaService::processInlineImages($raw, 'news');
+        $clean = strip_tags($processed, '<p><br><b><strong><i><em><u><a><img><ul><ol><li><h1><h2><h3><h4><h5><h6><blockquote><code><pre><hr>');
         $clean = preg_replace('/\s+on[a-z]+\s*=\s*(["\'][^"\']*["\']|[^\s>]+)/i', '', $clean);
         return preg_replace('/\b(href)\s*=\s*["\']\s*(javascript|data):[^"\']*["\']/i', '$1="#"', $clean);
     }

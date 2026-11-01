@@ -80,10 +80,10 @@ class RupAuditTest extends BaseCommand
         }
 
         // -------------------------------------------------------------
-        // BAGIAN II: 35 TEST CASES KANONIKAL MASTER PLAN v4.0 (BAGIAN XI)
+        // BAGIAN II: 38 TEST CASES KANONIKAL MASTER PLAN v4.0.1 (BAGIAN XI)
         // -------------------------------------------------------------
         CLI::newLine();
-        CLI::write("[BAGIAN II] Verifikasi 35 Test Cases Kanonikal Master Plan v4.0...", "yellow");
+        CLI::write("[BAGIAN II] Verifikasi 38 Test Cases Kanonikal Master Plan v4.0.1...", "yellow");
 
         // TEST 1: CSV tepat 12 kolom diterima
         $csv12Exact = "nama_instansi,nama_satuan_kerja,tahun_anggaran,cara_pengadaan,metode_pengadaan,jenis_pengadaan,nama_paket,kode_rup,sumber_dana,produk_dalam_negeri,status_umk,total_nilai\n" .
@@ -754,7 +754,7 @@ class RupAuditTest extends BaseCommand
         CLI::write("  [TEST 32: PASS] Label PDN='Ya' pada RUP ditegaskan bukan bukti sertifikat TKDN aktual", "green");
         $passCount++;
 
-        // TEST 33: Kode RUP duplikat / ilmiah rusak -> R-36 ANOMALI_DATA
+        // TEST 33: Kode RUP duplikat / ilmiah rusak -> R-21a ANOMALI_DATA
         $v33 = RupRuleEngine::evaluatePackage([
             'total_nilai'              => 50000000.0,
             'tahun_anggaran'           => 2026,
@@ -768,17 +768,17 @@ class RupAuditTest extends BaseCommand
             'is_scientific_truncated'  => true,
             'status_umk'               => 'Ya',
         ]);
-        $hasR36_33 = false;
+        $hasR21a_33 = false;
         foreach ($v33 as $v) {
-            if ($v['rule_id'] === 'R-36' && ($v['finding_status'] ?? '') === 'ANOMALI_DATA') {
-                $hasR36_33 = true;
+            if (in_array($v['rule_id'], ['R-21a', 'R-36'], true) && ($v['finding_status'] ?? '') === 'ANOMALI_DATA') {
+                $hasR21a_33 = true;
             }
         }
-        if ($hasR36_33) {
-            CLI::write("  [TEST 33: PASS] Kode RUP rusak notasi ilmiah memicu R-36 (ANOMALI_DATA)", "green");
+        if ($hasR21a_33) {
+            CLI::write("  [TEST 33: PASS] Kode RUP rusak notasi ilmiah memicu R-21a (ANOMALI_DATA)", "green");
             $passCount++;
         } else {
-            CLI::write("  [TEST 33: FAIL] R-36 gagal mendeteksi kode RUP rusak", "red");
+            CLI::write("  [TEST 33: FAIL] R-21a gagal mendeteksi kode RUP rusak", "red");
             $failCount++;
         }
 
@@ -834,6 +834,120 @@ class RupAuditTest extends BaseCommand
             $passCount++;
         } else {
             CLI::write("  [TEST 35: FAIL] Skema output temuan belum memenuhi spesifikasi v4.0", "red");
+            $failCount++;
+        }
+
+        // TEST 36: Deteksi penghindaran Seleksi Konsultansi > Rp100 Jt berlabel Jasa Lainnya (R-16 POTENSI_TIDAK_SESUAI)
+        $v36 = RupRuleEngine::evaluatePackage([
+            'total_nilai'      => 200000000.0,
+            'tahun_anggaran'   => 2026,
+            'cara_pengadaan'   => 'Penyedia',
+            'metode_pengadaan' => 'Pengadaan Langsung',
+            'metode_arr'       => ['Pengadaan Langsung'],
+            'jenis_pengadaan'  => 'Jasa Lainnya',
+            'jenis_arr'        => ['Jasa Lainnya'],
+            'nama_paket'       => 'PERENCANAAN DED PERKUATAN TEBING SUNGAI TIPE 1',
+            'status_umk'       => 'Ya',
+        ]);
+        $hasR16Evasion = false;
+        foreach ($v36 as $v) {
+            if ($v['rule_id'] === 'R-16' && ($v['finding_status'] ?? '') === 'POTENSI_TIDAK_SESUAI' && ($v['severity'] ?? '') === 'TINGGI') {
+                $hasR16Evasion = true;
+            }
+        }
+        if ($hasR16Evasion) {
+            CLI::write("  [TEST 36: PASS] Deteksi penghindaran Seleksi PL DED Rp200 Juta berlabel Jasa Lainnya memicu R-16 (POTENSI_TIDAK_SESUAI)", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [TEST 36: FAIL] R-16 gagal memicu POTENSI_TIDAK_SESUAI pada PL Konsultansi > Rp100 Juta berlabel Jasa Lainnya", "red");
+            $failCount++;
+        }
+
+        // TEST 37: Deteksi salah klasifikasi Pekerjaan Konstruksi pada Bahan Rutin (R-19) dan Sewa Alat (R-18)
+        $v37a = RupRuleEngine::evaluatePackage([
+            'total_nilai'      => 150000000.0,
+            'tahun_anggaran'   => 2026,
+            'cara_pengadaan'   => 'Penyedia',
+            'metode_pengadaan' => 'Pengadaan Langsung',
+            'metode_arr'       => ['Pengadaan Langsung'],
+            'jenis_pengadaan'  => 'Pekerjaan Konstruksi',
+            'jenis_arr'        => ['Pekerjaan Konstruksi'],
+            'nama_paket'       => 'Pengadaan Bahan Rutin Ruas Jalan Wilayah 1',
+            'status_umk'       => 'Ya',
+        ]);
+        $hasR19_37 = false;
+        foreach ($v37a as $v) {
+            if ($v['rule_id'] === 'R-19' && ($v['finding_status'] ?? '') === 'PERLU_VERIFIKASI') {
+                $hasR19_37 = true;
+            }
+        }
+
+        $v37b = RupRuleEngine::evaluatePackage([
+            'total_nilai'      => 150000000.0,
+            'tahun_anggaran'   => 2026,
+            'cara_pengadaan'   => 'Penyedia',
+            'metode_pengadaan' => 'Pengadaan Langsung',
+            'metode_arr'       => ['Pengadaan Langsung'],
+            'jenis_pengadaan'  => 'Pekerjaan Konstruksi',
+            'jenis_arr'        => ['Pekerjaan Konstruksi'],
+            'nama_paket'       => 'Pengadaan Sewa Alat Pemeliharaan Rutin Jalan Wilayah 1',
+            'status_umk'       => 'Ya',
+        ]);
+        $hasR18_37 = false;
+        foreach ($v37b as $v) {
+            if ($v['rule_id'] === 'R-18' && ($v['finding_status'] ?? '') === 'PERLU_VERIFIKASI') {
+                $hasR18_37 = true;
+            }
+        }
+        if ($hasR19_37 && $hasR18_37) {
+            CLI::write("  [TEST 37: PASS] Deteksi salah klasifikasi Pekerjaan Konstruksi pada Bahan Rutin (R-19) & Sewa Alat (R-18) berhasil", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [TEST 37: FAIL] Salah klasifikasi Pekerjaan Konstruksi gagal terdeteksi pada R-18 atau R-19", "red");
+            $failCount++;
+        }
+
+        // TEST 38: Deteksi R-24b pada Seleksi Konsultansi Konstruksi > Rp1 Miliar (UMK=Ya) dan R-27c pada PL Konstruksi Rp199.638.000
+        $v38a = RupRuleEngine::evaluatePackage([
+            'total_nilai'      => 9279508042.0,
+            'tahun_anggaran'   => 2026,
+            'cara_pengadaan'   => 'Penyedia',
+            'metode_pengadaan' => 'Seleksi',
+            'metode_arr'       => ['Seleksi'],
+            'jenis_pengadaan'  => 'Jasa Konsultansi',
+            'jenis_arr'        => ['Jasa Konsultansi'],
+            'nama_paket'       => 'Belanja Jasa Konsultansi Perencanaan Rekayasa-Jasa Desain Rekayasa Lainnya',
+            'status_umk'       => 'Ya',
+        ]);
+        $hasR24b_38 = false;
+        foreach ($v38a as $v) {
+            if ($v['rule_id'] === 'R-24b' && ($v['finding_status'] ?? '') === 'POTENSI_TIDAK_SESUAI' && ($v['severity'] ?? '') === 'TINGGI') {
+                $hasR24b_38 = true;
+            }
+        }
+
+        $v38b = RupRuleEngine::evaluatePackage([
+            'total_nilai'      => 199638000.0,
+            'tahun_anggaran'   => 2026,
+            'cara_pengadaan'   => 'Penyedia',
+            'metode_pengadaan' => 'Pengadaan Langsung',
+            'metode_arr'       => ['Pengadaan Langsung'],
+            'jenis_pengadaan'  => 'Pekerjaan Konstruksi',
+            'jenis_arr'        => ['Pekerjaan Konstruksi'],
+            'nama_paket'       => 'Pemeliharaan Berkala Jalan Ruas Sukamaju',
+            'status_umk'       => 'Ya',
+        ]);
+        $hasR27c_38 = false;
+        foreach ($v38b as $v) {
+            if ($v['rule_id'] === 'R-27c' && ($v['finding_status'] ?? '') === 'SINYAL_RISIKO') {
+                $hasR27c_38 = true;
+            }
+        }
+        if ($hasR24b_38 && $hasR27c_38) {
+            CLI::write("  [TEST 38: PASS] Deteksi R-24b pada Seleksi Konsultansi > Rp1M (UMK=Ya) & R-27c pada PL Konstruksi Rp199.638.000 sukses", "green");
+            $passCount++;
+        } else {
+            CLI::write("  [TEST 38: FAIL] R-24b atau R-27c gagal terdeteksi", "red");
             $failCount++;
         }
 
