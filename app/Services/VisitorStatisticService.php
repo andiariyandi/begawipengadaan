@@ -265,7 +265,7 @@ class VisitorStatisticService
             ],
             'event' => [
                 'label'       => 'Event & Agenda',
-                'description' => 'Bimtek, webinar nasional & sosialisasi regulasi',
+                'description' => 'Bimtek, webinar nasional & sosialisasi',
                 'icon'        => 'solar:calendar-bold',
                 'color'       => '#8b5cf6',
                 'bg'          => '#f5f3ff',
@@ -532,9 +532,18 @@ class VisitorStatisticService
                 $deletedIpRows = $this->db->affectedRows();
 
                 $bulanNames = [
-                    1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-                    5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-                    9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                    1 => 'Januari',
+                    2 => 'Februari',
+                    3 => 'Maret',
+                    4 => 'April',
+                    5 => 'Mei',
+                    6 => 'Juni',
+                    7 => 'Juli',
+                    8 => 'Agustus',
+                    9 => 'September',
+                    10 => 'Oktober',
+                    11 => 'November',
+                    12 => 'Desember'
                 ];
                 $currentMonthName = ($bulanNames[(int) date('n')] ?? date('F')) . ' ' . date('Y');
                 $message = "Pembersihan berhasil: Riwayat sebelum bulan {$currentMonthName} telah dihapus. Hanya data bulan berjalan yang dipertahankan.";

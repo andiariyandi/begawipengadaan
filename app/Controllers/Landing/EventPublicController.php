@@ -448,9 +448,13 @@ class EventPublicController extends BaseController
         if ($regCloseAt && $now > $regCloseAt) {
             $isRegOpen = false;
         }
-        if ($isPast || $event['status'] === 'cancelled') {
+        if ($isPast || in_array(($event['status'] ?? ''), ['cancelled', 'draft', 'archived'], true)) {
             $isRegOpen = false;
         }
+
+        // Susunan Acara (Rundown Kegiatan Dinamis Berbasis Jam)
+        $rundownSvc = new \App\Services\EventRundownService();
+        $rundownItems = $rundownSvc->getRundown((int) $event['id'], $event);
 
         // Assessment & Self-Paced Learning Configuration Check
         $assessmentSvc = new \App\Services\EventAssessmentService();
@@ -489,11 +493,20 @@ class EventPublicController extends BaseController
             ->limit(3)
             ->get()->getResultArray();
 
+        // Safe resolution of event cover image
+        $coverUrl = null;
+        if (! empty($event['cover_file_id'])) {
+            $coverUrl = site_url('file/' . (int) $event['cover_file_id']);
+        } elseif (! empty($event['cover_path'])) {
+            $coverUrl = str_starts_with($event['cover_path'], 'http') ? $event['cover_path'] : base_url($event['cover_path']);
+        }
+
         return view('landing/pages/event_detail', [
             'title'           => $event['title'] . ' | Event PBJ Lampung',
             'metaDescription' => $event['summary'] ?: ('Jadwal dan pendaftaran resmi: ' . $event['title']),
             'pageTitle'       => 'Detail Event & Agenda',
             'event'           => $event,
+            'coverUrl'        => $coverUrl,
             'typeLabel'       => $this->formatTypeLabel($event['type']),
             'modeLabel'       => $this->formatModeLabel($event['mode']),
             'statusLabel'     => $this->formatStatusLabel($event['status'], $isPast),
@@ -518,7 +531,8 @@ class EventPublicController extends BaseController
             'shareUrl'        => site_url('event/' . $event['slug']),
             'isSelfPacedOpen' => $isSelfPacedOpen,
             'selfPaced'       => $selfPaced,
-            'assessmentConfig'=> $assessmentConfig,
+            'assessmentConfig' => $assessmentConfig,
+            'rundownItems'    => $rundownItems,
         ]);
     }
 
@@ -682,7 +696,7 @@ class EventPublicController extends BaseController
             'webinar'     => 'Webinar',
             'bimtek'      => 'Bimtek',
             'workshop'    => 'Workshop',
-            'sosialisasi' => 'Sosialisasi Regulasi',
+            'sosialisasi' => 'Sosialisasi',
             'seminar'     => 'Seminar',
             'pelatihan'   => 'Pelatihan',
             'rakor'       => 'Rapat Koordinasi',
@@ -708,11 +722,12 @@ class EventPublicController extends BaseController
         }
         return match (strtolower($status)) {
             'open_registration' => 'Pendaftaran Dibuka',
+            'published'         => 'Pendaftaran Dibuka',
             'coming_soon'       => 'Segera Dibuka',
-            'published'         => 'Terjadwal',
             'full'              => 'Kuota Penuh',
             'finished'          => 'Selesai',
             'cancelled'         => 'Dibatalkan',
+            'draft'             => 'Draf (Belum Dibuka)',
             default             => 'Terjadwal',
         };
     }

@@ -211,7 +211,7 @@ class CertificateTemplateRenderer
 
             // Khusus TTE & Segel Digital Resmi (Blok HTML tanda tangan naskah dinas)
             if (in_array($tag, ['{{tanda_tangan}}', '{{stempel_tte}}', '{{segel_digital}}'], true)) {
-                $blockWidth  = ($tag === '{{tanda_tangan}}') ? 260 : 180;
+                $blockWidth  = ($tag === '{{tanda_tangan}}') ? 260 : 210;
                 $alignMargin = match ($align) {
                     'center' => sprintf('left:%.2F%%;margin-left:-%dpx;', $xPct, (int) round($blockWidth / 2)),
                     'right'  => sprintf('left:%.2F%%;margin-left:-%dpx;', $xPct, $blockWidth),
