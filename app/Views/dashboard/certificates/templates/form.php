@@ -1501,20 +1501,33 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                                 '</div>';
                         } else {
                             // {{stempel_tte}} / {{segel_digital}}
-                            const stampWidth = Math.max(130, Math.round(180 * ptToPxScale));
+                            const stampWidth = Math.max(160, Math.round(200 * ptToPxScale));
                             el.style.width = stampWidth + 'px';
-                            el.style.padding = '4px 8px';
+                            el.style.padding = '5px 8px';
                             el.style.backgroundColor = '#f0f9ff';
                             el.style.border = '2px solid #0284c7';
                             el.style.borderRadius = '6px';
                             el.style.boxShadow = '0 2px 6px rgba(2, 132, 199, 0.15)';
-                            el.style.textAlign = 'center';
+                            el.style.textAlign = 'left';
                             el.style.boxSizing = 'border-box';
+
+                            const lockImgSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA5klEQVR42u2ZQQ6CQAxF6cCh9Gyw1LPBpRR2xoXEZEKn0/a9la7wP/60EoYBAAAAAGwoj3W3vL70GPi93CWcgJo73UKEeKi4pgjxcr61JIiH8JoSxEt4LQkl+xoWT3dfowU0wOu/uqtakL4BCEAAQ9DvY+0Vg3Dq/Ydqi2UGMAMcnXmNoyZRwtdKkEjhayQwBBGAgNxMlhd/zbfP5/G55WrAd/hf30MLOAtrIaH0Et5KAlsAAY35N+1bbwOTBpyFtFiFHAEEIAABCOBpsKNVSAMQgAAEIAABCGgG7warqxPk7TAAQGoOsttSVwT0kx0AAAAASUVORK5CYII=';
+                            const lockSvgHtml = '<img src="' + lockImgSrc + '" width="' + Math.max(18, Math.round(20 * ptToPxScale)) + '" height="' + Math.max(18, Math.round(20 * ptToPxScale)) + '" style="display:block;margin:0 auto;width:' + Math.max(18, Math.round(20 * ptToPxScale)) + 'px;height:' + Math.max(18, Math.round(20 * ptToPxScale)) + 'px;" alt="Lock">';
+
                             el.innerHTML =
                                 '<div style="font-family:\'Helvetica Neue\',Helvetica,Arial,sans-serif;line-height:1.2;font-weight:bold;pointer-events:none;">' +
-                                '<div style="font-size:' + Math.max(8.5, Math.round(8 * ptToPxScale)) + 'px;color:#0c4a6e;margin:2px 0;letter-spacing:0.5px;">SERTIFIKAT ELEKTRONIK</div>' +
-                                '<div style="font-size:' + Math.max(6.5, Math.round(6 * ptToPxScale)) + 'px;font-weight:normal;color:#075985;">TEROTENTIKASI &bull; ' + new Date().toLocaleDateString('id-ID') + '</div>' +
-                                '<div style="font-size:' + Math.max(6, Math.round(5.5 * ptToPxScale)) + 'px;font-family:Courier,monospace;color:#0284c7;border-top:1px solid #bae6fd;margin-top:2px;padding-top:2px;">SHA256:55331D095A99</div>' +
+                                '<table cellpadding="0" cellspacing="0" border="0" style="margin:0;padding:0;border:none;background:transparent;width:100%;border-collapse:collapse;">' +
+                                '<tr>' +
+                                '<td style="vertical-align:middle;padding-right:7px;text-align:center;width:24px;border:none;">' +
+                                lockSvgHtml +
+                                '</td>' +
+                                '<td style="vertical-align:middle;text-align:left;border-left:1.5px solid #bae6fd;padding-left:7px;border-top:none;border-right:none;border-bottom:none;">' +
+                                '<div style="font-size:' + Math.max(8, Math.round(7.5 * ptToPxScale)) + 'px;color:#0c4a6e;margin:0 0 1px 0;letter-spacing:0.5px;">SERTIFIKAT ELEKTRONIK</div>' +
+                                '<div style="font-size:' + Math.max(6.5, Math.round(6 * ptToPxScale)) + 'px;font-weight:normal;color:#075985;margin:0 0 2px 0;">TEROTENTIKASI &bull; ' + new Date().toLocaleDateString('id-ID') + '</div>' +
+                                '<div style="font-size:' + Math.max(6, Math.round(5.5 * ptToPxScale)) + 'px;font-family:Courier,monospace;color:#0284c7;border-top:1px solid #bae6fd;padding-top:2px;margin:0;">SHA256:6C18155B9536</div>' +
+                                '</td>' +
+                                '</tr>' +
+                                '</table>' +
                                 '</div>';
                         }
                     } else {

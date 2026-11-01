@@ -78,6 +78,7 @@ class EventController extends BaseController
             'assessmentConfig' => $assessmentSvc->getAssessmentConfig(0),
             'materials'        => [],
             'assessmentStats'  => [],
+            'rundown'          => [],
         ]);
     }
 
@@ -181,6 +182,7 @@ class EventController extends BaseController
         $assessmentStats = $assessmentSvc->getAssessmentStats($eventId);
         $templateModel = new \App\Models\Certificate\CertificateTemplateModel();
         $certTemplate  = $templateModel->findForEvent($eventId);
+        $rundown       = (new \App\Services\EventRundownService())->getRundown($eventId, $row);
 
         return view('dashboard/communication/events/detail', [
             'title'            => 'Detail Event | Dashboard BegawiPengadaan',
@@ -197,6 +199,7 @@ class EventController extends BaseController
             'assessmentConfig' => $assessmentConfig,
             'assessmentStats'  => $assessmentStats,
             'certTemplate'     => $certTemplate,
+            'rundown'          => $rundown,
         ]);
     }
 
@@ -266,6 +269,7 @@ class EventController extends BaseController
         $assessmentStats = $assessmentSvc->getAssessmentStats($eventId);
         $templateModel = new \App\Models\Certificate\CertificateTemplateModel();
         $certTemplate  = $templateModel->findForEvent($eventId);
+        $rundown       = (new \App\Services\EventRundownService())->getRundown($eventId, $row);
 
         return view('dashboard/communication/events/form', [
             'title'            => 'Ubah Event | Dashboard BegawiPengadaan',
@@ -279,6 +283,7 @@ class EventController extends BaseController
             'assessmentConfig' => $assessmentConfig,
             'assessmentStats'  => $assessmentStats,
             'certTemplate'     => $certTemplate,
+            'rundown'          => $rundown,
         ]);
     }
 

@@ -200,6 +200,9 @@ class CommunicationService
 
         $validStatuses = ['draft', 'coming_soon', 'open_registration', 'full', 'finished', 'cancelled'];
         $status = strtolower(trim((string) ($data['status'] ?? 'draft')));
+        if ($status === 'publish' || $status === 'published' || $status === 'ongoing') {
+            $status = 'open_registration';
+        }
         if (! in_array($status, $validStatuses, true)) {
             $status = 'draft';
         }
@@ -231,8 +234,8 @@ class CommunicationService
             'is_featured'           => ! empty($data['is_featured']) ? 1 : 0,
             'carousel_enabled'      => ! empty($data['carousel_enabled']) ? 1 : 0,
             'carousel_order'        => ! empty($data['carousel_order']) ? (int) $data['carousel_order'] : null,
-            'created_by'            => $actorId,
-            'updated_by'            => $actorId,
+            'created_by'            => ($actorId && $actorId > 0) ? $actorId : null,
+            'updated_by'            => ($actorId && $actorId > 0) ? $actorId : null,
             'created_at'            => $now,
             'updated_at'            => $now,
         ];
@@ -243,6 +246,14 @@ class CommunicationService
             }
         }
         $id = (int) $this->events->insert($payload, true);
+        if (isset($data['rundown']) && is_array($data['rundown'])) {
+            (new \App\Services\EventRundownService())->saveRundown($id, $data['rundown'], $actorId);
+        } elseif (! empty($data['rundown_data'])) {
+            $rundownParsed = is_string($data['rundown_data']) ? json_decode($data['rundown_data'], true) : $data['rundown_data'];
+            if (is_array($rundownParsed)) {
+                (new \App\Services\EventRundownService())->saveRundown($id, $rundownParsed, $actorId);
+            }
+        }
         $this->audit->log($actorId, 'event.create', 'events', 'event', $id);
         return $id;
     }
@@ -269,6 +280,9 @@ class CommunicationService
 
         $validStatuses = ['draft', 'coming_soon', 'open_registration', 'full', 'finished', 'cancelled'];
         $status = strtolower(trim((string) ($data['status'] ?? $current['status'] ?? 'draft')));
+        if ($status === 'publish' || $status === 'published' || $status === 'ongoing') {
+            $status = 'open_registration';
+        }
         if (! in_array($status, $validStatuses, true)) {
             $status = $current['status'] ?? 'draft';
         }
@@ -303,7 +317,7 @@ class CommunicationService
             'is_featured'           => array_key_exists('is_featured', $data) ? (! empty($data['is_featured']) ? 1 : 0) : (int) ($current['is_featured'] ?? 0),
             'carousel_enabled'      => array_key_exists('carousel_enabled', $data) ? (! empty($data['carousel_enabled']) ? 1 : 0) : (int) ($current['carousel_enabled'] ?? 0),
             'carousel_order'        => array_key_exists('carousel_order', $data) ? (! empty($data['carousel_order']) ? (int) $data['carousel_order'] : null) : ($current['carousel_order'] ?? null),
-            'updated_by'            => $actorId,
+            'updated_by'            => ($actorId && $actorId > 0) ? $actorId : ($current['updated_by'] ?? null),
             'updated_at'            => date('Y-m-d H:i:s'),
         ];
         if (! empty($data['cover_file'])) {
@@ -314,6 +328,14 @@ class CommunicationService
         }
         $ok = (bool) $this->events->update($id, $payload);
         if ($ok) {
+            if (isset($data['rundown']) && is_array($data['rundown'])) {
+                (new \App\Services\EventRundownService())->saveRundown($id, $data['rundown'], $actorId);
+            } elseif (! empty($data['rundown_data'])) {
+                $rundownParsed = is_string($data['rundown_data']) ? json_decode($data['rundown_data'], true) : $data['rundown_data'];
+                if (is_array($rundownParsed)) {
+                    (new \App\Services\EventRundownService())->saveRundown($id, $rundownParsed, $actorId);
+                }
+            }
             $this->audit->log($actorId, 'event.update', 'events', 'event', $id);
         }
         return $ok;
@@ -840,6 +862,14 @@ class CommunicationService
         if (! $file->move($dir, $storedName)) {
             return null;
         }
+
+        // Mirror to FCPATH uploads so both direct base_url() and /file/:id route function seamlessly
+        $publicDir = FCPATH . 'uploads/' . trim($resourceType, '/');
+        if (! is_dir($publicDir)) {
+            @mkdir($publicDir, 0755, true);
+        }
+        @copy($dir . DIRECTORY_SEPARATOR . $storedName, $publicDir . DIRECTORY_SEPARATOR . $storedName);
+
         $now = date('Y-m-d H:i:s');
         $relativePath = 'uploads/' . trim($resourceType, '/') . '/' . $storedName;
         $ok = db_connect()->table('file_assets')->insert([

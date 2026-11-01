@@ -107,7 +107,7 @@ if ($isLoggedIn && $headerUserId > 0) {
                                     <li><a href="<?= site_url('event?tipe=webinar') ?>">Webinar PBJ Daring</a></li>
                                     <li><a href="<?= site_url('event?tipe=bimtek') ?>">Bimbingan Teknis (Bimtek)</a></li>
                                     <li><a href="<?= site_url('event?tipe=workshop') ?>">Workshop &amp; Lokakarya</a></li>
-                                    <li><a href="<?= site_url('event?tipe=sosialisasi') ?>">Sosialisasi Regulasi</a></li>
+                                    <li><a href="<?= site_url('event?tipe=sosialisasi') ?>">Sosialisasi</a></li>
                                     <li><a href="<?= site_url('event/kalender') ?>">Kalender Kegiatan PBJ</a></li>
                                 </ul> -->
                             </li>

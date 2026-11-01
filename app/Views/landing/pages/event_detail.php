@@ -24,8 +24,10 @@
         <!-- TOP EVENT COVER IMAGE — "yang paling atas adalah gambar dari event, buat clean" -->
         <div class="evt-detail-cover mb-4">
             <div class="evt-detail-cover__media">
-                <?php if (! empty($event['cover_path'])): ?>
-                    <img src="<?= base_url($event['cover_path']) ?>" alt="<?= esc($event['title']) ?>" loading="eager">
+                <?php if (! empty($coverUrl)): ?>
+                    <img src="<?= esc($coverUrl) ?>" alt="<?= esc($event['title']) ?>" loading="eager" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>';">
+                <?php elseif (! empty($event['cover_path'])): ?>
+                    <img src="<?= base_url($event['cover_path']) ?>" alt="<?= esc($event['title']) ?>" loading="eager" onerror="this.onerror=null;this.src='<?= base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>';">
                 <?php else: ?>
                     <img src="<?= base_url('assets/main/images/blog/blog-details-img-1.jpg') ?>" alt="<?= esc($event['title']) ?>" loading="eager">
                 <?php endif; ?>
@@ -175,53 +177,49 @@
                     <!-- Full Description Body -->
                     <h3 class="h5 fw-bold text-slate-900 mb-3">Deskripsi &amp; Latar Belakang</h3>
                     <div class="text-slate-700 mb-4" style="line-height: 1.8; font-size: 15px;">
-                        <?= nl2br(esc($event['description'] ?: 'Kegiatan pembinaan, sosialisasi regulasi, dan peningkatan wawasan serta pengetahuan pengadaan barang dan jasa Pemerintah Provinsi Lampung.')) ?>
+                        <?= nl2br(esc($event['description'] ?: 'Kegiatan pembinaan, sosialisasi, dan peningkatan wawasan serta pengetahuan pengadaan barang dan jasa Pemerintah Provinsi Lampung.')) ?>
                     </div>
 
-                    <!-- Susunan Acara (Rundown Kegiatan) - Strictly Real from Event Timestamps -->
+                    <!-- Susunan Acara (Rundown Kegiatan) - Dinamis Berbasis Jam -->
                     <h3 class="h5 fw-bold text-slate-900 mb-2">Susunan Acara (Rundown Kegiatan)</h3>
-                    <p class="text-xs text-slate-500 mb-3">Jadwal resmi pelaksanaan sesi agenda sesuai ketetapan panitia penyelenggara.</p>
+                    <p class="text-xs text-slate-500 mb-3">Jadwal resmi pelaksanaan sesi agenda sesuai ketetapan panitia penyelenggara (berbasis jam pelaksanaan).</p>
                     <table class="evt-rundown-table mb-4">
                         <thead>
                             <tr>
-                                <th style="width: 140px;">Waktu (WIB)</th>
+                                <th style="width: 155px;">Waktu (WIB)</th>
                                 <th>Sesi &amp; Agenda Pelaksanaan</th>
                                 <th>Keterangan / Fasilitator</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><strong><?= date('H:i', $startTime) ?> WIB</strong></td>
-                                <td>
-                                    <strong>Pembukaan Acara &amp; Registrasi Peserta</strong>
-                                    <small class="text-slate-500 d-block mt-1">Verifikasi identitas dan penyambutan peserta <?= esc($typeLabel) ?></small>
-                                </td>
-                                <td>Panitia Biro PBJ Setda Lampung</td>
-                            </tr>
-                            <tr>
-                                <td><strong><?= date('H:i', $startTime + 1800) ?> WIB</strong></td>
-                                <td>
-                                    <strong>Pemaparan Materi Pokok &amp; Pembahasan Tematik</strong>
-                                    <small class="text-slate-500 d-block mt-1"><?= esc($event['title']) ?></small>
-                                </td>
-                                <td>Narasumber &amp; Tim Fasilitator Ahli PBJ</td>
-                            </tr>
-                            <tr>
-                                <td><strong><?= date('H:i', max($startTime + 3600, $endTime - 2700)) ?> WIB</strong></td>
-                                <td>
-                                    <strong>Sesi Tanya Jawab, Diskusi &amp; Evaluasi Kasus</strong>
-                                    <small class="text-slate-500 d-block mt-1">Konsultasi interaktif langsung bersama fasilitator</small>
-                                </td>
-                                <td>Moderator &amp; Seluruh Peserta</td>
-                            </tr>
-                            <tr>
-                                <td><strong><?= date('H:i', $endTime) ?> WIB</strong></td>
-                                <td>
-                                    <strong>Rangkuman Hasil, Penutupan &amp; Validasi Presensi</strong>
-                                    <small class="text-slate-500 d-block mt-1">Perekaman rekam jejak kehadiran dan penerbitan sertifikat</small>
-                                </td>
-                                <td>Penyelenggara Resmi BegawiPengadaan</td>
-                            </tr>
+                            <?php if (! empty($rundownItems)): ?>
+                                <?php foreach ($rundownItems as $item): ?>
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary-subtle text-primary fw-bold font-monospace px-2 py-1" style="font-size: 13px;">
+                                                <iconify-icon icon="solar:clock-circle-bold" class="me-1 align-middle"></iconify-icon>
+                                                <?= esc($item['start_time']) ?><?= ! empty($item['end_time']) ? ' - ' . esc($item['end_time']) : '' ?> WIB
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong class="text-slate-900 d-block"><?= esc($item['title']) ?></strong>
+                                            <?php if (! empty($item['description'])): ?>
+                                                <small class="text-slate-600 d-block mt-1" style="line-height: 1.5;"><?= nl2br(esc($item['description'])) ?></small>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <span class="text-slate-700 fw-medium d-inline-flex align-items-center gap-1">
+                                                <iconify-icon icon="solar:user-circle-bold" class="text-slate-400"></iconify-icon>
+                                                <?= esc($item['speaker'] ?: 'Panitia Penyelenggara') ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="3" class="text-center text-slate-500 py-3">Susunan acara akan segera diperbarui oleh panitia penyelenggara.</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
 

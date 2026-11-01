@@ -153,6 +153,17 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
             <span class="badge bg-neutral-800 text-white px-10 py-4 radius-6 text-xs fw-medium border border-neutral-600">
                 <?= esc(ucfirst($item['visibility'] ?? 'public')) ?>
             </span>
+            <?php
+            $statusLabelBadge = match(strtolower($statusKey)) {
+                'open_registration', 'published' => '<span class="badge bg-success-600 text-white px-10 py-4 radius-6 text-xs fw-bold"><iconify-icon icon="solar:check-circle-bold" class="me-1"></iconify-icon> Dipublikasikan (Pendaftaran Dibuka)</span>',
+                'coming_soon' => '<span class="badge bg-info-600 text-white px-10 py-4 radius-6 text-xs fw-bold"><iconify-icon icon="solar:clock-circle-bold" class="me-1"></iconify-icon> Segera Hadir</span>',
+                'full' => '<span class="badge bg-warning-600 text-neutral-900 px-10 py-4 radius-6 text-xs fw-bold">Kuota Penuh</span>',
+                'finished' => '<span class="badge bg-secondary text-white px-10 py-4 radius-6 text-xs fw-bold">Selesai</span>',
+                'cancelled' => '<span class="badge bg-danger text-white px-10 py-4 radius-6 text-xs fw-bold">Dibatalkan</span>',
+                default => '<span class="badge bg-neutral-600 text-white px-10 py-4 radius-6 text-xs fw-bold">Draft</span>',
+            };
+            echo $statusLabelBadge;
+            ?>
         </div>
         <h4 class="fw-bold text-white mb-2"><?= esc($item['title'] ?? '-') ?></h4>
         <div class="d-flex flex-wrap align-items-center gap-3 text-xs text-neutral-200">
@@ -234,10 +245,55 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
 
                 <?php if (! empty($item['description'])): ?>
                     <div>
-                        <h6 class="text-xs fw-bold text-neutral-700 text-uppercase mb-2" style="color: #475569;">Deskripsi Lengkap &amp; Rundown Acara:</h6>
+                        <h6 class="text-xs fw-bold text-neutral-700 text-uppercase mb-2" style="color: #475569;">Deskripsi Lengkap Acara:</h6>
                         <div class="text-neutral-800 text-sm font-medium" style="color: #334155; line-height: 1.7;"><?= nl2br(esc($item['description'])) ?></div>
                     </div>
                 <?php endif; ?>
+
+                <!-- Susunan Acara (Rundown Kegiatan) Dinamis Terurut Jam -->
+                <div class="mt-24 pt-20 border-top" style="border-color: #e2e8f0;">
+                    <div class="d-flex align-items-center justify-content-between mb-12 flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <iconify-icon icon="solar:clock-circle-bold" class="text-primary-600 fs-5"></iconify-icon>
+                            <h6 class="text-xs fw-bold text-neutral-800 text-uppercase mb-0" style="color: #1e293b;">Susunan Acara (Rundown Pelaksanaan Terurut Jam):</h6>
+                        </div>
+                        <a href="<?= site_url('dashboard/komunikasi/event-agenda/' . $eventId . '/ubah') ?>#rundownCard" class="btn btn-outline-primary btn-xs radius-6 px-10 py-1 text-xs fw-bold d-inline-flex align-items-center gap-1">
+                            <iconify-icon icon="solar:pen-bold"></iconify-icon> Kelola Rundown
+                        </a>
+                    </div>
+                    <?php if (! empty($rundown)): ?>
+                        <div class="table-responsive radius-8 border" style="border-color: #e2e8f0;">
+                            <table class="table table-hover align-middle mb-0 text-sm">
+                                <thead class="table-light" style="background-color: #f8fafc;">
+                                    <tr>
+                                        <th style="width: 140px;" class="text-neutral-700 fw-bold">Waktu (WIB)</th>
+                                        <th class="text-neutral-700 fw-bold">Sesi &amp; Agenda Acara</th>
+                                        <th class="text-neutral-700 fw-bold">Keterangan / Silabus</th>
+                                        <th style="width: 220px;" class="text-neutral-700 fw-bold">Fasilitator / Narasumber</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($rundown as $rItem): ?>
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-primary-50 text-primary-700 border border-primary-200 fw-bold font-monospace px-2 py-1">
+                                                    <?= esc($rItem['start_time']) ?><?= ! empty($rItem['end_time']) ? ' - ' . esc($rItem['end_time']) : '' ?> WIB
+                                                </span>
+                                            </td>
+                                            <td class="fw-bold text-neutral-900"><?= esc($rItem['title']) ?></td>
+                                            <td class="text-neutral-600"><?= esc($rItem['description'] ?: '-') ?></td>
+                                            <td class="text-neutral-800 fw-medium"><?= esc($rItem['speaker'] ?: '-') ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php else: ?>
+                        <div class="p-16 radius-8 bg-light text-center text-neutral-500 text-xs border" style="border-color: #e2e8f0;">
+                            Belum ada susunan acara terinci. Anda dapat menambahkannya melalui formulir <a href="<?= site_url('dashboard/komunikasi/event-agenda/' . $eventId . '/ubah') ?>" class="text-primary-600 fw-bold">Ubah Event</a>.
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
 

@@ -2,97 +2,113 @@
 
 <?= $this->section('pageStyles') ?>
 <style>
-/* Bulletproof Jitter-Free & Shake-Free Scroll at Viewport Extremities */
-html {
-    scroll-behavior: auto !important;
-    overflow-x: clip !important;
-    overflow-y: scroll !important;
-    overscroll-behavior: none !important;
-    overscroll-behavior-y: none !important;
-    overflow-anchor: none !important;
-}
-body {
-    overflow-x: clip !important;
-    overflow-y: visible !important;
-    overscroll-behavior: none !important;
-    overscroll-behavior-y: none !important;
-    overflow-anchor: none !important;
-    min-height: 100vh;
-}
-.dashboard-main {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    transition: margin-inline-start 0.3s ease, margin-left 0.3s ease !important;
-}
-.dashboard-main-body {
-    flex: 1 0 auto;
-}
-.d-footer {
-    margin-block-start: 24px !important;
-    position: relative;
-    z-index: 1;
-}
+    /* Bulletproof Jitter-Free & Shake-Free Scroll at Viewport Extremities */
+    html {
+        scroll-behavior: auto !important;
+        overflow-x: clip !important;
+        overflow-y: scroll !important;
+        overscroll-behavior: none !important;
+        overscroll-behavior-y: none !important;
+        overflow-anchor: none !important;
+    }
 
-/* High-contrast and legibility overrides for Admin Dashboard */
-.text-secondary-light, .text-muted, .text-neutral-500 {
-    color: #475569 !important;
-}
-.text-neutral-600 {
-    color: #334155 !important;
-}
-.text-neutral-700 {
-    color: #1e293b !important;
-}
-.text-neutral-800, .text-neutral-900 {
-    color: #0f172a !important;
-}
-.form-section-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-}
-.form-section-header {
-    background: #f8fafc;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.form-section-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-}
-.form-section-body {
-    padding: 24px;
-}
-.cover-preview-box {
-    width: 100%;
-    max-width: 480px;
-    aspect-ratio: 16 / 9;
-    border-radius: 10px;
-    border: 2px dashed #cbd5e1;
-    background: #f8fafc;
-    overflow: hidden;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.cover-preview-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+    body {
+        overflow-x: clip !important;
+        overflow-y: visible !important;
+        overscroll-behavior: none !important;
+        overscroll-behavior-y: none !important;
+        overflow-anchor: none !important;
+        min-height: 100vh;
+    }
+
+    .dashboard-main {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        transition: margin-inline-start 0.3s ease, margin-left 0.3s ease !important;
+    }
+
+    .dashboard-main-body {
+        flex: 1 0 auto;
+    }
+
+    .d-footer {
+        margin-block-start: 24px !important;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* High-contrast and legibility overrides for Admin Dashboard */
+    .text-secondary-light,
+    .text-muted,
+    .text-neutral-500 {
+        color: #475569 !important;
+    }
+
+    .text-neutral-600 {
+        color: #334155 !important;
+    }
+
+    .text-neutral-700 {
+        color: #1e293b !important;
+    }
+
+    .text-neutral-800,
+    .text-neutral-900 {
+        color: #0f172a !important;
+    }
+
+    .form-section-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    .form-section-header {
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .form-section-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .form-section-body {
+        padding: 24px;
+    }
+
+    .cover-preview-box {
+        width: 100%;
+        max-width: 480px;
+        aspect-ratio: 16 / 9;
+        border-radius: 10px;
+        border: 2px dashed #cbd5e1;
+        background: #f8fafc;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cover-preview-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 </style>
 <?= $this->endSection() ?>
 
@@ -142,97 +158,97 @@ $coverUrl = ! empty($item['cover_file_id']) ? site_url('file/' . (int) $item['co
 </div>
 
 <?php if ($isEdit && ! empty($eventId)): ?>
-<?php
-$code = (string) ($item['attendance_code'] ?? '');
-$openAt = ! empty($item['attendance_open_at']) ? strtotime($item['attendance_open_at']) : null;
-$closeAt = ! empty($item['attendance_close_at']) ? strtotime($item['attendance_close_at']) : null;
-$now = time();
+    <?php
+    $code = (string) ($item['attendance_code'] ?? '');
+    $openAt = ! empty($item['attendance_open_at']) ? strtotime($item['attendance_open_at']) : null;
+    $closeAt = ! empty($item['attendance_close_at']) ? strtotime($item['attendance_close_at']) : null;
+    $now = time();
 
-if (empty($openAt) || empty($code)) {
-    $presensiStatus = 'belum_dibuka';
-    $presensiBadge = '<span class="badge bg-neutral-200 text-neutral-800 px-12 py-6 radius-6 fw-bold border border-neutral-300 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:clock-circle-bold"></iconify-icon> Belum Dibuka</span>';
-} elseif ($closeAt !== null && $closeAt <= $now) {
-    $presensiStatus = 'ditutup';
-    $presensiBadge = '<span class="badge bg-danger-50 text-danger-700 px-12 py-6 radius-6 fw-bold border border-danger-200 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:close-circle-bold"></iconify-icon> Sesi Ditutup</span>';
-} else {
-    $presensiStatus = 'aktif';
-    $presensiBadge = '<span class="badge bg-success-50 text-success-700 px-12 py-6 radius-6 fw-bold border border-success-200 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:check-circle-bold"></iconify-icon> Sesi Aktif</span>';
-}
-?>
+    if (empty($openAt) || empty($code)) {
+        $presensiStatus = 'belum_dibuka';
+        $presensiBadge = '<span class="badge bg-neutral-200 text-neutral-800 px-12 py-6 radius-6 fw-bold border border-neutral-300 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:clock-circle-bold"></iconify-icon> Belum Dibuka</span>';
+    } elseif ($closeAt !== null && $closeAt <= $now) {
+        $presensiStatus = 'ditutup';
+        $presensiBadge = '<span class="badge bg-danger-50 text-danger-700 px-12 py-6 radius-6 fw-bold border border-danger-200 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:close-circle-bold"></iconify-icon> Sesi Ditutup</span>';
+    } else {
+        $presensiStatus = 'aktif';
+        $presensiBadge = '<span class="badge bg-success-50 text-success-700 px-12 py-6 radius-6 fw-bold border border-success-200 d-inline-flex align-items-center gap-1"><iconify-icon icon="solar:check-circle-bold"></iconify-icon> Sesi Aktif</span>';
+    }
+    ?>
 
-<!-- Presensi Quick Management Panel (Edit Mode Only) -->
-<div class="card mb-24 border radius-12 shadow-sm" style="border-color: #93c5fd !important; background: #f0f9ff;">
-    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom" style="background: #e0f2fe; border-color: #bae6fd !important;">
-        <div class="d-flex align-items-center gap-12">
-            <div class="w-40-px h-40-px rounded-circle bg-primary-600 text-white d-flex justify-content-center align-items-center">
-                <iconify-icon icon="solar:qr-code-bold" class="fs-4"></iconify-icon>
+    <!-- Presensi Quick Management Panel (Edit Mode Only) -->
+    <div class="card mb-24 border radius-12 shadow-sm" style="border-color: #93c5fd !important; background: #f0f9ff;">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-3 p-20 border-bottom" style="background: #e0f2fe; border-color: #bae6fd !important;">
+            <div class="d-flex align-items-center gap-12">
+                <div class="w-40-px h-40-px rounded-circle bg-primary-600 text-white d-flex justify-content-center align-items-center">
+                    <iconify-icon icon="solar:qr-code-bold" class="fs-4"></iconify-icon>
+                </div>
+                <div>
+                    <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0c4a6e;">Kontrol Presensi &amp; Kode Sandi Kehadiran</h6>
+                    <p class="text-xs text-neutral-700 mb-0 font-medium" style="color: #0369a1;">Kelola status buka/tutup sesi check-in dan kode unik kehadiran peserta untuk event ini.</p>
+                </div>
             </div>
             <div>
-                <h6 class="mb-0 fw-bold text-neutral-900" style="color: #0c4a6e;">Kontrol Presensi &amp; Kode Sandi Kehadiran</h6>
-                <p class="text-xs text-neutral-700 mb-0 font-medium" style="color: #0369a1;">Kelola status buka/tutup sesi check-in dan kode unik kehadiran peserta untuk event ini.</p>
+                <?= $presensiBadge ?>
             </div>
         </div>
-        <div>
-            <?= $presensiBadge ?>
-        </div>
-    </div>
-    <div class="card-body p-24 bg-base">
-        <div class="row gy-3 align-items-center">
-            <div class="col-md-7">
-                <label class="form-label text-xs fw-bold text-neutral-700 text-uppercase mb-2" style="color: #475569;">Kode Presensi Peserta:</label>
-                <?php if (! empty($code)): ?>
-                    <div class="p-16 rounded-12 border text-center mb-12" style="background: #f8fafc; border-color: #cbd5e1 !important;">
-                        <span class="text-xs text-neutral-600 d-block mb-1 font-semibold" style="color: #64748b;">KODE SANDI CHECK-IN</span>
-                        <div class="display-6 fw-bold text-primary-600 font-monospace letter-spacing-2 user-select-all" id="editCodeText"><?= esc($code) ?></div>
-                        <small class="text-neutral-600 d-block mt-1" style="color:#64748b;">Berikan kode ini kepada peserta saat sesi agenda berlangsung.</small>
-                    </div>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-outline-primary-600 btn-sm radius-8 px-14 py-8 fw-semibold" onclick="navigator.clipboard.writeText('<?= esc($code) ?>'); alert('Kode presensi disalin: <?= esc($code) ?>');">
-                            <iconify-icon icon="solar:copy-bold" class="me-1"></iconify-icon> Salin Kode
-                        </button>
-                        <form action="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/generate-kode-presensi') ?>" method="post" class="d-inline" onsubmit="return confirm('Regenerate kode akan mengganti kode sandi presensi. Lanjutkan?')">
-                            <?= csrf_field() ?>
-                            <button type="submit" class="btn btn-outline-neutral-300 btn-sm radius-8 px-14 py-8 fw-semibold text-neutral-700" style="border-color:#cbd5e1;">
-                                <iconify-icon icon="solar:restart-bold" class="me-1"></iconify-icon> Regenerate Kode
+        <div class="card-body p-24 bg-base">
+            <div class="row gy-3 align-items-center">
+                <div class="col-md-7">
+                    <label class="form-label text-xs fw-bold text-neutral-700 text-uppercase mb-2" style="color: #475569;">Kode Presensi Peserta:</label>
+                    <?php if (! empty($code)): ?>
+                        <div class="p-16 rounded-12 border text-center mb-12" style="background: #f8fafc; border-color: #cbd5e1 !important;">
+                            <span class="text-xs text-neutral-600 d-block mb-1 font-semibold" style="color: #64748b;">KODE SANDI CHECK-IN</span>
+                            <div class="display-6 fw-bold text-primary-600 font-monospace letter-spacing-2 user-select-all" id="editCodeText"><?= esc($code) ?></div>
+                            <small class="text-neutral-600 d-block mt-1" style="color:#64748b;">Berikan kode ini kepada peserta saat sesi agenda berlangsung.</small>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-primary-600 btn-sm radius-8 px-14 py-8 fw-semibold" onclick="navigator.clipboard.writeText('<?= esc($code) ?>'); alert('Kode presensi disalin: <?= esc($code) ?>');">
+                                <iconify-icon icon="solar:copy-bold" class="me-1"></iconify-icon> Salin Kode
                             </button>
-                        </form>
-                    </div>
-                <?php else: ?>
-                    <div class="p-20 rounded-12 border text-center mb-12" style="background: #f8fafc; border-color: #cbd5e1 !important;">
-                        <p class="text-neutral-600 mb-3 text-sm fw-medium" style="color: #475569;">Kode presensi belum di-generate untuk agenda ini.</p>
-                        <form action="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/generate-kode-presensi') ?>" method="post">
-                            <?= csrf_field() ?>
-                            <button type="submit" class="btn btn-primary-600 radius-8 px-18 py-9 text-sm fw-bold">
-                                <iconify-icon icon="solar:key-bold" class="me-1"></iconify-icon> Generate Kode Presensi
-                            </button>
-                        </form>
-                    </div>
-                <?php endif; ?>
-            </div>
-            <div class="col-md-5 border-start ps-md-4" style="border-color: #e2e8f0 !important;">
-                <span class="text-xs fw-bold text-neutral-700 text-uppercase d-block mb-1" style="color: #475569;">Status Sesi:</span>
-                <div class="mb-14"><?= $presensiBadge ?></div>
-                <div class="d-grid gap-2">
-                    <?php if ($presensiStatus === 'aktif'): ?>
-                        <form action="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/tutup-presensi') ?>" method="post" onsubmit="return confirm('Tutup sesi presensi sekarang? Peserta tidak akan bisa check-in.')">
-                            <?= csrf_field() ?>
-                            <button type="submit" class="btn btn-danger-600 w-100 radius-8 py-9 text-sm fw-bold shadow-sm">
-                                <iconify-icon icon="solar:close-circle-bold" class="me-1"></iconify-icon> Tutup Sesi Presensi
-                            </button>
-                        </form>
+                            <form action="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/generate-kode-presensi') ?>" method="post" class="d-inline" onsubmit="return confirm('Regenerate kode akan mengganti kode sandi presensi. Lanjutkan?')">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-outline-neutral-300 btn-sm radius-8 px-14 py-8 fw-semibold text-neutral-700" style="border-color:#cbd5e1;">
+                                    <iconify-icon icon="solar:restart-bold" class="me-1"></iconify-icon> Regenerate Kode
+                                </button>
+                            </form>
+                        </div>
                     <?php else: ?>
-                        <form action="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/buka-presensi') ?>" method="post">
-                            <?= csrf_field() ?>
-                            <button type="submit" class="btn btn-success-600 w-100 radius-8 py-9 text-sm fw-bold shadow-sm">
-                                <iconify-icon icon="solar:play-circle-bold" class="me-1"></iconify-icon> Buka Sesi Presensi
-                            </button>
-                        </form>
+                        <div class="p-20 rounded-12 border text-center mb-12" style="background: #f8fafc; border-color: #cbd5e1 !important;">
+                            <p class="text-neutral-600 mb-3 text-sm fw-medium" style="color: #475569;">Kode presensi belum di-generate untuk agenda ini.</p>
+                            <form action="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/generate-kode-presensi') ?>" method="post">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-primary-600 radius-8 px-18 py-9 text-sm fw-bold">
+                                    <iconify-icon icon="solar:key-bold" class="me-1"></iconify-icon> Generate Kode Presensi
+                                </button>
+                            </form>
+                        </div>
                     <?php endif; ?>
+                </div>
+                <div class="col-md-5 border-start ps-md-4" style="border-color: #e2e8f0 !important;">
+                    <span class="text-xs fw-bold text-neutral-700 text-uppercase d-block mb-1" style="color: #475569;">Status Sesi:</span>
+                    <div class="mb-14"><?= $presensiBadge ?></div>
+                    <div class="d-grid gap-2">
+                        <?php if ($presensiStatus === 'aktif'): ?>
+                            <form action="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/tutup-presensi') ?>" method="post" onsubmit="return confirm('Tutup sesi presensi sekarang? Peserta tidak akan bisa check-in.')">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-danger-600 w-100 radius-8 py-9 text-sm fw-bold shadow-sm">
+                                    <iconify-icon icon="solar:close-circle-bold" class="me-1"></iconify-icon> Tutup Sesi Presensi
+                                </button>
+                            </form>
+                        <?php else: ?>
+                            <form action="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/buka-presensi') ?>" method="post">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-success-600 w-100 radius-8 py-9 text-sm fw-bold shadow-sm">
+                                    <iconify-icon icon="solar:play-circle-bold" class="me-1"></iconify-icon> Buka Sesi Presensi
+                                </button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 <?php endif; ?>
 
 <!-- Main Form -->
@@ -260,9 +276,9 @@ if (empty($openAt) || empty($code)) {
                         Nama Kegiatan / Event PBJ <span class="text-danger">*</span>
                     </label>
                     <input type="text" name="title" class="form-control radius-8 fw-semibold text-neutral-900"
-                           value="<?= esc(old('title', $item['title'] ?? '')) ?>" required maxlength="255"
-                           placeholder="Contoh: Bimbingan Teknis Tata Kelola Pengadaan Barang/Jasa Berkelanjutan"
-                           style="border-color: #cbd5e1; font-size: 15px;">
+                        value="<?= esc(old('title', $item['title'] ?? '')) ?>" required maxlength="255"
+                        placeholder="Contoh: Bimbingan Teknis Tata Kelola Pengadaan Barang/Jasa Berkelanjutan"
+                        style="border-color: #cbd5e1; font-size: 15px;">
                 </div>
 
                 <div class="col-md-3">
@@ -274,7 +290,7 @@ if (empty($openAt) || empty($code)) {
                         <option value="workshop" <?= old('type', $item['type'] ?? '') === 'workshop' ? 'selected' : '' ?>>Workshop</option>
                         <option value="seminar" <?= old('type', $item['type'] ?? '') === 'seminar' ? 'selected' : '' ?>>Seminar</option>
                         <option value="bimtek" <?= old('type', $item['type'] ?? '') === 'bimtek' ? 'selected' : '' ?>>Bimbingan Teknis (Bimtek)</option>
-                        <option value="sosialisasi" <?= old('type', $item['type'] ?? '') === 'sosialisasi' ? 'selected' : '' ?>>Sosialisasi Regulasi</option>
+                        <option value="sosialisasi" <?= old('type', $item['type'] ?? '') === 'sosialisasi' ? 'selected' : '' ?>>Sosialisasi</option>
                         <option value="pelatihan" <?= old('type', $item['type'] ?? '') === 'pelatihan' ? 'selected' : '' ?>>Pelatihan</option>
                         <option value="rakor" <?= old('type', $item['type'] ?? '') === 'rakor' ? 'selected' : '' ?>>Rapat Koordinasi (Rakor)</option>
                         <option value="klinik" <?= old('type', $item['type'] ?? '') === 'klinik' ? 'selected' : '' ?>>Klinik Pengadaan</option>
@@ -297,10 +313,9 @@ if (empty($openAt) || empty($code)) {
                         Status Publikasi <span class="text-danger">*</span>
                     </label>
                     <select class="form-select radius-8 fw-semibold text-neutral-800" name="status" style="border-color: #cbd5e1;">
-                        <option value="draft" <?= old('status', $item['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Draft</option>
-                        <option value="coming_soon" <?= old('status', $item['status'] ?? '') === 'coming_soon' ? 'selected' : '' ?>>Segera Hadir</option>
-                        <option value="open_registration" <?= old('status', $item['status'] ?? '') === 'open_registration' ? 'selected' : '' ?>>Pendaftaran Dibuka</option>
-                        <option value="published" <?= old('status', $item['status'] ?? '') === 'published' ? 'selected' : '' ?>>Dipublikasikan</option>
+                        <option value="draft" <?= old('status', $item['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Draft (Draf Acara)</option>
+                        <option value="open_registration" <?= in_array(old('status', $item['status'] ?? ''), ['open_registration', 'published']) ? 'selected' : '' ?>>Dipublikasikan (Pendaftaran Dibuka)</option>
+                        <option value="coming_soon" <?= old('status', $item['status'] ?? '') === 'coming_soon' ? 'selected' : '' ?>>Segera Hadir (Coming Soon)</option>
                         <option value="full" <?= old('status', $item['status'] ?? '') === 'full' ? 'selected' : '' ?>>Kuota Penuh</option>
                         <option value="finished" <?= old('status', $item['status'] ?? '') === 'finished' ? 'selected' : '' ?>>Selesai</option>
                         <option value="cancelled" <?= old('status', $item['status'] ?? '') === 'cancelled' ? 'selected' : '' ?>>Dibatalkan</option>
@@ -339,16 +354,16 @@ if (empty($openAt) || empty($code)) {
                         Waktu Mulai Acara <span class="text-danger">*</span>
                     </label>
                     <input type="datetime-local" name="start_at" class="form-control radius-8 text-neutral-900 fw-medium"
-                           value="<?= esc(! empty($item['start_at']) ? date('Y-m-d\TH:i', strtotime($item['start_at'])) : old('start_at')) ?>"
-                           style="border-color: #cbd5e1;">
+                        value="<?= esc(! empty($item['start_at']) ? date('Y-m-d\TH:i', strtotime($item['start_at'])) : old('start_at')) ?>"
+                        style="border-color: #cbd5e1;">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold text-neutral-900 text-sm mb-6" style="color: #0f172a;">
                         Waktu Selesai Acara <span class="text-danger">*</span>
                     </label>
                     <input type="datetime-local" name="end_at" class="form-control radius-8 text-neutral-900 fw-medium"
-                           value="<?= esc(! empty($item['end_at']) ? date('Y-m-d\TH:i', strtotime($item['end_at'])) : old('end_at')) ?>"
-                           style="border-color: #cbd5e1;">
+                        value="<?= esc(! empty($item['end_at']) ? date('Y-m-d\TH:i', strtotime($item['end_at'])) : old('end_at')) ?>"
+                        style="border-color: #cbd5e1;">
                 </div>
 
                 <div class="col-md-6">
@@ -356,16 +371,16 @@ if (empty($openAt) || empty($code)) {
                         Pendaftaran Dibuka
                     </label>
                     <input type="datetime-local" name="registration_open_at" class="form-control radius-8 text-neutral-900 fw-medium"
-                           value="<?= esc(! empty($item['registration_open_at']) ? date('Y-m-d\TH:i', strtotime($item['registration_open_at'])) : old('registration_open_at')) ?>"
-                           style="border-color: #cbd5e1;">
+                        value="<?= esc(! empty($item['registration_open_at']) ? date('Y-m-d\TH:i', strtotime($item['registration_open_at'])) : old('registration_open_at')) ?>"
+                        style="border-color: #cbd5e1;">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold text-neutral-900 text-sm mb-6" style="color: #0f172a;">
                         Pendaftaran Ditutup
                     </label>
                     <input type="datetime-local" name="registration_close_at" class="form-control radius-8 text-neutral-900 fw-medium"
-                           value="<?= esc(! empty($item['registration_close_at']) ? date('Y-m-d\TH:i', strtotime($item['registration_close_at'])) : old('registration_close_at')) ?>"
-                           style="border-color: #cbd5e1;">
+                        value="<?= esc(! empty($item['registration_close_at']) ? date('Y-m-d\TH:i', strtotime($item['registration_close_at'])) : old('registration_close_at')) ?>"
+                        style="border-color: #cbd5e1;">
                 </div>
             </div>
         </div>
@@ -389,18 +404,18 @@ if (empty($openAt) || empty($code)) {
                         Lokasi / Tempat Fisik (Untuk Offline / Hybrid)
                     </label>
                     <input type="text" name="location" class="form-control radius-8 text-neutral-900 fw-medium"
-                           value="<?= esc(old('location', $item['location'] ?? '')) ?>"
-                           placeholder="Contoh: Gedung Pusiban Kantor Gubernur Lampung, Jl. Wolter Monginsidi No.69"
-                           style="border-color: #cbd5e1;">
+                        value="<?= esc(old('location', $item['location'] ?? '')) ?>"
+                        placeholder="Contoh: Gedung Pusiban Kantor Gubernur Lampung, Jl. Wolter Monginsidi No.69"
+                        style="border-color: #cbd5e1;">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold text-neutral-900 text-sm mb-6" style="color: #0f172a;">
                         Tautan Meeting Online (Zoom / Google Meet / Streaming)
                     </label>
                     <input type="url" name="meeting_url" class="form-control radius-8 text-neutral-900 fw-medium font-monospace"
-                           value="<?= esc(old('meeting_url', $item['meeting_url'] ?? '')) ?>"
-                           placeholder="https://zoom.us/j/... atau https://meet.google.com/..."
-                           style="border-color: #cbd5e1;">
+                        value="<?= esc(old('meeting_url', $item['meeting_url'] ?? '')) ?>"
+                        placeholder="https://zoom.us/j/... atau https://meet.google.com/..."
+                        style="border-color: #cbd5e1;">
                 </div>
             </div>
         </div>
@@ -425,9 +440,9 @@ if (empty($openAt) || empty($code)) {
                     </label>
                     <div class="position-relative">
                         <input type="number" min="0" name="capacity" class="form-control radius-8 text-neutral-900 fw-semibold"
-                               value="<?= esc(old('capacity', $item['capacity'] ?? '')) ?>"
-                               placeholder="Contoh: 100 (kosongkan jika tidak terbatas)"
-                               style="border-color: #cbd5e1;">
+                            value="<?= esc(old('capacity', $item['capacity'] ?? '')) ?>"
+                            placeholder="Contoh: 100 (kosongkan jika tidak terbatas)"
+                            style="border-color: #cbd5e1;">
                         <span class="position-absolute top-50 end-0 translate-middle-y me-16 text-xs text-neutral-500 font-medium">Orang</span>
                     </div>
                     <small class="text-neutral-500 text-xs mt-1 d-block">Biarkan kosong atau isi 0 jika kuota tidak dibatasi.</small>
@@ -501,17 +516,67 @@ if (empty($openAt) || empty($code)) {
                         Ringkasan Singkat Kegiatan (Summary)
                     </label>
                     <textarea name="summary" class="form-control radius-8 text-neutral-900 font-medium" rows="3"
-                              placeholder="Tuliskan rangkuman 1-2 paragraf mengenai urgensi, topik inti, dan narasumber kegiatan..."
-                              style="border-color: #cbd5e1;"><?= esc(old('summary', $item['summary'] ?? '')) ?></textarea>
+                        placeholder="Tuliskan rangkuman 1-2 paragraf mengenai urgensi, topik inti, dan narasumber kegiatan..."
+                        style="border-color: #cbd5e1;"><?= esc(old('summary', $item['summary'] ?? '')) ?></textarea>
                 </div>
                 <div class="col-12">
                     <label class="form-label fw-bold text-neutral-900 text-sm mb-6" style="color: #0f172a;">
-                        Deskripsi Lengkap, Rundown &amp; Ketentuan Acara
+                        Deskripsi Lengkap Acara &amp; Ketentuan Peserta
                     </label>
-                    <textarea name="description" class="form-control radius-8 text-neutral-900 font-medium" rows="7"
-                              placeholder="Tuliskan deskripsi lengkap, latar belakang materi, profil narasumber, susunan acara (rundown), tata tertib, serta persyaratan peserta..."
-                              style="border-color: #cbd5e1;"><?= esc(old('description', $item['description'] ?? '')) ?></textarea>
+                    <textarea name="description" class="form-control radius-8 text-neutral-900 font-medium" rows="5"
+                        placeholder="Tuliskan deskripsi lengkap, latar belakang materi, profil narasumber, tata tertib, serta persyaratan peserta..."
+                        style="border-color: #cbd5e1;"><?= esc(old('description', $item['description'] ?? '')) ?></textarea>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bagian 5B: Susunan Acara (Rundown Kegiatan Dinamis Berbasis Jam) -->
+    <div class="form-section-card" id="rundownCard">
+        <div class="form-section-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <div class="form-section-icon bg-indigo-50 text-indigo-600">
+                    <iconify-icon icon="solar:clock-circle-bold"></iconify-icon>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-neutral-900" style="color: #0f172a;">5B. Susunan Acara (Rundown Kegiatan Dinamis)</h6>
+                    <small class="text-neutral-600 font-medium" style="color: #475569;">Atur sesi jadwal per jam pelaksanaan. Data ini akan ditampilkan otomatis pada landing page event terurut berbasis jam.</small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-xs radius-6 px-12 py-6 fw-semibold text-xs d-inline-flex align-items-center gap-1" id="btnSortRundown">
+                    <iconify-icon icon="solar:sort-from-top-to-bottom-bold"></iconify-icon> Urutkan Jam
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-xs radius-6 px-12 py-6 fw-semibold text-xs d-inline-flex align-items-center gap-1" id="btnLoadDefaultRundown">
+                    <iconify-icon icon="solar:magic-stick-3-bold"></iconify-icon> Muat Template Sesi
+                </button>
+                <button type="button" class="btn btn-primary-600 btn-xs radius-6 px-12 py-6 fw-bold text-xs d-inline-flex align-items-center gap-1" id="btnAddRundownRow">
+                    <iconify-icon icon="solar:add-circle-bold"></iconify-icon> + Tambah Sesi
+                </button>
+            </div>
+        </div>
+        <div class="form-section-body p-0">
+            <input type="hidden" name="rundown_data" id="rundownDataHidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="rundownFormTable">
+                    <thead class="table-light" style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <tr>
+                            <th style="width: 140px;" class="text-xs fw-bold text-neutral-700 ps-20">Jam Mulai <span class="text-danger">*</span></th>
+                            <th style="width: 140px;" class="text-xs fw-bold text-neutral-700">Jam Selesai</th>
+                            <th style="min-width: 230px;" class="text-xs fw-bold text-neutral-700">Sesi &amp; Agenda Acara <span class="text-danger">*</span></th>
+                            <th style="min-width: 200px;" class="text-xs fw-bold text-neutral-700">Keterangan / Silabus</th>
+                            <th style="min-width: 180px;" class="text-xs fw-bold text-neutral-700">Fasilitator / Narasumber</th>
+                            <th style="width: 60px;" class="text-center text-xs fw-bold text-neutral-700 pe-20">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rundownTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyRundownNotice" class="d-none p-24 text-center text-neutral-500 text-sm">
+                <iconify-icon icon="solar:calendar-minimalistic-broken" class="display-6 d-block mb-2 text-neutral-400"></iconify-icon>
+                <span>Belum ada susunan acara yang ditambahkan. Klik <strong>+ Tambah Sesi</strong> atau <strong>Muat Template Sesi</strong> untuk mengisi agenda.</span>
             </div>
         </div>
     </div>
@@ -641,9 +706,9 @@ if (empty($openAt) || empty($code)) {
                                                     <iconify-icon icon="solar:download-bold" class="me-1"></iconify-icon> Unduh
                                                 </a>
                                                 <button type="submit" formaction="<?= site_url('dashboard/komunikasi/event-agenda/' . (int) $eventId . '/materi/' . (int) $mat['id'] . '/hapus') ?>"
-                                                        class="btn btn-outline-danger btn-sm radius-6 px-10 py-6 text-xs fw-semibold"
-                                                        onclick="return confirm('Hapus materi \'<?= esc(addslashes($mat['title'])) ?>\'?');"
-                                                        title="Hapus Materi">
+                                                    class="btn btn-outline-danger btn-sm radius-6 px-10 py-6 text-xs fw-semibold"
+                                                    onclick="return confirm('Hapus materi \'<?= esc(addslashes($mat['title'])) ?>\'?');"
+                                                    title="Hapus Materi">
                                                     <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
                                                 </button>
                                             </div>
@@ -734,20 +799,20 @@ if (empty($openAt) || empty($code)) {
                             <div class="mb-14">
                                 <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Judul Pre-Test</label>
                                 <input type="text" id="inputPreTestTitle" class="form-control form-control-sm radius-6"
-                                       value="<?= esc($assessmentConfig['pre_test']['title'] ?? 'Pre-Test Pemahaman Materi') ?>"
-                                       placeholder="Judul pre-test...">
+                                    value="<?= esc($assessmentConfig['pre_test']['title'] ?? 'Pre-Test Pemahaman Materi') ?>"
+                                    placeholder="Judul pre-test...">
                             </div>
 
                             <div class="row g-2 mb-14">
                                 <div class="col-6">
                                     <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Durasi (Menit)</label>
                                     <input type="number" min="1" max="180" id="inputPreTestDuration" class="form-control form-control-sm radius-6"
-                                           value="<?= esc($assessmentConfig['pre_test']['duration_minutes'] ?? 15) ?>">
+                                        value="<?= esc($assessmentConfig['pre_test']['duration_minutes'] ?? 15) ?>">
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Nilai Kelulusan (Passing)</label>
                                     <input type="number" min="0" max="100" id="inputPreTestPassingScore" class="form-control form-control-sm radius-6"
-                                           value="<?= esc($assessmentConfig['pre_test']['passing_score'] ?? 70) ?>">
+                                        value="<?= esc($assessmentConfig['pre_test']['passing_score'] ?? 70) ?>">
                                 </div>
                             </div>
 
@@ -789,20 +854,20 @@ if (empty($openAt) || empty($code)) {
                             <div class="mb-14">
                                 <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Judul Post-Test</label>
                                 <input type="text" id="inputPostTestTitle" class="form-control form-control-sm radius-6"
-                                       value="<?= esc($assessmentConfig['post_test']['title'] ?? 'Post-Test Evaluasi Sesi') ?>"
-                                       placeholder="Judul post-test...">
+                                    value="<?= esc($assessmentConfig['post_test']['title'] ?? 'Post-Test Evaluasi Sesi') ?>"
+                                    placeholder="Judul post-test...">
                             </div>
 
                             <div class="row g-2 mb-14">
                                 <div class="col-6">
                                     <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Durasi (Menit)</label>
                                     <input type="number" min="1" max="180" id="inputPostTestDuration" class="form-control form-control-sm radius-6"
-                                           value="<?= esc($assessmentConfig['post_test']['duration_minutes'] ?? 15) ?>">
+                                        value="<?= esc($assessmentConfig['post_test']['duration_minutes'] ?? 15) ?>">
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Nilai Kelulusan (Passing)</label>
                                     <input type="number" min="0" max="100" id="inputPostTestPassingScore" class="form-control form-control-sm radius-6"
-                                           value="<?= esc($assessmentConfig['post_test']['passing_score'] ?? 70) ?>">
+                                        value="<?= esc($assessmentConfig['post_test']['passing_score'] ?? 70) ?>">
                                 </div>
                             </div>
 
@@ -867,8 +932,8 @@ if (empty($openAt) || empty($code)) {
                                 Link Rekaman Video Sesi (YouTube / Google Drive / Zoom Cloud)
                             </label>
                             <input type="url" id="inputSelfPacedRecordingUrl" class="form-control form-control-sm radius-6"
-                                   placeholder="https://www.youtube.com/watch?v=... atau link Drive rekaman"
-                                   value="<?= esc($assessmentConfig['self_paced']['recording_url'] ?? '') ?>">
+                                placeholder="https://www.youtube.com/watch?v=... atau link Drive rekaman"
+                                value="<?= esc($assessmentConfig['self_paced']['recording_url'] ?? '') ?>">
                             <small class="text-neutral-500 text-xs d-block mt-1">Bila URL YouTube, video player interaktif akan otomatis tertanam pada ruang belajar peserta.</small>
                         </div>
 
@@ -877,8 +942,8 @@ if (empty($openAt) || empty($code)) {
                                 Judul / Label Rekaman Video
                             </label>
                             <input type="text" id="inputSelfPacedRecordingTitle" class="form-control form-control-sm radius-6"
-                                   placeholder="Contoh: Rekaman Sesi Paparan Narasumber PBJ 2026"
-                                   value="<?= esc($assessmentConfig['self_paced']['recording_title'] ?? 'Rekaman Sesi Paparan Narasumber') ?>">
+                                placeholder="Contoh: Rekaman Sesi Paparan Narasumber PBJ 2026"
+                                value="<?= esc($assessmentConfig['self_paced']['recording_title'] ?? 'Rekaman Sesi Paparan Narasumber') ?>">
                         </div>
 
                         <div class="mb-0">
@@ -886,7 +951,7 @@ if (empty($openAt) || empty($code)) {
                                 Batas Waktu Perpanjangan Mandiri (Opsional)
                             </label>
                             <input type="datetime-local" id="inputSelfPacedExtendedUntil" class="form-control form-control-sm radius-6"
-                                   value="<?= ! empty($assessmentConfig['self_paced']['extended_until']) ? date('Y-m-d\TH:i', strtotime($assessmentConfig['self_paced']['extended_until'])) : '' ?>">
+                                value="<?= ! empty($assessmentConfig['self_paced']['extended_until']) ? date('Y-m-d\TH:i', strtotime($assessmentConfig['self_paced']['extended_until'])) : '' ?>">
                             <small class="text-neutral-500 text-xs d-block mt-1">Kosongkan jika ingin dibuka secara permanen tanpa batas waktu penutupan.</small>
                         </div>
                     </div>
@@ -897,7 +962,7 @@ if (empty($openAt) || empty($code)) {
                                 Passing Grade Post-Test untuk Sertifikat Mandiri (0 - 100)
                             </label>
                             <input type="number" min="0" max="100" id="inputSelfPacedMinScore" class="form-control form-control-sm radius-6"
-                                   value="<?= esc($assessmentConfig['self_paced']['min_post_test_score'] ?? 70) ?>">
+                                value="<?= esc($assessmentConfig['self_paced']['min_post_test_score'] ?? 70) ?>">
                             <small class="text-neutral-500 text-xs d-block mt-1">Nilai minimal yang harus dicapai peserta agar tombol klaim sertifikat mandiri terbuka.</small>
                         </div>
 
@@ -1088,80 +1153,80 @@ if (empty($openAt) || empty($code)) {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Cover Image Preview Handler
-    const fileInput = document.getElementById('eventCoverInput');
-    const previewContainer = document.getElementById('coverPreviewContainer');
-    const previewImg = document.getElementById('coverPreviewImg');
-    const placeholder = document.getElementById('coverPlaceholder');
-    const fileUploadInfo = document.getElementById('fileUploadInfo');
-    const fileNameSize = document.getElementById('fileNameSize');
-    const clearBtn = document.getElementById('clearFileBtn');
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Cover Image Preview Handler
+        const fileInput = document.getElementById('eventCoverInput');
+        const previewContainer = document.getElementById('coverPreviewContainer');
+        const previewImg = document.getElementById('coverPreviewImg');
+        const placeholder = document.getElementById('coverPlaceholder');
+        const fileUploadInfo = document.getElementById('fileUploadInfo');
+        const fileNameSize = document.getElementById('fileNameSize');
+        const clearBtn = document.getElementById('clearFileBtn');
 
-    if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('Ukuran file melebihi 5MB! Harap pilih gambar yang lebih kecil.');
-                    fileInput.value = '';
-                    return;
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Ukuran file melebihi 5MB! Harap pilih gambar yang lebih kecil.');
+                        fileInput.value = '';
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        previewImg.src = evt.target.result;
+                        previewImg.classList.remove('d-none');
+                        if (placeholder) placeholder.classList.add('d-none');
+                    };
+                    reader.readAsDataURL(file);
+
+                    const sizeKb = (file.size / 1024).toFixed(1);
+                    fileNameSize.textContent = `${file.name} (${sizeKb} KB)`;
+                    fileUploadInfo.classList.remove('d-none');
                 }
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    previewImg.src = evt.target.result;
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                fileInput.value = '';
+                fileUploadInfo.classList.add('d-none');
+                <?php if ($coverUrl): ?>
+                    previewImg.src = '<?= esc($coverUrl) ?>';
                     previewImg.classList.remove('d-none');
                     if (placeholder) placeholder.classList.add('d-none');
-                };
-                reader.readAsDataURL(file);
+                <?php else: ?>
+                    previewImg.src = '';
+                    previewImg.classList.add('d-none');
+                    if (placeholder) placeholder.classList.remove('d-none');
+                <?php endif; ?>
+            });
+        }
 
-                const sizeKb = (file.size / 1024).toFixed(1);
-                fileNameSize.textContent = `${file.name} (${sizeKb} KB)`;
-                fileUploadInfo.classList.remove('d-none');
-            }
-        });
-    }
+        // 2. Dynamic Materials Upload Rows Handler
+        const materialsContainer = document.getElementById('materialsUploadContainer');
+        const btnAddMaterialRow = document.getElementById('btnAddMaterialRow');
 
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function() {
-            fileInput.value = '';
-            fileUploadInfo.classList.add('d-none');
-            <?php if ($coverUrl): ?>
-                previewImg.src = '<?= esc($coverUrl) ?>';
-                previewImg.classList.remove('d-none');
-                if (placeholder) placeholder.classList.add('d-none');
-            <?php else: ?>
-                previewImg.src = '';
-                previewImg.classList.add('d-none');
-                if (placeholder) placeholder.classList.remove('d-none');
-            <?php endif; ?>
-        });
-    }
-
-    // 2. Dynamic Materials Upload Rows Handler
-    const materialsContainer = document.getElementById('materialsUploadContainer');
-    const btnAddMaterialRow = document.getElementById('btnAddMaterialRow');
-
-    function updateRemoveButtons() {
-        const rows = materialsContainer.querySelectorAll('.material-upload-row');
-        rows.forEach(function(r) {
-            const btn = r.querySelector('.btn-remove-material-row');
-            if (btn) {
-                if (rows.length > 1) {
-                    btn.classList.remove('d-none');
-                } else {
-                    btn.classList.add('d-none');
+        function updateRemoveButtons() {
+            const rows = materialsContainer.querySelectorAll('.material-upload-row');
+            rows.forEach(function(r) {
+                const btn = r.querySelector('.btn-remove-material-row');
+                if (btn) {
+                    if (rows.length > 1) {
+                        btn.classList.remove('d-none');
+                    } else {
+                        btn.classList.add('d-none');
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    if (btnAddMaterialRow && materialsContainer) {
-        btnAddMaterialRow.addEventListener('click', function() {
-            const newRow = document.createElement('div');
-            newRow.className = 'material-upload-row p-16 rounded-8 border bg-neutral-50';
-            newRow.style.borderColor = '#cbd5e1';
-            newRow.innerHTML = `
+        if (btnAddMaterialRow && materialsContainer) {
+            btnAddMaterialRow.addEventListener('click', function() {
+                const newRow = document.createElement('div');
+                newRow.className = 'material-upload-row p-16 rounded-8 border bg-neutral-50';
+                newRow.style.borderColor = '#cbd5e1';
+                newRow.innerHTML = `
                 <div class="row gy-3 align-items-center">
                     <div class="col-md-5">
                         <label class="form-label text-xs fw-bold text-neutral-700 mb-1">Pilih File (PDF, PPT, PPTX, XLS, DOC) <span class="text-muted">(Maks 30MB)</span></label>
@@ -1182,86 +1247,86 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `;
-            materialsContainer.appendChild(newRow);
-            updateRemoveButtons();
-        });
+                materialsContainer.appendChild(newRow);
+                updateRemoveButtons();
+            });
 
-        materialsContainer.addEventListener('click', function(e) {
-            const removeBtn = e.target.closest('.btn-remove-material-row');
-            if (removeBtn) {
-                const row = removeBtn.closest('.material-upload-row');
-                if (row && materialsContainer.querySelectorAll('.material-upload-row').length > 1) {
-                    row.remove();
-                    updateRemoveButtons();
+            materialsContainer.addEventListener('click', function(e) {
+                const removeBtn = e.target.closest('.btn-remove-material-row');
+                if (removeBtn) {
+                    const row = removeBtn.closest('.material-upload-row');
+                    if (row && materialsContainer.querySelectorAll('.material-upload-row').length > 1) {
+                        row.remove();
+                        updateRemoveButtons();
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    // 3. Pre-Test & Post-Test State Management
-    let preTestData = <?= json_encode($assessmentConfig['pre_test'] ?? [
-        'enabled' => false,
-        'title' => 'Pre-Test Pemahaman Materi',
-        'duration_minutes' => 15,
-        'passing_score' => 70,
-        'instructions' => '',
-        'questions' => []
-    ], JSON_UNESCAPED_UNICODE) ?>;
+        // 3. Pre-Test & Post-Test State Management
+        let preTestData = <?= json_encode($assessmentConfig['pre_test'] ?? [
+                                'enabled' => false,
+                                'title' => 'Pre-Test Pemahaman Materi',
+                                'duration_minutes' => 15,
+                                'passing_score' => 70,
+                                'instructions' => '',
+                                'questions' => []
+                            ], JSON_UNESCAPED_UNICODE) ?>;
 
-    let postTestData = <?= json_encode($assessmentConfig['post_test'] ?? [
-        'enabled' => false,
-        'title' => 'Post-Test Evaluasi Sesi',
-        'duration_minutes' => 15,
-        'passing_score' => 70,
-        'instructions' => '',
-        'questions' => []
-    ], JSON_UNESCAPED_UNICODE) ?>;
+        let postTestData = <?= json_encode($assessmentConfig['post_test'] ?? [
+                                'enabled' => false,
+                                'title' => 'Post-Test Evaluasi Sesi',
+                                'duration_minutes' => 15,
+                                'passing_score' => 70,
+                                'instructions' => '',
+                                'questions' => []
+                            ], JSON_UNESCAPED_UNICODE) ?>;
 
-    let selfPacedData = <?= json_encode($assessmentConfig['self_paced'] ?? [
-        'enabled'             => false,
-        'recording_url'       => '',
-        'recording_title'     => 'Rekaman Sesi Paparan Narasumber',
-        'extended_until'      => null,
-        'min_post_test_score' => 70,
-        'require_pre_test'    => true,
-        'require_materials'   => true,
-        'require_post_test'   => true,
-        'instructions'        => '',
-    ], JSON_UNESCAPED_UNICODE) ?>;
+        let selfPacedData = <?= json_encode($assessmentConfig['self_paced'] ?? [
+                                'enabled'             => false,
+                                'recording_url'       => '',
+                                'recording_title'     => 'Rekaman Sesi Paparan Narasumber',
+                                'extended_until'      => null,
+                                'min_post_test_score' => 70,
+                                'require_pre_test'    => true,
+                                'require_materials'   => true,
+                                'require_post_test'   => true,
+                                'instructions'        => '',
+                            ], JSON_UNESCAPED_UNICODE) ?>;
 
-    if (!Array.isArray(preTestData.questions)) preTestData.questions = [];
-    if (!Array.isArray(postTestData.questions)) postTestData.questions = [];
+        if (!Array.isArray(preTestData.questions)) preTestData.questions = [];
+        if (!Array.isArray(postTestData.questions)) postTestData.questions = [];
 
-    // Helper: Render Question List inside Modal
-    function renderQuestionList(type) {
-        const isPre = (type === 'pre_test');
-        const container = document.getElementById(isPre ? 'preTestQuestionsList' : 'postTestQuestionsList');
-        const questions = isPre ? preTestData.questions : postTestData.questions;
-        const totalLabel = document.getElementById(isPre ? 'preTestTotalModalLabel' : 'postTestTotalModalLabel');
+        // Helper: Render Question List inside Modal
+        function renderQuestionList(type) {
+            const isPre = (type === 'pre_test');
+            const container = document.getElementById(isPre ? 'preTestQuestionsList' : 'postTestQuestionsList');
+            const questions = isPre ? preTestData.questions : postTestData.questions;
+            const totalLabel = document.getElementById(isPre ? 'preTestTotalModalLabel' : 'postTestTotalModalLabel');
 
-        if (totalLabel) totalLabel.textContent = questions.length;
-        if (!container) return;
+            if (totalLabel) totalLabel.textContent = questions.length;
+            if (!container) return;
 
-        if (questions.length === 0) {
-            container.innerHTML = `
+            if (questions.length === 0) {
+                container.innerHTML = `
                 <div class="text-center p-30 border rounded-8 bg-white text-muted">
                     <iconify-icon icon="solar:clipboard-list-broken" class="display-5 text-neutral-400 mb-2"></iconify-icon>
                     <p class="mb-2 fw-semibold text-neutral-700">Belum ada butir soal yang ditambahkan.</p>
                     <p class="text-xs text-neutral-500 mb-0">Klik tombol <strong>+ Tambah Soal</strong> atau <strong>Muat Contoh Soal PBJ</strong> di atas.</p>
                 </div>
             `;
-            return;
-        }
+                return;
+            }
 
-        let html = '';
-        questions.forEach(function(q, idx) {
-            const qNum = idx + 1;
-            const options = Array.isArray(q.options) ? q.options : ['', '', '', ''];
-            while (options.length < 4) options.push('');
+            let html = '';
+            questions.forEach(function(q, idx) {
+                const qNum = idx + 1;
+                const options = Array.isArray(q.options) ? q.options : ['', '', '', ''];
+                while (options.length < 4) options.push('');
 
-            const selectedAns = parseInt(q.answer || 0, 10);
+                const selectedAns = parseInt(q.answer || 0, 10);
 
-            html += `
+                html += `
                 <div class="card border rounded-8 p-16 bg-white question-card" data-index="${idx}">
                     <div class="d-flex justify-content-between align-items-center mb-12 pb-8 border-bottom">
                         <span class="badge ${isPre ? 'bg-primary-100 text-primary-700' : 'bg-info-100 text-info-700'} fw-bold text-xs">
@@ -1282,10 +1347,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="d-flex flex-column gap-2">
             `;
 
-            ['A', 'B', 'C', 'D'].forEach(function(letter, optIdx) {
-                const optVal = escapeHtml(options[optIdx] || '');
-                const isChecked = (selectedAns === optIdx) ? 'checked' : '';
-                html += `
+                ['A', 'B', 'C', 'D'].forEach(function(letter, optIdx) {
+                    const optVal = escapeHtml(options[optIdx] || '');
+                    const isChecked = (selectedAns === optIdx) ? 'checked' : '';
+                    html += `
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light">
                             <input class="form-check-input mt-0 q-correct-radio" type="radio" name="correct_${type}_${idx}" value="${optIdx}" ${isChecked}>
@@ -1294,9 +1359,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input type="text" class="form-control q-opt-${optIdx}" value="${optVal}" placeholder="Pilihan ${letter}...">
                     </div>
                 `;
-            });
+                });
 
-            html += `
+                html += `
                         </div>
                     </div>
 
@@ -1306,266 +1371,456 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `;
-        });
-
-        container.innerHTML = html;
-    }
-
-    function escapeHtml(str) {
-        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    // Helper: Collect Questions from Modal Container
-    function collectQuestionsFromModal(type) {
-        const isPre = (type === 'pre_test');
-        const container = document.getElementById(isPre ? 'preTestQuestionsList' : 'postTestQuestionsList');
-        if (!container) return [];
-
-        const questionCards = container.querySelectorAll('.question-card');
-        const collected = [];
-
-        questionCards.forEach(function(card, idx) {
-            const qText = (card.querySelector('.q-text')?.value || '').trim();
-            if (!qText) return;
-
-            const opt0 = (card.querySelector('.q-opt-0')?.value || '').trim();
-            const opt1 = (card.querySelector('.q-opt-1')?.value || '').trim();
-            const opt2 = (card.querySelector('.q-opt-2')?.value || '').trim();
-            const opt3 = (card.querySelector('.q-opt-3')?.value || '').trim();
-
-            const options = [opt0 || 'Opsi A', opt1 || 'Opsi B', opt2 || 'Opsi C', opt3 || 'Opsi D'];
-            const checkedRadio = card.querySelector(`input[name="correct_${type}_${idx}"]:checked`);
-            const answer = checkedRadio ? parseInt(checkedRadio.value, 10) : 0;
-            const explanation = (card.querySelector('.q-explanation')?.value || '').trim();
-
-            collected.push({
-                id: idx + 1,
-                question: qText,
-                options: options,
-                answer: answer,
-                explanation: explanation
             });
-        });
 
-        return collected;
-    }
-
-    // Sync state to hidden inputs and badges
-    function syncToHiddenInputs() {
-        const switchPre = document.getElementById('switchPreTest');
-        const switchPost = document.getElementById('switchPostTest');
-
-        preTestData.enabled = switchPre ? switchPre.checked : false;
-        preTestData.title = (document.getElementById('inputPreTestTitle')?.value || '').trim();
-        preTestData.duration_minutes = parseInt(document.getElementById('inputPreTestDuration')?.value || 15, 10);
-        preTestData.passing_score = parseInt(document.getElementById('inputPreTestPassingScore')?.value || 70, 10);
-        preTestData.instructions = (document.getElementById('inputPreTestInstructions')?.value || '').trim();
-
-        postTestData.enabled = switchPost ? switchPost.checked : false;
-        postTestData.title = (document.getElementById('inputPostTestTitle')?.value || '').trim();
-        postTestData.duration_minutes = parseInt(document.getElementById('inputPostTestDuration')?.value || 15, 10);
-        postTestData.passing_score = parseInt(document.getElementById('inputPostTestPassingScore')?.value || 70, 10);
-        postTestData.instructions = (document.getElementById('inputPostTestInstructions')?.value || '').trim();
-
-        const inputPre = document.getElementById('inputPreTestData');
-        const inputPost = document.getElementById('inputPostTestData');
-
-        if (inputPre) inputPre.value = JSON.stringify(preTestData);
-        if (inputPost) inputPost.value = JSON.stringify(postTestData);
-
-        // Self-Paced Learning Sync
-        const switchSelf = document.getElementById('switchSelfPaced');
-        selfPacedData.enabled = switchSelf ? switchSelf.checked : false;
-        selfPacedData.recording_url = (document.getElementById('inputSelfPacedRecordingUrl')?.value || '').trim();
-        selfPacedData.recording_title = (document.getElementById('inputSelfPacedRecordingTitle')?.value || '').trim();
-        selfPacedData.extended_until = (document.getElementById('inputSelfPacedExtendedUntil')?.value || '').trim() || null;
-        selfPacedData.min_post_test_score = parseInt(document.getElementById('inputSelfPacedMinScore')?.value || 70, 10);
-        selfPacedData.require_pre_test = document.getElementById('checkSelfPacedReqPreTest')?.checked ?? true;
-        selfPacedData.require_materials = document.getElementById('checkSelfPacedReqMaterials')?.checked ?? true;
-        selfPacedData.require_post_test = document.getElementById('checkSelfPacedReqPostTest')?.checked ?? true;
-        selfPacedData.instructions = (document.getElementById('inputSelfPacedInstructions')?.value || '').trim();
-
-        const inputSelfPaced = document.getElementById('inputSelfPacedData');
-        if (inputSelfPaced) inputSelfPaced.value = JSON.stringify(selfPacedData);
-
-        const badgePre = document.getElementById('preTestCountBadge');
-        if (badgePre) {
-            badgePre.innerHTML = `<iconify-icon icon="solar:document-text-bold" class="me-1"></iconify-icon> ${preTestData.questions.length} Soal Dikonfigurasi`;
+            container.innerHTML = html;
         }
 
-        const badgePost = document.getElementById('postTestCountBadge');
-        if (badgePost) {
-            badgePost.innerHTML = `<iconify-icon icon="solar:document-text-bold" class="me-1"></iconify-icon> ${postTestData.questions.length} Soal Dikonfigurasi`;
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
-    }
 
-    // Modal Event: Render on Open
-    const modalPreEl = document.getElementById('modalPreTestQuestions');
-    if (modalPreEl) {
-        modalPreEl.addEventListener('show.bs.modal', function() {
-            renderQuestionList('pre_test');
-        });
-    }
+        // Helper: Collect Questions from Modal Container
+        function collectQuestionsFromModal(type) {
+            const isPre = (type === 'pre_test');
+            const container = document.getElementById(isPre ? 'preTestQuestionsList' : 'postTestQuestionsList');
+            if (!container) return [];
 
-    const modalPostEl = document.getElementById('modalPostTestQuestions');
-    if (modalPostEl) {
-        modalPostEl.addEventListener('show.bs.modal', function() {
-            renderQuestionList('post_test');
-        });
-    }
+            const questionCards = container.querySelectorAll('.question-card');
+            const collected = [];
 
-    // Add New Question Buttons
-    const btnAddPreQ = document.getElementById('btnAddPreTestQuestion');
-    if (btnAddPreQ) {
-        btnAddPreQ.addEventListener('click', function() {
-            preTestData.questions = collectQuestionsFromModal('pre_test');
-            preTestData.questions.push({
-                id: preTestData.questions.length + 1,
-                question: '',
-                options: ['', '', '', ''],
-                answer: 0,
-                explanation: ''
+            questionCards.forEach(function(card, idx) {
+                const qText = (card.querySelector('.q-text')?.value || '').trim();
+                if (!qText) return;
+
+                const opt0 = (card.querySelector('.q-opt-0')?.value || '').trim();
+                const opt1 = (card.querySelector('.q-opt-1')?.value || '').trim();
+                const opt2 = (card.querySelector('.q-opt-2')?.value || '').trim();
+                const opt3 = (card.querySelector('.q-opt-3')?.value || '').trim();
+
+                const options = [opt0 || 'Opsi A', opt1 || 'Opsi B', opt2 || 'Opsi C', opt3 || 'Opsi D'];
+                const checkedRadio = card.querySelector(`input[name="correct_${type}_${idx}"]:checked`);
+                const answer = checkedRadio ? parseInt(checkedRadio.value, 10) : 0;
+                const explanation = (card.querySelector('.q-explanation')?.value || '').trim();
+
+                collected.push({
+                    id: idx + 1,
+                    question: qText,
+                    options: options,
+                    answer: answer,
+                    explanation: explanation
+                });
             });
-            renderQuestionList('pre_test');
-        });
-    }
 
-    const btnAddPostQ = document.getElementById('btnAddPostTestQuestion');
-    if (btnAddPostQ) {
-        btnAddPostQ.addEventListener('click', function() {
-            postTestData.questions = collectQuestionsFromModal('post_test');
-            postTestData.questions.push({
-                id: postTestData.questions.length + 1,
-                question: '',
-                options: ['', '', '', ''],
-                answer: 0,
-                explanation: ''
+            return collected;
+        }
+
+        // Sync state to hidden inputs and badges
+        function syncToHiddenInputs() {
+            const switchPre = document.getElementById('switchPreTest');
+            const switchPost = document.getElementById('switchPostTest');
+
+            preTestData.enabled = switchPre ? switchPre.checked : false;
+            preTestData.title = (document.getElementById('inputPreTestTitle')?.value || '').trim();
+            preTestData.duration_minutes = parseInt(document.getElementById('inputPreTestDuration')?.value || 15, 10);
+            preTestData.passing_score = parseInt(document.getElementById('inputPreTestPassingScore')?.value || 70, 10);
+            preTestData.instructions = (document.getElementById('inputPreTestInstructions')?.value || '').trim();
+
+            postTestData.enabled = switchPost ? switchPost.checked : false;
+            postTestData.title = (document.getElementById('inputPostTestTitle')?.value || '').trim();
+            postTestData.duration_minutes = parseInt(document.getElementById('inputPostTestDuration')?.value || 15, 10);
+            postTestData.passing_score = parseInt(document.getElementById('inputPostTestPassingScore')?.value || 70, 10);
+            postTestData.instructions = (document.getElementById('inputPostTestInstructions')?.value || '').trim();
+
+            const inputPre = document.getElementById('inputPreTestData');
+            const inputPost = document.getElementById('inputPostTestData');
+
+            if (inputPre) inputPre.value = JSON.stringify(preTestData);
+            if (inputPost) inputPost.value = JSON.stringify(postTestData);
+
+            // Self-Paced Learning Sync
+            const switchSelf = document.getElementById('switchSelfPaced');
+            selfPacedData.enabled = switchSelf ? switchSelf.checked : false;
+            selfPacedData.recording_url = (document.getElementById('inputSelfPacedRecordingUrl')?.value || '').trim();
+            selfPacedData.recording_title = (document.getElementById('inputSelfPacedRecordingTitle')?.value || '').trim();
+            selfPacedData.extended_until = (document.getElementById('inputSelfPacedExtendedUntil')?.value || '').trim() || null;
+            selfPacedData.min_post_test_score = parseInt(document.getElementById('inputSelfPacedMinScore')?.value || 70, 10);
+            selfPacedData.require_pre_test = document.getElementById('checkSelfPacedReqPreTest')?.checked ?? true;
+            selfPacedData.require_materials = document.getElementById('checkSelfPacedReqMaterials')?.checked ?? true;
+            selfPacedData.require_post_test = document.getElementById('checkSelfPacedReqPostTest')?.checked ?? true;
+            selfPacedData.instructions = (document.getElementById('inputSelfPacedInstructions')?.value || '').trim();
+
+            const inputSelfPaced = document.getElementById('inputSelfPacedData');
+            if (inputSelfPaced) inputSelfPaced.value = JSON.stringify(selfPacedData);
+
+            const badgePre = document.getElementById('preTestCountBadge');
+            if (badgePre) {
+                badgePre.innerHTML = `<iconify-icon icon="solar:document-text-bold" class="me-1"></iconify-icon> ${preTestData.questions.length} Soal Dikonfigurasi`;
+            }
+
+            const badgePost = document.getElementById('postTestCountBadge');
+            if (badgePost) {
+                badgePost.innerHTML = `<iconify-icon icon="solar:document-text-bold" class="me-1"></iconify-icon> ${postTestData.questions.length} Soal Dikonfigurasi`;
+            }
+        }
+
+        // Modal Event: Render on Open
+        const modalPreEl = document.getElementById('modalPreTestQuestions');
+        if (modalPreEl) {
+            modalPreEl.addEventListener('show.bs.modal', function() {
+                renderQuestionList('pre_test');
             });
-            renderQuestionList('post_test');
-        });
-    }
+        }
 
-    // Delete Question Handlers
-    document.addEventListener('click', function(e) {
-        const delBtn = e.target.closest('.btn-delete-question');
-        if (delBtn) {
-            const type = delBtn.getAttribute('data-type');
-            const idx = parseInt(delBtn.getAttribute('data-index'), 10);
-            if (type === 'pre_test') {
+        const modalPostEl = document.getElementById('modalPostTestQuestions');
+        if (modalPostEl) {
+            modalPostEl.addEventListener('show.bs.modal', function() {
+                renderQuestionList('post_test');
+            });
+        }
+
+        // Add New Question Buttons
+        const btnAddPreQ = document.getElementById('btnAddPreTestQuestion');
+        if (btnAddPreQ) {
+            btnAddPreQ.addEventListener('click', function() {
                 preTestData.questions = collectQuestionsFromModal('pre_test');
-                preTestData.questions.splice(idx, 1);
+                preTestData.questions.push({
+                    id: preTestData.questions.length + 1,
+                    question: '',
+                    options: ['', '', '', ''],
+                    answer: 0,
+                    explanation: ''
+                });
                 renderQuestionList('pre_test');
-            } else {
+            });
+        }
+
+        const btnAddPostQ = document.getElementById('btnAddPostTestQuestion');
+        if (btnAddPostQ) {
+            btnAddPostQ.addEventListener('click', function() {
                 postTestData.questions = collectQuestionsFromModal('post_test');
-                postTestData.questions.splice(idx, 1);
+                postTestData.questions.push({
+                    id: postTestData.questions.length + 1,
+                    question: '',
+                    options: ['', '', '', ''],
+                    answer: 0,
+                    explanation: ''
+                });
                 renderQuestionList('post_test');
+            });
+        }
+
+        // Delete Question Handlers
+        document.addEventListener('click', function(e) {
+            const delBtn = e.target.closest('.btn-delete-question');
+            if (delBtn) {
+                const type = delBtn.getAttribute('data-type');
+                const idx = parseInt(delBtn.getAttribute('data-index'), 10);
+                if (type === 'pre_test') {
+                    preTestData.questions = collectQuestionsFromModal('pre_test');
+                    preTestData.questions.splice(idx, 1);
+                    renderQuestionList('pre_test');
+                } else {
+                    postTestData.questions = collectQuestionsFromModal('post_test');
+                    postTestData.questions.splice(idx, 1);
+                    renderQuestionList('post_test');
+                }
+            }
+        });
+
+        // Save Buttons inside Modals
+        const btnSavePre = document.getElementById('btnSavePreTestQuestions');
+        if (btnSavePre) {
+            btnSavePre.addEventListener('click', function() {
+                preTestData.questions = collectQuestionsFromModal('pre_test');
+                syncToHiddenInputs();
+            });
+        }
+
+        const btnSavePost = document.getElementById('btnSavePostTestQuestions');
+        if (btnSavePost) {
+            btnSavePost.addEventListener('click', function() {
+                postTestData.questions = collectQuestionsFromModal('post_test');
+                syncToHiddenInputs();
+            });
+        }
+
+        // Load Sample Procurement Questions Template
+        const sampleQuestions = [{
+                id: 1,
+                question: "Manakah di bawah ini yang merupakan salah satu prinsip dasar Pengadaan Barang/Jasa Pemerintah menurut Peraturan Presiden?",
+                options: [
+                    "Efisien, Efektif, Transparan, Terbuka, Bersaing, Adil, dan Akuntabel",
+                    "Cepat, Tanpa Evaluasi, Fleksibel, dan Mandiri",
+                    "Mengutamakan Rekanan Tertentu Demi Kelancaran Proyek",
+                    "Tertutup untuk Umum dan Hanya Menggunakan Penunjukan Langsung"
+                ],
+                answer: 0,
+                explanation: "Sesuai Pasal 6 Perpres PBJ, prinsip pengadaan meliputi Efisien, Efektif, Transparan, Terbuka, Bersaing, Adil/Tidak Diskriminatif, dan Akuntabel."
+            },
+            {
+                id: 2,
+                question: "Apa fungsi utama penyusunan Harga Perkiraan Sendiri (HPS) oleh Pejabat Pembuat Komitmen (PPK)?",
+                options: [
+                    "Alat untuk menggugurkan semua penawaran peserta",
+                    "Alat untuk menilai kewajaran harga penawaran dan batas tertinggi penawaran pengadaan",
+                    "Menentukan pemenang lelang sejak awal sebelum proses tender dimulai",
+                    "Sebagai dasar penetapan besaran pajak penghasilan penyedia"
+                ],
+                answer: 1,
+                explanation: "HPS berfungsi sebagai alat untuk menilai kewajaran harga penawaran dan batas tertinggi penawaran yang sah untuk tender/seleksi."
+            }
+        ];
+
+        const btnLoadPreSample = document.getElementById('btnLoadPreTestSample');
+        if (btnLoadPreSample) {
+            btnLoadPreSample.addEventListener('click', function() {
+                if (confirm('Muat 2 butir contoh soal template PBJ ke Pre-Test?')) {
+                    preTestData.questions = JSON.parse(JSON.stringify(sampleQuestions));
+                    renderQuestionList('pre_test');
+                }
+            });
+        }
+
+        const btnLoadPostSample = document.getElementById('btnLoadPostTestSample');
+        if (btnLoadPostSample) {
+            btnLoadPostSample.addEventListener('click', function() {
+                if (confirm('Muat 2 butir contoh soal template PBJ ke Post-Test?')) {
+                    postTestData.questions = JSON.parse(JSON.stringify(sampleQuestions));
+                    renderQuestionList('post_test');
+                }
+            });
+        }
+
+        // Self-Paced Inputs Live Sync Listeners
+        ['switchSelfPaced', 'checkSelfPacedReqPreTest', 'checkSelfPacedReqMaterials', 'checkSelfPacedReqPostTest'].forEach(function(id) {
+            document.getElementById(id)?.addEventListener('change', syncToHiddenInputs);
+        });
+        ['inputSelfPacedRecordingUrl', 'inputSelfPacedRecordingTitle', 'inputSelfPacedExtendedUntil', 'inputSelfPacedMinScore', 'inputSelfPacedInstructions'].forEach(function(id) {
+            document.getElementById(id)?.addEventListener('input', syncToHiddenInputs);
+        });
+
+        // -------------------------------------------------------------
+        // DYNAMIC RUNDOWN BUILDER (Zero Database Migration)
+        // -------------------------------------------------------------
+        const rundownTbody = document.getElementById('rundownTableBody');
+        const emptyRundownNotice = document.getElementById('emptyRundownNotice');
+        const rundownDataHidden = document.getElementById('rundownDataHidden');
+        const btnAddRundownRow = document.getElementById('btnAddRundownRow');
+        const btnSortRundown = document.getElementById('btnSortRundown');
+        const btnLoadDefaultRundown = document.getElementById('btnLoadDefaultRundown');
+
+        let rundownList = <?= json_encode(! empty($rundown) ? $rundown : (old('rundown') ?: [])) ?>;
+        if (!Array.isArray(rundownList)) {
+            rundownList = [];
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function renderRundownRows() {
+            if (!rundownTbody) return;
+            rundownTbody.innerHTML = '';
+
+            if (rundownList.length === 0) {
+                if (emptyRundownNotice) emptyRundownNotice.classList.remove('d-none');
+            } else {
+                if (emptyRundownNotice) emptyRundownNotice.classList.add('d-none');
+                rundownList.forEach((item, index) => {
+                    const tr = document.createElement('tr');
+                    tr.dataset.index = index;
+                    tr.innerHTML = `
+                        <td class="ps-20">
+                            <input type="time" class="form-control form-control-sm radius-6 fw-semibold text-neutral-800 font-monospace rd-start-time" value="${item.start_time || ''}" required>
+                        </td>
+                        <td>
+                            <input type="time" class="form-control form-control-sm radius-6 fw-semibold text-neutral-800 font-monospace rd-end-time" value="${item.end_time || ''}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm radius-6 fw-medium text-neutral-900 rd-title" value="${escapeHtml(item.title || '')}" placeholder="Nama Sesi / Agenda..." required>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm radius-6 text-neutral-800 rd-desc" value="${escapeHtml(item.description || '')}" placeholder="Keterangan / topik pembahasan...">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm radius-6 text-neutral-800 rd-speaker" value="${escapeHtml(item.speaker || '')}" placeholder="Fasilitator / narasumber...">
+                        </td>
+                        <td class="text-center pe-20">
+                            <button type="button" class="btn btn-outline-danger btn-xs radius-6 p-6 btn-del-rundown" title="Hapus Sesi">
+                                <iconify-icon icon="solar:trash-bin-trash-bold" class="fs-6"></iconify-icon>
+                            </button>
+                        </td>
+                    `;
+                    rundownTbody.appendChild(tr);
+                });
+            }
+            syncRundownData();
+        }
+
+        function collectRundownFromDom() {
+            if (!rundownTbody) return [];
+            const rows = rundownTbody.querySelectorAll('tr');
+            const items = [];
+            rows.forEach((r) => {
+                const startTime = r.querySelector('.rd-start-time')?.value?.trim() || '';
+                const endTime = r.querySelector('.rd-end-time')?.value?.trim() || '';
+                const title = r.querySelector('.rd-title')?.value?.trim() || '';
+                const desc = r.querySelector('.rd-desc')?.value?.trim() || '';
+                const speaker = r.querySelector('.rd-speaker')?.value?.trim() || '';
+
+                if (startTime || title) {
+                    items.push({
+                        start_time: startTime,
+                        end_time: endTime,
+                        title: title,
+                        description: desc,
+                        speaker: speaker
+                    });
+                }
+            });
+            return items;
+        }
+
+        function syncRundownData() {
+            const items = collectRundownFromDom();
+            rundownList = items;
+            if (rundownDataHidden) {
+                rundownDataHidden.value = JSON.stringify(items);
             }
         }
-    });
 
-    // Save Buttons inside Modals
-    const btnSavePre = document.getElementById('btnSavePreTestQuestions');
-    if (btnSavePre) {
-        btnSavePre.addEventListener('click', function() {
-            preTestData.questions = collectQuestionsFromModal('pre_test');
-            syncToHiddenInputs();
-        });
-    }
-
-    const btnSavePost = document.getElementById('btnSavePostTestQuestions');
-    if (btnSavePost) {
-        btnSavePost.addEventListener('click', function() {
-            postTestData.questions = collectQuestionsFromModal('post_test');
-            syncToHiddenInputs();
-        });
-    }
-
-    // Load Sample Procurement Questions Template
-    const sampleQuestions = [
-        {
-            id: 1,
-            question: "Manakah di bawah ini yang merupakan salah satu prinsip dasar Pengadaan Barang/Jasa Pemerintah menurut Peraturan Presiden?",
-            options: [
-                "Efisien, Efektif, Transparan, Terbuka, Bersaing, Adil, dan Akuntabel",
-                "Cepat, Tanpa Evaluasi, Fleksibel, dan Mandiri",
-                "Mengutamakan Rekanan Tertentu Demi Kelancaran Proyek",
-                "Tertutup untuk Umum dan Hanya Menggunakan Penunjukan Langsung"
-            ],
-            answer: 0,
-            explanation: "Sesuai Pasal 6 Perpres PBJ, prinsip pengadaan meliputi Efisien, Efektif, Transparan, Terbuka, Bersaing, Adil/Tidak Diskriminatif, dan Akuntabel."
-        },
-        {
-            id: 2,
-            question: "Apa fungsi utama penyusunan Harga Perkiraan Sendiri (HPS) oleh Pejabat Pembuat Komitmen (PPK)?",
-            options: [
-                "Alat untuk menggugurkan semua penawaran peserta",
-                "Alat untuk menilai kewajaran harga penawaran dan batas tertinggi penawaran pengadaan",
-                "Menentukan pemenang lelang sejak awal sebelum proses tender dimulai",
-                "Sebagai dasar penetapan besaran pajak penghasilan penyedia"
-            ],
-            answer: 1,
-            explanation: "HPS berfungsi sebagai alat untuk menilai kewajaran harga penawaran dan batas tertinggi penawaran yang sah untuk tender/seleksi."
+        function sortRundownByTime() {
+            const items = collectRundownFromDom();
+            items.sort((a, b) => (a.start_time || '99:99').localeCompare(b.start_time || '99:99'));
+            rundownList = items;
+            renderRundownRows();
         }
-    ];
 
-    const btnLoadPreSample = document.getElementById('btnLoadPreTestSample');
-    if (btnLoadPreSample) {
-        btnLoadPreSample.addEventListener('click', function() {
-            if (confirm('Muat 2 butir contoh soal template PBJ ke Pre-Test?')) {
-                preTestData.questions = JSON.parse(JSON.stringify(sampleQuestions));
-                renderQuestionList('pre_test');
-            }
-        });
-    }
+        if (btnAddRundownRow) {
+            btnAddRundownRow.addEventListener('click', function() {
+                syncRundownData();
+                rundownList.push({
+                    start_time: '',
+                    end_time: '',
+                    title: '',
+                    description: '',
+                    speaker: ''
+                });
+                renderRundownRows();
+            });
+        }
 
-    const btnLoadPostSample = document.getElementById('btnLoadPostTestSample');
-    if (btnLoadPostSample) {
-        btnLoadPostSample.addEventListener('click', function() {
-            if (confirm('Muat 2 butir contoh soal template PBJ ke Post-Test?')) {
-                postTestData.questions = JSON.parse(JSON.stringify(sampleQuestions));
-                renderQuestionList('post_test');
-            }
-        });
-    }
+        if (btnSortRundown) {
+            btnSortRundown.addEventListener('click', function() {
+                sortRundownByTime();
+            });
+        }
 
-    // Self-Paced Inputs Live Sync Listeners
-    ['switchSelfPaced', 'checkSelfPacedReqPreTest', 'checkSelfPacedReqMaterials', 'checkSelfPacedReqPostTest'].forEach(function(id) {
-        document.getElementById(id)?.addEventListener('change', syncToHiddenInputs);
+        if (btnLoadDefaultRundown) {
+            btnLoadDefaultRundown.addEventListener('click', function() {
+                if (rundownList.length > 0 && !confirm('Muat template susunan acara standar? Ini akan menggantikan sesi yang sedang diedit.')) {
+                    return;
+                }
+                rundownList = [
+                    {
+                        start_time: '08:00',
+                        end_time: '08:30',
+                        title: 'Pembukaan Acara & Registrasi Peserta',
+                        description: 'Verifikasi identitas dan penyambutan peserta',
+                        speaker: 'Panitia Biro PBJ Setda Lampung'
+                    },
+                    {
+                        start_time: '08:30',
+                        end_time: '10:00',
+                        title: 'Pemaparan Materi Pokok & Pembahasan Tematik',
+                        description: 'Pemaparan materi utama sosialisasi regulasi pengadaan barang dan jasa',
+                        speaker: 'Narasumber & Tim Fasilitator Ahli PBJ'
+                    },
+                    {
+                        start_time: '10:00',
+                        end_time: '11:30',
+                        title: 'Sesi Tanya Jawab, Diskusi & Evaluasi Kasus',
+                        description: 'Konsultasi interaktif langsung bersama narasumber/fasilitator',
+                        speaker: 'Moderator & Seluruh Peserta'
+                    },
+                    {
+                        start_time: '11:30',
+                        end_time: '12:00',
+                        title: 'Rangkuman Hasil, Penutupan & Validasi Presensi',
+                        description: 'Perekaman rekam jejak kehadiran dan penerbitan sertifikat',
+                        speaker: 'Penyelenggara Resmi BegawiPengadaan'
+                    }
+                ];
+                renderRundownRows();
+            });
+        }
+
+        if (rundownTbody) {
+            rundownTbody.addEventListener('click', function(e) {
+                const delBtn = e.target.closest('.btn-del-rundown');
+                if (delBtn) {
+                    const row = delBtn.closest('tr');
+                    if (row) {
+                        row.remove();
+                        syncRundownData();
+                        if (rundownTbody.querySelectorAll('tr').length === 0 && emptyRundownNotice) {
+                            emptyRundownNotice.classList.remove('d-none');
+                        }
+                    }
+                }
+            });
+
+            rundownTbody.addEventListener('input', function() {
+                syncRundownData();
+            });
+        }
+
+        // Render initial rundown rows
+        renderRundownRows();
+
+        // Form Submit Event: Ensure latest sync and sorted rundown
+        const eventMainForm = document.getElementById('eventMainForm');
+        if (eventMainForm) {
+            eventMainForm.addEventListener('submit', function() {
+                sortRundownByTime();
+                syncRundownData();
+                syncToHiddenInputs();
+            });
+        }
+
+        // Initialize sync on page load
+        syncToHiddenInputs();
     });
-    ['inputSelfPacedRecordingUrl', 'inputSelfPacedRecordingTitle', 'inputSelfPacedExtendedUntil', 'inputSelfPacedMinScore', 'inputSelfPacedInstructions'].forEach(function(id) {
-        document.getElementById(id)?.addEventListener('input', syncToHiddenInputs);
-    });
-
-    // Form Submit Event: Ensure latest sync
-    const eventMainForm = document.getElementById('eventMainForm');
-    if (eventMainForm) {
-        eventMainForm.addEventListener('submit', function() {
-            syncToHiddenInputs();
-        });
-    }
-
-    // Initialize sync on page load
-    syncToHiddenInputs();
-});
 </script>
 
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
 <script>
-(function() {
-    // Bulletproof zero-jitter clamping at scroll extremities (especially for Windows mouse wheel)
-    var isClamping = false;
-    window.addEventListener('scroll', function() {
-        var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-        if (window.scrollY > maxScroll) {
-            if (!isClamping) {
-                isClamping = true;
-                window.scrollTo(0, maxScroll);
-                requestAnimationFrame(function() { isClamping = false; });
+    (function() {
+        // Bulletproof zero-jitter clamping at scroll extremities (especially for Windows mouse wheel)
+        var isClamping = false;
+        window.addEventListener('scroll', function() {
+            var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+            if (window.scrollY > maxScroll) {
+                if (!isClamping) {
+                    isClamping = true;
+                    window.scrollTo(0, maxScroll);
+                    requestAnimationFrame(function() {
+                        isClamping = false;
+                    });
+                }
             }
-        }
-    }, { passive: true });
-})();
+        }, {
+            passive: true
+        });
+    })();
 </script>
 <?= $this->endSection() ?>
