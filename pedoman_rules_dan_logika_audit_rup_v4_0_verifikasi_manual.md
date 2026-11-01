@@ -241,6 +241,13 @@ finding_status:
 * **Kalibrasi Real Data:** Tepat $27\text{ paket}$ (Total 209 paket bersama R-27a).
 * **Rekomendasi:** Periksa HPS dan rincian kertas kerja anggaran untuk memastikan tidak dipatok sengaja demi menghindari tender.
 
+#### 16b. Rule `R-27c` — Sub-Threshold Hugging Konstruksi TA $\ge 2025$ ($\text{Rp}190\text{ Jt} - \text{Rp}200\text{ Jt}$)
+* **Status:** `SINYAL_RISIKO` | **Severity:** `RENDAH` | **Confidence:** `TINGGI`
+* **Dasar Regulasi:** Pasal 20 ayat (2) Perpres 16/2018 jo. Perpres 46/2025.
+* **Logika:** $\text{tahun\_anggaran} \ge 2025 \land \text{metode} == \text{"Pengadaan Langsung"} \land \text{jenis} == \text{"Pekerjaan Konstruksi"} \land \text{total\_nilai} \in [\text{Rp}190.000.000, \text{Rp}200.000.000]$.
+* **Kalibrasi Real Data:** Menangkap tepat **$142\text{ paket}$ senilai $\text{Rp}28.072.331.946$** (terkonsentrasi di Dinas BMBK dan Dinas PKPCK) yang dipatok tepat di bawah batas lama regulasi Perpres 12/2021 ($\text{Rp}200\text{ Juta}$), meskipun pada TA 2026 batas Pengadaan Langsung Pekerjaan Konstruksi telah dinaikkan menjadi $\text{Rp}400\text{ Juta}$.
+* **Rekomendasi:** Periksa apakah pemaketan didasarkan pada kebiasaan pagu lama atau indikasi pemecahan paket pekerjaan fisik.
+
 #### 17. Rule `R-28` — Inefisiensi Metode Pemilihan Kompetitif pada Pagu Kecil
 * **Status:** `SINYAL_RISIKO` | **Severity:** `RENDAH` | **Confidence:** `SEDANG`
 * **Dasar Regulasi:** Prinsip Efisiensi Pengadaan (Pasal 6 Perpres PBJ).
@@ -317,11 +324,12 @@ finding_status:
 * **Batas Inferensi:** Sistem tidak memiliki data ketersediaan tayang produk katalog aktual pada CSV.
 * **Rekomendasi:** Periksa etalase Katalog Elektronik V6; utamakan E-Purchasing jika barang/jasa tersedia.
 
-#### 28. Rule `R-16` — Salah Klasifikasi Jasa Konsultansi Tertulis Barang/Konstruksi/JL
-* **Status:** `POTENSI_TIDAK_SESUAI` | **Severity:** `TINGGI` | **Confidence:** `TINGGI`
-* **Dasar Regulasi:** Pasal 3 & Pasal 41 Perpres 46/2025 jo. Perlem LKPP 3/2026.
-* **Logika:** Perencanaan teknis, pengawasan konstruksi, DED, kajian, studi kelayakan diinput sebagai Barang/JL/Konstruksi.
-* **Rekomendasi:** Koreksi jenis pengadaan menjadi **Jasa Konsultansi** (wajib Seleksi jika pagu $> \text{Rp}100\text{ Juta}$).
+#### 28. Rule `R-16` — Salah Klasifikasi Jasa Konsultansi & Modus Penghindaran Seleksi
+* **Status:** `POTENSI_TIDAK_SESUAI` / `PERLU_VERIFIKASI` | **Severity:** `TINGGI` (bila PL $> \text{Rp}100\text{ Jt}$) / `SEDANG` | **Confidence:** `TINGGI`
+* **Dasar Regulasi:** Pasal 3, Pasal 38, & Pasal 41 Perpres 16/2018 jo. Perpres 46/2025 jo. Perlem LKPP 3/2026.
+* **Logika:** Perencanaan teknis, pengawasan konstruksi, DED, kajian, studi kelayakan diinput sebagai non-Konsultansi (Barang/JL/Konstruksi).
+* **Eskalasi Presisi (Patch v4.0.1):** Jika metode pengadaan memuat `'Pengadaan Langsung'` **DAN** $\text{total\_nilai} > \text{Rp}100.000.000$, rule otomatis dinaikkan statusnya menjadi **`POTENSI_TIDAK_SESUAI` (`severity = TINGGI`, `confidence = TINGGI`)**. Hal ini menutup celah pelolosan di mana paket konsultansi murni disamarkan sebagai 'Jasa Lainnya' agar lolos dari batasan PL Konsultansi Rp100 Juta dan lolos dari batasan PL Jasa Lainnya Rp200 Juta (menangkap **4 paket senilai $\text{Rp}1.015.334.000$** di SIRUP).
+* **Rekomendasi:** Batalkan Pengadaan Langsung dan koreksi jenis menjadi **Jasa Konsultansi** serta gunakan metode **Seleksi**.
 
 #### 29. Rule `R-17` — Salah Klasifikasi Pekerjaan Konstruksi Tertulis Barang/JL/Konsultansi
 * **Status:** `POTENSI_TIDAK_SESUAI` | **Severity:** `TINGGI` | **Confidence:** `TINGGI`
@@ -329,17 +337,19 @@ finding_status:
 * **Logika:** Pembangunan, rehabilitasi fisik gedung/jalan/irigasi tertulis Barang/JL.
 * **Rekomendasi:** Koreksi jenis pengadaan menjadi **Pekerjaan Konstruksi**.
 
-#### 30. Rule `R-18` — Salah Klasifikasi Jasa Lainnya Tertulis Barang
-* **Status:** `POTENSI_TIDAK_SESUAI` | **Severity:** `SEDANG` | **Confidence:** `TINGGI`
+#### 30. Rule `R-18` — Salah Klasifikasi Jasa Lainnya (Sewa Alat, Pemeliharaan, Kebersihan)
+* **Status:** `PERLU_VERIFIKASI` | **Severity:** `SEDANG` | **Confidence:** `TINGGI`
 * **Dasar Regulasi:** Pasal 3 Perpres 16/2018 jo. Perpres 46/2025.
-* **Logika:** Sewa, pemeliharaan, jasa kebersihan, keamanan, publikasi diinput sebagai Barang.
-* **Rekomendasi:** Koreksi jenis pengadaan menjadi **Jasa Lainnya**.
+* **Logika:** Objek berupa jasa non-intelektual (sewa alat, pemeliharaan, kebersihan, keamanan) pada paket Penyedia non-Dikecualikan yang diinput dengan jenis **bukan Jasa Lainnya** (baik tertulis Barang maupun Pekerjaan Konstruksi).
+* **Kalibrasi Real Data (Patch v4.0.1):** Menangkap **143 paket senilai $\text{Rp}66,31\text{ Miliar}$**, termasuk secara spesifik **52 paket senilai $\text{Rp}6,96\text{ Miliar}$** berupa *"Pengadaan Sewa Alat Pemeliharaan Rutin Jalan... (Swakelola)"* di Dinas BMBK yang keliru diinput sebagai Pekerjaan Konstruksi.
+* **Rekomendasi:** Koreksi jenis pengadaan menjadi **Jasa Lainnya** (ambang batas PL tetap $\text{Rp}200\text{ Juta}$).
 
-#### 31. Rule `R-19` — Salah Klasifikasi Barang Tertulis Jasa Lainnya / Konstruksi
-* **Status:** `POTENSI_TIDAK_SESUAI` | **Severity:** `SEDANG` | **Confidence:** `TINGGI`
+#### 31. Rule `R-19` — Salah Klasifikasi Barang (Bahan Rutin, Material Fisik, Komputer)
+* **Status:** `PERLU_VERIFIKASI` | **Severity:** `SEDANG` | **Confidence:** `TINGGI`
 * **Dasar Regulasi:** Pasal 3 Perpres 16/2018 jo. Perpres 46/2025.
-* **Logika:** Pembelian aset modal mesin/alat, mebel, komputer, ATK murni diinput sebagai JL/Konstruksi.
-* **Rekomendasi:** Koreksi jenis pengadaan menjadi **Barang**.
+* **Logika:** Pembelian aset komoditas fisik, material bangunan/jalan, bahan rutin, komputer, ATK pada paket Penyedia non-Dikecualikan yang diinput dengan jenis **bukan Barang** (termasuk Pekerjaan Konstruksi atau Jasa Lainnya).
+* **Kalibrasi Real Data (Patch v4.0.1):** Menangkap **229 paket senilai $\text{Rp}33,63\text{ Miliar}$**, termasuk secara spesifik **170 s.d. 205 paket senilai $\text{Rp}29,30 - 35,13\text{ Miliar}$** berupa *"Pengadaan Bahan Rutin / Bahan Material... (Swakelola)"* di Dinas BMBK yang keliru diinput sebagai Pekerjaan Konstruksi.
+* **Rekomendasi:** Koreksi jenis pengadaan menjadi **Barang** (ambang batas PL adalah $\text{Rp}200\text{ Juta}$, bukan batas konstruksi $\text{Rp}400\text{ Juta}$).
 
 #### 32. Rule `R-31` — Kronologi Jadwal Pengumuman & Kontrak (`NON-AKTIF`)
 * **Status:** `TIDAK_DAPAT_DINILAI_DARI_CSV` | **Severity:** `INFO` | **Confidence:** `TINGGI`
@@ -413,6 +423,19 @@ finding_status:
 * **Kalibrasi Real Data:** Tepat $24\text{ paket}$ ($\text{Rp}11.450.777.996$) di dataset baseline Lampung. Seluruh paket Pekerjaan Konstruksi $\le \text{Rp}15\text{M}$ pada baseline Lampung telah berstatus `UMK = Ya`.
 * **Batas Inferensi:** CSV tidak memuat data justifikasi pengecualian kemampuan teknis Usaha Kecil sesuai Pasal 65 ayat (4); temuan berstatus kandidat pemeriksaan.
 * **Rekomendasi:** Periksa apakah paket dapat dicadangkan untuk penyedia kualifikasi Usaha Kecil/Koperasi.
+
+#### 42b. Rule `R-24b` — Segmentasi Kualifikasi Usaha & Afirmasi UMK Konsultansi Konstruksi
+* **Status:** `POTENSI_TIDAK_SESUAI` / `PERLU_VERIFIKASI` | **Severity:** `TINGGI` / `SEDANG` | **Confidence:** `TINGGI`
+* **Dasar Regulasi:** **Pasal 65 ayat (4) Perpres 46/2025 jo. Pasal 4 ayat (1) & (2) Perlem LKPP 3/2026**.
+* **3 Skenario Deteksi Presisi (Patch v4.0.1):**
+  1. **Jasa Konsultansi Konstruksi $> \text{Rp}1.000.000.000$ ditandai `UMK = Ya`** (`POTENSI_TIDAK_SESUAI`, `severity = TINGGI`, `confidence = TINGGI`):
+     - Berdasarkan Pasal 4 ayat (2) Perlem LKPP 3/2026, paket Konsultansi Konstruksi $> \text{Rp}1\text{ M}$ s.d. $\text{Rp}2,5\text{ M}$ dicadangkan bagi Kualifikasi Usaha Menengah, dan $> \text{Rp}2,5\text{ M}$ dicadangkan bagi Kualifikasi Usaha Besar. Pemberian tanda `status_umk = Ya` adalah anomali regulasi fatal.
+     - Menangkap paket Seleksi `[65546342]` ($\text{Rp}9,28\text{ Miliar}$ — wajib Usaha Besar) dan `[67076511]` ($\text{Rp}1,74\text{ Miliar}$ — wajib Usaha Menengah) pada Dinas PKPCK.
+  2. **Jasa Konsultansi $\le \text{Rp}1.000.000.000$ (non-Dikecualikan) ditandai `UMK != Ya`** (`PERLU_VERIFIKASI`, `severity = SEDANG`):
+     - Wajib dicadangkan bagi Kualifikasi Usaha Kecil sesuai Pasal 4 ayat (2) huruf a Perlem LKPP 3/2026.
+     - Menangkap 2 paket riil: `[65107703]` ($\text{Rp}200\text{ Jt}$) dan `[65925834]` ($\text{Rp}26,34\text{ Jt}$) yang berstatus `UMK = Tidak`.
+  3. **Seluruh Paket Penyedia $> \text{Rp}15.000.000.000$ ditandai `UMK = Ya`** (`PERLU_VERIFIKASI`, `severity = SEDANG`):
+     - Menangkap **17 paket raksasa bernilai total $\text{Rp}639,46\text{ Miliar}$** yang ditandai `UMK = Ya` untuk memastikan apakah merupakan pagu agregat BOSP/Katalog yang terpecah pembelanjaannya atau kesalahan input kualifikasi non-kecil.
 
 #### 43. Rule `R-25` — Penelaahan Prioritas Produk Dalam Negeri (PDN)
 * **Status:** `PERLU_VERIFIKASI` | **Severity:** `INFO` | **Confidence:** `TINGGI`

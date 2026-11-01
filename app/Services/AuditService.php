@@ -53,6 +53,9 @@ class AuditService
         }
 
         $reason = ! empty($reasonData) ? json_encode($this->redact($reasonData), JSON_UNESCAPED_UNICODE) : null;
+        if ($reason !== null && strlen($reason) > 60000) {
+            $reason = mb_substr($reason, 0, 60000) . '... [TRUNCATED]';
+        }
 
         $request = service('request');
         $actorId = null;
@@ -97,6 +100,11 @@ class AuditService
                 continue;
             }
 
+            // Cegah packet spike jika field memuat konten raksasa/HTML/Base64
+            if (is_string($value) && strlen($value) > 1000) {
+                $metadata[$key] = mb_substr($value, 0, 300) . '... [TRUNCATED ' . strlen($value) . ' bytes]';
+                continue;
+            }
             if (is_array($value)) {
                 $metadata[$key] = $this->redact($value);
             }

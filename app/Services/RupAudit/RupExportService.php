@@ -339,10 +339,44 @@ class RupExportService
             throw new \RuntimeException('Data satuan kerja tidak ditemukan dalam batch audit ini.');
         }
 
+        // Unpack macro_flags untuk memisahkan risk_profile jika ada
+        if (! empty($opd['macro_flags'])) {
+            $mf = json_decode((string) $opd['macro_flags'], true);
+            if (is_array($mf) && isset($mf['risk_profile'])) {
+                if (empty($opd['risk_profile_json'])) {
+                    $opd['risk_profile_json'] = json_encode($mf['risk_profile']);
+                }
+                unset($mf['risk_profile']);
+                $opd['macro_flags'] = json_encode(array_values(array_filter($mf, static fn($v) => is_string($v))));
+            }
+        }
+
         $packages = $this->auditService->getPackagesFiltered($batchId, [
             'opd'      => $opd['nama_opd_clean'],
             'severity' => 'ALL',
+            'sortBy'   => 'risiko',
         ], 200, 0);
+
+        // Lampirkan temuan (violations) untuk paket-paket yang tampil di Berita Acara PDF
+        if (! empty($packages)) {
+            $packageRowIndices = array_column($packages, 'row_index_csv');
+            if (! empty($packageRowIndices)) {
+                $violations = $db->table('rup_audit_violations')
+                    ->where('batch_id', $batchId)
+                    ->whereIn('row_index_csv', $packageRowIndices)
+                    ->get()->getResultArray();
+
+                $violationsByRow = [];
+                foreach ($violations as $v) {
+                    $violationsByRow[$v['row_index_csv']][] = $v;
+                }
+
+                foreach ($packages as &$pkg) {
+                    $pkg['violations'] = $violationsByRow[$pkg['row_index_csv']] ?? [];
+                }
+                unset($pkg);
+            }
+        }
 
         $html = view('main/workspace/pages/rup_audit/pdf_berita_acara', [
             'batch'    => $batch,

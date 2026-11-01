@@ -271,10 +271,12 @@ class RupCsvParser
             default => 'KETENTUAN_LAINNYA',
         };
 
-        $rawCara = $getVal('cara_pengadaan', 'Penyedia');
-        $caraPengadaan = ucwords(strtolower($rawCara));
-        if ($caraPengadaan !== 'Swakelola') {
-            $caraPengadaan = 'Penyedia';
+        $rawCara = trim($getVal('cara_pengadaan', 'Penyedia'));
+        $caraNormalized = ucwords(strtolower($rawCara));
+        if (in_array($caraNormalized, ['Penyedia', 'Swakelola'], true)) {
+            $caraPengadaan = $caraNormalized;
+        } else {
+            $caraPengadaan = $rawCara;
         }
 
         // Metode pengadaan
@@ -341,10 +343,20 @@ class RupCsvParser
         } else {
             // Bersihkan simbol Rp, spasi
             $cleanTotal = str_replace(['Rp', 'rp', 'RP', ' '], '', $rawTotal);
-            // Tangani titik ribuan vs koma desimal
-            if (substr_count($cleanTotal, '.') > 1 || (str_contains($cleanTotal, '.') && str_contains($cleanTotal, ','))) {
+            // Tangani pemisah ribuan vs desimal (format Indonesia vs Internasional)
+            if (str_contains($cleanTotal, '.') && str_contains($cleanTotal, ',')) {
+                if (strrpos($cleanTotal, ',') > strrpos($cleanTotal, '.')) {
+                    // Format Indonesia: 150.000.000,00
+                    $cleanTotal = str_replace('.', '', $cleanTotal);
+                    $cleanTotal = str_replace(',', '.', $cleanTotal);
+                } else {
+                    // Format Internasional: 150,000,000.00
+                    $cleanTotal = str_replace(',', '', $cleanTotal);
+                }
+            } elseif (substr_count($cleanTotal, ',') > 1 || preg_match('/^\d{1,3}(,\d{3})+$/', $cleanTotal)) {
+                $cleanTotal = str_replace(',', '', $cleanTotal);
+            } elseif (substr_count($cleanTotal, '.') > 1 || preg_match('/^\d{1,3}(\.\d{3})+$/', $cleanTotal)) {
                 $cleanTotal = str_replace('.', '', $cleanTotal);
-                $cleanTotal = str_replace(',', '.', $cleanTotal);
             } elseif (str_contains($cleanTotal, ',')) {
                 $cleanTotal = str_replace(',', '.', $cleanTotal);
             }

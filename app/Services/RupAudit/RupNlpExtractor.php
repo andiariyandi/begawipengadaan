@@ -134,8 +134,10 @@ class RupNlpExtractor
     public static function extractObject(string $raw): string
     {
         $text = self::normalizeTyposAndLeetspeak(trim($raw));
-        // 1. Hapus kurung dan isinya
-        $text = preg_replace('/\([^\)]*\)/', ' ', $text);
+        // 1. Hapus kurung dan isinya secara tuntas (termasuk kurung berlapis)
+        while (preg_match('/\([^\(\)]*\)/', $text)) {
+            $text = (string) preg_replace('/\([^\(\)]*\)/', ' ', $text);
+        }
 
         // 2. Potong klausa konteks kegiatan jika teks objek di depannya sudah >= 10 karakter alfanumerik
         if (preg_match('/\b(sub\s+kegiatan|sub\s+bagian|dalam\s+rangka|pada\s+kegiatan|kegiatan\s+pelaksanaan|guna\s+kegiatan)\b/i', $text, $matches, PREG_OFFSET_CAPTURE)) {
@@ -204,15 +206,16 @@ class RupNlpExtractor
         // 2. Hapus prefiks generik pengadaan di awal
         $text = preg_replace('/^(belanja|pengadaan|biaya|pekerjaan|penyediaan|sub kegiatan)\s+(modal|barang|jasa|operasional)?\s*/i', '', (string) $text);
 
-        // 3. Ekstraksi sufiks lokasi
+        // 3. Ekstraksi sufiks lokasi (kata 'ruas' dikecualikan agar nama seperti 'pengadaan bahan rutin ruas jalan' tidak terpotong)
         $lokasiExtracted = null;
-        if (preg_match('/\s+(pada|di|lokasi|kecamatan|kelurahan|desa|ruas)\s+([a-z0-9\s]+)$/i', (string) $text, $locMatches)) {
+        if (preg_match('/\s+(pada|di|lokasi|kecamatan|kelurahan|desa)\s+([a-z0-9\s]+)$/i', (string) $text, $locMatches)) {
             $lokasiExtracted = trim($locMatches[2]);
             $text = substr((string) $text, 0, -strlen($locMatches[0]));
         }
 
-        // 4. Hapus referensi waktu, tahun, dan tahap
-        $text = preg_replace('/\b(tahap\s+[0-9]+|triwulan\s+[0-9]+|tw\s+[0-9]+|202[0-9]|203[0-9])\b/i', '', (string) $text);
+        // 4. Hapus referensi waktu, tahun, tahap, nomor paket, dan nomor urut seri akhir
+        $text = preg_replace('/\b(paket\s*[-:]?\s*[0-9a-z]+|pkt\s*[-:]?\s*[0-9a-z]+|lot\s*[-:]?\s*[0-9a-z]+|tahap\s+[0-9ivx]+|triwulan\s+[0-9ivx]+|tw\s+[0-9ivx]+|202[0-9]|203[0-9])\b/i', ' ', (string) $text);
+        $text = preg_replace('/\s+[0-9]{1,4}$/', ' ', trim((string) $text));
 
         $coreClean = self::clean((string) $text);
 

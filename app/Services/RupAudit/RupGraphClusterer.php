@@ -265,6 +265,30 @@ class RupGraphClusterer
         arsort($cValues);
         $namaKomoditas = array_key_first($cValues) ?: 'Komoditas Gabungan';
 
+        // Evaluasi Batas Efektif v4.0.1: Jika Konstruksi namun objek riil bahan material / sewa alat, terapkan batas PL efektif Rp200 Jt
+        $catatanBatasEfektif = '';
+        if ($jenis === 'Pekerjaan Konstruksi') {
+            $isBahanMaterial = RupTaxonomy::match($namaKomoditas, RupTaxonomy::DICT_08_MURNI_BARANG, RupTaxonomy::NEG_LOOKAHEAD_08);
+            $isSewaAlat      = RupTaxonomy::match($namaKomoditas, RupTaxonomy::DICT_07_MURNI_JASA_LAINNYA, RupTaxonomy::NEG_LOOKAHEAD_07);
+            if (! $isBahanMaterial && ! $isSewaAlat) {
+                foreach ($coreNames as $cn) {
+                    if (RupTaxonomy::match($cn, RupTaxonomy::DICT_08_MURNI_BARANG, RupTaxonomy::NEG_LOOKAHEAD_08)) {
+                        $isBahanMaterial = true;
+                        break;
+                    }
+                    if (RupTaxonomy::match($cn, RupTaxonomy::DICT_07_MURNI_JASA_LAINNYA, RupTaxonomy::NEG_LOOKAHEAD_07)) {
+                        $isSewaAlat = true;
+                        break;
+                    }
+                }
+            }
+            if ($isBahanMaterial || $isSewaAlat) {
+                $batasPl = RupTaxonomy::PL_THRESHOLD_2026_BARANG; // Efektif Rp200 Juta
+                $tipeObjek = $isBahanMaterial ? 'Bahan Material' : 'Sewa Alat';
+                $catatanBatasEfektif = " (Batas Efektif Rp200 Juta - Objek {$tipeObjek})";
+            }
+        }
+
         $jumlahPaket = count($componentIndices);
 
         // Evaluasi Kategori Temuan & Severity v4.0
@@ -282,7 +306,7 @@ class RupGraphClusterer
             $severity          = 'TINGGI';
             $batasFmt          = number_format($batasPl, 0, ',', '.');
             $paguFmt           = number_format($totalPagu, 0, ',', '.');
-            $instruksi         = "Indikasi pemecahan paket (splitting) untuk menghindari Tender/Seleksi. Akumulasi pagu (Rp {$paguFmt}) melampaui batas Pengadaan Langsung (Rp {$batasFmt}). Disarankan reviu kesatuan perencanaan dan konsolidasikan ke Tender/E-Purchasing.";
+            $instruksi         = "Indikasi pemecahan paket (splitting) untuk menghindari Tender/Seleksi. Akumulasi pagu (Rp {$paguFmt}) melampaui batas Pengadaan Langsung (Rp {$batasFmt}{$catatanBatasEfektif}). Disarankan reviu kesatuan perencanaan dan konsolidasikan ke Tender/E-Purchasing.";
         } elseif ($hasPl && ($maxVal >= 0.95 * $batasPl && $maxVal <= $batasPl)) {
             $kategoriTemuan    = 'THRESHOLD_HUGGING (R-27)';
             $clusterType       = 'THRESHOLD_HUGGING_CLUSTER';

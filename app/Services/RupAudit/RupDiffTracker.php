@@ -61,6 +61,7 @@ class RupDiffTracker
         $countPersistent = 0;
         $countNew        = 0;
         $countChanged    = 0;
+        $countFixed      = 0;
         $matchedPrevCodes = [];
 
         // Stage 1: Exact kode_rup match
@@ -93,11 +94,32 @@ class RupDiffTracker
                     $countNew++;
                 } else {
                     $pkg['diff_status'] = 'FIXED';
+                    if ($hadAnomaliBefore) {
+                        $countFixed++;
+                    }
                 }
             } else {
                 // Stage 2: Fallback matching berdasarkan OPD + nama_paket_clean
                 $nameKey = md5(($pkg['nama_opd_clean'] ?? '') . '|' . ($pkg['nama_paket_clean'] ?? ''));
+                $matchedIndex = null;
                 if (isset($prevByName[$nameKey]) && ! empty($prevByName[$nameKey])) {
+                    foreach ($prevByName[$nameKey] as $cIdx => $cand) {
+                        $cCode = trim((string) ($cand['kode_rup'] ?? ''));
+                        if (! isset($matchedPrevCodes[$cCode])) {
+                            $matchedIndex = $cIdx;
+                            break;
+                        }
+                    }
+                }
+
+                if ($matchedIndex !== null) {
+                    $matchedOld = $prevByName[$nameKey][$matchedIndex];
+                    unset($prevByName[$nameKey][$matchedIndex]); // consume
+                    $oldCode = trim((string) ($matchedOld['kode_rup'] ?? ''));
+                    if ($oldCode !== '') {
+                        $matchedPrevCodes[$oldCode] = true;
+                    }
+                    $pkg['previous_kode_rup'] = $matchedOld['kode_rup'];
                     $pkg['diff_status'] = 'CHANGED';
                     $countChanged++;
                     if ($hasAnomaliNow) {
@@ -114,7 +136,6 @@ class RupDiffTracker
         unset($pkg);
 
         // Hitung paket batch lama yang terselesaikan atau dihapus
-        $countFixed = 0;
         foreach ($prevByCode as $k => $p) {
             if (($p['max_severity'] ?? 'AMAN') !== 'AMAN') {
                 if (! isset($matchedPrevCodes[$k])) {

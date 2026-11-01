@@ -136,7 +136,7 @@ class LessonController extends BaseController
             'title' => trim((string) $this->request->getPost('title')),
             'slug' => $this->request->getPost('slug') ?: null,
             'content_type' => $this->request->getPost('content_type'),
-            'content' => $this->request->getPost('content'),
+            'content' => \App\Services\ContentMediaService::processInlineImages((string) ($this->request->getPost('content') ?? ''), 'lessons'),
             'file_id' => $this->request->getPost('file_id') ?: null,
             'external_url' => $this->request->getPost('external_url') ?: null,
             'sort_order' => (int) $this->request->getPost('sort_order'),

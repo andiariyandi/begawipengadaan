@@ -518,9 +518,17 @@ class RupTaxonomy
             return false;
         }
 
+        // Pengecualian khusus: jika nama paket memuat 'pengadaan bahan' atau 'belanja bahan',
+        // kata 'pemeliharaan', 'perbaikan', atau 'jalan' adalah peruntukan komoditas fisik bahan, bukan jasa pekerjaan.
+        $isBahanMaterial = str_contains($textLower, 'pengadaan bahan') || str_contains($textLower, 'belanja bahan');
+
         // Cek negative lookahead terlebih dahulu
         foreach ($negativeLookahead as $neg) {
-            if (str_contains($textLower, strtolower($neg))) {
+            $negLower = strtolower($neg);
+            if ($isBahanMaterial && in_array($negLower, ['pemeliharaan', 'perbaikan', 'jalan'], true)) {
+                continue;
+            }
+            if (str_contains($textLower, $negLower)) {
                 return false;
             }
         }

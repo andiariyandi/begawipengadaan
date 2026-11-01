@@ -294,7 +294,7 @@ class CurriculumController extends BaseController
             'title'        => $title,
             'slug'         => $slug,
             'content_type' => $contentType,
-            'content'      => $this->request->getPost('content') ?: null,
+            'content'      => \App\Services\ContentMediaService::processInlineImages((string) ($this->request->getPost('content') ?? ''), 'lessons'),
             'external_url' => $this->request->getPost('external_url') ?: null,
             'sort_order'   => (int) ($this->request->getPost('sort_order') ?: 1),
             'is_required'  => $this->request->getPost('is_required') ? 1 : 0,
@@ -324,7 +324,7 @@ class CurriculumController extends BaseController
         $this->lessonModel->update($id, [
             'title'        => $title,
             'content_type' => $this->request->getPost('content_type') ?: $lesson['content_type'],
-            'content'      => $this->request->getPost('content') ?: null,
+            'content'      => \App\Services\ContentMediaService::processInlineImages((string) ($this->request->getPost('content') ?? ''), 'lessons'),
             'external_url' => $this->request->getPost('external_url') ?: null,
             'sort_order'   => (int) $this->request->getPost('sort_order'),
             'is_required'  => $this->request->getPost('is_required') ? 1 : 0,
