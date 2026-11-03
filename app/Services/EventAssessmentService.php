@@ -461,31 +461,29 @@ class EventAssessmentService
 
                     if ($preOk) {
                         $attRow = $this->db->table('attendances')
-                            ->where('event_id', $eventId)
-                            ->where('user_id', $userId)
+                            ->where('event_registration_id', $registrationId)
                             ->get()
                             ->getRowArray();
 
                         if ($attRow) {
                             if (($attRow['status'] ?? '') !== 'present') {
                                 $this->db->table('attendances')->where('id', $attRow['id'])->update([
-                                    'status'        => 'present',
-                                    'checked_in_at' => $attRow['checked_in_at'] ?? $now,
-                                    'method'        => 'self_paced',
-                                    'notes'         => 'Hadir via Jalur Pembelajaran Mandiri Pasca-Acara (Post-Test: ' . $score . ')',
-                                    'updated_at'    => $now,
+                                    'status'      => 'present',
+                                    'recorded_by' => $userId,
+                                    'recorded_at' => $attRow['recorded_at'] ?? $now,
+                                    'notes'       => 'Hadir via Jalur Pembelajaran Mandiri Pasca-Acara (Post-Test: ' . $score . ')',
+                                    'updated_at'  => $now,
                                 ]);
                             }
                         } else {
                             $this->db->table('attendances')->insert([
-                                'event_id'      => $eventId,
-                                'user_id'       => $userId,
-                                'status'        => 'present',
-                                'checked_in_at' => $now,
-                                'method'        => 'self_paced',
-                                'notes'         => 'Hadir via Jalur Pembelajaran Mandiri Pasca-Acara (Post-Test: ' . $score . ')',
-                                'created_at'    => $now,
-                                'updated_at'    => $now,
+                                'event_registration_id' => $registrationId,
+                                'status'                => 'present',
+                                'recorded_by'           => $userId,
+                                'recorded_at'           => $now,
+                                'notes'                 => 'Hadir via Jalur Pembelajaran Mandiri Pasca-Acara (Post-Test: ' . $score . ')',
+                                'created_at'            => $now,
+                                'updated_at'            => $now,
                             ]);
                         }
                     }

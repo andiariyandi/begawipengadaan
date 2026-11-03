@@ -2237,9 +2237,9 @@ class ParticipantController extends BaseController
         // Ambil data registrasi event peserta yang mengaktifkan sertifikat
         $issuedEventRegistrationIds = array_map('intval', array_filter(array_column($eventCerts, 'source_id')));
         $eventRegRows = $db->table('event_registrations er')
-            ->select('er.*, ev.title AS event_title, ev.slug AS event_slug, ev.start_at, ev.end_at, ev.type AS event_type, ev.certificate_enabled, att.status AS attendance_status, att.method AS attendance_method')
+            ->select('er.*, ev.title AS event_title, ev.slug AS event_slug, ev.start_at, ev.end_at, ev.type AS event_type, ev.certificate_enabled, att.status AS attendance_status, att.recorded_at AS attendance_recorded_at')
             ->join('events ev', 'ev.id = er.event_id')
-            ->join('attendances att', 'att.event_id = er.event_id AND att.user_id = er.user_id', 'left')
+            ->join('attendances att', 'att.event_registration_id = er.id', 'left')
             ->where('er.user_id', $userId)
             ->where('ev.certificate_enabled', 1)
             ->where('er.status !=', 'cancelled')
