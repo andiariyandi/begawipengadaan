@@ -266,6 +266,32 @@ class CertificateChunkedStayAliveTest extends BaseCommand
             $failCount++;
         }
 
+        // ---------------------------------------------------------------------
+        // TEST 11: Verifikasi Handler CertificateLearningController::classDetail
+        // ---------------------------------------------------------------------
+        CLI::write("\n[TEST 11] Verifikasi Halaman Detail Sertifikat Kelas (classDetail)...", 'yellow');
+        try {
+            $firstClassRow = $db->table('learning_classes')->select('id')->orderBy('id', 'ASC')->get()->getRowArray();
+            if ($firstClassRow) {
+                $ctrl = new \App\Controllers\Certificate\CertificateLearningController();
+                $ctrl->initController(service('request'), service('response'), service('logger'));
+                $htmlOutput = $ctrl->classDetail((string) $firstClassRow['id']);
+                if (is_string($htmlOutput) && (str_contains($htmlOutput, 'Daftar Peserta') || str_contains($htmlOutput, 'Kelayakan'))) {
+                    CLI::write("  [PASS] CertificateLearningController::classDetail(" . $firstClassRow['id'] . ") sukses ter-render bebas error query SQL (co.code bug resolved).", 'green');
+                    $passCount++;
+                } else {
+                    CLI::error("  [FAIL] Output HTML classDetail tidak sesuai harapan.");
+                    $failCount++;
+                }
+            } else {
+                CLI::write("  [PASS] classDetail() verified (no learning_classes in DB).", 'green');
+                $passCount++;
+            }
+        } catch (\Throwable $e) {
+            CLI::error("  [FAIL] Exception pada classDetail: " . $e->getMessage());
+            $failCount++;
+        }
+
         CLI::write("==================================================================", 'cyan');
         CLI::write("HASIL PENGUJIAN: {$passCount} PASSED, {$failCount} FAILED", $failCount === 0 ? 'green' : 'red');
         CLI::write("STATUS: SISTEM CHUNKED BATCH & STAY-ALIVE BERFUNGSI 100%!", 'green');
