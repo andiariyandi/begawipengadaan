@@ -158,11 +158,34 @@ class CertificateHarmonizationTest extends BaseCommand
         // [TEST 8] Verifikasi Auto-Presensi pada Pembelajaran Mandiri Pasca-Acara
         CLI::write("\n[TEST 8] Verifikasi Logika Auto-Presensi Mandiri di EventAssessmentService...", 'cyan');
         $svcFile = file_get_contents(APPPATH . 'Services/EventAssessmentService.php');
-        if (str_contains($svcFile, "'method'        => 'self_paced'") && str_contains($svcFile, "'status'        => 'present'")) {
-            CLI::write("  [PASS] Penyelesaian post-test mandiri otomatis mencatat kehadiran 'present' (self_paced)", 'green');
+        if (str_contains($svcFile, "event_registration_id") && str_contains($svcFile, "'status'                => 'present'")) {
+            CLI::write("  [PASS] Penyelesaian post-test mandiri otomatis mencatat kehadiran 'present' pada event_registration_id terkait", 'green');
             $passed++;
         } else {
             CLI::write("  [FAIL] Logika auto-presensi mandiri belum terpasang", 'red');
+            $failed++;
+        }
+
+        // [TEST 9] Verifikasi Eksekusi Query Halaman Sertifikat Saya (ParticipantController::certificates)
+        CLI::write("\n[TEST 9] Verifikasi Query Halaman Sertifikat Saya...", 'cyan');
+        try {
+            $userRow = $db->table('users')->select('id')->limit(1)->get()->getRowArray();
+            $testUid = (int) ($userRow['id'] ?? 1);
+            session()->set(['user_id' => $testUid, 'isLoggedIn' => true, 'roles' => ['peserta']]);
+
+            $ctrl = new \App\Controllers\Workspace\ParticipantController();
+            $ctrl->initController(service('request'), service('response'), service('logger'));
+            $output = $ctrl->certificates();
+
+            if (is_string($output) && strlen($output) > 100) {
+                CLI::write("  [PASS] Endpoint /workspace/peserta/sertifikat ter-render sempurna tanpa galat database!", 'green');
+                $passed++;
+            } else {
+                CLI::write("  [FAIL] Render /workspace/peserta/sertifikat mengembalikan output kosong", 'red');
+                $failed++;
+            }
+        } catch (\Throwable $e) {
+            CLI::write("  [FAIL] Error pada /workspace/peserta/sertifikat: " . $e->getMessage(), 'red');
             $failed++;
         }
 

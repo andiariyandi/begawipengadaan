@@ -741,9 +741,9 @@ class EventPublicController extends BaseController
 
         // 5. Atomic Upsert Presensi Kehadiran
         $now = date('Y-m-d H:i:s');
+        $regId = (int) $reg['id'];
         $att = $this->db->table('attendances')
-            ->where('event_id', $eventId)
-            ->where('user_id', $userId)
+            ->where('event_registration_id', $regId)
             ->get()
             ->getRowArray();
 
@@ -751,20 +751,21 @@ class EventPublicController extends BaseController
             $this->db->table('attendances')
                 ->where('id', $att['id'])
                 ->update([
-                    'status'        => 'present',
-                    'checked_in_at' => $att['checked_in_at'] ?? $now,
-                    'method'        => 'qr',
-                    'updated_at'    => $now,
+                    'status'      => 'present',
+                    'recorded_by' => $userId,
+                    'recorded_at' => $att['recorded_at'] ?? $now,
+                    'notes'       => 'Hadir via Smart QR Check-in',
+                    'updated_at'  => $now,
                 ]);
         } else {
             $this->db->table('attendances')->insert([
-                'event_id'      => $eventId,
-                'user_id'       => $userId,
-                'status'        => 'present',
-                'checked_in_at' => $now,
-                'method'        => 'qr',
-                'created_at'    => $now,
-                'updated_at'    => $now,
+                'event_registration_id' => $regId,
+                'status'                => 'present',
+                'recorded_by'           => $userId,
+                'recorded_at'           => $now,
+                'notes'                 => 'Hadir via Smart QR Check-in',
+                'created_at'            => $now,
+                'updated_at'            => $now,
             ]);
         }
 
