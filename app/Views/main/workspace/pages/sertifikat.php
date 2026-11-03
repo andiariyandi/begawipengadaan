@@ -203,4 +203,79 @@
         </div>
     </div>
 <?php endif; ?>
+
+<!-- INFORMASI & STATUS ELIGIBILITAS SERTIFIKAT EVENT & KEGIATAN PBJ -->
+<?php
+    $eventEligibilityList = $eventEligibilityList ?? [];
+    $nonIssuedEvents = array_filter($eventEligibilityList, static fn($item) => empty($item['is_issued']));
+?>
+<?php if (! empty($nonIssuedEvents)): ?>
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mt-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+            <div>
+                <h2 class="h6 fw-bold mb-1 text-navy">
+                    <i class="bi bi-calendar-check-fill text-info me-2"></i> Status Kehadiran &amp; E-Sertifikat Event PBJ
+                </h2>
+                <span class="text-muted small">
+                    Daftar kegiatan, sosialisasi, dan webinar PBJ yang Anda ikuti beserta status hak penerbitan sertifikat:
+                </span>
+            </div>
+            <span class="badge bg-light text-muted border px-3 py-1 rounded-pill small">
+                <?= count($nonIssuedEvents) ?> Kegiatan Terdaftar
+            </span>
+        </div>
+
+        <div class="row g-3">
+            <?php foreach ($nonIssuedEvents as $evItem): ?>
+                <?php
+                    $isPresent = ($evItem['attendance_status'] === 'present');
+                    $canClaim = ! empty($evItem['can_claim']);
+                ?>
+                <div class="col-lg-6">
+                    <div class="p-3 rounded-4 border h-100 d-flex flex-column justify-content-between <?= $isPresent ? 'border-success bg-success-subtle' : 'border-light-subtle bg-light' ?>">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <div>
+                                    <span class="badge bg-white text-dark border rounded-pill px-2 py-1 small fw-semibold mb-1">
+                                        <?= strtoupper(esc($evItem['event_type'] ?? 'EVENT')) ?>
+                                    </span>
+                                    <h3 class="h6 fw-bold mb-0 text-navy">
+                                        <?= esc($evItem['event_title']) ?>
+                                    </h3>
+                                </div>
+                                <?php if ($isPresent): ?>
+                                    <span class="badge bg-success text-white px-2 py-1 rounded-pill small">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Hadir Sah
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary text-white px-2 py-1 rounded-pill small">
+                                        <i class="bi bi-clock me-1"></i> Belum Hadir
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+
+                            <p class="text-muted small mb-3">
+                                <?php if ($isPresent): ?>
+                                    Kehadiran Anda telah terverifikasi. Sertifikat sedang disiapkan panitia atau siap diklaim mandiri.
+                                <?php else: ?>
+                                    Lakukan scan QR presensi saat acara berlangsung atau selesaikan pembelajaran mandiri pasca-acara jika dibuka.
+                                <?php endif; ?>
+                            </p>
+                        </div>
+
+                        <!-- Action Link -->
+                        <div class="pt-2 border-top d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">
+                                Status: <strong><?= $isPresent ? 'Berhak Sertifikat' : 'Menunggu Presensi' ?></strong>
+                            </span>
+                            <a href="<?= site_url('workspace/peserta/event-saya/' . esc($evItem['event_slug'])) ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+                                <?= $canClaim ? 'Klaim E-Sertifikat' : 'Buka Halaman Kegiatan' ?> <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php endif; ?>
 <?= $this->endSection() ?>

@@ -114,6 +114,21 @@ class CertificateDownloadController extends BaseController
             return;
         }
 
+        // Cek jika pemohon unduh adalah Trainer yang membina kelas terkait
+        if (($certificate['source_type'] ?? '') === 'learning_enrollment') {
+            $enrollment = $this->db->table('enrollments')->select('class_id')->where('id', (int) ($certificate['source_id'] ?? 0))->get()->getRowArray();
+            if ($enrollment && ! empty($enrollment['class_id'])) {
+                $isTrainer = $this->db->table('class_trainers')
+                    ->where('class_id', (int) $enrollment['class_id'])
+                    ->where('trainer_id', $actorId)
+                    ->where('deleted_at IS NULL')
+                    ->countAllResults() > 0;
+                if ($isTrainer) {
+                    return;
+                }
+            }
+        }
+
         $hasPerm = $this->db->table('user_roles ur')
             ->join('roles r', 'r.id = ur.role_id')
             ->where(['ur.user_id' => $actorId, 'ur.status' => 'active'])

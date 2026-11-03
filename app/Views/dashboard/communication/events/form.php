@@ -492,6 +492,23 @@ $coverUrl = ! empty($item['cover_file_id']) ? site_url('file/' . (int) $item['co
                                 <?php endif; ?>
                             <?php endif; ?>
                         </div>
+
+                        <!-- Manual JP Input Field -->
+                        <div class="mt-12 pt-12 border-top" id="jpContainer" style="border-color: #e2e8f0;">
+                            <label class="form-label fw-bold text-neutral-900 text-sm mb-4" style="color: #0f172a;">
+                                Beban Jam Pelajaran (JP) Kegiatan
+                            </label>
+                            <div class="position-relative" style="max-width: 180px;">
+                                <input type="number" min="1" max="120" name="jp" id="eventJpInput" 
+                                       class="form-control radius-8 text-neutral-900 fw-semibold"
+                                       value="<?= esc(old('jp', $assessmentConfig['jp'] ?? 4)) ?>" 
+                                       placeholder="Contoh: 4" style="border-color: #cbd5e1;">
+                                <span class="position-absolute top-50 end-0 translate-middle-y me-16 text-xs text-neutral-500 font-medium">JP</span>
+                            </div>
+                            <small class="text-neutral-500 text-xs mt-1 d-block">
+                                Tentukan jumlah JP efektif materi kegiatan (tanpa durasi seremonial/ishoma) untuk dicantumkan pada e-sertifikat.
+                            </small>
+                        </div>
                     </div>
                 </div>
             </div>

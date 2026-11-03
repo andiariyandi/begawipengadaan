@@ -105,22 +105,22 @@ class EventController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Gagal membuat event: ' . $e->getMessage());
         }
 
-        // Save optional Pre-Test, Post-Test, and Self-Paced configuration
+        // Save optional Pre-Test, Post-Test, Self-Paced, and manual JP configuration
         $assessmentSvc = new EventAssessmentService();
         $preTestData = $this->request->getPost('pre_test_data');
         $postTestData = $this->request->getPost('post_test_data');
         $selfPacedData = $this->request->getPost('self_paced_data');
         $selfPacedPost = $this->request->getPost('self_paced');
         $selfPacedArray = is_string($selfPacedData) ? json_decode($selfPacedData, true) : ($selfPacedData ?: $selfPacedPost);
+        $jpVal = $this->request->getPost('jp');
 
-        if (! empty($preTestData) || ! empty($postTestData) || ! empty($selfPacedArray)) {
-            $config = [
-                'pre_test'   => is_string($preTestData) ? json_decode($preTestData, true) : ($preTestData ?: []),
-                'post_test'  => is_string($postTestData) ? json_decode($postTestData, true) : ($postTestData ?: []),
-                'self_paced' => is_array($selfPacedArray) ? $selfPacedArray : [],
-            ];
-            $assessmentSvc->saveAssessmentConfig($id, $config, $actorId);
-        }
+        $config = [
+            'jp'         => max(1, min(120, (int) ($jpVal ?? 4))),
+            'pre_test'   => is_string($preTestData) ? json_decode($preTestData, true) : ($preTestData ?: []),
+            'post_test'  => is_string($postTestData) ? json_decode($postTestData, true) : ($postTestData ?: []),
+            'self_paced' => is_array($selfPacedArray) ? $selfPacedArray : [],
+        ];
+        $assessmentSvc->saveAssessmentConfig($id, $config, $actorId);
 
         // Upload any initial materials attached
         $materialFiles = $this->request->getFileMultiple('materials');
@@ -311,25 +311,29 @@ class EventController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Gagal mengubah event: ' . $e->getMessage());
         }
 
-        // Save optional Pre-Test, Post-Test, and Self-Paced configuration
+        // Save optional Pre-Test, Post-Test, Self-Paced, and manual JP configuration
         $assessmentSvc = new EventAssessmentService();
         $preTestData = $this->request->getPost('pre_test_data');
         $postTestData = $this->request->getPost('post_test_data');
         $selfPacedData = $this->request->getPost('self_paced_data');
         $selfPacedPost = $this->request->getPost('self_paced');
         $selfPacedArray = is_string($selfPacedData) ? json_decode($selfPacedData, true) : ($selfPacedData ?: $selfPacedPost);
+        $jpVal = $this->request->getPost('jp');
 
-        if ($preTestData !== null || $postTestData !== null || $selfPacedArray !== null) {
-            $config = [];
-            if ($preTestData !== null) {
-                $config['pre_test'] = is_string($preTestData) ? json_decode($preTestData, true) : ($preTestData ?: []);
-            }
-            if ($postTestData !== null) {
-                $config['post_test'] = is_string($postTestData) ? json_decode($postTestData, true) : ($postTestData ?: []);
-            }
-            if ($selfPacedArray !== null) {
-                $config['self_paced'] = is_array($selfPacedArray) ? $selfPacedArray : [];
-            }
+        $config = [];
+        if ($jpVal !== null) {
+            $config['jp'] = max(1, min(120, (int) $jpVal));
+        }
+        if ($preTestData !== null) {
+            $config['pre_test'] = is_string($preTestData) ? json_decode($preTestData, true) : ($preTestData ?: []);
+        }
+        if ($postTestData !== null) {
+            $config['post_test'] = is_string($postTestData) ? json_decode($postTestData, true) : ($postTestData ?: []);
+        }
+        if ($selfPacedArray !== null) {
+            $config['self_paced'] = is_array($selfPacedArray) ? $selfPacedArray : [];
+        }
+        if (! empty($config)) {
             $assessmentSvc->saveAssessmentConfig($eventId, $config, $actorId);
         }
 

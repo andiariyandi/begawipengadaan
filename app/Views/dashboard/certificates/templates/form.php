@@ -79,7 +79,7 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                 </div>
                 <div class="card-body p-24">
                     <div class="row gy-20">
-                        <div class="col-md-7">
+                        <div class="col-md-5">
                             <label class="form-label fw-semibold text-primary-light text-sm mb-8">
                                 Nama Template Sertifikat <span class="text-danger">*</span>
                             </label>
@@ -89,7 +89,7 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                             <small class="text-secondary-light">Nama pengenal template untuk pengelolaan di dashboard.</small>
                         </div>
 
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold text-primary-light text-sm mb-8">
                                 Tipe Sumber Penerbitan <span class="text-danger">*</span>
                             </label>
@@ -103,6 +103,31 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                                 </option>
                             </select>
                             <small class="text-secondary-light">Menentukan format singkatan penomoran otomatis.</small>
+                        </div>
+
+                        <div class="col-md-3" id="certificateCodeContainer">
+                            <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                Kode / Tipe Sertifikat <span class="text-danger">*</span>
+                            </label>
+                            <?php
+                            $selCertCode = strtoupper(trim((string) old('payload.certificate_code', $payload['certificate_code'] ?? '')));
+                            if ($selCertCode === '') {
+                                $selCertCode = ($currentType === 'learning') ? 'AB' : 'WB';
+                            }
+                            ?>
+                            <select name="payload[certificate_code]" id="certificateCodeSelect" class="form-select radius-8" required>
+                                <option value="AB" <?= $selCertCode === 'AB' ? 'selected' : '' ?>>AB &mdash; Arena Belajar (Kelas PBJ)</option>
+                                <option value="EV" <?= $selCertCode === 'EV' ? 'selected' : '' ?>>EV &mdash; Event / Agenda Umum PBJ</option>
+                                <option value="WB" <?= $selCertCode === 'WB' ? 'selected' : '' ?>>WB &mdash; Webinar Pengadaan</option>
+                                <option value="BT" <?= $selCertCode === 'BT' ? 'selected' : '' ?>>BT &mdash; Bimbingan Teknis (Bimtek)</option>
+                                <option value="WS" <?= $selCertCode === 'WS' ? 'selected' : '' ?>>WS &mdash; Workshop / Simulasi PBJ</option>
+                                <option value="SO" <?= $selCertCode === 'SO' ? 'selected' : '' ?>>SO &mdash; Sosialisasi Regulasi PBJ</option>
+                                <option value="SM" <?= $selCertCode === 'SM' ? 'selected' : '' ?>>SM &mdash; Seminar Nasional / Daerah</option>
+                                <option value="PL" <?= $selCertCode === 'PL' ? 'selected' : '' ?>>PL &mdash; Pelatihan Teknis PBJ</option>
+                                <option value="RK" <?= $selCertCode === 'RK' ? 'selected' : '' ?>>RK &mdash; Rapat Koordinasi (Rakor)</option>
+                                <option value="KL" <?= $selCertCode === 'KL' ? 'selected' : '' ?>>KL &mdash; Klinik Konsultasi PBJ</option>
+                            </select>
+                            <small class="text-secondary-light">Prefix: <code>SERT-xxxxx/<span id="certCodePreview"><?= esc($selCertCode) ?></span>-...</code></small>
                         </div>
 
                         <!-- SECTION A: LINGKUP & ANTI-TUMPANG-TINDIH ARENA PEMBELAJARAN -->
@@ -271,7 +296,7 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
                                         $isAssignedOther = ($assignedTpl && $assignedTpl['template_id'] !== (int) ($t['id'] ?? 0));
                                         $evNote          = $isAssignedOther ? ' [Sudah Memiliki Template: ' . esc($assignedTpl['template_name']) . ']' : '';
                                         ?>
-                                        <option value="<?= $evId ?>" data-title="<?= esc($ev['title']) ?>" <?= $selEventId === $evId ? 'selected' : '' ?> <?= $isAssignedOther ? 'disabled class="text-danger"' : '' ?>>
+                                        <option value="<?= $evId ?>" data-title="<?= esc($ev['title']) ?>" data-type="<?= strtolower(esc($ev['type'] ?? '')) ?>" <?= $selEventId === $evId ? 'selected' : '' ?> <?= $isAssignedOther ? 'disabled class="text-danger"' : '' ?>>
                                             <?= esc($ev['title']) ?> (Tipe: <?= strtoupper(esc($ev['type'] ?? 'EVENT')) ?>, <?= esc(date('d M Y', strtotime($ev['start_at']))) ?>)<?= $evNote ?>
                                         </option>
                                     <?php endforeach; ?>
@@ -2152,8 +2177,10 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
             });
         }
 
-        // Dynamic Scope & Event switching (Bagian 1)
+        // Dynamic Scope, Event & Certificate Code switching (Bagian 1)
         const sourceTypeSelect = document.getElementById('sourceTypeSelect');
+        const certCodeSelect = document.getElementById('certificateCodeSelect');
+        const certCodePreview = document.getElementById('certCodePreview');
         const learningScopeSection = document.getElementById('learningScopeSection');
         const eventScopeSection = document.getElementById('eventScopeSection');
         const scopeRadios = document.querySelectorAll('input[name="payload[target_scope]"]');
@@ -2163,10 +2190,26 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
         const selectEvent = document.getElementById('selectEvent');
         const templateNameInput = document.getElementById('templateNameInput');
 
+        if (certCodeSelect && certCodePreview) {
+            certCodeSelect.addEventListener('change', function() {
+                certCodePreview.innerText = certCodeSelect.value;
+            });
+        }
+
         function updateScopeVisibility() {
             const isLearning = sourceTypeSelect.value === 'learning';
             if (learningScopeSection) learningScopeSection.style.display = isLearning ? 'block' : 'none';
             if (eventScopeSection) eventScopeSection.style.display = isLearning ? 'none' : 'block';
+
+            if (certCodeSelect) {
+                if (isLearning) {
+                    certCodeSelect.value = 'AB';
+                    if (certCodePreview) certCodePreview.innerText = 'AB';
+                } else if (certCodeSelect.value === 'AB') {
+                    certCodeSelect.value = 'WB';
+                    if (certCodePreview) certCodePreview.innerText = 'WB';
+                }
+            }
 
             if (isLearning) {
                 let activeScope = 'global';
@@ -2184,11 +2227,28 @@ if (! empty($t['id']) && (! empty($payload['background_path']) || ! empty($bgAss
             r.addEventListener('change', updateScopeVisibility);
         });
 
-        if (selectEvent && templateNameInput) {
+        if (selectEvent) {
             selectEvent.addEventListener('change', function() {
                 const opt = selectEvent.options[selectEvent.selectedIndex];
-                if (opt && opt.dataset.title && (templateNameInput.value.trim() === '' || templateNameInput.value.indexOf('Template Sertifikat -') === 0)) {
+                if (opt && opt.dataset.title && templateNameInput && (templateNameInput.value.trim() === '' || templateNameInput.value.indexOf('Template Sertifikat -') === 0)) {
                     templateNameInput.value = 'Template Sertifikat - ' + opt.dataset.title;
+                }
+                if (opt && opt.dataset.type && certCodeSelect) {
+                    const t = opt.dataset.type.toLowerCase();
+                    const typeMap = {
+                        'webinar': 'WB',
+                        'bimtek': 'BT',
+                        'workshop': 'WS',
+                        'sosialisasi': 'SO',
+                        'seminar': 'SM',
+                        'pelatihan': 'PL',
+                        'rakor': 'RK',
+                        'klinik': 'KL'
+                    };
+                    if (typeMap[t]) {
+                        certCodeSelect.value = typeMap[t];
+                        if (certCodePreview) certCodePreview.innerText = typeMap[t];
+                    }
                 }
             });
         }

@@ -30,6 +30,12 @@ $activeSub = $activeSub ?? 'riwayat';
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'event' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/sertifikat/event') ?>">
+                    <iconify-icon icon="solar:calendar-mark-outline" class="text-base"></iconify-icon>
+                    <span>Penerbitan Event PBJ</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link radius-8 px-14 py-8 text-xs fw-semibold d-flex align-items-center gap-2 <?= $activeSub === 'templates' ? 'active bg-primary-600 text-white' : 'text-primary-light hover-bg-neutral-100' ?>" href="<?= site_url('dashboard/sertifikat/template') ?>">
                     <iconify-icon icon="solar:palette-outline" class="text-base"></iconify-icon>
                     <span>Desain Template</span>

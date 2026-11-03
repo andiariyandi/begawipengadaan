@@ -1013,9 +1013,37 @@ class CertificateTemplateController extends BaseController
         $isLearning = ($template['source_type'] ?? 'learning') === 'learning';
         $year       = date('Y');
 
+        $tplPayload = is_array($template['template_payload'] ?? null)
+            ? $template['template_payload']
+            : (json_decode((string) ($template['template_payload'] ?? ''), true) ?: []);
+
+        $certCode = strtoupper(trim((string) ($tplPayload['certificate_code'] ?? '')));
+        if ($certCode === '') {
+            $certCode = $isLearning ? 'AB' : 'WB';
+        }
+
+        $codeLabels = [
+            'AB' => ['Arena Belajar PBJ', 'Pengantar Pengadaan Barang/Jasa Pemerintah (Tingkat Dasar)'],
+            'EV' => ['Event / Agenda PBJ', 'Temu Pengadaan Barang/Jasa Pemerintah Daerah Provinsi Lampung'],
+            'WB' => ['Webinar PBJ', 'Webinar Nasional Strategi Pengadaan Berkelanjutan & E-Katalog V6'],
+            'BT' => ['Bimbingan Teknis PBJ', 'Bimbingan Teknis Penyusunan HPS & Dokumen Pemilihan'],
+            'WS' => ['Workshop PBJ', 'Workshop & Simulasi Praktik Evaluasi Penawaran E-Katalog'],
+            'SO' => ['Sosialisasi Regulasi PBJ', 'Sosialisasi Kebijakan Pengadaan Sektoral & Peraturan Terbaru'],
+            'SM' => ['Seminar PBJ', 'Seminar Nasional Tata Kelola Pengadaan Berintegritas'],
+            'PL' => ['Pelatihan Teknis PBJ', 'Pelatihan Penguatan Kompetensi Pejabat Pembuat Komitmen'],
+            'RK' => ['Rapat Koordinasi PBJ', 'Rapat Koordinasi Pengadaan Barang dan Jasa Se-Provinsi Lampung'],
+            'KL' => ['Klinik Konsultasi PBJ', 'Klinik Pengadaan & Pendampingan Penyusunan RUP'],
+        ];
+
+        $activityType = $codeLabels[$certCode][0] ?? ($isLearning ? 'Arena Belajar PBJ' : 'Webinar PBJ');
+        $certTitle    = $codeLabels[$certCode][1] ?? ($isLearning ? 'Pengantar Pengadaan Barang/Jasa Pemerintah (Tingkat Dasar)' : 'Webinar Nasional Strategi Pengadaan Berkelanjutan & E-Katalog V6');
+
+        $certNumber = $isLearning ? "SERT-00035/AB-5/05/{$year}" : "SERT-00021/{$certCode}-1/05/{$year}";
+        $dashNumber = $isLearning ? "SERT-00035-AB-5-05-{$year}" : "SERT-00021-{$certCode}-1-05-{$year}";
+
         return [
             'certificate_id'     => 999,
-            'certificate_number' => $isLearning ? "SERT-00035/AB-5/05/{$year}" : "SERT-00021/WB-1/05/{$year}",
+            'certificate_number' => $certNumber,
             'participant_name'   => 'Ir. Rizky Yulitanto, S.T., M.M.',
             'user_name'          => 'Ir. Rizky Yulitanto, S.T., M.M.',
             'user_email'         => 'lutfi@lampungprov.go.id',
@@ -1039,12 +1067,8 @@ class CertificateTemplateController extends BaseController
             'rank_grade'         => 'Pembina / IV.a',
             'pangkat_golongan'   => 'Pembina / IV.a',
             'tipe_peserta'       => 'Aparatur Sipil Negara (PNS)',
-            'certificate_title'  => $isLearning
-                ? 'Pengantar Pengadaan Barang/Jasa Pemerintah (Tingkat Dasar)'
-                : 'Webinar Nasional Strategi Pengadaan Berkelanjutan & E-Katalog V6',
-            'title'              => $isLearning
-                ? 'Pengantar Pengadaan Barang/Jasa Pemerintah (Tingkat Dasar)'
-                : 'Webinar Nasional Strategi Pengadaan Berkelanjutan & E-Katalog V6',
+            'certificate_title'  => $certTitle,
+            'title'              => $certTitle,
             'subtitle'           => 'Batch I Tahun Anggaran ' . $year,
             'nama_kelas'         => 'Batch I Tahun Anggaran ' . $year,
             'kode_kelas'         => 'KLS-PBJ-' . $year . '-001',
@@ -1052,9 +1076,9 @@ class CertificateTemplateController extends BaseController
             'tingkat_kursus'     => 'Tingkat Dasar (Level 1)',
             'lokasi_kegiatan'    => $isLearning ? 'Portal LMS BegawiPengadaan' : 'Hotel Novotel Bandar Lampung',
             'metode_kegiatan'    => $isLearning ? 'Daring' : 'Hybrid',
-            'activity_type'      => $isLearning ? 'Arena Belajar PBJ' : 'Webinar PBJ',
-            'tipe_kegiatan'      => $isLearning ? 'Arena Belajar' : 'Webinar',
-            'kode_tipe'          => $isLearning ? 'AB' : 'WB',
+            'activity_type'      => $activityType,
+            'tipe_kegiatan'      => $activityType,
+            'kode_tipe'          => $certCode,
             'id_kegiatan'        => $isLearning ? 5 : 1,
             'jam_pelajaran'      => $isLearning ? '24 JP' : '4 JP',
             'jp'                 => $isLearning ? '24 JP' : '4 JP',
@@ -1069,7 +1093,7 @@ class CertificateTemplateController extends BaseController
             'penandatangan_pangkat' => 'Pembina Utama Muda / IV.c',
             'event_start_at'     => date('Y-m-d 08:00:00', strtotime('-5 days')),
             'event_end_at'       => date('Y-m-d 16:00:00'),
-            'verification_url'   => site_url('verifikasi-sertifikat/' . ($isLearning ? "SERT-00035-AB-5-05-{$year}" : "SERT-00021-WB-1-05-{$year}")),
+            'verification_url'   => site_url('verifikasi-sertifikat/' . $dashNumber),
         ];
     }
 
@@ -1188,6 +1212,7 @@ class CertificateTemplateController extends BaseController
             'tte_mode'         => $tteMode,
             'qr_position'      => $qrPos,
             'target_scope'     => $raw['target_scope'] ?? 'global',
+            'certificate_code' => in_array(strtoupper(trim((string) ($raw['certificate_code'] ?? ''))), ['AB', 'EV', 'WB', 'BT', 'WS', 'SO', 'SM', 'PL', 'RK', 'KL'], true) ? strtoupper(trim((string) $raw['certificate_code'])) : '',
             'program_id'       => (int) ($raw['program_id'] ?? 0),
             'course_id'        => (int) ($raw['course_id'] ?? 0),
             'class_id'         => (int) ($raw['class_id'] ?? 0),

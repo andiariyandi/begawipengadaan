@@ -19,7 +19,8 @@ class EventAssessmentService
     public function getAssessmentConfig(int $eventId): array
     {
         $defaultConfig = [
-            'pre_test' => [
+            'jp'        => 4,
+            'pre_test'  => [
                 'enabled'          => false,
                 'title'            => 'Pre-Test Pemahaman Materi',
                 'instructions'     => 'Kerjakan pre-test ini sebelum pemaparan dimulai guna mengukur pemahaman awal terhadap topik kegiatan.',
@@ -84,6 +85,7 @@ class EventAssessmentService
     protected function normalizeConfig(array $data, array $default): array
     {
         $result = $default;
+        $result['jp'] = max(1, min(120, (int) ($data['jp'] ?? ($default['jp'] ?? 4))));
 
         foreach (['pre_test', 'post_test'] as $type) {
             if (isset($data[$type]) && is_array($data[$type])) {
@@ -441,6 +443,57 @@ class EventAssessmentService
             'created_at'       => $now,
             'updated_at'       => $now,
         ]);
+
+        // Auto-Presensi untuk Pembelajaran Mandiri Pasca-Acara jika syarat terpenuhi
+        if ($quizType === 'post_test' && $isPassed) {
+            try {
+                $evRow = $this->db->table('events')->where('id', $eventId)->get()->getRowArray();
+                $cfg   = $this->getAssessmentConfig($eventId);
+                $sp    = $cfg['self_paced'] ?? [];
+
+                $isPastEvent = ! empty($evRow['end_at']) && (strtotime($evRow['end_at']) < time());
+                $isSelfPaced = ! empty($sp['enabled']);
+
+                if ($isSelfPaced && $isPastEvent) {
+                    $reqPreTest = ! empty($cfg['pre_test']['enabled']) && ! empty($sp['require_pre_test']);
+                    $preAttempt = $this->getUserAttempt($eventId, $userId, 'pre_test');
+                    $preOk      = (! $reqPreTest) || (! empty($preAttempt));
+
+                    if ($preOk) {
+                        $attRow = $this->db->table('attendances')
+                            ->where('event_id', $eventId)
+                            ->where('user_id', $userId)
+                            ->get()
+                            ->getRowArray();
+
+                        if ($attRow) {
+                            if (($attRow['status'] ?? '') !== 'present') {
+                                $this->db->table('attendances')->where('id', $attRow['id'])->update([
+                                    'status'        => 'present',
+                                    'checked_in_at' => $attRow['checked_in_at'] ?? $now,
+                                    'method'        => 'self_paced',
+                                    'notes'         => 'Hadir via Jalur Pembelajaran Mandiri Pasca-Acara (Post-Test: ' . $score . ')',
+                                    'updated_at'    => $now,
+                                ]);
+                            }
+                        } else {
+                            $this->db->table('attendances')->insert([
+                                'event_id'      => $eventId,
+                                'user_id'       => $userId,
+                                'status'        => 'present',
+                                'checked_in_at' => $now,
+                                'method'        => 'self_paced',
+                                'notes'         => 'Hadir via Jalur Pembelajaran Mandiri Pasca-Acara (Post-Test: ' . $score . ')',
+                                'created_at'    => $now,
+                                'updated_at'    => $now,
+                            ]);
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                log_message('error', 'Auto-presensi self-paced gagal: ' . $e->getMessage());
+            }
+        }
 
         return [
             'success'         => true,
