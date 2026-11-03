@@ -120,16 +120,29 @@ class ContactMessageController extends BaseController
 
         $messages = $builder->findAll();
 
+        // Batch pre-fetch registered users for all senders (Eliminates N+1 loop)
+        $emails = array_values(array_filter(array_unique(array_column($messages, 'sender_email'))));
+        $emailUserMap = [];
+        if (! empty($emails)) {
+            $regUsers = $this->db->table('users')
+                ->select('id, name, email, profile_type, account_status')
+                ->whereIn('email', $emails)
+                ->get()->getResultArray();
+            foreach ($regUsers as $ru) {
+                $emailUserMap[strtolower($ru['email'])] = $ru;
+            }
+        }
+
         // Enrich messages with parsed notes & thread count
         foreach ($messages as &$msg) {
             $notes = ContactMessageModel::parseAdminNotes($msg['admin_notes'] ?? null);
-            $msg['parsed_notes'] = $notes;
-            $msg['priority']     = $notes['priority'] ?? 'normal';
-            $msg['assigned_to']  = $notes['assigned_to'] ?? null;
+            $msg['parsed_notes']  = $notes;
+            $msg['priority']      = $notes['priority'] ?? 'normal';
+            $msg['assigned_to']   = $notes['assigned_to'] ?? null;
             $msg['threads_count'] = count($notes['threads'] ?? []);
 
-            // Check if sender is a registered user
-            $regUser = $this->db->table('users')->select('id, name, profile_type, account_status')->where('email', $msg['sender_email'])->get()->getRowArray();
+            $senderKey = strtolower($msg['sender_email'] ?? '');
+            $regUser   = $emailUserMap[$senderKey] ?? null;
             $msg['is_registered'] = ! empty($regUser);
             $msg['user_profile']  = $regUser;
         }
@@ -138,13 +151,19 @@ class ContactMessageController extends BaseController
         $assignedTo = trim((string) $this->request->getGet('assigned_to'));
         $currentStaffName = (string) (session()->get('name') ?: '');
 
-        // Calculate assigned to me count
-        $allMessagesForCount = $this->messageModel->findAll();
-        $assignedToMeCount   = 0;
-        foreach ($allMessagesForCount as $mRow) {
-            $n = ContactMessageModel::parseAdminNotes($mRow['admin_notes'] ?? null);
-            if (! empty($n['assigned_to']) && ! empty($currentStaffName) && strcasecmp($n['assigned_to'], $currentStaffName) === 0) {
-                $assignedToMeCount++;
+        // Calculate assigned to me count (Selective projection, zero memory bloat)
+        $assignedToMeCount = 0;
+        if (! empty($currentStaffName)) {
+            $allNotesRows = $this->messageModel
+                ->select('admin_notes')
+                ->where('admin_notes IS NOT NULL', null, false)
+                ->like('admin_notes', $currentStaffName)
+                ->findAll();
+            foreach ($allNotesRows as $mRow) {
+                $n = ContactMessageModel::parseAdminNotes($mRow['admin_notes'] ?? null);
+                if (! empty($n['assigned_to']) && strcasecmp($n['assigned_to'], $currentStaffName) === 0) {
+                    $assignedToMeCount++;
+                }
             }
         }
 

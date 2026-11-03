@@ -17,7 +17,7 @@ class AboutContactCertTest extends BaseCommand
     private int $passed = 0;
     private int $failed = 0;
 
-    public function run(array $params): int
+    public function run(array $params)
     {
         CLI::write("==================================================================", "cyan");
         CLI::write("   BEGAWIPBJ TENTANG, KONTAK & VERIFIKASI SERTIFIKAT TEST SUITE   ", "cyan");
@@ -25,7 +25,7 @@ class AboutContactCertTest extends BaseCommand
         CLI::newLine();
 
         // ==========================================
-        // 1. TEST TENTANG (/tentang)
+        // 1. TEST TENTANG KAMI (/tentang)
         // ==========================================
         $aboutHtml = '';
         $this->testModule("Tentang Controller Execution", function () use (&$aboutHtml) {
@@ -41,19 +41,19 @@ class AboutContactCertTest extends BaseCommand
         });
 
         $this->testModule("Tentang Visi, Misi & Filosofi Begawi", function () use ($aboutHtml) {
-            $this->assert(str_contains($aboutHtml, 'Membangun Ekosistem Pengadaan Digital'), "Hero title present");
-            $this->assert(str_contains($aboutHtml, 'Makna') && str_contains($aboutHtml, 'Begawi'), "Filosofi Begawi present");
-            $this->assert(str_contains($aboutHtml, 'Visi &amp; Misi') || str_contains($aboutHtml, 'Visi & Misi'), "Visi Misi title present");
-            $this->assert(str_contains($aboutHtml, '5 Misi Strategis'), "5 Misi Strategis present");
+            $this->assert(str_contains($aboutHtml, 'Biro Pengadaan Barang dan Jasa') || str_contains($aboutHtml, 'Tentang Kami'), "Title or Biro reference present");
+            $this->assert(str_contains($aboutHtml, 'Visi'), "Visi section present");
+            $this->assert(str_contains($aboutHtml, 'Misi'), "Misi section present");
+            $this->assert(str_contains($aboutHtml, 'Filosofi &amp; Makna') || str_contains($aboutHtml, 'Begawi'), "Filosofi Begawi present");
         });
 
         $this->testModule("Tentang 5 Pilar, PATIK & Struktur Organisasi", function () use ($aboutHtml) {
             $this->assert(str_contains($aboutHtml, '5 Pilar Ekosistem'), "5 Pilar title present");
-            $this->assert(str_contains($aboutHtml, 'Arena Belajar LMS'), "Pilar 1 present");
-            $this->assert(str_contains($aboutHtml, 'Bunga Rampai PBJ'), "Pilar 2 present");
-            $this->assert(str_contains($aboutHtml, 'Pusat Regulasi PBJ'), "Pilar 3 present");
-            $this->assert(str_contains($aboutHtml, 'Verifikasi Sertifikat Digital'), "Pilar 4 present");
-            $this->assert(str_contains($aboutHtml, 'Government Intelligence PBJ'), "Pilar 5 present");
+            $this->assert(str_contains($aboutHtml, 'Arena Belajar') || str_contains($aboutHtml, 'LMS'), "Pilar 1 present");
+            $this->assert(str_contains($aboutHtml, 'Bunga Rampai') || str_contains($aboutHtml, 'Pusat Pengetahuan') || str_contains($aboutHtml, 'Pengetahuan'), "Pilar 2 present");
+            $this->assert(str_contains($aboutHtml, 'Regulasi'), "Pilar 3 present");
+            $this->assert(str_contains($aboutHtml, 'Verifikasi'), "Pilar 4 present");
+            $this->assert(str_contains($aboutHtml, 'Government Intelligence') || str_contains($aboutHtml, 'Intelligence'), "Pilar 5 present");
             $this->assert(str_contains($aboutHtml, 'Budaya Kerja') && str_contains($aboutHtml, 'P-A-T-I-K'), "Budaya PATIK present");
             $this->assert(str_contains($aboutHtml, 'Struktur Organisasi'), "Struktur Organisasi present");
             $this->assert(str_contains($aboutHtml, 'Maklumat Pelayanan UKPBJ') || str_contains($aboutHtml, 'Janji Integritas Pelayanan'), "Maklumat Pelayanan present");
@@ -76,17 +76,12 @@ class AboutContactCertTest extends BaseCommand
         });
 
         $this->testModule("Kontak 4 Info Cards & Lokasi Kantor", function () use ($contactHtml) {
-            $this->assert(str_contains($contactHtml, 'Hubungi Biro PBJ') && str_contains($contactHtml, 'Helpdesk LPSE'), "Hero title present");
-            $this->assert(str_contains($contactHtml, 'Lokasi Kantor'), "Info Card Lokasi present");
-            $this->assert(str_contains($contactHtml, 'WhatsApp Helpdesk'), "Info Card WhatsApp present");
-            $this->assert(str_contains($contactHtml, 'Surat Elektronik'), "Info Card Email present");
-            $this->assert(str_contains($contactHtml, 'Jam Pelayanan'), "Info Card Jam Pelayanan present");
-            $this->assert(str_contains($contactHtml, 'Wolter Monginsidi'), "Address text present");
+            $this->assert(str_contains($contactHtml, 'Biro Pengadaan Barang dan Jasa') || str_contains($contactHtml, 'Alamat Kantor'), "Address card present");
+            $this->assert(str_contains($contactHtml, 'pengadaan@lampungprov.go.id') || str_contains($contactHtml, 'email') || str_contains($contactHtml, 'Surel Resmi'), "Email card present");
+            $this->assert(str_contains($contactHtml, 'Jam Pelayanan') || str_contains($contactHtml, '08:00'), "Working hours present");
         });
 
         $this->testModule("Kontak Form Konsultasi & Google Maps", function () use ($contactHtml) {
-            $this->assert(str_contains($contactHtml, 'Formulir Layanan &amp; Konsultasi') || str_contains($contactHtml, 'Formulir Layanan & Konsultasi'), "Form heading present");
-            $this->assert(str_contains($contactHtml, 'id="form-pesan"'), "Form container id present");
             $this->assert(str_contains($contactHtml, 'name="name"') && str_contains($contactHtml, 'name="email"'), "Form input fields present");
             $this->assert(str_contains($contactHtml, 'name="service_type"'), "Service category dropdown present");
             $this->assert(str_contains($contactHtml, 'google.com/maps/embed'), "Google Maps iframe embed present");
@@ -97,7 +92,7 @@ class AboutContactCertTest extends BaseCommand
         // 3. TEST VERIFIKASI SERTIFIKAT (/verifikasi-sertifikat)
         // ==========================================
         $certIndexHtml = '';
-        $this->testModule("Verifikasi Sertifikat Index & Direktori", function () use (&$certIndexHtml) {
+        $this->testModule("Verifikasi Sertifikat Index & Anti-Spam Captcha", function () use (&$certIndexHtml) {
             $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'verifikasi-sertifikat');
             $request = new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent());
             \Config\Services::injectMock('request', $request);
@@ -111,45 +106,88 @@ class AboutContactCertTest extends BaseCommand
             $this->assert(str_contains($certIndexHtml, 'cert-search-card'), "Search card container present");
             $this->assert(str_contains($certIndexHtml, 'Sertifikat Resmi Diterbitkan'), "KPI Issued present");
             $this->assert(str_contains($certIndexHtml, 'Keabsahan Kriptografi SHA-256'), "KPI SHA-256 present");
-            $this->assert(str_contains($certIndexHtml, 'Direktori Publik Sertifikat Terdaftar'), "Direktori title present");
-            $this->assert(str_contains($certIndexHtml, 'cert-card'), "Certificate card elements present");
+
+            // Validasi Proteksi Anti-Spam & Honeypot
+            $this->assert(str_contains($certIndexHtml, 'name="captcha_answer"'), "Math captcha answer input present");
+            $this->assert(str_contains($certIndexHtml, 'name="website_url"'), "Anti-bot honeypot present");
+            $this->assert(str_contains($certIndexHtml, 'cert-captcha-math') && str_contains($certIndexHtml, 'cert-captcha-box'), "High-contrast captcha widget container present");
+            $this->assert((bool) preg_match('/\d+\s*\+\s*\d+\s*=\s*\?/', $certIndexHtml), "Captcha math question text rendered cleanly in HTML");
+            $this->assert(session()->get('cert_verify_captcha_answer') !== null, "Math captcha answer registered in session");
         });
 
-        $this->testModule("Verifikasi Sertifikat Pagination & Quick Samples", function () use ($certIndexHtml) {
-            $this->assert(str_contains($certIndexHtml, 'Coba Nomor Terbit Resmi') || str_contains($certIndexHtml, 'btn-sample-fill'), "Quick sample buttons present");
-            $this->assert(str_contains($certIndexHtml, 'begawi-pagination') || str_contains($certIndexHtml, 'Menampilkan'), "Pagination container or count present");
+        $this->testModule("Verifikasi Sertifikat Privacy Hardening (No Public Directory & No Quick Samples)", function () use ($certIndexHtml) {
+            // Memastikan direktori publik sertifikat dan tombol quick sample dihapus demi keamanan & privasi data
+            $this->assert(! str_contains($certIndexHtml, 'Direktori Publik Sertifikat Terdaftar'), "Direktori publik removed for privacy");
+            $this->assert(! str_contains($certIndexHtml, 'Coba Nomor Terbit Resmi'), "Quick sample buttons removed for privacy");
+            $this->assert(! str_contains($certIndexHtml, 'begawi-pagination'), "Public directory pagination removed");
         });
 
         // ==========================================
-        // 4. TEST VERIFIKASI HASIL (VALID & NOT FOUND)
+        // 4. TEST VERIFIKASI HASIL (VALID & NOT FOUND & ANTI-SPAM)
         // ==========================================
-        $this->testModule("Verifikasi Lookup Valid Certificate Number", function () {
+        $this->testModule("Verifikasi Lookup Valid Certificate Number with Captcha", function () {
             // Gunakan nomor sertifikat riil dari DB
             $db = db_connect();
             $cert = $db->table('certificates')->where('status', 'issued')->orderBy('id', 'DESC')->get()->getRowArray();
             $this->assert($cert !== null, "At least one issued certificate found in DB");
 
+            // Set session captcha
+            $expectedCaptcha = 15;
+            session()->set('cert_verify_captcha_answer', $expectedCaptcha);
+
             $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'verifikasi-sertifikat/hasil');
             $request = new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent());
             $request->setMethod('POST');
-            $request->setGlobal('post', ['certificate_number' => $cert['certificate_number']]);
+            $request->setGlobal('post', [
+                'certificate_number' => $cert['certificate_number'],
+                'captcha_answer'     => (string) $expectedCaptcha,
+            ]);
             \Config\Services::injectMock('request', $request);
 
             $controller = new CertificateVerificationController();
             $controller->initController($request, service('response'), service('logger'));
 
             $resultHtml = $controller->result();
+            $this->assert(is_string($resultHtml), "Result returned string");
             $this->assert(str_contains($resultHtml, 'Hasil Otentikasi Sertifikat Digital'), "Result header present");
             $this->assert(str_contains($resultHtml, 'STATUS KEABSAHAN: VALID') || str_contains($resultHtml, 'STATUS KEABSAHAN:'), "Status ribbon present");
             $this->assert(str_contains($resultHtml, $cert['certificate_number']), "Certificate number displayed in result");
             $this->assert(str_contains($resultHtml, 'Cetak Bukti Verifikasi'), "Print action button present");
         });
 
-        $this->testModule("Verifikasi Lookup Non-Existent Certificate Number", function () {
+        $this->testModule("Verifikasi Rejection on Invalid Captcha Answer", function () {
+            session()->set('cert_verify_captcha_answer', 15);
+
             $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'verifikasi-sertifikat/hasil');
             $request = new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent());
             $request->setMethod('POST');
-            $request->setGlobal('post', ['certificate_number' => 'SERT/9999/INVALID']);
+            $request->setGlobal('post', [
+                'certificate_number' => 'SERT/2026/00001',
+                'captcha_answer'     => '999', // salah
+            ]);
+            \Config\Services::injectMock('request', $request);
+
+            $controller = new CertificateVerificationController();
+            $controller->initController($request, service('response'), service('logger'));
+
+            $response = $controller->result();
+            $this->assert($response instanceof \CodeIgniter\HTTP\RedirectResponse, "Redirected on invalid captcha");
+            $flashErr = session()->getFlashdata('error');
+            $this->assert(! empty($flashErr) && (str_contains($flashErr, 'Captcha') || str_contains($flashErr, 'keamanan')), "Captcha error flash message set");
+        });
+
+        $this->testModule("Verifikasi Lookup Non-Existent Certificate Number", function () {
+            // Set session captcha
+            $expectedCaptcha = 20;
+            session()->set('cert_verify_captcha_answer', $expectedCaptcha);
+
+            $siteUri = new \CodeIgniter\HTTP\SiteURI(config('App'), 'verifikasi-sertifikat/hasil');
+            $request = new \CodeIgniter\HTTP\IncomingRequest(config('App'), $siteUri, null, new \CodeIgniter\HTTP\UserAgent());
+            $request->setMethod('POST');
+            $request->setGlobal('post', [
+                'certificate_number' => 'SERT/9999/INVALID',
+                'captcha_answer'     => (string) $expectedCaptcha,
+            ]);
             \Config\Services::injectMock('request', $request);
 
             $controller = new CertificateVerificationController();

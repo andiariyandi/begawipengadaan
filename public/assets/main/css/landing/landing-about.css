@@ -902,6 +902,50 @@ html {
         color: #ffffff;
     }
 
+    /* Math Captcha Anti-Spam Widget */
+    .cert-captcha-box {
+        background: #f8fafc;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+    }
+
+    .cert-captcha-math {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-weight: 800 !important;
+        font-size: 1.25rem !important;
+        padding: 8px 18px !important;
+        border: 2px solid #0c5aa6 !important;
+        border-radius: 10px !important;
+        letter-spacing: 3px !important;
+        white-space: nowrap !important;
+        user-select: none !important;
+        box-shadow: 0 2px 6px rgba(12, 90, 166, 0.12) !important;
+        display: inline-block !important;
+        line-height: 1.2 !important;
+    }
+
+    .cert-captcha-input {
+        max-width: 130px;
+        height: 50px;
+        font-size: 1.15rem;
+        font-weight: 700;
+        text-align: center;
+        border: 2px solid #cbd5e1;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #0f172a;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .cert-captcha-input:focus {
+        border-color: #0c5aa6;
+        box-shadow: 0 0 0 4px rgba(12, 90, 166, 0.15);
+        outline: none;
+    }
+
     /* Quick Sample Pills */
     .cert-quick-samples {
         display: flex;

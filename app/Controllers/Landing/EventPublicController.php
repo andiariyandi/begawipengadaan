@@ -130,15 +130,27 @@ class EventPublicController extends BaseController
 
         $rawItems = $builder->limit($perPage, $offset)->get()->getResultArray();
 
+        // Batch pre-fetch registration counts (Eliminates N+1 loop)
+        $rawEventIds = array_column($rawItems, 'id');
+        $regCountMap = [];
+        if (! empty($rawEventIds)) {
+            $regRows = $this->db->table('event_registrations')
+                ->select('event_id, COUNT(id) AS total')
+                ->whereIn('event_id', $rawEventIds)
+                ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
+                ->groupBy('event_id')
+                ->get()->getResultArray();
+            foreach ($regRows as $r) {
+                $regCountMap[(int) $r['event_id']] = (int) $r['total'];
+            }
+        }
+
         // Format event items
-        $items = array_map(function ($row) use ($now) {
+        $items = array_map(function ($row) use ($now, $regCountMap) {
             $start = ! empty($row['start_at']) ? strtotime($row['start_at']) : time();
             $end   = ! empty($row['end_at']) ? strtotime($row['end_at']) : $start;
 
-            $regCount = $this->db->table('event_registrations')
-                ->where('event_id', $row['id'])
-                ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
-                ->countAllResults();
+            $regCount = $regCountMap[(int) $row['id']] ?? 0;
 
             $capacity    = (int) ($row['capacity'] ?? 0);
             $isUnlimited = ($capacity <= 0);
@@ -252,14 +264,26 @@ class EventPublicController extends BaseController
                 $sliderRaw = array_slice($rawItems, 0, min($spotlightLimit, count($rawItems)));
             }
 
-            $sliderEvents = array_map(function ($row) use ($now) {
+            // Batch pre-fetch slider registration counts (Eliminates N+1 loop)
+            $sliderIds = array_column($sliderRaw, 'id');
+            $sliderRegMap = [];
+            if (! empty($sliderIds)) {
+                $sRows = $this->db->table('event_registrations')
+                    ->select('event_id, COUNT(id) AS total')
+                    ->whereIn('event_id', $sliderIds)
+                    ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
+                    ->groupBy('event_id')
+                    ->get()->getResultArray();
+                foreach ($sRows as $sr) {
+                    $sliderRegMap[(int) $sr['event_id']] = (int) $sr['total'];
+                }
+            }
+
+            $sliderEvents = array_map(function ($row) use ($now, $sliderRegMap) {
                 $start = ! empty($row['start_at']) ? strtotime($row['start_at']) : time();
                 $end   = ! empty($row['end_at']) ? strtotime($row['end_at']) : $start;
 
-                $regCount = $this->db->table('event_registrations')
-                    ->where('event_id', $row['id'])
-                    ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
-                    ->countAllResults();
+                $regCount = $sliderRegMap[(int) $row['id']] ?? 0;
 
                 $capacity    = (int) ($row['capacity'] ?? 0);
                 $isUnlimited = ($capacity <= 0);
@@ -318,15 +342,20 @@ class EventPublicController extends BaseController
             'total_attendees'   => (int) $this->db->table('event_registrations')->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])->countAllResults(),
         ];
 
-        // Type counts for all 8 supported dashboard event types
+        // Type counts for all 8 supported dashboard event types (Optimized via 1 GROUP BY query)
         $allEventTypes = ['webinar', 'bimtek', 'workshop', 'sosialisasi', 'seminar', 'pelatihan', 'rakor', 'klinik'];
-        $typeCounts = [];
-        foreach ($allEventTypes as $tKey) {
-            $typeCounts[$tKey] = (int) $this->db->table('events')
-                ->where('deleted_at', null)
-                ->where('visibility', 'public')
-                ->where('type', $tKey)
-                ->countAllResults();
+        $typeCounts = array_fill_keys($allEventTypes, 0);
+        $typeGroupRows = $this->db->table('events')
+            ->select('type, COUNT(id) AS total')
+            ->where('deleted_at', null)
+            ->where('visibility', 'public')
+            ->whereIn('type', $allEventTypes)
+            ->groupBy('type')
+            ->get()->getResultArray();
+        foreach ($typeGroupRows as $tRow) {
+            if (isset($typeCounts[$tRow['type']])) {
+                $typeCounts[$tRow['type']] = (int) $tRow['total'];
+            }
         }
 
         // Upcoming Top 3 Events for Sidebar

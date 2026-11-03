@@ -537,22 +537,40 @@ class ArenaBelajarController extends BaseController
         $pager = $model->pager;
 
         $db = \Config\Database::connect();
-        foreach ($items as &$item) {
-            // Count active or scheduled classes
-            $item['class_count'] = (int) $db->table('learning_classes')
-                ->where('course_id', (int) $item['id'])
+
+        // Batch pre-fetch class and enrollment counts (Eliminates N+1 loop)
+        $courseIds = array_column($items, 'id');
+        $classCountMap  = [];
+        $enrollmentMap  = [];
+        if (! empty($courseIds)) {
+            $classCounts = $db->table('learning_classes')
+                ->select('course_id, COUNT(id) AS total')
+                ->whereIn('course_id', $courseIds)
                 ->whereIn('status', ['scheduled', 'active'])
-                ->countAllResults();
+                ->groupBy('course_id')
+                ->get()->getResultArray();
+            foreach ($classCounts as $cc) {
+                $classCountMap[(int) $cc['course_id']] = (int) $cc['total'];
+            }
 
-            // Total participants enrolled
-            $item['enrolled_count'] = (int) $db->table('enrollments e')
+            $enrolledCounts = $db->table('enrollments e')
+                ->select('lc.course_id, COUNT(e.id) AS total')
                 ->join('learning_classes lc', 'lc.id = e.class_id')
-                ->where('lc.course_id', (int) $item['id'])
+                ->whereIn('lc.course_id', $courseIds)
                 ->whereIn('e.status', ['active', 'completed'])
-                ->countAllResults();
+                ->groupBy('lc.course_id')
+                ->get()->getResultArray();
+            foreach ($enrolledCounts as $ec) {
+                $enrollmentMap[(int) $ec['course_id']] = (int) $ec['total'];
+            }
+        }
 
-            $item['text'] = $item['summary'] ?? '';
-            $item['icon'] = 'why-choose-one-icon-1.png';
+        foreach ($items as &$item) {
+            $cid = (int) $item['id'];
+            $item['class_count']    = $classCountMap[$cid] ?? 0;
+            $item['enrolled_count'] = $enrollmentMap[$cid] ?? 0;
+            $item['text']           = $item['summary'] ?? '';
+            $item['icon']           = 'why-choose-one-icon-1.png';
         }
         unset($item);
 
@@ -640,22 +658,45 @@ class ArenaBelajarController extends BaseController
                 ->where('ct.status', 'active')
                 ->orderBy('users.name', 'ASC')
                 ->get()->getResultArray();
+        }
+        unset($item);
 
-            $item['enrolled_count'] = (int) $db->table('enrollments')
-                ->where('class_id', (int) $item['id'])
+        // Batch pre-fetch enrolled counts & module counts (Eliminates N+1 loop)
+        $classIds = array_column($items, 'id');
+        $classEnrollmentMap = [];
+        $classModulesMap    = [];
+        if (! empty($classIds)) {
+            $eCounts = $db->table('enrollments')
+                ->select('class_id, COUNT(id) AS total')
+                ->whereIn('class_id', $classIds)
                 ->whereIn('status', ['active', 'completed'])
-                ->countAllResults();
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($eCounts as $ec) {
+                $classEnrollmentMap[(int) $ec['class_id']] = (int) $ec['total'];
+            }
 
-            $item['remaining_quota'] = max(0, (int) ($item['capacity'] ?? 0) - $item['enrolled_count']);
-
-            $item['modules_count'] = (int) $db->table('learning_modules')
-                ->where('class_id', (int) $item['id'])
+            $mCounts = $db->table('learning_modules')
+                ->select('class_id, COUNT(id) AS total')
+                ->whereIn('class_id', $classIds)
                 ->where('status', 'published')
-                ->countAllResults();
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($mCounts as $mc) {
+                $classModulesMap[(int) $mc['class_id']] = (int) $mc['total'];
+            }
+        }
+
+        foreach ($items as &$item) {
+            $clid = (int) $item['id'];
+            $item['enrolled_count']  = $classEnrollmentMap[$clid] ?? 0;
+            $item['remaining_quota'] = max(0, (int) ($item['capacity'] ?? 0) - $item['enrolled_count']);
+            $item['modules_count']   = $classModulesMap[$clid] ?? 0;
         }
         unset($item);
 
         $coursesList = (new CourseModel())
+            ->select('id, title, slug')
             ->where('status', 'published')
             ->where('visibility', 'public')
             ->orderBy('title', 'ASC')
@@ -1084,16 +1125,37 @@ class ArenaBelajarController extends BaseController
             ->orderBy('lm.sort_order', 'ASC')
             ->get()->getResultArray();
 
-        foreach ($modules as &$mod) {
-            $mod['lesson_count'] = (int) $db->table('lessons')
-                ->where('module_id', (int) $mod['id'])
+        // Batch pre-fetch lesson counts & quiz counts (Eliminates N+1 loop)
+        $moduleIds = array_column($modules, 'id');
+        $lessonCountMap = [];
+        $quizCountMap   = [];
+        if (! empty($moduleIds)) {
+            $lCounts = $db->table('lessons')
+                ->select('module_id, COUNT(id) AS total')
+                ->whereIn('module_id', $moduleIds)
                 ->where('status', 'published')
-                ->countAllResults();
-            $mod['quiz_count'] = (int) $db->table('quizzes')
+                ->groupBy('module_id')
+                ->get()->getResultArray();
+            foreach ($lCounts as $lc) {
+                $lessonCountMap[(int) $lc['module_id']] = (int) $lc['total'];
+            }
+
+            $qCounts = $db->table('quizzes')
+                ->select('lessons.module_id, COUNT(quizzes.id) AS total')
                 ->join('lessons', 'lessons.id = quizzes.lesson_id')
-                ->where('lessons.module_id', (int) $mod['id'])
+                ->whereIn('lessons.module_id', $moduleIds)
                 ->where('quizzes.status', 'published')
-                ->countAllResults();
+                ->groupBy('lessons.module_id')
+                ->get()->getResultArray();
+            foreach ($qCounts as $qc) {
+                $quizCountMap[(int) $qc['module_id']] = (int) $qc['total'];
+            }
+        }
+
+        foreach ($modules as &$mod) {
+            $mid = (int) $mod['id'];
+            $mod['lesson_count'] = $lessonCountMap[$mid] ?? 0;
+            $mod['quiz_count']   = $quizCountMap[$mid] ?? 0;
         }
         unset($mod);
 
