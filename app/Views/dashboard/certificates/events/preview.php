@@ -24,7 +24,7 @@ $attendanceFilter = $attendanceFilter ?? 'all';
     </div>
     <div class="d-flex align-items-center gap-2">
         <?php if ($eligibleCount > 0): ?>
-            <form method="post" action="<?= site_url('dashboard/sertifikat/event/' . $event['id'] . '/batch') ?>" onsubmit="return confirm('Terbitkan sertifikat untuk <?= $eligibleCount ?> peserta yang hadir?');">
+            <form id="formEventBatchPreview" method="post" action="<?= site_url('dashboard/sertifikat/event/' . $event['id'] . '/batch') ?>">
                 <?= csrf_field() ?>
                 <button type="submit" class="btn btn-primary-600 radius-8 px-16 py-10 d-flex align-items-center gap-2 text-sm">
                     <iconify-icon icon="solar:diploma-verified-outline" class="text-lg"></iconify-icon>
@@ -210,4 +210,42 @@ $attendanceFilter = $attendanceFilter ?? 'all';
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+
+<?= $this->section('pageScripts') ?>
+<script src="<?= base_url('assets/dashboard/js/begawi-batch-runner.js') ?>"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const formBatch = document.getElementById('formEventBatchPreview');
+    if (formBatch) {
+        formBatch.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const eventId = '<?= (int) ($event["id"] ?? 0) ?>';
+            const eventTitle = <?= json_encode($event["title"] ?? 'Event') ?>;
+            const eligibleCount = <?= (int) $eligibleCount ?>;
+
+            if (!confirm(`Terbitkan sertifikat untuk ${eligibleCount} peserta yang hadir secara bertahap (Stay-Alive)?`)) {
+                return;
+            }
+
+            BegawiBatchRunner.start({
+                title: 'Batch Event: ' + eventTitle,
+                subtitle: `Memproses penerbitan sertifikat untuk ${eligibleCount} peserta hadir (chunked stay-alive).`,
+                prepareUrl: '<?= site_url('dashboard/sertifikat/event/' . $event["id"] . '/batch') ?>',
+                prepareData: { action: 'prepare' },
+                chunkUrl: '<?= site_url('dashboard/sertifikat/event/' . $event["id"] . '/batch') ?>',
+                chunkDataBuilder: (chunkIds) => ({
+                    action: 'chunk',
+                    chunk_ids: chunkIds
+                }),
+                chunkSize: 5,
+                onComplete: () => {
+                    window.location.reload();
+                }
+            });
+        });
+    }
+});
+</script>
 <?= $this->endSection() ?>

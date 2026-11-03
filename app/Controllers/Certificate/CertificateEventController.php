@@ -206,8 +206,151 @@ class CertificateEventController extends BaseController
         @ini_set('memory_limit', '512M');
 
         $eventIdInt = (int) $eventId;
-        $actorId    = (int) session()->get('user_id');
+        $actorId    = (int) (session()->get('user_id') ?: session()->get('id') ?: 1);
+        $isAjax     = (method_exists($this->request, 'isAJAX') && $this->request->isAJAX()) || $this->request->getHeaderLine('X-Requested-With') === 'XMLHttpRequest';
+        $action     = (string) ($this->request->getPost('action') ?: $this->request->getGet('action'));
 
+        // 1. ACTION: PREPARE (Ambil target antrean peserta secara asinkron)
+        if ($action === 'prepare') {
+            try {
+                $attendees = $this->db->table('event_registrations er')
+                    ->select('er.id, er.user_id, u.name AS user_name, u.email AS user_email')
+                    ->join('attendances a', 'a.event_registration_id = er.id')
+                    ->join('users u', 'u.id = er.user_id', 'left')
+                    ->where('er.event_id', $eventIdInt)
+                    ->where('er.status', 'registered')
+                    ->where('a.status', 'present')
+                    ->orderBy('er.id', 'ASC')
+                    ->get()
+                    ->getResultArray();
+
+                $total = count($attendees);
+                if ($total === 0) {
+                    return $this->response->setJSON([
+                        'ok'            => false,
+                        'total'         => 0,
+                        'pending_count' => 0,
+                        'items'         => [],
+                        'error'         => 'Tidak ada peserta dengan presensi "Hadir" pada event ini.',
+                    ]);
+                }
+
+                $regIds = array_map(static fn($r) => (int) $r['id'], $attendees);
+                $existingCerts = $this->db->table('certificates')
+                    ->select('source_id')
+                    ->where('source_type', 'event_registration')
+                    ->whereIn('source_id', $regIds)
+                    ->get()
+                    ->getResultArray();
+                $existingMap = array_flip(array_column($existingCerts, 'source_id'));
+
+                $pendingItems = [];
+                $alreadyCertifiedCount = 0;
+                foreach ($attendees as $att) {
+                    $regId = (int) $att['id'];
+                    if (isset($existingMap[$regId])) {
+                        $alreadyCertifiedCount++;
+                    } else {
+                        $pendingItems[] = [
+                            'id'   => $regId,
+                            'name' => $att['user_name'] ?: 'Peserta #' . $regId,
+                        ];
+                    }
+                }
+
+                return $this->response->setJSON([
+                    'ok'                => true,
+                    'total'             => $total,
+                    'pending_count'     => count($pendingItems),
+                    'already_certified' => $alreadyCertifiedCount,
+                    'items'             => $pendingItems,
+                    'chunk_size'        => 5,
+                ]);
+            } catch (\Throwable $e) {
+                return $this->response->setStatusCode(500)->setJSON([
+                    'ok'    => false,
+                    'error' => 'Gagal menyiapkan antrean event: ' . $e->getMessage(),
+                ]);
+            }
+        }
+
+        // 2. ACTION: CHUNK (Proses pecahan kecil)
+        if ($action === 'chunk' || $this->request->getPost('is_chunk') === '1') {
+            $rawChunkIds = (array) $this->request->getPost('chunk_ids');
+            $chunkIds    = array_filter(array_map('intval', $rawChunkIds), static fn($v) => $v > 0);
+
+            if (empty($chunkIds)) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'ok'    => false,
+                    'error' => 'Tidak ada ID peserta pada pecahan batch ini.',
+                ]);
+            }
+
+            $results      = [];
+            $successCount = 0;
+            $skippedCount = 0;
+            $failedCount  = 0;
+
+            foreach ($chunkIds as $regId) {
+                $regRow = $this->db->table('event_registrations er')
+                    ->select('er.id, u.name AS user_name')
+                    ->join('users u', 'u.id = er.user_id', 'left')
+                    ->where('er.id', $regId)
+                    ->get()
+                    ->getRowArray();
+                $userName = $regRow['user_name'] ?? ('Peserta #' . $regId);
+
+                $exists = $this->db->table('certificates')
+                    ->where('source_type', 'event_registration')
+                    ->where('source_id', $regId)
+                    ->get()
+                    ->getRowArray();
+
+                if (! empty($exists)) {
+                    $skippedCount++;
+                    $results[] = [
+                        'id'          => $regId,
+                        'name'        => $userName,
+                        'status'      => 'skipped',
+                        'cert_number' => $exists['certificate_number'] ?? '-',
+                        'message'     => 'Dilewati (sudah memiliki sertifikat)',
+                    ];
+                    continue;
+                }
+
+                try {
+                    $cert = $this->generator->generateDirect('event_registration', $regId, $actorId);
+                    $successCount++;
+                    $results[] = [
+                        'id'          => $regId,
+                        'name'        => $userName,
+                        'status'      => 'success',
+                        'cert_number' => $cert['certificate_number'] ?? 'BGW-EVT',
+                        'message'     => 'Berhasil diterbitkan',
+                    ];
+                } catch (\Throwable $err) {
+                    $failedCount++;
+                    log_message('error', '[BatchEventCertChunk] Error for reg #' . $regId . ': ' . $err->getMessage());
+                    $results[] = [
+                        'id'      => $regId,
+                        'name'    => $userName,
+                        'status'  => 'failed',
+                        'message' => 'Gagal: ' . $err->getMessage(),
+                    ];
+                }
+            }
+
+            return $this->response->setJSON([
+                'ok'            => true,
+                'processed'     => count($results),
+                'success_count' => $successCount,
+                'skipped_count' => $skippedCount,
+                'failed_count'  => $failedCount,
+                'results'       => $results,
+            ]);
+        }
+
+        // 3. FALLBACK: Non-AJAX Synchronous Batch
         try {
             // Cari peserta yang hadir (status = 'present')
             $attendees = $this->db->table('event_registrations er')

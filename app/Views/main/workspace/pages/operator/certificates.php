@@ -174,7 +174,8 @@
             </div>
         </div>
 
-        <script>
+        <script src="<?= base_url('assets/dashboard/js/begawi-batch-runner.js') ?>"></script>
+<script>
         document.addEventListener('DOMContentLoaded', function() {
             const selectAll = document.getElementById('wsCertSelectAll');
             const checkboxes = document.querySelectorAll('.ws-cert-check');
@@ -236,20 +237,35 @@
             }
 
             function submitCertBulk() {
-                if (!bulkForm) return;
-                bulkForm.querySelectorAll('input[name="enrollment_ids[]"]').forEach(function(el) {
-                    el.remove();
-                });
+                const selectedIds = [];
                 checkboxes.forEach(function(cb) {
-                    if (cb.checked) {
-                        const hidden = document.createElement('input');
-                        hidden.type = 'hidden';
-                        hidden.name = 'enrollment_ids[]';
-                        hidden.value = cb.value;
-                        bulkForm.appendChild(hidden);
+                    if (cb.checked) selectedIds.push(parseInt(cb.value, 10));
+                });
+                if (selectedIds.length === 0) return;
+
+                if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const bsModal = bootstrap.Modal.getInstance(modalEl);
+                    if (bsModal) bsModal.hide();
+                }
+
+                const justificationInput = document.getElementById('wsCertJustification');
+                const justification = justificationInput ? justificationInput.value : '';
+
+                BegawiBatchRunner.start({
+                    title: 'Verifikasi & Penerbitan ' + selectedIds.length + ' Sertifikat',
+                    subtitle: 'Operator Workspace: Memproses penerbitan sertifikat kelulusan (chunked stay-alive).',
+                    items: selectedIds,
+                    chunkUrl: '<?= route_to('workspace.operator.certificates.bulk-issue') ?>',
+                    chunkDataBuilder: (chunkIds) => ({
+                        is_chunk: 1,
+                        enrollment_ids: chunkIds,
+                        justification: justification
+                    }),
+                    chunkSize: 5,
+                    onComplete: () => {
+                        window.location.reload();
                     }
                 });
-                bulkForm.submit();
             }
 
             if (modalSubmitBtn && bulkForm) {

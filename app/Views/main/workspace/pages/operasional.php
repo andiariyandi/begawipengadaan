@@ -113,7 +113,8 @@
             </div>
         </div>
 
-        <script>
+        <script src="<?= base_url('assets/dashboard/js/begawi-batch-runner.js') ?>"></script>
+<script>
         document.addEventListener('DOMContentLoaded', function() {
             const selectAll = document.getElementById('wsBulkSelectAll');
             const checkboxes = document.querySelectorAll('.ws-bulk-check');
@@ -186,18 +187,49 @@
             });
 
             function submitBulk() {
-                if (!bulkForm) return;
+                const selectedIds = [];
+                checkboxes.forEach(function(cb) {
+                    if (cb.checked) selectedIds.push(parseInt(cb.value, 10));
+                });
+                if (selectedIds.length === 0) return;
+
+                if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const bsModal = bootstrap.Modal.getInstance(modalEl);
+                    if (bsModal) bsModal.hide();
+                }
+
+                const act = actionInput ? actionInput.value : 'approve';
+                const actionLabel = act === 'approve' ? 'Persetujuan' : 'Penolakan';
+
+                if (typeof BegawiBatchRunner !== 'undefined') {
+                    BegawiBatchRunner.start({
+                        title: actionLabel + ' Massal (' + selectedIds.length + ' Data)',
+                        subtitle: 'Operator Workspace: Memproses tindakan approval massal (chunked stay-alive).',
+                        items: selectedIds,
+                        chunkUrl: bulkForm.action,
+                        chunkDataBuilder: (chunkIds) => ({
+                            is_chunk: 1,
+                            bulk_action: act,
+                            selected_ids: chunkIds,
+                            notes: (act === 'approve' ? 'Disetujui massal oleh Operator.' : 'Ditolak massal oleh Operator.')
+                        }),
+                        chunkSize: 10,
+                        onComplete: () => {
+                            window.location.reload();
+                        }
+                    });
+                    return;
+                }
+
                 bulkForm.querySelectorAll('input[name="selected_ids[]"]').forEach(function(el) {
                     el.remove();
                 });
-                checkboxes.forEach(function(cb) {
-                    if (cb.checked) {
-                        const hidden = document.createElement('input');
-                        hidden.type = 'hidden';
-                        hidden.name = 'selected_ids[]';
-                        hidden.value = cb.value;
-                        bulkForm.appendChild(hidden);
-                    }
+                selectedIds.forEach(function(id) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'selected_ids[]';
+                    hidden.value = id;
+                    bulkForm.appendChild(hidden);
                 });
                 bulkForm.submit();
             }

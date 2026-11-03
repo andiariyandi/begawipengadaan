@@ -23,7 +23,7 @@ $eligibleCount = $eligibleCount ?? 0;
     </div>
     <div class="d-flex align-items-center gap-2">
         <?php if ($eligibleCount > 0): ?>
-            <form method="post" action="<?= site_url('dashboard/sertifikat/learning/kelas/' . $class['id'] . '/batch') ?>" onsubmit="return confirm('Terbitkan sertifikat untuk <?= $eligibleCount ?> peserta yang layak?');">
+            <form id="formLearningBatchDetail" method="post" action="<?= site_url('dashboard/sertifikat/learning/kelas/' . $class['id'] . '/batch') ?>">
                 <?= csrf_field() ?>
                 <button type="submit" class="btn btn-primary-600 radius-8 px-16 py-10 d-flex align-items-center gap-2 text-sm">
                     <iconify-icon icon="solar:diploma-verified-outline" class="text-lg"></iconify-icon>
@@ -192,4 +192,42 @@ $eligibleCount = $eligibleCount ?? 0;
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+
+<?= $this->section('pageScripts') ?>
+<script src="<?= base_url('assets/dashboard/js/begawi-batch-runner.js') ?>"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const formBatch = document.getElementById('formLearningBatchDetail');
+    if (formBatch) {
+        formBatch.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const classId = '<?= (int) ($class["id"] ?? 0) ?>';
+            const className = <?= json_encode($class["name"] ?? 'Kelas') ?>;
+            const eligibleCount = <?= (int) $eligibleCount ?>;
+
+            if (!confirm(`Terbitkan sertifikat untuk ${eligibleCount} peserta yang layak secara bertahap (Stay-Alive)?`)) {
+                return;
+            }
+
+            BegawiBatchRunner.start({
+                title: 'Batch Kelas: ' + className,
+                subtitle: `Memproses penerbitan sertifikat untuk ${eligibleCount} peserta layak (chunked stay-alive).`,
+                prepareUrl: '<?= site_url('dashboard/sertifikat/learning/kelas/' . $class["id"] . '/batch') ?>',
+                prepareData: { action: 'prepare' },
+                chunkUrl: '<?= site_url('dashboard/sertifikat/learning/kelas/' . $class["id"] . '/batch') ?>',
+                chunkDataBuilder: (chunkIds) => ({
+                    action: 'chunk',
+                    chunk_ids: chunkIds
+                }),
+                chunkSize: 5,
+                onComplete: () => {
+                    window.location.reload();
+                }
+            });
+        });
+    }
+});
+</script>
 <?= $this->endSection() ?>

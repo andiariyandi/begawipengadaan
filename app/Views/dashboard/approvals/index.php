@@ -398,18 +398,31 @@ function openQuickReject(id, typeLabel) {
 }
 
 function triggerBulkAction(action) {
-    const count = document.querySelectorAll('.approval-item-check:checked').length;
-    if (count === 0) {
+    const checked = Array.from(document.querySelectorAll('.approval-item-check:checked')).map(cb => parseInt(cb.value, 10));
+    if (checked.length === 0) {
         alert('Pilih setidaknya satu permohonan.');
         return;
     }
     const verb = action === 'approve' ? 'menyetujui' : 'menolak';
-    const note = prompt(`Konfirmasi ${verb} ${count} permohonan terpilih. Masukkan catatan (opsional):`, action === 'approve' ? 'Disetujui secara massal.' : 'Ditolak secara massal.');
+    const note = prompt(`Konfirmasi ${verb} ${checked.length} permohonan terpilih. Masukkan catatan (opsional):`, action === 'approve' ? 'Disetujui secara massal.' : 'Ditolak secara massal.');
     if (note === null) return; // user cancelled
 
-    document.getElementById('bulkActionInput').value = action;
-    document.getElementById('bulkNotesInput').value = note;
-    document.getElementById('bulkApprovalForm').submit();
+    BegawiBatchRunner.start({
+        title: (action === 'approve' ? 'Persetujuan Massal: ' : 'Penolakan Massal: ') + checked.length + ' Pengajuan',
+        subtitle: 'Memproses persetujuan permohonan dan penerbitan sertifikat terkait (chunked stay-alive).',
+        items: checked,
+        chunkUrl: '<?= site_url('dashboard/sistem/approval/bulk') ?>',
+        chunkDataBuilder: (chunkIds) => ({
+            is_chunk: 1,
+            bulk_action: action,
+            selected_ids: chunkIds,
+            notes: note
+        }),
+        chunkSize: 10,
+        onComplete: () => {
+            window.location.reload();
+        }
+    });
 }
 </script>
 <?= $this->endSection() ?>

@@ -252,8 +252,165 @@ class CertificateLearningController extends BaseController
         @ini_set('memory_limit', '512M');
 
         $classIdInt = (int) $classId;
-        $actorId    = (int) session()->get('user_id');
+        $actorId    = (int) (session()->get('user_id') ?: session()->get('id') ?: 1);
+        $isAjax     = (method_exists($this->request, 'isAJAX') && $this->request->isAJAX()) || $this->request->getHeaderLine('X-Requested-With') === 'XMLHttpRequest';
+        $action     = (string) ($this->request->getPost('action') ?: $this->request->getGet('action'));
 
+        // 1. ACTION: PREPARE (Ambil target antrean peserta secara asinkron)
+        if ($action === 'prepare') {
+            try {
+                $cls = $this->db->table('learning_classes')->where('id', $classIdInt)->get()->getRowArray();
+                if ((int) ($cls['certificate_enabled'] ?? 0) !== 1) {
+                    return $this->response->setJSON([
+                        'ok'    => false,
+                        'error' => 'Fitur sertifikat pada kelas ini dinonaktifkan.',
+                    ]);
+                }
+                $passingGrade = (float) ($cls['passing_grade'] ?? 70.0);
+
+                $enrollments = $this->db->table('enrollments e')
+                    ->select('e.id, e.user_id, u.name AS user_name, u.email AS user_email')
+                    ->join('users u', 'u.id = e.user_id', 'left')
+                    ->where('e.class_id', $classIdInt)
+                    ->groupStart()
+                        ->where('e.certificate_eligible_at IS NOT NULL')
+                        ->orGroupStart()
+                            ->whereIn('e.status', ['completed', 'passed'])
+                            ->where('e.passed_at IS NOT NULL')
+                            ->where('e.final_score >=', $passingGrade)
+                        ->groupEnd()
+                    ->groupEnd()
+                    ->orderBy('e.id', 'ASC')
+                    ->get()
+                    ->getResultArray();
+
+                $total = count($enrollments);
+                if ($total === 0) {
+                    return $this->response->setJSON([
+                        'ok'            => false,
+                        'total'         => 0,
+                        'pending_count' => 0,
+                        'items'         => [],
+                        'error'         => 'Tidak ada peserta yang memenuhi syarat kelulusan di kelas ini.',
+                    ]);
+                }
+
+                $enrIds = array_map(static fn($e) => (int) $e['id'], $enrollments);
+                $existingCerts = $this->db->table('certificates')
+                    ->select('source_id')
+                    ->where('source_type', 'learning_enrollment')
+                    ->whereIn('source_id', $enrIds)
+                    ->get()
+                    ->getResultArray();
+                $existingMap = array_flip(array_column($existingCerts, 'source_id'));
+
+                $pendingItems = [];
+                $alreadyCertifiedCount = 0;
+                foreach ($enrollments as $e) {
+                    $eid = (int) $e['id'];
+                    if (isset($existingMap[$eid])) {
+                        $alreadyCertifiedCount++;
+                    } else {
+                        $pendingItems[] = [
+                            'id'   => $eid,
+                            'name' => $e['user_name'] ?: 'Peserta #' . $eid,
+                        ];
+                    }
+                }
+
+                return $this->response->setJSON([
+                    'ok'                => true,
+                    'total'             => $total,
+                    'pending_count'     => count($pendingItems),
+                    'already_certified' => $alreadyCertifiedCount,
+                    'items'             => $pendingItems,
+                    'chunk_size'        => 5,
+                ]);
+            } catch (\Throwable $e) {
+                return $this->response->setStatusCode(500)->setJSON([
+                    'ok'    => false,
+                    'error' => 'Gagal menyiapkan antrean kelas: ' . $e->getMessage(),
+                ]);
+            }
+        }
+
+        // 2. ACTION: CHUNK (Proses pecahan kecil)
+        if ($action === 'chunk' || $this->request->getPost('is_chunk') === '1') {
+            $rawChunkIds = (array) $this->request->getPost('chunk_ids');
+            $chunkIds    = array_filter(array_map('intval', $rawChunkIds), static fn($v) => $v > 0);
+
+            if (empty($chunkIds)) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'ok'    => false,
+                    'error' => 'Tidak ada ID peserta pada pecahan batch ini.',
+                ]);
+            }
+
+            $results      = [];
+            $successCount = 0;
+            $skippedCount = 0;
+            $failedCount  = 0;
+
+            foreach ($chunkIds as $enrId) {
+                $enrRow = $this->db->table('enrollments e')
+                    ->select('e.id, u.name AS user_name')
+                    ->join('users u', 'u.id = e.user_id', 'left')
+                    ->where('e.id', $enrId)
+                    ->get()
+                    ->getRowArray();
+                $userName = $enrRow['user_name'] ?? ('Peserta #' . $enrId);
+
+                $exists = $this->db->table('certificates')
+                    ->where('source_type', 'learning_enrollment')
+                    ->where('source_id', $enrId)
+                    ->get()
+                    ->getRowArray();
+
+                if (! empty($exists)) {
+                    $skippedCount++;
+                    $results[] = [
+                        'id'          => $enrId,
+                        'name'        => $userName,
+                        'status'      => 'skipped',
+                        'cert_number' => $exists['certificate_number'] ?? '-',
+                        'message'     => 'Dilewati (sudah memiliki sertifikat)',
+                    ];
+                    continue;
+                }
+
+                try {
+                    $cert = $this->generator->generateDirect('learning_enrollment', $enrId, $actorId);
+                    $successCount++;
+                    $results[] = [
+                        'id'          => $enrId,
+                        'name'        => $userName,
+                        'status'      => 'success',
+                        'cert_number' => $cert['certificate_number'] ?? 'BGW-LRN',
+                        'message'     => 'Berhasil diterbitkan',
+                    ];
+                } catch (\Throwable $err) {
+                    $failedCount++;
+                    log_message('error', '[BatchLearningCertChunk] Error for enrollment #' . $enrId . ': ' . $err->getMessage());
+                    $results[] = [
+                        'id'      => $enrId,
+                        'name'    => $userName,
+                        'status'  => 'failed',
+                        'message' => 'Gagal: ' . $err->getMessage(),
+                    ];
+                }
+            }
+
+            return $this->response->setJSON([
+                'ok'            => true,
+                'processed'     => count($results),
+                'success_count' => $successCount,
+                'skipped_count' => $skippedCount,
+                'failed_count'  => $failedCount,
+                'results'       => $results,
+            ]);
+        }
+
+        // 3. FALLBACK: Non-AJAX Synchronous Batch
         try {
             $cls = $this->db->table('learning_classes')->where('id', $classIdInt)->get()->getRowArray();
             if ((int) ($cls['certificate_enabled'] ?? 0) !== 1) {
