@@ -110,8 +110,8 @@ class CertificateLearningController extends BaseController
             ->select([
                 'lc.*',
                 'co.title AS course_title',
-                'co.code AS course_code',
-                'p.title AS program_title',
+                'co.slug  AS course_slug',
+                'p.title  AS program_title',
             ])
             ->join('courses co', 'co.id = lc.course_id', 'left')
             ->join('programs p',  'p.id = co.program_id', 'left')
@@ -123,6 +123,10 @@ class CertificateLearningController extends BaseController
             return redirect()->to(site_url('dashboard/sertifikat/learning'))
                 ->with('error', 'Kelas pembelajaran tidak ditemukan.');
         }
+
+        $class['course_code'] = ! empty($class['course_slug']) ? strtoupper($class['course_slug']) : ($class['code'] ?? '—');
+        $class['start_date']  = $class['start_date'] ?? $class['start_at'] ?? null;
+        $class['end_date']    = $class['end_date']   ?? $class['end_at']   ?? null;
 
         // Get trainers
         $trainers = $this->db->table('class_trainers ct')
