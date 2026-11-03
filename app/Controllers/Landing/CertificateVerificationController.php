@@ -30,17 +30,14 @@ class CertificateVerificationController extends BaseController
     }
 
     /**
-     * Halaman Utama Verifikasi Sertifikat & Direktori Sertifikat Terdaftar.
+     * Halaman Utama Verifikasi Sertifikat Digital BegawiPengadaan.
+     * Murni verifikasi mandiri berbasis Nomor Sertifikat resmi atau Token Kriptografi (Zero Data Leakage).
      */
     public function index()
     {
-        $keyword      = trim((string) ($this->request->getGet('q') ?? $this->request->getGet('nomor') ?? ''));
-        $sourceFilter = trim((string) ($this->request->getGet('tipe') ?? 'all'));
-        $statusFilter = trim((string) ($this->request->getGet('status') ?? 'all'));
-        $page         = max(1, (int) ($this->request->getGet('page') ?? 1));
-        $perPage      = 9;
+        $keyword = trim((string) ($this->request->getGet('q') ?? $this->request->getGet('nomor') ?? ''));
 
-        // 1. Ekosistem Live Metrics Sertifikasi
+        // 1. Ekosistem Live Metrics Sertifikasi (Ringkas & Agregat)
         $stats = [
             'total_issued'   => 0,
             'total_learning' => 0,
@@ -69,84 +66,11 @@ class CertificateVerificationController extends BaseController
         } catch (\Throwable) {
         }
 
-        // 2. Query Direktori Sertifikat Terverifikasi
-        $builder = $this->db->table('certificates c')
-            ->select([
-                'c.id',
-                'c.certificate_number',
-                'c.source_type',
-                'c.source_id',
-                'c.status',
-                'c.issued_at',
-                'c.expires_at',
-                'c.verification_token_hash',
-                'u.name AS user_name',
-                't.name AS template_name',
-            ])
-            ->join('users u', 'u.id = c.user_id', 'left')
-            ->join('certificate_templates t', 't.id = c.template_id', 'left')
-            ->whereIn('c.status', ['issued', 'revoked', 'expired']);
-
-        if ($keyword !== '') {
-            $builder->groupStart()
-                ->like('c.certificate_number', $keyword)
-                ->orLike('u.name', $keyword)
-                ->groupEnd();
-        }
-
-        if ($sourceFilter !== '' && $sourceFilter !== 'all') {
-            $builder->where('c.source_type', $sourceFilter);
-        }
-
-        if ($statusFilter !== '' && $statusFilter !== 'all') {
-            $builder->where('c.status', $statusFilter);
-        }
-
-        $totalRows = (clone $builder)->countAllResults();
-        $totalPages = max(1, (int) ceil($totalRows / $perPage));
-        $offset     = ($page - 1) * $perPage;
-
-        $rows = $builder->orderBy('c.id', 'DESC')
-            ->limit($perPage, $offset)
-            ->get()
-            ->getResultArray();
-
-        // Enrich setiap baris sertifikat
-        $certificates = [];
-        foreach ($rows as $row) {
-            $row['title'] = $this->resolvePublicTitle((string) $row['source_type'], (int) $row['id']);
-            $certificates[] = $this->toPublicView($row);
-        }
-
-        // 3. Ambil contoh nomor sertifikat resmi untuk Quick-Test
-        $sampleNumbers = [];
-        try {
-            $samples = $this->db->table('certificates')
-                ->select('certificate_number')
-                ->where('status', 'issued')
-                ->orderBy('id', 'DESC')
-                ->limit(4)
-                ->get()
-                ->getResultArray();
-            foreach ($samples as $s) {
-                if (! empty($s['certificate_number'])) {
-                    $sampleNumbers[] = $s['certificate_number'];
-                }
-            }
-        } catch (\Throwable) {
-        }
-
-        // 4. Data Pager
-        $pagerData = [
-            'page'       => $page,
-            'perPage'    => $perPage,
-            'totalRows'  => $totalRows,
-            'totalPages' => $totalPages,
-            'hasPrev'    => $page > 1,
-            'hasNext'    => $page < $totalPages,
-            'prevPage'   => $page - 1,
-            'nextPage'   => $page + 1,
-        ];
+        // 2. Simple Math Captcha Anti-Spam
+        $cNum1 = rand(2, 9);
+        $cNum2 = rand(1, 9);
+        session()->set('cert_verify_captcha_answer', $cNum1 + $cNum2);
+        $captchaQuestion = "{$cNum1} + {$cNum2}";
 
         return view('landing/pages/certificate_verify', [
             'title'           => 'Verifikasi Keabsahan Sertifikat Digital PBJ | BegawiPengadaan',
@@ -156,13 +80,9 @@ class CertificateVerificationController extends BaseController
             'breadcrumbs'     => [
                 ['label' => 'Verifikasi Sertifikat'],
             ],
-            'certificates'    => $certificates,
             'stats'           => $stats,
-            'pagerData'       => $pagerData,
-            'sampleNumbers'   => $sampleNumbers,
+            'captchaQuestion' => $captchaQuestion,
             'keyword'         => $keyword,
-            'sourceFilter'    => $sourceFilter,
-            'statusFilter'    => $statusFilter,
         ]);
     }
 
@@ -171,6 +91,35 @@ class CertificateVerificationController extends BaseController
      */
     public function result()
     {
+        $postData = (array) ($this->request->getPost() ?: []);
+
+        // Anti-Bot Honeypot trap
+        if (! empty($postData['website_url'])) {
+            return redirect()->to(site_url('verifikasi-sertifikat'))->with('error', 'Permintaan verifikasi tidak valid.');
+        }
+
+        // IP Rate Limiting (Maksimal 20 lookup per menit)
+        $throttler = \Config\Services::throttler();
+        $clientIp  = $this->request->getIPAddress();
+        if ($throttler->check('cert_verify_' . md5($clientIp), 20, 60) === false) {
+            return $this->renderResult(null, 'Terlalu banyak permintaan verifikasi dalam waktu singkat. Demi keamanan dan stabilitas sistem, mohon tunggu 1 menit sebelum mencoba kembali.', '');
+        }
+
+        // Simple Math Captcha verification (apabila dikirim via form pencarian)
+        if ($this->request->getMethod() === 'POST' || $this->request->getPost('captcha_answer') !== null) {
+            $userCaptcha     = trim((string) ($this->request->getPost('captcha_answer') ?? ''));
+            $expectedCaptcha = session()->get('cert_verify_captcha_answer');
+
+            if ($expectedCaptcha !== null) {
+                if ($userCaptcha === '' || (int) $userCaptcha !== (int) $expectedCaptcha) {
+                    return redirect()->to(site_url('verifikasi-sertifikat'))
+                        ->withInput()
+                        ->with('error', 'Jawaban verifikasi keamanan (Captcha Matematika) belum tepat. Silakan hitung kembali.');
+                }
+                session()->remove('cert_verify_captcha_answer');
+            }
+        }
+
         $number = trim((string) (
             $this->request->getPost('certificate_number')
             ?? $this->request->getPost('nomor')
@@ -212,6 +161,13 @@ class CertificateVerificationController extends BaseController
         $identifier = trim(urldecode(implode('/', $segments)));
         if ($identifier === '') {
             return $this->renderResult(null, 'Tautan atau nomor verifikasi tidak valid.', '');
+        }
+
+        // IP Rate Limiting (Maksimal 30 direct lookup per menit)
+        $throttler = \Config\Services::throttler();
+        $clientIp  = $this->request->getIPAddress();
+        if ($throttler->check('cert_verify_' . md5($clientIp), 30, 60) === false) {
+            return $this->renderResult(null, 'Terlalu banyak permintaan verifikasi dalam waktu singkat. Mohon tunggu 1 menit sebelum mencoba kembali.', '');
         }
 
         $row = $this->lookupCertificate($identifier);

@@ -76,7 +76,10 @@ class NewsPublicController extends BaseController
 
         // Base builder for published public news
         $builder = $this->db->table('news n')
-            ->select('n.*, nc.name AS category_name, nc.slug AS category_slug, 
+            ->select('n.id, n.title, n.slug, n.summary, n.content, n.category_id, n.author_id,
+                      n.cover_file_id, n.published_at, n.created_at,
+                      n.view_count, n.reading_time, n.is_featured, n.carousel_enabled, n.carousel_order,
+                      nc.name AS category_name, nc.slug AS category_slug, 
                       COALESCE(u.name, u.username, "Biro PBJ Setda Lampung") AS author_name, 
                       fa.path AS cover_path')
             ->join('news_categories nc', 'nc.id = n.category_id', 'left')

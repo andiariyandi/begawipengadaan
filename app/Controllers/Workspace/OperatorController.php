@@ -450,11 +450,25 @@ class OperatorController extends BaseController
         $notes   = trim((string) $this->request->getPost('notes')) ?: ($action === 'approve' ? 'Disetujui massal oleh Operator.' : 'Ditolak massal oleh Operator.');
 
         $ids = array_values(array_unique(array_filter(array_map('intval', $rawIds), static fn($id) => $id > 0)));
+        $isAjax = (method_exists($this->request, 'isAJAX') && $this->request->isAJAX()) || $this->request->getHeaderLine('X-Requested-With') === 'XMLHttpRequest' || $this->request->getPost('is_chunk') === '1';
+
         if ($ids === []) {
+            if ($isAjax) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'ok'    => false,
+                    'error' => 'Tidak ada data approval yang dipilih.',
+                ]);
+            }
             return redirect()->back()->with('error', 'Tidak ada data approval yang dipilih.');
         }
 
         if (! in_array($action, ['approve', 'reject'], true)) {
+            if ($isAjax) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'ok'    => false,
+                    'error' => 'Tindakan massal tidak valid.',
+                ]);
+            }
             return redirect()->back()->with('error', 'Tindakan massal tidak valid.');
         }
 
@@ -465,22 +479,36 @@ class OperatorController extends BaseController
         $successCount = 0;
         $failedCount = 0;
         $certCount = 0;
+        $results = [];
 
         $roles = (array) session()->get('roles');
         $isSuperAdmin = in_array('super_administrator', $roles, true);
 
         foreach ($approvals as $app) {
             $appId = (int) $app['id'];
+            $objTitle = $app['title'] ?? ($app['resource_type'] . ' #' . $app['resource_id']);
 
             // Status Guard: hanya proses yang berstatus pending
             if (($app['status'] ?? '') !== 'pending') {
                 $failedCount++;
+                $results[] = [
+                    'id'      => $appId,
+                    'name'    => $objTitle,
+                    'status'  => 'skipped',
+                    'message' => 'Dilewati: Status bukan pending (' . ($app['status'] ?? '-') . ')',
+                ];
                 continue;
             }
 
             // Anti Self-Approval: tolak jika pemohon sama dengan operator (kecuali super_administrator)
             if (! $isSuperAdmin && (int) ($app['requested_by'] ?? 0) === $actorId) {
                 $failedCount++;
+                $results[] = [
+                    'id'      => $appId,
+                    'name'    => $objTitle,
+                    'status'  => 'failed',
+                    'message' => 'Ditolak: Melanggar aturan anti self-approval',
+                ];
                 continue;
             }
 
@@ -506,12 +534,20 @@ class OperatorController extends BaseController
                 if ($this->db->affectedRows() < 1) {
                     $this->db->transRollback();
                     $failedCount++;
+                    $results[] = [
+                        'id'      => $appId,
+                        'name'    => $objTitle,
+                        'status'  => 'failed',
+                        'message' => 'Gagal mengupdate database approval',
+                    ];
                     continue;
                 }
 
+                $certNum = null;
                 if ($action === 'approve' && ($app['resource_type'] ?? '') === 'certificate' && ($app['requested_action'] ?? '') === 'issue_certificate') {
                     $generator = new \App\Services\CertificateGenerator();
-                    $generator->generateFromApproval($appId, $actorId);
+                    $certRes = $generator->generateFromApproval($appId, $actorId);
+                    $certNum = $certRes['certificate_number'] ?? 'BGW-CERT';
                     $certCount++;
                 }
 
@@ -519,8 +555,21 @@ class OperatorController extends BaseController
 
                 if ($this->db->transStatus()) {
                     $successCount++;
+                    $results[] = [
+                        'id'          => $appId,
+                        'name'        => $objTitle,
+                        'status'      => 'success',
+                        'cert_number' => $certNum,
+                        'message'     => 'Berhasil: ' . ($action === 'approve' ? 'Disetujui' : 'Ditolak') . ($certNum ? " (Sertifikat {$certNum} terbit)" : ''),
+                    ];
                 } else {
                     $failedCount++;
+                    $results[] = [
+                        'id'      => $appId,
+                        'name'    => $objTitle,
+                        'status'  => 'failed',
+                        'message' => 'Transaksi database gagal di-commit',
+                    ];
                 }
             } catch (\Throwable $e) {
                 $this->db->transRollback();
@@ -529,7 +578,24 @@ class OperatorController extends BaseController
                     'appId'   => $appId,
                     'message' => $e->getMessage(),
                 ]);
+                $results[] = [
+                    'id'      => $appId,
+                    'name'    => $objTitle,
+                    'status'  => 'failed',
+                    'message' => 'Gagal: ' . $e->getMessage(),
+                ];
             }
+        }
+
+        if ($isAjax) {
+            return $this->response->setJSON([
+                'ok'            => true,
+                'processed'     => count($results),
+                'success_count' => $successCount,
+                'failed_count'  => $failedCount,
+                'cert_count'    => $certCount,
+                'results'       => $results,
+            ]);
         }
 
         $msg = "Berhasil memproses {$successCount} pengajuan approval ({$status}).";
@@ -2355,23 +2421,54 @@ class OperatorController extends BaseController
         $justification = trim((string) $this->request->getPost('justification'));
 
         $ids = array_filter(array_map('intval', $rawIds), static fn($id) => $id > 0);
+        $isAjax = (method_exists($this->request, 'isAJAX') && $this->request->isAJAX()) || $this->request->getHeaderLine('X-Requested-With') === 'XMLHttpRequest' || $this->request->getPost('is_chunk') === '1';
+
         if ($ids === []) {
+            if ($isAjax) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'ok'    => false,
+                    'error' => 'Tidak ada peserta yang dipilih untuk penerbitan sertifikat.',
+                ]);
+            }
             return redirect()->back()->with('error', 'Tidak ada peserta yang dipilih untuk penerbitan sertifikat.');
         }
 
         $successCount = 0;
         $failedCount = 0;
+        $results = [];
 
         foreach ($ids as $eid) {
             if (function_exists('set_time_limit')) {
                 @set_time_limit(120);
             }
+
+            $enrRow = $this->db->table('enrollments e')
+                ->select('e.id, u.name as user_name')
+                ->join('users u', 'u.id = e.user_id', 'left')
+                ->where('e.id', $eid)
+                ->get()
+                ->getRowArray();
+            $userName = $enrRow['user_name'] ?? ('Peserta #' . $eid);
+
             try {
                 $certNum = $this->issueSingleCertificate($eid, $actorId, $justification ?: null);
                 if ($certNum !== null) {
                     $successCount++;
+                    $results[] = [
+                        'id'          => $eid,
+                        'name'        => $userName,
+                        'status'      => 'success',
+                        'cert_number' => $certNum,
+                        'message'     => 'Berhasil diterbitkan',
+                    ];
                 } else {
                     $failedCount++;
+                    $results[] = [
+                        'id'      => $eid,
+                        'name'    => $userName,
+                        'status'  => 'failed',
+                        'message' => 'Belum memenuhi syarat atau sudah ada',
+                    ];
                 }
             } catch (\Throwable $e) {
                 $failedCount++;
@@ -2379,7 +2476,24 @@ class OperatorController extends BaseController
                     'eid'     => $eid,
                     'message' => $e->getMessage(),
                 ]);
+                $results[] = [
+                    'id'      => $eid,
+                    'name'    => $userName,
+                    'status'  => 'failed',
+                    'message' => 'Gagal: ' . $e->getMessage(),
+                ];
             }
+        }
+
+        if ($isAjax) {
+            return $this->response->setJSON([
+                'ok'            => true,
+                'processed'     => count($results),
+                'success_count' => $successCount,
+                'skipped_count' => 0,
+                'failed_count'  => $failedCount,
+                'results'       => $results,
+            ]);
         }
 
         $msg = "Berhasil menerbitkan {$successCount} sertifikat kelulusan.";

@@ -22,9 +22,7 @@ use setasign\Fpdi\PdfParser\StreamReader;
  */
 class CertificatePdfGenerator
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * Render HTML string menjadi PDF binary.
@@ -64,7 +62,7 @@ class CertificatePdfGenerator
         $dompdf->render();
 
         // Injeksi Metadata TTE & Keamanan Dokumen setelah render (sesuai spesifikasi Dompdf canvas)
-        $dompdf->addInfo('Title', 'Sertifikat Kelulusan Resmi PBJ — BegawiPengadaan');
+        $dompdf->addInfo('Title', 'Sertifikat Digital Resmi BegawiPengadaan - Biro Pengadaan Barang dan Jasa Provinsi Lampung');
         $dompdf->addInfo('Author', 'Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa');
         $dompdf->addInfo('Subject', 'Dokumen Sertifikat Digital Ber-Tanda Tangan Elektronik');
         $dompdf->addInfo('Keywords', 'TTE, BegawiPengadaan, Sertifikat Digital, PBJ, Pemprov Lampung');
@@ -140,7 +138,7 @@ class CertificatePdfGenerator
             $fpdi->useTemplate($overlayTplId, 0, 0, $widthMm, $heightMm);
 
             // Injeksi Metadata TTE & Keamanan Dokumen ke FPDI
-            $fpdi->SetTitle('Sertifikat Kelulusan Resmi PBJ — BegawiPengadaan');
+            $fpdi->SetTitle('Sertifikat Digital Resmi BegawiPengadaan - Biro Pengadaan Barang dan Jasa Provinsi Lampung');
             $fpdi->SetAuthor('Pemerintah Provinsi Lampung — Biro Pengadaan Barang dan Jasa');
             $fpdi->SetSubject('Dokumen Sertifikat Digital Ber-Tanda Tangan Elektronik');
             $fpdi->SetKeywords('TTE, BegawiPengadaan, Sertifikat Digital, PBJ, Pemprov Lampung');

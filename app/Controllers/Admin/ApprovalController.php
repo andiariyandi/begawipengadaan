@@ -301,12 +301,26 @@ class ApprovalController extends BaseController
         $notes   = trim((string) $req->getPost('notes'));
 
         $ids = array_filter(array_map('intval', $rawIds), static fn ($v) => $v > 0);
+        $isAjax = (method_exists($req, 'isAJAX') && $req->isAJAX()) || $req->getHeaderLine('X-Requested-With') === 'XMLHttpRequest' || $req->getPost('is_chunk') === '1';
+
         if ($ids === []) {
+            if ($isAjax) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'ok'    => false,
+                    'error' => 'Tidak ada data persetujuan yang dipilih.',
+                ]);
+            }
             return redirect()->to(site_url('dashboard/sistem/approval'))
                 ->with('error', 'Tidak ada data persetujuan yang dipilih.');
         }
 
         if (! in_array($action, ['approve', 'reject'], true)) {
+            if ($isAjax) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'ok'    => false,
+                    'error' => 'Tindakan massal tidak valid.',
+                ]);
+            }
             return redirect()->to(site_url('dashboard/sistem/approval'))
                 ->with('error', 'Tindakan massal tidak valid.');
         }
@@ -317,7 +331,9 @@ class ApprovalController extends BaseController
         $finalNote   = $notes ?: $defaultNote;
 
         $successCount = 0;
+        $failedCount  = 0;
         $certCount    = 0;
+        $results      = [];
 
         foreach ($ids as $id) {
             if (function_exists('set_time_limit')) {
@@ -325,8 +341,18 @@ class ApprovalController extends BaseController
             }
             $approval = $this->approvalModel->find($id);
             if (! $approval || $approval['status'] !== 'pending') {
+                $failedCount++;
+                $results[] = [
+                    'id'      => $id,
+                    'name'    => 'Pengajuan #' . $id,
+                    'status'  => 'skipped',
+                    'message' => 'Dilewati: bukan status pending atau tidak ditemukan',
+                ];
                 continue;
             }
+
+            $objTitle = $approval['title'] ?? ($approval['resource_type'] . ' #' . $approval['resource_id']);
+            $certNum  = null;
 
             if ($action === 'approve') {
                 $this->approvalModel->markApproved($id, $actorId, $finalNote);
@@ -334,7 +360,8 @@ class ApprovalController extends BaseController
                 if (($approval['resource_type'] ?? '') === 'certificate' && ($approval['requested_action'] ?? '') === 'issue_certificate') {
                     try {
                         $generator = new CertificateGenerator();
-                        $generator->generateFromApproval($id, $actorId);
+                        $certRes = $generator->generateFromApproval($id, $actorId);
+                        $certNum = $certRes['certificate_number'] ?? 'BGW-CERT';
                         $certCount++;
                     } catch (\Throwable $e) {
                         log_message('error', 'Bulk approval certificate failed for ID ' . $id . ': ' . $e->getMessage());
@@ -354,6 +381,24 @@ class ApprovalController extends BaseController
             );
 
             $successCount++;
+            $results[] = [
+                'id'          => $id,
+                'name'        => $objTitle,
+                'status'      => 'success',
+                'cert_number' => $certNum,
+                'message'     => 'Berhasil: ' . ($action === 'approve' ? 'Disetujui' : 'Ditolak') . ($certNum ? " (Sertifikat {$certNum} terbit)" : ''),
+            ];
+        }
+
+        if ($isAjax) {
+            return $this->response->setJSON([
+                'ok'            => true,
+                'processed'     => count($results),
+                'success_count' => $successCount,
+                'failed_count'  => $failedCount,
+                'cert_count'    => $certCount,
+                'results'       => $results,
+            ]);
         }
 
         $msg = "Berhasil memproses {$successCount} pengajuan (" . ($action === 'approve' ? 'Disetujui' : 'Ditolak') . ").";
