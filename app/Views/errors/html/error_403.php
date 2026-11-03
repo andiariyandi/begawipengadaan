@@ -90,7 +90,7 @@
     <div class="wrap">
         <h1>403</h1>
         <h2>Akses Ditolak</h2>
-        <p>Anda tidak memiliki izin atau peran yang sesuai untuk mengakses halaman ini. Jika Anda merasa ini adalah kesalahan, silakan hubungi administrator.</p>
+        <p><?= esc(! empty($message) ? $message : 'Anda tidak memiliki izin atau peran yang sesuai untuk mengakses halaman ini. Jika Anda merasa ini adalah kesalahan, silakan hubungi administrator.') ?></p>
         <div class="actions">
             <a href="<?= site_url('/') ?>" class="btn btn-outline">Beranda</a>
             <a href="<?= site_url('workspace') ?>" class="btn btn-primary">Ke Workspace</a>
