@@ -54,6 +54,9 @@ class CertificateGenerator
         'pelatihan'   => 'PL',
         'rakor'       => 'RK',
         'klinik'      => 'KL',
+        'event'       => 'EV',
+        'agenda'      => 'EV',
+        'umum'        => 'EV',
     ];
 
     /**
@@ -82,8 +85,13 @@ class CertificateGenerator
             $tipeCode = 'AB';
             $targetId = (int) ($sourceData['class_id'] ?? $sourceData['learning_class_id'] ?? $sourceData['source_id'] ?? 1);
         } else {
-            $rawType  = strtolower(trim((string) ($sourceData['event_type'] ?? $sourceData['type'] ?? '')));
-            $tipeCode = self::EVENT_TYPE_CODE_MAP[$rawType] ?? 'EV';
+            $explicitCode = strtoupper(trim((string) ($sourceData['certificate_code'] ?? $sourceData['tipe_kode'] ?? $sourceData['kode_tipe'] ?? '')));
+            if ($explicitCode !== '' && in_array($explicitCode, ['AB', 'EV', 'WB', 'BT', 'WS', 'SO', 'SM', 'PL', 'RK', 'KL'], true)) {
+                $tipeCode = $explicitCode;
+            } else {
+                $rawType  = strtolower(trim((string) ($sourceData['event_type'] ?? $sourceData['type'] ?? '')));
+                $tipeCode = self::EVENT_TYPE_CODE_MAP[$rawType] ?? 'EV';
+            }
             $targetId = (int) ($sourceData['event_id'] ?? $sourceData['source_id'] ?? 1);
         }
 
@@ -188,12 +196,13 @@ class CertificateGenerator
         $now        = date('Y-m-d H:i:s');
 
         // Idempotency — UNIQUE(source_type, source_id)
-        $exists = $this->db->table('certificates')
+        $existingCert = $this->db->table('certificates')
             ->where('source_type', $sourceType)
             ->where('source_id',   $sourceId)
-            ->countAllResults();
-        if ($exists > 0) {
-            throw new RuntimeException('Sertifikat untuk sumber ini sudah pernah diterbitkan.');
+            ->get()->getRowArray();
+        if ($existingCert) {
+            // Sertifikat sudah terbit sebelumnya (misal melalui penerbitan langsung / direct)
+            return (int) $existingCert['id'];
         }
 
         // Template selection via smart resolver (Event specific & Learning hierarchy: Program -> Course -> Class)
@@ -291,6 +300,20 @@ class CertificateGenerator
                 'pdf_file_id' => $pdfFileId,
                 'size_bytes'  => strlen($pdfBytes),
             ]);
+
+            // Auto-resolve antrean approval pending jika ada untuk source yang sama
+            $this->db->table('approvals')
+                ->where('resource_type', self::APPROVAL_TYPE)
+                ->where('resource_id', $sourceId)
+                ->where('requested_action', self::APPROVAL_ACTION)
+                ->where('status', 'pending')
+                ->update([
+                    'status'      => 'approved',
+                    'reviewed_by' => $actorId,
+                    'reviewed_at' => $now,
+                    'notes'       => 'Sertifikat diterbitkan langsung via Operator/Direct Issuance [#' . $certNumber . ']',
+                    'updated_at'  => $now,
+                ]);
 
             $this->db->transCommit();
 
@@ -474,6 +497,20 @@ class CertificateGenerator
                 'size_bytes'  => strlen($pdfBytes),
             ]);
 
+            // Auto-resolve antrean approval pending jika ada untuk source yang sama
+            $this->db->table('approvals')
+                ->where('resource_type', self::APPROVAL_TYPE)
+                ->where('resource_id', $sourceId)
+                ->where('requested_action', self::APPROVAL_ACTION)
+                ->where('status', 'pending')
+                ->update([
+                    'status'      => 'approved',
+                    'reviewed_by' => $actorId,
+                    'reviewed_at' => $now,
+                    'notes'       => 'Sertifikat diterbitkan langsung via Operator/Direct Issuance [#' . $certNumber . ']',
+                    'updated_at'  => $now,
+                ]);
+
             $this->db->transCommit();
 
             // Kirim notifikasi ke peserta
@@ -639,10 +676,15 @@ class CertificateGenerator
 
             $location = (string) ($registration['event_location'] ?: ($registration['event_mode'] === 'online' ? 'Online Video Conference' : 'Provinsi Lampung'));
 
+            $evId = (int) ($registration['event_id'] ?? 1);
+            $evCfg = (new \App\Services\EventAssessmentService())->getAssessmentConfig($evId);
+            $evJp = max(1, (int) ($evCfg['jp'] ?? 4));
+            $evDurationMinutes = $evJp * 45;
+
             return array_merge($profile, [
                 'source_type'       => 'event_registration',
                 'source_id'         => (int) $registration['id'],
-                'event_id'          => (int) ($registration['event_id'] ?? 1),
+                'event_id'          => $evId,
                 'user_id'           => (int) $registration['user_id'],
                 'title'             => (string) ($registration['event_title'] ?? 'Sertifikat Kegiatan'),
                 'subtitle'          => $typeLabel,
@@ -651,7 +693,7 @@ class CertificateGenerator
                 'activity_type'     => $typeLabel,
                 'tipe_kegiatan'     => $typeLabel,
                 'kode_tipe'         => $tipeCode,
-                'id_kegiatan'       => (int) ($registration['event_id'] ?? 1),
+                'id_kegiatan'       => $evId,
                 'lokasi_kegiatan'   => $location,
                 'location'          => $location,
                 'metode_kegiatan'   => $modeLabel,
@@ -659,9 +701,9 @@ class CertificateGenerator
                 'event_start_at'    => $registration['event_start_at'] ?? null,
                 'event_end_at'      => $registration['event_end_at'] ?? null,
                 'attendance_status' => $registration['attendance_status'] ?? null,
-                'jam_pelajaran'     => '4 JP',
-                'jp'                => '4 JP',
-                'duration_minutes'  => 0,
+                'jam_pelajaran'     => $evJp . ' JP',
+                'jp'                => $evJp . ' JP',
+                'duration_minutes'  => $evDurationMinutes,
                 'final_score'       => '—',
                 'predicate'         => 'Hadir Aktif',
             ]);
@@ -726,26 +768,31 @@ class CertificateGenerator
 
                 $location = (string) ($registration['event_location'] ?: ($registration['event_mode'] === 'online' ? 'Online Video Conference' : 'Provinsi Lampung'));
 
+                $evId = (int) ($registration['event_id'] ?? 1);
+                $evCfg = (new \App\Services\EventAssessmentService())->getAssessmentConfig($evId);
+                $evJp = max(1, (int) ($evCfg['jp'] ?? 4));
+                $evDurationMinutes = $evJp * 45;
+
                 return array_merge($profile, [
                     'source_type'       => 'event_registration',
                     'source_id'         => (int) $registration['id'],
-                    'event_id'          => (int) ($registration['event_id'] ?? 1),
+                    'event_id'          => $evId,
                     'user_id'           => (int) $registration['user_id'],
                     'title'             => (string) ($registration['event_title'] ?? 'Event Registration'),
                     'subtitle'          => $typeLabel,
                     'activity_type'     => $typeLabel,
                     'tipe_kegiatan'     => $typeLabel,
                     'kode_tipe'         => $tipeCode,
-                    'id_kegiatan'       => (int) ($registration['event_id'] ?? 1),
+                    'id_kegiatan'       => $evId,
                     'lokasi_kegiatan'   => $location,
                     'location'          => $location,
                     'metode_kegiatan'   => $modeLabel,
                     'event_mode'        => $modeLabel,
                     'event_start_at'    => $registration['event_start_at'] ?? null,
                     'event_end_at'      => $registration['event_end_at'] ?? null,
-                    'jam_pelajaran'     => '4 JP',
-                    'jp'                => '4 JP',
-                    'duration_minutes'  => 0,
+                    'jam_pelajaran'     => $evJp . ' JP',
+                    'jp'                => $evJp . ' JP',
+                    'duration_minutes'  => $evDurationMinutes,
                     'final_score'       => '—',
                     'predicate'         => 'Hadir Aktif',
                 ]);

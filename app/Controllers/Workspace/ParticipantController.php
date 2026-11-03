@@ -2234,12 +2234,51 @@ class ParticipantController extends BaseController
             ];
         }
 
+        // Ambil data registrasi event peserta yang mengaktifkan sertifikat
+        $issuedEventRegistrationIds = array_map('intval', array_filter(array_column($eventCerts, 'source_id')));
+        $eventRegRows = $db->table('event_registrations er')
+            ->select('er.*, ev.title AS event_title, ev.slug AS event_slug, ev.start_at, ev.end_at, ev.type AS event_type, ev.certificate_enabled, att.status AS attendance_status, att.method AS attendance_method')
+            ->join('events ev', 'ev.id = er.event_id')
+            ->join('attendances att', 'att.event_id = er.event_id AND att.user_id = er.user_id', 'left')
+            ->where('er.user_id', $userId)
+            ->where('ev.certificate_enabled', 1)
+            ->where('er.status !=', 'cancelled')
+            ->where('ev.deleted_at IS NULL')
+            ->get()->getResultArray();
+
+        $eventEligibilityList = [];
+        $assessmentSvc = new \App\Services\EventAssessmentService();
+        foreach ($eventRegRows as $er) {
+            $erId = (int) $er['id'];
+            $evId = (int) $er['event_id'];
+            $isIssued = in_array($erId, $issuedEventRegistrationIds, true);
+            $isPresent = ($er['attendance_status'] ?? '') === 'present';
+
+            // Evaluasi mode mandiri pasca-acara jika ada
+            $spProgress = $assessmentSvc->getSelfPacedProgress($evId, $userId, $erId);
+            $isEligible = $isPresent || ! empty($spProgress['is_eligible_for_cert']);
+
+            $eventEligibilityList[] = [
+                'registration_id'   => $erId,
+                'event_id'          => $evId,
+                'event_title'       => $er['event_title'],
+                'event_slug'        => $er['event_slug'],
+                'event_type'        => $er['event_type'],
+                'attendance_status' => $er['attendance_status'] ?? 'belum_hadir',
+                'is_issued'         => $isIssued,
+                'is_eligible'       => $isEligible,
+                'is_self_paced'     => ! empty($spProgress['is_self_paced_enabled']),
+                'can_claim'         => (! $isIssued && $isEligible),
+            ];
+        }
+
         return view('main/workspace/pages/sertifikat', [
-            'title'           => 'Sertifikat Saya | Workspace BegawiPengadaan',
-            'pageTitle'       => 'Sertifikat Saya',
-            'breadcrumbTail'  => [['label' => 'Sertifikat Saya']],
-            'certificates'    => $certificates,
-            'eligibilityList' => $eligibilityList,
+            'title'                => 'Sertifikat Saya | Workspace BegawiPengadaan',
+            'pageTitle'            => 'Sertifikat Saya',
+            'breadcrumbTail'       => [['label' => 'Sertifikat Saya']],
+            'certificates'         => $certificates,
+            'eligibilityList'      => $eligibilityList,
+            'eventEligibilityList' => $eventEligibilityList,
         ]);
     }
 

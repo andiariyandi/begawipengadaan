@@ -317,10 +317,11 @@ class TrainerController extends BaseController
             $modulesWithLessons[] = $mod;
         }
 
-        // 2. Peserta & Progress
+        // 2. Peserta, Progress & Sertifikat
         $participants = $db->table('enrollments e')
-            ->select('e.id AS enrollment_id, e.status AS enrollment_status, e.enrolled_at, e.activated_at, e.completed_at, e.final_score, e.passed_at, u.id AS user_id, u.name, u.username, u.email')
+            ->select('e.id AS enrollment_id, e.status AS enrollment_status, e.enrolled_at, e.activated_at, e.completed_at, e.final_score, e.passed_at, u.id AS user_id, u.name, u.username, u.email, cert.id AS certificate_id, cert.certificate_number, cert.status AS cert_status')
             ->join('users u', 'u.id = e.user_id')
+            ->join('certificates cert', 'cert.source_type = "learning_enrollment" AND cert.source_id = e.id', 'left')
             ->where('e.class_id', $classIdInt)
             ->orderBy('e.enrolled_at', 'DESC')
             ->get()->getResultArray();

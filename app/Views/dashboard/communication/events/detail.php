@@ -96,6 +96,7 @@ $openAt = ! empty($item['attendance_open_at']) ? strtotime($item['attendance_ope
 $closeAt = ! empty($item['attendance_close_at']) ? strtotime($item['attendance_close_at']) : null;
 $now = time();
 $coverUrl = ! empty($item['cover_file_id']) ? base_url('file/' . (int) $item['cover_file_id']) : null;
+$checkinDirectUrl = site_url('event/' . rawurlencode($item['slug'] ?? '') . '/presensi' . (!empty($code) ? '?code=' . urlencode($code) : ''));
 
 if (empty($openAt) || empty($code)) {
     $presensiStatus = 'belum_dibuka';
@@ -328,6 +329,9 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
                             <div class="d-flex flex-wrap gap-2">
                                 <button type="button" class="btn btn-primary-600 btn-sm radius-8 px-14 py-8 fw-semibold" onclick="copyCode()">
                                     <iconify-icon icon="solar:copy-bold" class="me-1"></iconify-icon> Salin Kode
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm radius-8 px-14 py-8 fw-semibold" onclick="copyCheckinLink()">
+                                    <iconify-icon icon="solar:link-bold" class="me-1"></iconify-icon> Salin Tautan Presensi
                                 </button>
                                 <button type="button" class="btn btn-outline-primary-600 btn-sm radius-8 px-14 py-8 fw-semibold d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#qrPresenterModal">
                                     <iconify-icon icon="solar:maximize-square-bold" class="text-base"></iconify-icon> Mode Presenter &amp; QR
@@ -956,11 +960,14 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
 
                 <div class="card p-24 radius-16 bg-neutral-50 border border-primary-200 d-inline-block shadow-sm mb-20 text-center" style="max-width: 480px; width: 100%;">
                     <div class="p-16 bg-white radius-12 d-inline-block border mb-16 shadow-2xs">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=<?= urlencode(site_url('workspace/presensi-saya')) ?>" alt="QR Presensi" class="img-fluid" style="width: 180px; height: 180px;">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=<?= urlencode($checkinDirectUrl) ?>" alt="QR Presensi" class="img-fluid" style="width: 220px; height: 220px;">
                     </div>
                     <span class="text-2xs fw-bold text-uppercase tracking-wider text-secondary-light d-block mb-1">KODE SANDI KEHADIRAN RESMI</span>
                     <div class="display-3 fw-bold text-primary-600 font-monospace tracking-widest letter-spacing-4 user-select-all mb-4"><?= esc($code) ?></div>
-                    <span class="text-xs text-secondary-light">Tautan Portal: <code><?= site_url('workspace/presensi-saya') ?></code></span>
+                    <div class="mt-8 mb-2">
+                        <span class="text-xs text-secondary-light d-block mb-1">Tautan Presensi Langsung (Bisa dishare via Chat):</span>
+                        <code class="user-select-all text-xs bg-white p-6 radius-4 border d-inline-block text-break" id="checkinUrlText"><?= esc($checkinDirectUrl) ?></code>
+                    </div>
                 </div>
 
                 <div class="row g-2 text-start text-xs text-secondary-light justify-content-center">
@@ -968,26 +975,46 @@ $percentCapacity = $capacity > 0 ? min(100, round(($registeredCount / $capacity)
                         <div class="p-12 radius-8 bg-primary-50 border border-primary-200 text-primary-900">
                             <strong>Petunjuk untuk Peserta:</strong>
                             <ol class="mb-0 ps-16 mt-4">
-                                <li>Scan kode QR di atas atau login ke portal BegawiPengadaan &gt; Workspace Peserta &gt; Presensi.</li>
-                                <li>Ketikkan 6 digit kode sandi: <strong class="text-primary-600 font-monospace"><?= esc($code) ?></strong> lalu klik Simpan Kehadiran.</li>
-                                <li>Presensi sah akan otomatis mengaktifkan hak penerbitan e-sertifikat kegiatan.</li>
+                                <li>Scan kode QR di atas atau klik tautan presensi langsung yang dibagikan panitia.</li>
+                                <li>Bila diminta login, masuk dengan akun BegawiPengadaan Anda dan kehadiran akan otomatis tercatat.</li>
+                                <li>Atau login mandiri ke portal BegawiPengadaan &gt; Workspace Peserta &gt; Presensi lalu masukkan kode: <strong class="text-primary-600 font-monospace"><?= esc($code) ?></strong>.</li>
+                                <li>Kehadiran yang terkonfirmasi otomatis membuka hak penerbitan e-sertifikat kegiatan.</li>
                             </ol>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer border-top py-12 px-24 bg-neutral-50 d-flex justify-content-between">
-                <button type="button" class="btn btn-outline-primary-600 radius-8 px-16 py-8 text-xs" onclick="copyCode()">
-                    <iconify-icon icon="solar:copy-bold"></iconify-icon> Salin Kode Sandi
-                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-primary-600 radius-8 px-16 py-8 text-xs fw-semibold" onclick="copyCode()">
+                        <iconify-icon icon="solar:copy-bold"></iconify-icon> Salin Kode Sandi
+                    </button>
+                    <button type="button" class="btn btn-success radius-8 px-16 py-8 text-xs fw-semibold text-white" onclick="copyCheckinLink()">
+                        <iconify-icon icon="solar:link-bold"></iconify-icon> Salin Tautan Presensi
+                    </button>
+                </div>
                 <button type="button" class="btn btn-secondary radius-8 px-20 py-8 text-xs" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
-</d
+</div>
 
 <script>
 function copyCode() {
+    const codeEl = document.getElementById('attendanceCodeText');
+    if (codeEl) {
+        navigator.clipboard.writeText(codeEl.innerText.trim()).then(function() {
+            alert('Kode presensi ' + codeEl.innerText.trim() + ' berhasil disalin ke clipboard!');
+        });
+    }
+}
+
+function copyCheckinLink() {
+    const url = '<?= esc($checkinDirectUrl, 'js') ?>';
+    navigator.clipboard.writeText(url).then(function() {
+        alert('Tautan presensi langsung berhasil disalin ke clipboard:\n' + url);
+    });
+}
     const codeEl = document.getElementById('attendanceCodeText');
     if (codeEl) {
         navigator.clipboard.writeText(codeEl.innerText.trim()).then(function() {

@@ -64,6 +64,7 @@ $routes->group('', ['namespace' => 'App\Controllers\Landing'], static function (
         $routes->get('/', 'EventPublicController::index', ['as' => 'public.events.index']);
         $routes->get('agenda', 'EventPublicController::agenda', ['as' => 'public.events.agenda']);
         $routes->get('kalender', 'EventPublicController::calendar', ['as' => 'public.events.calendar']);
+        $routes->get('(:segment)/presensi', 'EventPublicController::checkinByQr/$1', ['as' => 'public.events.checkin-qr']);
         $routes->get('(:segment)', 'EventPublicController::detail/$1', ['as' => 'public.events.detail']);
         $routes->post('(:segment)/daftar', 'EventPublicController::register/$1', ['as' => 'public.events.register']);
     });

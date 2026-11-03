@@ -690,6 +690,88 @@ class EventPublicController extends BaseController
         return redirect()->back()->with('message', $msg);
     }
 
+    /**
+     * Smart QR & Link Check-in Presensi Kegiatan.
+     * URL: /event/{slug}/presensi?code={code}
+     */
+    public function checkinByQr(string $slug)
+    {
+        $code = trim((string) ($this->request->getGet('code') ?? ''));
+        $targetUrl = site_url('event/' . rawurlencode($slug) . '/presensi' . ($code !== '' ? '?code=' . urlencode($code) : ''));
+
+        // 1. Cek Login
+        $userId = (int) session()->get('user_id');
+        if ($userId < 1 || session()->get('isLoggedIn') !== true) {
+            session()->set('redirect_url', $targetUrl);
+            return redirect()->to(site_url('masuk'))->with('message', 'Silakan masuk ke akun Anda terlebih dahulu untuk melakukan presensi kegiatan.');
+        }
+
+        // 2. Query Event
+        $event = $this->db->table('events')
+            ->where('slug', $slug)
+            ->where('deleted_at IS NULL')
+            ->get()
+            ->getRowArray();
+
+        if (! $event) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Kegiatan tidak ditemukan.');
+        }
+
+        $eventId = (int) $event['id'];
+
+        // 3. Validasi Pendaftaran Peserta
+        $reg = $this->db->table('event_registrations')
+            ->where('event_id', $eventId)
+            ->where('user_id', $userId)
+            ->where('status !=', 'cancelled')
+            ->get()
+            ->getRowArray();
+
+        if (! $reg) {
+            return redirect()->to(site_url('event/' . $slug))
+                ->with('error', 'Anda belum terdaftar pada kegiatan "' . esc($event['title']) . '". Silakan melakukan pendaftaran terlebih dahulu untuk dapat presensi.');
+        }
+
+        // 4. Validasi Kode Presensi (jika kode diberikan dan event memiliki attendance_code)
+        $expectedCode = trim((string) ($event['attendance_code'] ?? ''));
+        if ($code !== '' && $expectedCode !== '' && strtoupper($code) !== strtoupper($expectedCode)) {
+            return redirect()->to(site_url('workspace/peserta/event-saya/' . $slug))
+                ->with('error', 'Kode presensi "' . esc($code) . '" tidak cocok dengan sesi kegiatan ini.');
+        }
+
+        // 5. Atomic Upsert Presensi Kehadiran
+        $now = date('Y-m-d H:i:s');
+        $att = $this->db->table('attendances')
+            ->where('event_id', $eventId)
+            ->where('user_id', $userId)
+            ->get()
+            ->getRowArray();
+
+        if ($att) {
+            $this->db->table('attendances')
+                ->where('id', $att['id'])
+                ->update([
+                    'status'        => 'present',
+                    'checked_in_at' => $att['checked_in_at'] ?? $now,
+                    'method'        => 'qr',
+                    'updated_at'    => $now,
+                ]);
+        } else {
+            $this->db->table('attendances')->insert([
+                'event_id'      => $eventId,
+                'user_id'       => $userId,
+                'status'        => 'present',
+                'checked_in_at' => $now,
+                'method'        => 'qr',
+                'created_at'    => $now,
+                'updated_at'    => $now,
+            ]);
+        }
+
+        return redirect()->to(site_url('workspace/peserta/event-saya/' . $slug))
+            ->with('success', 'Presensi berhasil! Kehadiran Anda pada kegiatan "' . esc($event['title']) . '" telah tercatat secara resmi.');
+    }
+
     private function formatTypeLabel(string $type): string
     {
         return match (strtolower($type)) {

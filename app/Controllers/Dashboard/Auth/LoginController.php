@@ -137,6 +137,13 @@ class LoginController extends BaseController
         $userName    = (string) session()->get('name');
         $authService = new AuthorizationService();
 
+        // Cek jika terdapat target redirection yang disimpan (misal: scan QR presensi atau registrasi event)
+        $redirectUrl = (string) session()->get('redirect_url');
+        if ($redirectUrl !== '') {
+            session()->remove('redirect_url');
+            return redirect()->to($redirectUrl)->with('success', 'Berhasil masuk sebagai ' . $userName . '.');
+        }
+
         // 1. Super Administrator & Administrator penuh (Dasbor Eksekutif Steril)
         $isFullAdmin = in_array('super_administrator', $loggedRoles, true)
             || in_array('administrator', $loggedRoles, true);
