@@ -49,13 +49,34 @@ class CertificateDownloadController extends BaseController
         if (! $certificate) {
             return $this->notFoundResponse('Sertifikat tidak ditemukan.');
         }
-        if (($certificate['status'] ?? '') !== 'issued') {
+
+        // Cek status wewenang pengguna (Super Admin / Admin / Operator bypass)
+        $authService = new \App\Services\Identity\AuthorizationService();
+        $isFullAdmin = $authService->isSuperAdmin()
+            || $authService->isAdmin()
+            || $authService->isPrefixAdmin()
+            || $authService->can('certificate.manage')
+            || $authService->can('certificate.view');
+
+        // Fallback langsung ke database jika data session belum memuat role
+        if (! $isFullAdmin && $actorId > 0) {
+            $isFullAdmin = $this->db->table('user_roles ur')
+                ->join('roles r', 'r.id = ur.role_id')
+                ->where('ur.user_id', $actorId)
+                ->where('ur.status', 'active')
+                ->whereIn('r.key', ['super_administrator', 'superadmin', 'administrator', 'admin', 'operator', 'admin_sertifikat', 'admin_pembelajaran', 'admin_arenabelajar'])
+                ->countAllResults() > 0;
+        }
+
+        // Pembatasan status: Peserta biasa hanya boleh mengunduh sertifikat 'issued'.
+        // Administrator/Super Administrator/Operator memiliki wewenang untuk mengunduh arsip dokumen sertifikat apa pun.
+        if (! $isFullAdmin && ($certificate['status'] ?? '') !== 'issued') {
             return $this->forbiddenResponse('Sertifikat belum dapat diunduh (status: ' . $certificate['status'] . ').');
         }
 
         // Authorization
         try {
-            $this->assertDownloadAccess($actorId, $certificate);
+            $this->assertDownloadAccess($actorId, $certificate, $isFullAdmin);
         } catch (RuntimeException $e) {
             return $this->forbiddenResponse($e->getMessage());
         }
@@ -101,10 +122,21 @@ class CertificateDownloadController extends BaseController
     }
 
     /**
-     * Authorization: admin/super_administrator/operator OR pemilik sertifikat sendiri.
+     * Authorization: admin/super_administrator/operator (full bypass) OR pemilik sertifikat sendiri OR trainer kelas.
      */
-    private function assertDownloadAccess(int $actorId, array $certificate): void
+    private function assertDownloadAccess(int $actorId, array $certificate, bool $isFullAdmin = false): void
     {
+        // 1. Full bypass untuk Administrator, Super Administrator, Operator, dan Pengelola
+        if ($isFullAdmin) {
+            return;
+        }
+
+        $authService = new \App\Services\Identity\AuthorizationService();
+        if ($authService->isSuperAdmin() || $authService->isAdmin() || $authService->isPrefixAdmin() || $authService->can('certificate.manage') || $authService->can('certificate.view')) {
+            return;
+        }
+
+        // 2. Pemilik sertifikat sendiri
         $isOwner = (int) ($certificate['user_id'] ?? 0) === $actorId;
         if ($isOwner) {
             $row = $this->db->table('users')->where('id', $actorId)->get()->getRowArray();
@@ -114,14 +146,14 @@ class CertificateDownloadController extends BaseController
             return;
         }
 
-        // Cek jika pemohon unduh adalah Trainer yang membina kelas terkait
+        // 3. Cek jika pemohon unduh adalah Trainer yang membina kelas terkait
         if (($certificate['source_type'] ?? '') === 'learning_enrollment') {
             $enrollment = $this->db->table('enrollments')->select('class_id')->where('id', (int) ($certificate['source_id'] ?? 0))->get()->getRowArray();
             if ($enrollment && ! empty($enrollment['class_id'])) {
                 $isTrainer = $this->db->table('class_trainers')
                     ->where('class_id', (int) $enrollment['class_id'])
-                    ->where('trainer_id', $actorId)
-                    ->where('deleted_at IS NULL')
+                    ->where('user_id', $actorId)
+                    ->where('status', 'active')
                     ->countAllResults() > 0;
                 if ($isTrainer) {
                     return;
@@ -129,11 +161,12 @@ class CertificateDownloadController extends BaseController
             }
         }
 
+        // 4. Periksa role aktif di database
         $hasPerm = $this->db->table('user_roles ur')
             ->join('roles r', 'r.id = ur.role_id')
             ->where(['ur.user_id' => $actorId, 'ur.status' => 'active'])
             ->groupStart()
-            ->whereIn('r.key', ['administrator', 'super_administrator', 'operator'])
+            ->whereIn('r.key', ['administrator', 'super_administrator', 'operator', 'admin', 'superadmin', 'admin_sertifikat', 'admin_pembelajaran', 'admin_arenabelajar'])
             ->orWhereIn('r.name', ['Administrator', 'Super Administrator', 'Operator'])
             ->groupEnd()
             ->countAllResults() > 0;

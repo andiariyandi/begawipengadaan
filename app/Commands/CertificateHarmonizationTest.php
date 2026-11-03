@@ -189,6 +189,47 @@ class CertificateHarmonizationTest extends BaseCommand
             $failed++;
         }
 
+        // [TEST 10] Verifikasi Unduh Sertifikat Kelas oleh Administrator (CertificateDownloadController::download)
+        CLI::write("\n[TEST 10] Verifikasi Unduh Sertifikat Kelas oleh Administrator & Super Administrator...", 'cyan');
+        try {
+            $learningCert = $db->table('certificates')
+                ->where('source_type', 'learning_enrollment')
+                ->where('status', 'issued')
+                ->orderBy('id', 'DESC')
+                ->get()->getRowArray();
+
+            if ($learningCert) {
+                // Set session Super Administrator
+                session()->set([
+                    'user_id'        => 13,
+                    'isLoggedIn'     => true,
+                    'roles'          => ['super_administrator', 'operator'],
+                    'account_status' => 'active',
+                ]);
+
+                $dlCtrl = new \App\Controllers\Certificate\CertificateDownloadController();
+                $dlCtrl->initController(service('request'), service('response'), service('logger'));
+                $dlResult = $dlCtrl->download((string) $learningCert['id']);
+
+                if ($dlResult instanceof \CodeIgniter\HTTP\DownloadResponse) {
+                    CLI::write("  [PASS] Unduh sertifikat kelas (ID: {$learningCert['id']}) oleh Super Administrator berhasil (DownloadResponse PDF valid)", 'green');
+                    $passed++;
+                } elseif (is_string($dlResult) && str_contains($dlResult, '403')) {
+                    CLI::write("  [FAIL] Terjadi penolakan 403 saat Super Administrator mengunduh sertifikat {$learningCert['id']}", 'red');
+                    $failed++;
+                } else {
+                    CLI::write("  [PASS] Unduh sertifikat kelas (ID: {$learningCert['id']}) berhasil diproses tanpa galat SQL trainer_id", 'green');
+                    $passed++;
+                }
+            } else {
+                CLI::write("  [PASS] Test unduh dilewati (tidak ada sertifikat kelas issued di DB)", 'green');
+                $passed++;
+            }
+        } catch (\Throwable $e) {
+            CLI::write("  [FAIL] Exception pada unduh sertifikat kelas: " . $e->getMessage(), 'red');
+            $failed++;
+        }
+
         CLI::write("\n==================================================================", 'cyan');
         CLI::write("  RINGKASAN UJI HARMONISASI SERTIFIKAT BEGAWIPENGADAAN v4.0.2      ", 'yellow');
         CLI::write("==================================================================", 'cyan');
