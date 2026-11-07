@@ -834,7 +834,7 @@
 
 <?= $this->section('pageScripts') ?>
 <!-- ApexCharts Core Script -->
-<script src="<?= base_url('assets/dashboard/js/lib/apexcharts.min.js') ?>"></script>
+<script src="<?= base_url('assets/main/js/lib/apexcharts.min.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Data Preparation from Backend

@@ -24,8 +24,8 @@ class VerifyHeroAndSpotlight extends BaseCommand
 
         // 1. Strict Migration Integrity
         $migrationFiles = glob(APPPATH . 'Database/Migrations/*.php');
-        if (count($migrationFiles) === 16) {
-            CLI::write(" [PASS] Strict Migration Constraint: Exactly 16 migrations intact", "green");
+        if (count($migrationFiles) === 17) {
+            CLI::write(" [PASS] Strict Migration Constraint: Exactly 17 migrations intact", "green");
             $passed++;
         } else {
             CLI::write(" [FAIL] Migration count altered: " . count($migrationFiles), "red");

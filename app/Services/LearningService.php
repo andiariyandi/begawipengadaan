@@ -340,7 +340,7 @@ class LearningService
     /**
      * Submit jawaban quiz dan hitung nilai otomatis.
      */
-    public function submitQuiz(int $userId, int $attemptId, array $answers): array
+    public function submitQuiz(int $userId, int $attemptId, array $answers, bool $force = false): array
     {
         $attempt = $this->db->table('quiz_attempts')->where('id', $attemptId)->get()->getRowArray();
         if (! $attempt || $attempt['status'] !== 'started') {
@@ -354,7 +354,7 @@ class LearningService
 
         // H-1: Penegakan batas waktu kuis di server (+ toleransi grace period 120 detik)
         $duration = (int) ($context['quiz']['duration_minutes'] ?? 0);
-        if ($duration > 0 && ! empty($attempt['started_at'])) {
+        if (! $force && $duration > 0 && ! empty($attempt['started_at'])) {
             $deadline = strtotime($attempt['started_at']) + ($duration * 60);
             if (time() > ($deadline + 120)) {
                 throw new RuntimeException('Batas waktu pengerjaan quiz telah berakhir.');

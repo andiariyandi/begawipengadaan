@@ -176,11 +176,11 @@ class AdminLearningCertTest extends BaseCommand
         // 9. Zero Migration Check
         $migrationFiles = glob(APPPATH . 'Database/Migrations/*.php');
         $migrationCount = count($migrationFiles);
-        if ($migrationCount === 16) {
-            CLI::write(" [PASS] Zero Migration Check: Tepat 16 file migrasi eksisting, 0 migrasi baru dibuat", 'green');
+        if ($migrationCount === 17) {
+            CLI::write(" [PASS] Zero Migration Check: Tepat 17 file migrasi eksisting, 0 migrasi baru dibuat", 'green');
             $passed++;
         } else {
-            CLI::error(" [FAIL] Jumlah file migrasi berubah: {$migrationCount} (harus tetap 16)");
+            CLI::error(" [FAIL] Jumlah file migrasi berubah: {$migrationCount} (harus tetap 17)");
             $failed++;
         }
 

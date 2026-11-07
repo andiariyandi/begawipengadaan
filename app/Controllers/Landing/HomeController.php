@@ -650,18 +650,29 @@ class HomeController extends BaseController
             $fileAssetId = null;
             try {
                 if ($db->tableExists('file_assets')) {
+                    $nowH = date('Y-m-d H:i:s');
+                    $fullH = FCPATH . ltrim($relativePath, '/\\');
                     $db->table('file_assets')->insert([
-                        'storage_disk'  => 'public',
-                        'file_path'     => $relativePath,
-                        'original_name' => $origName,
-                        'mime_type'     => $mimeType,
-                        'file_size'     => $sizeBytes,
-                        'uploaded_by'   => $userId ?: null,
-                        'created_at'    => date('Y-m-d H:i:s'),
+                        'disk'             => 'local',
+                        'path'             => $relativePath,
+                        'original_name'    => $origName,
+                        'stored_name'      => $newName,
+                        'extension'        => strtolower((string) $ext),
+                        'mime_type'        => $mimeType,
+                        'size_bytes'       => (int) $sizeBytes,
+                        'checksum'         => @hash_file('sha256', $fullH) ?: null,
+                        'visibility'       => 'public',
+                        'lifecycle_status' => 'available',
+                        'resource_type'    => 'consultation_attachment',
+                        'uploaded_by'      => $userId ?: null,
+                        'available_at'     => $nowH,
+                        'created_at'       => $nowH,
+                        'updated_at'       => $nowH,
                     ]);
                     $fileAssetId = (int) $db->insertID();
                 }
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
+                log_message('error', 'Insert file_assets failed in HomeController: ' . $e->getMessage());
             }
 
             $attachmentData = [

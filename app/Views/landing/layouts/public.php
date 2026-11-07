@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="<?= base_url('assets/main/css/odometer.min.css') ?>" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/flaticon.css') ?>" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/owl.carousel.min.css') ?>" />
-    <script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
+    <script src="<?= base_url('assets/main/js/lib/iconify-icon.min.js') ?>"></script>
     <link rel="stylesheet" href="<?= base_url('assets/main/css/owl.theme.default.min.css') ?>" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/nice-select.css') ?>" />
     <link rel="stylesheet" href="<?= base_url('assets/main/css/jquery-ui.css') ?>" />

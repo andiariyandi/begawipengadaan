@@ -80,7 +80,7 @@ $media = $media ?? [];
                         <tr>
                             <td>
                                 <?php if ($coverUrl): ?>
-                                    <img src="<?= esc($coverUrl) ?>" alt="Cover" class="w-80-px h-48-px radius-8 object-fit-cover border shadow-xs" onerror="this.src='<?= base_url('assets/main/images/blog/blog-2-1.jpg') ?>';">
+                                    <img src="<?= esc($coverUrl) ?>" alt="Cover" class="w-80-px h-48-px radius-8 object-fit-cover border shadow-xs" onerror="this.src='<?= base_url('assets/dashboard/images/blog/blog-2-1.jpg') ?>';">
                                 <?php else: ?>
                                     <div class="w-80-px h-48-px radius-8 bg-neutral-100 border d-flex align-items-center justify-content-center text-secondary-light text-xs">
                                         <iconify-icon icon="solar:image-linear" class="text-lg"></iconify-icon>
@@ -178,7 +178,7 @@ $media = $media ?? [];
                         <tr>
                             <td>
                                 <?php if ($mCover): ?>
-                                    <img src="<?= esc($mCover) ?>" alt="Cover" class="w-80-px h-48-px radius-8 object-fit-cover border shadow-xs" onerror="this.src='<?= base_url('assets/main/images/gallery/gallery-page-1-1.jpg') ?>';">
+                                    <img src="<?= esc($mCover) ?>" alt="Cover" class="w-80-px h-48-px radius-8 object-fit-cover border shadow-xs" onerror="this.src='<?= base_url('assets/dashboard/images/gallery/gallery-page-1-1.jpg') ?>';">
                                 <?php else: ?>
                                     <div class="w-80-px h-48-px radius-8 bg-neutral-100 border d-flex align-items-center justify-content-center text-secondary-light text-xs">
                                         <iconify-icon icon="solar:gallery-linear" class="text-lg"></iconify-icon>

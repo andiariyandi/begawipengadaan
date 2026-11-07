@@ -1002,7 +1002,7 @@
                     <div id="simulatorStage" class="w-100 position-relative radius-16 overflow-hidden shadow-lg border border-neutral-300 transition-2" style="min-height: 380px; max-width: 100%; background: #0f172a;">
                         
                         <div id="simSlideContainer" class="w-100 h-100 d-flex flex-column justify-content-end p-32 p-sm-40 position-relative" style="min-height: 380px;">
-                            <img id="simSlideImg" src="<?= base_url('assets/main/images/event/event-details-top-img-1.jpg') ?>" class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-40" alt="Slide Preview">
+                            <img id="simSlideImg" src="<?= base_url('assets/dashboard/images/event/event-details-top-img-1.jpg') ?>" class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-40" alt="Slide Preview">
                             <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(180deg, rgba(15,23,42,0.3) 0%, rgba(15,23,42,0.95) 100%);"></div>
 
                             <div class="position-relative z-1 text-white" style="max-width: 680px;">
@@ -1601,7 +1601,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 let html = '';
                 data.results.forEach(item => {
                     const isCover = item.cover_url && item.cover_url !== '';
-                    const fallback = '<?= base_url('assets/main/images/event/event-details-top-img-1.jpg') ?>';
+                    const fallback = '<?= base_url('assets/dashboard/images/event/event-details-top-img-1.jpg') ?>';
                     const coverSrc = isCover ? item.cover_url : fallback;
                     const isCarousel = item.carousel_enabled == 1;
                     const isFeatured = item.is_featured == 1;
@@ -1764,7 +1764,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (simSlideIndex < 0) simSlideIndex = slides.length - 1;
 
         const current = slides[simSlideIndex];
-        const fallback = '<?= base_url('assets/main/images/event/event-details-top-img-1.jpg') ?>';
+        const fallback = '<?= base_url('assets/dashboard/images/event/event-details-top-img-1.jpg') ?>';
 
         document.getElementById('simSlideImg').src = current.cover_url || fallback;
         document.getElementById('simSlideBadge').textContent = current.type_label || 'HERO SLIDE';

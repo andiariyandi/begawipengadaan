@@ -85,6 +85,7 @@ class AuthorizationService
         }
 
         $roles = $userRoles ?? (array) session()->get('roles');
+        $perms = $userPermissions ?? (array) session()->get('permissions');
 
         // 1. Super Administrator & Administrator (Akses Penuh)
         if (in_array('super_administrator', $roles, true) || in_array('administrator', $roles, true)) {
@@ -96,7 +97,26 @@ class AuthorizationService
             return true;
         }
 
-        // 3. Seluruh peran lainnya (Operator, Trainer, Peserta)
+        // 3. Hak akses eksplisit dashboard via flag sesi atau permissions
+        if (session()->get('dashboard_access') === true) {
+            return true;
+        }
+
+        if (! empty($perms)) {
+            if (in_array('dashboard.view', $perms, true) || in_array('dashboard.indicators.view', $perms, true)) {
+                return true;
+            }
+            $dashboardPrefixes = ['dashboard.', 'bunga.', 'kms.', 'regulation.', 'learning.', 'lms.', 'audit.', 'reports.', 'access.', 'user.', 'event.', 'news.', 'communication.', 'certificate.', 'intelligence.', 'survey.', 'approval.', 'system.', 'landing.'];
+            foreach ($perms as $p) {
+                foreach ($dashboardPrefixes as $dp) {
+                    if (str_starts_with((string) $p, $dp)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // 4. Seluruh peran lainnya (Operator, Trainer, Peserta tanpa izin dashboard)
         // Murni beraktivitas di Workspace dan tidak diberikan akses ke Dashboard
         return false;
     }

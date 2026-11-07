@@ -87,7 +87,7 @@ class LandingCmsMasterTest extends BaseCommand
         $files = glob($migrationsPath . '/*.php') ?: [];
         $count = count($files);
 
-        $this->assert("Strict constraint: Exactly 16 migration files", $count === 16, "Found {$count} files");
+        $this->assert("Strict constraint: Exactly 17 migration files", $count === 17, "Found {$count} files");
     }
 
     private function testSidebarSingleItem()

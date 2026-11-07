@@ -264,7 +264,7 @@
                                 <?php foreach ($recentArticles as $art):
                                     $coverImg = ! empty($art['cover_path'])
                                         ? base_url('file/' . (int) $art['cover_file_id'])
-                                        : base_url('assets/main/images/blog/blog-2-1.jpg');
+                                        : base_url('assets/dashboard/images/blog/blog-2-1.jpg');
                                     $typeBadge = match ($art['type']) {
                                         'case_study' => ['bg' => 'bg-danger-50 text-danger-600 border-danger-100', 'label' => 'Studi Kasus'],
                                         'template'   => ['bg' => 'bg-success-50 text-success-600 border-success-100', 'label' => 'Template'],
@@ -286,7 +286,7 @@
                                     <tr class="border-bottom">
                                         <td class="px-20 py-12">
                                             <div class="d-flex align-items-center gap-12">
-                                                <img src="<?= esc($coverImg) ?>" alt="Cover" class="w-48-px h-36-px radius-6 object-fit-cover flex-shrink-0 border" onerror="this.src='<?= base_url('assets/main/images/blog/blog-2-1.jpg') ?>';">
+                                                <img src="<?= esc($coverImg) ?>" alt="Cover" class="w-48-px h-36-px radius-6 object-fit-cover flex-shrink-0 border" onerror="this.src='<?= base_url('assets/dashboard/images/blog/blog-2-1.jpg') ?>';">
                                                 <div style="max-width: 260px;">
                                                     <a href="<?= esc($editUrl) ?>" class="fw-semibold text-primary-900 text-decoration-none text-truncate d-block hover-primary" style="font-size: 13.5px;">
                                                         <?= esc($art['title']) ?>
@@ -355,14 +355,14 @@
                                 ? base_url('file/' . (int) $med['file_id'])
                                 : (! empty($med['thumbnail_file_id'])
                                     ? base_url('file/' . (int) $med['thumbnail_file_id'])
-                                    : base_url('assets/main/images/gallery/gallery-page-1-1.jpg'));
+                                    : base_url('assets/dashboard/images/gallery/gallery-page-1-1.jpg'));
                             $isVideo = in_array($med['type'], ['youtube', 'video_file', 'video'], true);
                             $editUrl = route_to('dashboard.knowledge.media-gallery.edit', (string) $med['id']);
                         ?>
                             <div class="col-6">
                                 <div class="card border border-neutral-200 radius-12 overflow-hidden h-100 shadow-none position-relative group-hover">
                                     <div class="position-relative" style="height: 120px; background: #0b1f3a;">
-                                        <img src="<?= esc($previewImg) ?>" alt="<?= esc($med['title'] ?? '') ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/main/images/gallery/gallery-page-1-1.jpg') ?>';">
+                                        <img src="<?= esc($previewImg) ?>" alt="<?= esc($med['title'] ?? '') ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/dashboard/images/gallery/gallery-page-1-1.jpg') ?>';">
                                         <div class="position-absolute top-0 start-0 m-2">
                                             <span class="badge radius-4 px-6 py-2 text-2xs <?= $isVideo ? 'bg-danger text-white' : ($med['type'] === 'gallery' ? 'bg-dark text-white' : 'bg-info-50 text-info-700') ?>">
                                                 <?= $isVideo ? 'Video' : ($med['type'] === 'gallery' ? 'Galeri' : 'Infografis') ?>

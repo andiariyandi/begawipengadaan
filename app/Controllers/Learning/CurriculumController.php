@@ -779,17 +779,21 @@ class CurriculumController extends BaseController
             $guideSize = $guideFile->getSize();
 
             $db->table('file_assets')->insert([
-                'user_id'        => $userId ? (int) $userId : null,
-                'collection'     => 'assignment_guides',
-                'filename'       => $newFilename,
-                'original_name'  => $guideFilename,
-                'mime_type'      => 'application/pdf',
-                'size_bytes'     => $guideSize,
-                'path'           => $guideUrl,
-                'visibility'     => 'public',
-                'storage_driver' => 'local',
-                'created_at'     => $now,
-                'updated_at'     => $now,
+                'disk'             => 'local',
+                'path'             => $guideUrl,
+                'original_name'    => $guideFilename,
+                'stored_name'      => $newFilename,
+                'extension'        => 'pdf',
+                'mime_type'        => 'application/pdf',
+                'size_bytes'       => (int) $guideSize,
+                'checksum'         => @hash_file('sha256', $targetDir . $newFilename) ?: null,
+                'visibility'       => 'public',
+                'lifecycle_status' => 'available',
+                'resource_type'    => 'assignment_guide',
+                'uploaded_by'      => $userId ? (int) $userId : null,
+                'available_at'     => $now,
+                'created_at'       => $now,
+                'updated_at'       => $now,
             ]);
         }
 
@@ -877,17 +881,21 @@ class CurriculumController extends BaseController
             $guideSize = $guideFile->getSize();
 
             $db->table('file_assets')->insert([
-                'user_id'        => $userId ? (int) $userId : null,
-                'collection'     => 'assignment_guides',
-                'filename'       => $newFilename,
-                'original_name'  => $guideFilename,
-                'mime_type'      => 'application/pdf',
-                'size_bytes'     => $guideSize,
-                'path'           => $guideUrl,
-                'visibility'     => 'public',
-                'storage_driver' => 'local',
-                'created_at'     => $now,
-                'updated_at'     => $now,
+                'disk'             => 'local',
+                'path'             => $guideUrl,
+                'original_name'    => $guideFilename,
+                'stored_name'      => $newFilename,
+                'extension'        => 'pdf',
+                'mime_type'        => 'application/pdf',
+                'size_bytes'       => (int) $guideSize,
+                'checksum'         => @hash_file('sha256', $targetDir . $newFilename) ?: null,
+                'visibility'       => 'public',
+                'lifecycle_status' => 'available',
+                'resource_type'    => 'assignment_guide',
+                'uploaded_by'      => $userId ? (int) $userId : null,
+                'available_at'     => $now,
+                'created_at'       => $now,
+                'updated_at'       => $now,
             ]);
         }
 

@@ -173,10 +173,15 @@ class PortalSecurityTest extends BaseCommand
         $assert(str_contains($homeCtrlSource, "'survey_'"), "[M-4] submitSurvey() memiliki rate limiting key");
 
         $refHome = new \ReflectionClass(HomeController::class);
-        $contactCode = implode('', array_slice(file(APPPATH . 'Controllers/Landing/HomeController.php'), $refHome->getMethod('sendContact')->getStartLine(), 80));
+        $allLines = file(APPPATH . 'Controllers/Landing/HomeController.php');
+        $contactStart = $refHome->getMethod('sendContact')->getStartLine() - 1;
+        $contactLength = $refHome->getMethod('sendContact')->getEndLine() - $contactStart;
+        $contactCode = implode('', array_slice($allLines, $contactStart, $contactLength));
         $assert(str_contains($contactCode, "transStart()") && str_contains($contactCode, "transComplete()"), "[M-5] sendContact() membungkus insert dan log audit dalam transaksi atomik");
 
-        $surveyCode = implode('', array_slice(file(APPPATH . 'Controllers/Landing/HomeController.php'), $refHome->getMethod('submitSurvey')->getStartLine(), 100));
+        $surveyStart = $refHome->getMethod('submitSurvey')->getStartLine() - 1;
+        $surveyLength = $refHome->getMethod('submitSurvey')->getEndLine() - $surveyStart;
+        $surveyCode = implode('', array_slice($allLines, $surveyStart, $surveyLength));
         $assert(str_contains($surveyCode, "transStart()") && str_contains($surveyCode, "transComplete()"), "[M-5] submitSurvey() membungkus insert dan log audit dalam transaksi atomik");
 
         // ====================================================================

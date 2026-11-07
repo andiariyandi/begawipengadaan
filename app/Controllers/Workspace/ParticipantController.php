@@ -1946,7 +1946,7 @@ class ParticipantController extends BaseController
                 // If timer expired while away or on reload
                 if ($remainingSeconds <= 0) {
                     try {
-                        $this->learning->submitQuiz($userId, (int) $attempt['id'], []);
+                        $this->learning->submitQuiz($userId, (int) $attempt['id'], [], true);
                         return redirect()->to(route_to('workspace.participant.quiz.take', (string) $quizId) . '?attempt=' . $attempt['id'])
                             ->with('error', 'Waktu pengerjaan ujian telah habis. Jawaban Anda telah otomatis dikumpulkan.');
                     } catch (\Throwable $e) {

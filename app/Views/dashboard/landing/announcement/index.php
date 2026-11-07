@@ -231,7 +231,7 @@
                         <?php foreach ($announcements as $a): ?>
                             <?php
                             $isActive = (int) ($a['is_active'] ?? 0) === 1;
-                            $fallbackImg = base_url('assets/main/images/event/event-details-top-img-1.jpg');
+                            $fallbackImg = base_url('assets/dashboard/images/event/event-details-top-img-1.jpg');
                             $imgSrc = !empty($a['image_url']) ? (str_starts_with($a['image_url'], 'http') ? $a['image_url'] : base_url($a['image_url'])) : $fallbackImg;
                             ?>
                             <tr class="announcement-row"
@@ -390,7 +390,7 @@
 
                     <!-- Popup Media Banner -->
                     <div class="position-relative overflow-hidden bg-dark" style="height: 240px;">
-                        <img id="simImg" src="<?= base_url('assets/main/images/event/event-details-top-img-1.jpg') ?>" class="w-100 h-100 object-fit-cover" alt="Banner">
+                        <img id="simImg" src="<?= base_url('assets/dashboard/images/event/event-details-top-img-1.jpg') ?>" class="w-100 h-100 object-fit-cover" alt="Banner">
                         <div class="position-absolute bottom-0 start-0 w-100 h-50" style="background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.65) 100%);"></div>
                         <span id="simBadgeLabel" class="position-absolute top-0 start-0 m-16 badge bg-warning-main text-white text-xs px-12 py-6 radius-6 fw-bold">
                             AGENDA &amp; BIMTEK
@@ -735,7 +735,7 @@ document.addEventListener('DOMContentLoaded', function () {
         currentSimIndex = index;
 
         const item = items[currentSimIndex];
-        const fallback = '<?= base_url('assets/main/images/event/event-details-top-img-1.jpg') ?>';
+        const fallback = '<?= base_url('assets/dashboard/images/event/event-details-top-img-1.jpg') ?>';
         const imgSrc = item.image_url ? (item.image_url.startsWith('http') ? item.image_url : `<?= base_url() ?>/${item.image_url}`) : fallback;
 
         document.getElementById('simImg').src = imgSrc;

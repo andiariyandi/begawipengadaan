@@ -756,7 +756,7 @@ class LearningClassController extends BaseController
             $db->table('quizzes')->insert($newQuizData);
             $newQuizId = (int) $db->insertID();
 
-            $questions = $db->table('questions')
+            $questions = $db->table('quiz_questions')
                 ->where('quiz_id', (int) $q['id'])
                 ->orderBy('sort_order', 'ASC')
                 ->get()->getResultArray();
@@ -764,7 +764,7 @@ class LearningClassController extends BaseController
             foreach ($questions as $quest) {
                 $newQuestData = [
                     'quiz_id'     => $newQuizId,
-                    'question'    => $quest['question'],
+                    'prompt'      => $quest['prompt'],
                     'type'        => $quest['type'] ?? 'multiple_choice',
                     'points'      => $quest['points'] ?? 10,
                     'sort_order'  => (int) ($quest['sort_order'] ?? 1),
@@ -772,10 +772,10 @@ class LearningClassController extends BaseController
                     'created_at'  => date('Y-m-d H:i:s'),
                     'updated_at'  => date('Y-m-d H:i:s'),
                 ];
-                $db->table('questions')->insert($newQuestData);
+                $db->table('quiz_questions')->insert($newQuestData);
                 $newQuestId = (int) $db->insertID();
 
-                $options = $db->table('question_options')
+                $options = $db->table('quiz_options')
                     ->where('question_id', (int) $quest['id'])
                     ->orderBy('sort_order', 'ASC')
                     ->get()->getResultArray();
@@ -789,7 +789,7 @@ class LearningClassController extends BaseController
                         'created_at'  => date('Y-m-d H:i:s'),
                         'updated_at'  => date('Y-m-d H:i:s'),
                     ];
-                    $db->table('question_options')->insert($newOptData);
+                    $db->table('quiz_options')->insert($newOptData);
                 }
             }
         }
@@ -872,7 +872,7 @@ class LearningClassController extends BaseController
         $no = 1;
         foreach ($enrollments as $row) {
             $finalScore = $row['final_score'] !== null ? (float) $row['final_score'] : 0.0;
-            $isPassed = in_array($row['status'], ['completed', 'passed'], true) || ($finalScore >= $passingGrade && $row['status'] === 'active');
+            $isPassed = ($row['status'] === 'completed') || ($finalScore >= $passingGrade && in_array($row['status'], ['enrolled', 'in_progress'], true));
             $passStatus = $isPassed ? 'LULUS' : 'BELUM LULUS';
 
             $certStatus = ! empty($row['certificate_id'])

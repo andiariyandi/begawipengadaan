@@ -50,34 +50,8 @@ class QuizController extends BaseController
 
     public function questionBank(): string
     {
-        $db = db_connect();
-        $keyword = trim((string) $this->request->getGet('keyword'));
-
-        $builder = $db->table('quiz_questions qq')
-            ->select('qq.*, q.title AS quiz_title, c.title AS course_title')
-            ->join('quizzes q', 'q.id = qq.quiz_id', 'left')
-            ->join('lessons l', 'l.id = q.lesson_id', 'left')
-            ->join('learning_modules lm', 'lm.id = l.module_id', 'left')
-            ->join('learning_classes lc2', 'lc2.id = COALESCE(q.class_id, lm.class_id)', 'left')
-            ->join('courses c', 'c.id = lc2.course_id', 'left')
-            ->orderBy('qq.id', 'DESC');
-
-        if ($keyword !== '') {
-            $builder->groupStart()
-                ->like('qq.question_text', $keyword)
-                ->orLike('q.title', $keyword)
-                ->groupEnd();
-        }
-
-        $questions = $builder->get()->getResultArray();
-
-        return view('dashboard/learning/assessments/question_bank', [
-            'title'         => 'Bank Soal | Dashboard BegawiPengadaan',
-            'pageTitle'     => 'Bank Soal Evaluasi',
-            'questions'     => $questions,
-            'filters'       => ['keyword' => $keyword],
-            'activeMenu'    => 'learning',
-            'activeSubmenu' => 'assessments',
-        ]);
+        $assess = new \App\Controllers\Learning\AssessmentManagementController();
+        $assess->initController($this->request, $this->response, $this->logger);
+        return $assess->questionBank();
     }
 }

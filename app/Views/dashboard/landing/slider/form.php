@@ -14,7 +14,7 @@ $currentSecBtnText = old('secondary_button_text', $slider['secondary_button_text
 $currentSecBtnUrl = old('secondary_button_url', $slider['secondary_button_url'] ?? 'arena-belajar');
 $currentOrder = old('sort_order', $slider['sort_order'] ?? ($nextOrder ?? 1));
 $currentActive = old('is_active', $slider['is_active'] ?? 1);
-$currentImageUrl = old('image_url', $slider['image_url'] ?? 'assets/main/images/backgrounds/slider-1-1.png');
+$currentImageUrl = old('image_url', $slider['image_url'] ?? 'assets/dashboard/images/backgrounds/slider-1-1.png');
 $curImgSrc = str_starts_with($currentImageUrl, 'http') ? $currentImageUrl : base_url($currentImageUrl);
 ?>
 
@@ -274,7 +274,7 @@ $curImgSrc = str_starts_with($currentImageUrl, 'http') ? $currentImageUrl : base
                              src="<?= esc($curImgSrc) ?>" 
                              alt="Live Hero Preview" 
                              class="w-100 h-100 object-fit-cover position-absolute top-0 start-0 opacity-40 transition-all"
-                             onerror="this.src='<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>'">
+                             onerror="this.src='<?= base_url('assets/dashboard/images/backgrounds/slider-1-1.png') ?>'">
                         <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(90deg, rgba(8, 23, 48, 0.94) 0%, rgba(8, 23, 48, 0.72) 65%, rgba(8, 23, 48, 0.35) 100%);"></div>
 
                         <!-- Live Content Overlay -->
@@ -361,7 +361,7 @@ $curImgSrc = str_starts_with($currentImageUrl, 'http') ? $currentImageUrl : base
                                     <div class="col-4">
                                         <div class="border radius-6 overflow-hidden cursor-pointer hover-border-primary transition-all position-relative preset-bg-card" 
                                              onclick="applyPresetBg('<?= esc($bg['path'], 'js') ?>')">
-                                            <img src="<?= base_url($bg['path']) ?>" alt="<?= esc($bg['label']) ?>" class="w-100 object-fit-cover" style="height: 50px;" onerror="this.src='<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>'">
+                                            <img src="<?= base_url($bg['path']) ?>" alt="<?= esc($bg['label']) ?>" class="w-100 object-fit-cover" style="height: 50px;" onerror="this.src='<?= base_url('assets/dashboard/images/backgrounds/slider-1-1.png') ?>'">
                                             <span class="d-block text-center text-3xs text-truncate p-1 bg-neutral-100 fw-medium text-secondary-light">
                                                 <?= esc($bg['label']) ?>
                                             </span>
@@ -384,7 +384,7 @@ $curImgSrc = str_starts_with($currentImageUrl, 'http') ? $currentImageUrl : base
                                        id="image_url" 
                                        class="form-control form-control-sm radius-8 font-monospace text-xs" 
                                        value="<?= esc($currentImageUrl) ?>" 
-                                       placeholder="assets/main/images/backgrounds/slider-1-1.png"
+                                       placeholder="assets/dashboard/images/backgrounds/slider-1-1.png"
                                        oninput="updatePreviewFromManualPath(this.value)">
                                 <small class="text-muted text-3xs d-block mt-4">Kosongkan jika telah mengunggah file baru di atas.</small>
                             </div>

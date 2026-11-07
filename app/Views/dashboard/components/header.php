@@ -378,8 +378,8 @@
         window.__dispatchedAdminNotifKeys.add(notifKey);
 
         const origin = window.location.origin || '';
-        const iconUrl = origin + '/assets/main/images/favicons/android-chrome-192x192.png';
-        const badgeUrl = origin + '/assets/main/images/favicons/favicon-32x32.png';
+        const iconUrl = origin + '/assets/dashboard/images/favicons/android-chrome-192x192.png';
+        const badgeUrl = origin + '/assets/dashboard/images/favicons/favicon-32x32.png';
         const title = item.title || 'BegawiPengadaan Admin';
         const targetUrl = item.url || item.detail_url || (origin + '/dashboard/sistem/notifikasi');
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);

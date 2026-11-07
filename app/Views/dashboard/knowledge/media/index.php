@@ -153,7 +153,7 @@ $createParam = match ($scope) {
                     <!-- Media Showcase Container -->
                     <div class="position-relative" style="height: 200px; background: #082f5c; overflow: hidden;">
                         <?php if ($thumbSrc): ?>
-                            <img src="<?= esc($thumbSrc) ?>" alt="<?= esc($m['alt_text'] ?? $m['title'] ?? '') ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/main/images/gallery/gallery-page-1-1.jpg') ?>';">
+                            <img src="<?= esc($thumbSrc) ?>" alt="<?= esc($m['alt_text'] ?? $m['title'] ?? '') ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/dashboard/images/gallery/gallery-page-1-1.jpg') ?>';">
                         <?php else: ?>
                             <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white-50">
                                 <iconify-icon icon="solar:gallery-broken" class="text-5xl"></iconify-icon>

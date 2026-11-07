@@ -2101,6 +2101,22 @@ CREATE TABLE IF NOT EXISTS `workflow_transitions` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table db_begawipbj.visitor_ip_logs
+CREATE TABLE IF NOT EXISTS `visitor_ip_logs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `feature` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'home',
+  `visit_date` date NOT NULL,
+  `user_agent` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_ip_feature_date` (`ip_address`,`feature`,`visit_date`),
+  KEY `idx_feature_date` (`feature`,`visit_date`),
+  KEY `idx_visit_date` (`visit_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Data exporting was unselected.
+
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;

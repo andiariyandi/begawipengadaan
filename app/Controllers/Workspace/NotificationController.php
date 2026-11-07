@@ -12,6 +12,8 @@ class NotificationController extends BaseController
     public function __construct()
     {
         $this->service = new NotificationService();
+        $this->request  ??= service('request');
+        $this->response ??= service('response');
     }
 
     public function index()
@@ -97,7 +99,7 @@ class NotificationController extends BaseController
         $notif = $builder->get()->getRowArray();
 
         if (! $notif) {
-            if ($this->request->isAJAX()) {
+            if (method_exists($this->request, 'isAJAX') && $this->request->isAJAX()) {
                 return $this->response->setJSON(['success' => false, 'message' => 'Notifikasi tidak ditemukan.']);
             }
             return redirect()->back()->with('error', 'Notifikasi tidak ditemukan atau tidak dapat diakses.');
@@ -105,7 +107,7 @@ class NotificationController extends BaseController
 
         $this->service->markAsRead($notifId, $userId);
 
-        if ($this->request->isAJAX()) {
+        if (method_exists($this->request, 'isAJAX') && $this->request->isAJAX()) {
             return $this->response->setJSON(['success' => true, 'message' => 'Notifikasi telah ditandai dibaca.']);
         }
 
@@ -120,7 +122,7 @@ class NotificationController extends BaseController
             $this->service->markAllAsRead($userId, $roles);
         }
 
-        if ($this->request->isAJAX()) {
+        if (method_exists($this->request, 'isAJAX') && $this->request->isAJAX()) {
             return $this->response->setJSON(['success' => true, 'message' => 'Semua notifikasi telah ditandai dibaca.']);
         }
 

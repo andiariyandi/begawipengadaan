@@ -225,7 +225,7 @@ $studentCount = (int) $db->table('enrollments e')
                 <?php
                 $coverSrc = ! empty($program['cover_url'])
                     ? (str_starts_with($program['cover_url'], 'http') ? $program['cover_url'] : base_url($program['cover_url']))
-                    : base_url('assets/main/images/resources/course-list-img-1.jpg');
+                    : base_url('assets/dashboard/images/resources/course-list-img-1.jpg');
                 ?>
                 <div class="radius-12 overflow-hidden border mb-16" style="max-height: 200px;">
                     <img src="<?= esc($coverSrc) ?>" alt="<?= esc($program['title']) ?>" class="w-100 h-100" style="object-fit: cover;">

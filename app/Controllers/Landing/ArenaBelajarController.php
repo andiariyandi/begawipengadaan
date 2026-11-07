@@ -37,7 +37,14 @@ class ArenaBelajarController extends BaseController
         $stats = [
             'total_programs' => (int) $programModel->where('status', 'published')->where('visibility', 'public')->countAllResults(),
             'total_courses'  => (int) $courseModel->where('status', 'published')->where('visibility', 'public')->countAllResults(),
-            'total_classes'  => (int) $classModel->whereIn('status', ['scheduled', 'active', 'open', 'published', 'ongoing'])->countAllResults(),
+            'total_classes'  => (int) $db->table('learning_classes lc')
+                ->join('courses c', 'c.id = lc.course_id')
+                ->where('lc.deleted_at IS NULL')
+                ->whereIn('lc.status', ['scheduled', 'active', 'open', 'published', 'ongoing'])
+                ->where('c.deleted_at IS NULL')
+                ->where('c.status', 'published')
+                ->where('c.visibility', 'public')
+                ->countAllResults(),
             'total_trainers' => (int) $db->table('class_trainers ct')
                 ->join('users u', 'u.id = ct.user_id')
                 ->where('ct.status', 'active')
@@ -55,12 +62,22 @@ class ArenaBelajarController extends BaseController
             ->orderBy('id', 'DESC')
             ->findAll(4);
 
-        foreach ($featuredPrograms as &$prog) {
-            $prog['course_count'] = (int) $courseModel
-                ->where('program_id', (int) $prog['id'])
+        $progIds = array_column($featuredPrograms, 'id');
+        $progCourseCounts = [];
+        if (! empty($progIds)) {
+            $cCounts = $db->table('courses')
+                ->select('program_id, COUNT(*) as cnt')
+                ->whereIn('program_id', $progIds)
                 ->where('status', 'published')
                 ->where('visibility', 'public')
-                ->countAllResults();
+                ->groupBy('program_id')
+                ->get()->getResultArray();
+            foreach ($cCounts as $cc) {
+                $progCourseCounts[(int) $cc['program_id']] = (int) $cc['cnt'];
+            }
+        }
+        foreach ($featuredPrograms as &$prog) {
+            $prog['course_count'] = $progCourseCounts[(int) $prog['id']] ?? 0;
         }
         unset($prog);
 
@@ -92,19 +109,41 @@ class ArenaBelajarController extends BaseController
             ->orderBy('learning_classes.start_at', 'ASC')
             ->findAll(6);
 
-        foreach ($activeClasses as &$cl) {
-            $cl['trainers'] = $db->table('class_trainers ct')
-                ->select('users.name, users.username, ct.role')
+        $activeClassIds = array_column($activeClasses, 'id');
+        $classTrainersMap = [];
+        $classEnrollmentMap = [];
+        if (! empty($activeClassIds)) {
+            $trainersRows = $db->table('class_trainers ct')
+                ->select('ct.class_id, users.name, users.username, ct.role')
                 ->join('users', 'users.id = ct.user_id')
-                ->where('ct.class_id', (int) $cl['id'])
+                ->whereIn('ct.class_id', $activeClassIds)
                 ->where('ct.status', 'active')
                 ->where('users.deleted_at IS NULL', null, false)
                 ->orderBy('users.name', 'ASC')
                 ->get()->getResultArray();
-            $cl['enrolled_count'] = (int) $db->table('enrollments')
-                ->where('class_id', (int) $cl['id'])
+            foreach ($trainersRows as $tr) {
+                $classTrainersMap[(int) $tr['class_id']][] = [
+                    'name'     => $tr['name'],
+                    'username' => $tr['username'],
+                    'role'     => $tr['role'],
+                ];
+            }
+
+            $enrollRows = $db->table('enrollments')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $activeClassIds)
                 ->whereIn('status', ['active', 'completed'])
-                ->countAllResults();
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($enrollRows as $er) {
+                $classEnrollmentMap[(int) $er['class_id']] = (int) $er['cnt'];
+            }
+        }
+
+        foreach ($activeClasses as &$cl) {
+            $cid = (int) $cl['id'];
+            $cl['trainers']       = $classTrainersMap[$cid] ?? [];
+            $cl['enrolled_count'] = $classEnrollmentMap[$cid] ?? 0;
         }
         unset($cl);
 
@@ -793,18 +832,36 @@ class ArenaBelajarController extends BaseController
             }
         }
 
-        // Count students and finalize metrics
+        // Count students and finalize metrics (Batch pre-fetched)
+        $allClassIds = [];
+        foreach ($items as $t) {
+            foreach ($t['classes'] as $cls) {
+                $allClassIds[] = (int) $cls['id'];
+            }
+        }
+        $allClassIds = array_values(array_unique(array_filter($allClassIds)));
+        $classStudentMap = [];
+        if (! empty($allClassIds)) {
+            $eCounts = $db->table('enrollments')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $allClassIds)
+                ->whereIn('status', ['active', 'completed'])
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($eCounts as $ec) {
+                $classStudentMap[(int) $ec['class_id']] = (int) $ec['cnt'];
+            }
+        }
+
         foreach ($items as &$t) {
             $t['total_classes'] = count($t['classes']);
             $t['total_courses'] = count($t['courses']);
             $t['courses']       = array_values($t['courses']);
-            $classIds = array_column($t['classes'], 'id');
-            if ($classIds !== []) {
-                $t['total_students'] = (int) $db->table('enrollments')
-                    ->whereIn('class_id', $classIds)
-                    ->whereIn('status', ['active', 'completed'])
-                    ->countAllResults();
+            $totalSt = 0;
+            foreach ($t['classes'] as $cls) {
+                $totalSt += ($classStudentMap[(int) $cls['id']] ?? 0);
             }
+            $t['total_students'] = $totalSt;
         }
         unset($t);
 
@@ -978,23 +1035,38 @@ class ArenaBelajarController extends BaseController
             ->countAllResults();
 
         $db = \Config\Database::connect();
-        foreach ($classes as &$class) {
-            $class['slug']  = $class['code'];
-            $class['title'] = $class['name'];
-
-            $class['trainers'] = $db->table('class_trainers ct')
-                ->select('users.id, users.name, users.username, users.profile_type, ct.role')
+        $cClassIds = array_column($classes, 'id');
+        $cTrainersMap = [];
+        $cEnrollMap = [];
+        if (! empty($cClassIds)) {
+            $trRows = $db->table('class_trainers ct')
+                ->select('ct.class_id, users.id, users.name, users.username, users.profile_type, ct.role')
                 ->join('users', 'users.id = ct.user_id')
-                ->where('ct.class_id', (int) $class['id'])
+                ->whereIn('ct.class_id', $cClassIds)
                 ->where('ct.status', 'active')
                 ->orderBy('users.name', 'ASC')
                 ->get()->getResultArray();
+            foreach ($trRows as $tr) {
+                $cTrainersMap[(int) $tr['class_id']][] = $tr;
+            }
 
-            $class['enrolled_count'] = (int) $db->table('enrollments')
-                ->where('class_id', (int) $class['id'])
+            $enrRows = $db->table('enrollments')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $cClassIds)
                 ->whereIn('status', ['active', 'completed'])
-                ->countAllResults();
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($enrRows as $er) {
+                $cEnrollMap[(int) $er['class_id']] = (int) $er['cnt'];
+            }
+        }
 
+        foreach ($classes as &$class) {
+            $cid = (int) $class['id'];
+            $class['slug']  = $class['code'];
+            $class['title'] = $class['name'];
+            $class['trainers'] = $cTrainersMap[$cid] ?? [];
+            $class['enrolled_count'] = $cEnrollMap[$cid] ?? 0;
             $class['remaining_quota'] = max(0, (int) ($class['capacity'] ?? 0) - $class['enrolled_count']);
         }
         unset($class);
@@ -1283,11 +1355,21 @@ class ArenaBelajarController extends BaseController
             ->get()
             ->getResultArray();
 
-        foreach ($classes as &$cls) {
-            $enrolledCount = (int) $db->table('enrollments')
-                ->where('class_id', (int) $cls['id'])
+        $tdClassIds = array_column($classes, 'id');
+        $tdEnrollMap = [];
+        if (! empty($tdClassIds)) {
+            $tdEnrRows = $db->table('enrollments')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $tdClassIds)
                 ->whereIn('status', ['active', 'completed'])
-                ->countAllResults();
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($tdEnrRows as $er) {
+                $tdEnrollMap[(int) $er['class_id']] = (int) $er['cnt'];
+            }
+        }
+        foreach ($classes as &$cls) {
+            $enrolledCount = $tdEnrollMap[(int) $cls['id']] ?? 0;
             $cls['enrolled_count']  = $enrolledCount;
             $cls['remaining_quota'] = max(0, (int) ($cls['capacity'] ?? 0) - $enrolledCount);
         }
@@ -1378,7 +1460,14 @@ class ArenaBelajarController extends BaseController
         $stats = [
             'total_programs' => (int) $programModel->where('status', 'published')->where('visibility', 'public')->countAllResults(),
             'total_courses'  => (int) $courseModel->where('status', 'published')->where('visibility', 'public')->countAllResults(),
-            'total_classes'  => (int) $classModel->whereIn('status', ['scheduled', 'active', 'open', 'published', 'ongoing'])->countAllResults(),
+            'total_classes'  => (int) $db->table('learning_classes lc')
+                ->join('courses c', 'c.id = lc.course_id')
+                ->where('lc.deleted_at IS NULL')
+                ->whereIn('lc.status', ['scheduled', 'active', 'open', 'published', 'ongoing'])
+                ->where('c.deleted_at IS NULL')
+                ->where('c.status', 'published')
+                ->where('c.visibility', 'public')
+                ->countAllResults(),
             'total_trainers' => (int) $db->table('class_trainers ct')
                 ->join('users u', 'u.id = ct.user_id')
                 ->where('ct.status', 'active')

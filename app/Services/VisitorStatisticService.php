@@ -18,23 +18,8 @@ class VisitorStatisticService
      */
     public function ensureIpLogsTableExists(): void
     {
-        try {
-            $sql = "CREATE TABLE IF NOT EXISTS visitor_ip_logs (
-                id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                ip_address VARCHAR(45) NOT NULL,
-                feature VARCHAR(50) NOT NULL DEFAULT 'home',
-                visit_date DATE NOT NULL,
-                user_agent VARCHAR(255) NULL,
-                created_at DATETIME NOT NULL,
-                UNIQUE KEY uk_ip_feature_date (ip_address, feature, visit_date),
-                KEY idx_feature_date (feature, visit_date),
-                KEY idx_visit_date (visit_date)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-
-            $this->db->query($sql);
-        } catch (\Throwable) {
-            // Silently recover if DB has transient issue
-        }
+        // No-op: DDL runtime dinonaktifkan untuk mencegah schema drift dan kesalahan perizinan DB.
+        // Tabel visitor_ip_logs dipelihara secara statis via database schema.
     }
 
     /**

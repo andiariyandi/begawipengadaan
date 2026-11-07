@@ -53,8 +53,8 @@ class AuditRemediationSeeder extends Seeder
                         'user_id'     => $uid,
                         'role_id'     => $opId,
                         'status'      => $eu['status'],
-                        'assigned_by' => $eu['assigned_by'],
-                        'assigned_at' => $eu['assigned_at'] ?? $now,
+                        'granted_by'  => $eu['granted_by'] ?? null,
+                        'granted_at'  => $eu['granted_at'] ?? $now,
                         'created_at'  => $now,
                         'updated_at'  => $now,
                     ]);

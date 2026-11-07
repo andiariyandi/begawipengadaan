@@ -180,7 +180,7 @@
                             <?php
                             $social = json_decode($m['social_links'] ?? '{}', true) ?: [];
                             $badge = $social['badge'] ?? 'Inovator';
-                            $photo = $m['photo_url'] ?: 'assets/main/images/team/team-1-1.jpg';
+                            $photo = $m['photo_url'] ?: 'assets/dashboard/images/team/team-1-1.jpg';
                             $photoSrc = str_starts_with($photo, 'http') ? $photo : base_url($photo);
 
                             $cat = $m['category'] ?? 'pembina';
@@ -363,7 +363,7 @@
                                 <?php
                                 $social = json_decode($m['social_links'] ?? '{}', true) ?: [];
                                 $badge = $social['badge'] ?? 'Inovator';
-                                $photo = $m['photo_url'] ?: 'assets/main/images/team/team-1-1.jpg';
+                                $photo = $m['photo_url'] ?: 'assets/dashboard/images/team/team-1-1.jpg';
                                 $photoSrc = str_starts_with($photo, 'http') ? $photo : base_url($photo);
                                 ?>
                                 <div class="col">

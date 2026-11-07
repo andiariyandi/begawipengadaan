@@ -53,24 +53,81 @@ class ProgressMonitoringController extends BaseController
         $pager = service('pager');
         $pager->store('progress', $page, $perPage, $total, 0);
 
+        // Pre-calculate class-level metrics once (eliminates 3 * N queries)
+        $clsId = (int) $class['id'];
+        $totalLessons = (int) $db->table('lessons l')
+            ->join('learning_modules lm', 'lm.id = l.module_id')
+            ->where('lm.class_id', $clsId)
+            ->where('lm.status', 'published')
+            ->where('l.status', 'published')
+            ->countAllResults();
+
+        $totalQuizzes = (int) $db->table('quizzes')
+            ->where('class_id', $clsId)
+            ->where('status', 'published')
+            ->countAllResults();
+
+        $totalAssignments = (int) $db->table('assignments')
+            ->where('class_id', $clsId)
+            ->where('status', 'published')
+            ->countAllResults();
+
+        // Batch pre-fetch per-enrollment metrics (eliminates 4 * N queries)
+        $enrIds = array_column($participants, 'id');
+        $compLessonsMap = [];
+        $attemptedQuizzesMap = [];
+        $gradedAsgMap = [];
+        $hasCertMap = [];
+
+        if (! empty($enrIds)) {
+            $lpRows = $db->table('learning_progress')
+                ->select('enrollment_id, COUNT(*) as cnt')
+                ->whereIn('enrollment_id', $enrIds)
+                ->where('status', 'completed')
+                ->groupBy('enrollment_id')
+                ->get()->getResultArray();
+            foreach ($lpRows as $lpr) {
+                $compLessonsMap[(int) $lpr['enrollment_id']] = (int) $lpr['cnt'];
+            }
+
+            $qaRows = $db->table('quiz_attempts qa')
+                ->join('quizzes q', 'q.id = qa.quiz_id')
+                ->where('q.class_id', $clsId)
+                ->where('q.status', 'published')
+                ->whereIn('qa.enrollment_id', $enrIds)
+                ->where('qa.status', 'graded')
+                ->select('qa.enrollment_id, COUNT(DISTINCT qa.quiz_id) as cnt')
+                ->groupBy('qa.enrollment_id')
+                ->get()->getResultArray();
+            foreach ($qaRows as $qar) {
+                $attemptedQuizzesMap[(int) $qar['enrollment_id']] = (int) $qar['cnt'];
+            }
+
+            $asubRows = $db->table('assignment_submissions')
+                ->select('enrollment_id, COUNT(*) as cnt')
+                ->whereIn('enrollment_id', $enrIds)
+                ->where('status', 'graded')
+                ->groupBy('enrollment_id')
+                ->get()->getResultArray();
+            foreach ($asubRows as $asubr) {
+                $gradedAsgMap[(int) $asubr['enrollment_id']] = (int) $asubr['cnt'];
+            }
+
+            $certRows = $db->table('certificates')
+                ->select('source_id')
+                ->where('source_type', 'learning_enrollment')
+                ->whereIn('source_id', $enrIds)
+                ->where('status', 'issued')
+                ->get()->getResultArray();
+            foreach ($certRows as $cr) {
+                $hasCertMap[(int) $cr['source_id']] = true;
+            }
+        }
+
         // Calculate progress & assessment metrics per participant
         foreach ($participants as &$p) {
-            $clsId = (int) $p['class_id'];
             $enrId = (int) $p['id'];
-            $usrId = (int) $p['user_id'];
-
-            // Lessons count (hanya modul & materi published)
-            $totalLessons = (int) $db->table('lessons l')
-                ->join('learning_modules lm', 'lm.id = l.module_id')
-                ->where('lm.class_id', $clsId)
-                ->where('lm.status', 'published')
-                ->where('l.status', 'published')
-                ->countAllResults();
-
-            $completedLessons = (int) $db->table('learning_progress')
-                ->where('enrollment_id', $enrId)
-                ->where('status', 'completed')
-                ->countAllResults();
+            $completedLessons = $compLessonsMap[$enrId] ?? 0;
 
             $p['total_lessons'] = $totalLessons;
             $p['completed_lessons'] = $completedLessons;
@@ -78,34 +135,13 @@ class ProgressMonitoringController extends BaseController
                 ? (int) round(($completedLessons / $totalLessons) * 100)
                 : ($p['status'] === 'completed' || $p['status'] === 'passed' ? 100 : 0);
 
-            // Quizzes metrics (hanya published)
-            $totalQuizzes = (int) $db->table('quizzes')->where('class_id', $clsId)->where('status', 'published')->countAllResults();
-            $attemptedQuizzes = (int) $db->table('quiz_attempts qa')
-                ->join('quizzes q', 'q.id = qa.quiz_id')
-                ->where('q.class_id', $clsId)
-                ->where('q.status', 'published')
-                ->where('qa.enrollment_id', $enrId)
-                ->where('qa.status', 'graded')
-                ->select('COUNT(DISTINCT qa.quiz_id) as cnt')
-                ->get()->getRow()->cnt ?? 0;
             $p['total_quizzes'] = $totalQuizzes;
-            $p['attempted_quizzes'] = $attemptedQuizzes;
+            $p['attempted_quizzes'] = $attemptedQuizzesMap[$enrId] ?? 0;
 
-            // Assignments metrics (hanya published)
-            $totalAssignments = (int) $db->table('assignments')->where('class_id', $clsId)->where('status', 'published')->countAllResults();
-            $gradedAssignments = (int) $db->table('assignment_submissions asub')
-                ->where('asub.enrollment_id', $enrId)
-                ->where('asub.status', 'graded')
-                ->countAllResults();
             $p['total_assignments'] = $totalAssignments;
-            $p['graded_assignments'] = $gradedAssignments;
+            $p['graded_assignments'] = $gradedAsgMap[$enrId] ?? 0;
 
-            // Certificate check
-            $p['has_certificate'] = $db->table('certificates')
-                ->where('source_type', 'learning_enrollment')
-                ->where('source_id', $enrId)
-                ->where('status', 'issued')
-                ->countAllResults() > 0;
+            $p['has_certificate'] = isset($hasCertMap[$enrId]);
         }
         unset($p);
 
@@ -163,15 +199,23 @@ class ProgressMonitoringController extends BaseController
             ->orderBy('sort_order', 'ASC')
             ->get()->getResultArray();
 
-        foreach ($modules as &$mod) {
-            $lessons = $db->table('lessons l')
+        $moduleIds = array_column($modules, 'id');
+        $lessonsByModule = [];
+        if (! empty($moduleIds)) {
+            $allLessons = $db->table('lessons l')
                 ->select('l.*, lp.status AS progress_status, lp.completed_at, lp.progress_percent')
                 ->join('learning_progress lp', 'lp.lesson_id = l.id AND lp.enrollment_id = ' . (int) $enrollmentId, 'left')
-                ->where('l.module_id', $mod['id'])
+                ->whereIn('l.module_id', $moduleIds)
                 ->where('l.status', 'published')
                 ->orderBy('l.sort_order', 'ASC')
                 ->get()->getResultArray();
-            $mod['lessons'] = $lessons;
+            foreach ($allLessons as $les) {
+                $lessonsByModule[(int) $les['module_id']][] = $les;
+            }
+        }
+
+        foreach ($modules as &$mod) {
+            $mod['lessons'] = $lessonsByModule[(int) $mod['id']] ?? [];
         }
         unset($mod);
 

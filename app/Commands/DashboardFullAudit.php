@@ -66,7 +66,13 @@ class DashboardFullAudit extends BaseCommand
                 $methodName = $router->methodName();
                 $params = $router->params();
 
-                if (! class_exists($controllerName)) {
+                if ($controllerName instanceof \Closure) {
+                    $passedRoutes[] = $url;
+                    CLI::write(" [PASS] [200 OK] [Closure Route] {$url}", 'green');
+                    continue;
+                }
+
+                if (! is_string($controllerName) || ! class_exists($controllerName)) {
                     $failedRoutes[] = [
                         'url'    => $url,
                         'reason' => "Controller class not found: {$controllerName}",

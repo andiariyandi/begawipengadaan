@@ -212,6 +212,9 @@ class CommunicationService
         if (! in_array($visibility, $validVisibilities, true)) {
             $visibility = 'public';
         }
+        if ($status === 'draft') {
+            $visibility = 'internal';
+        }
 
         $payload = [
             'title'                 => $title,
@@ -291,6 +294,9 @@ class CommunicationService
         $visibility = strtolower(trim((string) ($data['visibility'] ?? $current['visibility'] ?? 'public')));
         if (! in_array($visibility, $validVisibilities, true)) {
             $visibility = $current['visibility'] ?? 'public';
+        }
+        if ($status === 'draft') {
+            $visibility = 'internal';
         }
 
         $title = isset($data['title']) && trim($data['title']) !== '' ? trim((string) $data['title']) : $current['title'];
@@ -428,6 +434,42 @@ class CommunicationService
             'from' => EventRegistrationStatus::resolve($reg['status'] ?? null),
             'to'   => $key,
         ], $reason);
+
+        // Jika pendaftaran dibatalkan, cek promosi waitlist atau buka status event
+        if ($key === EventRegistrationStatus::CANCELLED) {
+            $eventId = (int) ($reg['event_id'] ?? 0);
+            if ($eventId > 0) {
+                $waitlisted = $db->table('event_registrations')
+                    ->where('event_id', $eventId)
+                    ->whereIn('status', ['waitlisted', 'waitlist', 'pending'])
+                    ->orderBy('id', 'ASC')
+                    ->limit(1)
+                    ->get()->getRowArray();
+                if ($waitlisted) {
+                    $db->table('event_registrations')->where('id', (int) $waitlisted['id'])->update([
+                        'status'        => 'registered',
+                        'promoted_at'   => $now,
+                        'status_reason' => 'promoted_from_waitlist',
+                        'updated_at'    => $now,
+                    ]);
+                } else {
+                    $eventRow = $db->table('events')->where('id', $eventId)->get()->getRowArray();
+                    if ($eventRow && ($eventRow['status'] ?? '') === 'full') {
+                        $cap = (int) ($eventRow['capacity'] ?? 0);
+                        $currRegistered = $db->table('event_registrations')
+                            ->where('event_id', $eventId)
+                            ->where('status', 'registered')
+                            ->countAllResults();
+                        if ($cap <= 0 || $currRegistered < $cap) {
+                            $db->table('events')->where('id', $eventId)->update([
+                                'status'     => 'open_registration',
+                                'updated_at' => $now,
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
         $db->transComplete();
 
         if (! $db->transStatus()) {

@@ -84,7 +84,8 @@ class EventPublicController extends BaseController
             ->join('users u', 'u.id = e.created_by', 'left')
             ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
             ->where('e.deleted_at', null)
-            ->where('e.visibility', 'public');
+            ->where('e.visibility', 'public')
+            ->whereIn('e.status', ['coming_soon', 'open_registration', 'full', 'finished']);
 
         // Type filter
         if (! empty($type)) {
@@ -211,6 +212,7 @@ class EventPublicController extends BaseController
                 ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
                 ->where('e.deleted_at', null)
                 ->where('e.visibility', 'public')
+                ->whereIn('e.status', ['coming_soon', 'open_registration', 'full', 'finished'])
                 ->where('e.carousel_enabled', 1);
 
             if ($spotlightMode === 'upcoming') {
@@ -237,7 +239,8 @@ class EventPublicController extends BaseController
                     ->join('users u', 'u.id = e.created_by', 'left')
                     ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
                     ->where('e.deleted_at', null)
-                    ->where('e.visibility', 'public');
+                    ->where('e.visibility', 'public')
+                    ->whereIn('e.status', ['coming_soon', 'open_registration', 'full', 'finished']);
 
                 if (! empty($usedIds)) {
                     $fillerBuilder->whereNotIn('e.id', $usedIds);
@@ -336,8 +339,8 @@ class EventPublicController extends BaseController
 
         // Live KPI Metrics (strictly authentic database counts, zero dummy data)
         $stats = [
-            'total_events'      => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->countAllResults(),
-            'upcoming_events'   => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('end_at >=', $now)->countAllResults(),
+            'total_events'      => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->whereIn('status', ['coming_soon', 'open_registration', 'full', 'finished'])->countAllResults(),
+            'upcoming_events'   => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->whereIn('status', ['coming_soon', 'open_registration', 'full'])->where('end_at >=', $now)->countAllResults(),
             'open_registration' => (int) $this->db->table('events')->where('deleted_at', null)->where('visibility', 'public')->where('status', 'open_registration')->countAllResults(),
             'total_attendees'   => (int) $this->db->table('event_registrations')->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])->countAllResults(),
         ];
@@ -349,6 +352,7 @@ class EventPublicController extends BaseController
             ->select('type, COUNT(id) AS total')
             ->where('deleted_at', null)
             ->where('visibility', 'public')
+            ->whereIn('status', ['coming_soon', 'open_registration', 'full', 'finished'])
             ->whereIn('type', $allEventTypes)
             ->groupBy('type')
             ->get()->getResultArray();
@@ -363,6 +367,7 @@ class EventPublicController extends BaseController
             ->select('e.title, e.slug, e.start_at, e.mode, e.type, e.location, e.certificate_enabled')
             ->where('e.deleted_at', null)
             ->where('e.visibility', 'public')
+            ->whereIn('e.status', ['coming_soon', 'open_registration', 'full'])
             ->where('e.end_at >=', $now)
             ->orderBy('e.start_at', 'ASC')
             ->limit(3)
@@ -375,6 +380,7 @@ class EventPublicController extends BaseController
                 ->select('e.id, e.title, e.slug, e.start_at, e.end_at, e.type, e.mode, e.location, e.status, e.certificate_enabled')
                 ->where('e.deleted_at', null)
                 ->where('e.visibility', 'public')
+                ->whereIn('e.status', ['coming_soon', 'open_registration', 'full', 'finished'])
                 ->orderBy('e.start_at', 'ASC')
                 ->get()->getResultArray();
 
@@ -425,6 +431,7 @@ class EventPublicController extends BaseController
             ->where('e.slug', $slug)
             ->where('e.visibility', 'public')
             ->where('e.deleted_at', null)
+            ->whereIn('e.status', ['coming_soon', 'open_registration', 'full', 'finished'])
             ->get()->getRowArray();
 
         if (! $event) {
@@ -576,7 +583,7 @@ class EventPublicController extends BaseController
             return redirect()->to(site_url('masuk'))->with('error', 'Silakan masuk ke akun Anda terlebih dahulu untuk mendaftar kegiatan ini.');
         }
 
-        $event = $this->db->table('events')->where(['slug' => $slug, 'visibility' => 'public', 'deleted_at' => null])->get()->getRowArray();
+        $event = $this->db->table('events')->where(['slug' => $slug, 'visibility' => 'public', 'deleted_at' => null])->whereIn('status', ['coming_soon', 'open_registration', 'full', 'finished'])->get()->getRowArray();
         if (! $event) {
             throw PageNotFoundException::forPageNotFound('Event tidak ditemukan.');
         }
@@ -748,17 +755,21 @@ class EventPublicController extends BaseController
 
         $eventId = (int) $event['id'];
 
-        // 3. Validasi Pendaftaran Peserta
+        // 3. Validasi Pendaftaran Peserta (Wajib Terdaftar / Confirmed / Promoted)
         $reg = $this->db->table('event_registrations')
             ->where('event_id', $eventId)
             ->where('user_id', $userId)
-            ->where('status !=', 'cancelled')
             ->get()
             ->getRowArray();
 
-        if (! $reg) {
-            return redirect()->to(site_url('event/' . $slug))
-                ->with('error', 'Anda belum terdaftar pada kegiatan "' . esc($event['title']) . '". Silakan melakukan pendaftaran terlebih dahulu untuk dapat presensi.');
+        if (! $reg || ! in_array($reg['status'], \App\Services\Communication\EventRegistrationStatus::ACCESS_RAW, true)) {
+            $statusMsg = match ($reg['status'] ?? '') {
+                'waitlisted', 'waitlist', 'pending' => 'Pendaftaran Anda masih berstatus Waitlist (Antrian) dan belum disetujui panitia.',
+                'cancelled'                         => 'Pendaftaran Anda pada kegiatan ini telah dibatalkan.',
+                'rejected'                          => 'Pendaftaran Anda tidak disetujui panitia (Ditolak / No-Show).',
+                default                             => 'Anda belum terdaftar pada kegiatan "' . esc($event['title']) . '". Silakan melakukan pendaftaran terlebih dahulu untuk dapat presensi.',
+            };
+            return redirect()->to(site_url('event/' . $slug))->with('error', $statusMsg);
         }
 
         // 4. Validasi Kode Presensi (jika kode diberikan dan event memiliki attendance_code)
@@ -768,34 +779,43 @@ class EventPublicController extends BaseController
                 ->with('error', 'Kode presensi "' . esc($code) . '" tidak cocok dengan sesi kegiatan ini.');
         }
 
-        // 5. Atomic Upsert Presensi Kehadiran
+        // 5. Atomic Upsert Presensi Kehadiran dalam Transaksi Database
         $now = date('Y-m-d H:i:s');
         $regId = (int) $reg['id'];
-        $att = $this->db->table('attendances')
-            ->where('event_registration_id', $regId)
-            ->get()
-            ->getRowArray();
 
-        if ($att) {
-            $this->db->table('attendances')
-                ->where('id', $att['id'])
-                ->update([
-                    'status'      => 'present',
-                    'recorded_by' => $userId,
-                    'recorded_at' => $att['recorded_at'] ?? $now,
-                    'notes'       => 'Hadir via Smart QR Check-in',
-                    'updated_at'  => $now,
+        $this->db->transBegin();
+        try {
+            $att = $this->db->table('attendances')
+                ->where('event_registration_id', $regId)
+                ->get()
+                ->getRowArray();
+
+            if ($att) {
+                $this->db->table('attendances')
+                    ->where('id', $att['id'])
+                    ->update([
+                        'status'      => 'present',
+                        'recorded_by' => $userId,
+                        'recorded_at' => $att['recorded_at'] ?? $now,
+                        'notes'       => 'Hadir via Smart QR Check-in',
+                        'updated_at'  => $now,
+                    ]);
+            } else {
+                $this->db->table('attendances')->insert([
+                    'event_registration_id' => $regId,
+                    'status'                => 'present',
+                    'recorded_by'           => $userId,
+                    'recorded_at'           => $now,
+                    'notes'                 => 'Hadir via Smart QR Check-in',
+                    'created_at'            => $now,
+                    'updated_at'            => $now,
                 ]);
-        } else {
-            $this->db->table('attendances')->insert([
-                'event_registration_id' => $regId,
-                'status'                => 'present',
-                'recorded_by'           => $userId,
-                'recorded_at'           => $now,
-                'notes'                 => 'Hadir via Smart QR Check-in',
-                'created_at'            => $now,
-                'updated_at'            => $now,
-            ]);
+            }
+            $this->db->transCommit();
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            return redirect()->to(site_url('workspace/peserta/event-saya/' . $slug))
+                ->with('error', 'Terjadi kesalahan pencatatan presensi: ' . $e->getMessage());
         }
 
         return redirect()->to(site_url('workspace/peserta/event-saya/' . $slug))

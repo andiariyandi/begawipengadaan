@@ -546,7 +546,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
+<script src="<?= base_url('assets/main/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Copy link handler

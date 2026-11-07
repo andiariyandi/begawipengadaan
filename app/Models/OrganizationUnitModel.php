@@ -14,7 +14,8 @@ class OrganizationUnitModel extends Model
         'code',
         'name',
         'type',
-        'status'
+        'is_active',
+        'sort_order',
     ];
 
     protected $useTimestamps = true;

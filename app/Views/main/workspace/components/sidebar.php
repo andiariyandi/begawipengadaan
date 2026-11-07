@@ -13,7 +13,7 @@ foreach ($roles as $r) {
 }
 
 $isSuperAdmin        = $hasRole('super_administrator');
-$isAdmin             = $isSuperAdmin || $hasRole('administrator');
+$isAdmin             = $isSuperAdmin || $hasRole('administrator') || $hasRole('admin');
 $isAdminPembelajaran = in_array('admin_arenabelajar', $prefixAdminRoles, true);
 $isAdminEvent        = in_array('admin_event', $prefixAdminRoles, true);
 $isOperator          = $hasRole('operator');

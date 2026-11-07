@@ -156,7 +156,7 @@ $formAction = $isEdit
                             </a>
                             <div class="collapse mt-10 <?= (! empty($program['cover_url']) && ! str_contains($program['cover_url'], 'uploads/learning/')) ? 'show' : '' ?>" id="collapseProgramUrl">
                                 <label class="form-label fw-semibold text-primary-light text-xs mb-4" for="cover_url">URL Gambar / Path Aset</label>
-                                <input id="cover_url" type="text" name="cover_url" class="form-control radius-8 text-sm" value="<?= esc(old('cover_url', $program['cover_url'] ?? '')) ?>" placeholder="https://... atau assets/main/images/resources/course-list-img-1.jpg" oninput="previewProgramUrl(this.value)">
+                                <input id="cover_url" type="text" name="cover_url" class="form-control radius-8 text-sm" value="<?= esc(old('cover_url', $program['cover_url'] ?? '')) ?>" placeholder="https://... atau assets/dashboard/images/resources/course-list-img-1.jpg" oninput="previewProgramUrl(this.value)">
                                 <small class="text-muted text-xs">Kosongkan jika telah mengunggah file gambar di atas.</small>
                             </div>
                         </div>
