@@ -5,6 +5,7 @@ namespace App\Controllers\Landing;
 use App\Controllers\BaseController;
 use App\Models\Communication\EventModel;
 use App\Services\AuditService;
+use App\Services\PublicVisibilityGuard;
 use CodeIgniter\Database\ConnectionInterface;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
@@ -82,10 +83,8 @@ class EventPublicController extends BaseController
         $builder = $this->db->table('events e')
             ->select('e.*, COALESCE(u.name, u.username, "Biro PBJ Setda Lampung") AS creator_name, fa.path AS cover_path')
             ->join('users u', 'u.id = e.created_by', 'left')
-            ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
-            ->where('e.deleted_at', null)
-            ->where('e.visibility', 'public')
-            ->whereIn('e.status', ['coming_soon', 'open_registration', 'full', 'finished']);
+            ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left');
+        PublicVisibilityGuard::applyPublicEvents($builder, 'e');
 
         // Type filter
         if (! empty($type)) {
@@ -209,11 +208,9 @@ class EventPublicController extends BaseController
             $manualBuilder = $this->db->table('events e')
                 ->select($selectCols)
                 ->join('users u', 'u.id = e.created_by', 'left')
-                ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
-                ->where('e.deleted_at', null)
-                ->where('e.visibility', 'public')
-                ->whereIn('e.status', ['coming_soon', 'open_registration', 'full', 'finished'])
-                ->where('e.carousel_enabled', 1);
+                ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left');
+            PublicVisibilityGuard::applyPublicEvents($manualBuilder, 'e');
+            $manualBuilder->where('e.carousel_enabled', 1);
 
             if ($spotlightMode === 'upcoming') {
                 $manualBuilder->where('e.end_at >=', $now);
@@ -237,10 +234,8 @@ class EventPublicController extends BaseController
                 $fillerBuilder = $this->db->table('events e')
                     ->select($selectCols)
                     ->join('users u', 'u.id = e.created_by', 'left')
-                    ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
-                    ->where('e.deleted_at', null)
-                    ->where('e.visibility', 'public')
-                    ->whereIn('e.status', ['coming_soon', 'open_registration', 'full', 'finished']);
+                    ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left');
+                PublicVisibilityGuard::applyPublicEvents($fillerBuilder, 'e');
 
                 if (! empty($usedIds)) {
                     $fillerBuilder->whereNotIn('e.id', $usedIds);
@@ -424,15 +419,14 @@ class EventPublicController extends BaseController
      */
     public function detail(string $slug): string
     {
-        $event = $this->db->table('events e')
+        $eventBuilder = $this->db->table('events e')
             ->select('e.*, COALESCE(u.name, u.username, "Biro Pengadaan Barang dan Jasa Provinsi Lampung") AS creator_name, fa.path AS cover_path')
             ->join('users u', 'u.id = e.created_by', 'left')
             ->join('file_assets fa', 'fa.id = e.cover_file_id', 'left')
             ->where('e.slug', $slug)
-            ->where('e.visibility', 'public')
-            ->where('e.deleted_at', null)
-            ->whereIn('e.status', ['coming_soon', 'open_registration', 'full', 'finished'])
-            ->get()->getRowArray();
+            ->where('e.visibility', 'public');
+        PublicVisibilityGuard::applyPublicEvents($eventBuilder, 'e');
+        $event = $eventBuilder->get()->getRowArray();
 
         if (! $event) {
             throw PageNotFoundException::forPageNotFound('Event atau agenda tidak ditemukan: ' . esc($slug));

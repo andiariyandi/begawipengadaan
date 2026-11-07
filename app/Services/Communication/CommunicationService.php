@@ -435,39 +435,11 @@ class CommunicationService
             'to'   => $key,
         ], $reason);
 
-        // Jika pendaftaran dibatalkan, cek promosi waitlist atau buka status event
-        if ($key === EventRegistrationStatus::CANCELLED) {
+        // Jika pendaftaran dibatalkan atau ditolak, rekonsiliasi kuota event dan promosikan antrian waitlist
+        if (in_array($key, [EventRegistrationStatus::CANCELLED, EventRegistrationStatus::NO_SHOW], true)) {
             $eventId = (int) ($reg['event_id'] ?? 0);
             if ($eventId > 0) {
-                $waitlisted = $db->table('event_registrations')
-                    ->where('event_id', $eventId)
-                    ->whereIn('status', ['waitlisted', 'waitlist', 'pending'])
-                    ->orderBy('id', 'ASC')
-                    ->limit(1)
-                    ->get()->getRowArray();
-                if ($waitlisted) {
-                    $db->table('event_registrations')->where('id', (int) $waitlisted['id'])->update([
-                        'status'        => 'registered',
-                        'promoted_at'   => $now,
-                        'status_reason' => 'promoted_from_waitlist',
-                        'updated_at'    => $now,
-                    ]);
-                } else {
-                    $eventRow = $db->table('events')->where('id', $eventId)->get()->getRowArray();
-                    if ($eventRow && ($eventRow['status'] ?? '') === 'full') {
-                        $cap = (int) ($eventRow['capacity'] ?? 0);
-                        $currRegistered = $db->table('event_registrations')
-                            ->where('event_id', $eventId)
-                            ->where('status', 'registered')
-                            ->countAllResults();
-                        if ($cap <= 0 || $currRegistered < $cap) {
-                            $db->table('events')->where('id', $eventId)->update([
-                                'status'     => 'open_registration',
-                                'updated_at' => $now,
-                            ]);
-                        }
-                    }
-                }
+                $this->reconcileEventCapacityAndWaitlist($eventId);
             }
         }
         $db->transComplete();
@@ -956,4 +928,99 @@ class CommunicationService
     {
         return $this->events->where('deleted_at', null)->orderBy('start_at', 'DESC')->findAll();
     }
+
+    /**
+     * Sentralisasi State Machine Kuota Event & Promosi Otomatis Waitlist.
+     * Berjalan di dalam transaksi atomik:
+     *  - Mempromosikan antrian waitlist teratas (FIFO: ORDER BY id ASC LIMIT 1) menjadi 'registered' jika kuota tersedia.
+     *  - Mengubah status event secara otomatis dari 'full' ke 'open_registration' jika pendaftar < kuota (dan sebaliknya ke 'full' jika kuota terpenuhi).
+     *
+     * @return array{promoted: bool, promoted_registration_id: int|null, event_status: string|null, current_registered: int, quota: int}
+     */
+    public function reconcileEventCapacityAndWaitlist(int $eventId): array
+    {
+        if ($eventId <= 0) {
+            return ['promoted' => false, 'promoted_registration_id' => null, 'event_status' => null, 'current_registered' => 0, 'quota' => 0];
+        }
+
+        $db = db_connect();
+        $db->transStart();
+
+        $event = $db->table('events')->where('id', $eventId)->get()->getRowArray();
+        if (! $event) {
+            $db->transRollback();
+            return ['promoted' => false, 'promoted_registration_id' => null, 'event_status' => null, 'current_registered' => 0, 'quota' => 0];
+        }
+
+        $quota = (int) ($event['quota'] ?? $event['capacity'] ?? 0);
+        $currRegistered = (int) $db->table('event_registrations')
+            ->where('event_id', $eventId)
+            ->whereIn('status', ['registered', 'attended', 'confirmed', 'promoted'])
+            ->countAllResults();
+
+        $promotedRegId = null;
+        $now = date('Y-m-d H:i:s');
+
+        // Jika kuota belum penuh atau kuota 0 (unlimited), promosikan waitlist teratas (FIFO: ORDER BY id ASC LIMIT 1)
+        if ($quota <= 0 || $currRegistered < $quota) {
+            $waitlisted = $db->table('event_registrations')
+                ->where('event_id', $eventId)
+                ->whereIn('status', ['waitlisted', 'waitlist', 'pending'])
+                ->orderBy('id', 'ASC')
+                ->limit(1)
+                ->get()->getRowArray();
+
+            if ($waitlisted) {
+                $promotedRegId = (int) $waitlisted['id'];
+                $db->table('event_registrations')->where('id', $promotedRegId)->update([
+                    'status'        => 'registered',
+                    'promoted_at'   => $now,
+                    'status_reason' => 'promoted_from_waitlist',
+                    'updated_at'    => $now,
+                ]);
+                $currRegistered++;
+
+                // Notifikasi promosi ke peserta
+                try {
+                    (new \App\Services\NotificationService($db))->send(
+                        (int) $waitlisted['user_id'],
+                        'event_registration_approved',
+                        'Pendaftaran Event Disetujui (Promosi Waitlist)',
+                        'Selamat! Anda telah dipromosikan dari daftar tunggu (Waitlist) dan resmi terdaftar pada event "' . ($event['title'] ?? '') . '".',
+                        ['event_id' => $eventId, 'url' => site_url('workspace/peserta/event-saya/' . $eventId)]
+                    );
+                } catch (\Throwable $e) {
+                    log_message('warning', 'Notification failed for waitlist promotion: ' . $e->getMessage());
+                }
+            }
+        }
+
+        // Sinkronisasi status event (open_registration vs full) jika saat ini berstatus open_registration atau full
+        $newEventStatus = $event['status'] ?? 'open_registration';
+        if (in_array($newEventStatus, ['open_registration', 'full'], true)) {
+            if ($quota > 0 && $currRegistered >= $quota) {
+                $newEventStatus = 'full';
+            } elseif ($quota <= 0 || $currRegistered < $quota) {
+                $newEventStatus = 'open_registration';
+            }
+
+            if ($newEventStatus !== $event['status']) {
+                $db->table('events')->where('id', $eventId)->update([
+                    'status'     => $newEventStatus,
+                    'updated_at' => $now,
+                ]);
+            }
+        }
+
+        $db->transComplete();
+
+        return [
+            'promoted'                 => $promotedRegId !== null,
+            'promoted_registration_id' => $promotedRegId,
+            'event_status'             => $newEventStatus,
+            'current_registered'       => $currRegistered,
+            'quota'                    => $quota,
+        ];
+    }
+
 }

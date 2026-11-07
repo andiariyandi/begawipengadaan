@@ -652,7 +652,7 @@ class HomeController extends BaseController
                 if ($db->tableExists('file_assets')) {
                     $nowH = date('Y-m-d H:i:s');
                     $fullH = FCPATH . ltrim($relativePath, '/\\');
-                    $db->table('file_assets')->insert([
+                    $fileAssetId = (new \App\Services\FileStorageService())->registerFileAsset([
                         'disk'             => 'local',
                         'path'             => $relativePath,
                         'original_name'    => $origName,
@@ -668,8 +668,7 @@ class HomeController extends BaseController
                         'available_at'     => $nowH,
                         'created_at'       => $nowH,
                         'updated_at'       => $nowH,
-                    ]);
-                    $fileAssetId = (int) $db->insertID();
+                    ], $fullH);
                 }
             } catch (\Throwable $e) {
                 log_message('error', 'Insert file_assets failed in HomeController: ' . $e->getMessage());

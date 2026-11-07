@@ -778,7 +778,7 @@ class CurriculumController extends BaseController
             $guideFilename = $guideFile->getClientName();
             $guideSize = $guideFile->getSize();
 
-            $db->table('file_assets')->insert([
+            (new \App\Services\FileStorageService())->registerFileAsset([
                 'disk'             => 'local',
                 'path'             => $guideUrl,
                 'original_name'    => $guideFilename,
@@ -794,7 +794,7 @@ class CurriculumController extends BaseController
                 'available_at'     => $now,
                 'created_at'       => $now,
                 'updated_at'       => $now,
-            ]);
+            ], $targetDir . $newFilename);
         }
 
         $finalInstructions = build_assignment_instructions($instructions, $guideUrl, $guideFilename, $guideSize);
@@ -880,7 +880,7 @@ class CurriculumController extends BaseController
             $guideFilename = $guideFile->getClientName();
             $guideSize = $guideFile->getSize();
 
-            $db->table('file_assets')->insert([
+            (new \App\Services\FileStorageService())->registerFileAsset([
                 'disk'             => 'local',
                 'path'             => $guideUrl,
                 'original_name'    => $guideFilename,
@@ -896,7 +896,7 @@ class CurriculumController extends BaseController
                 'available_at'     => $now,
                 'created_at'       => $now,
                 'updated_at'       => $now,
-            ]);
+            ], $targetDir . $newFilename);
         }
 
         $finalInstructions = build_assignment_instructions($instructions, $guideUrl, $guideFilename, $guideSize);

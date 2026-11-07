@@ -95,7 +95,7 @@ class ConsultationController extends BaseController
             if ($this->db->tableExists('file_assets')) {
                 $nowC = date('Y-m-d H:i:s');
                 $fullC = FCPATH . ltrim($relativePath, '/\\');
-                $this->db->table('file_assets')->insert([
+                $fileAssetId = (new \App\Services\FileStorageService())->registerFileAsset([
                     'disk'             => 'local',
                     'path'             => $relativePath,
                     'original_name'    => $origName,
@@ -111,8 +111,7 @@ class ConsultationController extends BaseController
                     'available_at'     => $nowC,
                     'created_at'       => $nowC,
                     'updated_at'       => $nowC,
-                ]);
-                $fileAssetId = (int) $this->db->insertID();
+                ], $fullC);
             }
         } catch (\Throwable $e) {
             log_message('error', 'Insert file_assets failed in ConsultationController: ' . $e->getMessage());

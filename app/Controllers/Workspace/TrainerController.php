@@ -1960,7 +1960,7 @@ class TrainerController extends BaseController
                 $guideFilename = $guideFile->getClientName();
                 $guideSize = $guideFile->getSize();
 
-                db_connect()->table('file_assets')->insert([
+                (new \App\Services\FileStorageService())->registerFileAsset([
                     'disk'             => 'local',
                     'path'             => $guideUrl,
                     'original_name'    => $guideFilename,
@@ -1973,10 +1973,7 @@ class TrainerController extends BaseController
                     'lifecycle_status' => 'available',
                     'resource_type'    => 'assignment_guide',
                     'uploaded_by'      => $userId ? (int) $userId : null,
-                    'available_at'     => date('Y-m-d H:i:s'),
-                    'created_at'       => date('Y-m-d H:i:s'),
-                    'updated_at'       => date('Y-m-d H:i:s'),
-                ]);
+                ], $targetDir . $newFilename);
             }
 
             $cleanInstructions = (string) $this->request->getPost('instructions');
@@ -2061,7 +2058,7 @@ class TrainerController extends BaseController
                 $guideFilename = $guideFile->getClientName();
                 $guideSize = $guideFile->getSize();
 
-                db_connect()->table('file_assets')->insert([
+                (new \App\Services\FileStorageService())->registerFileAsset([
                     'disk'             => 'local',
                     'path'             => $guideUrl,
                     'original_name'    => $guideFilename,
@@ -2074,10 +2071,7 @@ class TrainerController extends BaseController
                     'lifecycle_status' => 'available',
                     'resource_type'    => 'assignment_guide',
                     'uploaded_by'      => $userId ? (int) $userId : null,
-                    'available_at'     => date('Y-m-d H:i:s'),
-                    'created_at'       => date('Y-m-d H:i:s'),
-                    'updated_at'       => date('Y-m-d H:i:s'),
-                ]);
+                ], $targetDir . $newFilename);
             }
 
             $cleanInstructions = (string) $this->request->getPost('instructions');

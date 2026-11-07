@@ -1813,48 +1813,9 @@ class OperatorController extends BaseController
             'status'   => 'cancelled',
         ], $reason);
 
-        // State Machine: Promosi antrian waitlist atau buka kembali kuota event
+        // State Machine: Panggil rekonsiliasi kuota dan promosi waitlist terpusat di CommunicationService
         $eventId = (int) $reg['event_id'];
-        $waitlisted = $this->db->table('event_registrations')
-            ->where('event_id', $eventId)
-            ->whereIn('status', ['waitlisted', 'waitlist', 'pending'])
-            ->orderBy('id', 'ASC')
-            ->limit(1)
-            ->get()->getRowArray();
-
-        if ($waitlisted) {
-            $this->db->table('event_registrations')->where('id', (int) $waitlisted['id'])->update([
-                'status'        => 'registered',
-                'promoted_at'   => $now,
-                'status_reason' => 'promoted_from_waitlist',
-                'updated_at'    => $now,
-            ]);
-            try {
-                (new \App\Services\NotificationService($this->db))->send(
-                    (int) $waitlisted['user_id'],
-                    'event_registration_approved',
-                    'Pendaftaran Event Disetujui (Promosi Waitlist)',
-                    'Selamat! Anda telah dipromosikan dari daftar tunggu (Waitlist) dan resmi terdaftar pada event "' . ($reg['event_title'] ?? '') . '".',
-                    ['event_id' => $eventId, 'url' => route_to('workspace.participant.event.detail', (string) $eventId)]
-                );
-            } catch (\Throwable) {
-            }
-        } else {
-            $eventRow = $this->db->table('events')->where('id', $eventId)->get()->getRowArray();
-            if ($eventRow && ($eventRow['status'] ?? '') === 'full') {
-                $cap = (int) ($eventRow['capacity'] ?? 0);
-                $currRegistered = $this->db->table('event_registrations')
-                    ->where('event_id', $eventId)
-                    ->where('status', 'registered')
-                    ->countAllResults();
-                if ($cap <= 0 || $currRegistered < $cap) {
-                    $this->db->table('events')->where('id', $eventId)->update([
-                        'status'     => 'open_registration',
-                        'updated_at' => $now,
-                    ]);
-                }
-            }
-        }
+        (new \App\Services\Communication\CommunicationService())->reconcileEventCapacityAndWaitlist($eventId);
 
         try {
             (new \App\Services\NotificationService($this->db))->send(

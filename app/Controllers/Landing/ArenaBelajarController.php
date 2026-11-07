@@ -3,6 +3,7 @@
 namespace App\Controllers\Landing;
 
 use App\Controllers\BaseController;
+use App\Services\PublicVisibilityGuard;
 use App\Models\Learning\CourseModel;
 use App\Models\Learning\LearningClassModel;
 use App\Models\Learning\ProgramModel;
@@ -281,13 +282,12 @@ class ArenaBelajarController extends BaseController
         }
         unset($p);
 
-        $manualCourseRaw = $db->table('courses c')
+        $manualCourseBuilder = $db->table('courses c')
             ->select('c.*, p.title AS program_title')
-            ->join('programs p', 'p.id = c.program_id', 'left')
-            ->where('c.deleted_at', null)
-            ->where('c.status', 'published')
-            ->where('c.visibility', 'public')
-            ->where('c.carousel_enabled', 1)
+            ->join('programs p', 'p.id = c.program_id', 'left');
+        PublicVisibilityGuard::applyPublicCourses($manualCourseBuilder, 'c');
+        $manualCourseBuilder->where('c.carousel_enabled', 1);
+        $manualCourseRaw = $manualCourseBuilder
             ->orderBy('CASE WHEN c.carousel_order IS NULL THEN 9999 ELSE c.carousel_order END', 'ASC', false)
             ->orderBy('c.id', 'DESC')
             ->get()->getResultArray();
@@ -364,10 +364,8 @@ class ArenaBelajarController extends BaseController
             } elseif ($mode === 'course') {
                 $cQuery = $db->table('courses c')
                     ->select('c.*, p.title AS program_title')
-                    ->join('programs p', 'p.id = c.program_id', 'left')
-                    ->where('c.deleted_at', null)
-                    ->where('c.status', 'published')
-                    ->where('c.visibility', 'public');
+                    ->join('programs p', 'p.id = c.program_id', 'left');
+                PublicVisibilityGuard::applyPublicCourses($cQuery, 'c');
                 if (! empty($usedCourseIds)) {
                     $cQuery->whereNotIn('c.id', $usedCourseIds);
                 }
@@ -406,10 +404,8 @@ class ArenaBelajarController extends BaseController
 
                 $cQuery = $db->table('courses c')
                     ->select('c.*, p.title AS program_title')
-                    ->join('programs p', 'p.id = c.program_id', 'left')
-                    ->where('c.deleted_at', null)
-                    ->where('c.status', 'published')
-                    ->where('c.visibility', 'public');
+                    ->join('programs p', 'p.id = c.program_id', 'left');
+                PublicVisibilityGuard::applyPublicCourses($cQuery, 'c');
                 if (! empty($usedCourseIds)) {
                     $cQuery->whereNotIn('c.id', $usedCourseIds);
                 }
@@ -547,10 +543,9 @@ class ArenaBelajarController extends BaseController
         $builder = $model
             ->select('courses.*, programs.title AS program_title, programs.slug AS program_slug')
             ->join('programs', 'programs.id = courses.program_id')
-            ->where('courses.status', 'published')
-            ->where('courses.visibility', 'public')
             ->where('programs.status', 'published')
             ->where('programs.visibility', 'public');
+        PublicVisibilityGuard::applyPublicCourses($builder, 'courses');
 
         if ($q !== '') {
             $builder->groupStart()
@@ -988,15 +983,14 @@ class ArenaBelajarController extends BaseController
 
     public function courseDetail(string $slug): string
     {
-        $course = (new CourseModel())
+        $courseQuery = (new CourseModel())
             ->select('courses.*, programs.title AS program_title, programs.slug AS program_slug')
             ->join('programs', 'programs.id = courses.program_id')
             ->where('courses.slug', $slug)
-            ->where('courses.status', 'published')
-            ->where('courses.visibility', 'public')
             ->where('programs.status', 'published')
-            ->where('programs.visibility', 'public')
-            ->first();
+            ->where('programs.visibility', 'public');
+        PublicVisibilityGuard::applyPublicCourses($courseQuery, 'courses');
+        $course = $courseQuery->first();
         if ($course === null) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Course tidak ditemukan.');
         }
