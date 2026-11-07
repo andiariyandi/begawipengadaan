@@ -10,7 +10,7 @@ $badge = $social['badge'] ?? 'Pengarah Strategis';
 
 $defaultSort = $member['sort_order'] ?? ($nextOrder ?? 1);
 $curCategory = $member['category'] ?? 'pembina';
-$curPhoto    = $member['photo_url'] ?? 'assets/main/images/team/team-1-1.jpg';
+$curPhoto    = $member['photo_url'] ?? 'assets/dashboard/images/team/team-1-1.jpg';
 $curPhotoSrc = str_starts_with($curPhoto, 'http') ? $curPhoto : base_url($curPhoto);
 ?>
 
@@ -54,7 +54,7 @@ $curPhotoSrc = str_starts_with($curPhoto, 'http') ? $curPhoto : base_url($curPho
                                 data-cat="pembina" 
                                 data-badge="Pengarah Strategis"
                                 data-bio="Pengarah strategis percepatan transformasi digital dan penguatan integritas tata kelola pengadaan barang dan jasa Pemerintah Provinsi Lampung."
-                                data-photo="assets/main/images/team/team-1-1.jpg">
+                                data-photo="assets/dashboard/images/team/team-1-1.jpg">
                             <iconify-icon icon="solar:crown-star-bold" class="text-warning me-1"></iconify-icon> Sekda Lampung
                         </button>
                         <button type="button" class="btn btn-xs btn-white border radius-8 px-10 py-6 text-xs fw-semibold preset-team-btn shadow-xs" 
@@ -64,7 +64,7 @@ $curPhotoSrc = str_starts_with($curPhoto, 'http') ? $curPhoto : base_url($curPho
                                 data-cat="pembina" 
                                 data-badge="Penanggung Jawab"
                                 data-bio="Inisiator ekosistem BegawiPengadaan, memimpin transformasi UKPBJ Lampung menuju Level 3 (Proaktif) dan pusat keunggulan PBJ."
-                                data-photo="assets/main/images/team/team-1-2.jpg">
+                                data-photo="assets/dashboard/images/team/team-1-2.jpg">
                             <iconify-icon icon="solar:shield-star-bold" class="text-primary me-1"></iconify-icon> Kabiro PBJ Lampung
                         </button>
                         <button type="button" class="btn btn-xs btn-white border radius-8 px-10 py-6 text-xs fw-semibold preset-team-btn shadow-xs" 
@@ -74,7 +74,7 @@ $curPhotoSrc = str_starts_with($curPhoto, 'http') ? $curPhoto : base_url($curPho
                                 data-cat="pengembang" 
                                 data-badge="Tim Pengembang"
                                 data-bio="Merancang arsitektur MVC CodeIgniter 4 yang gesit, integrasi database MySQL teroptimasi, dan tata letak responsif modern WowDash."
-                                data-photo="assets/main/images/team/team-1-5.jpg">
+                                data-photo="assets/dashboard/images/team/team-1-5.jpg">
                             <iconify-icon icon="solar:code-circle-bold" class="text-info me-1"></iconify-icon> Dev &amp; UX Team
                         </button>
                         <button type="button" class="btn btn-xs btn-white border radius-8 px-10 py-6 text-xs fw-semibold preset-team-btn shadow-xs" 
@@ -84,7 +84,7 @@ $curPhotoSrc = str_starts_with($curPhoto, 'http') ? $curPhoto : base_url($curPho
                                 data-cat="pengembang" 
                                 data-badge="Infrastruktur SPSE"
                                 data-bio="Menjamin ketersediaan server 24/7 dengan standardisasi ISO 27001 dan keamanan siber pengadaan."
-                                data-photo="assets/main/images/team/team-1-4.jpg">
+                                data-photo="assets/dashboard/images/team/team-1-4.jpg">
                             <iconify-icon icon="solar:server-square-bold" class="text-success me-1"></iconify-icon> Tim LPSE &amp; SPSE
                         </button>
                         <button type="button" class="btn btn-xs btn-white border radius-8 px-10 py-6 text-xs fw-semibold preset-team-btn shadow-xs" 
@@ -94,7 +94,7 @@ $curPhotoSrc = str_starts_with($curPhoto, 'http') ? $curPhoto : base_url($curPho
                                 data-cat="narasumber" 
                                 data-badge="Advokasi Hukum"
                                 data-bio="Harmonisasi peraturan, telaah hukum pengadaan, mitigasi sanggahan tender, dan penyusunan panduan teknis."
-                                data-photo="assets/main/images/team/team-1-3.jpg">
+                                data-photo="assets/dashboard/images/team/team-1-3.jpg">
                             <iconify-icon icon="solar:scale-bold" class="text-danger me-1"></iconify-icon> Advokasi Hukum PBJ
                         </button>
                         <button type="button" class="btn btn-xs btn-white border radius-8 px-10 py-6 text-xs fw-semibold preset-team-btn shadow-xs" 
@@ -104,7 +104,7 @@ $curPhotoSrc = str_starts_with($curPhoto, 'http') ? $curPhoto : base_url($curPho
                                 data-cat="narasumber" 
                                 data-badge="Master Trainer"
                                 data-bio="Penyusun silabus pembelajaran LMS berbasis kompetensi LKPP dan bank soal sertifikasi level-1."
-                                data-photo="assets/main/images/team/team-1-6.jpg">
+                                data-photo="assets/dashboard/images/team/team-1-6.jpg">
                             <iconify-icon icon="solar:diploma-verified-bold" class="text-warning me-1"></iconify-icon> Master Trainer LKPP
                         </button>
                     </div>
@@ -257,8 +257,8 @@ $curPhotoSrc = str_starts_with($curPhoto, 'http') ? $curPhoto : base_url($curPho
                                            name="photo_url" 
                                            id="photoUrlInput" 
                                            class="form-control radius-8 text-sm" 
-                                           value="<?= esc($member['photo_url'] ?? 'assets/main/images/team/team-1-1.jpg') ?>" 
-                                           placeholder="assets/main/images/team/team-1-1.jpg">
+                                           value="<?= esc($member['photo_url'] ?? 'assets/dashboard/images/team/team-1-1.jpg') ?>" 
+                                           placeholder="assets/dashboard/images/team/team-1-1.jpg">
                                     <small class="text-secondary-light text-2xs d-block mt-4">Jika Anda mengunggah file di atas, field path ini akan digantikan secara otomatis.</small>
                                 </div>
                             </div>

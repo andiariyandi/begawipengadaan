@@ -1,1799 +1,2293 @@
 # BegawiPengadaan — Data Dictionary
 
-## Tujuan
-
-Dokumen ini mendefinisikan struktur data BegawiPengadaan pada level tabel dan kolom. Data dictionary menjelaskan tujuan tabel, kolom, tipe data, nullable, default, primary key, foreign key, unique/index/check constraint, nilai terkendali, klasifikasi data, validasi, serta aturan audit dan retensi utama.
-
-Dokumen ini merupakan turunan operasional dari `dokumen/database-blueprint.md` dan `dokumen/database-erd.md`. Dokumen ini melengkapi dan tidak mengubah kontrak yang telah ditetapkan dalam:
-
-```text
-README.md
-dokumen/directory-tree.md
-dokumen/route-contract.md
-dokumen/ui-boundary.md
-dokumen/auth-and-rbac.md
-dokumen/workflow-contract.md
-dokumen/file-storage-policy.md
-dokumen/database-blueprint.md
-dokumen/database-erd.md
-```
-
-Tipe data, constraint, dan relasi pada dokumen ini adalah baseline implementasi migration. Jika database engine memiliki batasan terhadap suatu check/partial unique constraint, migration harus menggunakan kombinasi constraint, index, transaction, dan service validation yang menghasilkan perilaku bisnis yang setara.
+> **Metadata Dokumen:**
+> - **Versi:** 4.2 (Production Ready)
+> - **Tanggal Sinkronisasi:** 7 November 2026
+> - **Sumber Kebenaran:** MySQL Live `db_begawipbj` (95 Tabel, 1.127 Kolom, 22 CHECK Constraints, 17 Migrasi) & Codebase Aktual
+> - **Total Tabel:** 95 Tabel Aktif
+> - **Total Kolom:** 1127 Kolom Terdaftar
 
 ---
 
-## Konvensi Umum
+## Ringkasan Eksekutif Kamus Data
 
-### Tipe data baseline
+Kamus data ini mendokumentasikan spesifikasi teknis 100% ground-truth dari seluruh **95 tabel** dan **1.127 kolom** pada skema basis data produksi `db_begawipbj` Pemerintah Provinsi Lampung. Seluruh nama kolom, tipe data riil, nullability, nilai default, indeks kunci, dan atribut extra diekstrak secara otomatis dari `information_schema.COLUMNS`.
 
-| Kebutuhan | Tipe baseline |
-|---|---|
-| Primary key | `BIGINT UNSIGNED AUTO_INCREMENT` |
-| Foreign key | `BIGINT UNSIGNED` |
-| Status/key teknis | `VARCHAR(64)` |
-| Nama/judul | `VARCHAR(255)` |
-| Slug | `VARCHAR(255)` |
-| Ringkasan | `TEXT` |
-| Konten panjang | `LONGTEXT` |
-| JSON | `JSON` |
-| Waktu | `DATETIME` UTC |
-| Boolean | `TINYINT(1)` |
-| Skor | `DECIMAL(5,2)` atau `DECIMAL(6,2)` |
-| File size | `BIGINT UNSIGNED` |
-| Token hash | `CHAR(64)` atau panjang sesuai algoritma hash |
-
-### Klasifikasi data
-
-| Kode | Klasifikasi | Pengertian |
-|---|---|---|
-| `P` | Public | Boleh dirender pada Landing/Public Area bila resource telah published/visible |
-| `I` | Internal | Hanya untuk pengguna terautentikasi dengan role/permission/scope sesuai |
-| `R` | Restricted | Data personal, keamanan, bukti, assessment, atau data sensitif; perlu authorization ketat |
-| `S` | System | Metadata teknis/operasional; tidak dirender ke pengguna tanpa kebutuhan |
-
-### Notasi kolom
-
-| Notasi | Arti |
-|---|---|
-| PK | Primary key |
-| FK | Foreign key |
-| UK | Unique constraint |
-| NN | Tidak boleh `NULL` |
-| N | Boleh `NULL` |
-| AI | Auto increment |
-| D | Nilai default |
-
-### Kolom timestamp
-
-Tabel domain memakai kolom timestamp sesuai kebutuhan:
-
-```text
-created_at
-updated_at
-deleted_at
-published_at
-archived_at
-approved_at
-reviewed_at
-```
-
-Seluruh waktu disimpan dalam UTC. Kolom actor seperti `created_by`, `updated_by`, `published_by`, atau `reviewed_by` tidak menggantikan audit log lintas domain.
+Dokumen ini menjamin **0 kolom fiktif warisan** (seperti `news.status`, `regulations.nomor_regulasi`, `file_assets.user_id`, `class_trainers.trainer_id`, dll.), serta menjadi rujukan kanonikal utama untuk pengembangan Model (`$allowedFields`), validasi form, dan eksekusi query.
 
 ---
 
-## Controlled Values
+## Daftar Isi Tabel (95 Tabel)
 
-### Account status
-
-```text
-draft
-submitted
-pending_verification
-revision_required
-active
-rejected
-inactive
-suspended
-archived
-```
-
-### Profile type
-
-```text
-asn
-provider
-academic
-public
-```
-
-### Role teknis
-
-```text
-public_user
-participant
-trainer
-evaluator
-operator
-admin
-super_administrator
-```
-
-### Workflow publikasi
-
-```text
-draft
-submitted
-in_review
-approved
-published
-revision_required
-rejected
-archived
-```
-
-### Visibility file/konten
-
-```text
-public
-internal
-restricted
-```
-
-### File lifecycle
-
-```text
-pending_upload
-stored
-scanned
-available
-rejected
-quarantined
-deleted
-```
+1. [`academic_profiles`](#tabel-academic-profiles) (11 kolom)
+2. [`approvals`](#tabel-approvals) (13 kolom)
+3. [`asn_profiles`](#tabel-asn-profiles) (13 kolom)
+4. [`assignment_submission_files`](#tabel-assignment-submission-files) (3 kolom)
+5. [`assignment_submissions`](#tabel-assignment-submissions) (13 kolom)
+6. [`assignments`](#tabel-assignments) (15 kolom)
+7. [`attendances`](#tabel-attendances) (8 kolom)
+8. [`audit_logs`](#tabel-audit-logs) (13 kolom)
+9. [`bookmarks`](#tabel-bookmarks) (5 kolom)
+10. [`certificate_sequences`](#tabel-certificate-sequences) (4 kolom)
+11. [`certificate_templates`](#tabel-certificate-templates) (10 kolom)
+12. [`certificates`](#tabel-certificates) (18 kolom)
+13. [`class_evaluators`](#tabel-class-evaluators) (5 kolom)
+14. [`class_trainers`](#tabel-class-trainers) (6 kolom)
+15. [`competencies`](#tabel-competencies) (7 kolom)
+16. [`competency_certificate_types`](#tabel-competency-certificate-types) (7 kolom)
+17. [`competency_certificates`](#tabel-competency-certificates) (12 kolom)
+18. [`competency_gap_snapshots`](#tabel-competency-gap-snapshots) (10 kolom)
+19. [`contact_messages`](#tabel-contact-messages) (13 kolom)
+20. [`courses`](#tabel-courses) (25 kolom)
+21. [`email_verifications`](#tabel-email-verifications) (6 kolom)
+22. [`enrollments`](#tabel-enrollments) (14 kolom)
+23. [`event_registrations`](#tabel-event-registrations) (10 kolom)
+24. [`events`](#tabel-events) (34 kolom)
+25. [`exports`](#tabel-exports) (12 kolom)
+26. [`external_portals`](#tabel-external-portals) (11 kolom)
+27. [`feature_highlights`](#tabel-feature-highlights) (14 kolom)
+28. [`feedbacks`](#tabel-feedbacks) (8 kolom)
+29. [`file_assets`](#tabel-file-assets) (20 kolom)
+30. [`helpdesk_topics`](#tabel-helpdesk-topics) (8 kolom)
+31. [`home_sliders`](#tabel-home-sliders) (13 kolom)
+32. [`jf_ppbj_levels`](#tabel-jf-ppbj-levels) (7 kolom)
+33. [`jf_ppbj_records`](#tabel-jf-ppbj-records) (15 kolom)
+34. [`knowledge_article_categories`](#tabel-knowledge-article-categories) (3 kolom)
+35. [`knowledge_article_tags`](#tabel-knowledge-article-tags) (3 kolom)
+36. [`knowledge_articles`](#tabel-knowledge-articles) (32 kolom)
+37. [`knowledge_categories`](#tabel-knowledge-categories) (9 kolom)
+38. [`knowledge_media`](#tabel-knowledge-media) (28 kolom)
+39. [`knowledge_tags`](#tabel-knowledge-tags) (5 kolom)
+40. [`learning_classes`](#tabel-learning-classes) (29 kolom)
+41. [`learning_modules`](#tabel-learning-modules) (9 kolom)
+42. [`learning_progress`](#tabel-learning-progress) (9 kolom)
+43. [`lessons`](#tabel-lessons) (16 kolom)
+44. [`migrations`](#tabel-migrations) (7 kolom)
+45. [`news`](#tabel-news) (26 kolom)
+46. [`news_categories`](#tabel-news-categories) (7 kolom)
+47. [`newsletter_subscribers`](#tabel-newsletter-subscribers) (6 kolom)
+48. [`notifications`](#tabel-notifications) (10 kolom)
+49. [`organization_units`](#tabel-organization-units) (9 kolom)
+50. [`page_banners`](#tabel-page-banners) (16 kolom)
+51. [`password_resets`](#tabel-password-resets) (6 kolom)
+52. [`permissions`](#tabel-permissions) (8 kolom)
+53. [`pre_tests`](#tabel-pre-tests) (7 kolom)
+54. [`procurement_roles`](#tabel-procurement-roles) (7 kolom)
+55. [`procurement_stages`](#tabel-procurement-stages) (8 kolom)
+56. [`profile_change_requests`](#tabel-profile-change-requests) (12 kolom)
+57. [`profile_verifications`](#tabel-profile-verifications) (11 kolom)
+58. [`programs`](#tabel-programs) (22 kolom)
+59. [`provider_profiles`](#tabel-provider-profiles) (12 kolom)
+60. [`public_profiles`](#tabel-public-profiles) (9 kolom)
+61. [`quiz_answers`](#tabel-quiz-answers) (8 kolom)
+62. [`quiz_attempts`](#tabel-quiz-attempts) (13 kolom)
+63. [`quiz_options`](#tabel-quiz-options) (7 kolom)
+64. [`quiz_questions`](#tabel-quiz-questions) (9 kolom)
+65. [`quizzes`](#tabel-quizzes) (12 kolom)
+66. [`regulation_categories`](#tabel-regulation-categories) (9 kolom)
+67. [`regulation_competencies`](#tabel-regulation-competencies) (5 kolom)
+68. [`regulation_downloads`](#tabel-regulation-downloads) (7 kolom)
+69. [`regulation_procurement_stages`](#tabel-regulation-procurement-stages) (5 kolom)
+70. [`regulation_relations`](#tabel-regulation-relations) (7 kolom)
+71. [`regulation_versions`](#tabel-regulation-versions) (8 kolom)
+72. [`regulations`](#tabel-regulations) (30 kolom)
+73. [`role_permissions`](#tabel-role-permissions) (4 kolom)
+74. [`role_requests`](#tabel-role-requests) (11 kolom)
+75. [`roles`](#tabel-roles) (7 kolom)
+76. [`rup_audit_batches`](#tabel-rup-audit-batches) (21 kolom)
+77. [`rup_audit_clusters`](#tabel-rup-audit-clusters) (20 kolom)
+78. [`rup_audit_opd_summaries`](#tabel-rup-audit-opd-summaries) (25 kolom)
+79. [`rup_audit_packages`](#tabel-rup-audit-packages) (44 kolom)
+80. [`rup_audit_violations`](#tabel-rup-audit-violations) (11 kolom)
+81. [`satisfaction_surveys`](#tabel-satisfaction-surveys) (18 kolom)
+82. [`service_categories`](#tabel-service-categories) (8 kolom)
+83. [`site_announcements`](#tabel-site-announcements) (13 kolom)
+84. [`site_settings`](#tabel-site-settings) (8 kolom)
+85. [`survey_aspects`](#tabel-survey-aspects) (10 kolom)
+86. [`team_members`](#tabel-team-members) (12 kolom)
+87. [`testimonials`](#tabel-testimonials) (13 kolom)
+88. [`user_procurement_roles`](#tabel-user-procurement-roles) (11 kolom)
+89. [`user_profiles`](#tabel-user-profiles) (10 kolom)
+90. [`user_roles`](#tabel-user-roles) (11 kolom)
+91. [`users`](#tabel-users) (15 kolom)
+92. [`visitor_ip_logs`](#tabel-visitor-ip-logs) (6 kolom)
+93. [`visitor_statistics`](#tabel-visitor-statistics) (6 kolom)
+94. [`wilayah`](#tabel-wilayah) (2 kolom)
+95. [`workflow_transitions`](#tabel-workflow-transitions) (12 kolom)
 
 ---
 
-# Identity dan RBAC
+## Spesifikasi Rinci Kolom per Tabel
 
-## `users`
+### Tabel: `academic_profiles`
 
-Sumber identitas autentikasi utama.
+- **Nama Tabel:** `academic_profiles`
+- **Jumlah Kolom:** 11 kolom
+- **Definisi:** Struktur persistence data untuk entitas `academic_profiles` pada ekosistem BegawiPengadaan.
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier internal user |
-| `name` | VARCHAR(255) | NN | — | — | R | Nama lengkap; trim; tidak boleh kosong |
-| `email` | VARCHAR(255) | NN | — | UK | R | Email unik, lowercase, valid RFC/application policy |
-| `username` | VARCHAR(255) | NN | — | UK | I | Username unik; karakter mengikuti policy sistem |
-| `password_hash` | VARCHAR(255) | NN | — | — | R | Hash password; tidak pernah plaintext/logged |
-| `phone` | VARCHAR(32) | NN | — | — | R | Nomor telepon tervalidasi |
-| `profile_type` | VARCHAR(64) | NN | — | IDX | I | `asn`, `provider`, `academic`, atau `public` |
-| `account_status` | VARCHAR(64) | NN | `draft` | IDX | I | Account status controlled value |
-| `email_verified_at` | DATETIME | N | `NULL` | IDX | S | Waktu email berhasil diverifikasi |
-| `last_login_at` | DATETIME | N | `NULL` | — | S | Waktu login terakhir |
-| `session_version` | BIGINT UNSIGNED | NN | `1` | — | S | Marker invalidasi session |
-| `status_reason` | TEXT | N | `NULL` | — | R | Alasan aman status akun bila diperlukan |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-| `deleted_at` | DATETIME | N | `NULL` | IDX | S | Soft delete |
-
-Constraint/index:
-
-```text
-UNIQUE(email)
-UNIQUE(username)
-INDEX(account_status)
-INDEX(profile_type)
-INDEX(email_verified_at)
-INDEX(deleted_at)
-```
-
-## `user_profiles`
-
-Profil dasar lintas tipe pengguna.
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier profil |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK, UK | S | Referensi `users.id` |
-| `address_line` | TEXT | NN | — | — | R | Alamat ringkas |
-| `province_code` | VARCHAR(32) | NN | — | IDX | I | Kode wilayah provinsi |
-| `regency_code` | VARCHAR(32) | NN | — | IDX | I | Kode kabupaten/kota sesuai provinsi |
-| `district_code` | VARCHAR(32) | NN | — | IDX | I | Kode kecamatan sesuai kabupaten/kota |
-| `village_code` | VARCHAR(32) | N | `NULL` | IDX | I | Kode desa/kelurahan bila diisi |
-| `profile_completion_status` | VARCHAR(64) | NN | `draft` | — | S | Status kelengkapan profil terkendali |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-Constraint/index:
-
-```text
-UNIQUE(user_id)
-INDEX(province_code, regency_code, district_code)
-FK user_id → users.id
-```
-
-## `asn_profiles`
-
-Profil khusus ASN/Pegawai Pemerintah.
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK, UK | S | Referensi user dengan profile type `asn` |
-| `organization_unit_id` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | I | Unit organisasi; digunakan terutama ASN Pemprov Lampung |
-| `employee_identifier` | VARCHAR(64) | N | `NULL` | — | R | NIP/NIPPK; format/kebijakan tervalidasi |
-| `employment_status` | VARCHAR(64) | N | `NULL` | — | I | Misalnya PNS/PPPK |
-| `origin_type` | VARCHAR(64) | NN | — | IDX | I | `pemprov_lampung`, `kementerian_lembaga`, `pemerintah_daerah_lain`, `pemerintah_desa`, `bumn_bumd`, `lainnya` |
-| `institution_name` | VARCHAR(255) | N | `NULL` | — | I | Instansi induk bila bukan organisasi master |
-| `unit_name` | VARCHAR(255) | N | `NULL` | — | I | Nama unit manual bila diperlukan |
-| `position_name` | VARCHAR(255) | N | `NULL` | — | I | Jabatan utama |
-| `rank_grade` | VARCHAR(128) | N | `NULL` | — | I | Pangkat/golongan bila diisi |
-| `official_email` | VARCHAR(255) | N | `NULL` | — | R | Email kedinasan bila tersedia |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-Constraint:
-
-```text
-UNIQUE(user_id)
-FK user_id → users.id
-FK organization_unit_id → organization_units.id
-INDEX(origin_type)
-```
-
-## `provider_profiles`
-
-Profil Penyedia Barang/Jasa.
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK, UK | S | Referensi user profile `provider` |
-| `business_name` | VARCHAR(255) | NN | — | — | I | Nama badan usaha |
-| `business_form` | VARCHAR(64) | NN | — | — | I | Perseorangan/CV/PT/Koperasi/Firma/lainnya |
-| `business_field` | VARCHAR(255) | N | `NULL` | — | I | Bidang usaha |
-| `business_identifier` | VARCHAR(64) | N | `NULL` | — | R | NIB/identifier legal bila ada |
-| `registrant_position` | VARCHAR(255) | NN | — | — | I | Jabatan pendaftar |
-| `responsible_person` | VARCHAR(255) | NN | — | — | R | Penanggung jawab |
-| `business_email` | VARCHAR(255) | N | `NULL` | — | R | Email badan usaha |
-| `business_address` | TEXT | N | `NULL` | — | R | Alamat usaha |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-Constraint:
-
-```text
-UNIQUE(user_id)
-FK user_id → users.id
-```
-
-## `academic_profiles`
-
-Profil Akademisi.
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK, UK | S | Referensi user profile `academic` |
-| `institution_name` | VARCHAR(255) | NN | — | — | I | Institusi pendidikan/riset |
-| `institution_type` | VARCHAR(64) | NN | — | — | I | Jenis institusi terkendali |
-| `role_name` | VARCHAR(255) | NN | — | — | I | Dosen/peneliti/praktisi/konsultan/lainnya |
-| `expertise` | JSON | N | `NULL` | — | I | Bidang keahlian multi-value tervalidasi |
-| `institution_email` | VARCHAR(255) | N | `NULL` | — | R | Email institusi |
-| `professional_identifier` | VARCHAR(128) | N | `NULL` | — | R | NIDN/NUPTK/identifier profesi bila ada |
-| `portfolio_url` | VARCHAR(2048) | N | `NULL` | — | I | URL HTTPS tervalidasi |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-Constraint:
-
-```text
-UNIQUE(user_id)
-FK user_id → users.id
-```
-
-## `public_profiles`
-
-Profil Masyarakat Umum.
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK, UK | S | Referensi user profile `public` |
-| `national_identifier` | VARCHAR(32) | N | `NULL` | — | R | NIK bila dibutuhkan kebijakan |
-| `occupation_status` | VARCHAR(128) | NN | — | — | I | Mahasiswa/pegawai/wiraswasta/perangkat desa/lainnya |
-| `organization_name` | VARCHAR(255) | N | `NULL` | — | I | Organisasi bila ada |
-| `interest_areas` | JSON | N | `NULL` | — | I | Bidang minat PBJ |
-| `usage_purpose` | JSON | N | `NULL` | — | I | Tujuan penggunaan |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-Constraint:
-
-```text
-UNIQUE(user_id)
-FK user_id → users.id
-```
-
-## `roles`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier role |
-| `key` | VARCHAR(64) | NN | — | UK | S | Role teknis controlled value |
-| `name` | VARCHAR(255) | NN | — | — | I | Label role UI |
-| `description` | TEXT | N | `NULL` | — | I | Deskripsi role |
-| `is_system` | TINYINT(1) | NN | `1` | — | S | Role sistem tidak dihapus sembarangan |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-Constraint: `UNIQUE(key)`.
-
-## `permissions`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier permission |
-| `key` | VARCHAR(128) | NN | — | UK | S | Permission dot notation |
-| `name` | VARCHAR(255) | NN | — | — | I | Label UI |
-| `domain` | VARCHAR(64) | NN | — | IDX | S | Domain permission |
-| `description` | TEXT | N | `NULL` | — | I | Deskripsi izin |
-| `is_system` | TINYINT(1) | NN | `1` | — | S | Permission sistem |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-Constraint/index: `UNIQUE(key)`, `INDEX(domain)`.
-
-## `user_roles`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier assignment role |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK | S | User penerima role |
-| `role_id` | BIGINT UNSIGNED | NN | — | FK | S | Role yang diberikan |
-| `status` | VARCHAR(64) | NN | `active` | IDX | S | `active`, `revoked`, `expired` |
-| `granted_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor pemberi; null untuk system |
-| `granted_at` | DATETIME | NN | — | — | S | Waktu pemberian |
-| `revoked_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor pencabut |
-| `revoked_at` | DATETIME | N | `NULL` | — | S | Waktu pencabutan |
-| `reason` | TEXT | N | `NULL` | — | I | Alasan grant/revoke |
-| `created_at` | DATETIME | NN | — | — | S | Waktu record dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu record diperbarui |
-
-Constraint/index:
-
-```text
-UNIQUE(user_id, role_id)
-INDEX(user_id, status)
-INDEX(role_id, status)
-FK user_id → users.id
-FK role_id → roles.id
-FK granted_by → users.id
-FK revoked_by → users.id
-```
-
-## `role_permissions`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `role_id` | BIGINT UNSIGNED | NN | — | PK, FK | S | Role |
-| `permission_id` | BIGINT UNSIGNED | NN | — | PK, FK | S | Permission |
-| `granted_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor pemberi |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-
-Constraint: `PRIMARY KEY(role_id, permission_id)`.
-
-## `email_verifications`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK | S | Pemilik token |
-| `token_hash` | CHAR(64) | NN | — | UK | R | Hash token; plain token tidak disimpan |
-| `expires_at` | DATETIME | NN | — | IDX | S | Kedaluwarsa token |
-| `verified_at` | DATETIME | N | `NULL` | — | S | Waktu token digunakan |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-
-Constraint/index: `UNIQUE(token_hash)`, `INDEX(user_id, expires_at)`.
-
-## `password_resets`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK | S | Pemilik token |
-| `token_hash` | CHAR(64) | NN | — | UK | R | Hash token reset |
-| `expires_at` | DATETIME | NN | — | IDX | S | Kedaluwarsa |
-| `used_at` | DATETIME | N | `NULL` | — | S | Waktu penggunaan |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-
-Constraint/index: `UNIQUE(token_hash)`, `INDEX(user_id, expires_at)`.
-
-## `role_requests`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier request |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Requester |
-| `requested_role_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Hanya role self-service `trainer`/`evaluator` |
-| `status` | VARCHAR(64) | NN | `draft` | IDX | I | Workflow request |
-| `reason` | TEXT | N | `NULL` | — | I | Alasan request |
-| `reviewed_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Reviewer |
-| `reviewed_at` | DATETIME | N | `NULL` | — | S | Waktu review |
-| `review_notes` | TEXT | N | `NULL` | — | I | Catatan review/revisi |
-| `archived_at` | DATETIME | N | `NULL` | — | S | Waktu arsip |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-Status: `draft`, `submitted`, `in_review`, `revision_required`, `approved`, `rejected`, `cancelled`, `archived`.
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | UNI | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `institution_name` | `varchar(255)` | NO | NULL | - | - | Atribut data institution name |
+| 4 | `institution_type` | `varchar(64)` | NO | NULL | - | - | Atribut data institution type |
+| 5 | `role_name` | `varchar(255)` | NO | NULL | - | - | Atribut data role name |
+| 6 | `expertise` | `json` | YES | NULL | - | - | Atribut data expertise |
+| 7 | `institution_email` | `varchar(255)` | YES | NULL | - | - | Atribut data institution email |
+| 8 | `professional_identifier` | `varchar(128)` | YES | NULL | - | - | Atribut data professional identifier |
+| 9 | `portfolio_url` | `varchar(2048)` | YES | NULL | - | - | Atribut data portfolio url |
+| 10 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 11 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-# Organisasi, Verifikasi, dan Peran Pengadaan
+### Tabel: `approvals`
 
-## `organization_units`
+- **Nama Tabel:** `approvals`
+- **Jumlah Kolom:** 13 kolom
+- **Definisi:** Struktur persistence data untuk entitas `approvals` pada ekosistem BegawiPengadaan.
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier unit |
-| `parent_id` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | Parent unit untuk hierarchy |
-| `code` | VARCHAR(64) | NN | — | UK | I | Kode organisasi unik |
-| `name` | VARCHAR(255) | NN | — | — | I | Nama unit |
-| `type` | VARCHAR(64) | NN | — | IDX | I | `province`, `agency`, `bureau`, `department`, `inspectorate`, `hospital`, `secretariat`, atau nilai terkendali |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
-| `sort_order` | INT UNSIGNED | NN | `0` | — | S | Urutan |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-Constraint/index: `UNIQUE(code)`, `INDEX(parent_id)`, `INDEX(type, is_active)`.
-
-## `procurement_roles`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier master peran |
-| `key` | VARCHAR(64) | NN | — | UK | S | Kode teknis peran pengadaan |
-| `name` | VARCHAR(255) | NN | — | — | I | Label peran |
-| `description` | TEXT | N | `NULL` | — | I | Deskripsi |
-| `is_active` | TINYINT(1) | NN | `1` | — | S | Status master |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-## `user_procurement_roles`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK | S | User pemilik deklarasi |
-| `procurement_role_id` | BIGINT UNSIGNED | NN | — | FK | S | Master peran pengadaan |
-| `verification_status` | VARCHAR(64) | NN | `self_declared` | IDX | I | `self_declared`, `pending`, `verified`, `rejected` |
-| `verified_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Reviewer |
-| `verified_at` | DATETIME | N | `NULL` | — | S | Waktu verifikasi |
-| `assignment_start_at` | DATETIME | N | `NULL` | — | I | Awal penugasan bila ada |
-| `assignment_end_at` | DATETIME | N | `NULL` | — | I | Akhir penugasan bila ada |
-| `evidence_file_id` | BIGINT UNSIGNED | N | `NULL` | FK | R | Bukti file restricted |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-Constraint: `UNIQUE(user_id, procurement_role_id)`.
-
-## `profile_change_requests`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier request |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | User requester |
-| `status` | VARCHAR(64) | NN | `draft` | IDX | I | Workflow profile change |
-| `requested_payload` | JSON | NN | — | — | R | Payload perubahan; wajib redaction pada audit/log |
-| `reason` | TEXT | N | `NULL` | — | I | Alasan perubahan |
-| `reviewed_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Reviewer |
-| `reviewed_at` | DATETIME | N | `NULL` | — | S | Waktu review |
-| `review_notes` | TEXT | N | `NULL` | — | I | Catatan reviewer |
-| `applied_at` | DATETIME | N | `NULL` | — | S | Waktu perubahan diterapkan |
-| `archived_at` | DATETIME | N | `NULL` | — | S | Waktu diarsipkan |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-## `profile_verifications`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Subjek verifikasi |
-| `verification_type` | VARCHAR(64) | NN | — | IDX | I | Tipe verifikasi terkendali |
-| `status` | VARCHAR(64) | NN | `pending` | IDX | I | `pending`, `in_review`, `approved`, `rejected`, `revision_required` |
-| `requested_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor request |
-| `reviewed_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Reviewer |
-| `reason` | TEXT | N | `NULL` | — | I | Alasan keputusan |
-| `notes` | TEXT | N | `NULL` | — | I | Catatan aman |
-| `reviewed_at` | DATETIME | N | `NULL` | — | S | Waktu review |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `resource_type` | `varchar(128)` | NO | NULL | MUL | - | Atribut data resource type |
+| 3 | `resource_id` | `bigint unsigned` | NO | NULL | - | - | Atribut data resource id |
+| 4 | `requested_action` | `varchar(128)` | NO | NULL | - | - | Atribut data requested action |
+| 5 | `status` | `varchar(64)` | NO | `pending` | MUL | - | Status operasional record sesuai CHECK constraint |
+| 6 | `requested_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data requested by |
+| 7 | `reviewed_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data reviewed by |
+| 8 | `reason` | `text` | YES | NULL | - | - | Atribut data reason |
+| 9 | `notes` | `text` | YES | NULL | - | - | Atribut data notes |
+| 10 | `expires_at` | `datetime` | YES | NULL | - | - | Atribut data expires at |
+| 11 | `reviewed_at` | `datetime` | YES | NULL | - | - | Atribut data reviewed at |
+| 12 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 13 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-# Shared Governance
+### Tabel: `asn_profiles`
 
-## `approvals`
+- **Nama Tabel:** `asn_profiles`
+- **Jumlah Kolom:** 13 kolom
+- **Definisi:** Struktur persistence data untuk entitas `asn_profiles` pada ekosistem BegawiPengadaan.
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier approval |
-| `resource_type` | VARCHAR(128) | NN | — | IDX | S | Polymorphic resource type whitelist |
-| `resource_id` | BIGINT UNSIGNED | NN | — | IDX | S | Resource ID |
-| `requested_action` | VARCHAR(128) | NN | — | — | I | Aksi yang diminta approval |
-| `status` | VARCHAR(64) | NN | `pending` | IDX | I | `pending`, `in_review`, `approved`, `rejected`, `revision_required`, `cancelled`, `expired` |
-| `requested_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Requester/system context |
-| `reviewed_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Reviewer |
-| `reason` | TEXT | N | `NULL` | — | I | Alasan request/keputusan |
-| `notes` | TEXT | N | `NULL` | — | I | Catatan aman |
-| `expires_at` | DATETIME | N | `NULL` | — | S | Deadline approval |
-| `reviewed_at` | DATETIME | N | `NULL` | — | S | Waktu keputusan |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-Index: `INDEX(resource_type, resource_id)`, `INDEX(status, created_at)`, `INDEX(reviewed_by, status)`.
-
-## `workflow_transitions`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier transition |
-| `resource_type` | VARCHAR(128) | NN | — | IDX | S | Polymorphic resource type whitelist |
-| `resource_id` | BIGINT UNSIGNED | NN | — | IDX | S | Resource ID |
-| `from_state` | VARCHAR(64) | N | `NULL` | — | S | State sebelum transisi |
-| `to_state` | VARCHAR(64) | NN | — | IDX | S | State sesudah transisi |
-| `action` | VARCHAR(128) | NN | — | — | S | Nama aksi workflow |
-| `actor_id` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | User actor; null untuk system |
-| `actor_type` | VARCHAR(32) | NN | `user` | — | S | `user` atau `system` |
-| `reason` | TEXT | N | `NULL` | — | I | Alasan bila diwajibkan |
-| `notes` | TEXT | N | `NULL` | — | I | Catatan aman |
-| `metadata` | JSON | N | `NULL` | — | S | Metadata ter-redaksi |
-| `created_at` | DATETIME | NN | — | IDX | S | Waktu transisi |
-
-Index: `INDEX(resource_type, resource_id, created_at)`, `INDEX(actor_id, created_at)`, `INDEX(to_state, created_at)`.
-
-## `audit_logs`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier audit append-only |
-| `actor_id` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | Actor user/system/guest context |
-| `action` | VARCHAR(128) | NN | — | IDX | S | Action key |
-| `resource_type` | VARCHAR(128) | N | `NULL` | IDX | S | Resource type |
-| `resource_id` | BIGINT UNSIGNED | N | `NULL` | IDX | S | Resource ID |
-| `result` | VARCHAR(32) | NN | — | IDX | S | `success`, `failed`, `denied`, `partial` |
-| `before_snapshot` | JSON | N | `NULL` | — | R | Snapshot harus redacted |
-| `after_snapshot` | JSON | N | `NULL` | — | R | Snapshot harus redacted |
-| `reason` | TEXT | N | `NULL` | — | I | Alasan bila ada |
-| `ip_hash` | CHAR(64) | N | `NULL` | — | R | Hash/minimized IP context |
-| `user_agent_hash` | CHAR(64) | N | `NULL` | — | R | Hash/minimized user-agent |
-| `request_id` | VARCHAR(128) | N | `NULL` | — | S | Correlation ID |
-| `created_at` | DATETIME | NN | — | IDX | S | Waktu audit |
-
-Audit tidak boleh menyimpan password, plain token, session ID, secret, credential, atau full restricted payload.
-
-## `file_assets`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier file metadata |
-| `disk` | VARCHAR(64) | NN | — | — | S | Storage disk key |
-| `path` | VARCHAR(1024) | NN | — | — | R | Internal storage path; tidak diekspos publik |
-| `original_name` | VARCHAR(512) | NN | — | — | I | Nama untrusted untuk display aman |
-| `stored_name` | VARCHAR(255) | NN | — | — | S | Nama unik server-side |
-| `extension` | VARCHAR(32) | NN | — | — | S | Ekstensi tervalidasi |
-| `mime_type` | VARCHAR(255) | NN | — | — | S | MIME tervalidasi server-side |
-| `size_bytes` | BIGINT UNSIGNED | NN | — | — | S | Ukuran bytes |
-| `checksum` | CHAR(64) | N | `NULL` | — | S | Hash integritas bila digunakan |
-| `visibility` | VARCHAR(64) | NN | `internal` | IDX | I | `public`, `internal`, `restricted` |
-| `lifecycle_status` | VARCHAR(64) | NN | `pending_upload` | IDX | S | Lifecycle file |
-| `resource_type` | VARCHAR(128) | N | `NULL` | IDX | S | Polymorphic owner type |
-| `resource_id` | BIGINT UNSIGNED | N | `NULL` | IDX | S | Polymorphic owner ID |
-| `uploaded_by` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | Actor uploader/system |
-| `available_at` | DATETIME | N | `NULL` | — | S | Waktu file tersedia |
-| `expires_at` | DATETIME | N | `NULL` | IDX | S | Expiry temporary/export |
-| `deleted_at` | DATETIME | N | `NULL` | — | S | Soft delete/lifecycle delete |
-| `metadata` | JSON | N | `NULL` | — | R | Metadata aman; tidak secret/restricted berlebihan |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-
-## `notifications`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Penerima |
-| `channel` | VARCHAR(64) | NN | `database` | IDX | S | `database`, `email`, atau channel terkendali |
-| `type` | VARCHAR(128) | NN | — | — | S | Notification type key |
-| `title` | VARCHAR(255) | NN | — | — | I | Judul aman |
-| `body` | TEXT | N | `NULL` | — | I | Isi minimum tanpa secret/restricted berlebihan |
-| `data` | JSON | N | `NULL` | — | I | Payload aman |
-| `read_at` | DATETIME | N | `NULL` | IDX | S | Waktu dibaca |
-| `sent_at` | DATETIME | N | `NULL` | IDX | S | Waktu dikirim |
-| `created_at` | DATETIME | NN | — | IDX | S | Waktu dibuat |
-
-Index: `INDEX(user_id, read_at, created_at)`, `INDEX(channel, sent_at)`.
-
-## `bookmarks`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK | S | Pemilik bookmark |
-| `bookmarkable_type` | VARCHAR(128) | NN | — | IDX | S | Resource type whitelist |
-| `bookmarkable_id` | BIGINT UNSIGNED | NN | — | IDX | S | Resource ID |
-| `created_at` | DATETIME | NN | — | — | S | Waktu bookmark |
-
-Constraint: `UNIQUE(user_id, bookmarkable_type, bookmarkable_id)`.
-
-## `exports`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier export |
-| `requested_by` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Requester |
-| `type` | VARCHAR(128) | NN | — | — | I | Tipe export terkendali |
-| `status` | VARCHAR(64) | NN | `queued` | IDX | S | `queued`, `generating`, `ready`, `failed`, `expired`, `deleted` |
-| `filters` | JSON | N | `NULL` | — | R | Filter/scope export |
-| `file_id` | BIGINT UNSIGNED | N | `NULL` | FK | S | File hasil export |
-| `error_message` | TEXT | N | `NULL` | — | I | Pesan aman gagal generate |
-| `expires_at` | DATETIME | N | `NULL` | IDX | S | Expiry download |
-| `completed_at` | DATETIME | N | `NULL` | — | S | Waktu selesai |
-| `deleted_at` | DATETIME | N | `NULL` | — | S | Waktu delete |
-| `created_at` | DATETIME | NN | — | — | S | Waktu request |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu update |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | UNI | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `organization_unit_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data organization unit id |
+| 4 | `employee_identifier` | `varchar(64)` | YES | NULL | - | - | Atribut data employee identifier |
+| 5 | `employment_status` | `varchar(64)` | YES | NULL | - | - | Atribut data employment status |
+| 6 | `origin_type` | `varchar(64)` | NO | NULL | MUL | - | Atribut data origin type |
+| 7 | `institution_name` | `varchar(255)` | YES | NULL | - | - | Atribut data institution name |
+| 8 | `unit_name` | `varchar(255)` | YES | NULL | - | - | Atribut data unit name |
+| 9 | `position_name` | `varchar(255)` | YES | NULL | - | - | Atribut data position name |
+| 10 | `rank_grade` | `varchar(128)` | YES | NULL | - | - | Atribut data rank grade |
+| 11 | `official_email` | `varchar(255)` | YES | NULL | - | - | Atribut data official email |
+| 12 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 13 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-# Arena Belajar
+### Tabel: `assignment_submission_files`
 
-## `programs`
+- **Nama Tabel:** `assignment_submission_files`
+- **Jumlah Kolom:** 3 kolom
+- **Definisi:** Struktur persistence data untuk entitas `assignment_submission_files` pada ekosistem BegawiPengadaan.
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier program |
-| `title` | VARCHAR(255) | NN | — | — | P/I | Judul program |
-| `slug` | VARCHAR(255) | NN | — | UK | P/I | Slug unik |
-| `summary` | TEXT | N | `NULL` | — | P/I | Ringkasan |
-| `description` | LONGTEXT | N | `NULL` | — | P/I | Konten program tersanitasi |
-| `status` | VARCHAR(64) | NN | `draft` | IDX | I | Workflow/publication status |
-| `visibility` | VARCHAR(64) | NN | `internal` | IDX | I | `public`, `internal`, `restricted` |
-| `featured` | TINYINT(1) | NN | `0` | — | I | Program unggulan |
-| `cover_file_id` | BIGINT UNSIGNED | N | `NULL` | FK | I | Cover file |
-| `created_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Creator |
-| `updated_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Last updater |
-| `published_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Publisher |
-| `published_at` | DATETIME | N | `NULL` | IDX | S | Waktu publish |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu diperbarui |
-| `deleted_at` | DATETIME | N | `NULL` | — | S | Soft delete |
-
-Constraint/index: `UNIQUE(slug)`, `INDEX(status, visibility, published_at)`.
-
-## `courses`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier course |
-| `program_id` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | Program induk bila ada |
-| `title` | VARCHAR(255) | NN | — | — | P/I | Judul course |
-| `slug` | VARCHAR(255) | NN | — | UK | P/I | Slug unik |
-| `summary` | TEXT | N | `NULL` | — | P/I | Ringkasan |
-| `description` | LONGTEXT | N | `NULL` | — | P/I | Konten tersanitasi |
-| `level` | VARCHAR(64) | N | `NULL` | — | I | Level course |
-| `duration_minutes` | INT UNSIGNED | N | `NULL` | — | I | Estimasi durasi |
-| `status` | VARCHAR(64) | NN | `draft` | IDX | I | Status publikasi |
-| `visibility` | VARCHAR(64) | NN | `internal` | IDX | I | Visibility |
-| `cover_file_id` | BIGINT UNSIGNED | N | `NULL` | FK | I | Cover file |
-| `created_by`, `updated_by`, `published_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor metadata |
-| `published_at` | DATETIME | N | `NULL` | IDX | S | Waktu publish |
-| `created_at`, `updated_at`, `deleted_at` | DATETIME | Sesuai | — | — | S | Timestamp lifecycle |
-
-Constraint/index: `UNIQUE(slug)`, `INDEX(program_id)`, `INDEX(status, visibility, published_at)`.
-
-## `learning_classes`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier class |
-| `course_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Course induk |
-| `code` | VARCHAR(64) | NN | — | UK scope | I | Kode class unik dalam course |
-| `name` | VARCHAR(255) | NN | — | — | I | Nama kelas |
-| `status` | VARCHAR(64) | NN | `draft` | IDX | I | Lifecycle class terkendali |
-| `registration_open_at` | DATETIME | N | `NULL` | IDX | S | Awal pendaftaran |
-| `registration_close_at` | DATETIME | N | `NULL` | IDX | S | Akhir pendaftaran |
-| `start_at` | DATETIME | N | `NULL` | IDX | S | Mulai kelas |
-| `end_at` | DATETIME | N | `NULL` | IDX | S | Akhir kelas |
-| `capacity` | INT UNSIGNED | N | `NULL` | — | I | Kuota; null berarti sesuai policy tanpa limit |
-| `certificate_enabled` | TINYINT(1) | NN | `0` | — | S | Aktivasi sertifikat |
-| `passing_grade` | DECIMAL(5,2) | NN | `70.00` | — | S | Rentang 0–100 |
-| `quiz_weight` | DECIMAL(5,2) | NN | `40.00` | — | S | Bobot quiz |
-| `assignment_weight` | DECIMAL(5,2) | NN | `0.00` | — | S | Bobot assignment |
-| `post_test_weight` | DECIMAL(5,2) | NN | `60.00` | — | S | Bobot post-test |
-| `created_by`, `updated_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor metadata |
-| `created_at`, `updated_at`, `deleted_at` | DATETIME | Sesuai | — | — | S | Timestamp lifecycle |
-
-Constraint:
-
-```text
-UNIQUE(course_id, code)
-CHECK(quiz_weight + assignment_weight + post_test_weight = 100)
-CHECK(post_test_weight = 60)
-CHECK(passing_grade >= 0 AND passing_grade <= 100)
-```
-
-## `class_trainers` dan `class_evaluators`
-
-Kedua tabel memiliki bentuk yang sama; pembeda hanya jenis assignment.
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `class_id` | BIGINT UNSIGNED | NN | — | PK, FK | S | Class terkait |
-| `user_id` | BIGINT UNSIGNED | NN | — | PK, FK | S | Trainer/Evaluator terkait |
-| `assigned_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor penugasan |
-| `assigned_at` | DATETIME | NN | — | — | S | Waktu penugasan |
-| `status` | VARCHAR(64) | NN | `active` | — | S | `active` atau `revoked` |
-
-Constraint: `PRIMARY KEY(class_id, user_id)`.
-
-## `learning_modules`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier module |
-| `class_id` | BIGINT UNSIGNED | NN | — | FK | S | Class induk |
-| `title` | VARCHAR(255) | NN | — | — | I | Judul module |
-| `description` | TEXT | N | `NULL` | — | I | Deskripsi |
-| `sort_order` | INT UNSIGNED | NN | — | UK scope | S | Urutan dalam class |
-| `is_required` | TINYINT(1) | NN | `1` | — | S | Komponen wajib |
-| `status` | VARCHAR(64) | NN | `draft` | — | I | Status terkendali |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-Constraint: `UNIQUE(class_id, sort_order)`.
-
-## `lessons`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier lesson |
-| `module_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Module induk |
-| `title` | VARCHAR(255) | NN | — | — | I | Judul lesson |
-| `slug` | VARCHAR(255) | N | `NULL` | IDX | I | Slug bila dibutuhkan |
-| `content_type` | VARCHAR(64) | NN | — | — | I | `text`, `document`, `video`, `link`, atau controlled value |
-| `content` | LONGTEXT | N | `NULL` | — | I | Konten teks tersanitasi |
-| `file_id` | BIGINT UNSIGNED | N | `NULL` | FK | I | Materi file |
-| `external_url` | VARCHAR(2048) | N | `NULL` | — | I | URL tervalidasi |
-| `sort_order` | INT UNSIGNED | NN | — | UK scope | S | Urutan dalam module |
-| `is_required` | TINYINT(1) | NN | `1` | — | S | Lesson wajib |
-| `status` | VARCHAR(64) | NN | `draft` | IDX | I | Availability status |
-| `visibility` | VARCHAR(64) | NN | `internal` | IDX | I | Visibility materi |
-| `created_by`, `updated_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor metadata |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-Constraint: `UNIQUE(module_id, sort_order)`.
-
-## `enrollments`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier enrollment |
-| `class_id` | BIGINT UNSIGNED | NN | — | FK | S | Class |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK | S | Participant |
-| `status` | VARCHAR(64) | NN | `pending` | IDX | I | `pending`, `active`, `completed`, `withdrawn`, `cancelled` |
-| `enrolled_at` | DATETIME | NN | — | — | S | Waktu daftar |
-| `activated_at` | DATETIME | N | `NULL` | — | S | Waktu aktif |
-| `completed_at` | DATETIME | N | `NULL` | — | S | Waktu selesai |
-| `final_score` | DECIMAL(5,2) | N | `NULL` | — | R | Skor akhir 0–100 |
-| `passed_at` | DATETIME | N | `NULL` | — | S | Waktu lulus |
-| `certificate_eligible_at` | DATETIME | N | `NULL` | IDX | S | Saat memenuhi eligibility |
-| `withdrawn_at` | DATETIME | N | `NULL` | — | S | Waktu withdraw |
-| `cancelled_at` | DATETIME | N | `NULL` | — | S | Waktu cancel |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-Constraint: `UNIQUE(class_id, user_id)`.
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `submission_id` | `bigint unsigned` | NO | NULL | PRI | - | Atribut data submission id |
+| 2 | `file_id` | `bigint unsigned` | NO | NULL | PRI | - | Atribut data file id |
+| 3 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
 
 ---
 
-# Learning Assessment
+### Tabel: `assignment_submissions`
 
-## `pre_tests`
+- **Nama Tabel:** `assignment_submissions`
+- **Jumlah Kolom:** 13 kolom
+- **Definisi:** Struktur persistence data untuk entitas `assignment_submissions` pada ekosistem BegawiPengadaan.
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `class_id` | BIGINT UNSIGNED | NN | — | FK, UK | S | Satu pre-test per class |
-| `is_enabled` | TINYINT(1) | NN | `0` | — | S | Aktivasi pre-test |
-| `attempt_limit` | INT UNSIGNED | NN | `1` | — | S | Baseline satu attempt |
-| `status` | VARCHAR(64) | NN | `draft` | — | I | Availability status |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `quizzes`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier quiz |
-| `class_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Class terkait |
-| `lesson_id` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | Lesson terkait; null untuk quiz tingkat class |
-| `type` | VARCHAR(64) | NN | — | IDX | I | `pre_test`, `lesson_quiz`, `post_test` |
-| `title` | VARCHAR(255) | NN | — | — | I | Judul |
-| `instructions` | TEXT | N | `NULL` | — | I | Instruksi |
-| `attempt_limit` | INT UNSIGNED | NN | `1` | — | S | Batas attempt |
-| `is_required` | TINYINT(1) | NN | `0` | — | S | Wajib/tidak |
-| `status` | VARCHAR(64) | NN | `draft` | IDX | I | Availability status |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `quiz_questions`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `quiz_id` | BIGINT UNSIGNED | NN | — | FK | S | Quiz induk |
-| `type` | VARCHAR(64) | NN | — | — | I | Tipe pertanyaan terkendali |
-| `prompt` | LONGTEXT | NN | — | — | I | Pertanyaan |
-| `points` | DECIMAL(5,2) | NN | `1.00` | — | S | Poin >= 0 |
-| `sort_order` | INT UNSIGNED | NN | — | UK scope | S | Urutan |
-| `explanation` | TEXT | N | `NULL` | — | I | Penjelasan setelah policy mengizinkan |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-Constraint: `UNIQUE(quiz_id, sort_order)`.
-
-## `quiz_options`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `question_id` | BIGINT UNSIGNED | NN | — | FK | S | Question induk |
-| `option_text` | TEXT | NN | — | — | I | Isi opsi |
-| `is_correct` | TINYINT(1) | NN | `0` | — | R | Jawaban benar; tidak dikirim sebelum policy mengizinkan |
-| `sort_order` | INT UNSIGNED | NN | — | UK scope | S | Urutan |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-Constraint: `UNIQUE(question_id, sort_order)`.
-
-## `quiz_attempts`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier attempt |
-| `quiz_id` | BIGINT UNSIGNED | NN | — | FK | S | Quiz |
-| `enrollment_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Ownership peserta |
-| `attempt_number` | INT UNSIGNED | NN | — | UK scope | S | Mulai dari 1 |
-| `status` | VARCHAR(64) | NN | `started` | IDX | I | `started`, `submitted`, `graded`, `invalidated` |
-| `started_at` | DATETIME | NN | — | — | S | Mulai attempt |
-| `submitted_at` | DATETIME | N | `NULL` | — | S | Submit attempt |
-| `graded_at` | DATETIME | N | `NULL` | — | S | Grading selesai |
-| `score` | DECIMAL(5,2) | N | `NULL` | — | R | Skor 0–100 |
-| `invalidated_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor invalidasi |
-| `invalidated_reason` | TEXT | N | `NULL` | — | I | Alasan invalidasi |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-Constraint: `UNIQUE(quiz_id, enrollment_id, attempt_number)`.
-
-## `quiz_answers`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `attempt_id` | BIGINT UNSIGNED | NN | — | FK | S | Quiz attempt |
-| `question_id` | BIGINT UNSIGNED | NN | — | FK | S | Question |
-| `answer_payload` | JSON | N | `NULL` | — | R | Jawaban peserta |
-| `is_correct` | TINYINT(1) | N | `NULL` | — | R | Hasil correctness |
-| `score_awarded` | DECIMAL(5,2) | N | `NULL` | — | R | Poin diberikan |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-Constraint: `UNIQUE(attempt_id, question_id)`.
-
-## `assignments`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier assignment |
-| `class_id` | BIGINT UNSIGNED | NN | — | FK | S | Class |
-| `lesson_id` | BIGINT UNSIGNED | N | `NULL` | FK | S | Lesson bila spesifik |
-| `title` | VARCHAR(255) | NN | — | — | I | Judul tugas |
-| `instructions` | LONGTEXT | N | `NULL` | — | I | Instruksi |
-| `due_at` | DATETIME | N | `NULL` | IDX | S | Deadline |
-| `is_required` | TINYINT(1) | NN | `0` | — | S | Wajib/tidak |
-| `max_attempts` | INT UNSIGNED | NN | `1` | — | S | Batas submit/revisi |
-| `allowed_mimes` | JSON | N | `NULL` | — | S | Override allowlist file |
-| `max_file_size_bytes` | BIGINT UNSIGNED | N | `NULL` | — | S | Override batas file |
-| `status` | VARCHAR(64) | NN | `draft` | IDX | I | Availability status |
-| `created_by`, `updated_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor metadata |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `assignment_submissions`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier submission |
-| `assignment_id` | BIGINT UNSIGNED | NN | — | FK | S | Assignment |
-| `enrollment_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Enrollment owner |
-| `attempt_number` | INT UNSIGNED | NN | — | UK scope | S | Nomor revisi/submission |
-| `status` | VARCHAR(64) | NN | `draft` | IDX | I | `draft`, `submitted`, `in_review`, `revision_required`, `graded`, `cancelled` |
-| `content` | LONGTEXT | N | `NULL` | — | R | Jawaban teks peserta |
-| `submitted_at` | DATETIME | N | `NULL` | — | S | Waktu submit |
-| `graded_at` | DATETIME | N | `NULL` | — | S | Waktu grading |
-| `graded_by` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | Evaluator |
-| `score` | DECIMAL(5,2) | N | `NULL` | — | R | Nilai |
-| `feedback` | LONGTEXT | N | `NULL` | — | R | Feedback evaluator |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-Constraint: `UNIQUE(assignment_id, enrollment_id, attempt_number)`.
-
-## `assignment_submission_files`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `submission_id` | BIGINT UNSIGNED | NN | — | PK, FK | S | Submission |
-| `file_id` | BIGINT UNSIGNED | NN | — | PK, FK | S | File asset restricted |
-| `created_at` | DATETIME | NN | — | — | S | Waktu attach |
-
-Constraint: `PRIMARY KEY(submission_id, file_id)`.
-
-## `learning_progress`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier progress |
-| `enrollment_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Enrollment |
-| `lesson_id` | BIGINT UNSIGNED | NN | — | FK | S | Lesson |
-| `status` | VARCHAR(64) | NN | `not_started` | IDX | I | `not_started`, `in_progress`, `completed` |
-| `started_at` | DATETIME | N | `NULL` | — | S | Mulai belajar |
-| `completed_at` | DATETIME | N | `NULL` | — | S | Selesai lesson |
-| `progress_percent` | DECIMAL(5,2) | NN | `0.00` | — | S | 0–100 |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-Constraint: `UNIQUE(enrollment_id, lesson_id)`.
-
-## `feedbacks`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier feedback |
-| `enrollment_id` | BIGINT UNSIGNED | NN | — | FK, UK | S | Satu feedback per enrollment |
-| `rating` | TINYINT UNSIGNED | N | `NULL` | — | I | Rating terkendali, misalnya 1–5 |
-| `comment` | TEXT | N | `NULL` | — | I | Komentar peserta |
-| `status` | VARCHAR(64) | NN | `not_started` | — | S | `not_started`, `submitted` |
-| `submitted_at` | DATETIME | N | `NULL` | — | S | Waktu submit |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `assignment_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data assignment id |
+| 3 | `enrollment_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data enrollment id |
+| 4 | `attempt_number` | `int unsigned` | NO | NULL | - | - | Atribut data attempt number |
+| 5 | `status` | `varchar(64)` | NO | `draft` | - | - | Status operasional record sesuai CHECK constraint |
+| 6 | `content` | `longtext` | YES | NULL | - | - | Atribut data content |
+| 7 | `submitted_at` | `datetime` | YES | NULL | - | - | Atribut data submitted at |
+| 8 | `graded_at` | `datetime` | YES | NULL | - | - | Atribut data graded at |
+| 9 | `graded_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data graded by |
+| 10 | `score` | `decimal(5,2)` | YES | NULL | - | - | Atribut data score |
+| 11 | `feedback` | `longtext` | YES | NULL | - | - | Atribut data feedback |
+| 12 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 13 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-# Bunga Rampai / Knowledge
+### Tabel: `assignments`
 
-## `knowledge_categories`
+- **Nama Tabel:** `assignments`
+- **Jumlah Kolom:** 15 kolom
+- **Definisi:** Struktur persistence data untuk entitas `assignments` pada ekosistem BegawiPengadaan.
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier kategori |
-| `parent_id` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | Kategori parent |
-| `name` | VARCHAR(255) | NN | — | — | P/I | Nama kategori |
-| `slug` | VARCHAR(255) | NN | — | UK | P/I | Slug unik |
-| `description` | TEXT | N | `NULL` | — | P/I | Deskripsi |
-| `sort_order` | INT UNSIGNED | NN | `0` | — | S | Urutan |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `knowledge_tags`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier tag |
-| `name` | VARCHAR(255) | NN | — | — | P/I | Nama tag |
-| `slug` | VARCHAR(255) | NN | — | UK | P/I | Slug unik |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `knowledge_articles`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier konten |
-| `type` | VARCHAR(64) | NN | `article` | IDX | I | `article`, `faq`, `case_study`, `template` |
-| `title` | VARCHAR(255) | NN | — | — | P/I | Judul |
-| `slug` | VARCHAR(255) | NN | — | UK | P/I | Slug unik |
-| `summary` | TEXT | N | `NULL` | — | P/I | Ringkasan |
-| `content` | LONGTEXT | N | `NULL` | — | P/I | Konten tersanitasi |
-| `workflow_status` | VARCHAR(64) | NN | `draft` | IDX | I | Workflow publikasi |
-| `visibility` | VARCHAR(64) | NN | `internal` | IDX | I | Visibility konten |
-| `featured` | TINYINT(1) | NN | `0` | IDX | I | Konten unggulan |
-| `carousel_enabled` | TINYINT(1) | NN | `0` | IDX | I | Tampil carousel |
-| `carousel_order` | INT UNSIGNED | N | `NULL` | — | S | Urutan carousel |
-| `cover_file_id` | BIGINT UNSIGNED | N | `NULL` | FK | I | File cover |
-| `author_id` | BIGINT UNSIGNED | NN | — | FK | S | Penulis |
-| `reviewed_by`, `published_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor review/publish |
-| `published_at`, `archived_at` | DATETIME | N | `NULL` | IDX | S | Lifecycle content |
-| `created_at`, `updated_at`, `deleted_at` | DATETIME | Sesuai | — | — | S | Timestamp |
-
-Constraint/index:
-
-```text
-UNIQUE(slug)
-INDEX(type, workflow_status, visibility, published_at)
-INDEX(featured, carousel_enabled, carousel_order)
-```
-
-## `knowledge_article_categories`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi |
-|---|---|---:|---|---|---|---|
-| `article_id` | BIGINT UNSIGNED | NN | — | PK, FK | S | Knowledge article |
-| `category_id` | BIGINT UNSIGNED | NN | — | PK, FK | S | Kategori |
-| `created_at` | DATETIME | NN | — | — | S | Waktu relasi dibuat |
-
-## `knowledge_article_tags`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi |
-|---|---|---:|---|---|---|---|
-| `article_id` | BIGINT UNSIGNED | NN | — | PK, FK | S | Knowledge article |
-| `tag_id` | BIGINT UNSIGNED | NN | — | PK, FK | S | Tag |
-| `created_at` | DATETIME | NN | — | — | S | Waktu relasi dibuat |
-
-## `knowledge_media`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier media |
-| `article_id` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | Konten parent bila ada |
-| `type` | VARCHAR(64) | NN | — | IDX | I | `image`, `poster`, `flyer`, `infographic`, `gallery`, `video_file`, `youtube`, `social_link`, `external_link` |
-| `title` | VARCHAR(255) | N | `NULL` | — | P/I | Judul media |
-| `caption` | TEXT | N | `NULL` | — | P/I | Caption |
-| `alt_text` | VARCHAR(500) | N | `NULL` | — | P/I | Teks alternatif accessibility |
-| `file_id` | BIGINT UNSIGNED | N | `NULL` | FK | I | File media |
-| `external_url` | VARCHAR(2048) | N | `NULL` | — | I | URL tervalidasi provider/policy |
-| `thumbnail_file_id` | BIGINT UNSIGNED | N | `NULL` | FK | I | Thumbnail |
-| `workflow_status` | VARCHAR(64) | NN | `draft` | IDX | I | Workflow media |
-| `visibility` | VARCHAR(64) | NN | `internal` | IDX | I | Visibility |
-| `sort_order` | INT UNSIGNED | NN | `0` | — | S | Urutan |
-| `featured`, `carousel_enabled` | TINYINT(1) | NN | `0` | — | I | Kurasi tampilan |
-| `created_by`, `published_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor metadata |
-| `published_at`, `created_at`, `updated_at` | DATETIME | Sesuai | — | — | S | Timestamp |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `class_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel learning_classes |
+| 3 | `lesson_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data lesson id |
+| 4 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 5 | `instructions` | `longtext` | YES | NULL | - | - | Atribut data instructions |
+| 6 | `due_at` | `datetime` | YES | NULL | MUL | - | Atribut data due at |
+| 7 | `is_required` | `tinyint(1)` | NO | `0` | - | - | Atribut data is required |
+| 8 | `max_attempts` | `int unsigned` | NO | `1` | - | - | Atribut data max attempts |
+| 9 | `allowed_mimes` | `json` | YES | NULL | - | - | Atribut data allowed mimes |
+| 10 | `max_file_size_bytes` | `bigint unsigned` | YES | NULL | - | - | Atribut data max file size bytes |
+| 11 | `status` | `varchar(64)` | NO | `draft` | - | - | Status operasional record sesuai CHECK constraint |
+| 12 | `created_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang membuat data |
+| 13 | `updated_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang memperbarui data |
+| 14 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 15 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-# Regulasi PBJ
+### Tabel: `attendances`
 
-## `regulation_categories`
+- **Nama Tabel:** `attendances`
+- **Jumlah Kolom:** 8 kolom
+- **Definisi:** Struktur persistence data untuk entitas `attendances` pada ekosistem BegawiPengadaan.
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier kategori |
-| `name` | VARCHAR(255) | NN | — | — | P/I | Nama kategori |
-| `slug` | VARCHAR(255) | NN | — | UK | P/I | Slug unik |
-| `description` | TEXT | N | `NULL` | — | P/I | Deskripsi |
-| `is_active` | TINYINT(1) | NN | `1` | — | S | Status aktif |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `regulations`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier regulasi |
-| `category_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Kategori |
-| `title` | VARCHAR(255) | NN | — | — | P/I | Judul regulasi |
-| `slug` | VARCHAR(255) | NN | — | UK | P/I | Slug unik |
-| `document_number` | VARCHAR(255) | NN | — | UK scope | P/I | Nomor dokumen |
-| `document_year` | SMALLINT UNSIGNED | NN | — | UK scope | P/I | Tahun dokumen valid |
-| `issuer_name` | VARCHAR(255) | NN | — | UK scope | P/I | Instansi penerbit |
-| `official_date`, `effective_date` | DATETIME | N | `NULL` | — | P/I | Tanggal resmi/berlaku |
-| `summary` | TEXT | N | `NULL` | — | P/I | Ringkasan |
-| `official_source_url` | VARCHAR(2048) | N | `NULL` | — | P/I | URL resmi tervalidasi |
-| `workflow_status` | VARCHAR(64) | NN | `draft` | IDX | I | Workflow editorial |
-| `legal_status` | VARCHAR(64) | NN | `active` | IDX | P/I | `active`, `amended`, `revoked`, `expired` |
-| `visibility` | VARCHAR(64) | NN | `internal` | IDX | I | Visibility record |
-| `current_version_id` | BIGINT UNSIGNED | N | `NULL` | FK | S | Pointer versi aktif |
-| `created_by`, `reviewed_by`, `published_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor metadata |
-| `published_at`, `archived_at` | DATETIME | N | `NULL` | IDX | S | Lifecycle |
-| `created_at`, `updated_at`, `deleted_at` | DATETIME | Sesuai | — | — | S | Timestamp |
-
-Constraint/index:
-
-```text
-UNIQUE(slug)
-UNIQUE(document_number, document_year, issuer_name)
-INDEX(category_id, workflow_status, legal_status, visibility)
-INDEX(published_at)
-```
-
-## `regulation_versions`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier versi |
-| `regulation_id` | BIGINT UNSIGNED | NN | — | FK | S | Regulasi induk |
-| `version_number` | INT UNSIGNED | NN | — | UK scope | I | Nomor versi >= 1 |
-| `file_id` | BIGINT UNSIGNED | N | `NULL` | FK | I/R | File regulasi; nullable jika belum tersedia |
-| `changelog` | TEXT | N | `NULL` | — | I | Ringkasan perubahan |
-| `is_current` | TINYINT(1) | NN | `0` | IDX | S | Penanda versi current |
-| `uploaded_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Uploader |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-
-Constraint: `UNIQUE(regulation_id, version_number)`; maksimum satu `is_current = 1` per regulation melalui partial unique index atau service transaction.
-
-## `regulation_relations`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier relasi |
-| `source_regulation_id` | BIGINT UNSIGNED | NN | — | FK | S | Regulasi sumber |
-| `target_regulation_id` | BIGINT UNSIGNED | NN | — | FK | S | Regulasi target |
-| `relation_type` | VARCHAR(64) | NN | — | — | I | `amends`, `amended_by`, `revokes`, `revoked_by`, `replaces`, `replaced_by`, `implements`, `implemented_by`, `references`, `referenced_by` |
-| `notes` | TEXT | N | `NULL` | — | I | Catatan |
-| `created_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor |
-| `created_at` | DATETIME | NN | — | — | S | Waktu dibuat |
-
-Constraint:
-
-```text
-UNIQUE(source_regulation_id, target_regulation_id, relation_type)
-CHECK(source_regulation_id <> target_regulation_id)
-```
-
-## `regulation_downloads`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier log |
-| `regulation_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Regulasi |
-| `version_id` | BIGINT UNSIGNED | N | `NULL` | FK | S | Versi diakses |
-| `file_id` | BIGINT UNSIGNED | N | `NULL` | FK | S | File diakses |
-| `user_id` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | User jika terautentikasi |
-| `access_type` | VARCHAR(64) | NN | — | — | S | `preview`, `download`, atau controlled value |
-| `created_at` | DATETIME | NN | — | IDX | S | Waktu akses |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `event_registration_id` | `bigint unsigned` | NO | NULL | UNI | - | Atribut data event registration id |
+| 3 | `status` | `varchar(64)` | NO | NULL | - | - | Status operasional record sesuai CHECK constraint |
+| 4 | `recorded_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data recorded by |
+| 5 | `recorded_at` | `datetime` | NO | NULL | - | - | Atribut data recorded at |
+| 6 | `notes` | `text` | YES | NULL | - | - | Atribut data notes |
+| 7 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 8 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-# Berita, Agenda, dan Event
+### Tabel: `audit_logs`
 
-## `news_categories`
+- **Nama Tabel:** `audit_logs`
+- **Jumlah Kolom:** 13 kolom
+- **Definisi:** Struktur persistence data untuk entitas `audit_logs` pada ekosistem BegawiPengadaan.
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `name` | VARCHAR(255) | NN | — | — | P/I | Nama kategori |
-| `slug` | VARCHAR(255) | NN | — | UK | P/I | Slug unik |
-| `description` | TEXT | N | `NULL` | — | P/I | Deskripsi |
-| `is_active` | TINYINT(1) | NN | `1` | — | S | Status |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `news`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier berita |
-| `category_id` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | Kategori |
-| `title` | VARCHAR(255) | NN | — | — | P/I | Judul |
-| `slug` | VARCHAR(255) | NN | — | UK | P/I | Slug unik |
-| `summary` | TEXT | N | `NULL` | — | P/I | Ringkasan |
-| `content` | LONGTEXT | N | `NULL` | — | P/I | Konten tersanitasi |
-| `cover_file_id` | BIGINT UNSIGNED | N | `NULL` | FK | I | Cover |
-| `workflow_status` | VARCHAR(64) | NN | `draft` | IDX | I | Workflow publikasi |
-| `visibility` | VARCHAR(64) | NN | `internal` | IDX | I | Visibility |
-| `published_at`, `scheduled_at` | DATETIME | N | `NULL` | IDX | S | Waktu publikasi |
-| `view_count` | BIGINT UNSIGNED | NN | `0` | — | S | Counter terkendali |
-| `author_id`, `reviewed_by`, `published_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor metadata |
-| `created_at`, `updated_at`, `deleted_at` | DATETIME | Sesuai | — | — | S | Timestamp |
-
-Constraint: `UNIQUE(slug)`, `INDEX(category_id, workflow_status, visibility, published_at)`.
-
-## `events`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier event |
-| `title` | VARCHAR(255) | NN | — | — | P/I | Judul event |
-| `slug` | VARCHAR(255) | NN | — | UK | P/I | Slug unik |
-| `type` | VARCHAR(64) | NN | — | — | I | Webinar/sosialisasi/workshop/pelatihan/lainnya |
-| `mode` | VARCHAR(32) | NN | — | — | I | `online`, `offline`, `hybrid` |
-| `status` | VARCHAR(64) | NN | `draft` | IDX | I | `draft`, `coming_soon`, `open_registration`, `full`, `finished`, `cancelled` |
-| `visibility` | VARCHAR(64) | NN | `internal` | IDX | I | Visibility |
-| `summary`, `description` | TEXT/LONGTEXT | N | `NULL` | — | P/I | Konten event |
-| `cover_file_id` | BIGINT UNSIGNED | N | `NULL` | FK | I | Cover |
-| `start_at`, `end_at` | DATETIME | NN | — | IDX | S | Waktu event; `end_at >= start_at` |
-| `location` | VARCHAR(500) | N | `NULL` | — | I | Lokasi offline |
-| `meeting_url` | VARCHAR(2048) | N | `NULL` | — | R | URL online tervalidasi |
-| `registration_open_at`, `registration_close_at` | DATETIME | N | `NULL` | IDX | S | Periode daftar |
-| `capacity` | INT UNSIGNED | N | `NULL` | — | I | Kuota |
-| `waitlist_enabled` | TINYINT(1) | NN | `0` | — | S | Waitlist |
-| `certificate_enabled` | TINYINT(1) | NN | `0` | — | S | Sertifikat event |
-| `created_by`, `updated_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor metadata |
-| `cancelled_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor cancel |
-| `cancelled_at` | DATETIME | N | `NULL` | — | S | Waktu cancel |
-| `cancellation_reason` | TEXT | N | `NULL` | — | I | Alasan cancel |
-| `created_at`, `updated_at`, `deleted_at` | DATETIME | Sesuai | — | — | S | Timestamp |
-
-Constraint/index: `UNIQUE(slug)`, `INDEX(status, visibility, start_at)`, `INDEX(registration_open_at, registration_close_at)`.
-
-## `event_registrations`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier registrasi |
-| `event_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Event |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Pendaftar |
-| `status` | VARCHAR(64) | NN | `registered` | IDX | I | `registered`, `waitlisted`, `cancelled`, `rejected` |
-| `registered_at` | DATETIME | NN | — | — | S | Waktu daftar |
-| `cancelled_at` | DATETIME | N | `NULL` | — | S | Waktu cancel |
-| `promoted_at` | DATETIME | N | `NULL` | — | S | Waktu promosi waitlist |
-| `status_reason` | TEXT | N | `NULL` | — | I | Alasan status |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-Constraint: `UNIQUE(event_id, user_id)`.
-
-## `attendances`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `event_registration_id` | BIGINT UNSIGNED | NN | — | FK, UK | S | Registrasi event |
-| `status` | VARCHAR(64) | NN | — | — | I | `present`, `absent`, `excused` |
-| `recorded_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor pencatat |
-| `recorded_at` | DATETIME | NN | — | — | S | Waktu pencatatan |
-| `notes` | TEXT | N | `NULL` | — | I | Catatan aman |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `actor_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data actor id |
+| 3 | `action` | `varchar(128)` | NO | NULL | MUL | - | Atribut data action |
+| 4 | `resource_type` | `varchar(128)` | YES | NULL | MUL | - | Atribut data resource type |
+| 5 | `resource_id` | `bigint unsigned` | YES | NULL | - | - | Atribut data resource id |
+| 6 | `result` | `varchar(32)` | NO | NULL | MUL | - | Atribut data result |
+| 7 | `before_snapshot` | `json` | YES | NULL | - | - | Atribut data before snapshot |
+| 8 | `after_snapshot` | `json` | YES | NULL | - | - | Atribut data after snapshot |
+| 9 | `reason` | `text` | YES | NULL | - | - | Atribut data reason |
+| 10 | `ip_hash` | `char(64)` | YES | NULL | - | - | Atribut data ip hash |
+| 11 | `user_agent_hash` | `char(64)` | YES | NULL | - | - | Atribut data user agent hash |
+| 12 | `request_id` | `varchar(128)` | YES | NULL | - | - | Atribut data request id |
+| 13 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
 
 ---
 
-# Sertifikat Digital
+### Tabel: `bookmarks`
 
-## `certificate_templates`
+- **Nama Tabel:** `bookmarks`
+- **Jumlah Kolom:** 5 kolom
+- **Definisi:** Struktur persistence data untuk entitas `bookmarks` pada ekosistem BegawiPengadaan.
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier template |
-| `name` | VARCHAR(255) | NN | — | — | I | Nama template |
-| `source_type` | VARCHAR(64) | NN | — | IDX | S | `learning` atau `event` |
-| `template_payload` | JSON | NN | — | — | I | Data layout aman |
-| `background_file_id` | BIGINT UNSIGNED | N | `NULL` | FK | I | Background template |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status template |
-| `created_by`, `updated_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor metadata |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `certificates`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier sertifikat |
-| `source_type` | VARCHAR(64) | NN | — | UK scope | S | `learning_enrollment` atau `event_registration` |
-| `source_id` | BIGINT UNSIGNED | NN | — | UK scope | S | ID sumber |
-| `user_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Pemilik sertifikat |
-| `template_id` | BIGINT UNSIGNED | N | `NULL` | FK | S | Template digunakan |
-| `certificate_number` | VARCHAR(128) | NN | — | UK | P/I | Nomor sertifikat unik |
-| `verification_token_hash` | CHAR(64) | NN | — | UK | R | Hash token verifikasi |
-| `status` | VARCHAR(64) | NN | `pending` | IDX | I | `pending`, `issued`, `revoked`, `expired` |
-| `issued_at`, `expires_at`, `revoked_at` | DATETIME | N | `NULL` | IDX | S | Lifecycle sertifikat |
-| `revoked_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor revoke |
-| `revocation_reason` | TEXT | N | `NULL` | — | I | Alasan cabut |
-| `pdf_file_id` | BIGINT UNSIGNED | N | `NULL` | FK | R | PDF sertifikat private |
-| `replaced_by_certificate_id` | BIGINT UNSIGNED | N | `NULL` | FK self | S | Sertifikat pengganti |
-| `issued_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Issuer/system actor |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-Constraint:
-
-```text
-UNIQUE(certificate_number)
-UNIQUE(verification_token_hash)
-UNIQUE(source_type, source_id)
-```
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `bookmarkable_type` | `varchar(128)` | NO | NULL | MUL | - | Atribut data bookmarkable type |
+| 4 | `bookmarkable_id` | `bigint unsigned` | NO | NULL | - | - | Atribut data bookmarkable id |
+| 5 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
 
 ---
 
-# Government Intelligence PBJ
+### Tabel: `certificate_sequences`
 
-## `competencies`
+- **Nama Tabel:** `certificate_sequences`
+- **Jumlah Kolom:** 4 kolom
+- **Definisi:** Struktur persistence data untuk entitas `certificate_sequences` pada ekosistem BegawiPengadaan.
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier kompetensi |
-| `key` | VARCHAR(64) | NN | — | UK | S | Kode kompetensi |
-| `name` | VARCHAR(255) | NN | — | — | I | Nama kompetensi |
-| `description` | TEXT | N | `NULL` | — | I | Deskripsi |
-| `is_active` | TINYINT(1) | NN | `1` | — | S | Status aktif |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `jf_ppbj_levels`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier level |
-| `key` | VARCHAR(64) | NN | — | UK | S | `PERTAMA`, `MUDA`, `MADYA`, `UTAMA` |
-| `name` | VARCHAR(255) | NN | — | — | I | Label level |
-| `sort_order` | INT UNSIGNED | NN | `0` | — | S | Urutan |
-| `is_active` | TINYINT(1) | NN | `1` | — | S | Status |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `jf_ppbj_records`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier record internal |
-| `user_id` | BIGINT UNSIGNED | N | `NULL` | FK, IDX | S | Keterkaitan account bila ada |
-| `organization_unit_id` | BIGINT UNSIGNED | NN | — | FK, IDX | I | Unit organisasi |
-| `employee_identifier` | VARCHAR(128) | NN | — | — | R | NIP/identifier SDM |
-| `name_snapshot` | VARCHAR(255) | NN | — | — | R | Nama snapshot |
-| `level_id` | BIGINT UNSIGNED | NN | — | FK | I | Level JF PPBJ |
-| `status` | VARCHAR(64) | NN | `active` | IDX | I | Status record terkendali |
-| `effective_at` | DATETIME | NN | — | IDX | S | Mulai berlaku |
-| `ended_at` | DATETIME | N | `NULL` | IDX | S | Akhir berlaku |
-| `change_type` | VARCHAR(64) | NN | — | I | `addition`, `promotion`, `transfer_in`, `transfer_out`, `retirement`, `deactivation`, `update` |
-| `evidence_file_id` | BIGINT UNSIGNED | N | `NULL` | FK | R | Bukti restricted |
-| `created_by`, `updated_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Actor metadata |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `competency_certificate_types`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier jenis |
-| `key` | VARCHAR(64) | NN | — | UK | S | `PBJ_LEVEL_1`, `PPK_TYPE_A`, `PPK_TYPE_B`, `PPK_TYPE_C`, atau nilai terkendali lain |
-| `name` | VARCHAR(255) | NN | — | — | I | Label |
-| `description` | TEXT | N | `NULL` | — | I | Deskripsi |
-| `is_active` | TINYINT(1) | NN | `1` | — | S | Status |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `competency_certificates`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier |
-| `jf_ppbj_record_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Record JF PPBJ |
-| `certificate_type_id` | BIGINT UNSIGNED | NN | — | FK, IDX | S | Jenis sertifikat kompetensi |
-| `certificate_number` | VARCHAR(128) | N | `NULL` | — | R | Nomor sertifikat kompetensi |
-| `issued_at`, `expires_at` | DATETIME | N | `NULL` | IDX | S | Masa berlaku |
-| `status` | VARCHAR(64) | NN | `pending` | IDX | I | `pending`, `verified`, `rejected`, `expired` |
-| `evidence_file_id` | BIGINT UNSIGNED | N | `NULL` | FK | R | Bukti restricted |
-| `verified_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Verifikator |
-| `verified_at` | DATETIME | N | `NULL` | — | S | Waktu verifikasi |
-| `created_at`, `updated_at` | DATETIME | NN | — | — | S | Timestamp |
-
-## `competency_gap_snapshots`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier snapshot |
-| `organization_unit_id` | BIGINT UNSIGNED | NN | — | FK | I | Unit organisasi |
-| `competency_id` | BIGINT UNSIGNED | N | `NULL` | FK | I | Kompetensi bila dipisahkan per kompetensi |
-| `period_date` | DATE | NN | — | UK scope | S | Tanggal/periode snapshot |
-| `required_count` | INT UNSIGNED | NN | `0` | — | I | Kebutuhan |
-| `available_count` | INT UNSIGNED | NN | `0` | — | I | Ketersediaan |
-| `gap_count` | INT | NN | `0` | — | I | `required_count - available_count` |
-| `metadata` | JSON | N | `NULL` | — | I | Agregasi aman |
-| `generated_by` | BIGINT UNSIGNED | N | `NULL` | FK | S | Generator user/system |
-| `created_at` | DATETIME | NN | — | — | S | Waktu generate |
-
-Constraint: `UNIQUE(organization_unit_id, competency_id, period_date)`.
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `year` | `smallint unsigned` | NO | NULL | PRI | - | Atribut data year |
+| 2 | `last_number` | `int unsigned` | NO | `0` | - | - | Atribut data last number |
+| 3 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 4 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-## `wilayah`
+### Tabel: `certificate_templates`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `kode` | VARCHAR(13) | NN | — | PK | P | Kode wilayah BPS/Kemendagri |
-| `nama` | VARCHAR(100) | NN | — | IDX | P | Nama provinsi/kabupaten/kecamatan/desa |
+- **Nama Tabel:** `certificate_templates`
+- **Jumlah Kolom:** 10 kolom
+- **Definisi:** Struktur persistence data untuk entitas `certificate_templates` pada ekosistem BegawiPengadaan.
 
----
-
-## `procurement_stages`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier tahapan PBJ |
-| `key` | VARCHAR(64) | NN | — | UK | P | Slug/kode teknis tahapan |
-| `name` | VARCHAR(255) | NN | — | — | P | Nama tahapan pengadaan |
-| `description` | TEXT | N | `NULL` | — | P | Deskripsi tahapan |
-| `sort_order` | INT UNSIGNED | NN | `0` | — | S | Urutan tampilan |
-| `is_active` | TINYINT | NN | `1` | — | S | Status aktif |
-| `created_at` | DATETIME | NN | — | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu pembaruan |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 3 | `source_type` | `varchar(64)` | NO | NULL | MUL | - | Atribut data source type |
+| 4 | `template_payload` | `json` | NO | NULL | - | - | Atribut data template payload |
+| 5 | `background_file_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data background file id |
+| 6 | `is_active` | `tinyint(1)` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 7 | `created_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang membuat data |
+| 8 | `updated_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang memperbarui data |
+| 9 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 10 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-## `regulation_procurement_stages`
+### Tabel: `certificates`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier pivot |
-| `regulation_id` | BIGINT UNSIGNED | NN | — | FK | P | ID regulasi |
-| `procurement_stage_id` | BIGINT UNSIGNED | NN | — | FK | P | ID tahapan PBJ |
-| `relevance` | VARCHAR(32) | N | `NULL` | — | P | Derajat relevansi |
-| `created_at` | DATETIME | NN | — | — | S | Waktu pembuatan |
+- **Nama Tabel:** `certificates`
+- **Jumlah Kolom:** 18 kolom
+- **Definisi:** Struktur persistence data untuk entitas `certificates` pada ekosistem BegawiPengadaan.
 
-Constraint: `UNIQUE(regulation_id, procurement_stage_id)`.
-
----
-
-## `regulation_competencies`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier pivot |
-| `regulation_id` | BIGINT UNSIGNED | NN | — | FK | P | ID regulasi |
-| `competency_id` | BIGINT UNSIGNED | NN | — | FK | P | ID kompetensi |
-| `relevance` | VARCHAR(32) | N | `NULL` | — | P | Derajat relevansi |
-| `created_at` | DATETIME | NN | — | — | S | Waktu pembuatan |
-
-Constraint: `UNIQUE(regulation_id, competency_id)`.
-
----
-
-## `certificate_sequences`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `year` | SMALLINT UNSIGNED | NN | — | PK | S | Tahun penerbitan sertifikat |
-| `last_number` | INT UNSIGNED | NN | `0` | — | S | Counter nomor urut terakhir (atomik) |
-| `created_at` | DATETIME | NN | — | — | S | Waktu inisialisasi |
-| `updated_at` | DATETIME | NN | — | — | S | Waktu pembaruan counter |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `source_type` | `varchar(64)` | NO | NULL | MUL | - | Atribut data source type |
+| 3 | `source_id` | `bigint unsigned` | NO | NULL | - | - | Atribut data source id |
+| 4 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 5 | `template_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data template id |
+| 6 | `certificate_number` | `varchar(128)` | NO | NULL | UNI | - | Atribut data certificate number |
+| 7 | `verification_token_hash` | `char(64)` | NO | NULL | UNI | - | Atribut data verification token hash |
+| 8 | `status` | `varchar(64)` | NO | `pending` | MUL | - | Status operasional record sesuai CHECK constraint |
+| 9 | `issued_at` | `datetime` | YES | NULL | - | - | Atribut data issued at |
+| 10 | `expires_at` | `datetime` | YES | NULL | - | - | Atribut data expires at |
+| 11 | `revoked_at` | `datetime` | YES | NULL | - | - | Atribut data revoked at |
+| 12 | `revoked_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data revoked by |
+| 13 | `revocation_reason` | `text` | YES | NULL | - | - | Atribut data revocation reason |
+| 14 | `pdf_file_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data pdf file id |
+| 15 | `replaced_by_certificate_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data replaced by certificate id |
+| 16 | `issued_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data issued by |
+| 17 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 18 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-## `home_sliders`
+### Tabel: `class_evaluators`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier slider beranda |
-| `badge_text` | VARCHAR(100) | N | `NULL` | — | P | Teks badge promosi |
-| `title` | VARCHAR(255) | NN | — | — | P | Judul utama slider |
-| `subtitle` | TEXT | N | `NULL` | — | P | Subjudul / deskripsi slider |
-| `image_url` | VARCHAR(255) | N | `NULL` | — | P | Path/URL banner grafis |
-| `button_text` | VARCHAR(100) | N | `NULL` | — | P | Label CTA utama |
-| `button_url` | VARCHAR(255) | N | `NULL` | — | P | URL tautan CTA utama |
-| `secondary_button_text` | VARCHAR(100) | N | `NULL` | — | P | Label CTA sekunder |
-| `secondary_button_url` | VARCHAR(255) | N | `NULL` | — | P | URL tautan CTA sekunder |
-| `sort_order` | INT | NN | `0` | IDX | S | Urutan rotasi tampilan |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif/tampil |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+- **Nama Tabel:** `class_evaluators`
+- **Jumlah Kolom:** 5 kolom
+- **Definisi:** Struktur persistence data untuk entitas `class_evaluators` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `class_id` | `bigint unsigned` | NO | NULL | PRI | - | Foreign Key ke tabel learning_classes |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | PRI | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `assigned_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data assigned by |
+| 4 | `assigned_at` | `datetime` | NO | NULL | - | - | Atribut data assigned at |
+| 5 | `status` | `varchar(64)` | NO | `active` | - | - | Status operasional record sesuai CHECK constraint |
 
 ---
 
-## `page_banners`
+### Tabel: `class_trainers`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier banner halaman |
-| `page_key` | VARCHAR(50) | NN | — | UK | P | Kunci halaman publik (`arena-belajar`, dll.) |
-| `hero_badge` | VARCHAR(100) | N | `NULL` | — | P | Badge hero |
-| `hero_title` | VARCHAR(255) | N | `NULL` | — | P | Judul hero |
-| `hero_subtitle` | TEXT | N | `NULL` | — | P | Subjudul hero |
-| `hero_bg_image` | VARCHAR(255) | N | `NULL` | — | P | Background hero |
-| `search_placeholder` | VARCHAR(255) | N | `NULL` | — | P | Placeholder search input |
-| `cta_badge` | VARCHAR(100) | N | `NULL` | — | P | Badge CTA penutup |
-| `cta_title` | VARCHAR(255) | N | `NULL` | — | P | Judul CTA penutup |
-| `cta_lead` | TEXT | N | `NULL` | — | P | Lead paragraf CTA |
-| `cta_primary_btn_text` | VARCHAR(100) | N | `NULL` | — | P | Label tombol CTA |
-| `cta_primary_btn_url` | VARCHAR(255) | N | `NULL` | — | P | URL tombol CTA |
-| `cta_secondary_btn_text`| VARCHAR(100) | N | `NULL` | — | P | Label tombol sekunder |
-| `cta_secondary_btn_url` | VARCHAR(255) | N | `NULL` | — | P | URL tombol sekunder |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+- **Nama Tabel:** `class_trainers`
+- **Jumlah Kolom:** 6 kolom
+- **Definisi:** Struktur persistence data untuk entitas `class_trainers` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `class_id` | `bigint unsigned` | NO | NULL | PRI | - | Foreign Key ke tabel learning_classes |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | PRI | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `assigned_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data assigned by |
+| 4 | `assigned_at` | `datetime` | NO | NULL | - | - | Atribut data assigned at |
+| 5 | `status` | `varchar(64)` | NO | `active` | - | - | Status operasional record sesuai CHECK constraint |
+| 6 | `role` | `varchar(64)` | NO | `primary` | - | - | Atribut data role |
 
 ---
 
-## `site_announcements`
+### Tabel: `competencies`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier popup pengumuman |
-| `title` | VARCHAR(255) | NN | — | — | P | Judul maklumat |
-| `badge_text` | VARCHAR(100) | N | `NULL` | — | P | Kategori pengumuman |
-| `message` | TEXT | NN | — | — | P | Redaksi pengumuman |
-| `image_url` | VARCHAR(255) | N | `NULL` | — | P | Gambar banner promo |
-| `cta_label` | VARCHAR(100) | N | `NULL` | — | P | Label tombol |
-| `cta_url` | VARCHAR(255) | N | `NULL` | — | P | URL tombol aksi |
-| `start_date` | DATE | N | `NULL` | — | S | Tanggal mulai tayang |
-| `end_date` | DATE | N | `NULL` | — | S | Tanggal selesai tayang |
-| `sort_order` | INT | NN | `0` | IDX | S | Urutan prioritas |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+- **Nama Tabel:** `competencies`
+- **Jumlah Kolom:** 7 kolom
+- **Definisi:** Struktur persistence data untuk entitas `competencies` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `key` | `varchar(64)` | NO | NULL | UNI | - | Atribut data key |
+| 3 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 4 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 5 | `is_active` | `tinyint(1)` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 6 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 7 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-## `feature_highlights`
+### Tabel: `competency_certificate_types`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier pilar fitur |
-| `section_key` | VARCHAR(50) | NN | — | IDX | P | Kategori seksi (`pilar_budaya`, dll.) |
-| `code` | VARCHAR(50) | N | `NULL` | — | P | Kode huruf (P, A, T, I, K) |
-| `title` | VARCHAR(255) | NN | — | — | P | Judul pilar/fitur |
-| `subtitle` | VARCHAR(255) | N | `NULL` | — | P | Subjudul pilar |
-| `description` | TEXT | N | `NULL` | — | P | Uraian penjelasan |
-| `icon_class` | VARCHAR(100) | N | `NULL` | — | P | Kelas icon FontAwesome/Remix |
-| `badge_text` | VARCHAR(100) | N | `NULL` | — | P | Badge teks pelengkap |
-| `color_hex` | VARCHAR(50) | N | `NULL` | — | P | Kode warna tema |
-| `link_url` | VARCHAR(255) | N | `NULL` | — | P | URL tujuan navigasi |
-| `sort_order` | INT | NN | `0` | IDX | S | Urutan susunan |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+- **Nama Tabel:** `competency_certificate_types`
+- **Jumlah Kolom:** 7 kolom
+- **Definisi:** Struktur persistence data untuk entitas `competency_certificate_types` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `key` | `varchar(64)` | NO | NULL | UNI | - | Atribut data key |
+| 3 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 4 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 5 | `is_active` | `tinyint(1)` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 6 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 7 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-## `external_portals`
+### Tabel: `competency_certificates`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier portal eksternal |
-| `name` | VARCHAR(150) | NN | — | — | P | Nama portal |
-| `acronym` | VARCHAR(50) | N | `NULL` | — | P | Singkatan portal |
-| `url` | VARCHAR(255) | NN | — | — | P | URL tautan eksternal |
-| `logo_url` | VARCHAR(255) | N | `NULL` | — | P | Logo instansi/portal |
-| `description` | TEXT | N | `NULL` | — | P | Deskripsi fungsi portal |
-| `category` | VARCHAR(50) | NN | `'national'` | — | P | Kategori lingkup |
-| `sort_order` | INT | NN | `0` | IDX | S | Urutan tampilan |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+- **Nama Tabel:** `competency_certificates`
+- **Jumlah Kolom:** 12 kolom
+- **Definisi:** Struktur persistence data untuk entitas `competency_certificates` pada ekosistem BegawiPengadaan.
 
----
-
-## `testimonials`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier testimoni |
-| `name` | VARCHAR(150) | NN | — | — | P | Nama pemberi ulasan |
-| `role_title` | VARCHAR(150) | N | `NULL` | — | P | Jabatan reviewer |
-| `organization` | VARCHAR(150) | N | `NULL` | — | P | Instansi reviewer |
-| `avatar_url` | VARCHAR(255) | N | `NULL` | — | P | Foto reviewer |
-| `rating` | TINYINT | NN | `5` | — | P | Bintang penilaian (1-5) |
-| `quote` | TEXT | NN | — | — | P | Isi testimoni |
-| `impact_statement` | VARCHAR(255) | N | `NULL` | — | P | Dampak nyata |
-| `category` | VARCHAR(50) | NN | `'opd'` | — | P | Kategori reviewer |
-| `sort_order` | INT | NN | `0` | IDX | S | Urutan tampilan |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `jf_ppbj_record_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data jf ppbj record id |
+| 3 | `certificate_type_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data certificate type id |
+| 4 | `certificate_number` | `varchar(128)` | YES | NULL | - | - | Atribut data certificate number |
+| 5 | `issued_at` | `datetime` | YES | NULL | - | - | Atribut data issued at |
+| 6 | `expires_at` | `datetime` | YES | NULL | - | - | Atribut data expires at |
+| 7 | `status` | `varchar(64)` | NO | `pending` | - | - | Status operasional record sesuai CHECK constraint |
+| 8 | `evidence_file_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data evidence file id |
+| 9 | `verified_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data verified by |
+| 10 | `verified_at` | `datetime` | YES | NULL | - | - | Atribut data verified at |
+| 11 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 12 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-## `team_members`
+### Tabel: `competency_gap_snapshots`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier anggota tim |
-| `name` | VARCHAR(150) | NN | — | — | P | Nama lengkap anggota |
-| `role_title` | VARCHAR(150) | NN | — | — | P | Jabatan penugasan tim |
-| `nip` | VARCHAR(50) | N | `NULL` | — | R | NIP kedinasan (opsional) |
-| `category` | VARCHAR(50) | NN | `'pembina'`| IDX | P | Kategori pembina/pengarah/inovator |
-| `photo_url` | VARCHAR(255) | N | `NULL` | — | P | Foto profil anggota |
-| `bio` | TEXT | N | `NULL` | — | P | Biografi ringkas |
-| `social_links` | JSON | N | `NULL` | — | P | Tautan jejaring sosial |
-| `sort_order` | INT | NN | `0` | IDX | S | Urutan susunan tim |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+- **Nama Tabel:** `competency_gap_snapshots`
+- **Jumlah Kolom:** 10 kolom
+- **Definisi:** Struktur persistence data untuk entitas `competency_gap_snapshots` pada ekosistem BegawiPengadaan.
 
----
-
-## `service_categories`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier kategori layanan |
-| `name` | VARCHAR(150) | NN | — | — | P | Nama layanan |
-| `code` | VARCHAR(50) | NN | — | UK | P | Kode layanan unik |
-| `description` | TEXT | N | `NULL` | — | P | Deskripsi layanan |
-| `sort_order` | INT | NN | `0` | IDX | S | Urutan layanan |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `organization_unit_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data organization unit id |
+| 3 | `competency_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data competency id |
+| 4 | `period_date` | `date` | NO | NULL | MUL | - | Atribut data period date |
+| 5 | `required_count` | `int unsigned` | NO | `0` | - | - | Atribut data required count |
+| 6 | `available_count` | `int unsigned` | NO | `0` | - | - | Atribut data available count |
+| 7 | `gap_count` | `int` | NO | `0` | - | - | Atribut data gap count |
+| 8 | `metadata` | `json` | YES | NULL | - | - | Atribut data metadata |
+| 9 | `generated_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data generated by |
+| 10 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
 
 ---
 
-## `site_settings`
+### Tabel: `contact_messages`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier setting |
-| `setting_group` | VARCHAR(50) | NN | `'general'`| IDX | S | Grup pengaturan sistem |
-| `setting_key` | VARCHAR(100) | NN | — | UK | S | Kunci parameter setting |
-| `setting_value` | LONGTEXT | N | `NULL` | — | S | Nilai konfigurasi |
-| `field_type` | VARCHAR(30) | NN | `'text'` | — | S | Tipe kontrol form |
-| `description` | VARCHAR(255) | N | `NULL` | — | S | Keterangan fungsi |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+- **Nama Tabel:** `contact_messages`
+- **Jumlah Kolom:** 13 kolom
+- **Definisi:** Struktur persistence data untuk entitas `contact_messages` pada ekosistem BegawiPengadaan.
 
-Constraint: `UNIQUE(setting_group, setting_key)`.
-
----
-
-## `contact_messages`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier pesan kontak |
-| `ticket_number` | VARCHAR(50) | NN | — | UK | I | Nomor tiket permohonan |
-| `sender_name` | VARCHAR(150) | NN | — | — | R | Nama pengirim pesan |
-| `sender_email` | VARCHAR(150) | NN | — | — | R | Email pengirim pesan |
-| `sender_phone` | VARCHAR(50) | N | `NULL` | — | R | Kontak telepon |
-| `service_category` | VARCHAR(100) | N | `NULL` | — | I | Kategori konsultasi |
-| `subject` | VARCHAR(255) | NN | — | — | I | Judul perihal |
-| `message` | TEXT | NN | — | — | I | Isi pesan pertanyaan |
-| `status` | VARCHAR(50) | NN | `'unread'` | IDX | I | Status (`unread`, `replied`, dll.) |
-| `admin_notes` | TEXT | N | `NULL` | — | I | Catatan petugas helpdesk |
-| `replied_at` | DATETIME | N | `NULL` | — | I | Waktu pengiriman balasan |
-| `created_at` | DATETIME | N | `NULL` | IDX | S | Waktu pengiriman |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `ticket_number` | `varchar(50)` | NO | NULL | UNI | - | Atribut data ticket number |
+| 3 | `sender_name` | `varchar(150)` | NO | NULL | - | - | Atribut data sender name |
+| 4 | `sender_email` | `varchar(150)` | NO | NULL | - | - | Atribut data sender email |
+| 5 | `sender_phone` | `varchar(50)` | YES | NULL | - | - | Atribut data sender phone |
+| 6 | `service_category` | `varchar(100)` | YES | NULL | - | - | Atribut data service category |
+| 7 | `subject` | `varchar(255)` | NO | NULL | - | - | Atribut data subject |
+| 8 | `message` | `text` | NO | NULL | - | - | Atribut data message |
+| 9 | `status` | `varchar(50)` | NO | `unread` | MUL | - | Status operasional record sesuai CHECK constraint |
+| 10 | `admin_notes` | `text` | YES | NULL | - | - | Atribut data admin notes |
+| 11 | `replied_at` | `datetime` | YES | NULL | - | - | Atribut data replied at |
+| 12 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 13 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-## `helpdesk_topics`
+### Tabel: `courses`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier topik helpdesk |
-| `topic_title` | VARCHAR(150) | NN | — | — | P | Judul opsi konsultasi |
-| `default_message`| TEXT | NN | — | — | P | Template draf pesan WhatsApp |
-| `icon_class` | VARCHAR(100) | N | `NULL` | — | P | Ikon topik |
-| `sort_order` | INT | NN | `0` | IDX | S | Urutan pilihan |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+- **Nama Tabel:** `courses`
+- **Jumlah Kolom:** 25 kolom
+- **Definisi:** Struktur persistence data untuk entitas `courses` pada ekosistem BegawiPengadaan.
 
----
-
-## `newsletter_subscribers`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier pendaftar buletin |
-| `email` | VARCHAR(150) | NN | — | UK | R | Alamat email terdaftar |
-| `status` | VARCHAR(50) | NN | `'subscribed'`| IDX | I | Status langganan |
-| `subscribed_at` | DATETIME | N | `NULL` | IDX | S | Waktu berlangganan |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
-
----
-
-## `visitor_statistics`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier metrik trafik |
-| `feature` | VARCHAR(50) | NN | `'home'` | UK | S | Fitur/halaman terpantau |
-| `visit_date` | DATE | NN | — | UK/IDX | S | Tanggal pencatatan |
-| `hit_count` | INT UNSIGNED | NN | `1` | — | S | Akumulasi jumlah kunjungan |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
-
-Constraint: `UNIQUE(feature, visit_date)`.
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `program_id` | `bigint unsigned` | YES | NULL | MUL | - | Foreign Key ke tabel programs |
+| 3 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 4 | `slug` | `varchar(255)` | NO | NULL | UNI | - | Pengenal URL-friendly unik |
+| 5 | `summary` | `text` | YES | NULL | - | - | Ringkasan singkat konten |
+| 6 | `description` | `longtext` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 7 | `target_audience` | `text` | YES | NULL | - | - | Atribut data target audience |
+| 8 | `prerequisites` | `text` | YES | NULL | - | - | Atribut data prerequisites |
+| 9 | `learning_objectives` | `text` | YES | NULL | - | - | Atribut data learning objectives |
+| 10 | `level` | `varchar(64)` | YES | NULL | - | - | Atribut data level |
+| 11 | `duration_minutes` | `int unsigned` | YES | NULL | - | - | Atribut data duration minutes |
+| 12 | `status` | `varchar(64)` | NO | `draft` | MUL | - | Status operasional record sesuai CHECK constraint |
+| 13 | `visibility` | `varchar(64)` | NO | `internal` | - | - | Visibilitas data (public/internal/restricted) |
+| 14 | `featured` | `tinyint(1)` | NO | `0` | - | - | Atribut data featured |
+| 15 | `carousel_enabled` | `tinyint(1)` | NO | `0` | - | - | Flag penayangan pada Hero Slider / Carousel |
+| 16 | `carousel_order` | `int` | YES | NULL | - | - | Nomor urut penayangan slide carousel |
+| 17 | `cover_file_id` | `bigint unsigned` | YES | NULL | MUL | - | Foreign Key ke file_assets (gambar sampul) |
+| 18 | `cover_url` | `varchar(500)` | YES | NULL | - | - | URL relatif/absolut berkas gambar sampul |
+| 19 | `created_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang membuat data |
+| 20 | `updated_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang memperbarui data |
+| 21 | `published_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data published by |
+| 22 | `published_at` | `datetime` | YES | NULL | - | - | Atribut data published at |
+| 23 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 24 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+| 25 | `deleted_at` | `datetime` | YES | NULL | - | - | Penanda soft-delete data (NULL jika aktif) |
 
 ---
 
-## `satisfaction_surveys`
+### Tabel: `email_verifications`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier isian survei |
-| `ticket_number` | VARCHAR(32) | NN | — | UK | I | Nomor bukti survei |
-| `rating_overall` | TINYINT | NN | `5` | IDX | I | Nilai kepuasan umum (1-5) |
-| `service_access_rating` | TINYINT | N | `NULL` | — | I | Nilai akses layanan |
-| `service_regulation_rating` | TINYINT | N | `NULL` | — | I | Nilai kemudahan regulasi |
-| `service_learning_rating` | TINYINT | N | `NULL` | — | I | Nilai kualitas belajar |
-| `service_helpdesk_rating` | TINYINT | N | `NULL` | — | I | Nilai keramahan helpdesk |
-| `respondent_role` | VARCHAR(100) | NN | `'Masyarakat Umum'` | IDX | I | Peran/kategori pengisi |
-| `is_anonymous` | TINYINT(1) | NN | `1` | — | I | Opsi anonimitas |
-| `respondent_name` | VARCHAR(150) | N | `NULL` | — | R | Nama pengisi (bila non-anonim) |
-| `respondent_institution` | VARCHAR(150) | N | `NULL` | — | R | Instansi pengisi |
-| `respondent_contact` | VARCHAR(100) | N | `NULL` | — | R | Kontak responden |
-| `feedback` | TEXT | N | `NULL` | — | I | Masukan/saran perbaikan |
-| `recommendation` | VARCHAR(50) | NN | `'Pasti Merekomendasikan'` | — | I | Rekomendasi layanan |
-| `ip_address` | VARCHAR(45) | N | `NULL` | — | S | Telemetri integritas |
-| `user_agent` | VARCHAR(255) | N | `NULL` | — | S | Telemetri browser |
-| `created_at` | DATETIME | N | `NULL` | IDX | S | Waktu pengisian |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+- **Nama Tabel:** `email_verifications`
+- **Jumlah Kolom:** 6 kolom
+- **Definisi:** Struktur persistence data untuk entitas `email_verifications` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `token_hash` | `char(64)` | NO | NULL | UNI | - | Atribut data token hash |
+| 4 | `expires_at` | `datetime` | NO | NULL | - | - | Atribut data expires at |
+| 5 | `verified_at` | `datetime` | YES | NULL | - | - | Atribut data verified at |
+| 6 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
 
 ---
 
-## `survey_aspects`
+### Tabel: `enrollments`
 
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier aspek mutu |
-| `aspect_key` | VARCHAR(50) | NN | — | UK | P | Kode aspek mutu |
-| `title` | VARCHAR(150) | NN | — | — | P | Nama aspek mutu |
-| `description` | TEXT | N | `NULL` | — | P | Uraian indikator mutu |
-| `icon_class` | VARCHAR(100) | N | `NULL` | — | P | Ikon aspek |
-| `weight` | DECIMAL(5,2) | NN | `1.00` | — | S | Bobot perhitungan |
-| `sort_order` | INT | NN | `0` | IDX | S | Urutan aspek |
-| `is_active` | TINYINT(1) | NN | `1` | IDX | S | Status aktif |
-| `created_at` | DATETIME | N | `NULL` | — | S | Waktu pembuatan |
-| `updated_at` | DATETIME | N | `NULL` | — | S | Waktu pembaruan |
+- **Nama Tabel:** `enrollments`
+- **Jumlah Kolom:** 14 kolom
+- **Definisi:** Struktur persistence data untuk entitas `enrollments` pada ekosistem BegawiPengadaan.
 
----
-
-## `migrations`
-
-| Kolom | Tipe | Null | Default | Key | Klasifikasi | Definisi/validasi |
-|---|---|---:|---|---|---|---|
-| `id` | BIGINT UNSIGNED | NN | AI | PK | S | Identifier migration |
-| `version` | VARCHAR(255) | NN | — | — | S | Versi/nama kelas migration CI4 |
-| `class` | VARCHAR(255) | NN | — | — | S | Fully qualified class name |
-| `group` | VARCHAR(255) | NN | — | — | S | Grup database connection |
-| `namespace` | VARCHAR(255) | NN | — | — | S | Namespace migration |
-| `time` | INT | NN | — | — | S | UNIX timestamp eksekusi |
-| `batch` | INT UNSIGNED | NN | — | — | S | Nomor batch migrasi |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `class_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel learning_classes |
+| 3 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 4 | `status` | `varchar(64)` | NO | `pending` | - | - | Status operasional record sesuai CHECK constraint |
+| 5 | `enrolled_at` | `datetime` | NO | NULL | - | - | Atribut data enrolled at |
+| 6 | `activated_at` | `datetime` | YES | NULL | - | - | Atribut data activated at |
+| 7 | `completed_at` | `datetime` | YES | NULL | - | - | Atribut data completed at |
+| 8 | `final_score` | `decimal(5,2)` | YES | NULL | - | - | Atribut data final score |
+| 9 | `passed_at` | `datetime` | YES | NULL | - | - | Atribut data passed at |
+| 10 | `certificate_eligible_at` | `datetime` | YES | NULL | MUL | - | Atribut data certificate eligible at |
+| 11 | `withdrawn_at` | `datetime` | YES | NULL | - | - | Atribut data withdrawn at |
+| 12 | `cancelled_at` | `datetime` | YES | NULL | - | - | Atribut data cancelled at |
+| 13 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 14 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-# Foreign Key Reference
+### Tabel: `event_registrations`
 
-Foreign key utama menggunakan `BIGINT UNSIGNED` dan index pada kolom FK. Aksi delete mengikuti database blueprint: restrict/soft delete/archive untuk histori penting, `SET NULL` pada actor metadata bila audit/riwayat harus dipertahankan, dan hard delete hanya mengikuti retention policy.
+- **Nama Tabel:** `event_registrations`
+- **Jumlah Kolom:** 10 kolom
+- **Definisi:** Struktur persistence data untuk entitas `event_registrations` pada ekosistem BegawiPengadaan.
 
-| Tabel anak | Kolom FK | Tabel induk |
-|---|---|---|
-| `user_profiles` | `user_id` | `users` |
-| Profil spesifik | `user_id` | `users` |
-| `user_roles` | `user_id`, `role_id` | `users`, `roles` |
-| `role_permissions` | `role_id`, `permission_id` | `roles`, `permissions` |
-| Token/request/verifikasi | user/reviewer ID | `users` |
-| `organization_units` | `parent_id` | `organization_units` |
-| `user_procurement_roles` | user/role/file ID | `users`, `procurement_roles`, `file_assets` |
-| Shared governance | actor/file/user ID | `users`, `file_assets` |
-| Learning | program/course/class/module/lesson/enrollment/user/file ID | Domain induk masing-masing |
-| Knowledge | category/tag/article/media/file/user ID | Domain induk masing-masing |
-| Regulation | category/regulation/version/file/user ID | Domain induk masing-masing |
-| Communication | category/event/registration/user/file ID | Domain induk masing-masing |
-| Certificate | template/user/file/self replacement ID | Certificate/domain induk |
-| Intelligence | organization/level/competency/certificate type/file/user ID | Domain induk masing-masing |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `event_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel events |
+| 3 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 4 | `status` | `varchar(64)` | NO | `registered` | - | - | Status operasional record sesuai CHECK constraint |
+| 5 | `registered_at` | `datetime` | NO | NULL | - | - | Atribut data registered at |
+| 6 | `cancelled_at` | `datetime` | YES | NULL | - | - | Atribut data cancelled at |
+| 7 | `promoted_at` | `datetime` | YES | NULL | - | - | Atribut data promoted at |
+| 8 | `status_reason` | `text` | YES | NULL | - | - | Atribut data status reason |
+| 9 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 10 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
 
 ---
 
-# Privacy, Audit, dan Retention
+### Tabel: `events`
 
-## Kolom restricted utama
+- **Nama Tabel:** `events`
+- **Jumlah Kolom:** 34 kolom
+- **Definisi:** Struktur persistence data untuk entitas `events` pada ekosistem BegawiPengadaan.
 
-```text
-users.password_hash
-users.phone
-users.email
-asn_profiles.employee_identifier
-provider_profiles.business_identifier
-public_profiles.national_identifier
-profile_change_requests.requested_payload
-email_verifications.token_hash
-password_resets.token_hash
-file_assets.path
-file_assets.metadata bila memuat informasi sensitif
-quiz_options.is_correct
-quiz_answers.answer_payload
-quiz_attempts.score
-assignment_submissions.content/score/feedback
-certificate verification_token_hash dan pdf_file_id
-jf_ppbj_records.employee_identifier/name_snapshot/evidence_file_id
-competency_certificates.certificate_number/evidence_file_id
-audit snapshot dan security context
-```
-
-## Retention baseline
-
-| Data | Aturan baseline |
-|---|---|
-| Audit log | Append-only secara fungsional; retensi sesuai audit/security policy |
-| Account/profile | Soft delete/archive sesuai policy; historis workflow dipertahankan |
-| Token verifikasi/reset | Expire/used record dibersihkan sesuai policy tanpa menyimpan plain token |
-| Temporary file/export | TTL dan cleanup terjadwal |
-| Assignment/assessment | Dipertahankan sesuai policy pembelajaran/audit |
-| Regulasi | Riwayat dan versi dipertahankan; revoked/expired tidak otomatis dihapus |
-| Certificate | Revocation/replacement tidak menghapus riwayat sertifikat |
-| Intelligence restricted data | Retensi sesuai kebutuhan administrasi, privacy, dan legal basis |
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 3 | `slug` | `varchar(255)` | NO | NULL | UNI | - | Pengenal URL-friendly unik |
+| 4 | `type` | `varchar(64)` | NO | NULL | - | - | Atribut data type |
+| 5 | `mode` | `varchar(32)` | NO | NULL | - | - | Atribut data mode |
+| 6 | `status` | `varchar(64)` | NO | `draft` | MUL | - | Status operasional record sesuai CHECK constraint |
+| 7 | `visibility` | `varchar(64)` | NO | `internal` | - | - | Visibilitas data (public/internal/restricted) |
+| 8 | `summary` | `text` | YES | NULL | - | - | Ringkasan singkat konten |
+| 9 | `description` | `longtext` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 10 | `cover_file_id` | `bigint unsigned` | YES | NULL | MUL | - | Foreign Key ke file_assets (gambar sampul) |
+| 11 | `is_featured` | `tinyint(1)` | NO | `0` | - | - | Flag konten unggulan pada modul |
+| 12 | `carousel_enabled` | `tinyint(1)` | NO | `0` | - | - | Flag penayangan pada Hero Slider / Carousel |
+| 13 | `carousel_order` | `int` | YES | NULL | - | - | Nomor urut penayangan slide carousel |
+| 14 | `start_at` | `datetime` | NO | NULL | - | - | Atribut data start at |
+| 15 | `end_at` | `datetime` | NO | NULL | - | - | Atribut data end at |
+| 16 | `location` | `varchar(500)` | YES | NULL | - | - | Atribut data location |
+| 17 | `meeting_url` | `varchar(2048)` | YES | NULL | - | - | Atribut data meeting url |
+| 18 | `registration_open_at` | `datetime` | YES | NULL | MUL | - | Atribut data registration open at |
+| 19 | `registration_close_at` | `datetime` | YES | NULL | - | - | Atribut data registration close at |
+| 20 | `capacity` | `int unsigned` | YES | NULL | - | - | Atribut data capacity |
+| 21 | `waitlist_enabled` | `tinyint(1)` | NO | `0` | - | - | Atribut data waitlist enabled |
+| 22 | `certificate_enabled` | `tinyint(1)` | NO | `0` | - | - | Atribut data certificate enabled |
+| 23 | `attendance_code` | `varchar(64)` | YES | NULL | MUL | - | Atribut data attendance code |
+| 24 | `attendance_code_hash` | `char(64)` | YES | NULL | - | - | Atribut data attendance code hash |
+| 25 | `attendance_open_at` | `datetime` | YES | NULL | - | - | Atribut data attendance open at |
+| 26 | `attendance_close_at` | `datetime` | YES | NULL | - | - | Atribut data attendance close at |
+| 27 | `created_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang membuat data |
+| 28 | `updated_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang memperbarui data |
+| 29 | `cancelled_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data cancelled by |
+| 30 | `cancelled_at` | `datetime` | YES | NULL | - | - | Atribut data cancelled at |
+| 31 | `cancellation_reason` | `text` | YES | NULL | - | - | Atribut data cancellation reason |
+| 32 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 33 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+| 34 | `deleted_at` | `datetime` | YES | NULL | - | - | Penanda soft-delete data (NULL jika aktif) |
 
 ---
 
-# Checklist Implementasi
+### Tabel: `exports`
 
-- [ ] Semua tabel menggunakan PK/FK, index, dan constraint yang dicantumkan.
-- [ ] Semua status mengikuti controlled value pada Auth/RBAC dan Workflow Contract.
-- [ ] Email, username, token hash, slug, nomor sertifikat, dan pivot relation memiliki unique constraint sesuai dokumen.
-- [ ] Password dan token hanya disimpan sebagai hash.
-- [ ] Data restricted diberi klasifikasi dan tidak terekspos melalui query/export tanpa authorization.
-- [ ] File disimpan di storage; tabel hanya menyimpan metadata/relasi `file_assets`.
-- [ ] Soft delete/archive digunakan untuk record yang membutuhkan riwayat.
-- [ ] Audit snapshot melewati redaction.
-- [ ] Migration, model, validation, service, ERD, dan database test diperbarui bersama jika data dictionary berubah.
+- **Nama Tabel:** `exports`
+- **Jumlah Kolom:** 12 kolom
+- **Definisi:** Struktur persistence data untuk entitas `exports` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `requested_by` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data requested by |
+| 3 | `type` | `varchar(128)` | NO | NULL | - | - | Atribut data type |
+| 4 | `status` | `varchar(64)` | NO | `queued` | MUL | - | Status operasional record sesuai CHECK constraint |
+| 5 | `filters` | `json` | YES | NULL | - | - | Atribut data filters |
+| 6 | `file_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data file id |
+| 7 | `error_message` | `text` | YES | NULL | - | - | Atribut data error message |
+| 8 | `expires_at` | `datetime` | YES | NULL | - | - | Atribut data expires at |
+| 9 | `completed_at` | `datetime` | YES | NULL | - | - | Atribut data completed at |
+| 10 | `deleted_at` | `datetime` | YES | NULL | - | - | Penanda soft-delete data (NULL jika aktif) |
+| 11 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 12 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `external_portals`
+
+- **Nama Tabel:** `external_portals`
+- **Jumlah Kolom:** 11 kolom
+- **Definisi:** Struktur persistence data untuk entitas `external_portals` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `name` | `varchar(150)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 3 | `acronym` | `varchar(50)` | YES | NULL | - | - | Atribut data acronym |
+| 4 | `url` | `varchar(255)` | NO | NULL | - | - | Atribut data url |
+| 5 | `logo_url` | `varchar(255)` | YES | NULL | - | - | Atribut data logo url |
+| 6 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 7 | `category` | `varchar(50)` | NO | `national` | - | - | Atribut data category |
+| 8 | `sort_order` | `int` | NO | `0` | - | - | Urutan tampilan data |
+| 9 | `is_active` | `tinyint(1)` | NO | `1` | MUL | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 10 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 11 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `feature_highlights`
+
+- **Nama Tabel:** `feature_highlights`
+- **Jumlah Kolom:** 14 kolom
+- **Definisi:** Struktur persistence data untuk entitas `feature_highlights` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `section_key` | `varchar(50)` | NO | NULL | MUL | - | Atribut data section key |
+| 3 | `code` | `varchar(50)` | YES | NULL | - | - | Atribut data code |
+| 4 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 5 | `subtitle` | `varchar(255)` | YES | NULL | - | - | Atribut data subtitle |
+| 6 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 7 | `icon_class` | `varchar(100)` | YES | NULL | - | - | Atribut data icon class |
+| 8 | `badge_text` | `varchar(100)` | YES | NULL | - | - | Atribut data badge text |
+| 9 | `color_hex` | `varchar(50)` | YES | NULL | - | - | Atribut data color hex |
+| 10 | `link_url` | `varchar(255)` | YES | NULL | - | - | Atribut data link url |
+| 11 | `sort_order` | `int` | NO | `0` | - | - | Urutan tampilan data |
+| 12 | `is_active` | `tinyint(1)` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 13 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 14 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `feedbacks`
+
+- **Nama Tabel:** `feedbacks`
+- **Jumlah Kolom:** 8 kolom
+- **Definisi:** Struktur persistence data untuk entitas `feedbacks` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `enrollment_id` | `bigint unsigned` | NO | NULL | UNI | - | Atribut data enrollment id |
+| 3 | `rating` | `tinyint unsigned` | YES | NULL | - | - | Atribut data rating |
+| 4 | `comment` | `text` | YES | NULL | - | - | Atribut data comment |
+| 5 | `status` | `varchar(64)` | NO | `not_started` | - | - | Status operasional record sesuai CHECK constraint |
+| 6 | `submitted_at` | `datetime` | YES | NULL | - | - | Atribut data submitted at |
+| 7 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 8 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `file_assets`
+
+- **Nama Tabel:** `file_assets`
+- **Jumlah Kolom:** 20 kolom
+- **Definisi:** Struktur persistence data untuk entitas `file_assets` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `disk` | `varchar(64)` | NO | NULL | - | - | Atribut data disk |
+| 3 | `path` | `varchar(1024)` | NO | NULL | - | - | Atribut data path |
+| 4 | `original_name` | `varchar(512)` | NO | NULL | - | - | Atribut data original name |
+| 5 | `stored_name` | `varchar(255)` | NO | NULL | - | - | Atribut data stored name |
+| 6 | `extension` | `varchar(32)` | NO | NULL | - | - | Atribut data extension |
+| 7 | `mime_type` | `varchar(255)` | NO | NULL | - | - | Atribut data mime type |
+| 8 | `size_bytes` | `bigint unsigned` | NO | NULL | - | - | Atribut data size bytes |
+| 9 | `checksum` | `char(64)` | YES | NULL | - | - | Atribut data checksum |
+| 10 | `visibility` | `varchar(64)` | NO | `internal` | MUL | - | Visibilitas data (public/internal/restricted) |
+| 11 | `lifecycle_status` | `varchar(64)` | NO | `pending_upload` | - | - | Atribut data lifecycle status |
+| 12 | `resource_type` | `varchar(128)` | YES | NULL | MUL | - | Atribut data resource type |
+| 13 | `resource_id` | `bigint unsigned` | YES | NULL | - | - | Atribut data resource id |
+| 14 | `uploaded_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data uploaded by |
+| 15 | `available_at` | `datetime` | YES | NULL | - | - | Atribut data available at |
+| 16 | `expires_at` | `datetime` | YES | NULL | MUL | - | Atribut data expires at |
+| 17 | `deleted_at` | `datetime` | YES | NULL | - | - | Penanda soft-delete data (NULL jika aktif) |
+| 18 | `metadata` | `json` | YES | NULL | - | - | Atribut data metadata |
+| 19 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 20 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `helpdesk_topics`
+
+- **Nama Tabel:** `helpdesk_topics`
+- **Jumlah Kolom:** 8 kolom
+- **Definisi:** Struktur persistence data untuk entitas `helpdesk_topics` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `topic_title` | `varchar(150)` | NO | NULL | - | - | Atribut data topic title |
+| 3 | `default_message` | `text` | NO | NULL | - | - | Atribut data default message |
+| 4 | `icon_class` | `varchar(100)` | YES | NULL | - | - | Atribut data icon class |
+| 5 | `sort_order` | `int` | NO | `0` | - | - | Urutan tampilan data |
+| 6 | `is_active` | `tinyint(1)` | NO | `1` | MUL | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 7 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 8 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `home_sliders`
+
+- **Nama Tabel:** `home_sliders`
+- **Jumlah Kolom:** 13 kolom
+- **Definisi:** Struktur persistence data untuk entitas `home_sliders` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `badge_text` | `varchar(100)` | YES | NULL | - | - | Atribut data badge text |
+| 3 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 4 | `subtitle` | `text` | YES | NULL | - | - | Atribut data subtitle |
+| 5 | `image_url` | `varchar(255)` | YES | NULL | - | - | Atribut data image url |
+| 6 | `button_text` | `varchar(100)` | YES | NULL | - | - | Atribut data button text |
+| 7 | `button_url` | `varchar(255)` | YES | NULL | - | - | Atribut data button url |
+| 8 | `secondary_button_text` | `varchar(100)` | YES | NULL | - | - | Atribut data secondary button text |
+| 9 | `secondary_button_url` | `varchar(255)` | YES | NULL | - | - | Atribut data secondary button url |
+| 10 | `sort_order` | `int` | NO | `0` | - | - | Urutan tampilan data |
+| 11 | `is_active` | `tinyint(1)` | NO | `1` | MUL | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 12 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 13 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `jf_ppbj_levels`
+
+- **Nama Tabel:** `jf_ppbj_levels`
+- **Jumlah Kolom:** 7 kolom
+- **Definisi:** Struktur persistence data untuk entitas `jf_ppbj_levels` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `key` | `varchar(64)` | NO | NULL | UNI | - | Atribut data key |
+| 3 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 4 | `sort_order` | `int unsigned` | NO | `0` | - | - | Urutan tampilan data |
+| 5 | `is_active` | `tinyint(1)` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 6 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 7 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `jf_ppbj_records`
+
+- **Nama Tabel:** `jf_ppbj_records`
+- **Jumlah Kolom:** 15 kolom
+- **Definisi:** Struktur persistence data untuk entitas `jf_ppbj_records` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | YES | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `organization_unit_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data organization unit id |
+| 4 | `employee_identifier` | `varchar(128)` | NO | NULL | - | - | Atribut data employee identifier |
+| 5 | `name_snapshot` | `varchar(255)` | NO | NULL | - | - | Atribut data name snapshot |
+| 6 | `level_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data level id |
+| 7 | `status` | `varchar(64)` | NO | `active` | - | - | Status operasional record sesuai CHECK constraint |
+| 8 | `effective_at` | `datetime` | NO | NULL | MUL | - | Atribut data effective at |
+| 9 | `ended_at` | `datetime` | YES | NULL | - | - | Atribut data ended at |
+| 10 | `change_type` | `varchar(64)` | NO | NULL | - | - | Atribut data change type |
+| 11 | `evidence_file_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data evidence file id |
+| 12 | `created_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang membuat data |
+| 13 | `updated_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang memperbarui data |
+| 14 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 15 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `knowledge_article_categories`
+
+- **Nama Tabel:** `knowledge_article_categories`
+- **Jumlah Kolom:** 3 kolom
+- **Definisi:** Struktur persistence data untuk entitas `knowledge_article_categories` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `article_id` | `bigint unsigned` | NO | NULL | PRI | - | Atribut data article id |
+| 2 | `category_id` | `bigint unsigned` | NO | NULL | PRI | - | Atribut data category id |
+| 3 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `knowledge_article_tags`
+
+- **Nama Tabel:** `knowledge_article_tags`
+- **Jumlah Kolom:** 3 kolom
+- **Definisi:** Struktur persistence data untuk entitas `knowledge_article_tags` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `article_id` | `bigint unsigned` | NO | NULL | PRI | - | Atribut data article id |
+| 2 | `tag_id` | `bigint unsigned` | NO | NULL | PRI | - | Atribut data tag id |
+| 3 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `knowledge_articles`
+
+- **Nama Tabel:** `knowledge_articles`
+- **Jumlah Kolom:** 32 kolom
+- **Definisi:** Struktur persistence data untuk entitas `knowledge_articles` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `type` | `varchar(64)` | NO | `article` | MUL | - | Atribut data type |
+| 3 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 4 | `slug` | `varchar(255)` | NO | NULL | UNI | - | Pengenal URL-friendly unik |
+| 5 | `summary` | `text` | YES | NULL | - | - | Ringkasan singkat konten |
+| 6 | `content` | `longtext` | YES | NULL | - | - | Atribut data content |
+| 7 | `document_version` | `varchar(50)` | YES | `v1.0` | - | - | Atribut data document version |
+| 8 | `document_category` | `varchar(100)` | YES | NULL | - | - | Atribut data document category |
+| 9 | `legal_basis` | `text` | YES | NULL | - | - | Atribut data legal basis |
+| 10 | `resolution_summary` | `text` | YES | NULL | - | - | Atribut data resolution summary |
+| 11 | `case_severity` | `varchar(50)` | YES | NULL | - | - | Atribut data case severity |
+| 12 | `procurement_stage` | `varchar(100)` | YES | NULL | - | - | Atribut data procurement stage |
+| 13 | `organization_unit` | `varchar(255)` | YES | NULL | - | - | Atribut data organization unit |
+| 14 | `source_url` | `varchar(1024)` | YES | NULL | - | - | Atribut data source url |
+| 15 | `reading_time` | `int unsigned` | YES | `5` | - | - | Atribut data reading time |
+| 16 | `workflow_status` | `varchar(64)` | NO | `draft` | - | - | Status alur kerja persetujuan (draft/submitted/in_review/approved/published/dll) |
+| 17 | `visibility` | `varchar(64)` | NO | `internal` | - | - | Visibilitas data (public/internal/restricted) |
+| 18 | `featured` | `tinyint(1)` | NO | `0` | MUL | - | Atribut data featured |
+| 19 | `carousel_enabled` | `tinyint(1)` | NO | `0` | - | - | Flag penayangan pada Hero Slider / Carousel |
+| 20 | `carousel_order` | `int unsigned` | YES | NULL | - | - | Nomor urut penayangan slide carousel |
+| 21 | `sort_order` | `int unsigned` | YES | `0` | - | - | Urutan tampilan data |
+| 22 | `cover_file_id` | `bigint unsigned` | YES | NULL | MUL | - | Foreign Key ke file_assets (gambar sampul) |
+| 23 | `cover_url` | `varchar(1024)` | YES | NULL | - | - | URL relatif/absolut berkas gambar sampul |
+| 24 | `attachment_file_id` | `bigint unsigned` | YES | NULL | - | - | Atribut data attachment file id |
+| 25 | `author_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data author id |
+| 26 | `reviewed_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data reviewed by |
+| 27 | `published_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data published by |
+| 28 | `published_at` | `datetime` | YES | NULL | - | - | Atribut data published at |
+| 29 | `archived_at` | `datetime` | YES | NULL | - | - | Atribut data archived at |
+| 30 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 31 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+| 32 | `deleted_at` | `datetime` | YES | NULL | - | - | Penanda soft-delete data (NULL jika aktif) |
+
+---
+
+### Tabel: `knowledge_categories`
+
+- **Nama Tabel:** `knowledge_categories`
+- **Jumlah Kolom:** 9 kolom
+- **Definisi:** Struktur persistence data untuk entitas `knowledge_categories` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `parent_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data parent id |
+| 3 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 4 | `slug` | `varchar(255)` | NO | NULL | UNI | - | Pengenal URL-friendly unik |
+| 5 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 6 | `sort_order` | `int unsigned` | NO | `0` | - | - | Urutan tampilan data |
+| 7 | `is_active` | `tinyint(1)` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 8 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 9 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `knowledge_media`
+
+- **Nama Tabel:** `knowledge_media`
+- **Jumlah Kolom:** 28 kolom
+- **Definisi:** Struktur persistence data untuk entitas `knowledge_media` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `article_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data article id |
+| 3 | `type` | `varchar(64)` | NO | NULL | MUL | - | Atribut data type |
+| 4 | `title` | `varchar(255)` | YES | NULL | - | - | Judul resmi entitas |
+| 5 | `caption` | `text` | YES | NULL | - | - | Atribut data caption |
+| 6 | `location` | `varchar(255)` | YES | NULL | - | - | Atribut data location |
+| 7 | `event_date` | `date` | YES | NULL | - | - | Atribut data event date |
+| 8 | `hashtags` | `varchar(500)` | YES | NULL | - | - | Atribut data hashtags |
+| 9 | `alt_text` | `varchar(500)` | YES | NULL | - | - | Atribut data alt text |
+| 10 | `file_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data file id |
+| 11 | `slides_data` | `longtext` | YES | NULL | - | - | Atribut data slides data |
+| 12 | `cover_url` | `varchar(1024)` | YES | NULL | - | - | URL relatif/absolut berkas gambar sampul |
+| 13 | `external_url` | `varchar(2048)` | YES | NULL | - | - | Atribut data external url |
+| 14 | `duration` | `varchar(50)` | YES | NULL | - | - | Atribut data duration |
+| 15 | `thumbnail_file_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data thumbnail file id |
+| 16 | `workflow_status` | `varchar(64)` | NO | `draft` | - | - | Status alur kerja persetujuan (draft/submitted/in_review/approved/published/dll) |
+| 17 | `visibility` | `varchar(64)` | NO | `internal` | - | - | Visibilitas data (public/internal/restricted) |
+| 18 | `sort_order` | `int unsigned` | NO | `0` | - | - | Urutan tampilan data |
+| 19 | `likes_count` | `int unsigned` | YES | `0` | - | - | Atribut data likes count |
+| 20 | `views_count` | `int unsigned` | YES | `0` | - | - | Atribut data views count |
+| 21 | `shares_count` | `int unsigned` | YES | `0` | - | - | Atribut data shares count |
+| 22 | `featured` | `tinyint(1)` | NO | `0` | - | - | Atribut data featured |
+| 23 | `carousel_enabled` | `tinyint(1)` | NO | `0` | - | - | Flag penayangan pada Hero Slider / Carousel |
+| 24 | `created_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang membuat data |
+| 25 | `published_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data published by |
+| 26 | `published_at` | `datetime` | YES | NULL | - | - | Atribut data published at |
+| 27 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 28 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `knowledge_tags`
+
+- **Nama Tabel:** `knowledge_tags`
+- **Jumlah Kolom:** 5 kolom
+- **Definisi:** Struktur persistence data untuk entitas `knowledge_tags` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 3 | `slug` | `varchar(255)` | NO | NULL | UNI | - | Pengenal URL-friendly unik |
+| 4 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 5 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `learning_classes`
+
+- **Nama Tabel:** `learning_classes`
+- **Jumlah Kolom:** 29 kolom
+- **Definisi:** Struktur persistence data untuk entitas `learning_classes` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `course_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel courses |
+| 3 | `code` | `varchar(64)` | NO | NULL | - | - | Atribut data code |
+| 4 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 5 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 6 | `cover_file_id` | `int unsigned` | YES | NULL | - | - | Foreign Key ke file_assets (gambar sampul) |
+| 7 | `cover_url` | `varchar(500)` | YES | NULL | - | - | URL relatif/absolut berkas gambar sampul |
+| 8 | `status` | `varchar(64)` | NO | `draft` | - | - | Status operasional record sesuai CHECK constraint |
+| 9 | `featured` | `tinyint(1)` | NO | `0` | - | - | Atribut data featured |
+| 10 | `carousel_enabled` | `tinyint(1)` | NO | `0` | - | - | Flag penayangan pada Hero Slider / Carousel |
+| 11 | `carousel_order` | `int` | YES | NULL | - | - | Nomor urut penayangan slide carousel |
+| 12 | `learning_method` | `varchar(64)` | NO | `online` | - | - | Atribut data learning method |
+| 13 | `location_or_link` | `varchar(500)` | YES | NULL | - | - | Atribut data location or link |
+| 14 | `target_audience` | `text` | YES | NULL | - | - | Atribut data target audience |
+| 15 | `registration_open_at` | `datetime` | YES | NULL | MUL | - | Atribut data registration open at |
+| 16 | `registration_close_at` | `datetime` | YES | NULL | - | - | Atribut data registration close at |
+| 17 | `start_at` | `datetime` | YES | NULL | MUL | - | Atribut data start at |
+| 18 | `end_at` | `datetime` | YES | NULL | - | - | Atribut data end at |
+| 19 | `capacity` | `int unsigned` | YES | NULL | - | - | Atribut data capacity |
+| 20 | `certificate_enabled` | `tinyint(1)` | NO | `0` | - | - | Atribut data certificate enabled |
+| 21 | `passing_grade` | `decimal(5,2)` | NO | `70.00` | - | - | Atribut data passing grade |
+| 22 | `quiz_weight` | `decimal(5,2)` | NO | `40.00` | - | - | Atribut data quiz weight |
+| 23 | `assignment_weight` | `decimal(5,2)` | NO | `0.00` | - | - | Atribut data assignment weight |
+| 24 | `post_test_weight` | `decimal(5,2)` | NO | `60.00` | - | - | Atribut data post test weight |
+| 25 | `created_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang membuat data |
+| 26 | `updated_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang memperbarui data |
+| 27 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 28 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+| 29 | `deleted_at` | `datetime` | YES | NULL | - | - | Penanda soft-delete data (NULL jika aktif) |
+
+---
+
+### Tabel: `learning_modules`
+
+- **Nama Tabel:** `learning_modules`
+- **Jumlah Kolom:** 9 kolom
+- **Definisi:** Struktur persistence data untuk entitas `learning_modules` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `class_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel learning_classes |
+| 3 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 4 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 5 | `sort_order` | `int unsigned` | NO | NULL | - | - | Urutan tampilan data |
+| 6 | `is_required` | `tinyint(1)` | NO | `1` | - | - | Atribut data is required |
+| 7 | `status` | `varchar(64)` | NO | `draft` | - | - | Status operasional record sesuai CHECK constraint |
+| 8 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 9 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `learning_progress`
+
+- **Nama Tabel:** `learning_progress`
+- **Jumlah Kolom:** 9 kolom
+- **Definisi:** Struktur persistence data untuk entitas `learning_progress` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `enrollment_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data enrollment id |
+| 3 | `lesson_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data lesson id |
+| 4 | `status` | `varchar(64)` | NO | `not_started` | - | - | Status operasional record sesuai CHECK constraint |
+| 5 | `started_at` | `datetime` | YES | NULL | - | - | Atribut data started at |
+| 6 | `completed_at` | `datetime` | YES | NULL | - | - | Atribut data completed at |
+| 7 | `progress_percent` | `decimal(5,2)` | NO | `0.00` | - | - | Atribut data progress percent |
+| 8 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 9 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `lessons`
+
+- **Nama Tabel:** `lessons`
+- **Jumlah Kolom:** 16 kolom
+- **Definisi:** Struktur persistence data untuk entitas `lessons` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `module_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data module id |
+| 3 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 4 | `slug` | `varchar(255)` | YES | NULL | MUL | - | Pengenal URL-friendly unik |
+| 5 | `content_type` | `varchar(64)` | NO | NULL | - | - | Atribut data content type |
+| 6 | `content` | `longtext` | YES | NULL | - | - | Atribut data content |
+| 7 | `file_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data file id |
+| 8 | `external_url` | `varchar(2048)` | YES | NULL | - | - | Atribut data external url |
+| 9 | `sort_order` | `int unsigned` | NO | NULL | - | - | Urutan tampilan data |
+| 10 | `is_required` | `tinyint(1)` | NO | `1` | - | - | Atribut data is required |
+| 11 | `status` | `varchar(64)` | NO | `draft` | - | - | Status operasional record sesuai CHECK constraint |
+| 12 | `visibility` | `varchar(64)` | NO | `internal` | - | - | Visibilitas data (public/internal/restricted) |
+| 13 | `created_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang membuat data |
+| 14 | `updated_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang memperbarui data |
+| 15 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 16 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `migrations`
+
+- **Nama Tabel:** `migrations`
+- **Jumlah Kolom:** 7 kolom
+- **Definisi:** Struktur persistence data untuk entitas `migrations` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `version` | `varchar(255)` | NO | NULL | - | - | Atribut data version |
+| 3 | `class` | `varchar(255)` | NO | NULL | - | - | Atribut data class |
+| 4 | `group` | `varchar(255)` | NO | NULL | - | - | Atribut data group |
+| 5 | `namespace` | `varchar(255)` | NO | NULL | - | - | Atribut data namespace |
+| 6 | `time` | `int` | NO | NULL | - | - | Atribut data time |
+| 7 | `batch` | `int unsigned` | NO | NULL | - | - | Atribut data batch |
+
+---
+
+### Tabel: `news`
+
+- **Nama Tabel:** `news`
+- **Jumlah Kolom:** 26 kolom
+- **Definisi:** Struktur persistence data untuk entitas `news` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `category_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data category id |
+| 3 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 4 | `slug` | `varchar(255)` | NO | NULL | UNI | - | Pengenal URL-friendly unik |
+| 5 | `summary` | `text` | YES | NULL | - | - | Ringkasan singkat konten |
+| 6 | `reading_time` | `varchar(50)` | YES | NULL | - | - | Atribut data reading time |
+| 7 | `tags` | `varchar(255)` | YES | NULL | - | - | Atribut data tags |
+| 8 | `content` | `longtext` | YES | NULL | - | - | Atribut data content |
+| 9 | `source_name` | `varchar(150)` | YES | NULL | - | - | Atribut data source name |
+| 10 | `source_url` | `varchar(500)` | YES | NULL | - | - | Atribut data source url |
+| 11 | `cover_file_id` | `bigint unsigned` | YES | NULL | MUL | - | Foreign Key ke file_assets (gambar sampul) |
+| 12 | `cover_caption` | `varchar(255)` | YES | NULL | - | - | Atribut data cover caption |
+| 13 | `is_featured` | `tinyint(1)` | NO | `0` | - | - | Flag konten unggulan pada modul |
+| 14 | `carousel_enabled` | `tinyint(1)` | NO | `0` | - | - | Flag penayangan pada Hero Slider / Carousel |
+| 15 | `carousel_order` | `int` | YES | NULL | - | - | Nomor urut penayangan slide carousel |
+| 16 | `workflow_status` | `varchar(64)` | NO | `draft` | - | - | Status alur kerja persetujuan (draft/submitted/in_review/approved/published/dll) |
+| 17 | `visibility` | `varchar(64)` | NO | `internal` | - | - | Visibilitas data (public/internal/restricted) |
+| 18 | `published_at` | `datetime` | YES | NULL | - | - | Atribut data published at |
+| 19 | `scheduled_at` | `datetime` | YES | NULL | - | - | Atribut data scheduled at |
+| 20 | `view_count` | `bigint unsigned` | NO | `0` | - | - | Atribut data view count |
+| 21 | `author_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data author id |
+| 22 | `reviewed_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data reviewed by |
+| 23 | `published_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data published by |
+| 24 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 25 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+| 26 | `deleted_at` | `datetime` | YES | NULL | - | - | Penanda soft-delete data (NULL jika aktif) |
+
+---
+
+### Tabel: `news_categories`
+
+- **Nama Tabel:** `news_categories`
+- **Jumlah Kolom:** 7 kolom
+- **Definisi:** Struktur persistence data untuk entitas `news_categories` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 3 | `slug` | `varchar(255)` | NO | NULL | UNI | - | Pengenal URL-friendly unik |
+| 4 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 5 | `is_active` | `tinyint(1)` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 6 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 7 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `newsletter_subscribers`
+
+- **Nama Tabel:** `newsletter_subscribers`
+- **Jumlah Kolom:** 6 kolom
+- **Definisi:** Struktur persistence data untuk entitas `newsletter_subscribers` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `email` | `varchar(150)` | NO | NULL | UNI | - | Alamat surel resmi unik |
+| 3 | `status` | `varchar(50)` | NO | `subscribed` | MUL | - | Status operasional record sesuai CHECK constraint |
+| 4 | `subscribed_at` | `datetime` | YES | NULL | - | - | Atribut data subscribed at |
+| 5 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 6 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `notifications`
+
+- **Nama Tabel:** `notifications`
+- **Jumlah Kolom:** 10 kolom
+- **Definisi:** Struktur persistence data untuk entitas `notifications` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `channel` | `varchar(64)` | NO | `database` | MUL | - | Atribut data channel |
+| 4 | `type` | `varchar(128)` | NO | NULL | - | - | Atribut data type |
+| 5 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 6 | `body` | `text` | YES | NULL | - | - | Atribut data body |
+| 7 | `data` | `json` | YES | NULL | - | - | Atribut data data |
+| 8 | `read_at` | `datetime` | YES | NULL | - | - | Atribut data read at |
+| 9 | `sent_at` | `datetime` | YES | NULL | - | - | Atribut data sent at |
+| 10 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `organization_units`
+
+- **Nama Tabel:** `organization_units`
+- **Jumlah Kolom:** 9 kolom
+- **Definisi:** Struktur persistence data untuk entitas `organization_units` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `parent_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data parent id |
+| 3 | `code` | `varchar(64)` | NO | NULL | UNI | - | Atribut data code |
+| 4 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 5 | `type` | `varchar(64)` | NO | NULL | MUL | - | Atribut data type |
+| 6 | `is_active` | `tinyint(1)` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 7 | `sort_order` | `int unsigned` | NO | `0` | - | - | Urutan tampilan data |
+| 8 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 9 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `page_banners`
+
+- **Nama Tabel:** `page_banners`
+- **Jumlah Kolom:** 16 kolom
+- **Definisi:** Struktur persistence data untuk entitas `page_banners` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `page_key` | `varchar(50)` | NO | NULL | UNI | - | Atribut data page key |
+| 3 | `hero_badge` | `varchar(100)` | YES | NULL | - | - | Atribut data hero badge |
+| 4 | `hero_title` | `varchar(255)` | YES | NULL | - | - | Atribut data hero title |
+| 5 | `hero_subtitle` | `text` | YES | NULL | - | - | Atribut data hero subtitle |
+| 6 | `hero_bg_image` | `varchar(255)` | YES | NULL | - | - | Atribut data hero bg image |
+| 7 | `search_placeholder` | `varchar(255)` | YES | NULL | - | - | Atribut data search placeholder |
+| 8 | `cta_badge` | `varchar(100)` | YES | NULL | - | - | Atribut data cta badge |
+| 9 | `cta_title` | `varchar(255)` | YES | NULL | - | - | Atribut data cta title |
+| 10 | `cta_lead` | `text` | YES | NULL | - | - | Atribut data cta lead |
+| 11 | `cta_primary_btn_text` | `varchar(100)` | YES | NULL | - | - | Atribut data cta primary btn text |
+| 12 | `cta_primary_btn_url` | `varchar(255)` | YES | NULL | - | - | Atribut data cta primary btn url |
+| 13 | `cta_secondary_btn_text` | `varchar(100)` | YES | NULL | - | - | Atribut data cta secondary btn text |
+| 14 | `cta_secondary_btn_url` | `varchar(255)` | YES | NULL | - | - | Atribut data cta secondary btn url |
+| 15 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 16 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `password_resets`
+
+- **Nama Tabel:** `password_resets`
+- **Jumlah Kolom:** 6 kolom
+- **Definisi:** Struktur persistence data untuk entitas `password_resets` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `token_hash` | `char(64)` | NO | NULL | UNI | - | Atribut data token hash |
+| 4 | `expires_at` | `datetime` | NO | NULL | - | - | Atribut data expires at |
+| 5 | `used_at` | `datetime` | YES | NULL | - | - | Atribut data used at |
+| 6 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `permissions`
+
+- **Nama Tabel:** `permissions`
+- **Jumlah Kolom:** 8 kolom
+- **Definisi:** Struktur persistence data untuk entitas `permissions` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `key` | `varchar(128)` | NO | NULL | UNI | - | Atribut data key |
+| 3 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 4 | `domain` | `varchar(64)` | NO | NULL | MUL | - | Atribut data domain |
+| 5 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 6 | `is_system` | `tinyint(1)` | NO | `1` | - | - | Atribut data is system |
+| 7 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 8 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `pre_tests`
+
+- **Nama Tabel:** `pre_tests`
+- **Jumlah Kolom:** 7 kolom
+- **Definisi:** Struktur persistence data untuk entitas `pre_tests` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `class_id` | `bigint unsigned` | NO | NULL | UNI | - | Foreign Key ke tabel learning_classes |
+| 3 | `is_enabled` | `tinyint(1)` | NO | `0` | - | - | Atribut data is enabled |
+| 4 | `attempt_limit` | `int unsigned` | NO | `1` | - | - | Atribut data attempt limit |
+| 5 | `status` | `varchar(64)` | NO | `draft` | - | - | Status operasional record sesuai CHECK constraint |
+| 6 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 7 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `procurement_roles`
+
+- **Nama Tabel:** `procurement_roles`
+- **Jumlah Kolom:** 7 kolom
+- **Definisi:** Struktur persistence data untuk entitas `procurement_roles` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `key` | `varchar(64)` | NO | NULL | UNI | - | Atribut data key |
+| 3 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 4 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 5 | `is_active` | `tinyint(1)` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 6 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 7 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `procurement_stages`
+
+- **Nama Tabel:** `procurement_stages`
+- **Jumlah Kolom:** 8 kolom
+- **Definisi:** Struktur persistence data untuk entitas `procurement_stages` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `key` | `varchar(64)` | NO | NULL | UNI | - | Atribut data key |
+| 3 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 4 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 5 | `sort_order` | `int unsigned` | NO | `0` | - | - | Urutan tampilan data |
+| 6 | `is_active` | `tinyint` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 7 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 8 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `profile_change_requests`
+
+- **Nama Tabel:** `profile_change_requests`
+- **Jumlah Kolom:** 12 kolom
+- **Definisi:** Struktur persistence data untuk entitas `profile_change_requests` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `status` | `varchar(64)` | NO | `draft` | MUL | - | Status operasional record sesuai CHECK constraint |
+| 4 | `requested_payload` | `json` | NO | NULL | - | - | Atribut data requested payload |
+| 5 | `reason` | `text` | YES | NULL | - | - | Atribut data reason |
+| 6 | `reviewed_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data reviewed by |
+| 7 | `reviewed_at` | `datetime` | YES | NULL | - | - | Atribut data reviewed at |
+| 8 | `review_notes` | `text` | YES | NULL | - | - | Atribut data review notes |
+| 9 | `applied_at` | `datetime` | YES | NULL | - | - | Atribut data applied at |
+| 10 | `archived_at` | `datetime` | YES | NULL | - | - | Atribut data archived at |
+| 11 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 12 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `profile_verifications`
+
+- **Nama Tabel:** `profile_verifications`
+- **Jumlah Kolom:** 11 kolom
+- **Definisi:** Struktur persistence data untuk entitas `profile_verifications` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `verification_type` | `varchar(64)` | NO | NULL | - | - | Atribut data verification type |
+| 4 | `status` | `varchar(64)` | NO | `pending` | MUL | - | Status operasional record sesuai CHECK constraint |
+| 5 | `requested_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data requested by |
+| 6 | `reviewed_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data reviewed by |
+| 7 | `reason` | `text` | YES | NULL | - | - | Atribut data reason |
+| 8 | `notes` | `text` | YES | NULL | - | - | Atribut data notes |
+| 9 | `reviewed_at` | `datetime` | YES | NULL | - | - | Atribut data reviewed at |
+| 10 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 11 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `programs`
+
+- **Nama Tabel:** `programs`
+- **Jumlah Kolom:** 22 kolom
+- **Definisi:** Struktur persistence data untuk entitas `programs` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 3 | `slug` | `varchar(255)` | NO | NULL | UNI | - | Pengenal URL-friendly unik |
+| 4 | `summary` | `text` | YES | NULL | - | - | Ringkasan singkat konten |
+| 5 | `description` | `longtext` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 6 | `target_audience` | `text` | YES | NULL | - | - | Atribut data target audience |
+| 7 | `prerequisites` | `text` | YES | NULL | - | - | Atribut data prerequisites |
+| 8 | `learning_objectives` | `text` | YES | NULL | - | - | Atribut data learning objectives |
+| 9 | `status` | `varchar(64)` | NO | `draft` | MUL | - | Status operasional record sesuai CHECK constraint |
+| 10 | `visibility` | `varchar(64)` | NO | `internal` | - | - | Visibilitas data (public/internal/restricted) |
+| 11 | `featured` | `tinyint(1)` | NO | `0` | - | - | Atribut data featured |
+| 12 | `carousel_enabled` | `tinyint(1)` | NO | `0` | - | - | Flag penayangan pada Hero Slider / Carousel |
+| 13 | `carousel_order` | `int` | YES | NULL | - | - | Nomor urut penayangan slide carousel |
+| 14 | `cover_file_id` | `bigint unsigned` | YES | NULL | MUL | - | Foreign Key ke file_assets (gambar sampul) |
+| 15 | `cover_url` | `varchar(500)` | YES | NULL | - | - | URL relatif/absolut berkas gambar sampul |
+| 16 | `created_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang membuat data |
+| 17 | `updated_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang memperbarui data |
+| 18 | `published_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data published by |
+| 19 | `published_at` | `datetime` | YES | NULL | - | - | Atribut data published at |
+| 20 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 21 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+| 22 | `deleted_at` | `datetime` | YES | NULL | - | - | Penanda soft-delete data (NULL jika aktif) |
+
+---
+
+### Tabel: `provider_profiles`
+
+- **Nama Tabel:** `provider_profiles`
+- **Jumlah Kolom:** 12 kolom
+- **Definisi:** Struktur persistence data untuk entitas `provider_profiles` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | UNI | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `business_name` | `varchar(255)` | NO | NULL | - | - | Atribut data business name |
+| 4 | `business_form` | `varchar(64)` | NO | NULL | - | - | Atribut data business form |
+| 5 | `business_field` | `varchar(255)` | YES | NULL | - | - | Atribut data business field |
+| 6 | `business_identifier` | `varchar(64)` | YES | NULL | - | - | Atribut data business identifier |
+| 7 | `registrant_position` | `varchar(255)` | NO | NULL | - | - | Atribut data registrant position |
+| 8 | `responsible_person` | `varchar(255)` | NO | NULL | - | - | Atribut data responsible person |
+| 9 | `business_email` | `varchar(255)` | YES | NULL | - | - | Atribut data business email |
+| 10 | `business_address` | `text` | YES | NULL | - | - | Atribut data business address |
+| 11 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 12 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `public_profiles`
+
+- **Nama Tabel:** `public_profiles`
+- **Jumlah Kolom:** 9 kolom
+- **Definisi:** Struktur persistence data untuk entitas `public_profiles` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | UNI | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `national_identifier` | `varchar(32)` | YES | NULL | - | - | Atribut data national identifier |
+| 4 | `occupation_status` | `varchar(128)` | NO | NULL | - | - | Atribut data occupation status |
+| 5 | `organization_name` | `varchar(255)` | YES | NULL | - | - | Atribut data organization name |
+| 6 | `interest_areas` | `json` | YES | NULL | - | - | Atribut data interest areas |
+| 7 | `usage_purpose` | `json` | YES | NULL | - | - | Atribut data usage purpose |
+| 8 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 9 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `quiz_answers`
+
+- **Nama Tabel:** `quiz_answers`
+- **Jumlah Kolom:** 8 kolom
+- **Definisi:** Struktur persistence data untuk entitas `quiz_answers` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `attempt_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data attempt id |
+| 3 | `question_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data question id |
+| 4 | `answer_payload` | `json` | YES | NULL | - | - | Atribut data answer payload |
+| 5 | `is_correct` | `tinyint(1)` | YES | NULL | - | - | Atribut data is correct |
+| 6 | `score_awarded` | `decimal(5,2)` | YES | NULL | - | - | Atribut data score awarded |
+| 7 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 8 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `quiz_attempts`
+
+- **Nama Tabel:** `quiz_attempts`
+- **Jumlah Kolom:** 13 kolom
+- **Definisi:** Struktur persistence data untuk entitas `quiz_attempts` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `quiz_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data quiz id |
+| 3 | `enrollment_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data enrollment id |
+| 4 | `attempt_number` | `int unsigned` | NO | NULL | - | - | Atribut data attempt number |
+| 5 | `status` | `varchar(64)` | NO | `started` | - | - | Status operasional record sesuai CHECK constraint |
+| 6 | `started_at` | `datetime` | NO | NULL | - | - | Atribut data started at |
+| 7 | `submitted_at` | `datetime` | YES | NULL | - | - | Atribut data submitted at |
+| 8 | `graded_at` | `datetime` | YES | NULL | - | - | Atribut data graded at |
+| 9 | `score` | `decimal(5,2)` | YES | NULL | - | - | Atribut data score |
+| 10 | `invalidated_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data invalidated by |
+| 11 | `invalidated_reason` | `text` | YES | NULL | - | - | Atribut data invalidated reason |
+| 12 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 13 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `quiz_options`
+
+- **Nama Tabel:** `quiz_options`
+- **Jumlah Kolom:** 7 kolom
+- **Definisi:** Struktur persistence data untuk entitas `quiz_options` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `question_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data question id |
+| 3 | `option_text` | `text` | NO | NULL | - | - | Atribut data option text |
+| 4 | `is_correct` | `tinyint(1)` | NO | `0` | - | - | Atribut data is correct |
+| 5 | `sort_order` | `int unsigned` | NO | NULL | - | - | Urutan tampilan data |
+| 6 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 7 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `quiz_questions`
+
+- **Nama Tabel:** `quiz_questions`
+- **Jumlah Kolom:** 9 kolom
+- **Definisi:** Struktur persistence data untuk entitas `quiz_questions` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `quiz_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data quiz id |
+| 3 | `type` | `varchar(64)` | NO | NULL | - | - | Atribut data type |
+| 4 | `prompt` | `longtext` | NO | NULL | - | - | Atribut data prompt |
+| 5 | `points` | `decimal(5,2)` | NO | `1.00` | - | - | Atribut data points |
+| 6 | `sort_order` | `int unsigned` | NO | NULL | - | - | Urutan tampilan data |
+| 7 | `explanation` | `text` | YES | NULL | - | - | Atribut data explanation |
+| 8 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 9 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `quizzes`
+
+- **Nama Tabel:** `quizzes`
+- **Jumlah Kolom:** 12 kolom
+- **Definisi:** Struktur persistence data untuk entitas `quizzes` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `class_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel learning_classes |
+| 3 | `lesson_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data lesson id |
+| 4 | `type` | `varchar(64)` | NO | NULL | - | - | Atribut data type |
+| 5 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 6 | `instructions` | `text` | YES | NULL | - | - | Atribut data instructions |
+| 7 | `attempt_limit` | `int unsigned` | NO | `1` | - | - | Atribut data attempt limit |
+| 8 | `duration_minutes` | `int unsigned` | YES | NULL | - | - | Atribut data duration minutes |
+| 9 | `is_required` | `tinyint(1)` | NO | `0` | - | - | Atribut data is required |
+| 10 | `status` | `varchar(64)` | NO | `draft` | - | - | Status operasional record sesuai CHECK constraint |
+| 11 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 12 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `regulation_categories`
+
+- **Nama Tabel:** `regulation_categories`
+- **Jumlah Kolom:** 9 kolom
+- **Definisi:** Struktur persistence data untuk entitas `regulation_categories` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 3 | `slug` | `varchar(255)` | NO | NULL | UNI | - | Pengenal URL-friendly unik |
+| 4 | `icon_class` | `varchar(100)` | YES | `solar:document-outline` | - | - | Atribut data icon class |
+| 5 | `icon_file_id` | `int unsigned` | YES | NULL | - | - | Atribut data icon file id |
+| 6 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 7 | `is_active` | `tinyint(1)` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 8 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 9 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `regulation_competencies`
+
+- **Nama Tabel:** `regulation_competencies`
+- **Jumlah Kolom:** 5 kolom
+- **Definisi:** Struktur persistence data untuk entitas `regulation_competencies` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `regulation_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data regulation id |
+| 3 | `competency_id` | `bigint unsigned` | NO | NULL | - | - | Atribut data competency id |
+| 4 | `relevance` | `varchar(32)` | YES | NULL | - | - | Atribut data relevance |
+| 5 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `regulation_downloads`
+
+- **Nama Tabel:** `regulation_downloads`
+- **Jumlah Kolom:** 7 kolom
+- **Definisi:** Struktur persistence data untuk entitas `regulation_downloads` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `regulation_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data regulation id |
+| 3 | `version_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data version id |
+| 4 | `file_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data file id |
+| 5 | `user_id` | `bigint unsigned` | YES | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 6 | `access_type` | `varchar(64)` | NO | NULL | - | - | Atribut data access type |
+| 7 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `regulation_procurement_stages`
+
+- **Nama Tabel:** `regulation_procurement_stages`
+- **Jumlah Kolom:** 5 kolom
+- **Definisi:** Struktur persistence data untuk entitas `regulation_procurement_stages` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `regulation_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data regulation id |
+| 3 | `procurement_stage_id` | `bigint unsigned` | NO | NULL | - | - | Atribut data procurement stage id |
+| 4 | `relevance` | `varchar(32)` | YES | NULL | - | - | Atribut data relevance |
+| 5 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `regulation_relations`
+
+- **Nama Tabel:** `regulation_relations`
+- **Jumlah Kolom:** 7 kolom
+- **Definisi:** Struktur persistence data untuk entitas `regulation_relations` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `source_regulation_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data source regulation id |
+| 3 | `target_regulation_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data target regulation id |
+| 4 | `relation_type` | `varchar(64)` | NO | NULL | - | - | Atribut data relation type |
+| 5 | `notes` | `text` | YES | NULL | - | - | Atribut data notes |
+| 6 | `created_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang membuat data |
+| 7 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `regulation_versions`
+
+- **Nama Tabel:** `regulation_versions`
+- **Jumlah Kolom:** 8 kolom
+- **Definisi:** Struktur persistence data untuk entitas `regulation_versions` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `regulation_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data regulation id |
+| 3 | `version_number` | `int unsigned` | NO | NULL | - | - | Atribut data version number |
+| 4 | `file_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data file id |
+| 5 | `changelog` | `text` | YES | NULL | - | - | Atribut data changelog |
+| 6 | `is_current` | `tinyint(1)` | NO | `0` | - | - | Atribut data is current |
+| 7 | `uploaded_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data uploaded by |
+| 8 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `regulations`
+
+- **Nama Tabel:** `regulations`
+- **Jumlah Kolom:** 30 kolom
+- **Definisi:** Struktur persistence data untuk entitas `regulations` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `category_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data category id |
+| 3 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 4 | `slug` | `varchar(255)` | NO | NULL | UNI | - | Pengenal URL-friendly unik |
+| 5 | `document_number` | `varchar(255)` | NO | NULL | MUL | - | Atribut data document number |
+| 6 | `document_year` | `smallint unsigned` | NO | NULL | - | - | Atribut data document year |
+| 7 | `issuer_name` | `varchar(255)` | NO | NULL | - | - | Atribut data issuer name |
+| 8 | `official_date` | `datetime` | YES | NULL | - | - | Atribut data official date |
+| 9 | `effective_date` | `datetime` | YES | NULL | - | - | Atribut data effective date |
+| 10 | `summary` | `text` | YES | NULL | - | - | Ringkasan singkat konten |
+| 11 | `keywords` | `varchar(500)` | YES | NULL | - | - | Atribut data keywords |
+| 12 | `official_source_url` | `varchar(2048)` | YES | NULL | - | - | Atribut data official source url |
+| 13 | `workflow_status` | `varchar(64)` | NO | `draft` | - | - | Status alur kerja persetujuan (draft/submitted/in_review/approved/published/dll) |
+| 14 | `legal_status` | `varchar(64)` | NO | `active` | - | - | Atribut data legal status |
+| 15 | `visibility` | `varchar(64)` | NO | `internal` | - | - | Visibilitas data (public/internal/restricted) |
+| 16 | `is_featured` | `tinyint(1)` | YES | `0` | - | - | Flag konten unggulan pada modul |
+| 17 | `carousel_enabled` | `tinyint(1)` | NO | `0` | - | - | Flag penayangan pada Hero Slider / Carousel |
+| 18 | `carousel_order` | `int` | YES | NULL | - | - | Nomor urut penayangan slide carousel |
+| 19 | `current_version_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data current version id |
+| 20 | `cover_file_id` | `int unsigned` | YES | NULL | - | - | Foreign Key ke file_assets (gambar sampul) |
+| 21 | `cover_image_path` | `varchar(500)` | YES | NULL | - | - | Atribut data cover image path |
+| 22 | `created_by` | `bigint unsigned` | YES | NULL | MUL | - | ID user yang membuat data |
+| 23 | `reviewed_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data reviewed by |
+| 24 | `reviewed_at` | `datetime` | YES | NULL | - | - | Atribut data reviewed at |
+| 25 | `published_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data published by |
+| 26 | `published_at` | `datetime` | YES | NULL | MUL | - | Atribut data published at |
+| 27 | `archived_at` | `datetime` | YES | NULL | - | - | Atribut data archived at |
+| 28 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 29 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+| 30 | `deleted_at` | `datetime` | YES | NULL | - | - | Penanda soft-delete data (NULL jika aktif) |
+
+---
+
+### Tabel: `role_permissions`
+
+- **Nama Tabel:** `role_permissions`
+- **Jumlah Kolom:** 4 kolom
+- **Definisi:** Struktur persistence data untuk entitas `role_permissions` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `role_id` | `bigint unsigned` | NO | NULL | PRI | - | Foreign Key ke tabel roles |
+| 2 | `permission_id` | `bigint unsigned` | NO | NULL | PRI | - | Atribut data permission id |
+| 3 | `granted_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data granted by |
+| 4 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `role_requests`
+
+- **Nama Tabel:** `role_requests`
+- **Jumlah Kolom:** 11 kolom
+- **Definisi:** Struktur persistence data untuk entitas `role_requests` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `requested_role_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data requested role id |
+| 4 | `status` | `varchar(64)` | NO | `draft` | MUL | - | Status operasional record sesuai CHECK constraint |
+| 5 | `reason` | `text` | YES | NULL | - | - | Atribut data reason |
+| 6 | `reviewed_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data reviewed by |
+| 7 | `reviewed_at` | `datetime` | YES | NULL | - | - | Atribut data reviewed at |
+| 8 | `review_notes` | `text` | YES | NULL | - | - | Atribut data review notes |
+| 9 | `archived_at` | `datetime` | YES | NULL | - | - | Atribut data archived at |
+| 10 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 11 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `roles`
+
+- **Nama Tabel:** `roles`
+- **Jumlah Kolom:** 7 kolom
+- **Definisi:** Struktur persistence data untuk entitas `roles` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `key` | `varchar(64)` | NO | NULL | UNI | - | Atribut data key |
+| 3 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 4 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 5 | `is_system` | `tinyint(1)` | NO | `1` | - | - | Atribut data is system |
+| 6 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 7 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `rup_audit_batches`
+
+- **Nama Tabel:** `rup_audit_batches`
+- **Jumlah Kolom:** 21 kolom
+- **Definisi:** Struktur persistence data untuk entitas `rup_audit_batches` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `int unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `batch_uuid` | `varchar(36)` | NO | NULL | UNI | - | Atribut data batch uuid |
+| 3 | `user_id` | `int unsigned` | YES | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 4 | `filename` | `varchar(255)` | NO | NULL | - | - | Atribut data filename |
+| 5 | `file_size` | `bigint` | NO | `0` | - | - | Atribut data file size |
+| 6 | `total_rows_raw` | `int` | NO | `0` | - | - | Atribut data total rows raw |
+| 7 | `total_packages` | `int` | NO | `0` | - | - | Atribut data total packages |
+| 8 | `total_pagu` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data total pagu |
+| 9 | `total_pagu_penyedia` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data total pagu penyedia |
+| 10 | `total_pagu_swakelola` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data total pagu swakelola |
+| 11 | `total_opd` | `int` | NO | `0` | - | - | Atribut data total opd |
+| 12 | `avg_rci_score` | `decimal(5,2)` | NO | `0.00` | - | - | Atribut data avg rci score |
+| 13 | `status` | `enum('processing','completed','failed')` | NO | `processing` | - | - | Status operasional record sesuai CHECK constraint |
+| 14 | `previous_batch_id` | `int unsigned` | YES | NULL | - | - | Atribut data previous batch id |
+| 15 | `macro_summary` | `json` | YES | NULL | - | - | Atribut data macro summary |
+| 16 | `schema_mode` | `varchar(30)` | NO | `CORE_12_COLS` | - | - | Atribut data schema mode |
+| 17 | `tahun_anggaran` | `int` | NO | `2026` | - | - | Atribut data tahun anggaran |
+| 18 | `nama_instansi` | `varchar(255)` | NO | `Pemerintah Provinsi Lampung` | - | - | Atribut data nama instansi |
+| 19 | `notes` | `text` | YES | NULL | - | - | Atribut data notes |
+| 20 | `created_at` | `datetime` | YES | NULL | MUL | - | Waktu pembuatan data (UTC timestamp) |
+| 21 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `rup_audit_clusters`
+
+- **Nama Tabel:** `rup_audit_clusters`
+- **Jumlah Kolom:** 20 kolom
+- **Definisi:** Struktur persistence data untuk entitas `rup_audit_clusters` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `batch_id` | `int unsigned` | NO | NULL | MUL | - | Foreign Key ke batch terkait |
+| 3 | `cluster_uuid` | `varchar(50)` | NO | NULL | - | - | Atribut data cluster uuid |
+| 4 | `kode_satker_sipd` | `varchar(50)` | NO | `` | - | - | Atribut data kode satker sipd |
+| 5 | `nama_opd_clean` | `varchar(255)` | NO | NULL | - | - | Atribut data nama opd clean |
+| 6 | `budget_cycle` | `enum('MURNI','PERUBAHAN')` | NO | `MURNI` | - | - | Atribut data budget cycle |
+| 7 | `nama_komoditas_klaster` | `varchar(255)` | NO | NULL | - | - | Atribut data nama komoditas klaster |
+| 8 | `lokasi_klaster` | `varchar(255)` | NO | `ALL` | - | - | Atribut data lokasi klaster |
+| 9 | `jenis_pengadaan` | `varchar(100)` | NO | `Barang` | - | - | Atribut data jenis pengadaan |
+| 10 | `metode_dominan` | `varchar(100)` | NO | `Pengadaan Langsung` | - | - | Atribut data metode dominan |
+| 11 | `jumlah_paket_terpecah` | `int` | NO | `0` | - | - | Atribut data jumlah paket terpecah |
+| 12 | `nilai_paket_terkecil` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data nilai paket terkecil |
+| 13 | `nilai_paket_terbesar` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data nilai paket terbesar |
+| 14 | `total_pagu_klaster` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data total pagu klaster |
+| 15 | `batas_regulasi_pl` | `decimal(20,2)` | NO | `200000000.00` | - | - | Atribut data batas regulasi pl |
+| 16 | `kategori_temuan` | `varchar(100)` | NO | NULL | - | - | Atribut data kategori temuan |
+| 17 | `severity` | `enum('KRITIS','TINGGI','SEDANG','RENDAH','INFO')` | NO | `TINGGI` | - | - | Atribut data severity |
+| 18 | `daftar_kode_rup` | `json` | YES | NULL | - | - | Atribut data daftar kode rup |
+| 19 | `instruksi_konsolidasi` | `text` | NO | NULL | - | - | Atribut data instruksi konsolidasi |
+| 20 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `rup_audit_opd_summaries`
+
+- **Nama Tabel:** `rup_audit_opd_summaries`
+- **Jumlah Kolom:** 25 kolom
+- **Definisi:** Struktur persistence data untuk entitas `rup_audit_opd_summaries` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `batch_id` | `int unsigned` | NO | NULL | MUL | - | Foreign Key ke batch terkait |
+| 3 | `kode_satker_sipd` | `varchar(50)` | NO | `` | - | - | Atribut data kode satker sipd |
+| 4 | `nama_opd_clean` | `varchar(255)` | NO | NULL | - | - | Atribut data nama opd clean |
+| 5 | `total_paket` | `int` | NO | `0` | - | - | Atribut data total paket |
+| 6 | `total_pagu` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data total pagu |
+| 7 | `pagu_penyedia` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data pagu penyedia |
+| 8 | `pagu_swakelola` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data pagu swakelola |
+| 9 | `pagu_dpa` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data pagu dpa |
+| 10 | `persen_cakupan_dpa` | `decimal(5,2)` | NO | `100.00` | - | - | Atribut data persen cakupan dpa |
+| 11 | `persen_epurchasing` | `decimal(5,2)` | NO | `0.00` | - | - | Atribut data persen epurchasing |
+| 12 | `persen_umk_penyedia` | `decimal(5,2)` | NO | `0.00` | - | - | Atribut data persen umk penyedia |
+| 13 | `persen_umk_eligible_le15m` | `decimal(5,2)` | NO | `0.00` | - | - | Atribut data persen umk eligible le15m |
+| 14 | `persen_umk_total_rup` | `decimal(5,2)` | NO | `0.00` | - | - | Atribut data persen umk total rup |
+| 15 | `persen_pdn` | `decimal(5,2)` | NO | `0.00` | - | - | Atribut data persen pdn |
+| 16 | `rasio_penunjukan_langsung` | `decimal(5,2)` | NO | `0.00` | - | - | Atribut data rasio penunjukan langsung |
+| 17 | `temuan_kritis` | `int` | NO | `0` | - | - | Atribut data temuan kritis |
+| 18 | `temuan_tinggi` | `int` | NO | `0` | - | - | Atribut data temuan tinggi |
+| 19 | `temuan_sedang` | `int` | NO | `0` | - | - | Atribut data temuan sedang |
+| 20 | `temuan_rendah` | `int` | NO | `0` | - | - | Atribut data temuan rendah |
+| 21 | `pagu_bermasalah_kritis_tinggi` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data pagu bermasalah kritis tinggi |
+| 22 | `skor_rci` | `decimal(5,2)` | NO | `0.00` | - | - | Atribut data skor rci |
+| 23 | `predikat_risiko` | `enum('HIJAU','KUNING','ORANYE','MERAH')` | NO | `HIJAU` | - | - | Atribut data predikat risiko |
+| 24 | `macro_flags` | `json` | YES | NULL | - | - | Atribut data macro flags |
+| 25 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `rup_audit_packages`
+
+- **Nama Tabel:** `rup_audit_packages`
+- **Jumlah Kolom:** 44 kolom
+- **Definisi:** Struktur persistence data untuk entitas `rup_audit_packages` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `batch_id` | `int unsigned` | NO | NULL | MUL | - | Foreign Key ke batch terkait |
+| 3 | `opd_summary_id` | `bigint unsigned` | YES | NULL | - | - | Atribut data opd summary id |
+| 4 | `row_index_csv` | `int` | NO | `0` | - | - | Atribut data row index csv |
+| 5 | `kode_rup` | `varchar(50)` | NO | `` | - | - | Atribut data kode rup |
+| 6 | `nama_instansi` | `varchar(255)` | NO | `` | - | - | Atribut data nama instansi |
+| 7 | `nama_satuan_kerja` | `varchar(255)` | NO | `` | - | - | Atribut data nama satuan kerja |
+| 8 | `nama_opd_clean` | `varchar(255)` | NO | `` | - | - | Atribut data nama opd clean |
+| 9 | `kode_satker_sipd` | `varchar(50)` | NO | `` | - | - | Atribut data kode satker sipd |
+| 10 | `tahun_anggaran` | `int` | NO | `2026` | - | - | Atribut data tahun anggaran |
+| 11 | `cara_pengadaan` | `varchar(50)` | NO | `Penyedia` | - | - | Atribut data cara pengadaan |
+| 12 | `metode_pengadaan` | `varchar(100)` | NO | `-` | - | - | Atribut data metode pengadaan |
+| 13 | `metode_arr` | `json` | YES | NULL | - | - | Atribut data metode arr |
+| 14 | `jenis_pengadaan` | `varchar(100)` | NO | `-` | - | - | Atribut data jenis pengadaan |
+| 15 | `jenis_arr` | `json` | YES | NULL | - | - | Atribut data jenis arr |
+| 16 | `nama_paket` | `text` | NO | NULL | - | - | Atribut data nama paket |
+| 17 | `nama_paket_clean` | `text` | YES | NULL | - | - | Atribut data nama paket clean |
+| 18 | `nama_paket_objek` | `text` | YES | NULL | - | - | Atribut data nama paket objek |
+| 19 | `nama_paket_core` | `text` | YES | NULL | - | - | Atribut data nama paket core |
+| 20 | `lokasi_extracted` | `varchar(255)` | YES | NULL | - | - | Atribut data lokasi extracted |
+| 21 | `sumber_dana` | `varchar(255)` | NO | `APBD` | - | - | Atribut data sumber dana |
+| 22 | `sumber_dana_arr` | `json` | YES | NULL | - | - | Atribut data sumber dana arr |
+| 23 | `budget_cycle` | `enum('MURNI','PERUBAHAN')` | NO | `MURNI` | - | - | Atribut data budget cycle |
+| 24 | `is_blud` | `tinyint(1)` | NO | `0` | - | - | Atribut data is blud |
+| 25 | `is_dak` | `tinyint(1)` | NO | `0` | - | - | Atribut data is dak |
+| 26 | `is_multiyears` | `tinyint(1)` | NO | `0` | - | - | Atribut data is multiyears |
+| 27 | `is_scientific_truncated` | `tinyint(1)` | NO | `0` | - | - | Atribut data is scientific truncated |
+| 28 | `is_integrated_package` | `tinyint(1)` | NO | `0` | - | - | Atribut data is integrated package |
+| 29 | `produk_dalam_negeri` | `varchar(20)` | NO | `Ya` | - | - | Atribut data produk dalam negeri |
+| 30 | `status_umk` | `varchar(20)` | NO | `Ya` | - | - | Atribut data status umk |
+| 31 | `total_nilai` | `decimal(20,2)` | NO | `0.00` | - | - | Atribut data total nilai |
+| 32 | `cluster_id` | `varchar(100)` | YES | NULL | MUL | - | Atribut data cluster id |
+| 33 | `max_severity` | `enum('AMAN','RENDAH','SEDANG','TINGGI','KRITIS','INFO')` | NO | `AMAN` | - | - | Atribut data max severity |
+| 34 | `violation_count` | `int` | NO | `0` | - | - | Atribut data violation count |
+| 35 | `diff_status` | `enum('NEW','PERSISTENT','FIXED','DELETED','CHANGED')` | NO | `NEW` | - | - | Atribut data diff status |
+| 36 | `tanggal_umumkan` | `date` | YES | NULL | - | - | Atribut data tanggal umumkan |
+| 37 | `jadwal_pemilihan_awal` | `date` | YES | NULL | - | - | Atribut data jadwal pemilihan awal |
+| 38 | `jadwal_kontrak_awal` | `date` | YES | NULL | - | - | Atribut data jadwal kontrak awal |
+| 39 | `jadwal_kontrak_akhir` | `date` | YES | NULL | - | - | Atribut data jadwal kontrak akhir |
+| 40 | `tipe_swakelola` | `varchar(50)` | YES | NULL | - | - | Atribut data tipe swakelola |
+| 41 | `lokasi_pekerjaan` | `text` | YES | NULL | - | - | Atribut data lokasi pekerjaan |
+| 42 | `kode_rekening_mak` | `varchar(100)` | YES | NULL | - | - | Atribut data kode rekening mak |
+| 43 | `pagu_pengadaan_dpa` | `decimal(20,2)` | YES | NULL | - | - | Atribut data pagu pengadaan dpa |
+| 44 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `rup_audit_violations`
+
+- **Nama Tabel:** `rup_audit_violations`
+- **Jumlah Kolom:** 11 kolom
+- **Definisi:** Struktur persistence data untuk entitas `rup_audit_violations` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `batch_id` | `int unsigned` | NO | NULL | MUL | - | Foreign Key ke batch terkait |
+| 3 | `package_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data package id |
+| 4 | `rule_id` | `varchar(20)` | NO | NULL | - | - | Atribut data rule id |
+| 5 | `severity` | `enum('KRITIS','TINGGI','SEDANG','RENDAH','INFO')` | NO | `SEDANG` | - | - | Atribut data severity |
+| 6 | `kategori` | `varchar(100)` | NO | `` | - | - | Atribut data kategori |
+| 7 | `regulasi` | `varchar(255)` | NO | `` | - | - | Atribut data regulasi |
+| 8 | `deskripsi_pelanggaran` | `text` | NO | NULL | - | - | Atribut data deskripsi pelanggaran |
+| 9 | `rekomendasi_perbaikan` | `text` | NO | NULL | - | - | Atribut data rekomendasi perbaikan |
+| 10 | `target_perubahan` | `json` | YES | NULL | - | - | Atribut data target perubahan |
+| 11 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `satisfaction_surveys`
+
+- **Nama Tabel:** `satisfaction_surveys`
+- **Jumlah Kolom:** 18 kolom
+- **Definisi:** Struktur persistence data untuk entitas `satisfaction_surveys` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `ticket_number` | `varchar(32)` | NO | NULL | UNI | - | Atribut data ticket number |
+| 3 | `rating_overall` | `tinyint` | NO | `5` | MUL | - | Atribut data rating overall |
+| 4 | `service_access_rating` | `tinyint` | YES | NULL | - | - | Atribut data service access rating |
+| 5 | `service_regulation_rating` | `tinyint` | YES | NULL | - | - | Atribut data service regulation rating |
+| 6 | `service_learning_rating` | `tinyint` | YES | NULL | - | - | Atribut data service learning rating |
+| 7 | `service_helpdesk_rating` | `tinyint` | YES | NULL | - | - | Atribut data service helpdesk rating |
+| 8 | `respondent_role` | `varchar(100)` | NO | `Masyarakat Umum / Pengguna Layanan` | MUL | - | Atribut data respondent role |
+| 9 | `is_anonymous` | `tinyint(1)` | NO | `1` | - | - | Atribut data is anonymous |
+| 10 | `respondent_name` | `varchar(150)` | YES | NULL | - | - | Atribut data respondent name |
+| 11 | `respondent_institution` | `varchar(150)` | YES | NULL | - | - | Atribut data respondent institution |
+| 12 | `respondent_contact` | `varchar(100)` | YES | NULL | - | - | Atribut data respondent contact |
+| 13 | `feedback` | `text` | YES | NULL | - | - | Atribut data feedback |
+| 14 | `recommendation` | `varchar(50)` | NO | `Pasti Merekomendasikan` | - | - | Atribut data recommendation |
+| 15 | `ip_address` | `varchar(45)` | YES | NULL | - | - | Alamat IP client jaringan |
+| 16 | `user_agent` | `varchar(255)` | YES | NULL | - | - | Informasi browser/klien pengguna |
+| 17 | `created_at` | `datetime` | YES | NULL | MUL | - | Waktu pembuatan data (UTC timestamp) |
+| 18 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `service_categories`
+
+- **Nama Tabel:** `service_categories`
+- **Jumlah Kolom:** 8 kolom
+- **Definisi:** Struktur persistence data untuk entitas `service_categories` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `name` | `varchar(150)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 3 | `code` | `varchar(50)` | NO | NULL | UNI | - | Atribut data code |
+| 4 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 5 | `sort_order` | `int` | NO | `0` | - | - | Urutan tampilan data |
+| 6 | `is_active` | `tinyint(1)` | NO | `1` | MUL | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 7 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 8 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `site_announcements`
+
+- **Nama Tabel:** `site_announcements`
+- **Jumlah Kolom:** 13 kolom
+- **Definisi:** Struktur persistence data untuk entitas `site_announcements` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `badge_label` | `varchar(100)` | YES | NULL | - | - | Atribut data badge label |
+| 3 | `title` | `varchar(255)` | NO | NULL | - | - | Judul resmi entitas |
+| 4 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 5 | `image_url` | `varchar(255)` | YES | NULL | - | - | Atribut data image url |
+| 6 | `cta_label` | `varchar(100)` | YES | NULL | - | - | Atribut data cta label |
+| 7 | `cta_url` | `varchar(255)` | YES | NULL | - | - | Atribut data cta url |
+| 8 | `start_date` | `date` | YES | NULL | - | - | Atribut data start date |
+| 9 | `end_date` | `date` | YES | NULL | - | - | Atribut data end date |
+| 10 | `sort_order` | `int` | NO | `0` | - | - | Urutan tampilan data |
+| 11 | `is_active` | `tinyint(1)` | NO | `1` | MUL | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 12 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 13 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `site_settings`
+
+- **Nama Tabel:** `site_settings`
+- **Jumlah Kolom:** 8 kolom
+- **Definisi:** Struktur persistence data untuk entitas `site_settings` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `setting_group` | `varchar(50)` | NO | `general` | MUL | - | Atribut data setting group |
+| 3 | `setting_key` | `varchar(100)` | NO | NULL | - | - | Atribut data setting key |
+| 4 | `setting_value` | `longtext` | YES | NULL | - | - | Atribut data setting value |
+| 5 | `field_type` | `varchar(30)` | NO | `text` | - | - | Atribut data field type |
+| 6 | `description` | `varchar(255)` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 7 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 8 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `survey_aspects`
+
+- **Nama Tabel:** `survey_aspects`
+- **Jumlah Kolom:** 10 kolom
+- **Definisi:** Struktur persistence data untuk entitas `survey_aspects` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `aspect_key` | `varchar(50)` | NO | NULL | UNI | - | Atribut data aspect key |
+| 3 | `title` | `varchar(150)` | NO | NULL | - | - | Judul resmi entitas |
+| 4 | `description` | `text` | YES | NULL | - | - | Deskripsi rinci konten atau entitas |
+| 5 | `icon_class` | `varchar(100)` | YES | NULL | - | - | Atribut data icon class |
+| 6 | `weight` | `decimal(5,2)` | NO | `1.00` | - | - | Atribut data weight |
+| 7 | `sort_order` | `int` | NO | `0` | - | - | Urutan tampilan data |
+| 8 | `is_active` | `tinyint(1)` | NO | `1` | MUL | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 9 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 10 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `team_members`
+
+- **Nama Tabel:** `team_members`
+- **Jumlah Kolom:** 12 kolom
+- **Definisi:** Struktur persistence data untuk entitas `team_members` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `name` | `varchar(150)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 3 | `role_title` | `varchar(150)` | NO | NULL | - | - | Atribut data role title |
+| 4 | `nip` | `varchar(50)` | YES | NULL | - | - | Atribut data nip |
+| 5 | `category` | `varchar(50)` | NO | `pembina` | MUL | - | Atribut data category |
+| 6 | `photo_url` | `varchar(255)` | YES | NULL | - | - | Atribut data photo url |
+| 7 | `bio` | `text` | YES | NULL | - | - | Atribut data bio |
+| 8 | `social_links` | `json` | YES | NULL | - | - | Atribut data social links |
+| 9 | `sort_order` | `int` | NO | `0` | - | - | Urutan tampilan data |
+| 10 | `is_active` | `tinyint(1)` | NO | `1` | - | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 11 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 12 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `testimonials`
+
+- **Nama Tabel:** `testimonials`
+- **Jumlah Kolom:** 13 kolom
+- **Definisi:** Struktur persistence data untuk entitas `testimonials` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `name` | `varchar(150)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 3 | `role_title` | `varchar(150)` | YES | NULL | - | - | Atribut data role title |
+| 4 | `organization` | `varchar(150)` | YES | NULL | - | - | Atribut data organization |
+| 5 | `avatar_url` | `varchar(255)` | YES | NULL | - | - | Atribut data avatar url |
+| 6 | `rating` | `tinyint` | NO | `5` | - | - | Atribut data rating |
+| 7 | `quote` | `text` | NO | NULL | - | - | Atribut data quote |
+| 8 | `impact_statement` | `varchar(255)` | YES | NULL | - | - | Atribut data impact statement |
+| 9 | `category` | `varchar(50)` | NO | `opd` | - | - | Atribut data category |
+| 10 | `sort_order` | `int` | NO | `0` | - | - | Urutan tampilan data |
+| 11 | `is_active` | `tinyint(1)` | NO | `1` | MUL | - | Flag status aktif record (1 = aktif, 0 = nonaktif) |
+| 12 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 13 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `user_procurement_roles`
+
+- **Nama Tabel:** `user_procurement_roles`
+- **Jumlah Kolom:** 11 kolom
+- **Definisi:** Struktur persistence data untuk entitas `user_procurement_roles` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `procurement_role_id` | `bigint unsigned` | NO | NULL | MUL | - | Atribut data procurement role id |
+| 4 | `verification_status` | `varchar(64)` | NO | `self_declared` | MUL | - | Atribut data verification status |
+| 5 | `verified_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data verified by |
+| 6 | `verified_at` | `datetime` | YES | NULL | - | - | Atribut data verified at |
+| 7 | `assignment_start_at` | `datetime` | YES | NULL | - | - | Atribut data assignment start at |
+| 8 | `assignment_end_at` | `datetime` | YES | NULL | - | - | Atribut data assignment end at |
+| 9 | `evidence_file_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data evidence file id |
+| 10 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 11 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `user_profiles`
+
+- **Nama Tabel:** `user_profiles`
+- **Jumlah Kolom:** 10 kolom
+- **Definisi:** Struktur persistence data untuk entitas `user_profiles` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | UNI | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `address_line` | `text` | NO | NULL | - | - | Atribut data address line |
+| 4 | `province_code` | `varchar(13)` | NO | NULL | MUL | - | Atribut data province code |
+| 5 | `regency_code` | `varchar(13)` | NO | NULL | MUL | - | Atribut data regency code |
+| 6 | `district_code` | `varchar(13)` | NO | NULL | MUL | - | Atribut data district code |
+| 7 | `village_code` | `varchar(13)` | YES | NULL | MUL | - | Atribut data village code |
+| 8 | `profile_completion_status` | `varchar(64)` | NO | `draft` | - | - | Atribut data profile completion status |
+| 9 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 10 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `user_roles`
+
+- **Nama Tabel:** `user_roles`
+- **Jumlah Kolom:** 11 kolom
+- **Definisi:** Struktur persistence data untuk entitas `user_roles` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `user_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel users (pemilik/aktor) |
+| 3 | `role_id` | `bigint unsigned` | NO | NULL | MUL | - | Foreign Key ke tabel roles |
+| 4 | `status` | `varchar(64)` | NO | `active` | - | - | Status operasional record sesuai CHECK constraint |
+| 5 | `granted_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data granted by |
+| 6 | `granted_at` | `datetime` | NO | NULL | - | - | Atribut data granted at |
+| 7 | `revoked_by` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data revoked by |
+| 8 | `revoked_at` | `datetime` | YES | NULL | - | - | Atribut data revoked at |
+| 9 | `reason` | `text` | YES | NULL | - | - | Atribut data reason |
+| 10 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 11 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `users`
+
+- **Nama Tabel:** `users`
+- **Jumlah Kolom:** 15 kolom
+- **Definisi:** Struktur persistence data untuk entitas `users` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `name` | `varchar(255)` | NO | NULL | - | - | Nama entitas atau pengguna |
+| 3 | `email` | `varchar(255)` | NO | NULL | UNI | - | Alamat surel resmi unik |
+| 4 | `username` | `varchar(255)` | NO | NULL | UNI | - | Atribut data username |
+| 5 | `password_hash` | `varchar(255)` | NO | NULL | - | - | Hash kata sandi terenkripsi (Argon2id/Bcrypt) |
+| 6 | `phone` | `varchar(32)` | NO | NULL | - | - | Atribut data phone |
+| 7 | `profile_type` | `varchar(64)` | NO | NULL | MUL | - | Atribut data profile type |
+| 8 | `account_status` | `varchar(64)` | NO | `draft` | MUL | - | Atribut data account status |
+| 9 | `email_verified_at` | `datetime` | YES | NULL | MUL | - | Atribut data email verified at |
+| 10 | `last_login_at` | `datetime` | YES | NULL | - | - | Atribut data last login at |
+| 11 | `session_version` | `bigint unsigned` | NO | `1` | - | - | Atribut data session version |
+| 12 | `status_reason` | `text` | YES | NULL | - | - | Atribut data status reason |
+| 13 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 14 | `updated_at` | `datetime` | NO | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+| 15 | `deleted_at` | `datetime` | YES | NULL | MUL | - | Penanda soft-delete data (NULL jika aktif) |
+
+---
+
+### Tabel: `visitor_ip_logs`
+
+- **Nama Tabel:** `visitor_ip_logs`
+- **Jumlah Kolom:** 6 kolom
+- **Definisi:** Struktur persistence data untuk entitas `visitor_ip_logs` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `ip_address` | `varchar(45)` | NO | NULL | MUL | - | Alamat IP client jaringan |
+| 3 | `feature` | `varchar(50)` | NO | `home` | MUL | - | Atribut data feature |
+| 4 | `visit_date` | `date` | NO | NULL | MUL | - | Atribut data visit date |
+| 5 | `user_agent` | `varchar(255)` | YES | NULL | - | - | Informasi browser/klien pengguna |
+| 6 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+
+### Tabel: `visitor_statistics`
+
+- **Nama Tabel:** `visitor_statistics`
+- **Jumlah Kolom:** 6 kolom
+- **Definisi:** Struktur persistence data untuk entitas `visitor_statistics` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `feature` | `varchar(50)` | NO | `home` | MUL | - | Atribut data feature |
+| 3 | `visit_date` | `date` | NO | NULL | MUL | - | Atribut data visit date |
+| 4 | `hit_count` | `int unsigned` | NO | `1` | - | - | Atribut data hit count |
+| 5 | `created_at` | `datetime` | YES | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+| 6 | `updated_at` | `datetime` | YES | NULL | - | - | Waktu pembaruan data terakhir (UTC timestamp) |
+
+---
+
+### Tabel: `wilayah`
+
+- **Nama Tabel:** `wilayah`
+- **Jumlah Kolom:** 2 kolom
+- **Definisi:** Struktur persistence data untuk entitas `wilayah` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `kode` | `varchar(13)` | NO | NULL | PRI | - | Atribut data kode |
+| 2 | `nama` | `varchar(100)` | NO | NULL | MUL | - | Atribut data nama |
+
+---
+
+### Tabel: `workflow_transitions`
+
+- **Nama Tabel:** `workflow_transitions`
+- **Jumlah Kolom:** 12 kolom
+- **Definisi:** Struktur persistence data untuk entitas `workflow_transitions` pada ekosistem BegawiPengadaan.
+
+| No | Nama Kolom | Tipe Data | Nullable | Default | Key | Extra | Keterangan Fungsi |
+|---|---|---|:---:|---|:---:|---|---|
+| 1 | `id` | `bigint unsigned` | NO | NULL | PRI | auto_increment | Primary Key unik record (Auto-Increment) |
+| 2 | `resource_type` | `varchar(128)` | NO | NULL | MUL | - | Atribut data resource type |
+| 3 | `resource_id` | `bigint unsigned` | NO | NULL | - | - | Atribut data resource id |
+| 4 | `from_state` | `varchar(64)` | YES | NULL | - | - | Atribut data from state |
+| 5 | `to_state` | `varchar(64)` | NO | NULL | MUL | - | Atribut data to state |
+| 6 | `action` | `varchar(128)` | NO | NULL | - | - | Atribut data action |
+| 7 | `actor_id` | `bigint unsigned` | YES | NULL | MUL | - | Atribut data actor id |
+| 8 | `actor_type` | `varchar(32)` | NO | `user` | - | - | Atribut data actor type |
+| 9 | `reason` | `text` | YES | NULL | - | - | Atribut data reason |
+| 10 | `notes` | `text` | YES | NULL | - | - | Atribut data notes |
+| 11 | `metadata` | `json` | YES | NULL | - | - | Atribut data metadata |
+| 12 | `created_at` | `datetime` | NO | NULL | - | - | Waktu pembuatan data (UTC timestamp) |
+
+---
+

@@ -9,7 +9,7 @@ $actionUrl = $isEdit ? site_url('dashboard/landing/testimoni/ubah/' . $testimoni
 $defaultSort = $testimonial['sort_order'] ?? ($nextOrder ?? 1);
 $curCategory = $testimonial['category'] ?? 'opd';
 $curRating   = (int) ($testimonial['rating'] ?? 5);
-$curAvatar   = $testimonial['avatar_url'] ?? 'assets/main/images/testimonial/testimonial-1-1.jpg';
+$curAvatar   = $testimonial['avatar_url'] ?? 'assets/dashboard/images/testimonial/testimonial-1-1.jpg';
 $curAvatarSrc= str_starts_with($curAvatar, 'http') ? $curAvatar : base_url($curAvatar);
 ?>
 
@@ -54,7 +54,7 @@ $curAvatarSrc= str_starts_with($curAvatar, 'http') ? $curAvatar : base_url($curA
                                 data-rating="5"
                                 data-quote="Penyusunan HPS dan spesifikasi teknis untuk paket infrastruktur jalan kini jauh lebih terstandarisasi berkat template dokumen di Bunga Rampai dan sinkronisasi regulasi terpusat. Risiko deviasi hukum saat audit probity berkurang drastis." 
                                 data-impact="Efisiensi persiapan lelang 55% & probity nihil temuan" 
-                                data-avatar="assets/main/images/testimonial/testimonial-1-1.jpg">
+                                data-avatar="assets/dashboard/images/testimonial/testimonial-1-1.jpg">
                             <iconify-icon icon="solar:user-bold" class="text-primary me-1"></iconify-icon> PPK Bina Marga
                         </button>
                         <button type="button" class="btn btn-xs btn-white border radius-8 px-10 py-6 text-xs fw-semibold preset-testimony-btn shadow-xs" 
@@ -65,7 +65,7 @@ $curAvatarSrc= str_starts_with($curAvatar, 'http') ? $curAvatar : base_url($curA
                                 data-rating="5"
                                 data-quote="Arena Belajar dan simulasi evaluasi penawaran sangat membantu peningkatan kapasitas anggota Pokja. Ujian sertifikasi dan materi terstruktur meningkatkan kepercayaan diri kami dalam tender bernilai strategis di tingkat provinsi." 
                                 data-impact="Evaluasi tender 100% tepat waktu dan bebas sanggahan banding" 
-                                data-avatar="assets/main/images/testimonial/testimonial-1-2.jpg">
+                                data-avatar="assets/dashboard/images/testimonial/testimonial-1-2.jpg">
                             <iconify-icon icon="solar:users-group-two-rounded-bold" class="text-purple me-1"></iconify-icon> Pokja UKPBJ
                         </button>
                         <button type="button" class="btn btn-xs btn-white border radius-8 px-10 py-6 text-xs fw-semibold preset-testimony-btn shadow-xs" 
@@ -76,7 +76,7 @@ $curAvatarSrc= str_starts_with($curAvatar, 'http') ? $curAvatar : base_url($curA
                                 data-rating="5"
                                 data-quote="Sebagai pelaku usaha lokal di Lampung, portal BegawiPengadaan membuka transparansi penuh. Kami mudah memahami kriteria kualifikasi, etika penawaran, hingga tata cara etalase produk pada e-katalog lokal Pemprov Lampung." 
                                 data-impact="Onboarding E-Katalog Lokal lebih cepat dan transparan" 
-                                data-avatar="assets/main/images/testimonial/testimonial-2-1.jpg">
+                                data-avatar="assets/dashboard/images/testimonial/testimonial-2-1.jpg">
                             <iconify-icon icon="solar:shop-2-bold" class="text-info me-1"></iconify-icon> Penyedia UMKM
                         </button>
                         <button type="button" class="btn btn-xs btn-white border radius-8 px-10 py-6 text-xs fw-semibold preset-testimony-btn shadow-xs" 
@@ -87,7 +87,7 @@ $curAvatarSrc= str_starts_with($curAvatar, 'http') ? $curAvatar : base_url($curA
                                 data-rating="5"
                                 data-quote="BegawiPengadaan memfasilitasi audit kepatuhan secara objektif. Riwayat versi regulasi dan standar dokumen baku memudahkan kami memverifikasi kesesuaian prosedur dari tahap perencanaan sampai serah terima hasil." 
                                 data-impact="Mitigasi deviasi hukum dan penguatan integritas pengadaan" 
-                                data-avatar="assets/main/images/testimonial/testimonial-1-3.jpg">
+                                data-avatar="assets/dashboard/images/testimonial/testimonial-1-3.jpg">
                             <iconify-icon icon="solar:shield-check-bold" class="text-warning me-1"></iconify-icon> Auditor APIP
                         </button>
                         <button type="button" class="btn btn-xs btn-white border radius-8 px-10 py-6 text-xs fw-semibold preset-testimony-btn shadow-xs" 
@@ -98,7 +98,7 @@ $curAvatarSrc= str_starts_with($curAvatar, 'http') ? $curAvatar : base_url($curA
                                 data-rating="5"
                                 data-quote="Pengadaan obat dan alat medis memerlukan ketepatan waktu serta kepatuhan e-katalog nasional yang sangat ketat. Fitur konsultasi dan referensi regulasi di BegawiPengadaan memastikan ketersediaan logistik rumah sakit selalu terjamin." 
                                 data-impact="Ketepatan pasokan medis 99.2% dengan e-katalog akurat" 
-                                data-avatar="assets/main/images/testimonial/testimonial-2-2.jpg">
+                                data-avatar="assets/dashboard/images/testimonial/testimonial-2-2.jpg">
                             <iconify-icon icon="solar:hospital-bold" class="text-danger me-1"></iconify-icon> PPK RSUD
                         </button>
                         <button type="button" class="btn btn-xs btn-white border radius-8 px-10 py-6 text-xs fw-semibold preset-testimony-btn shadow-xs" 
@@ -109,7 +109,7 @@ $curAvatarSrc= str_starts_with($curAvatar, 'http') ? $curAvatar : base_url($curA
                                 data-rating="5"
                                 data-quote="Standarisasi berita acara dan format pemeriksaan pekerjaan di Bunga Rampai mempermudah tim teknis melakukan serah terima fisik di lapangan secara presisi dan sesuai kontrak kerja." 
                                 data-impact="100% Berita Acara terverifikasi digital" 
-                                data-avatar="assets/main/images/testimonial/testimonial-2-3.jpg">
+                                data-avatar="assets/dashboard/images/testimonial/testimonial-2-3.jpg">
                             <iconify-icon icon="solar:clipboard-check-bold" class="text-success me-1"></iconify-icon> Tim Teknis Disperkim
                         </button>
                     </div>
@@ -291,8 +291,8 @@ $curAvatarSrc= str_starts_with($curAvatar, 'http') ? $curAvatar : base_url($curA
                                            name="avatar_url" 
                                            id="avatarUrlInput" 
                                            class="form-control radius-8 text-sm" 
-                                           value="<?= esc($testimonial['avatar_url'] ?? 'assets/main/images/testimonial/testimonial-1-1.jpg') ?>" 
-                                           placeholder="assets/main/images/testimonial/testimonial-1-1.jpg">
+                                           value="<?= esc($testimonial['avatar_url'] ?? 'assets/dashboard/images/testimonial/testimonial-1-1.jpg') ?>" 
+                                           placeholder="assets/dashboard/images/testimonial/testimonial-1-1.jpg">
                                     <small class="text-secondary-light text-2xs d-block mt-4">Jika Anda mengunggah file di atas, field path ini akan digantikan secara otomatis.</small>
                                 </div>
                             </div>

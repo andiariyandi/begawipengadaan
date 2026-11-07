@@ -66,18 +66,28 @@ class ContactMessageController extends BaseController
 
         try {
             if ($this->db->tableExists('file_assets')) {
-                $this->db->table('file_assets')->insert([
-                    'storage_disk'  => 'public',
-                    'file_path'     => $relativePath,
-                    'original_name' => $origName,
-                    'mime_type'     => $mimeType,
-                    'file_size'     => $sizeBytes,
-                    'uploaded_by'   => $actorId ?: null,
-                    'created_at'    => date('Y-m-d H:i:s'),
-                ]);
-                $fileAssetId = (int) $this->db->insertID();
+                $nowC = date('Y-m-d H:i:s');
+                $fullC = FCPATH . ltrim($relativePath, '/\\');
+                $fileAssetId = (new \App\Services\FileStorageService())->registerFileAsset([
+                    'disk'             => 'local',
+                    'path'             => $relativePath,
+                    'original_name'    => $origName,
+                    'stored_name'      => $newName,
+                    'extension'        => strtolower((string) $ext),
+                    'mime_type'        => $mimeType,
+                    'size_bytes'       => (int) $sizeBytes,
+                    'checksum'         => @hash_file('sha256', $fullC) ?: null,
+                    'visibility'       => 'public',
+                    'lifecycle_status' => 'available',
+                    'resource_type'    => 'consultation_attachment',
+                    'uploaded_by'      => $actorId ?: null,
+                    'available_at'     => $nowC,
+                    'created_at'       => $nowC,
+                    'updated_at'       => $nowC,
+                ], $fullC);
             }
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            log_message('error', 'Insert file_assets failed in ContactMessageController: ' . $e->getMessage());
         }
 
         return [

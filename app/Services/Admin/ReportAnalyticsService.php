@@ -70,7 +70,7 @@ class ReportAnalyticsService
         $classes = $db->table('learning_classes lc')
             ->select('lc.id, lc.name, lc.status, lc.passing_grade, c.title as course_title,
                       COUNT(e.id) as participants,
-                      SUM(CASE WHEN e.status IN ("completed", "passed") THEN 1 ELSE 0 END) as completed_count,
+                      SUM(CASE WHEN e.status = "completed" THEN 1 ELSE 0 END) as completed_count,
                       AVG(e.final_score) as avg_score')
             ->join('courses c', 'c.id = lc.course_id', 'left')
             ->join('enrollments e', 'e.class_id = lc.id', 'left')
@@ -136,12 +136,7 @@ class ReportAnalyticsService
 
         $totalRegistrations = (int) $db->table('event_registrations')->countAllResults();
         
-        $totalAttended = (int) $db->table('attendances')->countAllResults();
-        if ($totalAttended === 0) {
-            $totalAttended = (int) $db->table('event_registrations')
-                ->where('attendance_status', 'attended')
-                ->countAllResults();
-        }
+        $totalAttended = (int) $db->table('attendances')->where('status', 'present')->countAllResults();
 
         $avgAttendanceRate = $totalRegistrations > 0
             ? round(($totalAttended / $totalRegistrations) * 100, 1)

@@ -113,7 +113,7 @@
             </div>
         </div>
 
-        <script src="<?= base_url('assets/dashboard/js/begawi-batch-runner.js') ?>"></script>
+        <script src="<?= base_url('assets/main/js/begawi-batch-runner.js') ?>"></script>
 <script>
         document.addEventListener('DOMContentLoaded', function() {
             const selectAll = document.getElementById('wsBulkSelectAll');

@@ -258,7 +258,7 @@ class RbacDoubleRoleTest extends BaseCommand
         CLI::write("\n--- [TEST 6] Zero-Migration & Schema-Preservation Compliance ---", "cyan");
         $db = \Config\Database::connect();
         $migrationCount = (int) $db->table('migrations')->countAllResults();
-        $assert($migrationCount === 16, "Tepat 16 berkas migrasi database eksisting terjaga utuh (Zero Migration = 100%)");
+        $assert($migrationCount === 17, "Tepat 17 berkas migrasi database eksisting terjaga utuh (Zero Migration = 100%)");
 
         CLI::write("\n==================================================================", "yellow");
         CLI::write("                 TEST RESULTS SUMMARY                            ", "yellow");

@@ -160,7 +160,7 @@ $pendingApprovalCount = (int) ($m['pending_approval'] ?? 0);
         <div class="d-flex justify-content-between align-items-center mb-2">
             <div class="d-flex align-items-center gap-2">
                 <i class="fas fa-tachometer-alt text-primary fs-5"></i>
-                <h6 class="fw-bold text-navy mb-0">Rasio Kehadiran Peserta & Trainer (Live Gauge)</h6>
+                <h6 class="fw-bold text-navy mb-0">Rasio Kehadiran Peserta (Live Gauge)</h6>
             </div>
             <strong class="text-success fs-6"><?= (float) $m['attendance_rate'] ?>% Terverifikasi Hadir</strong>
         </div>
@@ -175,6 +175,12 @@ $pendingApprovalCount = (int) ($m['pending_approval'] ?? 0);
             <div>
                 <h2 class="h5 fw-bold text-navy mb-0"><i class="fas fa-users text-primary me-2"></i>Daftar Pendaftar, Approval & Presensi Kehadiran</h2>
                 <small class="text-muted">Kelola persetujuan pendaftaran (Peserta & Trainer) serta pencatatan kehadiran sesi secara real-time.</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="input-group input-group-sm" style="max-width: 260px;">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                    <input type="text" id="wsParticipantSearchInput" class="form-control bg-light border-start-0" placeholder="Cari nama, NIP, atau instansi...">
+                </div>
             </div>
         </div>
 
@@ -318,5 +324,21 @@ $pendingApprovalCount = (int) ($m['pending_approval'] ?? 0);
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('wsParticipantSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('table tbody tr');
+            rows.forEach(function(row) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    }
+});
+</script>
 
 <?= $this->endSection() ?>

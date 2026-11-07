@@ -125,6 +125,16 @@
         "allowed_ips": "127.0.0.1, ::1",
         "maintenance_message": "Sistem sedang dalam pemeliharaan berkala. Silakan coba beberapa saat lagi."
     },
+    "email": {
+        "smtp_host": "smtp.gmail.com",
+        "smtp_port": "587",
+        "smtp_crypto": "tls",
+        "smtp_user": "",
+        "smtp_pass": "",
+        "from_name": "BegawiPengadaan Provinsi Lampung",
+        "from_email": "",
+        "dispatch_mode": "manual"
+    },
     "user_preferences_14": {
         "language": "id",
         "theme": "dark",

@@ -527,7 +527,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<script src="<?= base_url('assets/dashboard/js/lib/iconify-icon.min.js') ?>"></script>
+<script src="<?= base_url('assets/main/js/lib/iconify-icon.min.js') ?>"></script>
 <script>
     (function() {
         // Bulletproof zero-jitter clamping at scroll extremities for ultra-smooth scrolling

@@ -1313,7 +1313,7 @@ $bulanIndo = [
                     <?php foreach ($testimonials as $tIdx => $t): ?>
                         <?php
                         $tId = 't' . ($tIdx + 1);
-                        $avatar = str_starts_with($t['avatar_url'] ?? '', 'http') ? $t['avatar_url'] : base_url($t['avatar_url'] ?? 'assets/dashboard/images/users/user1.png');
+                        $avatar = str_starts_with($t['avatar_url'] ?? '', 'http') ? $t['avatar_url'] : base_url($t['avatar_url'] ?? 'assets/main/images/users/user1.png');
                         $rating = !empty($t['rating']) ? (float) $t['rating'] : 5.0;
                         $tRole = $t['role_title'] ?? $t['role'] ?? '';
                         $tImpact = $t['impact_statement'] ?? $t['impact_metric'] ?? '';
@@ -1349,7 +1349,7 @@ $bulanIndo = [
                                 <!-- Identitas Penulis -->
                                 <div class="testimony-author-bar d-flex align-items-center gap-3">
                                     <div class="testimony-author__avatar spotlight-photo-frame">
-                                        <img src="<?= esc($avatar) ?>" alt="<?= esc($t['name'] ?? '') ?>" class="testimony-author__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user1.png') ?>'">
+                                        <img src="<?= esc($avatar) ?>" alt="<?= esc($t['name'] ?? '') ?>" class="testimony-author__img" loading="lazy" onerror="this.src='<?= base_url('assets/main/images/users/user1.png') ?>'">
                                     </div>
                                     <div class="testimony-author__info">
                                         <h4 class="testimony-author__name"><?= esc($t['name'] ?? '') ?></h4>
@@ -1412,7 +1412,7 @@ $bulanIndo = [
                     <?php foreach ($teamMembers as $mIdx => $m): ?>
                         <?php
                         $tmId = 'tm' . ($mIdx + 1);
-                        $photo = str_starts_with($m['photo_url'] ?? '', 'http') ? $m['photo_url'] : base_url($m['photo_url'] ?? 'assets/dashboard/images/users/user1.png');
+                        $photo = str_starts_with($m['photo_url'] ?? '', 'http') ? $m['photo_url'] : base_url($m['photo_url'] ?? 'assets/main/images/users/user1.png');
                         $soc = !empty($m['social_links']) ? (is_array($m['social_links']) ? $m['social_links'] : json_decode($m['social_links'], true)) : [];
                         $mBadge = $m['badge_category'] ?? $soc['badge'] ?? '';
                         $mRole = $m['role_title'] ?? $m['role'] ?? '';
@@ -1420,7 +1420,7 @@ $bulanIndo = [
                         <div class="item">
                             <div class="team-photo-card team-card spotlight-card" onclick="openTestimonyModal('<?= $tmId ?>')" role="button" tabindex="0" title="Klik untuk profil lengkap">
                                 <div class="team-photo-card__frame spotlight-photo-frame">
-                                    <img src="<?= esc($photo) ?>" alt="<?= esc($m['name'] ?? '') ?>" class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/dashboard/images/users/user1.png') ?>'">
+                                    <img src="<?= esc($photo) ?>" alt="<?= esc($m['name'] ?? '') ?>" class="team-photo-card__img" loading="lazy" onerror="this.src='<?= base_url('assets/main/images/users/user1.png') ?>'">
                                     <?php if (!empty($mBadge)): ?>
                                         <div class="team-photo-card__badges">
                                             <span class="team-photo-card__badge badge-soft-primary">
@@ -1761,7 +1761,7 @@ $bulanIndo = [
     if (!empty($testimonials)) {
         foreach ($testimonials as $tIdx => $t) {
             $key = 't' . ($tIdx + 1);
-            $avatar = str_starts_with($t['avatar_url'] ?? '', 'http') ? $t['avatar_url'] : base_url($t['avatar_url'] ?? 'assets/dashboard/images/users/user1.png');
+            $avatar = str_starts_with($t['avatar_url'] ?? '', 'http') ? $t['avatar_url'] : base_url($t['avatar_url'] ?? 'assets/main/images/users/user1.png');
             $words = explode(' ', trim($t['name'] ?? ''));
             $initials = strtoupper(substr($words[0] ?? 'A', 0, 1) . substr($words[1] ?? 'Z', 0, 1));
             $modalItems[$key] = [
@@ -1779,7 +1779,7 @@ $bulanIndo = [
     if (!empty($teamMembers)) {
         foreach ($teamMembers as $mIdx => $m) {
             $key = 'tm' . ($mIdx + 1);
-            $photo = str_starts_with($m['photo_url'] ?? '', 'http') ? $m['photo_url'] : base_url($m['photo_url'] ?? 'assets/dashboard/images/users/user1.png');
+            $photo = str_starts_with($m['photo_url'] ?? '', 'http') ? $m['photo_url'] : base_url($m['photo_url'] ?? 'assets/main/images/users/user1.png');
             $words = explode(' ', trim($m['name'] ?? ''));
             $initials = strtoupper(substr($words[0] ?? 'A', 0, 1) . substr($words[1] ?? 'Z', 0, 1));
             $modalItems[$key] = [

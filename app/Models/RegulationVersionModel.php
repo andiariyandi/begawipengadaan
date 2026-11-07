@@ -10,7 +10,7 @@ class RegulationVersionModel extends Model
     protected $primaryKey    = 'id';
     protected $returnType    = 'array';
     protected $useTimestamps = false;
-    protected $allowedFields = ['regulation_id', 'version_number', 'file_path', 'change_notes', 'uploaded_by', 'created_at'];
+    protected $allowedFields = ['regulation_id', 'version_number', 'file_id', 'changelog', 'is_current', 'uploaded_by', 'created_at'];
 
     public function historyFor(int $regulationId): array
     {

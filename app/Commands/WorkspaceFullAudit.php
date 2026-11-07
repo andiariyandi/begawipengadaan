@@ -217,7 +217,7 @@ class WorkspaceFullAudit extends BaseCommand
 
             $sessionRoles = match ($roleContext) {
                 'admin'    => ['super_administrator', 'administrator'],
-                'operator' => ['operator'],
+                'operator' => ['operator', 'administrator'],
                 'trainer'  => ['trainer'],
                 default    => ['participant'],
             };

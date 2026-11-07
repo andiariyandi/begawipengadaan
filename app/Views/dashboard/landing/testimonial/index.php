@@ -184,7 +184,7 @@
                     <?php else: ?>
                         <?php foreach ($testimonials as $t): ?>
                             <?php
-                            $avatar = $t['avatar_url'] ?: 'assets/main/images/testimonial/testimonial-1-1.jpg';
+                            $avatar = $t['avatar_url'] ?: 'assets/dashboard/images/testimonial/testimonial-1-1.jpg';
                             $avatarSrc = str_starts_with($avatar, 'http') ? $avatar : base_url($avatar);
                             $rating = (int) ($t['rating'] ?: 5);
 
@@ -378,7 +378,7 @@
                         <?php else: ?>
                             <?php foreach ($activeTestimonials as $t): ?>
                                 <?php
-                                $avatar = $t['avatar_url'] ?: 'assets/main/images/testimonial/testimonial-1-1.jpg';
+                                $avatar = $t['avatar_url'] ?: 'assets/dashboard/images/testimonial/testimonial-1-1.jpg';
                                 $avatarSrc = str_starts_with($avatar, 'http') ? $avatar : base_url($avatar);
                                 $rating = (int) ($t['rating'] ?: 5);
                                 ?>

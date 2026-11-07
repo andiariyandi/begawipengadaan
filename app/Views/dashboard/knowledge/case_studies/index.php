@@ -147,7 +147,7 @@ $stats       = $stats ?? ['total' => count($items), 'published' => 0, 'draft' =>
                 <div class="card h-100 p-0 radius-12 border overflow-hidden bg-base d-flex flex-column shadow-sm">
                     <?php if (! empty($row['cover_file_id'])): ?>
                         <div class="position-relative" style="height: 150px; overflow: hidden; background: #082f5c;">
-                            <img src="<?= base_url('file/' . (int) $row['cover_file_id']) ?>" alt="<?= esc($row['title']) ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/main/images/blog/blog-2-2.jpg') ?>';">
+                            <img src="<?= base_url('file/' . (int) $row['cover_file_id']) ?>" alt="<?= esc($row['title']) ?>" class="w-100 h-100 object-fit-cover" onerror="this.src='<?= base_url('assets/dashboard/images/blog/blog-2-2.jpg') ?>';">
                             <?php if ((int) ($row['featured'] ?? 0) === 1): ?>
                                 <div class="position-absolute top-0 end-0 m-2">
                                     <span class="badge bg-warning-50 text-warning-700 border border-warning-200 radius-4 px-8 py-3 text-2xs fw-bold">

@@ -151,7 +151,7 @@ $formAction = $isEdit ? route_to('dashboard.learning.classes.update', $class['id
                             </a>
                             <div class="collapse mt-10 <?= (! empty($class['cover_url']) && ! str_contains($class['cover_url'], 'uploads/learning/')) ? 'show' : '' ?>" id="collapseClassUrl">
                                 <label class="form-label fw-semibold text-primary-light text-xs mb-4" for="cover_url">URL Gambar / Path Aset</label>
-                                <input id="cover_url" type="text" name="cover_url" class="form-control radius-8 text-sm" value="<?= esc(old('cover_url', $class['cover_url'] ?? '')) ?>" placeholder="https://... atau assets/main/images/course/course-list-img-1.jpg" oninput="previewClassUrl(this.value)">
+                                <input id="cover_url" type="text" name="cover_url" class="form-control radius-8 text-sm" value="<?= esc(old('cover_url', $class['cover_url'] ?? '')) ?>" placeholder="https://... atau assets/dashboard/images/resources/course-list-img-1.jpg" oninput="previewClassUrl(this.value)">
                                 <small class="text-secondary-light text-xs">Kosongkan jika telah mengunggah file gambar di atas.</small>
                             </div>
                         </div>

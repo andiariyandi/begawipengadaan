@@ -869,7 +869,7 @@ class SpotlightHubController extends BaseController
                 $coverUrl = site_url('file/' . (int) $r['thumbnail_file_id']);
             } elseif (! empty($r['file_id'])) {
                 $coverUrl = site_url('file/' . (int) $r['file_id']);
-            } elseif (! empty($r['external_url']) && preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=))([\w-]{11})/', $r['external_url'], $m)) {
+            } elseif (! empty($r['external_url']) && preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=))([\w-]{11})/', (string) ($r['external_url'] ?? ''), $m)) {
                 $coverUrl = "https://img.youtube.com/vi/{$m[1]}/hqdefault.jpg";
             }
 

@@ -10,7 +10,7 @@ class WorkspaceHomeController extends BaseController
     {
         $role = $this->workspaceRole();
 
-        if ($role === 'super_administrator' || $role === 'administrator') {
+        if ($role === 'super_administrator' || $role === 'administrator' || $role === 'admin') {
             return redirect()->to(route_to('workspace.admin.home'));
         }
         if ($role === 'trainer') {
@@ -628,7 +628,7 @@ class WorkspaceHomeController extends BaseController
         if (in_array('super_administrator', $roles, true) || in_array('super_administrator', $roles, true)) {
             return 'super_administrator';
         }
-        if (in_array('administrator', $roles, true) || in_array('administrator', $roles, true)) {
+        if (in_array('administrator', $roles, true) || in_array('admin', $roles, true)) {
             return 'admin';
         }
         if (in_array('operator', $roles, true)) {

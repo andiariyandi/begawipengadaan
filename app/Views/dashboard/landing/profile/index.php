@@ -231,12 +231,12 @@
                                 </label>
                                 <div class="text-center p-16 bg-white radius-8 border mb-12">
                                     <?php
-                                    $curLogo = $organization['logo_url'] ?? 'assets/main/images/resources/logo-1.png';
+                                    $curLogo = $organization['logo_url'] ?? 'assets/dashboard/images/resources/logo-1.png';
                                     $curLogoSrc = str_starts_with($curLogo, 'http') ? $curLogo : base_url($curLogo);
                                     ?>
                                     <img id="logoPreviewImg" src="<?= esc($curLogoSrc) ?>" alt="Logo Instansi" 
                                          style="max-height: 54px; max-width: 180px; object-fit: contain;" 
-                                         onerror="this.src='<?= base_url('assets/main/images/resources/logo-1.png') ?>'">
+                                         onerror="this.src='<?= base_url('assets/dashboard/images/resources/logo-1.png') ?>'">
                                 </div>
                                 <input type="file" name="logo_file" id="logoFileInput" class="form-control radius-8 text-sm" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml">
                                 <small class="text-secondary-light text-2xs d-block mt-4">Disarankan format PNG transparan, rasio horizontal, maks. 5MB.</small>
@@ -249,7 +249,7 @@
                                     </a>
                                     <div class="collapse mt-6" id="collapseLogoUrl">
                                         <input type="text" name="organization[logo_url]" id="orgLogoUrlInput" class="form-control radius-8 text-xs font-monospace" 
-                                               value="<?= esc($organization['logo_url'] ?? 'assets/main/images/resources/logo-1.png') ?>">
+                                               value="<?= esc($organization['logo_url'] ?? 'assets/dashboard/images/resources/logo-1.png') ?>">
                                     </div>
                                 </div>
                             </div>
@@ -262,12 +262,12 @@
                                 </label>
                                 <div class="text-center p-16 bg-white radius-8 border mb-12">
                                     <?php
-                                    $curSeal = $organization['seal_url'] ?? 'assets/main/images/resources/seal-prov-lampung.png';
+                                    $curSeal = $organization['seal_url'] ?? 'assets/dashboard/images/resources/seal-prov-lampung.png';
                                     $curSealSrc = str_starts_with($curSeal, 'http') ? $curSeal : base_url($curSeal);
                                     ?>
                                     <img id="sealPreviewImg" src="<?= esc($curSealSrc) ?>" alt="Cap Lembaga" 
                                          style="max-height: 64px; max-width: 64px; object-fit: contain;" 
-                                         onerror="this.src='<?= base_url('assets/main/images/resources/seal-prov-lampung.png') ?>'">
+                                         onerror="this.src='<?= base_url('assets/dashboard/images/resources/seal-prov-lampung.png') ?>'">
                                 </div>
                                 <input type="file" name="seal_file" id="sealFileInput" class="form-control radius-8 text-sm" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml">
                                 <small class="text-secondary-light text-2xs d-block mt-4">Disarankan PNG transparan melingkar lambang Lampung, maks. 5MB.</small>
@@ -280,7 +280,7 @@
                                     </a>
                                     <div class="collapse mt-6" id="collapseSealUrl">
                                         <input type="text" name="organization[seal_url]" id="orgSealUrlInput" class="form-control radius-8 text-xs font-monospace" 
-                                               value="<?= esc($organization['seal_url'] ?? 'assets/main/images/resources/seal-prov-lampung.png') ?>">
+                                               value="<?= esc($organization['seal_url'] ?? 'assets/dashboard/images/resources/seal-prov-lampung.png') ?>">
                                     </div>
                                 </div>
                             </div>

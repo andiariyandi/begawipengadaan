@@ -113,26 +113,71 @@ class TrainerController extends BaseController
             ->orderBy('s.submitted_at', 'DESC')
             ->limit(15)->get()->getResultArray();
 
-        // Kelas dengan metrik ringkas
+        // Kelas dengan metrik ringkas (Batch pre-fetched untuk eliminasi query N+1)
+        $assignedClassIds = array_column($assignedClasses, 'class_id');
+        $pCounts = [];
+        $mCounts = [];
+        $asgCounts = [];
+        $qzCounts = [];
+        $avgProgCounts = [];
+
+        if (! empty($assignedClassIds)) {
+            $pRows = $db->table('enrollments')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $assignedClassIds)
+                ->where('status', 'active')
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($pRows as $pr) {
+                $pCounts[(int) $pr['class_id']] = (int) $pr['cnt'];
+            }
+
+            $mRows = $db->table('learning_modules')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $assignedClassIds)
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($mRows as $mr) {
+                $mCounts[(int) $mr['class_id']] = (int) $mr['cnt'];
+            }
+
+            $asgRows = $db->table('assignments')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $assignedClassIds)
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($asgRows as $ar) {
+                $asgCounts[(int) $ar['class_id']] = (int) $ar['cnt'];
+            }
+
+            $qzRows = $db->table('quizzes')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $assignedClassIds)
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($qzRows as $qr) {
+                $qzCounts[(int) $qr['class_id']] = (int) $qr['cnt'];
+            }
+
+            $progRows = $db->table('enrollments e')
+                ->select('e.class_id, AVG(lp.progress_percent) as avg_p')
+                ->join('learning_progress lp', 'lp.enrollment_id = e.id')
+                ->whereIn('e.class_id', $assignedClassIds)
+                ->groupBy('e.class_id')
+                ->get()->getResultArray();
+            foreach ($progRows as $pgr) {
+                $avgProgCounts[(int) $pgr['class_id']] = (float) $pgr['avg_p'];
+            }
+        }
+
         $classesWithMetrics = [];
         foreach ($assignedClasses as $ac) {
             $cid = (int) $ac['class_id'];
-            $pCount   = (int) $db->table('enrollments')->where('class_id', $cid)->where('status', 'active')->countAllResults();
-            $mCount   = (int) $db->table('learning_modules')->where('class_id', $cid)->countAllResults();
-            $asgCount = (int) $db->table('assignments')->where('class_id', $cid)->countAllResults();
-            $qzCount  = (int) $db->table('quizzes')->where('class_id', $cid)->countAllResults();
-
-            $clsAvgProg = (float) ($db->table('enrollments e')
-                ->selectAvg('lp.progress_percent', 'avg_p')
-                ->join('learning_progress lp', 'lp.enrollment_id = e.id')
-                ->where('e.class_id', $cid)
-                ->get()->getRowArray()['avg_p'] ?? 0.0);
-
-            $ac['participant_count'] = $pCount;
-            $ac['module_count']      = $mCount;
-            $ac['assignment_count']  = $asgCount;
-            $ac['quiz_count']        = $qzCount;
-            $ac['avg_progress']      = round($clsAvgProg, 1);
+            $ac['participant_count'] = $pCounts[$cid] ?? 0;
+            $ac['module_count']      = $mCounts[$cid] ?? 0;
+            $ac['assignment_count']  = $asgCounts[$cid] ?? 0;
+            $ac['quiz_count']        = $qzCounts[$cid] ?? 0;
+            $ac['avg_progress']      = round($avgProgCounts[$cid] ?? 0.0, 1);
             $classesWithMetrics[]    = $ac;
         }
 
@@ -233,19 +278,69 @@ class TrainerController extends BaseController
                 ->get()->getResultArray();
         }
 
+        $itemClassIds = array_column($items, 'class_id');
+        $itemPCounts = [];
+        $itemMCounts = [];
+        $itemQCounts = [];
+        $itemACounts = [];
+        $itemAvgProgCounts = [];
+
+        if (! empty($itemClassIds)) {
+            $pRows = $db->table('enrollments')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $itemClassIds)
+                ->where('status', 'active')
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($pRows as $pr) {
+                $itemPCounts[(int) $pr['class_id']] = (int) $pr['cnt'];
+            }
+
+            $mRows = $db->table('learning_modules')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $itemClassIds)
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($mRows as $mr) {
+                $itemMCounts[(int) $mr['class_id']] = (int) $mr['cnt'];
+            }
+
+            $qzRows = $db->table('quizzes')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $itemClassIds)
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($qzRows as $qr) {
+                $itemQCounts[(int) $qr['class_id']] = (int) $qr['cnt'];
+            }
+
+            $asgRows = $db->table('assignments')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $itemClassIds)
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($asgRows as $ar) {
+                $itemACounts[(int) $ar['class_id']] = (int) $ar['cnt'];
+            }
+
+            $progRows = $db->table('enrollments e')
+                ->select('e.class_id, AVG(lp.progress_percent) as avg_p')
+                ->join('learning_progress lp', 'lp.enrollment_id = e.id')
+                ->whereIn('e.class_id', $itemClassIds)
+                ->groupBy('e.class_id')
+                ->get()->getResultArray();
+            foreach ($progRows as $pgr) {
+                $itemAvgProgCounts[(int) $pgr['class_id']] = (float) $pgr['avg_p'];
+            }
+        }
+
         foreach ($items as &$row) {
             $cid = (int) $row['class_id'];
-            $row['participant_count'] = (int) $db->table('enrollments')->where('class_id', $cid)->where('status', 'active')->countAllResults();
-            $row['modules_count']     = (int) $db->table('learning_modules')->where('class_id', $cid)->countAllResults();
-            $row['quizzes_count']     = (int) $db->table('quizzes')->where('class_id', $cid)->countAllResults();
-            $row['assignments_count'] = (int) $db->table('assignments')->where('class_id', $cid)->countAllResults();
-
-            $clsAvgProg = (float) ($db->table('enrollments e')
-                ->selectAvg('lp.progress_percent', 'avg_p')
-                ->join('learning_progress lp', 'lp.enrollment_id = e.id')
-                ->where('e.class_id', $cid)
-                ->get()->getRowArray()['avg_p'] ?? 0.0);
-            $row['avg_progress'] = round($clsAvgProg, 1);
+            $row['participant_count'] = $itemPCounts[$cid] ?? 0;
+            $row['modules_count']     = $itemMCounts[$cid] ?? 0;
+            $row['quizzes_count']     = $itemQCounts[$cid] ?? 0;
+            $row['assignments_count'] = $itemACounts[$cid] ?? 0;
+            $row['avg_progress']      = round($itemAvgProgCounts[$cid] ?? 0.0, 1);
         }
         unset($row);
 
@@ -327,34 +422,65 @@ class TrainerController extends BaseController
             ->get()->getResultArray();
 
         $allLessonsCount = count($lessons);
+        $enrollmentIds = array_column($participants, 'enrollment_id');
+        $compLessonsMap = [];
+        if (! empty($enrollmentIds)) {
+            $lpRows = $db->table('learning_progress')
+                ->select('enrollment_id, COUNT(*) as cnt')
+                ->whereIn('enrollment_id', $enrollmentIds)
+                ->where('status', 'completed')
+                ->groupBy('enrollment_id')
+                ->get()->getResultArray();
+            foreach ($lpRows as $lpr) {
+                $compLessonsMap[(int) $lpr['enrollment_id']] = (int) $lpr['cnt'];
+            }
+        }
         foreach ($participants as &$p) {
             $eid = (int) $p['enrollment_id'];
-            $completedLessons = (int) $db->table('learning_progress')
-                ->where('enrollment_id', $eid)
-                ->where('status', 'completed')
-                ->countAllResults();
-
+            $completedLessons = $compLessonsMap[$eid] ?? 0;
             $p['completed_lessons'] = $completedLessons;
             $p['total_lessons']     = $allLessonsCount;
             $p['progress_percent']   = $allLessonsCount > 0 ? round(($completedLessons / $allLessonsCount) * 100, 1) : 0.0;
         }
         unset($p);
 
-        // 3. Quizzes (Assessment)
+        // 3. Quizzes (Assessment - Batch pre-fetched)
         $quizzes = $db->table('quizzes')
             ->where('class_id', $classIdInt)
             ->orderBy('type', 'ASC')
             ->orderBy('id', 'ASC')
             ->get()->getResultArray();
 
+        $quizIds = array_column($quizzes, 'id');
+        $qQuestionsMap = [];
+        $qAttemptsMap = [];
+        if (! empty($quizIds)) {
+            $qqRows = $db->table('quiz_questions')
+                ->select('quiz_id, COUNT(*) as cnt')
+                ->whereIn('quiz_id', $quizIds)
+                ->groupBy('quiz_id')
+                ->get()->getResultArray();
+            foreach ($qqRows as $qqr) {
+                $qQuestionsMap[(int) $qqr['quiz_id']] = (int) $qqr['cnt'];
+            }
+
+            $qaRows = $db->table('quiz_attempts')
+                ->select('quiz_id, COUNT(*) as cnt')
+                ->whereIn('quiz_id', $quizIds)
+                ->groupBy('quiz_id')
+                ->get()->getResultArray();
+            foreach ($qaRows as $qar) {
+                $qAttemptsMap[(int) $qar['quiz_id']] = (int) $qar['cnt'];
+            }
+        }
         foreach ($quizzes as &$q) {
             $qid = (int) $q['id'];
-            $q['question_count'] = (int) $db->table('quiz_questions')->where('quiz_id', $qid)->countAllResults();
-            $q['attempts_count'] = (int) $db->table('quiz_attempts')->where('quiz_id', $qid)->countAllResults();
+            $q['question_count'] = $qQuestionsMap[$qid] ?? 0;
+            $q['attempts_count'] = $qAttemptsMap[$qid] ?? 0;
         }
         unset($q);
 
-        // 4. Assignments (Tugas)
+        // 4. Assignments (Tugas - Batch pre-fetched)
         $assignments = $db->table('assignments a')
             ->select('a.*, l.title AS lesson_title')
             ->join('lessons l', 'l.id = a.lesson_id', 'left')
@@ -362,10 +488,24 @@ class TrainerController extends BaseController
             ->orderBy('a.created_at', 'DESC')
             ->get()->getResultArray();
 
+        $asgIds = array_column($assignments, 'id');
+        $asgSubMap = [];
+        $asgPendingMap = [];
+        if (! empty($asgIds)) {
+            $subRows = $db->table('assignment_submissions')
+                ->select('assignment_id, COUNT(*) as total, SUM(CASE WHEN status IN ("submitted", "in_review") THEN 1 ELSE 0 END) as pending_cnt')
+                ->whereIn('assignment_id', $asgIds)
+                ->groupBy('assignment_id')
+                ->get()->getResultArray();
+            foreach ($subRows as $sr) {
+                $asgSubMap[(int) $sr['assignment_id']] = (int) $sr['total'];
+                $asgPendingMap[(int) $sr['assignment_id']] = (int) $sr['pending_cnt'];
+            }
+        }
         foreach ($assignments as &$asg) {
             $aid = (int) $asg['id'];
-            $asg['total_submissions'] = (int) $db->table('assignment_submissions')->where('assignment_id', $aid)->countAllResults();
-            $asg['pending_reviews']   = (int) $db->table('assignment_submissions')->where('assignment_id', $aid)->whereIn('status', ['submitted', 'in_review'])->countAllResults();
+            $asg['total_submissions'] = $asgSubMap[$aid] ?? 0;
+            $asg['pending_reviews']   = $asgPendingMap[$aid] ?? 0;
             $asg['guide']             = parse_assignment_guide($asg['instructions'] ?? '');
         }
         unset($asg);
@@ -1820,19 +1960,20 @@ class TrainerController extends BaseController
                 $guideFilename = $guideFile->getClientName();
                 $guideSize = $guideFile->getSize();
 
-                db_connect()->table('file_assets')->insert([
-                    'user_id'        => $userId,
-                    'collection'     => 'assignment_guides',
-                    'filename'       => $newFilename,
-                    'original_name'  => $guideFilename,
-                    'mime_type'      => 'application/pdf',
-                    'size_bytes'     => $guideSize,
-                    'path'           => $guideUrl,
-                    'visibility'     => 'public',
-                    'storage_driver' => 'local',
-                    'created_at'     => date('Y-m-d H:i:s'),
-                    'updated_at'     => date('Y-m-d H:i:s'),
-                ]);
+                (new \App\Services\FileStorageService())->registerFileAsset([
+                    'disk'             => 'local',
+                    'path'             => $guideUrl,
+                    'original_name'    => $guideFilename,
+                    'stored_name'      => $newFilename,
+                    'extension'        => 'pdf',
+                    'mime_type'        => 'application/pdf',
+                    'size_bytes'       => (int) $guideSize,
+                    'checksum'         => @hash_file('sha256', $targetDir . $newFilename) ?: null,
+                    'visibility'       => 'public',
+                    'lifecycle_status' => 'available',
+                    'resource_type'    => 'assignment_guide',
+                    'uploaded_by'      => $userId ? (int) $userId : null,
+                ], $targetDir . $newFilename);
             }
 
             $cleanInstructions = (string) $this->request->getPost('instructions');
@@ -1917,19 +2058,20 @@ class TrainerController extends BaseController
                 $guideFilename = $guideFile->getClientName();
                 $guideSize = $guideFile->getSize();
 
-                db_connect()->table('file_assets')->insert([
-                    'user_id'        => $userId,
-                    'collection'     => 'assignment_guides',
-                    'filename'       => $newFilename,
-                    'original_name'  => $guideFilename,
-                    'mime_type'      => 'application/pdf',
-                    'size_bytes'     => $guideSize,
-                    'path'           => $guideUrl,
-                    'visibility'     => 'public',
-                    'storage_driver' => 'local',
-                    'created_at'     => date('Y-m-d H:i:s'),
-                    'updated_at'     => date('Y-m-d H:i:s'),
-                ]);
+                (new \App\Services\FileStorageService())->registerFileAsset([
+                    'disk'             => 'local',
+                    'path'             => $guideUrl,
+                    'original_name'    => $guideFilename,
+                    'stored_name'      => $newFilename,
+                    'extension'        => 'pdf',
+                    'mime_type'        => 'application/pdf',
+                    'size_bytes'       => (int) $guideSize,
+                    'checksum'         => @hash_file('sha256', $targetDir . $newFilename) ?: null,
+                    'visibility'       => 'public',
+                    'lifecycle_status' => 'available',
+                    'resource_type'    => 'assignment_guide',
+                    'uploaded_by'      => $userId ? (int) $userId : null,
+                ], $targetDir . $newFilename);
             }
 
             $cleanInstructions = (string) $this->request->getPost('instructions');

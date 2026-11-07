@@ -165,7 +165,7 @@
                     <?php else: ?>
                         <?php foreach ($sliders as $index => $s): ?>
                             <?php
-                            $imgSrc = ! empty($s['image_url']) ? (str_starts_with($s['image_url'], 'http') ? $s['image_url'] : base_url($s['image_url'])) : base_url('assets/main/images/backgrounds/slider-1-1.png');
+                            $imgSrc = ! empty($s['image_url']) ? (str_starts_with($s['image_url'], 'http') ? $s['image_url'] : base_url($s['image_url'])) : base_url('assets/dashboard/images/backgrounds/slider-1-1.png');
                             $hasSecondBtn = ! empty($s['secondary_button_text']);
                             ?>
                             <tr id="slider-row-<?= $s['id'] ?>">
@@ -207,7 +207,7 @@
                                              alt="Slide #<?= esc($s['id']) ?>" 
                                              class="w-100 h-100 object-fit-cover cursor-pointer hover-scale-105 transition-all" 
                                              onclick="openImageLightbox('<?= esc($imgSrc) ?>', '<?= esc(strip_tags($s['title'])) ?>')"
-                                             onerror="this.src='<?= base_url('assets/main/images/backgrounds/slider-1-1.png') ?>'">
+                                             onerror="this.src='<?= base_url('assets/dashboard/images/backgrounds/slider-1-1.png') ?>'">
                                         <span class="position-absolute bottom-0 end-0 bg-dark-subtle text-white text-3xs px-4 py-2 radius-top-left-4 opacity-75">
                                             <iconify-icon icon="solar:magnifer-zoom-in-linear"></iconify-icon>
                                         </span>
@@ -355,7 +355,7 @@
                 <?php if (! empty($sliders)): ?>
                     <?php foreach ($sliders as $idx => $s): ?>
                         <?php
-                        $simImg = ! empty($s['image_url']) ? (str_starts_with($s['image_url'], 'http') ? $s['image_url'] : base_url($s['image_url'])) : base_url('assets/main/images/backgrounds/slider-1-1.png');
+                        $simImg = ! empty($s['image_url']) ? (str_starts_with($s['image_url'], 'http') ? $s['image_url'] : base_url($s['image_url'])) : base_url('assets/dashboard/images/backgrounds/slider-1-1.png');
                         $rawTitle = $s['title'];
                         // Ensure <span> inside title gets golden styling in simulator
                         $styledTitle = str_ireplace('<span>', '<span style="color: #ffc107; font-weight: 700;">', $rawTitle);

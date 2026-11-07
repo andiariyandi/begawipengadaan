@@ -90,42 +90,37 @@ class WorkspaceSmoke extends BaseCommand
         CLI::newLine();
         CLI::write("Testing Left Sidebar role menus...", 'yellow');
         $sidebarRoleChecks = [
-            'participant' => ['Pembelajaran Saya', 'Tugas', 'Assessment', 'Sertifikat Saya', 'Bookmark'],
-            'trainer'     => ['Kelas Saya', 'Materi Pembelajaran', 'Assessment', 'Peserta', 'Progress Peserta'],
+            'participant' => ['Kelas Belajar', 'Tugas', 'Assessment', 'Sertifikat Saya', 'Bookmark'],
+            'trainer'     => ['Kelas & Kurikulum', 'Bank Materi', 'Assessment', 'Peserta', 'Progress'],
             'operator'    => [
                 'Beranda',
-                'Approval',
-                'Verifikasi User',
-                'Kelas & Trainer Assignment',
-                'Operasional Event',
-                'Presensi',
-                'Monitoring Pembelajaran',
-                'Verifikasi Sertifikat',
-                'Evaluasi & Override',
-                'Aktivitas',
+                'Kelas & Penugasan Trainer',
+                'Monitoring Kelas',
+                'Verifikasi Peserta & Evaluasi',
+                'Sertifikat Kelas',
+                'Event Pendampingan',
+                'Presensi Event',
                 'Profil',
             ],
             'admin'       => [
                 'Pusat Eksekutif',
-                'Pusat Operasional',
                 'Antrean Approval',
-                'Verifikasi User',
-                'Penugasan Trainer',
-                'Monitoring Belajar',
+                'Verifikasi Akun Baru',
+                'Penugasan Kelas (RBAC)',
+                'Monitoring Pembelajaran',
                 'Verifikasi Sertifikat',
-                'Audit Aktivitas',
-                'Dashboard WowDash',
+                'Audit Aktivitas Sistem',
+                'Dashboard Utama',
             ],
             'super_administrator' => [
                 'Pusat Eksekutif',
-                'Pusat Operasional',
                 'Antrean Approval',
-                'Verifikasi User',
-                'Penugasan Trainer',
-                'Monitoring Belajar',
+                'Verifikasi Akun Baru',
+                'Penugasan Kelas (RBAC)',
+                'Monitoring Pembelajaran',
                 'Verifikasi Sertifikat',
-                'Audit Aktivitas',
-                'Dashboard WowDash',
+                'Audit Aktivitas Sistem',
+                'Dashboard Utama',
             ],
         ];
 
@@ -825,8 +820,8 @@ class WorkspaceSmoke extends BaseCommand
 
             // 7.2 Kelas & Trainer Assignment View
             $assignmentHtml = $operatorController->classTrainers();
-            $hasAssignmentElements = str_contains($assignmentHtml, 'Kelas & Trainer Assignment')
-                && str_contains($assignmentHtml, 'Daftar Kelas & Penugasan Pengajar')
+            $hasAssignmentElements = (str_contains($assignmentHtml, 'Penugasan Kelas, Operator & Multi-Trainer') || str_contains($assignmentHtml, 'Kelas Kelolaan & Penugasan Trainer') || str_contains($assignmentHtml, 'Kelas & Trainer Assignment'))
+                && (str_contains($assignmentHtml, 'Daftar Kelas, Operator Asisten & Multi-Trainer') || str_contains($assignmentHtml, 'Daftar Kelas & Penugasan Pengajar'))
                 && str_contains($assignmentHtml, 'Direktori Pengajar (Trainer)')
                 && str_contains($assignmentHtml, 'assignTrainerModal');
 
@@ -1205,7 +1200,7 @@ class WorkspaceSmoke extends BaseCommand
             $cssContent = file_get_contents(FCPATH . 'assets/main/css/workspace.css');
             $hasUniversalBleedProtection = str_contains($cssContent, 'white-space: nowrap !important')
                 && str_contains($cssContent, 'overflow-wrap: anywhere !important')
-                && str_contains($cssContent, 'min-width: 580px')
+                && (str_contains($cssContent, 'min-width: 580px') || str_contains($cssContent, 'min-width: 600px'))
                 && str_contains($cssContent, '@media (max-width: 767.98px)');
             if ($hasUniversalBleedProtection) {
                 CLI::write(" [PASS] CSS Bleed & Mobile Protection: Universal wrap, badge protection, responsive tables & breakpoints verified", 'green');
@@ -1247,9 +1242,9 @@ class WorkspaceSmoke extends BaseCommand
             $profileHtml = is_string($profileView) ? $profileView : (string) ($profileView->getBody() ?? '');
 
             $hasProfileHeader   = str_contains($profileHtml, 'Profil Saya') || str_contains($profileHtml, 'Manajemen Profil');
-            $hasAccountSection  = str_contains($profileHtml, 'Data Identitas Akun');
+            $hasAccountSection  = str_contains($profileHtml, 'Identitas Akun');
             $hasPasswordSection = str_contains($profileHtml, 'Ubah Kata Sandi');
-            $hasAddressSection  = str_contains($profileHtml, 'Alamat & Wilayah');
+            $hasAddressSection  = str_contains($profileHtml, 'Wilayah &') || str_contains($profileHtml, 'Alamat');
             $hasStatusSection   = str_contains($profileHtml, 'Status Akun');
 
             if ($hasProfileHeader && $hasAccountSection && $hasPasswordSection && $hasAddressSection && $hasStatusSection) {

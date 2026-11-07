@@ -217,7 +217,7 @@ $levelBadge = match (strtolower((string) ($course['level'] ?? 'basic'))) {
                 <?php
                 $coverSrc = ! empty($course['cover_url'])
                     ? (str_starts_with($course['cover_url'], 'http') ? $course['cover_url'] : base_url($course['cover_url']))
-                    : base_url('assets/main/images/resources/course-details-img-1.jpg');
+                    : base_url('assets/dashboard/images/resources/course-details-img-1.jpg');
                 ?>
                 <div class="radius-12 overflow-hidden border mb-16" style="max-height: 200px;">
                     <img src="<?= esc($coverSrc) ?>" alt="<?= esc($course['title']) ?>" class="w-100 h-100" style="object-fit: cover;">

@@ -6,7 +6,7 @@
 $isEdit = ! empty($announcement);
 $actionUrl = $isEdit ? site_url('dashboard/landing/pengumuman/ubah/' . $announcement['id']) : site_url('dashboard/landing/pengumuman/simpan');
 $pageHeader = $isEdit ? 'Ubah Slide Pengumuman Popup' : 'Tambah Slide Pengumuman Popup';
-$fallbackImg = base_url('assets/main/images/event/event-details-top-img-1.jpg');
+$fallbackImg = base_url('assets/dashboard/images/event/event-details-top-img-1.jpg');
 $curImage = !empty($announcement['image_url']) ? (str_starts_with($announcement['image_url'], 'http') ? $announcement['image_url'] : base_url($announcement['image_url'])) : $fallbackImg;
 ?>
 
@@ -128,20 +128,20 @@ $curImage = !empty($announcement['image_url']) ? (str_starts_with($announcement[
                             <div class="mt-12">
                                 <label class="text-2xs fw-semibold text-secondary-light mb-6 d-block">Atau Pilih Gambar Preset Bawaan:</label>
                                 <div class="d-flex flex-wrap gap-2">
-                                    <button type="button" class="btn btn-sm btn-outline-neutral-300 bg-white radius-8 p-6 d-flex align-items-center gap-2 form-preset-banner" data-src="assets/main/images/event/event-details-top-img-1.jpg">
-                                        <img src="<?= base_url('assets/main/images/event/event-details-top-img-1.jpg') ?>" class="w-32-px h-20-px object-fit-cover radius-4">
+                                    <button type="button" class="btn btn-sm btn-outline-neutral-300 bg-white radius-8 p-6 d-flex align-items-center gap-2 form-preset-banner" data-src="assets/dashboard/images/event/event-details-top-img-1.jpg">
+                                        <img src="<?= base_url('assets/dashboard/images/event/event-details-top-img-1.jpg') ?>" class="w-32-px h-20-px object-fit-cover radius-4">
                                         <span class="text-2xs fw-medium text-primary-light">Bimtek PBJ</span>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-neutral-300 bg-white radius-8 p-6 d-flex align-items-center gap-2 form-preset-banner" data-src="assets/main/images/slider/banner-1.jpg">
-                                        <img src="<?= base_url('assets/main/images/slider/banner-1.jpg') ?>" class="w-32-px h-20-px object-fit-cover radius-4" onerror="this.style.display='none'">
-                                        <span class="text-2xs fw-medium text-primary-light">Gedung Lampung</span>
+                                    <button type="button" class="btn btn-sm btn-outline-neutral-300 bg-white radius-8 p-6 d-flex align-items-center gap-2 form-preset-banner" data-src="assets/dashboard/images/backgrounds/slider-1-1.png">
+                                        <img src="<?= base_url('assets/dashboard/images/backgrounds/slider-1-1.png') ?>" class="w-32-px h-20-px object-fit-cover radius-4" onerror="this.style.display='none'">
+                                        <span class="text-2xs fw-medium text-primary-light">Banner Utama</span>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-neutral-300 bg-white radius-8 p-6 d-flex align-items-center gap-2 form-preset-banner" data-src="assets/main/images/event/event-grid-img-1.jpg">
-                                        <img src="<?= base_url('assets/main/images/event/event-grid-img-1.jpg') ?>" class="w-32-px h-20-px object-fit-cover radius-4" onerror="this.style.display='none'">
+                                    <button type="button" class="btn btn-sm btn-outline-neutral-300 bg-white radius-8 p-6 d-flex align-items-center gap-2 form-preset-banner" data-src="assets/dashboard/images/resources/course-details-img-1.jpg">
+                                        <img src="<?= base_url('assets/dashboard/images/resources/course-details-img-1.jpg') ?>" class="w-32-px h-20-px object-fit-cover radius-4" onerror="this.style.display='none'">
                                         <span class="text-2xs fw-medium text-primary-light">Webinar Virtual</span>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-neutral-300 bg-white radius-8 p-6 d-flex align-items-center gap-2 form-preset-banner" data-src="assets/main/images/event/event-grid-img-2.jpg">
-                                        <img src="<?= base_url('assets/main/images/event/event-grid-img-2.jpg') ?>" class="w-32-px h-20-px object-fit-cover radius-4" onerror="this.style.display='none'">
+                                    <button type="button" class="btn btn-sm btn-outline-neutral-300 bg-white radius-8 p-6 d-flex align-items-center gap-2 form-preset-banner" data-src="assets/dashboard/images/resources/course-list-img-1.jpg">
+                                        <img src="<?= base_url('assets/dashboard/images/resources/course-list-img-1.jpg') ?>" class="w-32-px h-20-px object-fit-cover radius-4" onerror="this.style.display='none'">
                                         <span class="text-2xs fw-medium text-primary-light">Workshop LKPP</span>
                                     </button>
                                 </div>
@@ -156,8 +156,8 @@ $curImage = !empty($announcement['image_url']) ? (str_starts_with($announcement[
                                 </a>
                                 <div class="collapse mt-8" id="collapseAnnounceUrl">
                                     <input type="text" name="image_url" id="imageUrlInput" class="form-control radius-8 text-sm"
-                                           value="<?= esc(old('image_url', $announcement['image_url'] ?? 'assets/main/images/event/event-details-top-img-1.jpg')) ?>"
-                                           placeholder="assets/main/images/event/event-details-top-img-1.jpg">
+                                           value="<?= esc(old('image_url', $announcement['image_url'] ?? 'assets/dashboard/images/event/event-details-top-img-1.jpg')) ?>"
+                                           placeholder="assets/dashboard/images/event/event-details-top-img-1.jpg">
                                     <small class="text-secondary-light text-2xs mt-2 d-block">Otomatis terisi jika mengunggah file baru di atas.</small>
                                 </div>
                             </div>

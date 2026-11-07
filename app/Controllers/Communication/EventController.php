@@ -32,9 +32,10 @@ class EventController extends BaseController
         $db = db_connect();
         $stats = [
             'total'            => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->countAllResults(),
-            'open'             => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->where('status', 'open_registration')->countAllResults(),
-            'coming_soon'      => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->whereIn('status', ['coming_soon', 'published'])->countAllResults(),
+            'open'             => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->whereIn('status', ['open_registration', 'full'])->countAllResults(),
+            'coming_soon'      => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->where('status', 'coming_soon')->countAllResults(),
             'finished'         => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->where('status', 'finished')->countAllResults(),
+            'full'             => (int) $db->table('events')->where('deleted_at IS NULL', null, false)->where('status', 'full')->countAllResults(),
             'total_registered' => (int) $db->table('event_registrations')->countAllResults(),
             'total_attended'   => (int) $db->table('attendances')->where('status', 'present')->countAllResults(),
         ];

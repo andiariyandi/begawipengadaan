@@ -122,6 +122,22 @@ class WorkspaceAuthFilter implements FilterInterface
             }
         }
 
+        // 4. /workspace/peserta/* (Peserta, Administrator, Super Administrator, Operator, Trainer)
+        if (str_starts_with($path, 'workspace/peserta')) {
+            $allowed = ['peserta', 'participant', 'user', 'operator', 'trainer', 'administrator', 'super_administrator'];
+            $hasPrefixAdmin = false;
+            foreach ($effectiveRoles as $r) {
+                if (str_starts_with(strtolower(trim((string) $r)), 'admin_')) {
+                    $hasPrefixAdmin = true;
+                    break;
+                }
+            }
+            if (empty(array_intersect($allowed, $effectiveRoles)) && ! $hasPrefixAdmin) {
+                return redirect()->to(site_url('workspace'))
+                    ->with('error', 'Akses ditolak: Anda tidak memiliki wewenang Ruang Peserta.');
+            }
+        }
+
         return null;
     }
 

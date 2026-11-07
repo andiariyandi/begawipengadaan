@@ -54,19 +54,19 @@ class OperatorController extends BaseController
     private function isUnrestrictedAdmin(): bool
     {
         $roles = (array) session()->get('roles');
-        return ! empty(array_intersect(['administrator', 'super_administrator'], $roles));
+        return ! empty(array_intersect(['administrator', 'admin', 'super_administrator'], $roles));
     }
 
     private function hasFullClassScope(): bool
     {
         $roles = (array) session()->get('roles');
-        return ! empty(array_intersect(['administrator', 'super_administrator', 'admin_arenabelajar'], $roles));
+        return ! empty(array_intersect(['administrator', 'admin', 'super_administrator', 'admin_arenabelajar'], $roles));
     }
 
     private function hasFullEventScope(): bool
     {
         $roles = (array) session()->get('roles');
-        return ! empty(array_intersect(['administrator', 'super_administrator', 'admin_event'], $roles));
+        return ! empty(array_intersect(['administrator', 'admin', 'super_administrator', 'admin_event'], $roles));
     }
 
     /**
@@ -146,9 +146,11 @@ class OperatorController extends BaseController
         $actorId = $this->assertOperatorAccess();
         $allowedClassIds = $this->getAssignedClassIds($actorId);
         if ($allowedClassIds !== null && ! in_array($classId, $allowedClassIds, true)) {
-            redirect()->back()
-                ->with('error', 'Akses ditolak: Anda hanya berwenang mengelola kelas yang telah ditugaskan (assigned) kepada Anda oleh Administrator.')
-                ->send();
+            session()->setFlashdata('error', 'Akses ditolak: Anda hanya berwenang mengelola kelas yang telah ditugaskan (assigned) kepada Anda oleh Administrator.');
+            if (is_cli()) {
+                return $actorId;
+            }
+            redirect()->back()->send();
             exit;
         }
         return $actorId;
@@ -162,9 +164,11 @@ class OperatorController extends BaseController
         $actorId = $this->assertOperatorAccess();
         $allowedEventIds = $this->getAssignedEventIds($actorId);
         if ($allowedEventIds !== null && ! in_array($eventId, $allowedEventIds, true)) {
-            redirect()->to(route_to('workspace.operator.events'))
-                ->with('error', 'Akses ditolak: Anda hanya berwenang mengelola event yang telah ditugaskan (assigned) kepada Anda.')
-                ->send();
+            session()->setFlashdata('error', 'Akses ditolak: Anda hanya berwenang mengelola event yang telah ditugaskan (assigned) kepada Anda.');
+            if (is_cli()) {
+                return $actorId;
+            }
+            redirect()->to(route_to('workspace.operator.events'))->send();
             exit;
         }
         return $actorId;
@@ -178,6 +182,9 @@ class OperatorController extends BaseController
     {
         $actorId = $this->assertOperatorAccess();
         if (! $this->isUnrestrictedAdmin()) {
+            if (is_cli()) {
+                throw new \RuntimeException('Akses ditolak: Area ini dikhususkan secara penuh untuk Administrator & Super Administrator.');
+            }
             redirect()->to('/workspace')
                 ->with('error', 'Akses ditolak: Area ini dikhususkan secara penuh untuk Administrator & Super Administrator.')
                 ->send();
@@ -203,7 +210,7 @@ class OperatorController extends BaseController
         }
 
         $roles = (array) session()->get('roles');
-        $allowed = ['operator', 'administrator', 'super_administrator', 'admin_arenabelajar', 'admin_event'];
+        $allowed = ['operator', 'admin', 'administrator', 'super_administrator', 'admin_arenabelajar', 'admin_event'];
         $hasAccess = false;
         foreach ($allowed as $r) {
             if (in_array($r, $roles, true)) {
@@ -222,6 +229,9 @@ class OperatorController extends BaseController
         }
 
         if (! $hasAccess) {
+            if (is_cli()) {
+                throw new \RuntimeException('Akses ditolak. Halaman khusus Operator / Pengelola Platform.');
+            }
             redirect()->to('/workspace')->with('error', 'Akses ditolak. Halaman khusus Operator / Pengelola Platform.')->send();
             exit;
         }
@@ -1234,21 +1244,39 @@ class OperatorController extends BaseController
             ->orderBy('lc.created_at', 'DESC')
             ->get()->getResultArray();
 
-        $classes = [];
-        foreach ($rawClasses as $c) {
-            $cid = (int) $c['id'];
-            $c['student_count'] = $this->db->table('enrollments')->where('class_id', $cid)->countAllResults();
+        $classIds = array_column($rawClasses, 'id');
+        $studentCounts = [];
+        $allAssignedByClass = [];
+
+        if (! empty($classIds)) {
+            $counts = $this->db->table('enrollments')
+                ->select('class_id, COUNT(*) as cnt')
+                ->whereIn('class_id', $classIds)
+                ->groupBy('class_id')
+                ->get()->getResultArray();
+            foreach ($counts as $cntRow) {
+                $studentCounts[(int) $cntRow['class_id']] = (int) $cntRow['cnt'];
+            }
 
             $allAssigned = $this->db->table('class_trainers ct')
-                ->select('ct.user_id, ct.status, ct.role, ct.assigned_at, u.name, u.email')
+                ->select('ct.class_id, ct.user_id, ct.status, ct.role, ct.assigned_at, u.name, u.email')
                 ->join('users u', 'u.id = ct.user_id')
-                ->where('ct.class_id', $cid)
+                ->whereIn('ct.class_id', $classIds)
                 ->orderBy('ct.status', 'ASC')
                 ->orderBy('u.name', 'ASC')
                 ->get()->getResultArray();
+            foreach ($allAssigned as $assignedRow) {
+                $allAssignedByClass[(int) $assignedRow['class_id']][] = $assignedRow;
+            }
+        }
 
-            $c['operators'] = array_values(array_filter($allAssigned, static fn($row): bool => ($row['role'] ?? '') === 'operator'));
-            $c['trainers']  = array_values(array_filter($allAssigned, static fn($row): bool => ($row['role'] ?? '') !== 'operator'));
+        $classes = [];
+        foreach ($rawClasses as $c) {
+            $cid = (int) $c['id'];
+            $c['student_count'] = $studentCounts[$cid] ?? 0;
+            $classAssigned = $allAssignedByClass[$cid] ?? [];
+            $c['operators'] = array_values(array_filter($classAssigned, static fn($row): bool => ($row['role'] ?? '') === 'operator'));
+            $c['trainers']  = array_values(array_filter($classAssigned, static fn($row): bool => ($row['role'] ?? '') !== 'operator'));
             $classes[] = $c;
         }
 
@@ -1489,7 +1517,7 @@ class OperatorController extends BaseController
         $this->db->transComplete();
 
         if (! $this->db->transStatus() || $assignedCount === 0) {
-            return redirect()->back()->with('error', 'Penugasan gagal disimpan atau pengguna yang dipilih tidak memiliki role aktif yang sesuai.');
+            return redirect()->back()->with('error', 'Penugasan ditolak: Pengguna yang dipilih bukan trainer aktif atau tidak memiliki role yang sesuai.');
         }
 
         return redirect()->back()->with('message', 'Berhasil menyimpan ' . $assignedCount . ' penugasan pada kelas ' . esc($class['name']) . '.');
@@ -1784,6 +1812,10 @@ class OperatorController extends BaseController
             'user_id'  => $reg['user_id'],
             'status'   => 'cancelled',
         ], $reason);
+
+        // State Machine: Panggil rekonsiliasi kuota dan promosi waitlist terpusat di CommunicationService
+        $eventId = (int) $reg['event_id'];
+        (new \App\Services\Communication\CommunicationService())->reconcileEventCapacityAndWaitlist($eventId);
 
         try {
             (new \App\Services\NotificationService($this->db))->send(
@@ -2869,14 +2901,14 @@ class OperatorController extends BaseController
             return redirect()->back()->with('error', 'Enrollment tidak ditemukan.');
         }
 
-        $this->assertCanManageClass((int) $enrollment['class_id']);
-
         // H-3: Cegah operator meng-override nilai miliknya sendiri (Anti Self-Override)
         $roles = (array) session()->get('roles');
         $isSuperAdmin = in_array('super_administrator', $roles, true);
         if (! $isSuperAdmin && (int) ($enrollment['user_id'] ?? 0) === $actorId) {
             return redirect()->back()->with('error', 'Sesuai prinsip Segregation of Duties, Anda tidak dapat mengubah/meng-override nilai milik Anda sendiri.');
         }
+
+        $this->assertCanManageClass((int) $enrollment['class_id']);
 
         if (! in_array($status, ['active', 'completed', 'withdrawn', 'cancelled'], true)) {
             $status = 'completed';

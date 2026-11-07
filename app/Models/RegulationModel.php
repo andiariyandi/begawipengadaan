@@ -11,7 +11,14 @@ class RegulationModel extends Model
     protected $returnType     = 'array';
     protected $useTimestamps  = true;
     protected $useSoftDeletes = true;
-    protected $allowedFields  = ['regulation_category_id', 'title', 'nomor_regulasi', 'tahun', 'status', 'uploaded_by'];
+    protected $allowedFields  = [
+        'category_id', 'title', 'slug', 'document_number', 'document_year',
+        'issuer_name', 'official_date', 'effective_date', 'summary', 'keywords',
+        'official_source_url', 'workflow_status', 'legal_status', 'visibility',
+        'is_featured', 'carousel_enabled', 'carousel_order', 'current_version_id',
+        'cover_file_id', 'cover_image_path', 'created_by', 'reviewed_by', 'reviewed_at',
+        'published_by', 'published_at', 'archived_at',
+    ];
 
     protected $validationRules = [
         'title'          => 'required|max_length[255]',

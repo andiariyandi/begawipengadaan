@@ -20,8 +20,72 @@ class RbacCustomRoleTest extends BaseCommand
         CLI::write("==================================================================", "yellow");
 
         $db = \Config\Database::connect();
-        $adminUser = $db->table('users')->orderBy('id', 'ASC')->get()->getRowArray();
-        $testUserId = ! empty($adminUser['id']) ? (int) $adminUser['id'] : 13;
+        // Setup dedicated fixture test user & custom role in database to prevent SuperAdmin session overwrite
+        $fixtureUser = $db->table('users')->where('username', 'rbac_custom_fixture')->get()->getRowArray();
+        if (! $fixtureUser) {
+            $db->table('users')->insert([
+                'username'       => 'rbac_custom_fixture',
+                'email'          => 'rbac_custom_fixture@test.local',
+                'password_hash'  => password_hash('Secret123!', PASSWORD_BCRYPT),
+                'name'           => 'RBAC Custom Fixture User',
+                'phone'          => '081234567890',
+                'profile_type'   => 'asn',
+                'account_status' => 'active',
+                'created_at'     => date('Y-m-d H:i:s'),
+                'updated_at'     => date('Y-m-d H:i:s'),
+            ]);
+            $testUserId = (int) $db->insertID();
+        } else {
+            $testUserId = (int) $fixtureUser['id'];
+        }
+
+        $roleRow = $db->table('roles')->where('key', 'rbac_test_role')->get()->getRowArray();
+        if (! $roleRow) {
+            $db->table('roles')->insert([
+                'key'         => 'rbac_test_role',
+                'name'        => 'RBAC Test Custom Role',
+                'description' => 'Role for testing RBAC modular access',
+                'created_at'  => date('Y-m-d H:i:s'),
+                'updated_at'  => date('Y-m-d H:i:s'),
+            ]);
+            $testRoleId = (int) $db->insertID();
+        } else {
+            $testRoleId = (int) $roleRow['id'];
+        }
+
+        $userRole = $db->table('user_roles')->where(['user_id' => $testUserId, 'role_id' => $testRoleId])->get()->getRowArray();
+        if (! $userRole) {
+            $db->table('user_roles')->insert([
+                'user_id'    => $testUserId,
+                'role_id'    => $testRoleId,
+                'status'     => 'active',
+                'granted_by' => 13,
+                'granted_at' => date('Y-m-d H:i:s'),
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+        } else {
+            $db->table('user_roles')->where('id', $userRole['id'])->update(['status' => 'active']);
+        }
+
+        $syncDbPerms = function (array $permKeys) use ($db, $testRoleId): void {
+            $db->table('role_permissions')->where('role_id', $testRoleId)->delete();
+            if (! empty($permKeys)) {
+                $permRows = $db->table('permissions')->whereIn('key', $permKeys)->get()->getResultArray();
+                $batch = [];
+                $now = date('Y-m-d H:i:s');
+                foreach ($permRows as $p) {
+                    $batch[] = [
+                        'role_id'       => $testRoleId,
+                        'permission_id' => (int) $p['id'],
+                        'created_at'    => $now,
+                    ];
+                }
+                if (! empty($batch)) {
+                    $db->table('role_permissions')->insertBatch($batch);
+                }
+            }
+        };
 
         $createdRoleIds = [];
         $passed = 0;
@@ -117,11 +181,12 @@ class RbacCustomRoleTest extends BaseCommand
             // -------------------------------------------------------------
             CLI::write("\n--- [SCENARIO 1] Pengujian Role Kustom: 'Khusus Bunga Rampai' ---", "cyan");
             $bungaPerms = ['dashboard.view', 'bunga.view', 'bunga.article.manage'];
+            $syncDbPerms($bungaPerms);
 
             session()->set([
                 'user_id'          => $testUserId,
-                'role'             => 'specialist_bunga',
-                'roles'            => ['specialist_bunga'],
+                'role'             => 'rbac_test_role',
+                'roles'            => ['rbac_test_role'],
                 'permissions'      => $bungaPerms,
                 'isLoggedIn'       => true,
                 'account_status'   => 'active',
@@ -156,11 +221,12 @@ class RbacCustomRoleTest extends BaseCommand
             // -------------------------------------------------------------
             CLI::write("\n--- [SCENARIO 2] Pengujian Role Kustom: 'Khusus Regulasi PBJ' ---", "cyan");
             $regPerms = ['dashboard.view', 'regulation.view', 'regulation.manage'];
+            $syncDbPerms($regPerms);
 
             session()->set([
                 'user_id'          => $testUserId,
-                'role'             => 'specialist_regulasi',
-                'roles'            => ['specialist_regulasi'],
+                'role'             => 'rbac_test_role',
+                'roles'            => ['rbac_test_role'],
                 'permissions'      => $regPerms,
                 'isLoggedIn'       => true,
                 'account_status'   => 'active',
@@ -178,11 +244,12 @@ class RbacCustomRoleTest extends BaseCommand
             // -------------------------------------------------------------
             CLI::write("\n--- [SCENARIO 3] Pengujian Role Kustom: 'Khusus Arena Belajar' ---", "cyan");
             $learningPerms = ['dashboard.view', 'learning.view', 'learning.class.view'];
+            $syncDbPerms($learningPerms);
 
             session()->set([
                 'user_id'          => $testUserId,
-                'role'             => 'specialist_learning',
-                'roles'            => ['specialist_learning'],
+                'role'             => 'rbac_test_role',
+                'roles'            => ['rbac_test_role'],
                 'permissions'      => $learningPerms,
                 'isLoggedIn'       => true,
                 'account_status'   => 'active',
@@ -200,11 +267,12 @@ class RbacCustomRoleTest extends BaseCommand
             // -------------------------------------------------------------
             CLI::write("\n--- [SCENARIO 4] Pengujian Role Kustom: 'Auditor Read-Only' ---", "cyan");
             $auditorPerms = ['dashboard.view', 'audit.view', 'reports.view'];
+            $syncDbPerms($auditorPerms);
 
             session()->set([
                 'user_id'          => $testUserId,
-                'role'             => 'auditor_readonly',
-                'roles'            => ['auditor_readonly'],
+                'role'             => 'rbac_test_role',
+                'roles'            => ['rbac_test_role'],
                 'permissions'      => $auditorPerms,
                 'isLoggedIn'       => true,
                 'account_status'   => 'active',
@@ -226,9 +294,20 @@ class RbacCustomRoleTest extends BaseCommand
             $assert($r12['status'] === 403, "Aksi GET rute mutasi /tambah tanpa izin kelola ditolak (HTTP 403 Forbidden)");
 
         } finally {
+            // Cleanup test fixture from DB
+            if (isset($testRoleId)) {
+                $db->table('role_permissions')->where('role_id', $testRoleId)->delete();
+                $db->table('user_roles')->where('role_id', $testRoleId)->delete();
+                $db->table('roles')->where('id', $testRoleId)->delete();
+            }
+            if (isset($testUserId)) {
+                $db->table('users')->where('id', $testUserId)->delete();
+            }
             // Restore Super Administrator session for regression audit
+            $adminUser = $db->table('users')->orderBy('id', 'ASC')->get()->getRowArray();
+            $adminId = ! empty($adminUser['id']) ? (int) $adminUser['id'] : 13;
             session()->set([
-                'user_id'          => $testUserId,
+                'user_id'          => $adminId,
                 'role'             => 'super_administrator',
                 'roles'            => ['super_administrator'],
                 'permissions'      => [],

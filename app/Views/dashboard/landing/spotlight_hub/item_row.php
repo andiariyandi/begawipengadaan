@@ -19,7 +19,7 @@ $featureIcons = [
 $featureIcon = $featureIcons[$item['feature'] ?? ''] ?? 'solar:slider-vertical-bold';
 $isCarouselActive = ! empty($item['carousel_enabled']);
 $isFeaturedActive = ! empty($item['is_featured']);
-$fallbackImg = base_url('assets/main/images/event/event-details-top-img-1.jpg');
+$fallbackImg = base_url('assets/dashboard/images/event/event-details-top-img-1.jpg');
 ?>
 <tr class="spotlight-row"
     data-feature="<?= esc($item['feature']) ?>"
